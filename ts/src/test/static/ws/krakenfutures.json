@@ -188,6 +188,253 @@
                     }
                 }
             }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "swap trades unsubscribe acknowledged for the symbol",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "unsubscribed",
+                        "feed": "trade",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "feed": "trade",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "swap trades unsubscribe for two symbols in one request, krakenfutures acknowledges each product separately",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:USD",
+                        "ETH/USD:USD"
+                    ]
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "unsubscribed",
+                        "feed": "trade",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    },
+                    {
+                        "event": "unsubscribed",
+                        "feed": "trade",
+                        "product_ids": [
+                            "PF_ETHUSD"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "feed": "trade",
+                        "product_ids": [
+                            "PF_XBTUSD",
+                            "PF_ETHUSD"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "swap order book unsubscribe acknowledged for the symbol",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "unsubscribed",
+                        "feed": "book",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "feed": "book",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBookForSymbols": [
+            {
+                "description": "swap order book unsubscribe for two symbols in one request, krakenfutures acknowledges each product separately",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:USD",
+                        "ETH/USD:USD"
+                    ]
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "unsubscribed",
+                        "feed": "book",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    },
+                    {
+                        "event": "unsubscribed",
+                        "feed": "book",
+                        "product_ids": [
+                            "PF_ETHUSD"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "feed": "book",
+                        "product_ids": [
+                            "PF_XBTUSD",
+                            "PF_ETHUSD"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTicker": [
+            {
+                "description": "swap ticker unsubscribe acknowledged for the symbol",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "unsubscribed",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTickers": [
+            {
+                "description": "swap ticker unsubscribe for two symbols in one request, krakenfutures acknowledges each product separately",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:USD",
+                        "ETH/USD:USD"
+                    ]
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "unsubscribed",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    },
+                    {
+                        "event": "unsubscribed",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_ETHUSD"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "feed": "ticker",
+                        "product_ids": [
+                            "PF_XBTUSD",
+                            "PF_ETHUSD"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchBidsAsks": [
+            {
+                "description": "swap ticker_lite unsubscribe for two symbols in one request, krakenfutures acknowledges each product separately",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:USD",
+                        "ETH/USD:USD"
+                    ]
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "unsubscribed",
+                        "feed": "ticker_lite",
+                        "product_ids": [
+                            "PF_XBTUSD"
+                        ]
+                    },
+                    {
+                        "event": "unsubscribed",
+                        "feed": "ticker_lite",
+                        "product_ids": [
+                            "PF_ETHUSD"
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "unsubscribe",
+                        "feed": "ticker_lite",
+                        "product_ids": [
+                            "PF_XBTUSD",
+                            "PF_ETHUSD"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }

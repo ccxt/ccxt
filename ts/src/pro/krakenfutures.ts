@@ -33,6 +33,13 @@ export default class krakenfutures extends krakenfuturesRest {
                 'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchBidsAsks': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
                 'watchBalance': true,
                 // 'watchStatus': true, // https://docs.kraken.com/exchange/api-reference/futures-websocket/heartbeat
                 'watchOrders': true,
@@ -105,6 +112,19 @@ export default class krakenfutures extends krakenfuturesRest {
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const orderbook: WsOrderBook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#unWatchOrderBookForSymbols
+     * @description unsubscribes from the order book channel for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        return await this.unWatchMultiHelper ('orderbook', 'book', symbols, params);
     }
 
     /**
@@ -214,6 +234,32 @@ export default class krakenfutures extends krakenfuturesRest {
 
     /**
      * @method
+     * @name krakenfutures#unWatchTicker
+     * @description unsubscribes from the ticker channel
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#unWatchTickers
+     * @description unsubscribes from the ticker channel for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        return await this.unWatchMultiHelper ('ticker', 'ticker', symbols, params);
+    }
+
+    /**
+     * @method
      * @name krakenfutures#watchBidsAsks
      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker_lite
      * @description watches best bid & ask for symbols
@@ -232,6 +278,19 @@ export default class krakenfutures extends krakenfuturesRest {
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#unWatchBidsAsks
+     * @description unsubscribes from the best bid and ask channel for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker_lite
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        return await this.unWatchMultiHelper ('bidask', 'ticker_lite', symbols, params);
     }
 
     /**
@@ -273,6 +332,32 @@ export default class krakenfutures extends krakenfuturesRest {
 
     /**
      * @method
+     * @name krakenfutures#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        return await this.unWatchMultiHelper ('trade', 'trade', symbols, params);
+    }
+
+    /**
+     * @method
      * @name krakenfutures#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
@@ -283,6 +368,19 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#unWatchOrderBook
+     * @description unsubscribes from the order book channel
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
     /**
@@ -1709,6 +1807,40 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name krakenfutures#unWatchMultiHelper
+     * @description sends one unsubscribe request for a list of symbols, the exchange acknowledges each product separately
+     * @param {string} unifiedName unified element name used in the message hashes: orderbook, trade, ticker, bidask
+     * @param {string} channelName exchange feed name
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const url = this.urls['api']['ws'];
+        // symbols are required
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, false);
+        const messageHashes: string[] = [];
+        const marketIds: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
+            const marketId = this.safeString (market, 'id', '');
+            marketIds.push (marketId);
+            messageHashes.push ('unsubscribe:' + this.getMessageHash (unifiedName, undefined, market['symbol']));
+        }
+        const request: Dict = {
+            'event': 'unsubscribe',
+            'feed': channelName,
+            'product_ids': marketIds,
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+    }
+
     subscriptionExistsForHash (url: string, hash: string): boolean {
         const client = this.client (url);
         return (hash in client.subscriptions);
@@ -1758,12 +1890,57 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
+    handleUnSubscription (client: Client, message: Dict) {
+        //
+        //    {
+        //        "event": "unsubscribed",
+        //        "feed": "trade",
+        //        "product_ids": [ "PF_XBTUSD" ]
+        //    }
+        //
+        const feed = this.safeString (message, 'feed');
+        const unifiedNames: Dict = {
+            'book': 'orderbook',
+            'trade': 'trade',
+            'ticker': 'ticker',
+            'ticker_lite': 'bidask',
+        };
+        const topics: Dict = {
+            'book': 'orderbook',
+            'trade': 'trades',
+            'ticker': 'ticker',
+            'ticker_lite': 'bidsasks',
+        };
+        const unifiedName = this.safeString (unifiedNames, feed);
+        if (unifiedName === undefined) {
+            return;
+        }
+        const topic = this.safeString (topics, feed);
+        const marketIds = this.safeList (message, 'product_ids', []);
+        const symbols: string[] = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = this.safeString (marketIds, i);
+            const symbol = this.safeSymbol (marketId);
+            const subHash = this.getMessageHash (unifiedName, undefined, symbol);
+            const unsubHash = 'unsubscribe:' + subHash;
+            this.cleanUnsubscription (client, subHash, unsubHash);
+            symbols.push (symbol);
+        }
+        const subscription: Dict = {
+            'topic': topic,
+            'symbols': symbols,
+        };
+        this.cleanCache (subscription);
+    }
+
     override handleMessage (client: Client, message: Dict) {
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
         } else if (event === 'alert') {
             this.handleErrorMessage (client, message);
+        } else if (event === 'unsubscribed') {
+            this.handleUnSubscription (client, message);
         } else if (event === 'pong') {
             client.lastPong = this.milliseconds ();
         } else if (event === undefined) {
