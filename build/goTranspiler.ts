@@ -6660,7 +6660,7 @@ function goSafeStringPtrHoist (content: string): string {
         }
         // a call argument `F(.., SafeStringPtr(v), ..)` on a plain statement line: copy v just before it
         for (let i = 0; i < lines.length; i++) {
-            const lead = /^(\s*)(?:var \w+ [^=\n]+ = |\w+ = |\w+ := |return )?[\w.]+\(/.exec (lines[i]);
+            const lead = /^(\s*)(?:var \w+ [^=\n]+ = |\w+ = |\w+ := |return )?(?:<-)?[\w.]+\(/.exec (lines[i]);
             if ((lead === null) || lines[i].includes ('func(') || /^\s*return (?:ccxt\.)?SafeStringPtr\(/.test (lines[i])) { continue; }
             const copies: string[] = [];
             const line = lines[i];
@@ -6689,6 +6689,7 @@ function goSafeStringPtrHoistCheck (): string[] {
         [ '\tvar m string = "q"\n\treturn SafeStringPtr(m)\n', '\tvar m string = "q"\n\tretStr := m\n\treturn &retStr\n' ],
         [ '\tvar m string = "q"\n\tm = "r"\n\tvar o any = this.G(a, SafeStringPtr(m), b)\n', '\tmStr := m\n\tvar o any = this.G(a, &mStr, b)\n' ],
         [ '\tthis.G(SafeStringPtr("c"))\n', '\targStr := "c"\n\tthis.G(&argStr)\n' ],
+        [ '\tr1 := <-this.G(a, SafeStringPtr("c"), false)\n', '\targStr := "c"\n\tr1 := <-this.G(a, &argStr, false)\n' ],
         [ '\tm, p := this.Exchange.HandleMarginModeAndParams(a, b)\n\treturn SafeStringPtr(m), p\n', '\tm, p := this.Exchange.HandleMarginModeAndParams(a, b)\n\treturn m, p\n' ],
     ];
     const keep = [ '\treturn SafeStringPtr(a)\n', '\treturn SafeStringPtr(Add(a, "x"))\n', '\treturn SafeStringPtr(this.ForceString(a))\n',
