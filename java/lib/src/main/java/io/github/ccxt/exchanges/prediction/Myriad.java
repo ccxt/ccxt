@@ -1073,7 +1073,7 @@ public class Myriad extends MyriadApi
         {
             throw new NotSupported((this.id + " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
         }
-        return (this.createAmmOrder((String) (outcome), (String) (type), (String) (side), amount, price, this.omit(rest, new ArrayList<Object>(Arrays.asList("enableAmm", "enableAmmOrders"))))).join();
+        return (this.createAmmOrder((String) (outcome), (String) (type), side, amount, price, this.omit(rest, new ArrayList<Object>(Arrays.asList("enableAmm", "enableAmmOrders"))))).join();
 
     }
 
@@ -1369,7 +1369,7 @@ public class Myriad extends MyriadApi
         Map<String, Object> quote = this.safeDict(parameters, "quote", null);
         if (java.util.Objects.equals(quote, null))
         {
-            quote = (this.fetchTradeQuote((String) (outcome), sideStr, amount, quoteParams)).join();
+            quote = (this.fetchTradeQuote(outcome, sideStr, amount, quoteParams)).join();
         }
         String calldata = this.safeString(this.safeDict(quote, "info", new HashMap<String, Object>() {{}}), "calldata");
         if (java.util.Objects.equals(calldata, null))
@@ -1503,7 +1503,7 @@ public class Myriad extends MyriadApi
 }}));
         return this.signOrderbookTypedData(new HashMap<String, Object>() {{
             put( "Order", orderStruct );
-        }}, message, (String) (networkId));
+        }}, message, networkId);
     }
 
     /**
@@ -1527,7 +1527,7 @@ public class Myriad extends MyriadApi
 }}));
         return this.signOrderbookTypedData(new HashMap<String, Object>() {{
             put( "CancelAll", cancelStruct );
-        }}, message, (String) (networkId));
+        }}, message, networkId);
     }
 
     /**
@@ -2034,7 +2034,7 @@ public class Myriad extends MyriadApi
         message.put("trader", trader);
         message.put("marketId", marketId);
         message.put("timestamp", timestamp);
-        String signature = this.signCancelAll(message, (String) (networkId));
+        String signature = this.signCancelAll(message, networkId);
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("trader", trader);
         request.put("market_id", this.parseToInt(marketId));
@@ -2523,9 +2523,9 @@ public class Myriad extends MyriadApi
         return result;
     }
 
-    public String fromWeiWithDecimals(String hexValue, Object decimals)
+    public String fromWeiWithDecimals(String hexValue, Long decimals)
     {
-        String decimalString = this.hexToDecimalString((String) (hexValue));
+        String decimalString = this.hexToDecimalString(hexValue);
         if (java.util.Objects.equals(decimalString, null))
         {
             return null;
@@ -2656,7 +2656,7 @@ public class Myriad extends MyriadApi
             String outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), (String) (slug), (String) (outcomeLabel));
             String outcomeCompositeId = ((((networkId + ":") + marketId) + "/") + outcomeId);
             Boolean winnerRaw = null;
-            Object settleFractionRaw = null;
+            Integer settleFractionRaw = null;
             if (Boolean.TRUE.equals(hasResolution))
             {
                 winnerRaw = (java.util.Objects.equals(outcomeId, resolvedOutcomeId));
@@ -2672,7 +2672,7 @@ public class Myriad extends MyriadApi
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
-            Object settleFraction = settleFractionRaw;
+            Integer settleFraction = settleFractionRaw;
             HashMap<String, Object> j39v1 = new HashMap<String, Object>();
             j39v1.put("id", outcomeCompositeId);
             j39v1.put("outcomeId", outcomeCompositeId);
@@ -3955,7 +3955,7 @@ public class Myriad extends MyriadApi
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
-            this.spawn(() -> { try { this.pong(client, msg); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.pong(client, msg);
             return;
         }
         Map<String, Object> connectReply = this.safeDict(msg, "connect", null);
@@ -4593,7 +4593,7 @@ public class Myriad extends MyriadApi
         {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure
-            (this.seedPositionBalances((String) (trader))).join();
+            (this.seedPositionBalances(trader)).join();
         }
         Long requestId = this.requestId((String) (url));
         Map<String, Object> subscribeMsg = new HashMap<String, Object>();

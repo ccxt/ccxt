@@ -666,13 +666,13 @@ public class Sxbet extends SxbetApi
      * @param {string[]} queries lowercase-insensitive free-text queries
      * @returns {boolean} whether any query matches any of the market's team/league/outcome names
      */
-    public Boolean matchesEventQuery(Map<String, Object> raw, Object queries)
+    public Boolean matchesEventQuery(Map<String, Object> raw, List<Object> queries)
     {
         List<String> fields = new ArrayList<String>(Arrays.asList(this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")));
-        Integer queriesLength = ((List<?>)queries).size();
+        Integer queriesLength = queries.size();
         for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
         {
-            String query = ((String)(queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi))).toLowerCase();
+            String query = ((String)(queries == null || qi < 0 || qi >= queries.size() ? null : queries.get(qi))).toLowerCase();
             if (java.util.Objects.equals(query, ""))
             {
                 continue;
@@ -1010,8 +1010,8 @@ public class Sxbet extends SxbetApi
         mapLiteral5.put("data", nonceCallData);
         Object nonceResult = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(mapLiteral5, "latest")))).join();
         String nonceHex = this.hexToRlpBytes((String) (nonceResult));
-        String nonce = (((java.util.Objects.equals(nonceHex, "")))) ? "0" : this.numberToString(this.hexToInt((String) (nonceHex)));
-        String tokenName = (this.fetchErc20Name((String) (rpcUrl), (String) (tokenAddress))).join();
+        String nonce = (((java.util.Objects.equals(nonceHex, "")))) ? "0" : this.numberToString(this.hexToInt(nonceHex));
+        String tokenName = (this.fetchErc20Name((String) (rpcUrl), tokenAddress)).join();
         Long defaultDeadlineSeconds = this.safeInteger(this.options, "approveDeadlineSeconds", 7200);
         Long deadline = this.safeInteger(paramsSpender, "deadline", this.sum(this.seconds(), defaultDeadlineSeconds));
         String value = this.decimalToPrecision(Precise.stringMul(this.numberToString(amount), "1000000"), ROUND, 0, DECIMAL_PLACES);
@@ -1129,7 +1129,7 @@ public class Sxbet extends SxbetApi
         Map<String, Object> activeAsset = this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
         String baseToken = this.safeString(activeAsset, "baseToken");
         String oddsLadderStepSize = this.numberToString(this.safeInteger(obv3, "oddsLadderStepSize", 125));
-        Object roundedProbability = this.roundOddsToLadder(probability, (String) (oddsLadderStepSize));
+        Object roundedProbability = this.roundOddsToLadder(probability, oddsLadderStepSize);
         String percentageOdds = this.decimalToPrecision(Precise.stringMul(roundedProbability, "100000000000000000000"), ROUND, 0, DECIMAL_PLACES);
         String amountStr = this.numberToString(amount);
         String totalBetSize = this.decimalToPrecision(Precise.stringMul(amountStr, "1000000"), ROUND, 0, DECIMAL_PLACES);
@@ -2175,8 +2175,8 @@ public class Sxbet extends SxbetApi
         Map<String, Object> settlement = this.safeDict(trade, "settlement", new HashMap<String, Object>() {{}});
         Long winner = this.safeInteger(settlement, "outcome");
         Boolean isVoid = ((winner != null && winner == 0));
-        Object heldNumber = ((Boolean.TRUE.equals(isBettingOutcomeOne))) ? 1 : 2;
-        Boolean won = ((((!java.util.Objects.equals(winner, null)) && !Boolean.TRUE.equals(isVoid)))) ? (java.util.Objects.equals(winner, ((Number) heldNumber).longValue())) : null;
+        Integer heldNumber = ((Boolean.TRUE.equals(isBettingOutcomeOne))) ? 1 : 2;
+        Boolean won = ((((!java.util.Objects.equals(winner, null)) && !Boolean.TRUE.equals(isVoid)))) ? ((winner == null ? heldNumber == null : (heldNumber != null && winner.longValue() == heldNumber.longValue()))) : null;
         String usdcDecimals = "1000000";
         String stake = Precise.stringDiv(this.safeString(trade, "totalStake", "0"), usdcDecimals, 6);
         String payout = Precise.stringDiv(this.safeString(settlement, "settleReturnAmount", "0"), usdcDecimals, 6);
@@ -2197,7 +2197,7 @@ public class Sxbet extends SxbetApi
             resultLabel = this.safeString(info, labelKey, this.numberToString(winner));
         }
         Long timestamp = this.parse8601(this.safeString(settlement, "settleDate"));
-        Object settlePrice = null;
+        Integer settlePrice = null;
         if (!java.util.Objects.equals(won, null))
         {
             settlePrice = ((Boolean.TRUE.equals(won))) ? 1 : 0;
@@ -2350,14 +2350,14 @@ public class Sxbet extends SxbetApi
         {
             throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list")) ;
         }
-        Object outcomesList = outcomes;
-        Integer outcomesLength = ((List<?>)outcomesList).size();
+        List<Object> outcomesList = (List<Object>) ((((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes);
+        Integer outcomesLength = outcomesList.size();
         List<String> hashesOrder = new ArrayList<String>(Arrays.asList());
         Map<String, Object> seenHashes = new HashMap<String, Object>() {{}};
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
-            (this.loadOutcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
+            (this.loadOutcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))), false)).join();
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
             String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
             if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash, (Object) null), null))
             {
@@ -2793,7 +2793,7 @@ public class Sxbet extends SxbetApi
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
-            this.spawn(() -> { try { this.pong(client, msg); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.pong(client, msg);
             return;
         }
         String requestIdString = this.safeString(msg, "id");

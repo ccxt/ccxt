@@ -1209,7 +1209,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored.put("nonce", null);
-                this.spawn(() -> { try { this.resubscribeOrderBook(client, (String) (deltasChannel), messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.resubscribeOrderBook(client, (String) (deltasChannel), messageHash);
                 return;
             }
             Object storedBids = (stored == null ? null : stored.get("bids"));

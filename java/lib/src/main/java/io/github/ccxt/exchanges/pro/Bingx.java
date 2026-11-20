@@ -1470,7 +1470,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type), (String) (subType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadBalanceSnapshot(client, messageHash, (String) (type), (String) (subType));
             }
         } else
         {
@@ -1596,7 +1596,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash, (String) (type));
             }
         } else
         {
@@ -2207,8 +2207,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             this.balance.put(type, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
         Map<String, Object> typeBalance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
+        typeBalance.put("info", data);
         typeBalance.put("timestamp", timestamp);
         typeBalance.put("datetime", this.iso8601(timestamp));
         for (var i = 0; i < data.size(); i++)
@@ -2234,7 +2234,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     {
         if (java.util.Objects.equals(message, "Ping"))
         {
-            this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.pong(client, message);
         }
     }
 
@@ -2247,7 +2247,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         // public subscriptions
         if (message.containsKey("ping"))
         {
-            this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.pong(client, message);
             return;
         }
         String dataType = this.safeString(message, "dataType", "");

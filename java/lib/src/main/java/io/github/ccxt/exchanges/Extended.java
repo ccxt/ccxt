@@ -3045,7 +3045,7 @@ public class Extended extends ExtendedApi
         return this.safePosition(mapLiteral12);
     }
 
-    public String getExtendedStarkAmount(String amount, Object resolution, Boolean roundUp)
+    public String getExtendedStarkAmount(String amount, Long resolution, Boolean roundUp)
     {
         String resolutionString = this.numberToString(resolution);
         String precise = Precise.stringMul(amount, resolutionString);

@@ -1231,7 +1231,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String subscriptionHash = "CANDLESTICKS";
         Client client = (Client)this.safeValue(this.clients, url);
         String type = "SUBSCRIBE";
-        Object subscription = new HashMap<String, Object>() {{}};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(client, null))
         {
             subscription = this.safeDict(client.subscriptions, subscriptionHash, null);
@@ -1254,15 +1254,15 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             if (!java.util.Objects.equals(marketId, null))
             {
-                ((Map<String, Object>)subscription).put(marketId, new HashMap<String, Object>() {{}});
+                subscription.put(marketId, new HashMap<String, Object>() {{}});
             }
         }
         if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), null)))
         {
-            Helpers.addElementToObject(Helpers.GetValue(subscription, marketId), java.util.Objects.requireNonNullElse(timeframe, "1m"), true);
+            Helpers.addElementToObject((subscription == null || marketId == null ? null : subscription.get(marketId)), java.util.Objects.requireNonNullElse(timeframe, "1m"), true);
         }
         List<Object> properties = new ArrayList<Object>(Arrays.asList());
-        List<String> marketIds = new ArrayList<String>(((Map<String, Object>)subscription).keySet());
+        List<String> marketIds = new ArrayList<String>(subscription.keySet());
         for (var i = 0; i < marketIds.size(); i++)
         {
             Map<String, Object> marketSubscription = this.safeDict(subscription, (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)), new HashMap<String, Object>() {{}});
@@ -1548,7 +1548,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String url = this.safeString(this.urls.get("api"), "ws");
         Client client = (Client)this.safeValue(this.clients, url);
         String type = "SUBSCRIBE";
-        Object subscription = new HashMap<String, Object>() {{}};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(client, null))
         {
             subscription = this.safeDict(client.subscriptions, subscriptionHash, null);
@@ -1572,10 +1572,10 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         for (var i = 0; i < marketIds.size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-            ((Map<String, Object>)subscription).put(marketId, true);
+            subscription.put(marketId, true);
         }
         request.put("type", type);
-        Helpers.addElementToObject(Helpers.GetValue(request.get("channels"), 0), "instrument_codes", new ArrayList<Object>(((Map<String, Object>)subscription).keySet()));
+        Helpers.addElementToObject(Helpers.GetValue(request.get("channels"), 0), "instrument_codes", new ArrayList<Object>(subscription.keySet()));
         return (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
 
     }

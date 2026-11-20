@@ -1795,7 +1795,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadBalanceSnapshot(client, messageHash, (String) (type));
             }
         } else
         {
@@ -1985,7 +1985,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash);
             }
         } else
         {

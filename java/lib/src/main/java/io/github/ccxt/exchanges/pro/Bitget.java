@@ -1256,7 +1256,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Long calculatedChecksum = this.crc32(payload, true);
                 if (!java.util.Objects.equals(calculatedChecksum, responseChecksum))
                 {
-                    this.spawnWithResult("handleCheckSumError", client, (String) (symbol), messageHash, (String) (this.orderbookChecksumMessage(this.safeString(market, "symbol", ""))));
+                    this.handleCheckSumError(client, (String) (symbol), messageHash, (String) (this.orderbookChecksumMessage(this.safeString(market, "symbol", ""))));
                     return;
                 }
             }

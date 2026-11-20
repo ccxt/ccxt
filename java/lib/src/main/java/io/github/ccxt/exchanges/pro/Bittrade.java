@@ -630,7 +630,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         orderbook.put("nonce", null);
         orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
         // watch the snapshot in a separate async call
-        this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.watchOrderBookSnapshot(client, message, subscription);
     }
 
     public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
@@ -767,7 +767,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

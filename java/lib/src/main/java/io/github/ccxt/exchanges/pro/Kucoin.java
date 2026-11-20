@@ -3215,7 +3215,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadBalanceSnapshot(client, messageHash, (String) (type));
             }
         } else
         {
@@ -3339,8 +3339,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 this.balance.put(uniformType, new HashMap<String, Object>() {{}});
             }
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(uniformType)), "info", data);
             Map<String, Object> balance = this.safeDict(this.balance, uniformType, new HashMap<String, Object>() {{}});
+            balance.put("info", data);
             Long timestamp = (Long) this.safeInteger2(data, "time", "timestamp");
             balance.put("timestamp", timestamp);
             balance.put("datetime", this.iso8601(timestamp));
@@ -3389,8 +3389,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             this.balance.put(type, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
         Map<String, Object> balance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
+        balance.put("info", data);
         Long timestamp = this.safeIntegerProduct(data, "U", 0.000001);
         balance.put("timestamp", timestamp);
         balance.put("datetime", this.iso8601(timestamp));
@@ -3548,7 +3548,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, uta); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash, uta);
             }
         } else
         {
@@ -3598,7 +3598,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionSnapshot(client, messageHash, (String) (symbol)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionSnapshot(client, messageHash, (String) (symbol));
             }
         }
     }

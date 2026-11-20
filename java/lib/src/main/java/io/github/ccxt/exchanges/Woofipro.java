@@ -4416,9 +4416,19 @@ public class Woofipro extends WoofiproApi
                     if (java.util.Objects.equals(path, "batch-order"))
                     {
                         List<Object> ordersList = this.safeList(requestParams, "orders", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> taggedOrders = new ArrayList<Object>(Arrays.asList());
+                        Boolean hasOrders = false;
                         for (var i = 0; i < ordersList.size(); i++)
                         {
-                            Helpers.addElementToObject(Helpers.GetValue(requestParams.get("orders"), i), "order_tag", brokerId);
+                            Map<String, Object> orderRow = this.extend((ordersList == null || i < 0 || i >= ordersList.size() ? null : ordersList.get(i)), new HashMap<String, Object>() {{
+                                put( "order_tag", brokerId );
+                            }});
+                            ((List<Object>)taggedOrders).add(orderRow);
+                            hasOrders = true;
+                        }
+                        if (Boolean.TRUE.equals(hasOrders))
+                        {
+                            requestParams.put("orders", taggedOrders);
                         }
                     } else
                     {

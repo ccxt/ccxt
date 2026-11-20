@@ -296,7 +296,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
     }
 
-    public void handleTradesForMultidata(Client client, Object trades, Object timestamp)
+    public void handleTradesForMultidata(Client client, Object trades, Long timestamp)
     {
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         Map<String, Object> storesForSymbols = new HashMap<String, Object>() {{}};
@@ -589,7 +589,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public void handleBidsAsksForMultidata(Client client, Object rawBidAskChanges, Object timestamp, Object nonce)
+    public void handleBidsAsksForMultidata(Client client, Object rawBidAskChanges, Long timestamp, Long nonce)
     {
         //
         // {
@@ -718,7 +718,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public void handleOrderBookForMultidata(Client client, Object rawOrderBookChanges, Object timestamp, Object nonce)
+    public void handleOrderBookForMultidata(Client client, Object rawOrderBookChanges, Long timestamp, Long nonce)
     {
         //
         // rawOrderBookChanges

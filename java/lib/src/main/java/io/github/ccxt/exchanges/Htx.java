@@ -7623,13 +7623,7 @@ public class Htx extends HtxApi
             clientOrderIds = this.safeValue2(query, "client-order-ids", "clientOrderIds", clientOrderIds);
             if (java.util.Objects.equals(clientOrderIds, null))
             {
-                if ((clientOrderIds instanceof String))
-                {
-                    request.put("order-ids", new ArrayList<Object>(Arrays.asList(ids)));
-                } else
-                {
-                    request.put("order-ids", ids);
-                }
+                request.put("order-ids", ids);
             } else
             {
                 if ((clientOrderIds instanceof String))

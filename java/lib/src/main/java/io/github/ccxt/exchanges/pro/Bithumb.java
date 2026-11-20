@@ -89,7 +89,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     public void handlePing(Client client, Object message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public void handlePong(Client client, Object message)

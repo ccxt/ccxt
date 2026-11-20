@@ -3951,8 +3951,8 @@ public class Grvt extends GrvtApi
             messageData = new HashMap<String, Object>() {{
                 put( "mainAccountID", request.get("main_account_id") );
                 put( "builderAccountID", request.get("builder_account_id") );
-                put( "maxFutureFeeRate", Grvt.this.parseToInt(Helpers.multiply(Double.parseDouble(Grvt.this.safeString(request, "max_futures_fee_rate")), amountMultiplier)) );
-                put( "maxSpotFeeRate", Grvt.this.parseToInt(Helpers.multiply(Double.parseDouble(Grvt.this.safeString(request, "max_spot_fee_rate")), amountMultiplier)) );
+                put( "maxFutureFeeRate", Grvt.this.parseToInt(((amountMultiplier == null) ? null : (Double.parseDouble(Grvt.this.safeString(request, "max_futures_fee_rate")) * ((double) amountMultiplier)))) );
+                put( "maxSpotFeeRate", Grvt.this.parseToInt(((amountMultiplier == null) ? null : (Double.parseDouble(Grvt.this.safeString(request, "max_spot_fee_rate")) * ((double) amountMultiplier)))) );
                 put( "nonce", requestSignature.get("nonce") );
                 put( "expiration", requestSignature.get("expiration") );
             }};

@@ -683,12 +683,12 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    public CompletableFuture<List<Object>> fetchRawTopicsByQueries(Object queries, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawTopicsByQueries(List<Object> queries, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRawTopicsByQueriesCore(queries, parameters));
     }
 
-    private List<Object> fetchRawTopicsByQueriesCore(Object queries, Map<String, Object> parameters)
+    private List<Object> fetchRawTopicsByQueriesCore(List<Object> queries, Map<String, Object> parameters)
     {
 
         // always ask for the venue's maximum page size - this is the per-type page size of the
@@ -704,7 +704,7 @@ public class Predictfun extends PredictfunApi
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
-        Integer queriesLength = ((List<?>)queries).size();
+        Integer queriesLength = queries.size();
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         // the venue answers every term separately and the same category comes back for each term
         // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
@@ -4355,7 +4355,7 @@ public class Predictfun extends PredictfunApi
     {
         // client.send () is a coroutine in the python port, so firing it from this synchronous
         // handler would drop it unsent and the venue would close the socket on its next probe
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     /**

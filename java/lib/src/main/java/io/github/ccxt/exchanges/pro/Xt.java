@@ -1018,7 +1018,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash);
             }
         }
     }

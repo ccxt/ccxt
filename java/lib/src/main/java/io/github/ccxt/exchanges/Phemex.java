@@ -1620,7 +1620,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Object toEn(Object n, Object scale)
+    public Object toEn(Object n, Long scale)
     {
         if ((java.util.Objects.equals(n, null)) || (java.util.Objects.equals(scale, null)))
         {
@@ -1628,7 +1628,7 @@ public class Phemex extends PhemexApi
         }
         String stringN = this.numberToString(n);
         var precise = new Precise(stringN);
-        precise.decimals = this.sum(precise.decimals, this.parseToInt(Helpers.multiply(scale, -1)));
+        precise.decimals = this.sum(precise.decimals, this.parseToInt((scale * -1L)));
         precise.reduce();
         String preciseString = String.valueOf(precise);
         return this.parseToNumeric(preciseString);

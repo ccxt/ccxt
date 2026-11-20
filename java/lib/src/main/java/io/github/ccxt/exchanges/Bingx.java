@@ -5109,7 +5109,7 @@ public class Bingx extends BingxApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Object order = this.safeDict(data, "order", data);
+        Map<String, Object> order = this.safeDict(data, "order", data);
         return this.parseOrder(order, market);
 
     }
@@ -5398,7 +5398,7 @@ public class Bingx extends BingxApi
             }
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Object order = this.safeDict(data, "order", data);
+        Map<String, Object> order = this.safeDict(data, "order", data);
         return this.parseOrder(order, market);
 
     }
@@ -7664,7 +7664,7 @@ public class Bingx extends BingxApi
             put( "symbol", market.get("id") );
         }};
         Map<String, Object> response = null;
-        Object commission = new HashMap<String, Object>() {{}};
+        Map<String, Object> commission = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             response = (this.spotV1PrivateGetUserCommissionRate(this.extend(request, parameters))).join();
@@ -7716,7 +7716,7 @@ public class Bingx extends BingxApi
                 commission = this.safeDict(data, "commission", new HashMap<String, Object>() {{}});
             }
         }
-        return this.parseTradingFee((Map<String, Object>) (commission), market);
+        return this.parseTradingFee(commission, market);
 
     }
 

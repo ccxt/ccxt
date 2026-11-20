@@ -1092,7 +1092,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash);
             }
         } else
         {
@@ -1175,7 +1175,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadBalanceSnapshot(client, messageHash);
             }
         }
     }

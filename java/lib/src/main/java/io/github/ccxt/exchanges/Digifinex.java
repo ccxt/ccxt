@@ -2302,13 +2302,13 @@ public class Digifinex extends DigifinexApi
         }
         request.put(marketIdRequest, market.get("id"));
         Boolean postOnly = this.isPostOnly(isMarketOrder, false, paramsMarginMode);
-        Object postOnlyParsed = 0;
+        Integer postOnlyParsed = 0;
         Object paramsRequest = null;
         if (Boolean.TRUE.equals(swap))
         {
             Boolean reduceOnly = (Boolean) this.safeBool(paramsMarginMode, "reduceOnly", false);
             String timeInForce = this.safeString(paramsMarginMode, "timeInForce");
-            Object orderType = null;
+            Integer orderType = null;
             if (java.util.Objects.equals(side, "buy"))
             {
                 Integer requestType = ((Boolean.TRUE.equals(reduceOnly))) ? 4 : 1;
@@ -2397,7 +2397,7 @@ public class Digifinex extends DigifinexApi
         }
         if (Boolean.TRUE.equals(postOnly))
         {
-            if (!java.util.Objects.equals(postOnlyParsed, 0))
+            if ((postOnlyParsed == null || postOnlyParsed != 0))
             {
                 request.put("post_only", postOnlyParsed);
             } else

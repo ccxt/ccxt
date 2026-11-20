@@ -2037,7 +2037,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadBalanceSnapshot(client, messageHash, (String) (type));
             }
         } else
         {
@@ -2219,7 +2219,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (Map<String, Object>) (parameters)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash, (Map<String, Object>) (parameters));
             }
         } else
         {
@@ -2399,7 +2399,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)

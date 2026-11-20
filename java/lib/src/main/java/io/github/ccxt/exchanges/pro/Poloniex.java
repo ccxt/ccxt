@@ -917,7 +917,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadBalanceSnapshot(client, messageHash, (String) (type));
             }
         }
     }

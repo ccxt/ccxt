@@ -1316,7 +1316,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Map<String, Object> constructCurrencyObject(String id, String code, String name, Object precision, Object minCost, Map<String, Object> originalPayload)
+    public Map<String, Object> constructCurrencyObject(String id, String code, String name, Long precision, Object minCost, Map<String, Object> originalPayload)
     {
         String currencyType = "crypto";
         Object description = this.describe();

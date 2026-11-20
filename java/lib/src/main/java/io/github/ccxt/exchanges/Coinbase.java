@@ -3738,7 +3738,7 @@ public class Coinbase extends CoinbaseApi
                 put( "amount", amount );
             }}))).join();
         }
-        Object paramsMarketBuy = null;
+        Map<String, Object> paramsMarketBuy = null;
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "stop_price", "triggerPrice")), (Object) null);
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", (Object) null);
         Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", (Object) null);
@@ -3906,7 +3906,7 @@ public class Coinbase extends CoinbaseApi
 }});
             }
         }
-        Object paramsBase = (((java.util.Objects.equals(paramsMarketBuy, null)))) ? parameters : paramsMarketBuy;
+        Map<String, Object> paramsBase = (((java.util.Objects.equals(paramsMarketBuy, null)))) ? parameters : paramsMarketBuy;
         String marginMode = this.safeString(paramsBase, "marginMode");
         if (!java.util.Objects.equals(marginMode, null))
         {
@@ -3918,7 +3918,7 @@ public class Coinbase extends CoinbaseApi
                 request.put("margin_type", "CROSS");
             }
         }
-        Object paramsOmitted = this.omit(paramsBase, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode")));
+        Map<String, Object> paramsOmitted = this.omit(paramsBase, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode")));
         Boolean preview = (Boolean) this.safeBool2(paramsOmitted, "preview", "test", false);
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(preview))

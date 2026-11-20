@@ -1783,7 +1783,7 @@ public class Dydx extends DydxApi
             subaccountIdValue = subaccountIdOption;
         }
         Long clientOrderIdValue = (((java.util.Objects.equals(clientOrderId, null)))) ? 0 : clientOrderId;
-        Object orderFlagValue = 0;
+        Integer orderFlagValue = 0;
         if (!java.util.Objects.equals(orderFlag, null))
         {
             orderFlagValue = orderFlag;

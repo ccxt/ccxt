@@ -1769,7 +1769,7 @@ public class Apex extends ApexApi
         Double mathPowResult = (Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(String.valueOf(decimalsNumber))));
         Double amountNum = this.parseNumber(amount);
         Double amountValue = (((java.util.Objects.equals(amountNum, null)))) ? 0 : amountNum;
-        Long amountNumber = this.parseToInt((amountValue * mathPowResult));
+        Long amountNumber = this.parseToInt(((amountValue == null || mathPowResult == null) ? null : (amountValue * mathPowResult)));
         Long timestampSeconds = this.parseToInt((((double) this.milliseconds()) / ((double) 1000)));
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
         String finalClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : this.generateRandomClientIdOmni(this.safeString(this.options, "accountId"));

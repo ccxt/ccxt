@@ -3144,7 +3144,7 @@ public class Mexc extends MexcApi
         }
         Boolean reduceOnly = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", false);
         Boolean hedged = (Boolean) this.safeBool(paramsPostOnly, "hedged", false);
-        Object sideInteger = null;
+        Integer sideInteger = null;
         if (Boolean.TRUE.equals(hedged))
         {
             if (Boolean.TRUE.equals(reduceOnly))

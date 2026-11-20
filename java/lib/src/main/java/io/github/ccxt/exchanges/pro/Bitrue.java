@@ -1117,7 +1117,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public CompletableFuture<Object> pong(Client client, Map<String, Object> message)

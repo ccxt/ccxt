@@ -1227,7 +1227,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash);
             }
         } else
         {
@@ -1911,7 +1911,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public void handleAuthenticate(Client client, Map<String, Object> message)

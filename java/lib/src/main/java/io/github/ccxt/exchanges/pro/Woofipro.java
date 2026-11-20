@@ -1275,7 +1275,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash);
             }
         } else
         {
@@ -1843,7 +1843,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public Map<String, Object> handlePong(Client client, Map<String, Object> message)

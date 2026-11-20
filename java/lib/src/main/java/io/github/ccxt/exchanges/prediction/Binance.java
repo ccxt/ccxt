@@ -816,7 +816,7 @@ public class Binance extends BinanceApi
             String outcomeHandle = ((marketSymbol + ":") + label);
             String price = this.safeString(rawOutcome, "price");
             Object winnerRaw = null;
-            Object settleFractionRaw = null;
+            Integer settleFractionRaw = null;
             if (Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(price, null)))
             {
                 winnerRaw = Precise.stringEq(price, "1");
@@ -827,7 +827,7 @@ public class Binance extends BinanceApi
                 }
             }
             Object winner = winnerRaw;
-            Object settleFraction = settleFractionRaw;
+            Integer settleFraction = settleFractionRaw;
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("id", tokenId);
             mapLiteral1.put("outcomeId", tokenId);

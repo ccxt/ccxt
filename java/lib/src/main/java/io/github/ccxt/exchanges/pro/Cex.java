@@ -1073,7 +1073,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         return this.safeOrder(parsedOrder, marketResolved);
     }
 
-    public String fromPrecision(String amount, Object scale)
+    public String fromPrecision(String amount, Long scale)
     {
         if (java.util.Objects.equals(amount, null))
         {

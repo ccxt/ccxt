@@ -1458,7 +1458,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             mapLiteral1.put("symbol", symbol);
             Map<String, Object> symbolSubscription = this.extend(subscription, mapLiteral1);
             // fetch the snapshot in a separate async call
-            this.spawn(() -> { try { this.fetchOrderBookSnapshot(client, message, symbolSubscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.fetchOrderBookSnapshot(client, message, symbolSubscription);
         }
     }
 
@@ -4090,7 +4090,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (type), java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadBalanceSnapshot(client, messageHash, (String) (type), java.util.Objects.requireNonNullElse(isPortfolioMargin, false));
             }
         } else
         {
@@ -4189,19 +4189,17 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         //
         String messageHash = this.safeString(message, "id");
-        List<Object> rawBalance = null;
         if ((message.get("result") instanceof List))
         {
             // account.balance
-            rawBalance = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
-        } else
-        {
-            // account.status
-            Map<String, Object> result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-            rawBalance = (List<Object>) this.safeList(result, "assets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawBalance = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+            client.resolve(this.parseBalanceList(rawBalance, (String) null, (String) null, false, (Object) null), messageHash);
+            return;
         }
-        Object parsedBalances = this.parseBalanceCustom(rawBalance, (String) null, (String) null, false);
-        client.resolve(parsedBalances, messageHash);
+        // account.status
+        Map<String, Object> result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        List<Object> assets = this.safeList(result, "assets", new ArrayList<Object>(Arrays.asList()));
+        client.resolve(this.parseBalanceList(assets, (String) null, (String) null, false, (Object) null), messageHash);
     }
 
     public void handleAccountStatusWs(Client client, Map<String, Object> message)
@@ -4254,7 +4252,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String messageHash = this.safeString(message, "id");
         Map<String, Object> result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Object parsedBalances = this.parseBalanceCustom(result, (String) null, (String) null, false);
+        Object parsedBalances = this.parseBalanceCustom(result, (String) null, (String) null);
         client.resolve(parsedBalances, messageHash);
     }
 
@@ -6276,7 +6274,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (String) (type), java.util.Objects.requireNonNullElse(isPortfolioMargin, false)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash, (String) (type), java.util.Objects.requireNonNullElse(isPortfolioMargin, false));
             }
         } else
         {

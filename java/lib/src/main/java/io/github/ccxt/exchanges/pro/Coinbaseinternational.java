@@ -1744,7 +1744,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                     client.subscriptions.remove((String)((String)channel));
                 }
                 client.reject(new ExchangeError((this.id + " order book update has a nonce mismatch")), channel);
-                this.spawn(() -> { try { this.resubscribeOrderBook((String) (channel)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.resubscribeOrderBook((String) (channel));
                 return;
             }
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
@@ -1880,7 +1880,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String method = this.safeString(message, "method");
         if (java.util.Objects.equals(method, "heartbeat"))
         {
-            this.spawn(() -> { try { this.handleHeartbeat(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.handleHeartbeat(client, message);
             return;
         }
         Map<String, Object> parameters = this.safeDict(message, "params", null);

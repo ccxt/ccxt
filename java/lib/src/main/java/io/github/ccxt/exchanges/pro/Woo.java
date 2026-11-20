@@ -372,7 +372,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         orderbook.put("timestamp", null);
         orderbook.put("datetime", null);
         orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
-        this.spawn(() -> { try { this.fetchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.fetchOrderBookSnapshot(client, message, subscription);
     }
 
     public CompletableFuture<Object> fetchOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
@@ -1688,7 +1688,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash);
             }
         } else
         {
@@ -2275,7 +2275,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public Map<String, Object> handlePong(Client client, Map<String, Object> message)

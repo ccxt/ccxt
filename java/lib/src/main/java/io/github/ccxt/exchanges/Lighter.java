@@ -3065,7 +3065,7 @@ public class Lighter extends LighterApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseOrderTypeInteger(Object typeInteger)
+    public String parseOrderTypeInteger(Long typeInteger)
     {
         if (java.util.Objects.equals(typeInteger, null))
         {

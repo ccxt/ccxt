@@ -1982,7 +1982,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             put( "symbol", market.get("id") );
         }};
         url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
-        this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         Client client = this.client(url);
         this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
         return null;
@@ -2043,7 +2043,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
             parameters.put("unsubscribed", true);
-            this.spawn(Helpers.task(this::watchSpotPublic, channel, messageHash, parameters));
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             channel = "unsub.ticker";
@@ -2051,7 +2051,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 put( "symbol", market.get("id") );
             }};
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
-            this.spawn(Helpers.task(this::watchSwapPublic, channel, messageHash, requestParams, parameters));
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         Client client = this.client(url);
         this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
@@ -2203,7 +2203,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
             String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
             parameters.put("unsubscribed", true);
-            this.spawn(() -> { try { this.watchSpotPublic((String) (channel), messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.watchSpotPublic((String) (channel), messageHash, parameters);
         } else
         {
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
@@ -2212,7 +2212,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 put( "symbol", market.get("id") );
                 put( "interval", timeframeId );
             }};
-            this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         Client client = this.client(url);
         this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
@@ -2252,7 +2252,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
             String channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
             ((Map<String, Object>)paramsFrequency).put("unsubscribed", true);
-            this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, paramsFrequency); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.watchSpotPublic(channel, messageHash, paramsFrequency);
         } else
         {
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
@@ -2260,7 +2260,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         Client client = this.client(url);
         this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));
@@ -2297,7 +2297,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
             String channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
             parameters.put("unsubscribed", true);
-            this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
@@ -2305,7 +2305,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         Client client = this.client(url);
         this.handleUnsubscriptions(client, new ArrayList<Object>(Arrays.asList(messageHash)));

@@ -235,7 +235,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
     }
 
-    public void handleIncomingPong(Client client, Object pongTimestamp)
+    public void handleIncomingPong(Client client, Long pongTimestamp)
     {
         client.lastPong = ((Number)pongTimestamp).longValue();
     }
@@ -929,7 +929,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         if (!(client.futures.containsKey(messageHash)))
         {
             client.future(messageHash);
-            this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, (String) (marketType)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.loadBalanceSnapshot(client, messageHash, (String) (marketType));
         }
     }
 
@@ -1345,7 +1345,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash, (String) (type));
             }
         } else
         {

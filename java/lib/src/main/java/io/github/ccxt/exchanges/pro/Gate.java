@@ -1924,7 +1924,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, (String) (type)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash, (String) (type));
             }
         } else
         {

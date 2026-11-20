@@ -631,7 +631,7 @@ public class Limitless extends LimitlessApi
                 legIndex = 1;
             }
             Boolean winnerRaw = null;
-            Object settleFractionRaw = null;
+            Integer settleFractionRaw = null;
             if (Boolean.TRUE.equals(marketResolved))
             {
                 winnerRaw = (java.util.Objects.equals(((Number) legIndex).longValue(), winningOutcomeIndex));
@@ -644,7 +644,7 @@ public class Limitless extends LimitlessApi
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
-            Object settleFraction = settleFractionRaw;
+            Integer settleFraction = settleFractionRaw;
             ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
                 put( "outcome", outcomeHandle );
                 put( "outcomeId", tokenId );
@@ -3719,12 +3719,12 @@ public class Limitless extends LimitlessApi
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    public CompletableFuture<List<Object>> fetchRawMarketsByTags(Object tags, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawMarketsByTags(List<Object> tags, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRawMarketsByTagsCore(tags, parameters));
     }
 
-    private List<Object> fetchRawMarketsByTagsCore(Object tags, Map<String, Object> parameters)
+    private List<Object> fetchRawMarketsByTagsCore(List<Object> tags, Map<String, Object> parameters)
     {
 
         List<Object> categoriesResponse = (this.limitlessPublicGetCategories(new HashMap<String, Object>() {{}})).join();
@@ -3734,9 +3734,9 @@ public class Limitless extends LimitlessApi
             categories = categoriesResponse;
         }
         List<String> wanted = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)tags).size(); i++)
+        for (var i = 0; i < tags.size(); i++)
         {
-            wanted.add(((String)(tags == null || i < 0 || i >= ((List<?>)tags).size() ? null : ((List<?>)tags).get(i))).toLowerCase());
+            wanted.add(((String)(tags == null || i < 0 || i >= tags.size() ? null : tags.get(i))).toLowerCase());
         }
         List<String> categoryIds = new ArrayList<String>(Arrays.asList());
         Integer categoriesLength = categories.size();

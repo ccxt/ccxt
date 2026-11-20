@@ -6102,7 +6102,7 @@ public class Kucoin extends KucoinApi
                 request.put("symbol", market.get("id"));
             }
         }
-        Object response = null;
+        Map<String, Object> response = null;
         Map<String, Object> paramsOmitted = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("clientOid", "clientOrderId", "stop", "trigger", "tradeType")));
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -6182,7 +6182,7 @@ public class Kucoin extends KucoinApi
                 //        }
                 //    }
                 //
-                response = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                response = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseOrder(response, (Map<String, Object>) null);
             } else
             {
@@ -12644,7 +12644,7 @@ public class Kucoin extends KucoinApi
         Boolean utaOption = utaOptionparamsUtaVariable.first();
         Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
         Map<String, Object> response = null;
-        Object position = null;
+        Map<String, Object> position = null;
         if (Boolean.TRUE.equals(utaOption))
         {
             request.put("accountMode", "unified");
@@ -12674,7 +12674,7 @@ public class Kucoin extends KucoinApi
             //     }
             //
             List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            position = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            position = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         } else
         {
             response = (this.futuresPrivateGetPosition(this.extend(request, paramsUta))).join();
@@ -12724,7 +12724,7 @@ public class Kucoin extends KucoinApi
             //
             position = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
-        return this.parsePosition((Map<String, Object>) (position), market);
+        return this.parsePosition(position, market);
 
     }
 

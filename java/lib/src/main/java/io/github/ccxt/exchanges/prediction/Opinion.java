@@ -389,7 +389,7 @@ public class Opinion extends OpinionApi
             String tokenId = this.safeString(outcomeTokenIds, i);
             String outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), (String) (label));
             Boolean winner = null;
-            Object settleFraction = null;
+            Integer settleFraction = null;
             if (Boolean.TRUE.equals(hasResult))
             {
                 winner = (java.util.Objects.equals(tokenId, resultTokenId));
@@ -1193,7 +1193,7 @@ public class Opinion extends OpinionApi
         return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
-    public Map<String, Object> opinionOrderRawAmounts(Boolean isMarket, String side, Object amount, Object price, Object decimals)
+    public Map<String, Object> opinionOrderRawAmounts(Boolean isMarket, String side, Object amount, Object price, Long decimals)
     {
         String decimalsStr = "1";
         if (!java.util.Objects.equals(decimals, null))
@@ -2119,12 +2119,12 @@ public class Opinion extends OpinionApi
      * @param {int} marketId the numeric binary market id
      * @returns {any} the first resolved payload
      */
-    public CompletableFuture<Object> subscribeOpinionChannel(String messageHash, String channel, Object marketId)
+    public CompletableFuture<Object> subscribeOpinionChannel(String messageHash, String channel, Long marketId)
     {
         return BaseExchange.supplyAsync(() -> this.subscribeOpinionChannelCore(messageHash, channel, marketId));
     }
 
-    private Object subscribeOpinionChannelCore(String messageHash, String channel, Object marketId)
+    private Object subscribeOpinionChannelCore(String messageHash, String channel, Long marketId)
     {
 
         (this.loadApiKey()).join();
@@ -2174,7 +2174,7 @@ public class Opinion extends OpinionApi
      * @param {int} outcomeSide 1 for the yes token, 2 for the no token
      * @returns {object} the outcome object, or undefined
      */
-    public Object opinionOutcomeByMarketIdSide(Object marketId, Object outcomeSide)
+    public Object opinionOutcomeByMarketIdSide(Long marketId, Long outcomeSide)
     {
         if ((java.util.Objects.equals(marketId, null)) || (java.util.Objects.equals(this.markets, null)))
         {
@@ -2189,7 +2189,7 @@ public class Opinion extends OpinionApi
             if (java.util.Objects.equals(this.safeInteger(info, "marketId"), marketId))
             {
                 List<Object> outcomes = this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
-                Integer index = ((((outcomeSide != null && ((Number) outcomeSide).doubleValue() == 2)))) ? 1 : 0;
+                Integer index = ((((outcomeSide != null && outcomeSide == 2)))) ? 1 : 0;
                 return this.safeDict(outcomes, index, null);
             }
         }
@@ -2731,7 +2731,7 @@ public class Opinion extends OpinionApi
                 }};
                 String timestamp = this.numberToString(this.seconds());
                 headersExtended.put("OPINION_ADDRESS", this.walletAddress);
-                headersExtended.put("OPINION_SIGNATURE", this.signApiKeyAuth((String) (this.walletAddress), this.safeString(actionByMethod, java.util.Objects.requireNonNullElse(method, "GET"), "get"), (String) (timestamp)));
+                headersExtended.put("OPINION_SIGNATURE", this.signApiKeyAuth((String) (this.walletAddress), this.safeString(actionByMethod, java.util.Objects.requireNonNullElse(method, "GET"), "get"), timestamp));
                 headersExtended.put("OPINION_TIMESTAMP", timestamp);
             } else
             {

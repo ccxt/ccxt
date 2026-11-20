@@ -1223,7 +1223,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String type = this.safeString2(message, "type", "action");
         if (java.util.Objects.equals(type, "ping"))
         {
-            this.spawn(() -> { try { this.handlePing(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.handlePing(client, message);
             return;
         }
         Map<String, String> handlers = new HashMap<String, String>() {{

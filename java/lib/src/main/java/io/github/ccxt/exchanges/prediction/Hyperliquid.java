@@ -567,7 +567,7 @@ public class Hyperliquid extends HyperliquidApi
         String name = this.safeString(outcomeInfo, "name", "");
         List<Object> sideSpecs = this.safeList(outcomeInfo, "sideSpecs", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> desc = this.parseOutcomeDescription((String) (description));
-        String parentSymbol = this.buildOutcomeParentSymbol(desc, (String) (outcomeKey), name, question);
+        String parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeKey, name, question);
         Object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         Object noEncoding = this.outcomeEncoding(outcomeId, 1);
         String yesOutcomeSymbol = (parentSymbol + ":YES");
@@ -1378,7 +1378,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             throw new ExchangeError((this.id + " outcomes not loaded")) ;
         }
-        String sideHint = this.parseOutcomeInputSideHint((String) (outcomeInput));
+        String sideHint = this.parseOutcomeInputSideHint(outcomeInput);
         List<Object> candidates = new ArrayList<Object>(Arrays.asList(outcomeInput));
         if (((String)outcomeInput).startsWith("+"))
         {

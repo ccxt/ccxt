@@ -1211,7 +1211,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String channel = "orderbook.";
         Long limitParam = this.safeInteger(parameters, "limit");
         Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(limitParam, null)))) ? this.omit(parameters, "limit") : parameters;
-        Object defaultLimit = 500;
+        Integer defaultLimit = 500;
         if (java.util.Objects.equals(limitParam, null))
         {
             Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -1977,7 +1977,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                this.loadPositionsSnapshot(client, messageHash);
             }
         } else
         {

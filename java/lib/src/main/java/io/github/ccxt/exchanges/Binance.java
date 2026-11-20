@@ -5654,7 +5654,7 @@ public class Binance extends BinanceApi
         return account;
     }
 
-    public Object parseBalanceCustom(Object response, String type, String marginMode, Boolean isPortfolioMargin)
+    public Object parseBalanceCustom(Map<String, Object> response, String type, String marginMode)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -5662,44 +5662,7 @@ public class Binance extends BinanceApi
         Long timestamp = null;
         Boolean isolated = java.util.Objects.equals(marginMode, "isolated");
         Boolean cross = (java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(marginMode, "cross"));
-        if (java.util.Objects.requireNonNullElse(isPortfolioMargin, false))
-        {
-            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
-            {
-                Map<String, Object> entry = this.safeDict(response, i, null);
-                Map<String, Object> accountPapi = this.account();
-                String currencyId = this.safeString(entry, "asset");
-                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                if (java.util.Objects.equals(type, "linear"))
-                {
-                    accountPapi.put("free", this.safeString(entry, "umWalletBalance"));
-                    accountPapi.put("used", this.safeString(entry, "umUnrealizedPNL"));
-                } else if (java.util.Objects.equals(type, "inverse"))
-                {
-                    accountPapi.put("free", this.safeString(entry, "cmWalletBalance"));
-                    accountPapi.put("used", this.safeString(entry, "cmUnrealizedPNL"));
-                } else if (Boolean.TRUE.equals(cross))
-                {
-                    String borrowed = this.safeString(entry, "crossMarginBorrowed");
-                    String interest = this.safeString(entry, "crossMarginInterest");
-                    accountPapi.put("debt", Precise.stringAdd(borrowed, interest));
-                    accountPapi.put("free", this.safeString(entry, "crossMarginFree"));
-                    accountPapi.put("used", this.safeString(entry, "crossMarginLocked"));
-                    accountPapi.put("total", this.safeString(entry, "crossMarginAsset"));
-                } else
-                {
-                    String usedLinear = this.safeString(entry, "umUnrealizedPNL");
-                    String usedInverse = this.safeString(entry, "cmUnrealizedPNL");
-                    String totalUsed = Precise.stringAdd(usedLinear, usedInverse);
-                    String totalWalletBalance = this.safeString(entry, "totalWalletBalance");
-                    accountPapi.put("total", Precise.stringAdd(totalUsed, totalWalletBalance));
-                }
-                if (!java.util.Objects.equals(code, null))
-                {
-                    result.put(code, accountPapi);
-                }
-            }
-        } else if (!Boolean.TRUE.equals(isolated) && ((java.util.Objects.equals(type, "spot")) || Boolean.TRUE.equals(cross)))
+        if (!Boolean.TRUE.equals(isolated) && ((java.util.Objects.equals(type, "spot")) || Boolean.TRUE.equals(cross)))
         {
             timestamp = this.safeInteger(response, "updateTime");
             List<Object> balances = (List<Object>) this.safeList2(response, "balances", "userAssets", new ArrayList<Object>(Arrays.asList()));
@@ -5758,9 +5721,66 @@ public class Binance extends BinanceApi
                     result.put(code, accountSavings);
                 }
             }
+        } else
+        {
+            List<Object> assets = this.safeList(response, "assets", new ArrayList<Object>(Arrays.asList()));
+            return this.parseBalanceList(assets, type, marginMode, false, response);
+        }
+        result.put("timestamp", timestamp);
+        result.put("datetime", this.iso8601(timestamp));
+        return this.safeBalance(result);
+    }
+
+    public Balances parseBalanceList(Object response, String type, String marginMode, Object isPortfolioMargin, Object info)
+    {
+        Map<String, Object> result = new HashMap<String, Object>() {{
+            put( "info", response );
+        }};
+        if (!java.util.Objects.equals(info, null))
+        {
+            result.put("info", info);
+        }
+        Boolean cross = (java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(marginMode, "cross"));
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPortfolioMargin, false)))
+        {
+            for (var i = 0; i < ((List<?>)response).size(); i++)
+            {
+                Map<String, Object> entry = this.safeDict(response, i, null);
+                Map<String, Object> accountPapi = this.account();
+                String currencyId = this.safeString(entry, "asset");
+                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                if (java.util.Objects.equals(type, "linear"))
+                {
+                    accountPapi.put("free", this.safeString(entry, "umWalletBalance"));
+                    accountPapi.put("used", this.safeString(entry, "umUnrealizedPNL"));
+                } else if (java.util.Objects.equals(type, "inverse"))
+                {
+                    accountPapi.put("free", this.safeString(entry, "cmWalletBalance"));
+                    accountPapi.put("used", this.safeString(entry, "cmUnrealizedPNL"));
+                } else if (Boolean.TRUE.equals(cross))
+                {
+                    String borrowed = this.safeString(entry, "crossMarginBorrowed");
+                    String interest = this.safeString(entry, "crossMarginInterest");
+                    accountPapi.put("debt", Precise.stringAdd(borrowed, interest));
+                    accountPapi.put("free", this.safeString(entry, "crossMarginFree"));
+                    accountPapi.put("used", this.safeString(entry, "crossMarginLocked"));
+                    accountPapi.put("total", this.safeString(entry, "crossMarginAsset"));
+                } else
+                {
+                    String usedLinear = this.safeString(entry, "umUnrealizedPNL");
+                    String usedInverse = this.safeString(entry, "cmUnrealizedPNL");
+                    String totalUsed = Precise.stringAdd(usedLinear, usedInverse);
+                    String totalWalletBalance = this.safeString(entry, "totalWalletBalance");
+                    accountPapi.put("total", Precise.stringAdd(totalUsed, totalWalletBalance));
+                }
+                if (!java.util.Objects.equals(code, null))
+                {
+                    result.put(code, accountPapi);
+                }
+            }
         } else if (java.util.Objects.equals(type, "funding"))
         {
-            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
+            for (var i = 0; i < ((List<?>)response).size(); i++)
             {
                 Map<String, Object> entry = this.safeDict(response, i, null);
                 Map<String, Object> accountFunding = this.account();
@@ -5779,11 +5799,7 @@ public class Binance extends BinanceApi
         } else
         {
             Object balances = response;
-            if (!(response instanceof List))
-            {
-                balances = this.safeList(response, "assets", new ArrayList<Object>(Arrays.asList()));
-            }
-            for (var i = 0; i < (switch ((Object)(balances)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+            for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Map<String, Object> balance = this.safeDict(balances, i, null);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -5804,8 +5820,8 @@ public class Binance extends BinanceApi
                 }
             }
         }
-        result.put("timestamp", timestamp);
-        result.put("datetime", this.iso8601(timestamp));
+        result.put("timestamp", null);
+        result.put("datetime", null);
         return this.safeBalance(result);
     }
 
@@ -5858,7 +5874,7 @@ public class Binance extends BinanceApi
         marginMode = marginModequeryVariable.first();
         query = marginModequeryVariable.second();
         query = this.omit(query, "type");
-        Object response = null;
+        Map<String, Object> response = null;
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(isPortfolioMargin) || (java.util.Objects.equals(type, "papi")))
         {
@@ -5869,8 +5885,8 @@ public class Binance extends BinanceApi
             {
                 type = "inverse";
             }
-            isPortfolioMargin = true;
-            response = (this.papiGetBalance(this.extend(request, query))).join();
+            List<Object> papiResponse = (this.papiGetBalance(this.extend(request, query))).join();
+            return this.parseBalanceList(papiResponse, type, marginMode, true, (Object) null);
         } else if (this.isLinear(type, subType))
         {
             type = "linear";
@@ -5927,7 +5943,8 @@ public class Binance extends BinanceApi
             response = (this.sapiGetLendingUnionAccount(this.extend(request, query))).join();
         } else if (java.util.Objects.equals(type, "funding"))
         {
-            response = (this.sapiPostAssetGetFundingAsset(this.extend(request, query))).join();
+            List<Object> fundingResponse = (this.sapiPostAssetGetFundingAsset(this.extend(request, query))).join();
+            return this.parseBalanceList(fundingResponse, type, marginMode, false, (Object) null);
         } else
         {
             response = (this.privateGetAccount(this.extend(request, query))).join();
@@ -6112,7 +6129,7 @@ public class Binance extends BinanceApi
         //         },
         //     ]
         //
-        return this.parseBalanceCustom(response, type, marginMode, isPortfolioMargin);
+        return this.parseBalanceCustom(response, type, marginMode);
 
     }
 
@@ -14066,10 +14083,10 @@ public class Binance extends BinanceApi
                 // sometimes not all the codes are correctly returned...
                 if (balances.containsKey(code))
                 {
-                    HashMap<String, Object> j39v13 = new HashMap<String, Object>();
-                    j39v13.put("crossMargin", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
-                    j39v13.put("crossWalletBalance", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
-                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, j39v13)), market);
+                    HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                    j39v4.put("crossMargin", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
+                    j39v4.put("crossWalletBalance", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
+                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, j39v4)), market);
                     ((List<Object>)result).add(parsed);
                 }
             }
@@ -16793,7 +16810,7 @@ public class Binance extends BinanceApi
         {
             throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
         }
-        return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>(); j39v14.put("code", code); yield j39v14; } }));
+        return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>(); j39v5.put("code", code); yield j39v5; } }));
 
     }
 

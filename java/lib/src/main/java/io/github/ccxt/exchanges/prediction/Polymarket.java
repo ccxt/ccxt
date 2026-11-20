@@ -3482,12 +3482,12 @@ public class Polymarket extends PolymarketApi
      * @param {object[]} rawEvents the raw gamma event objects
      * @returns {object[]} a list of event structures
      */
-    public List<Object> parseEvents(Object rawEvents)
+    public List<Object> parseEvents(List<Object> rawEvents)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rawEvents).size(); i++)
+        for (var i = 0; i < rawEvents.size(); i++)
         {
-            Map<String, Object> rawEvent = (Map<String, Object>) ((rawEvents == null || i < 0 || i >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(i)));
+            Map<String, Object> rawEvent = (Map<String, Object>) ((rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i)));
             ((List<Object>)result).add(this.parseEvent(rawEvent));
         }
         return result;

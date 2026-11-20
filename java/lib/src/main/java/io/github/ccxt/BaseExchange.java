@@ -6603,7 +6603,7 @@ public Map<String, Object> describe()
 
     public Map<String, Object> setMarkets(Object markets, Object currencies)
     {
-        List<Object> values = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> values = new ArrayList<Map<String, Object>>();
         // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
         Map<String, Object> marketsById = new HashMap<String, Object>() {{}};
         // handle marketId conflicts
@@ -6648,7 +6648,7 @@ public Map<String, Object> describe()
             {
                 market.put("subType", null);
             }
-            ((List<Object>)values).add(market);
+            values.add(market);
         }
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
         this.markets_by_id = this.mapToSafeMap(marketsById);
@@ -6672,7 +6672,7 @@ public Map<String, Object> describe()
             List<Object> quoteCurrencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < values.size(); i++)
             {
-                Object market = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
+                Map<String, Object> market = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
                 Object defaultCurrencyPrecision = ((((this.precisionMode == DECIMAL_PLACES)))) ? 8 : this.parseNumber("1e-8");
                 Map<String, Object> marketPrecision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
                 if (((Map<?, ?>)market).containsKey("base"))
@@ -6867,52 +6867,28 @@ public Map<String, Object> describe()
         Boolean parseSide = java.util.Objects.equals(side, null);
         Boolean shouldParseFees = Boolean.TRUE.equals(parseFee) || Boolean.TRUE.equals(parseFees);
         List<Object> fees = this.safeList(orderDict, "fees", new ArrayList<Object>(Arrays.asList()));
-        Object trades = new ArrayList<Object>(Arrays.asList());
+        List<Object> trades = new ArrayList<Object>(Arrays.asList());
         Boolean isTriggerOrSLTpOrder = ((!java.util.Objects.equals(this.safeString(orderDict, "triggerPrice"), null) || (!java.util.Objects.equals(this.safeString(orderDict, "stopLossPrice"), null))) || (!java.util.Objects.equals(this.safeString(orderDict, "takeProfitPrice"), null)));
         if (Boolean.TRUE.equals(parseFilled) || Boolean.TRUE.equals(parseCost) || Boolean.TRUE.equals(shouldParseFees))
         {
-            Object rawTrades = this.safeValue(orderDict, "trades", trades);
             // const oldNumber = this.number;
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            Map<String, Object> firstTrade = this.safeDict(rawTrades, 0, null);
+            Map<String, Object> firstTrade = this.safeDict(this.safeValue(orderDict, "trades"), 0, null);
             // parse trades if they haven't already been parsed
             Boolean tradesAreParsed = ((!java.util.Objects.equals(firstTrade, null)) && (firstTrade.containsKey("info")) && (firstTrade.containsKey("id")));
             if (!Boolean.TRUE.equals(tradesAreParsed))
             {
-                trades = this.parseTrades(rawTrades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+                trades = this.parseTrades(this.safeValue(orderDict, "trades", new ArrayList<Object>(Arrays.asList())), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             } else
             {
-                trades = rawTrades;
+                trades = (List<Object>) this.safeList(orderDict, "trades", new ArrayList<Object>(Arrays.asList()));
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
-            Integer tradesLength = 0;
-            Boolean isArray = (trades instanceof List);
-            if (Boolean.TRUE.equals(isArray))
+            Integer tradesLength = trades.size();
+            if ((tradesLength != null && tradesLength > 0))
             {
-                tradesLength = ((List<?>)trades).size();
-            }
-            if (Boolean.TRUE.equals(isArray) && ((tradesLength != null && tradesLength > 0)))
-            {
-                Map<String, Object> headTrade = (Map<String, Object>) ((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)));
-                // move properties that are defined in trades up into the order
-                if (Boolean.TRUE.equals(parseSymbol))
-                {
-                    Helpers.addElementToObject(orderDict, "symbol", (headTrade == null ? null : headTrade.get("symbol")));
-                }
-                if (Boolean.TRUE.equals(parseSide))
-                {
-                    Helpers.addElementToObject(orderDict, "side", (headTrade == null ? null : headTrade.get("side")));
-                }
-                if (java.util.Objects.equals(this.safeString(orderDict, "type"), null))
-                {
-                    Helpers.addElementToObject(orderDict, "type", (headTrade == null ? null : headTrade.get("type")));
-                }
-                if (java.util.Objects.equals(this.safeString(orderDict, "id"), null))
-                {
-                    Helpers.addElementToObject(orderDict, "id", (headTrade == null ? null : headTrade.get("order")));
-                }
                 if (Boolean.TRUE.equals(parseFilled))
                 {
                     filled = "0";
@@ -6921,9 +6897,29 @@ public Map<String, Object> describe()
                 {
                     cost = "0";
                 }
-                for (var i = 0; i < ((List<?>)trades).size(); i++)
+                for (var i = 0; i < trades.size(); i++)
                 {
-                    Object trade = (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i));
+                    Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+                    if ((i == 0))
+                    {
+                        // move properties that are defined in trades up into the order
+                        if (Boolean.TRUE.equals(parseSymbol))
+                        {
+                            orderDict.put("symbol", trade.get("symbol"));
+                        }
+                        if (Boolean.TRUE.equals(parseSide))
+                        {
+                            orderDict.put("side", trade.get("side"));
+                        }
+                        if (java.util.Objects.equals(this.safeString(orderDict, "type"), null))
+                        {
+                            orderDict.put("type", trade.get("type"));
+                        }
+                        if (java.util.Objects.equals(this.safeString(orderDict, "id"), null))
+                        {
+                            orderDict.put("id", trade.get("order"));
+                        }
+                    }
                     String tradeAmount = this.safeString(trade, "amount");
                     if (Boolean.TRUE.equals(parseFilled) && (!java.util.Objects.equals(tradeAmount, null)))
                     {
@@ -7006,7 +7002,7 @@ public Map<String, Object> describe()
             orderDict.put("fees", reducedFees);
             if (Boolean.TRUE.equals(parseFee) && (java.util.Objects.equals(reducedLength, 1)))
             {
-                Helpers.addElementToObject(orderDict, "fee", (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0)));
+                orderDict.put("fee", (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0)));
             }
         }
         if (java.util.Objects.equals(amount, null))
@@ -7097,12 +7093,12 @@ public Map<String, Object> describe()
             price = average;
         }
         // we have trades with string values at this point so we will mutate them
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        for (var i = 0; i < trades.size(); i++)
         {
-            Object entry = (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i));
-            ((Map<String, Object>)entry).put("amount", BaseExchange.this.safeNumber(entry, "amount", (Object) null));
-            ((Map<String, Object>)entry).put("price", BaseExchange.this.safeNumber(entry, "price", (Object) null));
-            ((Map<String, Object>)entry).put("cost", BaseExchange.this.safeNumber(entry, "cost", (Object) null));
+            Map<String, Object> entry = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+            entry.put("amount", BaseExchange.this.safeNumber(entry, "amount", (Object) null));
+            entry.put("price", BaseExchange.this.safeNumber(entry, "price", (Object) null));
+            entry.put("cost", BaseExchange.this.safeNumber(entry, "cost", (Object) null));
             Map<String, Object> tradeFee = this.safeDict(entry, "fee", new HashMap<String, Object>() {{}});
             tradeFee.put("cost", BaseExchange.this.safeNumber(tradeFee, "cost", (Object) null));
             if (tradeFee.containsKey("rate"))
@@ -7114,8 +7110,8 @@ public Map<String, Object> describe()
             {
                 Helpers.addElementToObject((entryFees == null || j < 0 || j >= entryFees.size() ? null : entryFees.get(j)), "cost", this.safeNumber((entryFees == null || j < 0 || j >= entryFees.size() ? null : entryFees.get(j)), "cost", (Object) null));
             }
-            ((Map<String, Object>)entry).put("fees", entryFees);
-            ((Map<String, Object>)entry).put("fee", tradeFee);
+            entry.put("fees", entryFees);
+            entry.put("fee", tradeFee);
         }
         String timeInForce = this.safeString(orderDict, "timeInForce");
         Object postOnly = this.safeValue(orderDict, "postOnly");
@@ -8191,17 +8187,10 @@ public Map<String, Object> describe()
             }
         }
         // fall back to scanning loaded currencies
-        List<Object> currenciesToCheck = new ArrayList<Object>(Arrays.asList());
-        if (java.util.Objects.equals(currencyCode, null))
+        if (!java.util.Objects.equals(currencyCode, null))
         {
-            currenciesToCheck = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
-        } else
-        {
-            currenciesToCheck = new ArrayList<Object>(Arrays.asList(this.safeDict(this.currencies, currencyCode, null)));
-        }
-        for (var i = 0; i < currenciesToCheck.size(); i++)
-        {
-            Map<String, Object> networks = this.safeDict((currenciesToCheck == null || i < 0 || i >= currenciesToCheck.size() ? null : currenciesToCheck.get(i)), "networks", new HashMap<String, Object>() {{}});
+            List<Object> currencies = new ArrayList<Object>(Arrays.asList(this.safeDict(this.currencies, currencyCode, null)));
+            Map<String, Object> networks = this.safeDict((currencies == null || 0 >= ((List<?>)currencies).size() ? null : ((List<?>)currencies).get(0)), "networks", new HashMap<String, Object>() {{}});
             if (networks.containsKey(unifiedCode))
             {
                 return this.safeString((networks == null || unifiedCode == null ? null : networks.get(unifiedCode)), "id");
@@ -10868,9 +10857,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (response == null ? 0 : response.size()); i++)
         {
-            Map<String, Object> item = this.safeDict(response, i, null);
-            Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
-            ((List<Object>)result).add(borrowRate);
+            ((List<Object>)result).add(this.parseBorrowRate(this.safeDict(response, i, null), (Map<String, Object>) null));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v8 -> hx4J40v8; case Number hx4J40v8 -> Long.valueOf(hx4J40v8.longValue()); case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v8.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v7 -> hx4J40v7; case Number hx4J40v7 -> Long.valueOf(hx4J40v7.longValue()); case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v7.getClass().getName()); })), false);
@@ -11112,9 +11099,7 @@ public Map<String, Object> describe()
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v28 -> j39v28.size(); case String j39v29 -> j39v29.length(); case Object j39v30 -> j39v30.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v30) : 0; }); i++)
         {
-            Object entry = Helpers.GetValue(response, i);
-            Map<String, Object> interest = (Map<String, Object>) this.parseOpenInterest(entry, market);
-            ((List<Object>)interests).add(interest);
+            ((List<Object>)interests).add(this.parseOpenInterest(Helpers.GetValue(response, i), market));
         }
         List<Object> sorted = this.sortBy(interests, "timestamp");
         String symbol = this.safeString(market, "symbol");
@@ -11385,19 +11370,37 @@ public Map<String, Object> describe()
          */
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         Boolean isArray = (response instanceof List);
-        Object responseKeys = response;
+        Object dictResponse = new HashMap<String, Object>() {{}};
+        Long numEntries = 0L;
+        if (Boolean.TRUE.equals(isArray))
+        {
+            Integer responseLength = ((List<?>)response).size();
+            numEntries = Long.valueOf(responseLength);
+        } else
+        {
+            dictResponse = response;
+        }
+        List<Object> keys = ((List<Object>) switch ((Object)(dictResponse)) { case Map<?, ?> j39v31 -> { synchronized (j39v31) { yield new ArrayList<Object>(j39v31.keySet()); } } case null, default -> new ArrayList<Object>(); });
         if (!Boolean.TRUE.equals(isArray))
         {
-            responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v34 -> { synchronized (j39v34) { yield new ArrayList<Object>(j39v34.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            Integer keysLength = keys.size();
+            numEntries = Long.valueOf(keysLength);
         }
-        for (var i = 0; i < (switch ((Object)(responseKeys)) { case null -> 0; case List<?> j39v31 -> j39v31.size(); case String j39v32 -> j39v32.length(); case Object j39v33 -> j39v33.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v33) : 0; }); i++)
+        for (var i = 0; (numEntries != null && i < numEntries); i++)
         {
-            Object entry = Helpers.GetValue(responseKeys, i);
-            Object dictionary = ((Boolean.TRUE.equals(isArray))) ? entry : Helpers.GetValue(response, entry);
-            Object currencyId = entry;
+            Object dictionary = null;
+            Object currencyId = null;
             if (Boolean.TRUE.equals(isArray))
             {
-                currencyId = (((java.util.Objects.equals(currencyIdKey, null)))) ? null : this.safeString(dictionary, currencyIdKey);
+                dictionary = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+                if (!java.util.Objects.equals(currencyIdKey, null))
+                {
+                    currencyId = this.safeString(dictionary, currencyIdKey);
+                }
+            } else
+            {
+                currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                dictionary = Helpers.GetValue(response, currencyId);
             }
             Map<String, Object> currency = this.safeCurrency((String) (currencyId), (Map<String, Object>) null);
             String code = this.safeString(currency, "code");
@@ -11440,7 +11443,7 @@ public Map<String, Object> describe()
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        List<Object> networkKeys = ((List<Object>) switch ((Object)(fee.get("networks"))) { case Map<?, ?> j39v35 -> { synchronized (j39v35) { yield new ArrayList<Object>(j39v35.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> networkKeys = ((List<Object>) switch ((Object)(fee.get("networks"))) { case Map<?, ?> j39v32 -> { synchronized (j39v32) { yield new ArrayList<Object>(j39v32.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer numNetworks = networkKeys.size();
         if (java.util.Objects.equals(numNetworks, 1))
         {
@@ -11481,11 +11484,9 @@ public Map<String, Object> describe()
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(incomes)) { case null -> 0; case List<?> j39v36 -> j39v36.size(); case String j39v37 -> j39v37.length(); case Object j39v38 -> j39v38.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v38) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(incomes)) { case null -> 0; case List<?> j39v33 -> j39v33.size(); case String j39v34 -> j39v34.length(); case Object j39v35 -> j39v35.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v35) : 0; }); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) (Helpers.GetValue(incomes, i));
-            Map<String, Object> parsed = (Map<String, Object>) this.parseIncome(entry, market);
-            ((List<Object>)result).add(parsed);
+            ((List<Object>)result).add(this.parseIncome((Map<String, Object>) (Helpers.GetValue(incomes, i)), market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
@@ -11650,7 +11651,7 @@ public Map<String, Object> describe()
                         Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", Helpers.subtract(paginationTimestamp, 1));
                     }
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v42 -> j39v42.size(); case String j39v43 -> j39v43.length(); case Object j39v44 -> j39v44.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v44) : 0; });
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v39 -> j39v39.size(); case String j39v40 -> j39v40.length(); case Object j39v41 -> j39v41.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v41) : 0; });
                     if (this.verbose)
                     {
                         String backwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
@@ -11683,7 +11684,7 @@ public Map<String, Object> describe()
                 {
                     // do it forwards, starting from the since
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v39 -> j39v39.size(); case String j39v40 -> j39v40.length(); case Object j39v41 -> j39v41.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v41) : 0; });
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v36 -> j39v36.size(); case String j39v37 -> j39v37.length(); case Object j39v38 -> j39v38.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v38) : 0; });
                     if (this.verbose)
                     {
                         String forwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
@@ -12026,7 +12027,7 @@ public Map<String, Object> describe()
                 paramsMaxEntriesPerRequest.put(((String)pageKey), (((long) i) + 1L));
                 Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
                 errors = 0;
-                Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v45 -> j39v45.size(); case String j39v46 -> j39v46.length(); case Object j39v47 -> j39v47.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v47) : 0; });
+                Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v42 -> j39v42.size(); case String j39v43 -> j39v43.length(); case Object j39v44 -> j39v44.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v44) : 0; });
                 if (this.verbose)
                 {
                     String incrementalMessage = ((((("Incremental pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
@@ -12185,8 +12186,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)liquidations).size(); i++)
         {
-            Object entry = (liquidations == null || i < 0 || i >= ((List<?>)liquidations).size() ? null : ((List<?>)liquidations).get(i));
-            Map<String, Object> parsed = (Map<String, Object>) this.parseLiquidation(entry, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseLiquidation((liquidations == null || i < 0 || i >= ((List<?>)liquidations).size() ? null : ((List<?>)liquidations).get(i)), market);
             ((List<Object>)result).add(parsed);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
@@ -12213,7 +12213,7 @@ public Map<String, Object> describe()
             }
         } else
         {
-            List<Object> marketIds = ((List<Object>) switch ((Object)(greeks)) { case Map<?, ?> j39v48 -> { synchronized (j39v48) { yield new ArrayList<Object>(j39v48.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> marketIds = ((List<Object>) switch ((Object)(greeks)) { case Map<?, ?> j39v45 -> { synchronized (j39v45) { yield new ArrayList<Object>(j39v45.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < marketIds.size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
@@ -12234,12 +12234,11 @@ public Map<String, Object> describe()
         Map<String, Object> optionStructures = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object info = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
-            String currencyId = (((java.util.Objects.equals(currencyKey, null)))) ? null : this.safeString(info, currencyKey);
+            String currencyId = (((java.util.Objects.equals(currencyKey, null)))) ? null : this.safeString((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), currencyKey);
             Map<String, Object> currency = this.safeCurrency(currencyId, (Map<String, Object>) null);
-            String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
+            String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbolKey);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "option");
-            optionStructures.put((String)market.get("symbol"), this.parseOption((Map<String, Object>) (info), currency, market));
+            optionStructures.put((String)market.get("symbol"), this.parseOption((Map<String, Object>) ((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i))), currency, market));
         }
         return optionStructures;
     }
@@ -12478,12 +12477,11 @@ public Map<String, Object> describe()
         }
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object info = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
-            String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
+            String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbolKey);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
-                ((List<Object>)marginModifications).add(this.parseMarginModification((Map<String, Object>) (info), market));
+                ((List<Object>)marginModifications).add(this.parseMarginModification((Map<String, Object>) ((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i))), market));
             }
         }
         return marginModifications;

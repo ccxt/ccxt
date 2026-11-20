@@ -853,7 +853,7 @@ public class Kalshi extends KalshiApi
             String label = (String) (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
             String outcomeHandle = this.slugToOutcomeSymbol((String) (eventTicker), subtitleOrTicker, label);
             Boolean winnerRaw = null;
-            Object settleFractionRaw = null;
+            Integer settleFractionRaw = null;
             if (Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(result, null)) && (!java.util.Objects.equals(result, "")))
             {
                 winnerRaw = (java.util.Objects.equals(label.toLowerCase(), result));
@@ -866,7 +866,7 @@ public class Kalshi extends KalshiApi
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
-            Object settleFraction = settleFractionRaw;
+            Integer settleFraction = settleFractionRaw;
             HashMap<String, Object> j39v1 = new HashMap<String, Object>();
             j39v1.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
             j39v1.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
@@ -1452,7 +1452,7 @@ public class Kalshi extends KalshiApi
      * @param {object[]} asks array of [price, size] ask levels
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public Map<String, Object> sortedOrders(String outcome, Object timestamp, Object bids, Object asks)
+    public Map<String, Object> sortedOrders(String outcome, Long timestamp, List<Object> bids, List<Object> asks)
     {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
         List<Object> bidsValue = this.sortBy(bids, 0, true);
@@ -3032,12 +3032,12 @@ public class Kalshi extends KalshiApi
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public CompletableFuture<List<Object>> fetchSeriesEvents(Object seriesTickers, String status, Object limit, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchSeriesEvents(Object seriesTickers, String status, Long limit, Map<String, Object> rest)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSeriesEventsCore(seriesTickers, status, limit, rest));
     }
 
-    private List<Object> fetchSeriesEventsCore(Object seriesTickers, String status, Object limit, Map<String, Object> rest)
+    private List<Object> fetchSeriesEventsCore(Object seriesTickers, String status, Long limit, Map<String, Object> rest)
     {
 
         List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());

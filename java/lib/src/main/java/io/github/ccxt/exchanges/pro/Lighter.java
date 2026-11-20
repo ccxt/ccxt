@@ -2026,7 +2026,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //
         //     { "type": "ping" }
         //
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public CompletableFuture<Object> pong(Client client, Object message)

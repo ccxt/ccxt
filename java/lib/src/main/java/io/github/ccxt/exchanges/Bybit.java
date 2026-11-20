@@ -4728,7 +4728,7 @@ public class Bybit extends BybitApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        Object defaultLimit = 25;
+        Integer defaultLimit = 25;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             // limit: [1, 50]. Default: 1

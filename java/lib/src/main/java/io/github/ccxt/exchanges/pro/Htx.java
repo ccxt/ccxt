@@ -1022,7 +1022,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            this.watchOrderBookSnapshot(client, message, subscription);
         }
     }
 
@@ -2806,7 +2806,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handlePing(Client client, Map<String, Object> message)
     {
-        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.pong(client, message);
     }
 
     public void handleAuthenticate(Client client, Map<String, Object> message)
