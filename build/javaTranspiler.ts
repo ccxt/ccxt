@@ -1667,7 +1667,10 @@ export function installJavaOwnerStores (transpiler: any): void {
     for (const m of header.matchAll (/^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*=\s*new\s+HashMap<>\s*\(\s*\)\s*;/gm)) {
         const handAssigns = [ ...header.matchAll (new RegExp (`\\bthis\\.${m[1]}\\s*=(?!=)\\s*([^;]*)`, 'g')) ];
         const tsAssigns = [ ...tsMethods.matchAll (new RegExp (`\\bthis\\.${m[1]}\\s*=(?!=)\\s*([^;]*)`, 'g')) ];
-        if (handAssigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))
+        // a describe () key the base declares as an object literal reaches the field as a fresh deepExtend map
+        const describedLiteral = new RegExp (`^ {12}'${m[1]}': \\{`, 'm').test (tsMethods);
+        const fromDescribe = (x: string) => describedLiteral && x === `(Map<String, Object>) this.safeValue(extendedProperties, "${m[1]}")`;
+        if (handAssigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()) || fromDescribe (x[1].trim ()))
             && tsAssigns.every ((x) => /^(?:\{\s*\}|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))) {
             caches.add (m[1]);
         }
