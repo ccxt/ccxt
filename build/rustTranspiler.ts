@@ -5383,8 +5383,11 @@ function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BU
             if (end < 0) throw new Error (fn + ': declaration without the Value::Null tail');
             const body = content.slice (open, end).replace (/^( *return )([^\n]*)$/gm, (_l, r: string, e: string) => {
                 if (e.startsWith ('self.extend(') && e.endsWith (');')) return r + 'self.extend_t(' + e.slice ('self.extend('.length);
+                // the boxed call of a builder typed earlier in this list already answers Dict
+                const b = /^Value::Dict\(self\.(\w+)\(/.exec (e);
+                if (b && fns.indexOf (b[1]) >= 0 && fns.indexOf (b[1]) < fns.indexOf (fn) && e.endsWith ('));') && balancedCloseIndex (e, b[0].length) === e.length - 3) return r + e.slice ('Value::Dict('.length, -2) + ';';
                 const m = e.match (/^Value::(Map|Dict)\((\w+)\);$/);
-                if (m && new RegExp ('\\blet mut ' + m[2] + ': ' + (m[1] === 'Map' ? 'indexmap::IndexMap<String, Value>' : 'crate::value::Dict') + ' = ').test (content.slice (open, end))) {
+                if (m && new RegExp ('\\blet (?:mut )?' + m[2] + ': ' + (m[1] === 'Map' ? 'indexmap::IndexMap<String, Value>' : 'crate::value::Dict') + ' = ').test (content.slice (open, end))) {
                     return r + (m[1] === 'Map' ? 'std::sync::Arc::new(' + m[2] + ')' : m[2]) + ';';
                 }
                 throw new Error (fn + ': unproven return ' + e.slice (0, 80));
@@ -5402,6 +5405,7 @@ function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BU
             if (content.startsWith ('.await', close + 1)) close += '.await'.length;
             const rest = content.slice (close + 1);
             if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            else if (rest.startsWith ('.into_opt_dict()')) content = content.slice (0, s) + 'Some(' + content.slice (s, close + 1) + ')' + rest.slice ('.into_opt_dict()'.length);
             else if (rest.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice (copy.length);
             else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
         }
@@ -8407,6 +8411,12 @@ const RUST_DICT_BUILDER_VENUE_FNS: Array<[string, string]> = [
     [ 'create_public_request', 'deepcoin' ],
     [ 'wrap_as_post_action', 'pacifica' ],
     [ 'send_subscription', 'polymarket' ],
+    [ 'set_api_credentials', 'prediction/opinion' ],
+    [ 'create_api_key', 'prediction/opinion' ],
+    [ 'fetch_api_key', 'prediction/opinion' ],
+    [ 'set_api_credentials', 'prediction/polymarket' ],
+    [ 'derive_api_key', 'prediction/polymarket' ],
+    [ 'create_api_key', 'prediction/polymarket' ],
 ];
 // hyperliquid signing: `signHash` returns the `{r, s, v}` literal, `signMessage` returns `signHash (..)`, `signL1Action`
 // returns that dict (a Dict local or `signMessage (..)`), so all three return `Dict`; any other return throws.
