@@ -871,15 +871,16 @@ class hashkey extends \ccxt\async\hashkey {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $type, array());
         $currencyId = $this->safe_string($balanceUpdate, 'a');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_string($balanceUpdate, 'f');
         $account['used'] = $this->safe_string($balanceUpdate, 'l');
         if ($code !== null) {
-            $this->balance[$type][$code] = $account;
+            $balance[$code] = $account;
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($balance);
         $messageHash = 'balance:' . $type;
         $client->resolve($this->balance[$type], $messageHash);
     }

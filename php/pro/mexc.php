@@ -1732,17 +1732,18 @@ class mexc extends \ccxt\async\mexc {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
-        $this->balance[$type]['timestamp'] = $timestamp;
-        $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
+        $balance = $this->safe_dict($this->balance, $type, array());
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
         $currencyId = $this->safe_string_2($data, 'currency', 'vcoinName');
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
         $account['free'] = $this->safe_string_2($data, 'balanceAmount', 'availableBalance');
         $account['used'] = $this->safe_string_2($data, 'frozenBalance', 'frozenAmount');
         if ($code !== null) {
-            $this->balance[$type][$code] = $account;
+            $balance[$code] = $account;
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($balance);
         $client->resolve($this->balance[$type], $messageHash);
     }
 

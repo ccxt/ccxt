@@ -1873,10 +1873,8 @@ class weex extends \ccxt\async\weex {
             $accountType = 'swap';
         }
         $messageHash = $accountType . ':balance';
-        if (!(is_array($this->balance) && array_key_exists($accountType ?? '', $this->balance))) {
-            $this->balance[$accountType] = array();
-        }
-        $this->balance[$accountType]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $accountType, array());
+        $balance['info'] = $message;
         $balanceUpdates = $this->safe_list($message, 'd', array());
         for ($i = 0; $i < count($balanceUpdates); $i++) {
             $entry = $this->safe_dict($balanceUpdates, $i);
@@ -1887,13 +1885,13 @@ class weex extends \ccxt\async\weex {
             $account['used'] = $this->safe_string($entry, 'frozen');
             $account['total'] = $this->safe_string_2($entry, 'equity', 'legacyAmount');
             if ($code !== null) {
-                $this->balance[$accountType][$code] = $account;
+                $balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($message, 'E');
-        $this->balance[$accountType]['timestamp'] = $timestamp;
-        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($balance);
         $client->resolve($this->balance[$accountType], $messageHash);
     }
 

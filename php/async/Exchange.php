@@ -1751,7 +1751,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $targets = is_array($fallbacks) ? array_keys($fallbacks) : array();
         for ($i = 0; $i < count($targets); $i++) {
             $target = $targets[$i];
-            $source = $fallbacks[$target];
+            $source = $this->safe_string($fallbacks, $target, '');
             $sourceDefined = (is_array($this->has) && array_key_exists($source ?? '', $this->has)) && ($this->has[$source] !== null);
             $targetDefined = (is_array($this->has) && array_key_exists($target ?? '', $this->has)) && ($this->has[$target] !== null);
             if ($sourceDefined && !$targetDefined) {
