@@ -94,7 +94,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'getProductGroupFromMarket', 'getSeeds', 'getSubAccountId',
     'getTifFromRawOrderType', 'getTypeByMarket', 'getWalletAddress',
     'handleTakerOrMaker', 'handleTimeInForce', 'hexToDecimalString', 'mapSide',
-    'mapTimeInForce', 'marketOutcomeToSymbol', 'oath', 'outcomeSearchQuery', 'padHex',
+    'mapTimeInForce', 'marketOutcomeToSymbol', 'normalizeTagKey', 'oath', 'outcomeSearchQuery', 'padHex',
     'paraseTransferStatus', 'parseAccountId', 'parseAccountType', 'parseDepositStatus',
     'parseFundingInterval', 'parseLedgerDirection', 'parseLedgerEntryDirection',
     'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
@@ -12247,7 +12247,8 @@ function stringAccumulatorListLocal (printer, declaration) {
         if (push !== undefined) {
             const arg = unwrapParens (push.arguments[0]);
             if (push.arguments.length !== 1
-                || !(isStaticallyStringExpression (printer, arg, undefined) || stringProducerLocal (printer, arg) || r87j8StringElement (printer, arg))) {
+                || !(isStaticallyStringExpression (printer, arg, undefined) || stringProducerLocal (printer, arg) || r87j8StringElement (printer, arg)
+                    || stringCaseCallPush (printer, arg))) {
                 return false;
             }
             pushes++;
@@ -12261,6 +12262,13 @@ function stringAccumulatorListLocal (printer, declaration) {
         }
     }
     return pushes > 0 || init.elements.length > 0;
+}
+
+// `s.toLowerCase ()` / `.toUpperCase ()` / `.trim ()` on a ts string prints the native String method
+function stringCaseCallPush (printer, node) {
+    return ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression) && node.arguments.length === 0
+        && [ 'toLowerCase', 'toUpperCase', 'trim' ].includes (node.expression.name.text)
+        && (printer.getChecker ().getTypeAtLocation (node.expression.expression).flags & ts.TypeFlags.StringLike) !== 0;
 }
 
 // a const local fed by a String-returning base method whose own declaration prints String
