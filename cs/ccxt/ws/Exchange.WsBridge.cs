@@ -213,7 +213,7 @@ public partial class BaseExchange
                 (c) => ping(c),
                 (c, error) => onClose(c, error),
                 (c, error) => onError(c, error),
-                this.verbose, keepAlive, decompressBinary);
+                this.verbose, keepAlive, decompressBinary, this.validateServerSsl);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
@@ -297,8 +297,10 @@ public partial class BaseExchange
     public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
     {
         var url = url2.ToString();
-        var messageHashes = (messageHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
-        var subscribeHashes = (subscribeHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
+        // the hashes can arrive as List<object> or as a typed List<string>
+        var messageHashes = (messageHashes2 as System.Collections.IEnumerable).Cast<object>().Select(obj => obj.ToString()).ToList();
+        // subscribeHashes is optional (e.g. the subscribe messages were already sent by the caller)
+        var subscribeHashes = (subscribeHashes2 as System.Collections.IEnumerable)?.Cast<object>().Select(obj => obj.ToString()).ToList();
 
         var client = this.client(url);
 

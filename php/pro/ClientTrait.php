@@ -110,7 +110,7 @@ trait ClientTrait {
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_ws_proxy_settings();
         $selected_proxy_address = $httpProxy ? $httpProxy : ($httpsProxy ? $httpsProxy : $socksProxy );
         $proxy_connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-        $client->set_ws_connector($selected_proxy_address, $proxy_connector);
+        $client->set_ws_connector($selected_proxy_address, $proxy_connector, $this->get_tls_connector_options());
     }
 
     public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null) {

@@ -624,9 +624,10 @@ public class WsClient {
      */
     public CompletableFuture<Void> send(Object message) {
         if (this.isMock) {
-            // static ws tests: record the outgoing frame so the test can assert it
+            // static ws tests: record the outgoing frame so the test can assert it,
+            // non-json text frames (e.g. interactivebrokers 'sbd+...') are kept as the raw string
+            String mockJson = null;
             try {
-                String mockJson;
                 if (message instanceof String s) {
                     mockJson = s;
                 } else {
@@ -634,7 +635,9 @@ public class WsClient {
                 }
                 this.mockSentMessages.add(JSON_MAPPER.readValue(mockJson, Object.class));
             } catch (Exception e) {
-                // ignore malformed frames, the assertion will surface the gap
+                if (mockJson != null) {
+                    this.mockSentMessages.add(mockJson);
+                }
             }
             return CompletableFuture.completedFuture(null);
         }
