@@ -562,7 +562,8 @@ export default class nado extends Exchange {
             }
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
-            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18;
+            const oracleKey: string = 'oracle_price_' + directionSuffix;
+            priceRequirement[oracleKey] = triggerPriceX18;
             const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -583,7 +584,8 @@ export default class nado extends Exchange {
             }
             const triggerPriceX18 = this.convertToX18 (triggerPrice);
             const priceRequirement: Dict = {};
-            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18;
+            const oracleKey: string = 'oracle_price_' + oracleSide;
+            priceRequirement[oracleKey] = triggerPriceX18;
             const trigger: Dict = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -2918,7 +2920,9 @@ export default class nado extends Exchange {
             }
             filled = this.parseX18 (Precise.stringAbs (archiveFilled));
             const costString = this.safeString (order, 'quote_filled');
-            cost = (costString === undefined) ? undefined : this.parseX18 (Precise.stringAbs (costString));
+            if (costString !== undefined) {
+                cost = this.parseX18 (Precise.stringAbs (costString));
+            }
             if ((filled !== undefined) && (cost !== undefined)) {
                 average = Precise.stringDiv (this.numberToString (cost), this.numberToString (filled));
             }
@@ -3132,7 +3136,8 @@ export default class nado extends Exchange {
             return paddedLeft.slice (start, paddedLeft.length);
         }
         const paddedRight = value + zeros;
-        return paddedRight.slice (0, length);
+        const end = this.parseToInt (length);
+        return paddedRight.slice (0, end);
     }
 
     signOrder (order: Dict, productId: Int, chainId: Str): string {
