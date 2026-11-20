@@ -4850,43 +4850,24 @@ export class BaseExchange {
         const parseSide = side === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeList (orderDict, 'fees', []);
-        let trades: any[] = [];
+        let trades: Dict[] = [];
         const isTriggerOrSLTpOrder = ((this.safeString (orderDict, 'triggerPrice') !== undefined || (this.safeString (orderDict, 'stopLossPrice') !== undefined)) || (this.safeString (orderDict, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
-            const rawTrades = this.safeValue (orderDict, 'trades', trades);
             // const oldNumber = this.number;
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            const firstTrade = this.safeDict (rawTrades, 0);
+            const firstTrade = this.safeDict (this.safeValue (orderDict, 'trades'), 0);
             // parse trades if they haven't already been parsed
             const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
             if (!tradesAreParsed) {
-                trades = this.parseTrades (rawTrades, market);
+                trades = this.parseTrades (this.safeValue (orderDict, 'trades', []), market);
             } else {
-                trades = rawTrades;
+                trades = this.safeList (orderDict, 'trades', []);
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
-            let tradesLength = 0;
-            const isArray = Array.isArray (trades);
-            if (isArray) {
-                tradesLength = trades.length;
-            }
-            if (isArray && (tradesLength > 0)) {
-                const headTrade: Dict = trades[0];
-                // move properties that are defined in trades up into the order
-                if (parseSymbol) {
-                    orderDict['symbol'] = headTrade['symbol'];
-                }
-                if (parseSide) {
-                    orderDict['side'] = headTrade['side'];
-                }
-                if (this.safeString (orderDict, 'type') === undefined) {
-                    orderDict['type'] = headTrade['type'];
-                }
-                if (this.safeString (orderDict, 'id') === undefined) {
-                    orderDict['id'] = headTrade['order'];
-                }
+            const tradesLength = trades.length;
+            if (tradesLength > 0) {
                 if (parseFilled) {
                     filled = '0';
                 }
@@ -4895,6 +4876,21 @@ export class BaseExchange {
                 }
                 for (let i = 0; i < trades.length; i++) {
                     const trade = trades[i];
+                    if (i === 0) {
+                        // move properties that are defined in trades up into the order
+                        if (parseSymbol) {
+                            orderDict['symbol'] = trade['symbol'];
+                        }
+                        if (parseSide) {
+                            orderDict['side'] = trade['side'];
+                        }
+                        if (this.safeString (orderDict, 'type') === undefined) {
+                            orderDict['type'] = trade['type'];
+                        }
+                        if (this.safeString (orderDict, 'id') === undefined) {
+                            orderDict['id'] = trade['order'];
+                        }
+                    }
                     const tradeAmount = this.safeString (trade, 'amount');
                     if (parseFilled && (tradeAmount !== undefined)) {
                         filled = Precise.stringAdd (filled, tradeAmount);
