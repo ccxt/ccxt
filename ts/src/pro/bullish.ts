@@ -18,8 +18,10 @@ export default class bullish extends bullishRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchOrderBook': true,
+                'unWatchOrderBook': true,
                 'watchOrders': true,
                 'watchTrades': true,
+                'unWatchTrades': true,
                 'watchPositions': true,
                 'watchMyTrades': true,
                 'watchBalance': true,
@@ -102,6 +104,68 @@ export default class bullish extends bullishRest {
         return await this.watch (wsUrl + url, messageHash, this.deepExtend (message, params), messageHash);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name bullish#unsubscribePublic
+     * @description sends an unsubscribe command for one public topic and registers the pending unsubscription under the request id
+     * @param {string} url path of the public websocket endpoint the subscription was opened on
+     * @param {string} topic unified cache topic: trades, orderbook
+     * @param {string} messageHash message hash the subscription was opened with
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} request exchange-specific topic and symbol of the subscription
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unsubscribePublic (url: string, topic: string, messageHash: string, symbol: string, request = {}, params = {}): Promise<any> {
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' unsubscribePublic() has no public websocket url');
+        }
+        const requestId = this.requestId ().toString ();
+        const message: Dict = {
+            'jsonrpc': '2.0',
+            'type': 'command',
+            'method': 'unsubscribe',
+            'params': request,
+            'id': requestId,
+        };
+        const unsubHash = 'unsubscribe::' + messageHash;
+        const symbols = [ symbol ];
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': requestId,
+            'topic': topic,
+            'symbols': symbols,
+            'subMessageHash': messageHash,
+            'messageHash': unsubHash,
+        };
+        return await this.watch (wsUrl + url, unsubHash, this.deepExtend (message, params), requestId, subscription);
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": "2",
+        //         "result": {
+        //             "responseCode": "200",
+        //             "responseCodeName": "OK",
+        //             "message": "Successfully unsubscribed (anonymousTrades BTCUSDC)"
+        //         }
+        //     }
+        //
+        const subHash = this.safeString (subscription, 'subMessageHash');
+        const unsubHash = this.safeString (subscription, 'messageHash');
+        this.cleanUnsubscription (client, subHash, unsubHash);
+        this.cleanCache (subscription);
+        const requestId = this.safeString (subscription, 'id', '');
+        if (requestId in client.subscriptions) {
+            delete client.subscriptions[requestId];
+        }
+    }
+
     async watchPrivate (messageHash: string, subscribeHash: string, request = {}, params = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
         const token = await this.handleToken ();
@@ -149,6 +213,31 @@ export default class bullish extends bullishRest {
             limitResolved = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name bullish#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-trades/operation-send-unsubscribe
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const marketSymbol = this.safeString (market, 'symbol', '');
+        const marketId = this.safeString (market, 'id', '');
+        const messageHash = 'trades::' + marketSymbol;
+        const url = '/trading-api/v1/market-data/trades';
+        const request: Dict = {
+            'topic': 'anonymousTrades',
+            'symbol': marketId,
+        };
+        return await this.unsubscribePublic (url, 'trades', messageHash, marketSymbol, request, params);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -306,6 +395,31 @@ export default class bullish extends bullishRest {
         };
         const orderbook: WsOrderBook = await this.watchPublic (url, messageHash, request, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name bullish#unWatchOrderBook
+     * @description unsubscribes from the orderbook channel
+     * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-orderbook/operation-send-unsubscribe
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const marketSymbol = this.safeString (market, 'symbol', '');
+        const marketId = this.safeString (market, 'id', '');
+        const messageHash = 'orderbook::' + marketSymbol;
+        const url = '/trading-api/v1/market-data/orderbook';
+        const request: Dict = {
+            'topic': 'l2Orderbook',
+            'symbol': marketId,
+        };
+        return await this.unsubscribePublic (url, 'orderbook', messageHash, marketSymbol, request, params);
     }
 
     handleOrderBook (client: Client, message: Dict) {
@@ -811,6 +925,13 @@ export default class bullish extends bullishRest {
             const response = this.safeString (result, 'message');
             if (response === 'Keep alive pong') {
                 this.handlePong (client, message);
+            }
+            const messageId = this.safeString (message, 'id');
+            if ((messageId !== undefined) && (messageId in client.subscriptions)) {
+                const subscription = this.safeDict (client.subscriptions, messageId);
+                if ((subscription !== undefined) && this.safeBool (subscription, 'unsubscribe', false)) {
+                    this.handleUnSubscription (client, subscription);
+                }
             }
         } else if (dataType !== undefined) {
             if (dataType === 'V1TAAnonymousTradeUpdate') {
