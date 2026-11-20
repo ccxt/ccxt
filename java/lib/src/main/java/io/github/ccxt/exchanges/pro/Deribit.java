@@ -109,30 +109,32 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBalanceCore(Map<String, Object> parameters)
+    {
 
-            (this.authenticate(parameters)).join();
-            String messageHash = "balance";
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            List<Object> currencies = this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
-            List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < currencies.size(); i++)
-            {
-                String currencyCode = this.safeString(currencies, i, "");
-                channels.add(("user.portfolio." + currencyCode));
-            }
-            Map<String, Object> subscribe = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "private/subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channels", channels );
-                }} );
-                put( "id", Deribit.this.requestId() );
-            }};
-            Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            return (this.watch(url, messageHash, request, messageHash, request)).join();
-        }).thenApply(Balances::new);
+        (this.authenticate(parameters)).join();
+        String messageHash = "balance";
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        List<Object> currencies = this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
+        List<String> channels = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < currencies.size(); i++)
+        {
+            String currencyCode = this.safeString(currencies, i, "");
+            channels.add(("user.portfolio." + currencyCode));
+        }
+        Map<String, Object> subscribe = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "method", "private/subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "channels", channels );
+            }} );
+            put( "id", Deribit.this.requestId() );
+        }};
+        Map<String,Object> request = this.deepExtend(subscribe, parameters);
+        return (this.watch(url, messageHash, request, messageHash, request)).join();
 
     }
 
@@ -207,37 +209,39 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String interval = this.safeString(parameters, "interval", "100ms");
-            Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(interval, "raw"))
-            {
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            }
-            String marketId = this.safeString(market, "id", "");
-            String channel = ((("ticker." + marketId) + ".") + interval);
-            Map<String, Object> message = new HashMap<String, Object>();
-            message.put("jsonrpc", "2.0");
-            message.put("method", "public/subscribe");
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("channels", new ArrayList<Object>(Arrays.asList(((("ticker." + marketId) + ".") + interval))));
-            message.put("params", mapLiteral1);
-            message.put("id", this.requestId());
-            Map<String,Object> request = this.deepExtend(message, paramsOmitted);
-            return (this.watch(url, channel, request, channel, request)).join();
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String interval = this.safeString(parameters, "interval", "100ms");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(interval, "raw"))
+        {
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        }
+        String marketId = this.safeString(market, "id", "");
+        String channel = ((("ticker." + marketId) + ".") + interval);
+        Map<String, Object> message = new HashMap<String, Object>();
+        message.put("jsonrpc", "2.0");
+        message.put("method", "public/subscribe");
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("channels", new ArrayList<Object>(Arrays.asList(((("ticker." + marketId) + ".") + interval))));
+        message.put("params", mapLiteral1);
+        message.put("id", this.requestId());
+        Map<String,Object> request = this.deepExtend(message, paramsOmitted);
+        return (this.watch(url, channel, request, channel, request)).join();
 
     }
 
@@ -253,53 +257,55 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String interval = this.safeString(parameters, "interval", "100ms");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(interval, "raw"))
+        {
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> channels = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+        {
+            Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
+            channels.add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
+        }
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "method", "public/subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "channels", channels );
+            }} );
+            put( "id", Deribit.this.requestId() );
+        }};
+        Map<String,Object> request = this.deepExtend(message, paramsOmitted);
+        Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
+        if (this.newUpdates)
+        {
+            Map<String, Object> tickers = new HashMap<String, Object>() {{}};
+            String newTickersSymbol = this.safeString(newTickers, "symbol");
+            if (!java.util.Objects.equals(newTickersSymbol, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                tickers.put(newTickersSymbol, newTickers);
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String interval = this.safeString(parameters, "interval", "100ms");
-            Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(interval, "raw"))
-            {
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
-            {
-                Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
-                channels.add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
-            }
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "public/subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channels", channels );
-                }} );
-                put( "id", Deribit.this.requestId() );
-            }};
-            Map<String,Object> request = this.deepExtend(message, paramsOmitted);
-            Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
-            if (this.newUpdates)
-            {
-                Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                String newTickersSymbol = this.safeString(newTickers, "symbol");
-                if (!java.util.Objects.equals(newTickersSymbol, null))
-                {
-                    tickers.put(newTickersSymbol, newTickers);
-                }
-                return tickers;
-            }
-            return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
-        }).thenApply(Tickers::new);
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
 
     }
 
@@ -355,43 +361,45 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBidsAsksCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBidsAsksCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        List<String> channels = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+        {
+            Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
+            channels.add(("quote." + this.safeString(market, "id", "")));
+        }
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "method", "public/subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "channels", channels );
+            }} );
+            put( "id", Deribit.this.requestId() );
+        }};
+        Map<String,Object> request = this.deepExtend(message, parameters);
+        Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
+        if (this.newUpdates)
+        {
+            Map<String, Object> tickers = new HashMap<String, Object>() {{}};
+            String newTickersSymbol = this.safeString(newTickers, "symbol");
+            if (!java.util.Objects.equals(newTickersSymbol, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                tickers.put(newTickersSymbol, newTickers);
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
-            {
-                Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
-                channels.add(("quote." + this.safeString(market, "id", "")));
-            }
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "public/subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channels", channels );
-                }} );
-                put( "id", Deribit.this.requestId() );
-            }};
-            Map<String,Object> request = this.deepExtend(message, parameters);
-            Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
-            if (this.newUpdates)
-            {
-                Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-                String newTickersSymbol = this.safeString(newTickers, "symbol");
-                if (!java.util.Objects.equals(newTickersSymbol, null))
-                {
-                    tickers.put(newTickersSymbol, newTickers);
-                }
-                return tickers;
-            }
-            return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
-        }).thenApply(Tickers::new);
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
 
     }
 
@@ -455,12 +463,14 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            parameters.put("callerMethodName", "watchTrades");
-            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        parameters.put("callerMethodName", "watchTrades");
+        return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
 
     }
 
@@ -477,26 +487,28 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
-            var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
-            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
-            if (java.util.Objects.equals(interval, "raw"))
-            {
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, paramsInterval)).join();
-            Map<String, Object> first = this.safeDict(trades, 0, null);
-            String tradeSymbol = this.safeString(first, "symbol");
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
+        var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
+        Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+        if (java.util.Objects.equals(interval, "raw"))
+        {
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, paramsInterval)).join();
+        Map<String, Object> first = this.safeDict(trades, 0, null);
+        String tradeSymbol = this.safeString(first, "symbol");
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -562,31 +574,33 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(parameters)).join();
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String interval = this.safeString(parameters, "interval", "raw");
-            Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
-            String channel = ("user.trades.any.any." + interval);
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "private/subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channels", new ArrayList<Object>(Arrays.asList(channel)) );
-                }} );
-                put( "id", Deribit.this.requestId() );
-            }};
-            Map<String,Object> request = this.deepExtend(message, paramsOmitted);
-            List<Object> trades = (List<Object>) (this.watch(url, channel, request, channel, request)).join();
-            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        (this.authenticate(parameters)).join();
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String interval = this.safeString(parameters, "interval", "raw");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
+        String channel = ("user.trades.any.any." + interval);
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "method", "private/subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "channels", new ArrayList<Object>(Arrays.asList(channel)) );
+            }} );
+            put( "id", Deribit.this.requestId() );
+        }};
+        Map<String,Object> request = this.deepExtend(message, paramsOmitted);
+        List<Object> trades = (List<Object>) (this.watch(url, channel, request, channel, request)).join();
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit, true);
 
     }
 
@@ -658,12 +672,14 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            parameters.put("callerMethodName", "watchOrderBook");
-            return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
-        }).thenApply(OrderBook::new);
+        parameters.put("callerMethodName", "watchOrderBook");
+        return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
 
     }
 
@@ -679,39 +695,41 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    {
 
-            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
-            String interval = intervalparamsIntervalVariable.first();
-            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
-            if (java.util.Objects.equals(interval, "raw"))
-            {
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            }
-            // for more info on useDepthEndpoint, see comment in .options
-            Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
-            Boolean useDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.first();
-            Map<String, Object> paramsUseDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.second();
-            Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUseDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
-            String depth = depthparamsDepthVariable.first();
-            Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
-            Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
-            String group = groupparamsGroupVariable.first();
-            Map<String, Object> paramsGroup = groupparamsGroupVariable.second();
-            String descriptor = interval;
-            if (Boolean.TRUE.equals(useDepthEndpoint))
-            {
-                descriptor = ((((group + ".") + depth) + ".") + interval);
-            }
-            Map<String, Object> paramsResolved = paramsUseDepthEndpoint;
-            if (Boolean.TRUE.equals(useDepthEndpoint))
-            {
-                paramsResolved = paramsGroup;
-            }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper("book", (String) (descriptor), symbols, paramsResolved)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
+        String interval = intervalparamsIntervalVariable.first();
+        Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+        if (java.util.Objects.equals(interval, "raw"))
+        {
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        }
+        // for more info on useDepthEndpoint, see comment in .options
+        Pair<Boolean, Map<String, Object>> useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        Boolean useDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.first();
+        Map<String, Object> paramsUseDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.second();
+        Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUseDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+        String depth = depthparamsDepthVariable.first();
+        Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
+        Pair<String, Map<String, Object>> groupparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+        String group = groupparamsGroupVariable.first();
+        Map<String, Object> paramsGroup = groupparamsGroupVariable.second();
+        String descriptor = interval;
+        if (Boolean.TRUE.equals(useDepthEndpoint))
+        {
+            descriptor = ((((group + ".") + depth) + ".") + interval);
+        }
+        Map<String, Object> paramsResolved = paramsUseDepthEndpoint;
+        if (Boolean.TRUE.equals(useDepthEndpoint))
+        {
+            paramsResolved = paramsGroup;
+        }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper("book", (String) (descriptor), symbols, paramsResolved)).join();
+        return orderbook.limit();
 
     }
 
@@ -854,38 +872,40 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(parameters)).join();
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String currency = this.safeString(parameters, "currency", "any");
-            String interval = this.safeString(parameters, "interval", "raw");
-            String kind = this.safeString(parameters, "kind", "any");
-            Map<String, Object> paramsOmitted = this.omit(parameters, "interval", "currency", "kind");
-            String channel = ((((("user.orders." + kind) + ".") + currency) + ".") + interval);
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "private/subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channels", new ArrayList<Object>(Arrays.asList(channel)) );
-                }} );
-                put( "id", Deribit.this.requestId() );
-            }};
-            Map<String,Object> request = this.deepExtend(message, paramsOmitted);
-            List<Object> orders = (this.<List<Object>>watch(url, channel, request, channel, request)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
-            }
-            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(parameters)).join();
+        String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String currency = this.safeString(parameters, "currency", "any");
+        String interval = this.safeString(parameters, "interval", "raw");
+        String kind = this.safeString(parameters, "kind", "any");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "interval", "currency", "kind");
+        String channel = ((((("user.orders." + kind) + ".") + currency) + ".") + interval);
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "method", "private/subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "channels", new ArrayList<Object>(Arrays.asList(channel)) );
+            }} );
+            put( "id", Deribit.this.requestId() );
+        }};
+        Map<String,Object> request = this.deepExtend(message, paramsOmitted);
+        List<Object> orders = (this.<List<Object>>watch(url, channel, request, channel, request)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
 
     }
 
@@ -964,18 +984,20 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String symbolValue = this.symbol(symbol);
-            Map<String, Object> ohlcvs = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
-            Map<String, Object> bySymbol = (Map<String, Object>) ((ohlcvs == null || symbolValue == null ? null : ohlcvs.get(symbolValue)));
-            return (bySymbol == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : bySymbol.get(java.util.Objects.requireNonNullElse(timeframe, "1m")));
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String symbolValue = this.symbol(symbol);
+        Map<String, Object> ohlcvs = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
+        Map<String, Object> bySymbol = (Map<String, Object>) ((ohlcvs == null || symbolValue == null ? null : ohlcvs.get(symbolValue)));
+        return (bySymbol == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : bySymbol.get(java.util.Objects.requireNonNullElse(timeframe, "1m")));
 
     }
 
@@ -992,26 +1014,28 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
      */
     public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVForSymbolsCore(symbolsAndTimeframes, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVForSymbolsCore(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
-            {
-                throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
-            }
-            var symboltimeframecandlesVariable = (this.watchMultipleWrapper("chart.trades", (String) (null), symbolsAndTimeframes, parameters)).join();
-            var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
-            var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
-            var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
-            }
-            List<Object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
-            return this.createOHLCVObject(symbol, timeframe, filtered);
-        });
+        Integer symbolsLength = ((List<?>)symbolsAndTimeframes).size();
+        if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
+        {
+            throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
+        }
+        var symboltimeframecandlesVariable = (this.watchMultipleWrapper("chart.trades", (String) (null), symbolsAndTimeframes, parameters)).join();
+        var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
+        var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
+        var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(candles, symbol, limit);
+        }
+        List<Object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
 
     }
 
@@ -1080,63 +1104,65 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public CompletableFuture<Object> watchMultipleWrapper(String channelName, String channelDescriptor, Object symbolsArray, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMultipleWrapperCore(channelName, channelDescriptor, symbolsArray, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMultipleWrapperCore(String channelName, String channelDescriptor, Object symbolsArray, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            List<String> rawSubscriptions = new ArrayList<String>(Arrays.asList());
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            Boolean isOHLCV = (java.util.Objects.equals(channelName, "chart.trades"));
-            Object symbols = ((Boolean.TRUE.equals(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-            this.marketSymbols(symbols, (Object) null, false, false, false);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        List<String> rawSubscriptions = new ArrayList<String>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        Boolean isOHLCV = (java.util.Objects.equals(channelName, "chart.trades"));
+        Object symbols = ((Boolean.TRUE.equals(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+        this.marketSymbols(symbols, (Object) null, false, false, false);
+        if (java.util.Objects.equals(symbolsArray, null))
+        {
+            throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
+        }
+        for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+        {
             if (java.util.Objects.equals(symbolsArray, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
             }
-            for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+            Map<String, Object> market = null;
+            String currentDescriptor = "";
+            if (Boolean.TRUE.equals(isOHLCV))
             {
-                if (java.util.Objects.equals(symbolsArray, null))
-                {
-                    throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
-                }
-                Map<String, Object> market = null;
-                String currentDescriptor = "";
-                if (Boolean.TRUE.equals(isOHLCV))
-                {
-                    List<Object> currentPair = this.safeList(symbolsArray, i, new ArrayList<Object>(Arrays.asList()));
-                    market = this.market(this.safeString(currentPair, 0));
-                    String unifiedTf = this.safeString(currentPair, 1);
-                    currentDescriptor = this.safeString(this.timeframes, unifiedTf, unifiedTf);
-                } else
-                {
-                    market = this.market(this.safeString(symbolsArray, i));
-                    currentDescriptor = channelDescriptor;
-                }
-                String message = ((((channelName + ".") + this.safeString(market, "id", "")) + ".") + currentDescriptor);
-                rawSubscriptions.add(message);
-                messageHashes.add(((((channelName + "|") + this.safeString(market, "symbol", "")) + "|") + currentDescriptor));
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "public/subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channels", rawSubscriptions );
-                }} );
-                put( "id", Deribit.this.requestId() );
-            }};
-            Map<String,Object> extendedRequest = this.deepExtend(request, parameters);
-            Integer maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
-            String jsonedText = this.json(extendedRequest);
-            if ((maxMessageByteLimit == null || jsonedText.length() >= maxMessageByteLimit))
+                List<Object> currentPair = this.safeList(symbolsArray, i, new ArrayList<Object>(Arrays.asList()));
+                market = this.market(this.safeString(currentPair, 0));
+                String unifiedTf = this.safeString(currentPair, 1);
+                currentDescriptor = this.safeString(this.timeframes, unifiedTf, unifiedTf);
+            } else
             {
-                throw new ExchangeError((this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
+                market = this.market(this.safeString(symbolsArray, i));
+                currentDescriptor = channelDescriptor;
             }
-            return (this.watchMultiple(url, messageHashes, extendedRequest, rawSubscriptions, null)).join();
-        });
+            String message = ((((channelName + ".") + this.safeString(market, "id", "")) + ".") + currentDescriptor);
+            rawSubscriptions.add(message);
+            messageHashes.add(((((channelName + "|") + this.safeString(market, "symbol", "")) + "|") + currentDescriptor));
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "method", "public/subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "channels", rawSubscriptions );
+            }} );
+            put( "id", Deribit.this.requestId() );
+        }};
+        Map<String,Object> extendedRequest = this.deepExtend(request, parameters);
+        Integer maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
+        String jsonedText = this.json(extendedRequest);
+        if ((maxMessageByteLimit == null || jsonedText.length() >= maxMessageByteLimit))
+        {
+            throw new ExchangeError((this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
+        }
+        return (this.watchMultiple(url, messageHashes, extendedRequest, rawSubscriptions, null)).join();
 
     }
 
@@ -1278,40 +1304,42 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object authenticateCore(Map<String, Object> parameters)
+    {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Client client = this.client(url);
-            Long time = this.milliseconds();
-            String timeString = this.numberToString(time);
-            String nonce = timeString;
-            String messageHash = "authenticated";
-            Object future = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(future, null))
-            {
-                this.checkRequiredCredentials(true);
-                Long requestId = this.requestId();
-                String lineBreak = "\n"; // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode((((timeString + lineBreak) + nonce) + lineBreak)), this.encode(this.secret), sha256());
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "jsonrpc", "2.0" );
-                    put( "id", requestId );
-                    put( "method", "public/auth" );
-                    put( "params", new HashMap<String, Object>() {{
-                        put( "grant_type", "client_signature" );
-                        put( "client_id", Deribit.this.apiKey );
-                        put( "timestamp", time );
-                        put( "signature", signature );
-                        put( "nonce", nonce );
-                        put( "data", "" );
-                    }} );
-                }};
-                future = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-                client.subscriptions.put(messageHash, future);
-            }
-            return future;
-        });
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Client client = this.client(url);
+        Long time = this.milliseconds();
+        String timeString = this.numberToString(time);
+        String nonce = timeString;
+        String messageHash = "authenticated";
+        Object future = this.safeValue(client.subscriptions, messageHash);
+        if (java.util.Objects.equals(future, null))
+        {
+            this.checkRequiredCredentials(true);
+            Long requestId = this.requestId();
+            String lineBreak = "\n"; // eslint-disable-line quotes
+            String signature = (String) this.hmac(this.encode((((timeString + lineBreak) + nonce) + lineBreak)), this.encode(this.secret), sha256());
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "jsonrpc", "2.0" );
+                put( "id", requestId );
+                put( "method", "public/auth" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "grant_type", "client_signature" );
+                    put( "client_id", Deribit.this.apiKey );
+                    put( "timestamp", time );
+                    put( "signature", signature );
+                    put( "nonce", nonce );
+                    put( "data", "" );
+                }} );
+            }};
+            future = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            client.subscriptions.put(messageHash, future);
+        }
+        return future;
 
     }
 }

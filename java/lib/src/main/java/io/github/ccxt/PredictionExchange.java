@@ -474,32 +474,36 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> loadEventsHelper(Boolean reload, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.loadEventsHelperCore(reload, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object loadEventsHelperCore(Boolean reload, Map<String, Object> parameters)
+    {
 
-            // note: the cache-hit shortcut ignores params, so events fetched under one scope are
-            // returned for a later differently-scoped call. events are scoped (unlike global
-            // markets), so prefer fetchEvents (params) directly when you need a specific scope
-            if (!java.util.Objects.requireNonNullElse(reload, false) && (!java.util.Objects.equals(this.events, null) && !java.util.Objects.equals(this.events, null)))
-            {
-                return this.events;
-            }
-            Object events = (this.fetchEvents(parameters)).join();
-            return this.setEvents(events);
-        });
+        // note: the cache-hit shortcut ignores params, so events fetched under one scope are
+        // returned for a later differently-scoped call. events are scoped (unlike global
+        // markets), so prefer fetchEvents (params) directly when you need a specific scope
+        if (!java.util.Objects.requireNonNullElse(reload, false) && (!java.util.Objects.equals(this.events, null) && !java.util.Objects.equals(this.events, null)))
+        {
+            return this.events;
+        }
+        Object events = (this.fetchEvents(parameters)).join();
+        return this.setEvents(events);
 
     }
 
     public CompletableFuture<Object> loadEvents(Boolean reload, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.loadEventsCore(reload, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object loadEventsCore(Boolean reload, Map<String, Object> parameters)
+    {
 
-            // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
-            // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
-            // base, so two truly concurrent first calls may fetch twice (both land in the cache)
-            return (this.loadEventsHelper(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
-        });
+        // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
+        // promise coalescing: the promise-sharing idiom is not expressible in the transpiled
+        // base, so two truly concurrent first calls may fetch twice (both land in the cache)
+        return (this.loadEventsHelper(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
 
     }
 
@@ -863,61 +867,63 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> loadOutcomes(Object outcomes, Boolean reload, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.loadOutcomesCore(outcomes, reload, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object loadOutcomesCore(Object outcomes, Boolean reload, Map<String, Object> parameters)
+    {
 
-            // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
-            // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
-            //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
-            //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
-            // - no `outcomes` (bulk): load the capped markets listing once and index every outcome —
-            //   idempotent unless reload; only worth paying on venues whose whole universe is one
-            //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
-            // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
-            // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
-            if (!java.util.Objects.equals(outcomes, null))
+        // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
+        // - an `outcomes` list (scoped): sync-filter the cache and resolve ONLY the misses through
+        //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
+        //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
+        // - no `outcomes` (bulk): load the capped markets listing once and index every outcome —
+        //   idempotent unless reload; only worth paying on venues whose whole universe is one
+        //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
+        // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
+        // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
+        if (!java.util.Objects.equals(outcomes, null))
+        {
+            List<Object> missing = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
-                List<Object> missing = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+                if (java.util.Objects.requireNonNullElse(reload, false) || !this.hasOutcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)))))
                 {
-                    if (java.util.Objects.requireNonNullElse(reload, false) || !this.hasOutcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)))))
+                    ((List<Object>)missing).add((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
+                }
+            }
+            Integer missingLength = missing.size();
+            Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
+            Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
+            if (((missingLength != null && missingLength > 0)) && Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
+            {
+                // same trade-off as loadOutcome: on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+                List<Object> stillMissing = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; (missingLength != null && i < missingLength); i++)
+                {
+                    if (!this.hasOutcome((String) ((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i)))))
                     {
-                        ((List<Object>)missing).add((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
+                        ((List<Object>)stillMissing).add((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i)));
                     }
                 }
-                Integer missingLength = missing.size();
-                Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
-                Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
-                if (((missingLength != null && missingLength > 0)) && Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
-                {
-                    // same trade-off as loadOutcome: on venues where the whole universe is one cheap
-                    // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                    (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
-                    List<Object> stillMissing = new ArrayList<Object>(Arrays.asList());
-                    for (var i = 0; (missingLength != null && i < missingLength); i++)
-                    {
-                        if (!this.hasOutcome((String) ((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i)))))
-                        {
-                            ((List<Object>)stillMissing).add((missing == null || i < 0 || i >= missing.size() ? null : missing.get(i)));
-                        }
-                    }
-                    missing = stillMissing;
-                    missingLength = missing.size();
-                }
-                if ((missingLength != null && missingLength > 0))
-                {
-                    (this.fetchOutcomes(missing)).join();
-                }
-                return this.outcomes;
+                missing = stillMissing;
+                missingLength = missing.size();
             }
-            if (!java.util.Objects.requireNonNullElse(reload, false) && (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes))
+            if ((missingLength != null && missingLength > 0))
             {
-                return this.outcomes;
+                (this.fetchOutcomes(missing)).join();
             }
-            (this.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
-            this.populateOutcomes();
             return this.outcomes;
-        });
+        }
+        if (!java.util.Objects.requireNonNullElse(reload, false) && (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes))
+        {
+            return this.outcomes;
+        }
+        (this.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
+        this.populateOutcomes();
+        return this.outcomes;
 
     }
 
@@ -931,68 +937,72 @@ public Map<String, Object> describe()
      */
     public CompletableFuture<Object> fetchOutcomes(Object outcomeSymbols)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOutcomesCore(outcomeSymbols));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOutcomesCore(Object outcomeSymbols)
+    {
 
-            for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
-            {
-                (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))).join();
-            }
-            return this.outcomes;
-        });
+        for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
+        {
+            (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))).join();
+        }
+        return this.outcomes;
 
     }
 
     public CompletableFuture<Map<String, Object>> loadOutcome(String outcomeSymbol, Boolean reload)
     {
+        return BaseExchange.supplyAsync(() -> this.loadOutcomeCore(outcomeSymbol, reload)).thenApply(res -> (Map<String, Object>) res);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object loadOutcomeCore(String outcomeSymbol, Boolean reload)
+    {
 
-            // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-            // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
-            // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
-            // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
-            // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
-            // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
-            // sane on venues whose full universe is one cheap request (hyperliquid)
-            if (java.util.Objects.equals(outcomeSymbol, null))
+        // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
+        // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
+        // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+        // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
+        // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up: the first
+        // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
+        // sane on venues whose full universe is one cheap request (hyperliquid)
+        if (java.util.Objects.equals(outcomeSymbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " loadOutcome() requires an outcomeSymbol argument")) ;
+        }
+        if (!java.util.Objects.requireNonNullElse(reload, false))
+        {
+            if (this.hasOutcome((String) (outcomeSymbol)))
             {
-                throw new ArgumentsRequired((this.id + " loadOutcome() requires an outcomeSymbol argument")) ;
+                return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
             }
-            if (!java.util.Objects.requireNonNullElse(reload, false))
+            Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
+            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+            // but the outcome cache is cold, index them for free before hitting the network — this
+            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+            if (!Boolean.TRUE.equals(wasWarm) && (!java.util.Objects.equals(this.markets, null)) && !this.isEmpty(this.markets))
             {
+                this.populateOutcomes();
                 if (this.hasOutcome((String) (outcomeSymbol)))
                 {
                     return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                 }
-                Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
-                // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
-                // but the outcome cache is cold, index them for free before hitting the network — this
-                // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-                if (!Boolean.TRUE.equals(wasWarm) && (!java.util.Objects.equals(this.markets, null)) && !this.isEmpty(this.markets))
+            }
+            Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
+            if (Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm))
+            {
+                // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
+                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                // the whole listing (which would mask typos and clobber offline-injected markets)
+                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+                if (this.hasOutcome((String) (outcomeSymbol)))
                 {
-                    this.populateOutcomes();
-                    if (this.hasOutcome((String) (outcomeSymbol)))
-                    {
-                        return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
-                    }
-                }
-                Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
-                if (Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm))
-                {
-                    // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
-                    // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-                    // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-                    // the whole listing (which would mask typos and clobber offline-injected markets)
-                    (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
-                    if (this.hasOutcome((String) (outcomeSymbol)))
-                    {
-                        return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
-                    }
+                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
                 }
             }
-            return (this.fetchOutcome(outcomeSymbol)).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        }
+        return (this.fetchOutcome(outcomeSymbol)).join();
 
     }
 
@@ -1059,40 +1069,42 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> fetchOutcome(Object outcomeSymbol)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOutcomeCore(outcomeSymbol));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOutcomeCore(Object outcomeSymbol)
+    {
 
-            // fetch just one outcome on demand — never through a bulk listing download. the base has
-            // no generic by-id endpoint, so it derives a search query from the handle and resolves it
-            // through the venue's own scoped fetchEvents (which caches everything it finds), then
-            // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
-            // token id) override this with a cheaper single fetch and fall back to super on a miss.
-            String searchQuery = this.outcomeSearchQuery(outcomeSymbol);
-            if ((!java.util.Objects.equals(searchQuery, null)) && Boolean.TRUE.equals(this.safeBool(this.has, "fetchEvents", false)))
+        // fetch just one outcome on demand — never through a bulk listing download. the base has
+        // no generic by-id endpoint, so it derives a search query from the handle and resolves it
+        // through the venue's own scoped fetchEvents (which caches everything it finds), then
+        // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
+        // token id) override this with a cheaper single fetch and fall back to super on a miss.
+        String searchQuery = this.outcomeSearchQuery(outcomeSymbol);
+        if ((!java.util.Objects.equals(searchQuery, null)) && Boolean.TRUE.equals(this.safeBool(this.has, "fetchEvents", false)))
+        {
+            Long searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
+            try
             {
-                Long searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
-                try
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("query", searchQuery);
+                mapLiteral1.put("limit", searchLimit);
+                (this.fetchEvents(mapLiteral1)).join();
+            } catch(Exception e)
+            {
+                // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
+                // plain miss (the guidance-rich throw below); let real transport errors propagate
+                if (!(Helpers.isInstance(e, BadSymbol.class)))
                 {
-                    HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                    mapLiteral1.put("query", searchQuery);
-                    mapLiteral1.put("limit", searchLimit);
-                    (this.fetchEvents(mapLiteral1)).join();
-                } catch(Exception e)
-                {
-                    // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
-                    // plain miss (the guidance-rich throw below); let real transport errors propagate
-                    if (!(Helpers.isInstance(e, BadSymbol.class)))
-                    {
-                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                    }
-                }
-                if (this.hasOutcome((String) (outcomeSymbol)))
-                {
-                    return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
             }
-            throw new BadSymbol((((this.id + " could not resolve outcome ") + outcomeSymbol) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
-        });
+            if (this.hasOutcome((String) (outcomeSymbol)))
+            {
+                return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
+            }
+        }
+        throw new BadSymbol((((this.id + " could not resolve outcome ") + outcomeSymbol) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
 
     }
 
@@ -1155,11 +1167,13 @@ public Map<String, Object> describe()
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(outcome, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            return (super.fetchOHLCV(outcome, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        return (super.fetchOHLCV(outcome, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, parameters)).join();
 
     }
 
@@ -1451,17 +1465,19 @@ public Map<String, Object> describe()
      */
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String outcome, Object cost, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(outcome, cost, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketBuyOrderWithCostCore(String outcome, Object cost, Map<String, Object> parameters)
+    {
 
-            // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
-            // when the option is undeclared (it is for every prediction exchange)
-            if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || Boolean.TRUE.equals(this.safeBool(this.has, "createMarketBuyOrderWithCost", false)))
-            {
-                return (this.createOrder(outcome, "market", "buy", cost, 1, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
+        // when the option is undeclared (it is for every prediction exchange)
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || Boolean.TRUE.equals(this.safeBool(this.has, "createMarketBuyOrderWithCost", false)))
+        {
+            return (this.createOrder(outcome, "market", "buy", cost, 1, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
 
     }
 
@@ -1476,15 +1492,17 @@ public Map<String, Object> describe()
      */
     public CompletableFuture<PredictionOrder> createMarketSellOrderWithCost(String outcome, Object cost, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(outcome, cost, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketSellOrderWithCostCore(String outcome, Object cost, Map<String, Object> parameters)
+    {
 
-            if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || Boolean.TRUE.equals(this.safeBool(this.has, "createMarketSellOrderWithCost", false)))
-            {
-                return (this.createOrder(outcome, "market", "sell", cost, 1, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || Boolean.TRUE.equals(this.safeBool(this.has, "createMarketSellOrderWithCost", false)))
+        {
+            return (this.createOrder(outcome, "market", "sell", cost, 1, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
 
     }
 
@@ -2135,84 +2153,95 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> ethRpc(String rpcUrl, Object method, Object rpcParams)
     {
+        return BaseExchange.supplyAsync(() -> this.ethRpcCore(rpcUrl, method, rpcParams));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ethRpcCore(String rpcUrl, Object method, Object rpcParams)
+    {
 
-            Map<String, Object> payload = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "id", 1 );
-                put( "method", method );
-                put( "params", rpcParams );
-            }};
-            Map<String, Object> headers = new HashMap<String, Object>() {{
-                put( "Content-Type", "application/json" );
-            }};
-            Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
-            Object rpcError = this.safeValue(response, "error");
-            if (!java.util.Objects.equals(rpcError, null))
-            {
-                throw new ExchangeError(((((this.id + " rpc ") + method) + " error: ") + this.json(rpcError))) ;
-            }
-            // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
-            // safeString would coerce a receipt object to "[object Object]"
-            return this.safeValue(response, "result");
-        });
+        Map<String, Object> payload = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "id", 1 );
+            put( "method", method );
+            put( "params", rpcParams );
+        }};
+        Map<String, Object> headers = new HashMap<String, Object>() {{
+            put( "Content-Type", "application/json" );
+        }};
+        Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
+        Object rpcError = this.safeValue(response, "error");
+        if (!java.util.Objects.equals(rpcError, null))
+        {
+            throw new ExchangeError(((((this.id + " rpc ") + method) + " error: ") + this.json(rpcError))) ;
+        }
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+        // safeString would coerce a receipt object to "[object Object]"
+        return this.safeValue(response, "result");
 
     }
 
     public CompletableFuture<String> sendEvmTransaction(String rpcUrl, Object chainId, String fromAddress, String to, String value, String data, String gasLimit)
     {
+        return BaseExchange.supplyAsync(() -> this.sendEvmTransactionCore(rpcUrl, chainId, fromAddress, to, value, data, gasLimit)).thenApply(res -> (String) res);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object sendEvmTransactionCore(String rpcUrl, Object chainId, String fromAddress, String to, String value, String data, String gasLimit)
+    {
 
-            Object nonce = (this.ethRpc((String) (rpcUrl), "eth_getTransactionCount", new ArrayList<Object>(Arrays.asList(fromAddress, "pending")))).join();
-            Object gasPrice = (this.ethRpc((String) (rpcUrl), "eth_gasPrice", new ArrayList<Object>(Arrays.asList()))).join();
-            Map<String, Object> tx = new HashMap<String, Object>() {{
-                put( "chainId", chainId );
-                put( "nonce", nonce );
-                put( "maxPriorityFeePerGas", gasPrice );
-                put( "maxFeePerGas", gasPrice );
-                put( "gasLimit", gasLimit );
-                put( "to", to );
-                put( "value", value );
-                put( "data", data );
-            }};
-            Map<String, Object> signed = (Map<String, Object>) this.signEvmTransaction(tx, this.privateKey);
-            return (this.ethRpc((String) (rpcUrl), "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
-        }).thenApply(res -> (String) res);
+        Object nonce = (this.ethRpc((String) (rpcUrl), "eth_getTransactionCount", new ArrayList<Object>(Arrays.asList(fromAddress, "pending")))).join();
+        Object gasPrice = (this.ethRpc((String) (rpcUrl), "eth_gasPrice", new ArrayList<Object>(Arrays.asList()))).join();
+        Map<String, Object> tx = new HashMap<String, Object>() {{
+            put( "chainId", chainId );
+            put( "nonce", nonce );
+            put( "maxPriorityFeePerGas", gasPrice );
+            put( "maxFeePerGas", gasPrice );
+            put( "gasLimit", gasLimit );
+            put( "to", to );
+            put( "value", value );
+            put( "data", data );
+        }};
+        Map<String, Object> signed = (Map<String, Object>) this.signEvmTransaction(tx, this.privateKey);
+        return (this.ethRpc((String) (rpcUrl), "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
 
     }
 
     public CompletableFuture<Object> waitForTransactionReceipt(String rpcUrl, String txHash, Long timeout)
     {
+        return BaseExchange.supplyAsync(() -> this.waitForTransactionReceiptCore(rpcUrl, txHash, timeout));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object waitForTransactionReceiptCore(String rpcUrl, String txHash, Long timeout)
+    {
 
-            Long start = this.milliseconds();
-            while ((((this.milliseconds() - start)) < java.util.Objects.requireNonNullElse(timeout, 60000L)))
+        Long start = this.milliseconds();
+        while ((((this.milliseconds() - start)) < java.util.Objects.requireNonNullElse(timeout, 60000L)))
+        {
+            Object receipt = (this.ethRpc((String) (rpcUrl), "eth_getTransactionReceipt", new ArrayList<Object>(Arrays.asList(txHash)))).join();
+            if ((!java.util.Objects.equals(receipt, null)) && (!java.util.Objects.equals(receipt, null)))
             {
-                Object receipt = (this.ethRpc((String) (rpcUrl), "eth_getTransactionReceipt", new ArrayList<Object>(Arrays.asList(txHash)))).join();
-                if ((!java.util.Objects.equals(receipt, null)) && (!java.util.Objects.equals(receipt, null)))
-                {
-                    return receipt;
-                }
-                (this.sleep(2000)).join();
+                return receipt;
             }
-            throw new ExchangeError((((this.id + " transaction ") + txHash) + " not mined within timeout")) ;
-        });
+            (this.sleep(2000)).join();
+        }
+        throw new ExchangeError((((this.id + " transaction ") + txHash) + " not mined within timeout")) ;
 
     }
 
 public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            (this.cancelOrder(id, symbol, new HashMap<String, Object>() {{}})).join();
-            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
-        }).thenApply(PredictionOrder::new);
+        (this.cancelOrder(id, symbol, new HashMap<String, Object>() {{}})).join();
+        return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
 
     }
+
+
+
 
 
 
@@ -2245,29 +2274,42 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
 
 
 
+
+
+
+
+
     public CompletableFuture<PredictionOrder> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createMarketOrderWithCost
-             * @description create a market order by providing the symbol, side and cost
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} cost how much you want to trade in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false))))
-            {
-                return (this.createOrder(symbol, "market", (String) (side), cost, 1, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createMarketOrderWithCost() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        /**
+         * @method
+         * @name createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false))))
+        {
+            return (this.createOrder(symbol, "market", (String) (side), cost, 1, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createMarketOrderWithCost() is not supported yet")) ;
 
     }
+
+
+
+
+
+
 
 
 
@@ -2288,6 +2330,7 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
      */
 
 
+
     /**
      * @method
      * @name cancelOrdersWithClientOrderIds
@@ -2298,12 +2341,17 @@ public CompletableFuture<PredictionOrder> editOrder(String id, String symbol, St
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
 
+
     public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelAllOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
+
+
+
+
 
 
 

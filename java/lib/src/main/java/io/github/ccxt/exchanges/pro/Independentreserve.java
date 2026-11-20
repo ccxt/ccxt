@@ -70,27 +70,29 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
-            }
-            String baseId = this.safeString(market, "base", "");
-            String quoteId = this.safeString(market, "quote", "");
-            String url = ((((wsUrl + "?subscribe=ticker-") + baseId) + "-") + quoteId);
-            String messageHash = ("trades:" + symbolValue);
-            List<Object> trades = (List<Object>) (this.watch(url, messageHash, null, messageHash, null)).join();
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+        }
+        String baseId = this.safeString(market, "base", "");
+        String quoteId = this.safeString(market, "quote", "");
+        String url = ((((wsUrl + "?subscribe=ticker-") + baseId) + "-") + quoteId);
+        String messageHash = ("trades:" + symbolValue);
+        List<Object> trades = (List<Object>) (this.watch(url, messageHash, null, messageHash, null)).join();
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
 
     }
 
@@ -175,32 +177,34 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
-            String limitString = this.numberToString(limitResolved);
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
-            }
-            String baseId = this.safeString(market, "base", "");
-            String quoteId = this.safeString(market, "quote", "");
-            String url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + baseId) + "-") + quoteId);
-            String messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "receivedSnapshot", false );
-            }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, null, messageHash, subscription)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+        String limitString = this.numberToString(limitResolved);
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+        }
+        String baseId = this.safeString(market, "base", "");
+        String quoteId = this.safeString(market, "quote", "");
+        String url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + baseId) + "-") + quoteId);
+        String messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "receivedSnapshot", false );
+        }};
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, null, messageHash, subscription)).join();
+        return orderbook.limit();
 
     }
 

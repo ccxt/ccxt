@@ -70,32 +70,34 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String marketId = this.safeString(market, "id", "");
-            String name = "SubscribeLevel1";
-            String messageHash = ((name + ":") + marketId);
-            String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
-            Long requestId = this.requestId();
-            Map<String, Object> payload = new HashMap<String, Object>() {{
-                put( "OMSId", omsId );
-                put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
-            }};
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("m", 0);
-            request.put("i", requestId);
-            request.put("n", name);
-            request.put("o", this.json(payload));
-            Map<String, Object> message = this.extend(request, parameters);
-            return (this.watch(url, messageHash, message, messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String marketId = this.safeString(market, "id", "");
+        String name = "SubscribeLevel1";
+        String messageHash = ((name + ":") + marketId);
+        String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
+        Long requestId = this.requestId();
+        Map<String, Object> payload = new HashMap<String, Object>() {{
+            put( "OMSId", omsId );
+            put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
+        }};
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("m", 0);
+        request.put("i", requestId);
+        request.put("n", name);
+        request.put("o", this.json(payload));
+        Map<String, Object> message = this.extend(request, parameters);
+        return (this.watch(url, messageHash, message, messageHash, null)).join();
 
     }
 
@@ -153,40 +155,42 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String marketId = this.safeString(market, "id", "");
-            String name = "SubscribeTrades";
-            String messageHash = ((name + ":") + marketId);
-            String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
-            Long requestId = this.requestId();
-            Map<String, Object> payload = new HashMap<String, Object>() {{
-                put( "OMSId", omsId );
-                put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
-                put( "IncludeLastCount", 100 );
-            }};
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("m", 0);
-            request.put("i", requestId);
-            request.put("n", name);
-            request.put("o", this.json(payload));
-            Map<String, Object> message = this.extend(request, parameters);
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
+        String name = "SubscribeTrades";
+        String messageHash = ((name + ":") + marketId);
+        String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
+        Long requestId = this.requestId();
+        Map<String, Object> payload = new HashMap<String, Object>() {{
+            put( "OMSId", omsId );
+            put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
+            put( "IncludeLastCount", 100 );
+        }};
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("m", 0);
+        request.put("i", requestId);
+        request.put("n", name);
+        request.put("o", this.json(payload));
+        Map<String, Object> message = this.extend(request, parameters);
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -260,41 +264,43 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String marketId = this.safeString(market, "id", "");
-            String name = "SubscribeTicker";
-            String messageHash = ((((name + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + marketId);
-            String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
-            Long requestId = this.requestId();
-            Map<String, Object> payload = new HashMap<String, Object>() {{
-                put( "OMSId", omsId );
-                put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
-                put( "Interval", Ndax.this.parseToInt(Ndax.this.safeString(Ndax.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
-                put( "IncludeLastCount", 100 );
-            }};
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("m", 0);
-            request.put("i", requestId);
-            request.put("n", name);
-            request.put("o", this.json(payload));
-            Map<String, Object> message = this.extend(request, parameters);
-            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
+        String name = "SubscribeTicker";
+        String messageHash = ((((name + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + marketId);
+        String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
+        Long requestId = this.requestId();
+        Map<String, Object> payload = new HashMap<String, Object>() {{
+            put( "OMSId", omsId );
+            put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
+            put( "Interval", Ndax.this.parseToInt(Ndax.this.safeString(Ndax.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
+            put( "IncludeLastCount", 100 );
+        }};
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("m", 0);
+        request.put("i", requestId);
+        request.put("n", name);
+        request.put("o", this.json(payload));
+        Map<String, Object> message = this.extend(request, parameters);
+        List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
 
     }
 
@@ -437,45 +443,47 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String marketId = this.safeString(market, "id", "");
-            String name = "SubscribeLevel2";
-            String messageHash = ((name + ":") + marketId);
-            String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
-            Long requestId = this.requestId();
-            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
-            Map<String, Object> payload = new HashMap<String, Object>() {{
-                put( "OMSId", omsId );
-                put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
-                put( "Depth", limitValue );
-            }};
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("m", 0);
-            request.put("i", requestId);
-            request.put("n", name);
-            request.put("o", this.json(payload));
-            Map<String, Object> subscription = new HashMap<String, Object>();
-            subscription.put("id", requestId);
-            subscription.put("messageHash", messageHash);
-            subscription.put("name", name);
-            subscription.put("symbol", symbolValue);
-            subscription.put("marketId", market.get("id"));
-            subscription.put("method", "handleOrderBookSubscription");
-            subscription.put("limit", limitValue);
-            subscription.put("params", parameters);
-            Map<String, Object> message = this.extend(request, parameters);
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        Long omsId = this.safeInteger(this.options, "omsId", 1);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
+        String name = "SubscribeLevel2";
+        String messageHash = ((name + ":") + marketId);
+        String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
+        Long requestId = this.requestId();
+        Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+        Map<String, Object> payload = new HashMap<String, Object>() {{
+            put( "OMSId", omsId );
+            put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
+            put( "Depth", limitValue );
+        }};
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("m", 0);
+        request.put("i", requestId);
+        request.put("n", name);
+        request.put("o", this.json(payload));
+        Map<String, Object> subscription = new HashMap<String, Object>();
+        subscription.put("id", requestId);
+        subscription.put("messageHash", messageHash);
+        subscription.put("name", name);
+        subscription.put("symbol", symbolValue);
+        subscription.put("marketId", market.get("id"));
+        subscription.put("method", "handleOrderBookSubscription");
+        subscription.put("limit", limitValue);
+        subscription.put("params", parameters);
+        Map<String, Object> message = this.extend(request, parameters);
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
+        return orderbook.limit();
 
     }
 

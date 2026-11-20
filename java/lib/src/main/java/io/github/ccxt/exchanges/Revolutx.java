@@ -430,47 +430,49 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
-            if (!java.util.Objects.equals(region, null))
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
+        if (!java.util.Objects.equals(region, null))
+        {
+            request.put("region", region);
+        }
+        Map<String, Object> response = (this.publicGet10PublicConfigurationPairs(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "BTC/USD": {
+        //             "base": "BTC", "quote": "USD",
+        //             "base_step": "0.0000001", "quote_step": "0.01",
+        //             "min_order_size": "0.0000001", "max_order_size": "1000",
+        //             "min_order_size_quote": "0.01", "status": "active"
+        //         }
+        //     }
+        //
+        Map<String, Object> markets = (Map<String, Object>) this.safeDict(response, "data", response);
+        List<String> keys = new ArrayList<String>(markets.keySet());
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < keys.size(); i++)
+        {
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            Map<String, Object> market = this.safeDict(markets, key, new HashMap<String, Object>() {{}});
+            String base = this.safeString(market, "base");
+            String quote = this.safeString(market, "quote");
+            if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
-                request.put("region", region);
+                continue;
             }
-            Map<String, Object> response = (this.publicGet10PublicConfigurationPairs(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "BTC/USD": {
-            //             "base": "BTC", "quote": "USD",
-            //             "base_step": "0.0000001", "quote_step": "0.01",
-            //             "min_order_size": "0.0000001", "max_order_size": "1000",
-            //             "min_order_size_quote": "0.01", "status": "active"
-            //         }
-            //     }
-            //
-            Map<String, Object> markets = (Map<String, Object>) this.safeDict(response, "data", response);
-            List<String> keys = new ArrayList<String>(markets.keySet());
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < keys.size(); i++)
-            {
-                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Map<String, Object> market = this.safeDict(markets, key, new HashMap<String, Object>() {{}});
-                String base = this.safeString(market, "base");
-                String quote = this.safeString(market, "quote");
-                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
-                {
-                    continue;
-                }
-                String marketId = ((base + "-") + quote);
-                Map<String, Object> marketData = this.extend(market, new HashMap<String, Object>() {{
-                    put( "id", marketId );
-                }});
-                ((List<Object>)result).add(this.parseMarket(marketData));
-            }
-            return result;
-        });
+            String marketId = ((base + "-") + quote);
+            Map<String, Object> marketData = this.extend(market, new HashMap<String, Object>() {{
+                put( "id", marketId );
+            }});
+            ((List<Object>)result).add(this.parseMarket(marketData));
+        }
+        return result;
 
     }
 
@@ -533,42 +535,44 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
-            if (!java.util.Objects.equals(region, null))
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
+        if (!java.util.Objects.equals(region, null))
+        {
+            request.put("region", region);
+        }
+        Map<String, Object> response = (this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
+        //         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
+        //     }
+        //
+        Map<String, Object> currencies = (Map<String, Object>) this.safeDict(response, "data", response);
+        List<String> keys = new ArrayList<String>(currencies.keySet());
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < keys.size(); i++)
+        {
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            Map<String, Object> currency = this.safeDict(currencies, key, new HashMap<String, Object>() {{}});
+            Map<String, Object> currencyData = this.extend(currency, new HashMap<String, Object>() {{
+                put( "id", key );
+            }});
+            io.github.ccxt.types.CurrencyInterface parsed = this.parseCurrency(currencyData);
+            String code = this.safeString(parsed, "code", "");
+            if (java.util.Objects.equals(code, ""))
             {
-                request.put("region", region);
+                continue;
             }
-            Map<String, Object> response = (this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
-            //         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
-            //     }
-            //
-            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(response, "data", response);
-            List<String> keys = new ArrayList<String>(currencies.keySet());
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < keys.size(); i++)
-            {
-                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Map<String, Object> currency = this.safeDict(currencies, key, new HashMap<String, Object>() {{}});
-                Map<String, Object> currencyData = this.extend(currency, new HashMap<String, Object>() {{
-                    put( "id", key );
-                }});
-                io.github.ccxt.types.CurrencyInterface parsed = this.parseCurrency(currencyData);
-                String code = this.safeString(parsed, "code", "");
-                if (java.util.Objects.equals(code, ""))
-                {
-                    continue;
-                }
-                result.put(code, parsed);
-            }
-            return result;
-        });
+            result.put(code, parsed);
+        }
+        return result;
 
     }
 
@@ -640,72 +644,74 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(symbols, null))
+        {
+            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < symbols.size(); i++)
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                Map<String, Object> market = this.market(symbol);
+                ((List<Object>)marketIds).add(market.get("id"));
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbols, null))
+            request.put("symbols", String.join(",", (List<String>)marketIds));
+        }
+        String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
+        if (!java.util.Objects.equals(region, null))
+        {
+            request.put("region", region);
+        }
+        Map<String, Object> response = (this.publicGet10PublicTickers(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": [
+        //             { "symbol": "BTC/USD", "bid": "119950.00", "ask": "120050.00", "mid": "120000.00",
+        //               "last_price": "119980.00", "low_24h": "115000.00", "high_24h": "122500.00",
+        //               "price_change_24h": "2480.00", "volume_24h": "135.42000000", "region": "EEA" }
+        //         ],
+        //         "metadata": { "timestamp": 1785313433816 }
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> metadata = this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
+        Long timestamp = this.safeInteger(metadata, "timestamp");
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> tickerData = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            tickerData.put("timestamp", timestamp);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, (Map<String, Object>) null);
+            String symbol = this.safeString(ticker, "symbol", "");
+            if (java.util.Objects.equals(symbol, ""))
             {
-                Object marketIds = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < symbols.size(); i++)
+                continue;
+            }
+            result.put(symbol, ticker);
+        }
+        if (!java.util.Objects.equals(symbols, null))
+        {
+            Map<String, Object> filtered = new HashMap<String, Object>() {{}};
+            for (var i = 0; i < symbols.size(); i++)
+            {
+                String s = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                if (result.containsKey(s))
                 {
-                    String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    Map<String, Object> market = this.market(symbol);
-                    ((List<Object>)marketIds).add(market.get("id"));
+                    filtered.put(s, (result == null || s == null ? null : result.get(s)));
                 }
-                request.put("symbols", String.join(",", (List<String>)marketIds));
             }
-            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
-            if (!java.util.Objects.equals(region, null))
-            {
-                request.put("region", region);
-            }
-            Map<String, Object> response = (this.publicGet10PublicTickers(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data": [
-            //             { "symbol": "BTC/USD", "bid": "119950.00", "ask": "120050.00", "mid": "120000.00",
-            //               "last_price": "119980.00", "low_24h": "115000.00", "high_24h": "122500.00",
-            //               "price_change_24h": "2480.00", "volume_24h": "135.42000000", "region": "EEA" }
-            //         ],
-            //         "metadata": { "timestamp": 1785313433816 }
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> metadata = this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
-            Long timestamp = this.safeInteger(metadata, "timestamp");
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < data.size(); i++)
-            {
-                Map<String, Object> tickerData = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                tickerData.put("timestamp", timestamp);
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, (Map<String, Object>) null);
-                String symbol = this.safeString(ticker, "symbol", "");
-                if (java.util.Objects.equals(symbol, ""))
-                {
-                    continue;
-                }
-                result.put(symbol, ticker);
-            }
-            if (!java.util.Objects.equals(symbols, null))
-            {
-                Map<String, Object> filtered = new HashMap<String, Object>() {{}};
-                for (var i = 0; i < symbols.size(); i++)
-                {
-                    String s = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                    if (result.containsKey(s))
-                    {
-                        filtered.put(s, (result == null || s == null ? null : result.get(s)));
-                    }
-                }
-                return filtered;
-            }
-            return result;
-        }).thenApply(Tickers::new);
+            return filtered;
+        }
+        return result;
 
     }
 
@@ -721,21 +727,23 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-            Map<String, Object> ticker = this.safeDict(tickers, symbol, null);
-            if (java.util.Objects.equals(ticker, null))
-            {
-                throw new ExchangeError(((this.id + " fetchTicker() could not find ticker for symbol ") + symbol)) ;
-            }
-            return ticker;
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+        Map<String, Object> ticker = this.safeDict(tickers, symbol, null);
+        if (java.util.Objects.equals(ticker, null))
+        {
+            throw new ExchangeError(((this.id + " fetchTicker() could not find ticker for symbol ") + symbol)) ;
+        }
+        return ticker;
 
     }
 
@@ -752,41 +760,43 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
-            if (!java.util.Objects.equals(region, null))
-            {
-                request.put("region", region);
-            }
-            Map<String, Object> response = (this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data": {
-            //             "asks": [ { "price": "4005.00", "quantity": "1.7000", "count": 3 } ],
-            //             "bids": [ { "price": "4000.00", "quantity": "0.25", "count": 1 } ]
-            //         },
-            //         "metadata": { "region": "UK", "timestamp": 1785313433816 }
-            //     }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> metadata = this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
-            Long timestamp = this.safeInteger(metadata, "timestamp");
-            return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
+        if (!java.util.Objects.equals(region, null))
+        {
+            request.put("region", region);
+        }
+        Map<String, Object> response = (this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": {
+        //             "asks": [ { "price": "4005.00", "quantity": "1.7000", "count": 3 } ],
+        //             "bids": [ { "price": "4000.00", "quantity": "0.25", "count": 1 } ]
+        //         },
+        //         "metadata": { "region": "UK", "timestamp": 1785313433816 }
+        //     }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> metadata = this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
+        Long timestamp = this.safeInteger(metadata, "timestamp");
+        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
 
     }
 
@@ -826,55 +836,57 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-                put( "interval", Revolutx.this.safeInteger(Revolutx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), 5) );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("since", since);
-            }
-            Long defaultLimit = 1000L; // default max limit if not specified
-            Long limitValue = (((!java.util.Objects.equals(limit, null)))) ? limit : defaultLimit;
-            Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-            Long until = (Long) this.safeInteger2(parameters, "until", "until");
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("until", until);
-            }
-            if (!java.util.Objects.equals(since, null) && java.util.Objects.equals(until, null))
-            {
-                request.put("until", this.sum(since, (limitValue * duration)));
-            } else if (java.util.Objects.equals(since, null) && !java.util.Objects.equals(until, null))
-            {
-                request.put("since", (until - (limitValue * duration)));
-            }
-            String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
-            if (!java.util.Objects.equals(region, null))
-            {
-                request.put("region", region);
-            }
-            Map<String, Object> response = (this.publicGet10PublicCandlesSymbol(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data": [
-            //             { "start": 1785309833816, "open": "119800.00", "high": "120100.00",
-            //               "low": "119700.00", "close": "120000.00", "volume": "0.25000000" }
-            //         ],
-            //         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+            put( "interval", Revolutx.this.safeInteger(Revolutx.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), 5) );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("since", since);
+        }
+        Long defaultLimit = 1000L; // default max limit if not specified
+        Long limitValue = (((!java.util.Objects.equals(limit, null)))) ? limit : defaultLimit;
+        Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+        Long until = (Long) this.safeInteger2(parameters, "until", "until");
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("until", until);
+        }
+        if (!java.util.Objects.equals(since, null) && java.util.Objects.equals(until, null))
+        {
+            request.put("until", this.sum(since, (limitValue * duration)));
+        } else if (java.util.Objects.equals(since, null) && !java.util.Objects.equals(until, null))
+        {
+            request.put("since", (until - (limitValue * duration)));
+        }
+        String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
+        if (!java.util.Objects.equals(region, null))
+        {
+            request.put("region", region);
+        }
+        Map<String, Object> response = (this.publicGet10PublicCandlesSymbol(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": [
+        //             { "start": 1785309833816, "open": "119800.00", "high": "120100.00",
+        //               "low": "119700.00", "close": "120000.00", "volume": "0.25000000" }
+        //         ],
+        //         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
@@ -936,59 +948,61 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(market, null))
-            {
-                request.put("symbol", market.get("id"));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_date", since);
-            }
-            Long until = (Long) this.safeInteger2(parameters, "until", "until");
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_date", until);
-            } else if (!java.util.Objects.equals(since, null))
-            {
-                request.put("end_date", this.milliseconds());
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 100));
-            }
-            String cursor = this.safeString(parameters, "cursor");
-            if (!java.util.Objects.equals(cursor, null))
-            {
-                request.put("cursor", cursor);
-            }
-            Map<String, Object> response = (this.publicGet10PublicTradesAll(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data": [
-            //             { "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol": "BTC/USD",
-            //               "price": "119980.00", "quantity": "0.01000000", "side": "sell", "timestamp": 1785313433816 }
-            //         ],
-            //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Map<String, Object> trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseTrade(trade, market));
-            }
-            return this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(market, null))
+        {
+            request.put("symbol", market.get("id"));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_date", since);
+        }
+        Long until = (Long) this.safeInteger2(parameters, "until", "until");
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_date", until);
+        } else if (!java.util.Objects.equals(since, null))
+        {
+            request.put("end_date", this.milliseconds());
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 100));
+        }
+        String cursor = this.safeString(parameters, "cursor");
+        if (!java.util.Objects.equals(cursor, null))
+        {
+            request.put("cursor", cursor);
+        }
+        Map<String, Object> response = (this.publicGet10PublicTradesAll(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": [
+        //             { "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol": "BTC/USD",
+        //               "price": "119980.00", "quantity": "0.01000000", "side": "sell", "timestamp": 1785313433816 }
+        //         ],
+        //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            ((List<Object>)result).add(this.parseTrade(trade, market));
+        }
+        return this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit, false);
 
     }
 
@@ -1002,57 +1016,59 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Object response = (this.privateGet10Balances(parameters)).join();
+        //
+        //     [
+        //         { "currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000" },
+        //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
+        //     ]
+        //
+        Object payload = response;
+        if ((payload instanceof List))
+        {
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("data", payload);
+                payload = hx4NewMap1;
             }
-            Object response = (this.privateGet10Balances(parameters)).join();
-            //
-            //     [
-            //         { "currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000" },
-            //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
-            //     ]
-            //
-            Object payload = response;
-            if ((payload instanceof List))
+        }
+        List<Object> data = this.safeList(payload, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> result = new HashMap<String, Object>() {{
+            put( "info", response );
+        }};
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> balance = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            String currency = this.safeString(balance, "currency");
+            String code = this.safeCurrencyCode(currency, (Map<String, Object>) null);
+            if (java.util.Objects.equals(code, null))
             {
-                {
-                    HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
-                    hx4NewMap1.put("data", payload);
-                    payload = hx4NewMap1;
-                }
+                continue;
             }
-            List<Object> data = this.safeList(payload, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> result = new HashMap<String, Object>() {{
-                put( "info", response );
-            }};
-            for (var i = 0; i < data.size(); i++)
+            Map<String, Object> account = this.account();
+            account.put("free", this.safeString(balance, "available"));
+            String reserved = this.safeString(balance, "reserved");
+            String staked = this.safeString(balance, "staked");
+            String used = reserved;
+            if (!java.util.Objects.equals(staked, null))
             {
-                Map<String, Object> balance = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                String currency = this.safeString(balance, "currency");
-                String code = this.safeCurrencyCode(currency, (Map<String, Object>) null);
-                if (java.util.Objects.equals(code, null))
-                {
-                    continue;
-                }
-                Map<String, Object> account = this.account();
-                account.put("free", this.safeString(balance, "available"));
-                String reserved = this.safeString(balance, "reserved");
-                String staked = this.safeString(balance, "staked");
-                String used = reserved;
-                if (!java.util.Objects.equals(staked, null))
-                {
-                    used = (((java.util.Objects.equals(reserved, null)))) ? staked : Precise.stringAdd(reserved, staked);
-                }
-                account.put("used", used);
-                account.put("total", this.safeString(balance, "total"));
-                result.put(code, account);
+                used = (((java.util.Objects.equals(reserved, null)))) ? staked : Precise.stringAdd(reserved, staked);
             }
-            return this.safeBalance(result);
-        }).thenApply(Balances::new);
+            account.put("used", used);
+            account.put("total", this.safeString(balance, "total"));
+            result.put(code, account);
+        }
+        return this.safeBalance(result);
 
     }
 
@@ -1228,150 +1244,152 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
-            String cost = this.safeString2(parameters, "cost", "quote_size");
-            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            List<Object> executionInstructions = (List<Object>) this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions", null));
-            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            String stopLossPrice = this.safeString(parameters, "stopLossPrice");
-            String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-            Map<String, Object> stopLoss = this.safeDict(parameters, "stopLoss", null);
-            Map<String, Object> takeProfit = this.safeDict(parameters, "takeProfit", null);
-            Boolean hasStopLoss = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(stopLoss, null));
-            Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfitPrice, null)) || (!java.util.Objects.equals(takeProfit, null));
-            Boolean isTpsl = Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit);
-            if ((!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTpsl))
-            {
-                if ((!java.util.Objects.equals(type, "limit")) && (!java.util.Objects.equals(type, "market")))
-                {
-                    throw new InvalidOrder(((this.id + " createOrder() does not support order type ") + type)) ;
-                }
-                if ((!java.util.Objects.equals(timeInForce, null)) || (!java.util.Objects.equals(executionInstructions, null)))
-                {
-                    throw new InvalidOrder((this.id + " createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders")) ;
-                }
-            }
-            Map<String, Object> orderConfiguration = new HashMap<String, Object>() {{}};
-            if ((!java.util.Objects.equals(triggerPrice, null)) && Boolean.TRUE.equals(isTpsl))
-            {
-                throw new InvalidOrder((this.id + " createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice")) ;
-            } else if (!java.util.Objects.equals(triggerPrice, null))
-            {
-                Map<String, Object> conditionalConfig = new HashMap<String, Object>() {{}};
-                if (!java.util.Objects.equals(cost, null))
-                {
-                    conditionalConfig.put("quote_size", this.costToPrecision(symbol, cost));
-                } else
-                {
-                    conditionalConfig.put("base_size", this.amountToPrecision(symbol, amount));
-                }
-                if (java.util.Objects.equals(type, "limit"))
-                {
-                    if (java.util.Objects.equals(price, null))
-                    {
-                        throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
-                    }
-                    conditionalConfig.put("limit_price", this.priceToPrecision(symbol, price));
-                }
-                conditionalConfig.put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
-                orderConfiguration.put("conditional", conditionalConfig);
-            } else if (Boolean.TRUE.equals(isTpsl))
-            {
-                if (!java.util.Objects.equals(cost, null))
-                {
-                    throw new InvalidOrder((this.id + " createOrder() TP/SL orders are sized in the base currency only, cost is not supported")) ;
-                }
-                Boolean singleLeg = !(Boolean.TRUE.equals(hasStopLoss) && Boolean.TRUE.equals(hasTakeProfit));
-                Map<String, Object> tpslConfig = new HashMap<String, Object>() {{
-                    put( "base_size", Revolutx.this.amountToPrecision(symbol, amount) );
-                }};
-                if (Boolean.TRUE.equals(hasTakeProfit))
-                {
-                    tpslConfig.put("take_profit", this.createTriggerLegRequest((String) (symbol), (String) (type), price, takeProfitPrice, takeProfit, singleLeg));
-                }
-                if (Boolean.TRUE.equals(hasStopLoss))
-                {
-                    tpslConfig.put("stop_loss", this.createTriggerLegRequest((String) (symbol), (String) (type), price, stopLossPrice, stopLoss, singleLeg));
-                }
-                orderConfiguration.put("tpsl", tpslConfig);
-            } else if (java.util.Objects.equals(type, "limit"))
-            {
-                Map<String, Object> limitConfig = new HashMap<String, Object>() {{}};
-                if (!java.util.Objects.equals(cost, null))
-                {
-                    limitConfig.put("quote_size", this.costToPrecision(symbol, cost));
-                } else
-                {
-                    limitConfig.put("base_size", this.amountToPrecision(symbol, amount));
-                }
-                limitConfig.put("price", this.priceToPrecision(symbol, price));
-                if (!java.util.Objects.equals(timeInForce, null))
-                {
-                    limitConfig.put("time_in_force", timeInForce);
-                }
-                if (!java.util.Objects.equals(executionInstructions, null))
-                {
-                    limitConfig.put("execution_instructions", executionInstructions);
-                }
-                orderConfiguration.put("limit", limitConfig);
-            } else if (java.util.Objects.equals(type, "market"))
-            {
-                if (!java.util.Objects.equals(timeInForce, null))
-                {
-                    throw new InvalidOrder((this.id + " createOrder() timeInForce is only supported for limit orders")) ;
-                }
-                if (!java.util.Objects.equals(executionInstructions, null))
-                {
-                    throw new InvalidOrder((this.id + " createOrder() executionInstructions are only supported for limit orders")) ;
-                }
-                Map<String, Object> marketConfig = new HashMap<String, Object>() {{}};
-                if (!java.util.Objects.equals(cost, null))
-                {
-                    marketConfig.put("quote_size", this.costToPrecision(symbol, cost));
-                } else
-                {
-                    marketConfig.put("base_size", this.amountToPrecision(symbol, amount));
-                }
-                orderConfiguration.put("market", marketConfig);
-            } else
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
+        String cost = this.safeString2(parameters, "cost", "quote_size");
+        String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+        List<Object> executionInstructions = (List<Object>) this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions", null));
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        String stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        Map<String, Object> stopLoss = this.safeDict(parameters, "stopLoss", null);
+        Map<String, Object> takeProfit = this.safeDict(parameters, "takeProfit", null);
+        Boolean hasStopLoss = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(stopLoss, null));
+        Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfitPrice, null)) || (!java.util.Objects.equals(takeProfit, null));
+        Boolean isTpsl = Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit);
+        if ((!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTpsl))
+        {
+            if ((!java.util.Objects.equals(type, "limit")) && (!java.util.Objects.equals(type, "market")))
             {
                 throw new InvalidOrder(((this.id + " createOrder() does not support order type ") + type)) ;
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "client_order_id", clientOrderId );
-                put( "symbol", market.get("id") );
-                put( "side", side );
-                put( "order_configuration", orderConfiguration );
+            if ((!java.util.Objects.equals(timeInForce, null)) || (!java.util.Objects.equals(executionInstructions, null)))
+            {
+                throw new InvalidOrder((this.id + " createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders")) ;
+            }
+        }
+        Map<String, Object> orderConfiguration = new HashMap<String, Object>() {{}};
+        if ((!java.util.Objects.equals(triggerPrice, null)) && Boolean.TRUE.equals(isTpsl))
+        {
+            throw new InvalidOrder((this.id + " createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice")) ;
+        } else if (!java.util.Objects.equals(triggerPrice, null))
+        {
+            Map<String, Object> conditionalConfig = new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(cost, null))
+            {
+                conditionalConfig.put("quote_size", this.costToPrecision(symbol, cost));
+            } else
+            {
+                conditionalConfig.put("base_size", this.amountToPrecision(symbol, amount));
+            }
+            if (java.util.Objects.equals(type, "limit"))
+            {
+                if (java.util.Objects.equals(price, null))
+                {
+                    throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
+                }
+                conditionalConfig.put("limit_price", this.priceToPrecision(symbol, price));
+            }
+            conditionalConfig.put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
+            orderConfiguration.put("conditional", conditionalConfig);
+        } else if (Boolean.TRUE.equals(isTpsl))
+        {
+            if (!java.util.Objects.equals(cost, null))
+            {
+                throw new InvalidOrder((this.id + " createOrder() TP/SL orders are sized in the base currency only, cost is not supported")) ;
+            }
+            Boolean singleLeg = !(Boolean.TRUE.equals(hasStopLoss) && Boolean.TRUE.equals(hasTakeProfit));
+            Map<String, Object> tpslConfig = new HashMap<String, Object>() {{
+                put( "base_size", Revolutx.this.amountToPrecision(symbol, amount) );
             }};
-            Map<String, Object> response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")))))).join();
-            //
-            //     {
-            //         "data": [
-            //             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
-            //         ]
-            //     }
-            //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> orderData = (Map<String, Object>) ((((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
-            String venueOrderId = this.safeString(orderData, "venue_order_id");
-            String state = this.safeString(orderData, "state");
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", venueOrderId);
-            j39v1.put("symbol", market.get("id"));
-            j39v1.put("status", state);
-            j39v1.put("side", side);
-            j39v1.put("type", type);
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, j39v1), market);
-            return order;
-        }).thenApply(Order::new);
+            if (Boolean.TRUE.equals(hasTakeProfit))
+            {
+                tpslConfig.put("take_profit", this.createTriggerLegRequest((String) (symbol), (String) (type), price, takeProfitPrice, takeProfit, singleLeg));
+            }
+            if (Boolean.TRUE.equals(hasStopLoss))
+            {
+                tpslConfig.put("stop_loss", this.createTriggerLegRequest((String) (symbol), (String) (type), price, stopLossPrice, stopLoss, singleLeg));
+            }
+            orderConfiguration.put("tpsl", tpslConfig);
+        } else if (java.util.Objects.equals(type, "limit"))
+        {
+            Map<String, Object> limitConfig = new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(cost, null))
+            {
+                limitConfig.put("quote_size", this.costToPrecision(symbol, cost));
+            } else
+            {
+                limitConfig.put("base_size", this.amountToPrecision(symbol, amount));
+            }
+            limitConfig.put("price", this.priceToPrecision(symbol, price));
+            if (!java.util.Objects.equals(timeInForce, null))
+            {
+                limitConfig.put("time_in_force", timeInForce);
+            }
+            if (!java.util.Objects.equals(executionInstructions, null))
+            {
+                limitConfig.put("execution_instructions", executionInstructions);
+            }
+            orderConfiguration.put("limit", limitConfig);
+        } else if (java.util.Objects.equals(type, "market"))
+        {
+            if (!java.util.Objects.equals(timeInForce, null))
+            {
+                throw new InvalidOrder((this.id + " createOrder() timeInForce is only supported for limit orders")) ;
+            }
+            if (!java.util.Objects.equals(executionInstructions, null))
+            {
+                throw new InvalidOrder((this.id + " createOrder() executionInstructions are only supported for limit orders")) ;
+            }
+            Map<String, Object> marketConfig = new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(cost, null))
+            {
+                marketConfig.put("quote_size", this.costToPrecision(symbol, cost));
+            } else
+            {
+                marketConfig.put("base_size", this.amountToPrecision(symbol, amount));
+            }
+            orderConfiguration.put("market", marketConfig);
+        } else
+        {
+            throw new InvalidOrder(((this.id + " createOrder() does not support order type ") + type)) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "client_order_id", clientOrderId );
+            put( "symbol", market.get("id") );
+            put( "side", side );
+            put( "order_configuration", orderConfiguration );
+        }};
+        Map<String, Object> response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")))))).join();
+        //
+        //     {
+        //         "data": [
+        //             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
+        //         ]
+        //     }
+        //
+        Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> orderData = (Map<String, Object>) ((((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
+        String venueOrderId = this.safeString(orderData, "venue_order_id");
+        String state = this.safeString(orderData, "state");
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("id", venueOrderId);
+        j39v1.put("symbol", market.get("id"));
+        j39v1.put("status", state);
+        j39v1.put("side", side);
+        j39v1.put("type", type);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, j39v1), market);
+        return order;
 
     }
 
@@ -1425,23 +1443,25 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "venue_order_id", id );
-            }};
-            Map<String, Object> response = (this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters))).join();
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "id", id );
-                put( "status", "canceled" );
-            }}, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "venue_order_id", id );
+        }};
+        Map<String, Object> response = (this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters))).join();
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", response );
+            put( "id", id );
+            put( "status", "canceled" );
+        }}, (Map<String, Object>) null);
 
     }
 
@@ -1456,16 +1476,18 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.privateDelete10Orders(parameters)).join();
-            return new ArrayList<Object>(Arrays.asList());
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.privateDelete10Orders(parameters)).join();
+        return new ArrayList<Object>(Arrays.asList());
 
     }
 
@@ -1481,38 +1503,40 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "venue_order_id", id );
-            }};
-            Map<String, Object> response = (this.privateGet10OrdersVenueOrderId(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data": {
-            //             "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD",
-            //             "side": "buy", "type": "limit", "quantity": "0.002", "filled_quantity": "0",
-            //             "leaves_quantity": "0.002", "amount": "240.00", "filled_amount": "0",
-            //             "price": "120000.00", "average_fill_price": "0", "total_fee": "0",
-            //             "fee_currency": "USD", "status": "new", "time_in_force": "gtc",
-            //             "execution_instructions": ["allow_taker"],
-            //             "created_date": 1785309833816, "updated_date": 1785313433816
-            //         }
-            //     }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            return this.parseOrder(data, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "venue_order_id", id );
+        }};
+        Map<String, Object> response = (this.privateGet10OrdersVenueOrderId(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": {
+        //             "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD",
+        //             "side": "buy", "type": "limit", "quantity": "0.002", "filled_quantity": "0",
+        //             "leaves_quantity": "0.002", "amount": "240.00", "filled_amount": "0",
+        //             "price": "120000.00", "average_fill_price": "0", "total_fee": "0",
+        //             "fee_currency": "USD", "status": "new", "time_in_force": "gtc",
+        //             "execution_instructions": ["allow_taker"],
+        //             "created_date": 1785309833816, "updated_date": 1785313433816
+        //         }
+        //     }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        return this.parseOrder(data, market);
 
     }
 
@@ -1534,64 +1558,66 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                request.put("symbols", market.get("id"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            String cursor = this.safeString(parameters, "cursor");
-            if (!java.util.Objects.equals(cursor, null))
-            {
-                request.put("cursor", cursor);
-            }
-            List<String> orderStates = (List<String>) this.safeList2(parameters, "orderStates", "order_states", (Object) null);
-            if (!java.util.Objects.equals(orderStates, null))
-            {
-                request.put("order_states", String.join(",", orderStates));
-            }
-            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
-            Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", (Object) null);
-            if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
-            {
-                orderTypes = new ArrayList<Object>(Arrays.asList("conditional", "tpsl"));
-            }
-            if (!java.util.Objects.equals(orderTypes, null))
-            {
-                request.put("order_types", String.join(",", (List<String>)orderTypes));
-            }
-            String side = this.safeString(parameters, "side");
-            if (!java.util.Objects.equals(side, null))
-            {
-                request.put("side", side);
-            }
-            Map<String, Object> response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side", "trigger")))))).join();
-            //
-            //     {
-            //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
-            //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseOrder(order, (Map<String, Object>) null));
-            }
-            return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            request.put("symbols", market.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        String cursor = this.safeString(parameters, "cursor");
+        if (!java.util.Objects.equals(cursor, null))
+        {
+            request.put("cursor", cursor);
+        }
+        List<String> orderStates = (List<String>) this.safeList2(parameters, "orderStates", "order_states", (Object) null);
+        if (!java.util.Objects.equals(orderStates, null))
+        {
+            request.put("order_states", String.join(",", orderStates));
+        }
+        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+        Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", (Object) null);
+        if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
+        {
+            orderTypes = new ArrayList<Object>(Arrays.asList("conditional", "tpsl"));
+        }
+        if (!java.util.Objects.equals(orderTypes, null))
+        {
+            request.put("order_types", String.join(",", (List<String>)orderTypes));
+        }
+        String side = this.safeString(parameters, "side");
+        if (!java.util.Objects.equals(side, null))
+        {
+            request.put("side", side);
+        }
+        Map<String, Object> response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side", "trigger")))))).join();
+        //
+        //     {
+        //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
+        //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            ((List<Object>)result).add(this.parseOrder(order, (Map<String, Object>) null));
+        }
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
 
     }
 
@@ -1613,71 +1639,73 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                request.put("symbols", market.get("id"));
-            }
-            Long thirtyDays = ((((30L * 24L) * 60L) * 60L) * 1000L);
-            Long until = (Long) this.safeInteger2(parameters, "until", "until");
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_date", since);
-            } else if (!java.util.Objects.equals(until, null))
-            {
-                request.put("start_date", (until - thirtyDays));
-            }
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_date", until);
-            } else if (!java.util.Objects.equals(since, null))
-            {
-                Long now = this.milliseconds();
-                Long thirtyDaysAgo = (now - thirtyDays);
-                request.put("end_date", ((((thirtyDaysAgo != null && since < thirtyDaysAgo)))) ? (since + thirtyDays) : now);
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            String cursor = this.safeString(parameters, "cursor");
-            if (!java.util.Objects.equals(cursor, null))
-            {
-                request.put("cursor", cursor);
-            }
-            List<String> orderStates = (List<String>) this.safeList2(parameters, "orderStates", "order_states", (Object) null);
-            if (!java.util.Objects.equals(orderStates, null))
-            {
-                request.put("order_states", String.join(",", orderStates));
-            }
-            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
-            Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", (Object) null);
-            if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
-            {
-                orderTypes = new ArrayList<Object>(Arrays.asList("conditional", "tpsl"));
-            }
-            if (!java.util.Objects.equals(orderTypes, null))
-            {
-                request.put("order_types", String.join(",", (List<String>)orderTypes));
-            }
-            Map<String, Object> response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger")))))).join();
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseOrder(order, (Map<String, Object>) null));
-            }
-            return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            request.put("symbols", market.get("id"));
+        }
+        Long thirtyDays = ((((30L * 24L) * 60L) * 60L) * 1000L);
+        Long until = (Long) this.safeInteger2(parameters, "until", "until");
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_date", since);
+        } else if (!java.util.Objects.equals(until, null))
+        {
+            request.put("start_date", (until - thirtyDays));
+        }
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_date", until);
+        } else if (!java.util.Objects.equals(since, null))
+        {
+            Long now = this.milliseconds();
+            Long thirtyDaysAgo = (now - thirtyDays);
+            request.put("end_date", ((((thirtyDaysAgo != null && since < thirtyDaysAgo)))) ? (since + thirtyDays) : now);
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        String cursor = this.safeString(parameters, "cursor");
+        if (!java.util.Objects.equals(cursor, null))
+        {
+            request.put("cursor", cursor);
+        }
+        List<String> orderStates = (List<String>) this.safeList2(parameters, "orderStates", "order_states", (Object) null);
+        if (!java.util.Objects.equals(orderStates, null))
+        {
+            request.put("order_states", String.join(",", orderStates));
+        }
+        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+        Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", (Object) null);
+        if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
+        {
+            orderTypes = new ArrayList<Object>(Arrays.asList("conditional", "tpsl"));
+        }
+        if (!java.util.Objects.equals(orderTypes, null))
+        {
+            request.put("order_types", String.join(",", (List<String>)orderTypes));
+        }
+        Map<String, Object> response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger")))))).join();
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            ((List<Object>)result).add(this.parseOrder(order, (Map<String, Object>) null));
+        }
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
 
     }
 
@@ -1694,15 +1722,17 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            List<Object> orderStates = (List<Object>) this.safeList2(parameters, "orderStates", "order_states", new ArrayList<Object>(Arrays.asList("filled", "cancelled", "rejected", "replaced")));
-            Map<String, Object> requestParams = this.extend(this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderStates", "order_states"))), new HashMap<String, Object>() {{
-                put( "order_states", orderStates );
-            }});
-            return (this.fetchOrders(symbol, since, limit, requestParams)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        List<Object> orderStates = (List<Object>) this.safeList2(parameters, "orderStates", "order_states", new ArrayList<Object>(Arrays.asList("filled", "cancelled", "rejected", "replaced")));
+        Map<String, Object> requestParams = this.extend(this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderStates", "order_states"))), new HashMap<String, Object>() {{
+            put( "order_states", orderStates );
+        }});
+        return (this.fetchOrders(symbol, since, limit, requestParams)).join();
 
     }
 
@@ -1768,68 +1798,70 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol parameter")) ;
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Long thirtyDays = ((((30L * 24L) * 60L) * 60L) * 1000L);
-            Long until = (Long) this.safeInteger2(parameters, "until", "until");
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_date", since);
-            } else if (!java.util.Objects.equals(until, null))
-            {
-                request.put("start_date", (until - thirtyDays));
-            }
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_date", until);
-            } else if (!java.util.Objects.equals(since, null))
-            {
-                Long now = this.milliseconds();
-                Long thirtyDaysAgo = (now - thirtyDays);
-                request.put("end_date", ((((thirtyDaysAgo != null && since < thirtyDaysAgo)))) ? (since + thirtyDays) : now);
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            String cursor = this.safeString(parameters, "cursor");
-            if (!java.util.Objects.equals(cursor, null))
-            {
-                request.put("cursor", cursor);
-            }
-            Map<String, Object> response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")))))).join();
-            //
-            //     {
-            //         "data": [
-            //             { "tdt": 1785309833816, "p": "119900.00", "q": "0.00100000",
-            //               "tid": "ad3e8787ab623ba5a1dfea53819be6f9", "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
-            //               "s": "buy", "im": false }
-            //         ],
-            //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Map<String, Object> trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(this.parseMyTrade(trade, market));
-            }
-            return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol parameter")) ;
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Long thirtyDays = ((((30L * 24L) * 60L) * 60L) * 1000L);
+        Long until = (Long) this.safeInteger2(parameters, "until", "until");
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_date", since);
+        } else if (!java.util.Objects.equals(until, null))
+        {
+            request.put("start_date", (until - thirtyDays));
+        }
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_date", until);
+        } else if (!java.util.Objects.equals(since, null))
+        {
+            Long now = this.milliseconds();
+            Long thirtyDaysAgo = (now - thirtyDays);
+            request.put("end_date", ((((thirtyDaysAgo != null && since < thirtyDaysAgo)))) ? (since + thirtyDays) : now);
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        String cursor = this.safeString(parameters, "cursor");
+        if (!java.util.Objects.equals(cursor, null))
+        {
+            request.put("cursor", cursor);
+        }
+        Map<String, Object> response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")))))).join();
+        //
+        //     {
+        //         "data": [
+        //             { "tdt": 1785309833816, "p": "119900.00", "q": "0.00100000",
+        //               "tid": "ad3e8787ab623ba5a1dfea53819be6f9", "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
+        //               "s": "buy", "im": false }
+        //         ],
+        //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            ((List<Object>)result).add(this.parseMyTrade(trade, market));
+        }
+        return result;
 
     }
 
@@ -1853,63 +1885,65 @@ public class Revolutx extends RevolutxApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            // note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
-            String cost = this.safeString2(parameters, "cost", "quote_size");
-            String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            List<Object> executionInstructions = (List<Object>) this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions", null));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "client_order_id", clientOrderId );
-                put( "venue_order_id", id );
-            }};
-            if (!java.util.Objects.equals(cost, null))
-            {
-                request.put("quote_size", this.costToPrecision(symbol, cost));
-            } else if (!java.util.Objects.equals(amount, null))
-            {
-                request.put("base_size", this.amountToPrecision(symbol, amount));
-            }
-            if (!java.util.Objects.equals(price, null))
-            {
-                request.put("price", this.priceToPrecision(symbol, price));
-            }
-            if (!java.util.Objects.equals(timeInForce, null))
-            {
-                request.put("time_in_force", timeInForce);
-            }
-            if (!java.util.Objects.equals(executionInstructions, null))
-            {
-                request.put("execution_instructions", executionInstructions);
-            }
-            Map<String, Object> response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
-            //
-            //     {
-            //         "data": [
-            //             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
-            //         ]
-            //     }
-            //
-            Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> orderData = (Map<String, Object>) ((((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
-            String newVenueOrderId = this.safeString(orderData, "venue_order_id");
-            String state = this.safeString(orderData, "state");
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
-                put( "id", newVenueOrderId );
-                put( "symbol", market.get("id") );
-                put( "status", state );
-                put( "side", side );
-                put( "type", type );
-            }}), market);
-            return order;
-        }).thenApply(Order::new);
+        // note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
+        String cost = this.safeString2(parameters, "cost", "quote_size");
+        String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+        List<Object> executionInstructions = (List<Object>) this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions", null));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "client_order_id", clientOrderId );
+            put( "venue_order_id", id );
+        }};
+        if (!java.util.Objects.equals(cost, null))
+        {
+            request.put("quote_size", this.costToPrecision(symbol, cost));
+        } else if (!java.util.Objects.equals(amount, null))
+        {
+            request.put("base_size", this.amountToPrecision(symbol, amount));
+        }
+        if (!java.util.Objects.equals(price, null))
+        {
+            request.put("price", this.priceToPrecision(symbol, price));
+        }
+        if (!java.util.Objects.equals(timeInForce, null))
+        {
+            request.put("time_in_force", timeInForce);
+        }
+        if (!java.util.Objects.equals(executionInstructions, null))
+        {
+            request.put("execution_instructions", executionInstructions);
+        }
+        Map<String, Object> response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
+        //
+        //     {
+        //         "data": [
+        //             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
+        //         ]
+        //     }
+        //
+        Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> orderData = (Map<String, Object>) ((((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
+        String newVenueOrderId = this.safeString(orderData, "venue_order_id");
+        String state = this.safeString(orderData, "state");
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
+            put( "id", newVenueOrderId );
+            put( "symbol", market.get("id") );
+            put( "status", state );
+            put( "side", side );
+            put( "type", type );
+        }}), market);
+        return order;
 
     }
 

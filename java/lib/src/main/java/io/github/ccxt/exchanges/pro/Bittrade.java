@@ -80,38 +80,40 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            // only supports a limit of 150 at this time
-            String marketId = this.safeString(market, "id", "");
-            String messageHash = (("market." + marketId) + ".detail");
-            String api = this.safeString(this.options, "api", "api");
-            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
-            Map<String, Object> hostname = new HashMap<String, Object>() {{
-                put( "hostname", Bittrade.this.hostname );
-            }};
-            String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-            Long requestId = this.requestId();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub", messageHash );
-                put( "id", String.valueOf(requestId) );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", String.valueOf(requestId) );
-                put( "messageHash", messageHash );
-                put( "symbol", market.get("symbol") );
-                put( "params", parameters );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        // only supports a limit of 150 at this time
+        String marketId = this.safeString(market, "id", "");
+        String messageHash = (("market." + marketId) + ".detail");
+        String api = this.safeString(this.options, "api", "api");
+        Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
+        Map<String, Object> hostname = new HashMap<String, Object>() {{
+            put( "hostname", Bittrade.this.hostname );
+        }};
+        String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
+        Long requestId = this.requestId();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub", messageHash );
+            put( "id", String.valueOf(requestId) );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "id", String.valueOf(requestId) );
+            put( "messageHash", messageHash );
+            put( "symbol", market.get("symbol") );
+            put( "params", parameters );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
 
     }
 
@@ -165,45 +167,47 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            // only supports a limit of 150 at this time
-            String marketId = this.safeString(market, "id", "");
-            String messageHash = (("market." + marketId) + ".trade.detail");
-            String api = this.safeString(this.options, "api", "api");
-            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
-            Map<String, Object> hostname = new HashMap<String, Object>() {{
-                put( "hostname", Bittrade.this.hostname );
-            }};
-            String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-            Long requestId = this.requestId();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub", messageHash );
-                put( "id", String.valueOf(requestId) );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", String.valueOf(requestId) );
-                put( "messageHash", messageHash );
-                put( "symbol", symbolValue );
-                put( "params", parameters );
-            }};
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        // only supports a limit of 150 at this time
+        String marketId = this.safeString(market, "id", "");
+        String messageHash = (("market." + marketId) + ".trade.detail");
+        String api = this.safeString(this.options, "api", "api");
+        Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
+        Map<String, Object> hostname = new HashMap<String, Object>() {{
+            put( "hostname", Bittrade.this.hostname );
+        }};
+        String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
+        Long requestId = this.requestId();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub", messageHash );
+            put( "id", String.valueOf(requestId) );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "id", String.valueOf(requestId) );
+            put( "messageHash", messageHash );
+            put( "symbol", symbolValue );
+            put( "params", parameters );
+        }};
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -269,46 +273,48 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            String marketId = this.safeString(market, "id", "");
-            String messageHash = ((("market." + marketId) + ".kline.") + interval);
-            String api = this.safeString(this.options, "api", "api");
-            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
-            Map<String, Object> hostname = new HashMap<String, Object>() {{
-                put( "hostname", Bittrade.this.hostname );
-            }};
-            String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-            Long requestId = this.requestId();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub", messageHash );
-                put( "id", String.valueOf(requestId) );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", String.valueOf(requestId) );
-                put( "messageHash", messageHash );
-                put( "symbol", symbolValue );
-                put( "timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m") );
-                put( "params", parameters );
-            }};
-            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        String marketId = this.safeString(market, "id", "");
+        String messageHash = ((("market." + marketId) + ".kline.") + interval);
+        String api = this.safeString(this.options, "api", "api");
+        Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
+        Map<String, Object> hostname = new HashMap<String, Object>() {{
+            put( "hostname", Bittrade.this.hostname );
+        }};
+        String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
+        Long requestId = this.requestId();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub", messageHash );
+            put( "id", String.valueOf(requestId) );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "id", String.valueOf(requestId) );
+            put( "messageHash", messageHash );
+            put( "symbol", symbolValue );
+            put( "timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m") );
+            put( "params", parameters );
+        }};
+        List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
 
     }
 
@@ -366,47 +372,49 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if ((!java.util.Objects.equals(limit, null)) && ((limit != 150)))
-            {
-                throw new ExchangeError((this.id + " watchOrderBook accepts limit = 150 only")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            // only supports a limit of 150 at this time
-            Integer limitValue = 150;
-            String marketId = this.safeString(market, "id", "");
-            String messageHash = (("market." + marketId) + ".mbp.150");
-            String api = this.safeString(this.options, "api", "api");
-            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-            Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
-            Map<String, Object> hostname = new HashMap<String, Object>() {{
-                put( "hostname", Bittrade.this.hostname );
-            }};
-            String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-            Long requestId = this.requestId();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "sub", messageHash );
-                put( "id", String.valueOf(requestId) );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", String.valueOf(requestId) );
-                put( "messageHash", messageHash );
-                put( "symbol", symbolValue );
-                put( "limit", limitValue );
-                put( "params", parameters );
-                put( "method", "handleOrderBookSubscription" );
-            }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if ((!java.util.Objects.equals(limit, null)) && ((limit != 150)))
+        {
+            throw new ExchangeError((this.id + " watchOrderBook accepts limit = 150 only")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        // only supports a limit of 150 at this time
+        Integer limitValue = 150;
+        String marketId = this.safeString(market, "id", "");
+        String messageHash = (("market." + marketId) + ".mbp.150");
+        String api = this.safeString(this.options, "api", "api");
+        Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
+        Map<String, Object> hostname = new HashMap<String, Object>() {{
+            put( "hostname", Bittrade.this.hostname );
+        }};
+        String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
+        Long requestId = this.requestId();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "sub", messageHash );
+            put( "id", String.valueOf(requestId) );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "id", String.valueOf(requestId) );
+            put( "messageHash", messageHash );
+            put( "symbol", symbolValue );
+            put( "limit", limitValue );
+            put( "params", parameters );
+            put( "method", "handleOrderBookSubscription" );
+        }};
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
+        return orderbook.limit();
 
     }
 
@@ -460,47 +468,49 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     public CompletableFuture<Object> watchOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookSnapshotCore(client, message, subscription));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookSnapshotCore(Client client, Map<String, Object> message, Map<String, Object> subscription)
+    {
 
-            String messageHash = this.safeString(subscription, "messageHash");
-            try
-            {
-                String symbol = this.safeString(subscription, "symbol");
-                Long limit = this.safeInteger(subscription, "limit");
-                Map<String, Object> parameters = this.safeDict(subscription, "params", null);
-                String api = this.safeString(this.options, "api", "api");
-                Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-                Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
-                Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
-                Map<String, Object> hostname = new HashMap<String, Object>() {{
-                    put( "hostname", Bittrade.this.hostname );
-                }};
-                String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-                Long requestId = this.requestId();
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "req", messageHash );
-                    put( "id", String.valueOf(requestId) );
-                }};
-                // this is a temporary subscription by a specific requestId
-                // it has a very short lifetime until the snapshot is received over ws
-                Map<String, Object> snapshotSubscription = new HashMap<String, Object>() {{
-                    put( "id", String.valueOf(requestId) );
-                    put( "messageHash", messageHash );
-                    put( "symbol", symbol );
-                    put( "limit", limit );
-                    put( "params", parameters );
-                    put( "method", "handleOrderBookSnapshot" );
-                }};
-                io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, String.valueOf(requestId), request, String.valueOf(requestId), snapshotSubscription)).join();
-                return orderbook.limit();
-            } catch(Exception e)
-            {
-                client.subscriptions.remove((String)((String)messageHash));
-                client.reject(e, messageHash);
-            }
-            return null;
-        });
+        String messageHash = this.safeString(subscription, "messageHash");
+        try
+        {
+            String symbol = this.safeString(subscription, "symbol");
+            Long limit = this.safeInteger(subscription, "limit");
+            Map<String, Object> parameters = this.safeDict(subscription, "params", null);
+            String api = this.safeString(this.options, "api", "api");
+            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiWsUrls = this.safeDict(wsUrls, api, new HashMap<String, Object>() {{}});
+            Map<String, Object> hostname = new HashMap<String, Object>() {{
+                put( "hostname", Bittrade.this.hostname );
+            }};
+            String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
+            Long requestId = this.requestId();
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "req", messageHash );
+                put( "id", String.valueOf(requestId) );
+            }};
+            // this is a temporary subscription by a specific requestId
+            // it has a very short lifetime until the snapshot is received over ws
+            Map<String, Object> snapshotSubscription = new HashMap<String, Object>() {{
+                put( "id", String.valueOf(requestId) );
+                put( "messageHash", messageHash );
+                put( "symbol", symbol );
+                put( "limit", limit );
+                put( "params", parameters );
+                put( "method", "handleOrderBookSnapshot" );
+            }};
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, String.valueOf(requestId), request, String.valueOf(requestId), snapshotSubscription)).join();
+            return orderbook.limit();
+        } catch(Exception e)
+        {
+            client.subscriptions.remove((String)((String)messageHash));
+            client.reject(e, messageHash);
+        }
+        return null;
 
     }
 
@@ -739,17 +749,19 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
     {
+        return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object pongCore(Client client, Map<String, Object> message)
+    {
 
-            //
-            //     { ping: 1583491673714 }
-            //
-            (client.send(new HashMap<String, Object>() {{
-                put( "pong", Bittrade.this.safeInteger(message, "ping") );
-            }})).join();
-            return null;
-        });
+        //
+        //     { ping: 1583491673714 }
+        //
+        (client.send(new HashMap<String, Object>() {{
+            put( "pong", Bittrade.this.safeInteger(message, "ping") );
+        }})).join();
+        return null;
 
     }
 

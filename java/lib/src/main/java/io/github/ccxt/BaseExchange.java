@@ -5438,15 +5438,17 @@ public Map<String, Object> describe()
 
     public CompletableFuture<List<Liquidation>> watchLiquidations(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchLiquidationsCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("watchLiquidationsForSymbols"), null) && !java.util.Objects.equals(this.has.get("watchLiquidationsForSymbols"), false))
-            {
-                return (this.watchLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
-            }
-            throw new NotSupported((this.id + " watchLiquidations() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(this.has.get("watchLiquidationsForSymbols"), null) && !java.util.Objects.equals(this.has.get("watchLiquidationsForSymbols"), false))
+        {
+            return (this.watchLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        }
+        throw new NotSupported((this.id + " watchLiquidations() is not supported yet")) ;
 
     }
 
@@ -5459,15 +5461,17 @@ public Map<String, Object> describe()
 
     public CompletableFuture<List<Liquidation>> watchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyLiquidationsCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("watchMyLiquidationsForSymbols"), null) && !java.util.Objects.equals(this.has.get("watchMyLiquidationsForSymbols"), false))
-            {
-                return (this.watchMyLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
-            }
-            throw new NotSupported((this.id + " watchMyLiquidations() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(this.has.get("watchMyLiquidationsForSymbols"), null) && !java.util.Objects.equals(this.has.get("watchMyLiquidationsForSymbols"), false))
+        {
+            return (this.watchMyLiquidationsForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        }
+        throw new NotSupported((this.id + " watchMyLiquidations() is not supported yet")) ;
 
     }
 
@@ -5557,19 +5561,21 @@ public Map<String, Object> describe()
 
     public CompletableFuture<MarginMode> fetchMarginMode(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarginModeCore(symbol, parameters)).thenApply(MarginMode::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarginModeCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchMarginModes"), null) && !java.util.Objects.equals(this.has.get("fetchMarginModes"), false))
-            {
-                MarginModes marginModes = (this.fetchMarginModes(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-                Map<String, Object> marginMode = this.safeDict(marginModes, symbol, null);
-                return marginMode;
-            } else
-            {
-                throw new NotSupported((this.id + " fetchMarginMode() is not supported yet")) ;
-            }
-        }).thenApply(MarginMode::new);
+        if (!java.util.Objects.equals(this.has.get("fetchMarginModes"), null) && !java.util.Objects.equals(this.has.get("fetchMarginModes"), false))
+        {
+            MarginModes marginModes = (this.fetchMarginModes(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+            Map<String, Object> marginMode = this.safeDict(marginModes, symbol, null);
+            return marginMode;
+        } else
+        {
+            throw new NotSupported((this.id + " fetchMarginMode() is not supported yet")) ;
+        }
 
     }
 
@@ -5790,11 +5796,13 @@ public Map<String, Object> describe()
 
     public CompletableFuture<FundingRates> watchFundingRatesForSymbols(Object symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchFundingRatesForSymbolsCore(symbols, parameters)).thenApply(FundingRates::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchFundingRatesForSymbolsCore(Object symbols, Map<String, Object> parameters)
+    {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v19 -> (List<String>) hx4J40v19; case Object hx4J40v19 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v19.getClass().getName()); })), parameters)).join();
-        }).thenApply(FundingRates::new);
+        return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v19 -> (List<String>) hx4J40v19; case Object hx4J40v19 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v19.getClass().getName()); })), parameters)).join();
 
     }
 
@@ -5828,19 +5836,21 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLeverageCore(symbol, parameters)).thenApply(Leverage::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLeverageCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchLeverages"), null) && !java.util.Objects.equals(this.has.get("fetchLeverages"), false))
-            {
-                Leverages leverages = (this.fetchLeverages(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-                Map<String, Object> leverage = this.safeDict(leverages, symbol, null);
-                return leverage;
-            } else
-            {
-                throw new NotSupported((this.id + " fetchLeverage() is not supported yet")) ;
-            }
-        }).thenApply(Leverage::new);
+        if (!java.util.Objects.equals(this.has.get("fetchLeverages"), null) && !java.util.Objects.equals(this.has.get("fetchLeverages"), false))
+        {
+            Leverages leverages = (this.fetchLeverages(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+            Map<String, Object> leverage = this.safeDict(leverages, symbol, null);
+            return leverage;
+        } else
+        {
+            throw new NotSupported((this.id + " fetchLeverage() is not supported yet")) ;
+        }
 
     }
 
@@ -7341,10 +7351,9 @@ public Map<String, Object> describe()
     public Object createCcxtTradeId(Long timestamp, String side, String amount, String price, String takerOrMaker)
     {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        String id = null;
         if (!java.util.Objects.equals(timestamp, null))
         {
-            id = this.numberToString(timestamp);
+            String id = this.numberToString(timestamp);
             if (!java.util.Objects.equals(side, null))
             {
                 id = (id + ("-" + side));
@@ -7361,8 +7370,9 @@ public Map<String, Object> describe()
             {
                 id = (id + ("-" + takerOrMaker));
             }
+            return id;
         }
-        return id;
+        return null;
     }
 
     public Object parsedFeeAndFees(Object container)
@@ -7745,16 +7755,18 @@ public Map<String, Object> describe()
 
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String message = "";
-            if (!java.util.Objects.equals(this.has.get("fetchTrades"), null) && !java.util.Objects.equals(this.has.get("fetchTrades"), false))
-            {
-                message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
-            }
-            throw new NotSupported(((this.id + " fetchOHLCV() is not supported yet") + message)) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        String message = "";
+        if (!java.util.Objects.equals(this.has.get("fetchTrades"), null) && !java.util.Objects.equals(this.has.get("fetchTrades"), false))
+        {
+            message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
+        }
+        throw new NotSupported(((this.id + " fetchOHLCV() is not supported yet") + message)) ;
 
     }
 
@@ -7774,16 +7786,18 @@ public Map<String, Object> describe()
 
     public CompletableFuture<List<OHLCV>> fetchOHLCVWs(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVWsCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVWsCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String message = "";
-            if (!java.util.Objects.equals(this.has.get("fetchTradesWs"), null) && !java.util.Objects.equals(this.has.get("fetchTradesWs"), false))
-            {
-                message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
-            }
-            throw new NotSupported(((this.id + " fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.") + message)) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        String message = "";
+        if (!java.util.Objects.equals(this.has.get("fetchTradesWs"), null) && !java.util.Objects.equals(this.has.get("fetchTradesWs"), false))
+        {
+            message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
+        }
+        throw new NotSupported(((this.id + " fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.") + message)) ;
 
     }
 
@@ -7841,82 +7855,84 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> fetchWebEndpoint(Object method, Object endpointMethod, Object returnAsJson, String startRegex, String endRegex)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWebEndpointCore(method, endpointMethod, returnAsJson, startRegex, endRegex));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWebEndpointCore(Object method, Object endpointMethod, Object returnAsJson, String startRegex, String endRegex)
+    {
 
-            Object options = this.safeValue(this.options, method, new HashMap<String, Object>() {{}});
-            Boolean muteOnFailure = (Boolean) this.safeBool(options, "webApiMuteFailure", true);
-            try
+        Object options = this.safeValue(this.options, method, new HashMap<String, Object>() {{}});
+        Boolean muteOnFailure = (Boolean) this.safeBool(options, "webApiMuteFailure", true);
+        try
+        {
+            // if it was not explicitly disabled, then don't fetch
+            if (!Boolean.TRUE.equals(this.safeBool(options, "webApiEnable", true)))
             {
-                // if it was not explicitly disabled, then don't fetch
-                if (!Boolean.TRUE.equals(this.safeBool(options, "webApiEnable", true)))
-                {
-                    return null;
-                }
-                Long maxRetries = this.safeInteger(options, "webApiRetries", 10);
-                Object response = null;
-                Boolean shouldBreak = false;
-                for (var retry = 0; (maxRetries != null && retry < maxRetries); retry++)
-                {
-                    try
-                    {
-                        response = ((CompletableFuture<Object>)Helpers.callDynamically(this, endpointMethod, new Object[] { new HashMap<String, Object>() {{}} })).join();
-                        shouldBreak = true;
-                        break;
-                    } catch(Exception e)
-                    {
-                        if (((maxRetries == null || (((long) retry) + 1L) >= maxRetries)))
-                        {
-                            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                        }
-                    }
-                    if (Boolean.TRUE.equals(shouldBreak))
-                    {
-                        break; // this is needed because of GO
-                    }
-                }
-                Object content = response;
-                if (java.util.Objects.equals(content, null))
-                {
-                    throw new NullResponse((this.id + " fetchWebEndpoint() returned empty content")) ;
-                }
-                if (!java.util.Objects.equals(startRegex, null))
-                {
-                    List<Object> splitted_by_start = (List<Object>) Helpers.split(content, startRegex);
-                    content = (splitted_by_start == null || 1 >= splitted_by_start.size() ? null : splitted_by_start.get(1)); // we need second part after start
-                }
-                if (java.util.Objects.equals(content, null))
-                {
-                    throw new NullResponse((this.id + " fetchWebEndpoint() returned empty content")) ;
-                }
-                if (!java.util.Objects.equals(endRegex, null))
-                {
-                    List<Object> splitted_by_end = (List<Object>) Helpers.split(content, endRegex);
-                    content = (splitted_by_end == null || 0 >= splitted_by_end.size() ? null : splitted_by_end.get(0)); // we need first part after start
-                }
-                if ((java.util.Objects.equals(returnAsJson, true)) && ((content instanceof String)))
-                {
-                    Object jsoned = this.parseJson(((String)content).trim()); // content should be trimmed before json parsing
-                    if ((!java.util.Objects.equals(jsoned, null)) && (!java.util.Objects.equals(jsoned, null)))
-                    {
-                        return jsoned;  // if parsing was not successfull, exception should be thrown
-                    } else
-                    {
-                        throw new BadResponse("could not parse the response into json") ;
-                    }
-                } else
-                {
-                    return content;
-                }
-            } catch(Exception e)
+                return null;
+            }
+            Long maxRetries = this.safeInteger(options, "webApiRetries", 10);
+            Object response = null;
+            Boolean shouldBreak = false;
+            for (var retry = 0; (maxRetries != null && retry < maxRetries); retry++)
             {
-                if (!Boolean.TRUE.equals(muteOnFailure))
+                try
                 {
-                    throw new BadResponse((((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.")) ;
+                    response = ((CompletableFuture<Object>)Helpers.callDynamically(this, endpointMethod, new Object[] { new HashMap<String, Object>() {{}} })).join();
+                    shouldBreak = true;
+                    break;
+                } catch(Exception e)
+                {
+                    if (((maxRetries == null || (((long) retry) + 1L) >= maxRetries)))
+                    {
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                    }
+                }
+                if (Boolean.TRUE.equals(shouldBreak))
+                {
+                    break; // this is needed because of GO
                 }
             }
-            return null;
-        });
+            Object content = response;
+            if (java.util.Objects.equals(content, null))
+            {
+                throw new NullResponse((this.id + " fetchWebEndpoint() returned empty content")) ;
+            }
+            if (!java.util.Objects.equals(startRegex, null))
+            {
+                List<Object> splitted_by_start = (List<Object>) Helpers.split(content, startRegex);
+                content = (splitted_by_start == null || 1 >= splitted_by_start.size() ? null : splitted_by_start.get(1)); // we need second part after start
+            }
+            if (java.util.Objects.equals(content, null))
+            {
+                throw new NullResponse((this.id + " fetchWebEndpoint() returned empty content")) ;
+            }
+            if (!java.util.Objects.equals(endRegex, null))
+            {
+                List<Object> splitted_by_end = (List<Object>) Helpers.split(content, endRegex);
+                content = (splitted_by_end == null || 0 >= splitted_by_end.size() ? null : splitted_by_end.get(0)); // we need first part after start
+            }
+            if ((java.util.Objects.equals(returnAsJson, true)) && ((content instanceof String)))
+            {
+                Object jsoned = this.parseJson(((String)content).trim()); // content should be trimmed before json parsing
+                if ((!java.util.Objects.equals(jsoned, null)) && (!java.util.Objects.equals(jsoned, null)))
+                {
+                    return jsoned;  // if parsing was not successfull, exception should be thrown
+                } else
+                {
+                    throw new BadResponse("could not parse the response into json") ;
+                }
+            } else
+            {
+                return content;
+            }
+        } catch(Exception e)
+        {
+            if (!Boolean.TRUE.equals(muteOnFailure))
+            {
+                throw new BadResponse((((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.")) ;
+            }
+        }
+        return null;
 
     }
 
@@ -8368,30 +8384,32 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> loadTradingLimits(List<String> symbols, Boolean reload, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.loadTradingLimitsCore(symbols, reload, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object loadTradingLimitsCore(List<String> symbols, Boolean reload, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchTradingLimits"), null) && !java.util.Objects.equals(this.has.get("fetchTradingLimits"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchTradingLimits"), null) && !java.util.Objects.equals(this.has.get("fetchTradingLimits"), false))
+        {
+            if (java.util.Objects.requireNonNullElse(reload, false) || !(((Map<?, ?>)this.options).containsKey("limitsLoaded")))
             {
-                if (java.util.Objects.requireNonNullElse(reload, false) || !(((Map<?, ?>)this.options).containsKey("limitsLoaded")))
+                Map<String, Object> response = (Map<String, Object>) (this.fetchTradingLimits(symbols, new HashMap<String, Object>() {{}})).join();
+                Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
+                Map<String, Object> markets = this.markets;
+                if (java.util.Objects.equals(markets, null))
                 {
-                    Map<String, Object> response = (Map<String, Object>) (this.fetchTradingLimits(symbols, new HashMap<String, Object>() {{}})).join();
-                    Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
-                    Map<String, Object> markets = this.markets;
-                    if (java.util.Objects.equals(markets, null))
-                    {
-                        throw new ExchangeError((this.id + " markets not loaded")) ;
-                    }
-                    for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v19 -> j39v19.size(); case String j39v20 -> j39v20.length(); case Object j39v21 -> j39v21.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v21) : 0; }); i++)
-                    {
-                        Object symbol = Helpers.GetValue(symbolsArray, i);
-                        Helpers.addElementToObject(markets, symbol, this.deepExtend((markets == null || !(symbol instanceof String) ? null : markets.get(symbol)), (response == null || !(symbol instanceof String) ? null : response.get(symbol))));
-                    }
-                    this.options.put("limitsLoaded", BaseExchange.this.milliseconds());
+                    throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
+                for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v19 -> j39v19.size(); case String j39v20 -> j39v20.length(); case Object j39v21 -> j39v21.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v21) : 0; }); i++)
+                {
+                    Object symbol = Helpers.GetValue(symbolsArray, i);
+                    Helpers.addElementToObject(markets, symbol, this.deepExtend((markets == null || !(symbol instanceof String) ? null : markets.get(symbol)), (response == null || !(symbol instanceof String) ? null : response.get(symbol))));
+                }
+                this.options.put("limitsLoaded", BaseExchange.this.milliseconds());
             }
-            return this.markets;
-        });
+        }
+        return this.markets;
 
     }
 
@@ -9178,123 +9196,129 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
+        return BaseExchange.supplyAsync(() -> this.fetch2Core(path, api, method, parameters, config));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetch2Core(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    {
 
-            if (this.enableRateLimit)
+        if (this.enableRateLimit)
+        {
+            Object cost = this.calculateRateLimiterCost(api, java.util.Objects.requireNonNullElse(method, "GET"), path, parameters, config);
+            (this.throttle(cost)).join();
+        }
+        Long retries = 0L;
+        // implicit endpoints may pass a list body as params: keep it an untyped box
+        Object requestParams = parameters;
+        List<Object> retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable = (List<Object>) this.handleOptionIntegerAndParams(requestParams, (String) (path), "maxRetriesOnFailure", retries);
+        Long retriesMaxRetriesOnFailure = (Long) ((List<Object>) retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable).get(0);
+        var paramsMaxRetriesOnFailure = ((List<Object>) retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable).get(1);
+        Long retryDelay = 0L;
+        List<Object> retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsMaxRetriesOnFailure, (String) (path), "maxRetriesOnFailureDelay", retryDelay);
+        Long retryDelayMaxRetriesOnFailureDelay = (Long) ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(0);
+        var paramsMaxRetriesOnFailureDelay = ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(1);
+        Boolean fetchDataCacheEnabled = (this.fetchHistoryCacheSize > 0);
+        for (var i = 0; ((retriesMaxRetriesOnFailure != null && i <= retriesMaxRetriesOnFailure)); i++)
+        {
+            Map<String, Object> fetchData = null;
+            if (Boolean.TRUE.equals(fetchDataCacheEnabled))
             {
-                Object cost = this.calculateRateLimiterCost(api, java.util.Objects.requireNonNullElse(method, "GET"), path, parameters, config);
-                (this.throttle(cost)).join();
+                fetchData = new HashMap<String, Object>() {{
+                    put( "request", null );
+                    put( "response", new HashMap<String, Object>() {{
+                        put( "body", null );
+                    }} );
+                    put( "error", null );
+                }};
             }
-            Long retries = 0L;
-            // implicit endpoints may pass a list body as params: keep it an untyped box
-            Object requestParams = parameters;
-            List<Object> retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable = (List<Object>) this.handleOptionIntegerAndParams(requestParams, (String) (path), "maxRetriesOnFailure", retries);
-            Long retriesMaxRetriesOnFailure = (Long) ((List<Object>) retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable).get(0);
-            var paramsMaxRetriesOnFailure = ((List<Object>) retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable).get(1);
-            Long retryDelay = 0L;
-            List<Object> retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsMaxRetriesOnFailure, (String) (path), "maxRetriesOnFailureDelay", retryDelay);
-            Long retryDelayMaxRetriesOnFailureDelay = (Long) ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(0);
-            var paramsMaxRetriesOnFailureDelay = ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(1);
-            Boolean fetchDataCacheEnabled = (this.fetchHistoryCacheSize > 0);
-            for (var i = 0; ((retriesMaxRetriesOnFailure != null && i <= retriesMaxRetriesOnFailure)); i++)
+            try
             {
-                Map<String, Object> fetchData = null;
-                if (Boolean.TRUE.equals(fetchDataCacheEnabled))
+                this.setLastRestRequestTimestamp();
+                Map<String, Object> request = (Map<String, Object>) this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay);
+                if (!java.util.Objects.equals(fetchData, null))
                 {
-                    fetchData = new HashMap<String, Object>() {{
-                        put( "request", null );
-                        put( "response", new HashMap<String, Object>() {{
-                            put( "body", null );
-                        }} );
-                        put( "error", null );
-                    }};
+                    fetchData.put("request", request);
                 }
-                try
+                this.setLastRequest(request);
+                Object response = (this.fetch(request.get("url"), request.get("method"), request.get("headers"), request.get("body"))).join();
+                if (!java.util.Objects.equals(fetchData, null))
                 {
-                    this.setLastRestRequestTimestamp();
-                    Map<String, Object> request = (Map<String, Object>) this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay);
-                    if (!java.util.Objects.equals(fetchData, null))
-                    {
-                        fetchData.put("request", request);
-                    }
-                    this.setLastRequest(request);
-                    Object response = (this.fetch(request.get("url"), request.get("method"), request.get("headers"), request.get("body"))).join();
-                    if (!java.util.Objects.equals(fetchData, null))
-                    {
-                        Map<String, Object> responseData = new HashMap<String, Object>() {{
-                            put( "body", response );
-                        }};
-                        fetchData.put("response", responseData);
-                        this.addFetchCache(fetchData);
-                    }
-                    return response;
-                } catch(Exception e)
+                    Map<String, Object> responseData = new HashMap<String, Object>() {{
+                        put( "body", response );
+                    }};
+                    fetchData.put("response", responseData);
+                    this.addFetchCache(fetchData);
+                }
+                return response;
+            } catch(Exception e)
+            {
+                if (!java.util.Objects.equals(fetchData, null))
                 {
-                    if (!java.util.Objects.equals(fetchData, null))
+                    fetchData.put("error", e);
+                    this.addFetchCache(fetchData);
+                }
+                if (Helpers.isInstance(e, OperationFailed.class))
+                {
+                    if ((retriesMaxRetriesOnFailure != null && i < retriesMaxRetriesOnFailure))
                     {
-                        fetchData.put("error", e);
-                        this.addFetchCache(fetchData);
-                    }
-                    if (Helpers.isInstance(e, OperationFailed.class))
-                    {
-                        if ((retriesMaxRetriesOnFailure != null && i < retriesMaxRetriesOnFailure))
+                        if (this.verbose)
                         {
-                            if (this.verbose)
-                            {
-                                Object index = (((long) i) + 1L);
-                                this.log((((((("Request failed with the error: " + String.valueOf(e)) + ", retrying ") + String.valueOf(index)) + " of ") + String.valueOf(retriesMaxRetriesOnFailure)) + "..."));
-                            }
-                            if ((!java.util.Objects.equals(retryDelayMaxRetriesOnFailureDelay, null)) && ((retryDelayMaxRetriesOnFailureDelay != 0)))
-                            {
-                                (this.sleep(retryDelayMaxRetriesOnFailureDelay)).join();
-                            }
-                        } else
+                            Object index = (((long) i) + 1L);
+                            this.log((((((("Request failed with the error: " + String.valueOf(e)) + ", retrying ") + String.valueOf(index)) + " of ") + String.valueOf(retriesMaxRetriesOnFailure)) + "..."));
+                        }
+                        if ((!java.util.Objects.equals(retryDelayMaxRetriesOnFailureDelay, null)) && ((retryDelayMaxRetriesOnFailureDelay != 0)))
                         {
-                            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                            (this.sleep(retryDelayMaxRetriesOnFailureDelay)).join();
                         }
                     } else
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
+                } else
+                {
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
             }
-            return null;  // this line is never reached, but exists for c# value return requirement
-        });
+        }
+        return null;  // this line is never reached, but exists for c# value return requirement
 
     }
 
     public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
+        return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object requestCore(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    {
 
-            return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
-        });
+        return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
 
     }
 
     public CompletableFuture<List<Account>> loadAccounts(Boolean reload, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.loadAccountsCore(reload, parameters)).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object loadAccountsCore(Boolean reload, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.requireNonNullElse(reload, false))
+        if (java.util.Objects.requireNonNullElse(reload, false))
+        {
+            this.accounts = (this.fetchAccounts(parameters)).join();
+        } else
+        {
+            if (!java.util.Objects.equals(this.accounts, null))
             {
-                this.accounts = (this.fetchAccounts(parameters)).join();
+                return this.accounts;
             } else
             {
-                if (!java.util.Objects.equals(this.accounts, null))
-                {
-                    return this.accounts;
-                } else
-                {
-                    this.accounts = (this.fetchAccounts(parameters)).join();
-                }
+                this.accounts = (this.fetchAccounts(parameters)).join();
             }
-            this.accountsById = this.indexBy(this.accounts, "id");
-            return this.accounts;
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+        }
+        this.accountsById = this.indexBy(this.accounts, "id");
+        return this.accounts;
 
     }
 
@@ -9607,42 +9631,50 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Balance> fetchPartialBalance(Object part, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPartialBalanceCore(part, parameters)).thenApply(Balance::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPartialBalanceCore(Object part, Map<String, Object> parameters)
+    {
 
-            Balances balance = (this.fetchBalance(parameters)).join();
-            return Helpers.GetValue(balance, part);
-        }).thenApply(Balance::new);
+        Balances balance = (this.fetchBalance(parameters)).join();
+        return Helpers.GetValue(balance, part);
 
     }
 
     public CompletableFuture<Balance> fetchFreeBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFreeBalanceCore(parameters)).thenApply(Balance::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFreeBalanceCore(Map<String, Object> parameters)
+    {
 
-            return (this.fetchPartialBalance("free", parameters)).join();
-        }).thenApply(Balance::new);
+        return (this.fetchPartialBalance("free", parameters)).join();
 
     }
 
     public CompletableFuture<Balance> fetchUsedBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchUsedBalanceCore(parameters)).thenApply(Balance::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchUsedBalanceCore(Map<String, Object> parameters)
+    {
 
-            return (this.fetchPartialBalance("used", parameters)).join();
-        }).thenApply(Balance::new);
+        return (this.fetchPartialBalance("used", parameters)).join();
 
     }
 
     public CompletableFuture<Balance> fetchTotalBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTotalBalanceCore(parameters)).thenApply(Balance::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTotalBalanceCore(Map<String, Object> parameters)
+    {
 
-            return (this.fetchPartialBalance("total", parameters)).join();
-        }).thenApply(Balance::new);
+        return (this.fetchPartialBalance("total", parameters)).join();
 
     }
 
@@ -9655,15 +9687,17 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> fetchTransactionFee(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTransactionFeeCore(code, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTransactionFeeCore(String code, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("fetchTransactionFees"), null) || java.util.Objects.equals(this.has.get("fetchTransactionFees"), false))
-            {
-                throw new NotSupported((this.id + " fetchTransactionFee() is not supported yet")) ;
-            }
-            return (this.fetchTransactionFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
-        });
+        if (java.util.Objects.equals(this.has.get("fetchTransactionFees"), null) || java.util.Objects.equals(this.has.get("fetchTransactionFees"), false))
+        {
+            throw new NotSupported((this.id + " fetchTransactionFee() is not supported yet")) ;
+        }
+        return (this.fetchTransactionFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
 
     }
 
@@ -9683,16 +9717,18 @@ public Map<String, Object> describe()
 
     public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositWithdrawFeeCore(code, parameters)).thenApply(DepositWithdrawFee::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositWithdrawFeeCore(String code, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("fetchDepositWithdrawFees"), null) || java.util.Objects.equals(this.has.get("fetchDepositWithdrawFees"), false))
-            {
-                throw new NotSupported((this.id + " fetchDepositWithdrawFee() is not supported yet")) ;
-            }
-            DepositWithdrawFees fees = (this.fetchDepositWithdrawFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
-            return this.safeDict(fees, code, null);
-        }).thenApply(DepositWithdrawFee::new);
+        if (java.util.Objects.equals(this.has.get("fetchDepositWithdrawFees"), null) || java.util.Objects.equals(this.has.get("fetchDepositWithdrawFees"), false))
+        {
+            throw new NotSupported((this.id + " fetchDepositWithdrawFee() is not supported yet")) ;
+        }
+        DepositWithdrawFees fees = (this.fetchDepositWithdrawFees(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
+        return this.safeDict(fees, code, null);
 
     }
 
@@ -9714,43 +9750,47 @@ public Map<String, Object> describe()
 
     public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCrossBorrowRateCore(code, parameters)).thenApply(CrossBorrowRate::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCrossBorrowRateCore(String code, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.has.get("fetchBorrowRates"), null) || java.util.Objects.equals(this.has.get("fetchBorrowRates"), false))
-            {
-                throw new NotSupported((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
-            }
-            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(parameters)).join();
-            Map<String, Object> rate = this.safeDict(borrowRates, code, null);
-            if (java.util.Objects.equals(rate, null))
-            {
-                throw new ExchangeError(((this.id + " fetchCrossBorrowRate() could not find the borrow rate for currency code ") + code)) ;
-            }
-            return rate;
-        }).thenApply(CrossBorrowRate::new);
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.has.get("fetchBorrowRates"), null) || java.util.Objects.equals(this.has.get("fetchBorrowRates"), false))
+        {
+            throw new NotSupported((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
+        }
+        CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(parameters)).join();
+        Map<String, Object> rate = this.safeDict(borrowRates, code, null);
+        if (java.util.Objects.equals(rate, null))
+        {
+            throw new ExchangeError(((this.id + " fetchCrossBorrowRate() could not find the borrow rate for currency code ") + code)) ;
+        }
+        return rate;
 
     }
 
     public CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchIsolatedBorrowRateCore(symbol, parameters)).thenApply(IsolatedBorrowRate::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchIsolatedBorrowRateCore(String symbol, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            if (java.util.Objects.equals(this.has.get("fetchBorrowRates"), null) || java.util.Objects.equals(this.has.get("fetchBorrowRates"), false))
-            {
-                throw new NotSupported((this.id + " fetchIsolatedBorrowRate() is not supported yet")) ;
-            }
-            IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates(parameters)).join();
-            Map<String, Object> rate = this.safeDict(borrowRates, symbol, null);
-            if (java.util.Objects.equals(rate, null))
-            {
-                throw new ExchangeError(((this.id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ") + symbol)) ;
-            }
-            return rate;
-        }).thenApply(IsolatedBorrowRate::new);
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        if (java.util.Objects.equals(this.has.get("fetchBorrowRates"), null) || java.util.Objects.equals(this.has.get("fetchBorrowRates"), false))
+        {
+            throw new NotSupported((this.id + " fetchIsolatedBorrowRate() is not supported yet")) ;
+        }
+        IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates(parameters)).join();
+        Map<String, Object> rate = this.safeDict(borrowRates, symbol, null);
+        if (java.util.Objects.equals(rate, null))
+        {
+            throw new ExchangeError(((this.id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ") + symbol)) ;
+        }
+        return rate;
 
     }
 
@@ -10001,28 +10041,30 @@ public Map<String, Object> describe()
 
     public CompletableFuture<ADL> fetchPositionADLRank(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionADLRankCore(symbol, parameters)).thenApply(ADL::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionADLRankCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchPositionsADLRank"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsADLRank"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchPositionsADLRank"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsADLRank"), false))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolResolved = (String) market.get("symbol");
+            List<ADL> ranks = (this.fetchPositionsADLRank(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
+            Map<String, Object> rank = this.safeDict(ranks, 0, null);
+            if (java.util.Objects.equals(rank, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) market.get("symbol");
-                List<ADL> ranks = (this.fetchPositionsADLRank(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> rank = this.safeDict(ranks, 0, null);
-                if (java.util.Objects.equals(rank, null))
-                {
-                    throw new NullResponse(((this.id + " fetchPositionsADLRank() could not find a rank for ") + symbolResolved)) ;
-                } else
-                {
-                    return rank;
-                }
+                throw new NullResponse(((this.id + " fetchPositionsADLRank() could not find a rank for ") + symbolResolved)) ;
             } else
             {
-                throw new NotSupported((this.id + " fetchPositionsADLRank() is not supported yet")) ;
+                return rank;
             }
-        }).thenApply(ADL::new);
+        } else
+        {
+            throw new NotSupported((this.id + " fetchPositionsADLRank() is not supported yet")) ;
+        }
 
     }
 
@@ -10249,37 +10291,39 @@ public Map<String, Object> describe()
 
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressCore(code, parameters)).thenApply(DepositAddress::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchDepositAddresses"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddresses"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchDepositAddresses"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddresses"), false))
+        {
+            List<DepositAddress> depositAddressesList = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
+            Map<String,Object> depositAddresses = this.indexBy(depositAddressesList, "currency");
+            if (java.util.Objects.equals(this.safeDict(depositAddresses, code, null), null))
             {
-                List<DepositAddress> depositAddressesList = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), parameters)).join();
-                Map<String,Object> depositAddresses = this.indexBy(depositAddressesList, "currency");
-                if (java.util.Objects.equals(this.safeDict(depositAddresses, code, null), null))
-                {
-                    throw new InvalidAddress((((this.id + " fetchDepositAddress() could not find a deposit address for ") + code) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
-                }
-                return this.safeDict(depositAddresses, code, null);
-            } else if (!java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), false))
+                throw new InvalidAddress((((this.id + " fetchDepositAddress() could not find a deposit address for ") + code) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
+            }
+            return this.safeDict(depositAddresses, code, null);
+        } else if (!java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), null) && !java.util.Objects.equals(this.has.get("fetchDepositAddressesByNetwork"), false))
+        {
+            String network = this.safeString(parameters, "network");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
+            Map<String, Object> addressStructures = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
+            if (!java.util.Objects.equals(network, null))
             {
-                String network = this.safeString(parameters, "network");
-                Map<String, Object> paramsOmitted = this.omit(parameters, "network");
-                Map<String, Object> addressStructures = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
-                if (!java.util.Objects.equals(network, null))
-                {
-                    return this.safeDict(addressStructures, network, null);
-                } else
-                {
-                    List<String> keys = new ArrayList<String>(addressStructures.keySet());
-                    Object key = (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0));
-                    return this.safeDict(addressStructures, key, null);
-                }
+                return this.safeDict(addressStructures, network, null);
             } else
             {
-                throw new NotSupported((this.id + " fetchDepositAddress() is not supported yet")) ;
+                List<String> keys = new ArrayList<String>(addressStructures.keySet());
+                Object key = (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0));
+                return this.safeDict(addressStructures, key, null);
             }
-        }).thenApply(DepositAddress::new);
+        } else
+        {
+            throw new NotSupported((this.id + " fetchDepositAddress() is not supported yet")) ;
+        }
 
     }
 
@@ -10620,18 +10664,20 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> loadTimeDifference(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.loadTimeDifferenceCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object loadTimeDifferenceCore(Map<String, Object> parameters)
+    {
 
-            Long serverTime = (this.fetchTime(parameters)).join();
-            Long after = this.milliseconds();
-            if (java.util.Objects.equals(serverTime, null))
-            {
-                throw new ExchangeError((this.id + " loadTimeDifference() missing serverTime")) ;
-            }
-            this.options.put("timeDifference", (after - serverTime));
-            return this.parseToInt(this.options.get("timeDifference"));
-        });
+        Long serverTime = (this.fetchTime(parameters)).join();
+        Long after = this.milliseconds();
+        if (java.util.Objects.equals(serverTime, null))
+        {
+            throw new ExchangeError((this.id + " loadTimeDifference() missing serverTime")) ;
+        }
+        this.options.put("timeDifference", (after - serverTime));
+        return this.parseToInt(this.options.get("timeDifference"));
 
     }
 
@@ -10644,24 +10690,26 @@ public Map<String, Object> describe()
 
     public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketLeverageTiersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketLeverageTiersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchLeverageTiers"), null) && !java.util.Objects.equals(this.has.get("fetchLeverageTiers"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchLeverageTiers"), null) && !java.util.Objects.equals(this.has.get("fetchLeverageTiers"), false))
+        {
+            Map<String, Object> market = this.market(symbol);
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
-                Map<String, Object> market = this.market(symbol);
-                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
-                {
-                    throw new BadSymbol((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
-                }
-                LeverageTiers tiers = (this.fetchLeverageTiers(new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}})).join();
-                List<Object> marketTiers = this.safeList(tiers, symbol, null);
-                return marketTiers;
-            } else
-            {
-                throw new NotSupported((this.id + " fetchMarketLeverageTiers() is not supported yet")) ;
+                throw new BadSymbol((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
-        }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
+            LeverageTiers tiers = (this.fetchLeverageTiers(new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}})).join();
+            List<Object> marketTiers = this.safeList(tiers, symbol, null);
+            return marketTiers;
+        } else
+        {
+            throw new NotSupported((this.id + " fetchMarketLeverageTiers() is not supported yet")) ;
+        }
 
     }
 
@@ -11078,153 +11126,163 @@ public Map<String, Object> describe()
 
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateCore(symbol, parameters)).thenApply(FundingRate::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchFundingRates"), null) && !java.util.Objects.equals(this.has.get("fetchFundingRates"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchFundingRates"), null) && !java.util.Objects.equals(this.has.get("fetchFundingRates"), false))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolResolved = (String) market.get("symbol");
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) market.get("symbol");
-                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
-                {
-                    throw new BadSymbol((this.id + " fetchFundingRate() supports contract markets only")) ;
-                }
-                FundingRates rates = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> rate = this.safeDict(rates, symbolResolved, null);
-                if (java.util.Objects.equals(rate, null))
-                {
-                    throw new NullResponse(((this.id + " fetchFundingRate () returned no data for ") + symbolResolved)) ;
-                } else
-                {
-                    return rate;
-                }
+                throw new BadSymbol((this.id + " fetchFundingRate() supports contract markets only")) ;
+            }
+            FundingRates rates = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
+            Map<String, Object> rate = this.safeDict(rates, symbolResolved, null);
+            if (java.util.Objects.equals(rate, null))
+            {
+                throw new NullResponse(((this.id + " fetchFundingRate () returned no data for ") + symbolResolved)) ;
             } else
             {
-                throw new NotSupported((this.id + " fetchFundingRate () is not supported yet")) ;
+                return rate;
             }
-        }).thenApply(FundingRate::new);
+        } else
+        {
+            throw new NotSupported((this.id + " fetchFundingRate () is not supported yet")) ;
+        }
 
     }
 
     public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingIntervalCore(symbol, parameters)).thenApply(FundingRate::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingIntervalCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchFundingIntervals"), null) && !java.util.Objects.equals(this.has.get("fetchFundingIntervals"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchFundingIntervals"), null) && !java.util.Objects.equals(this.has.get("fetchFundingIntervals"), false))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolResolved = (String) market.get("symbol");
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) market.get("symbol");
-                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
-                {
-                    throw new BadSymbol((this.id + " fetchFundingInterval() supports contract markets only")) ;
-                }
-                FundingRates rates = (this.fetchFundingIntervals(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> rate = this.safeDict(rates, symbolResolved, null);
-                if (java.util.Objects.equals(rate, null))
-                {
-                    throw new NullResponse(((this.id + " fetchFundingInterval() returned no data for ") + symbolResolved)) ;
-                } else
-                {
-                    return rate;
-                }
+                throw new BadSymbol((this.id + " fetchFundingInterval() supports contract markets only")) ;
+            }
+            FundingRates rates = (this.fetchFundingIntervals(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
+            Map<String, Object> rate = this.safeDict(rates, symbolResolved, null);
+            if (java.util.Objects.equals(rate, null))
+            {
+                throw new NullResponse(((this.id + " fetchFundingInterval() returned no data for ") + symbolResolved)) ;
             } else
             {
-                throw new NotSupported((this.id + " fetchFundingInterval() is not supported yet")) ;
+                return rate;
             }
-        }).thenApply(FundingRate::new);
+        } else
+        {
+            throw new NotSupported((this.id + " fetchFundingInterval() is not supported yet")) ;
+        }
 
     }
 
     public CompletableFuture<List<OHLCV>> fetchMarkOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarkOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarkOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name exchange#fetchMarkOHLCV
-             * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
-             * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-             * @param {string} timeframe the length of time each candle represents
-             * @param {int} [since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [limit] the maximum amount of candles to fetch
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
-             */
-            if (!java.util.Objects.equals(this.has.get("fetchMarkOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchMarkOHLCV"), false))
-            {
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "price", "mark" );
-                }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchMarkOHLCV () is not supported yet")) ;
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        /**
+         * @method
+         * @name exchange#fetchMarkOHLCV
+         * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (!java.util.Objects.equals(this.has.get("fetchMarkOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchMarkOHLCV"), false))
+        {
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "price", "mark" );
+            }};
+            return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchMarkOHLCV () is not supported yet")) ;
+        }
 
     }
 
     public CompletableFuture<List<OHLCV>> fetchIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchIndexOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchIndexOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name exchange#fetchIndexOHLCV
-             * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
-             * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-             * @param {string} timeframe the length of time each candle represents
-             * @param {int} [since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [limit] the maximum amount of candles to fetch
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
-             */
-            if (!java.util.Objects.equals(this.has.get("fetchIndexOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchIndexOHLCV"), false))
-            {
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "price", "index" );
-                }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchIndexOHLCV () is not supported yet")) ;
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        /**
+         * @method
+         * @name exchange#fetchIndexOHLCV
+         * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (!java.util.Objects.equals(this.has.get("fetchIndexOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchIndexOHLCV"), false))
+        {
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "price", "index" );
+            }};
+            return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchIndexOHLCV () is not supported yet")) ;
+        }
 
     }
 
     public CompletableFuture<List<OHLCV>> fetchPremiumIndexOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPremiumIndexOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPremiumIndexOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name exchange#fetchPremiumIndexOHLCV
-             * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
-             * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-             * @param {string} timeframe the length of time each candle represents
-             * @param {int} [since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [limit] the maximum amount of candles to fetch
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
-             */
-            if (!java.util.Objects.equals(this.has.get("fetchPremiumIndexOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchPremiumIndexOHLCV"), false))
-            {
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "price", "premiumIndex" );
-                }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchPremiumIndexOHLCV () is not supported yet")) ;
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        /**
+         * @method
+         * @name exchange#fetchPremiumIndexOHLCV
+         * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (!java.util.Objects.equals(this.has.get("fetchPremiumIndexOHLCV"), null) && !java.util.Objects.equals(this.has.get("fetchPremiumIndexOHLCV"), false))
+        {
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "price", "premiumIndex" );
+            }};
+            return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchPremiumIndexOHLCV () is not supported yet")) ;
+        }
 
     }
 
@@ -11471,28 +11529,30 @@ public Map<String, Object> describe()
 
     public CompletableFuture<List<Transaction>> fetchTransactions(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTransactionsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTransactionsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name exchange#fetchTransactions
-             * @deprecated
-             * @description *DEPRECATED* use fetchDepositsWithdrawals instead
-             * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
-             * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-             * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
-             */
-            if (!java.util.Objects.equals(this.has.get("fetchDepositsWithdrawals"), null) && !java.util.Objects.equals(this.has.get("fetchDepositsWithdrawals"), false))
-            {
-                return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchTransactions () is not supported yet")) ;
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        /**
+         * @method
+         * @name exchange#fetchTransactions
+         * @deprecated
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
+         * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+         */
+        if (!java.util.Objects.equals(this.has.get("fetchDepositsWithdrawals"), null) && !java.util.Objects.equals(this.has.get("fetchDepositsWithdrawals"), false))
+        {
+            return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchTransactions () is not supported yet")) ;
+        }
 
     }
 
@@ -11546,256 +11606,262 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> fetchPaginatedCallDynamic(Object method, String symbol, Long since, Long limit, Map<String, Object> parameters, Long maxEntriesPerRequest, Boolean removeRepeated)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPaginatedCallDynamicCore(method, symbol, since, limit, parameters, maxEntriesPerRequest, removeRepeated));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPaginatedCallDynamicCore(Object method, String symbol, Long since, Long limit, Map<String, Object> parameters, Long maxEntriesPerRequest, Boolean removeRepeated)
+    {
 
-            List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", 10L);
-            Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
-            Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
-            List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", 3L);
-            Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
-            Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-            List<Object> removeRepeatedOptionparamsRemoveRepeatedVariable = (List<Object>) this.handleOptionAndParams(paramsMaxRetries, method, "removeRepeated", java.util.Objects.requireNonNullElse(removeRepeated, true));
-            var removeRepeatedOption = ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(0);
-            Map<String, Object> paramsRemoveRepeated = (Map<String, Object>) ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(1);
-            Pair<String, Map<String, Object>> paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRemoveRepeated), (String) (method), "paginationDirection", "backward");
-            String paginationDirection = paginationDirectionparamsPaginationDirectionVariable.first();
-            Map<String, Object> paramsPaginationDirection = paginationDirectionparamsPaginationDirectionVariable.second();
-            Long paginationTimestamp = null;
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            long errors = 0;
-            Long until = this.safeIntegerN(paramsPaginationDirection, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection);
-            Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
-            Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
-            if ((java.util.Objects.equals(paginationDirection, "forward")))
+        List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", 10L);
+        Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
+        Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
+        List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", 3L);
+        Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
+        Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
+        List<Object> removeRepeatedOptionparamsRemoveRepeatedVariable = (List<Object>) this.handleOptionAndParams(paramsMaxRetries, method, "removeRepeated", java.util.Objects.requireNonNullElse(removeRepeated, true));
+        var removeRepeatedOption = ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(0);
+        Map<String, Object> paramsRemoveRepeated = (Map<String, Object>) ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(1);
+        Pair<String, Map<String, Object>> paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRemoveRepeated), (String) (method), "paginationDirection", "backward");
+        String paginationDirection = paginationDirectionparamsPaginationDirectionVariable.first();
+        Map<String, Object> paramsPaginationDirection = paginationDirectionparamsPaginationDirectionVariable.second();
+        Long paginationTimestamp = null;
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        long errors = 0;
+        Long until = this.safeIntegerN(paramsPaginationDirection, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
+        List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection);
+        Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
+        Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
+        if ((java.util.Objects.equals(paginationDirection, "forward")))
+        {
+            if (java.util.Objects.equals(since, null))
             {
-                if (java.util.Objects.equals(since, null))
-                {
-                    throw new ArgumentsRequired((this.id + " pagination requires a since argument when paginationDirection set to forward")) ;
-                }
-                paginationTimestamp = since;
+                throw new ArgumentsRequired((this.id + " pagination requires a since argument when paginationDirection set to forward")) ;
             }
-            Boolean shouldBreak = false;
-            for (var i = 0; (maxCallsPaginationCalls != null && i < maxCallsPaginationCalls); i++)
+            paginationTimestamp = since;
+        }
+        Boolean shouldBreak = false;
+        for (var i = 0; (maxCallsPaginationCalls != null && i < maxCallsPaginationCalls); i++)
+        {
+            try
             {
-                try
+                if (java.util.Objects.equals(paginationDirection, "backward"))
                 {
-                    if (java.util.Objects.equals(paginationDirection, "backward"))
+                    // do it backwards, starting from the last
+                    // UNTIL filtering is required in order to work
+                    if (!java.util.Objects.equals(paginationTimestamp, null))
                     {
-                        // do it backwards, starting from the last
-                        // UNTIL filtering is required in order to work
+                        Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", Helpers.subtract(paginationTimestamp, 1));
+                    }
+                    Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v45 -> j39v45.size(); case String j39v46 -> j39v46.length(); case Object j39v47 -> j39v47.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v47) : 0; });
+                    if (this.verbose)
+                    {
+                        String backwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
                         if (!java.util.Objects.equals(paginationTimestamp, null))
                         {
-                            Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", Helpers.subtract(paginationTimestamp, 1));
+                            backwardMessage = (backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
                         }
-                        Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v45 -> j39v45.size(); case String j39v46 -> j39v46.length(); case Object j39v47 -> j39v47.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v47) : 0; });
-                        if (this.verbose)
-                        {
-                            String backwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
-                            if (!java.util.Objects.equals(paginationTimestamp, null))
-                            {
-                                backwardMessage = (backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
-                            }
-                            this.log(backwardMessage);
-                        }
-                        if ((responseLength != null && responseLength == 0))
-                        {
-                            shouldBreak = true;
-                            break;
-                        }
-                        errors = 0;
-                        result = (List<Object>) this.arrayConcat(result, response);
-                        Map<String, Object> firstElement = this.safeDict(response, 0, null);
-                        paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
-                        if (java.util.Objects.equals(paginationTimestamp, null))
-                        {
-                            shouldBreak = true;
-                            break;
-                        }
-                        if ((!java.util.Objects.equals(since, null)) && ((paginationTimestamp == null || (since != null && paginationTimestamp <= since))))
-                        {
-                            shouldBreak = true;
-                            break;
-                        }
-                    } else
-                    {
-                        // do it forwards, starting from the since
-                        Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v42 -> j39v42.size(); case String j39v43 -> j39v43.length(); case Object j39v44 -> j39v44.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v44) : 0; });
-                        if (this.verbose)
-                        {
-                            String forwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
-                            if (!java.util.Objects.equals(paginationTimestamp, null))
-                            {
-                                forwardMessage = (forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
-                            }
-                            this.log(forwardMessage);
-                        }
-                        if ((responseLength != null && responseLength == 0))
-                        {
-                            shouldBreak = true;
-                            break;
-                        }
-                        errors = 0;
-                        result = (List<Object>) this.arrayConcat(result, response);
-                        Map<String, Object> last = this.safeDict(response, (((long) responseLength) - 1L), null);
-                        Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
-                        if (java.util.Objects.equals(lastTimestamp, null))
-                        {
-                            shouldBreak = true;
-                            break;
-                        }
-                        Long nextPaginationTimestamp = (Long) (lastTimestamp + 1L);
-                        paginationTimestamp = nextPaginationTimestamp;
-                        if ((!java.util.Objects.equals(until, null)) && ((until == null || (nextPaginationTimestamp != null && nextPaginationTimestamp >= until))))
-                        {
-                            shouldBreak = true;
-                            break;
-                        }
+                        this.log(backwardMessage);
                     }
-                } catch(Exception e)
-                {
-                    errors = (errors + 1L);
-                    if (((maxRetriesOption == null || errors > maxRetriesOption)))
+                    if ((responseLength != null && responseLength == 0))
                     {
-                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                        shouldBreak = true;
+                        break;
+                    }
+                    errors = 0;
+                    result = (List<Object>) this.arrayConcat(result, response);
+                    Map<String, Object> firstElement = this.safeDict(response, 0, null);
+                    paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
+                    if (java.util.Objects.equals(paginationTimestamp, null))
+                    {
+                        shouldBreak = true;
+                        break;
+                    }
+                    if ((!java.util.Objects.equals(since, null)) && ((paginationTimestamp == null || (since != null && paginationTimestamp <= since))))
+                    {
+                        shouldBreak = true;
+                        break;
+                    }
+                } else
+                {
+                    // do it forwards, starting from the since
+                    Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v42 -> j39v42.size(); case String j39v43 -> j39v43.length(); case Object j39v44 -> j39v44.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v44) : 0; });
+                    if (this.verbose)
+                    {
+                        String forwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
+                        if (!java.util.Objects.equals(paginationTimestamp, null))
+                        {
+                            forwardMessage = (forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
+                        }
+                        this.log(forwardMessage);
+                    }
+                    if ((responseLength != null && responseLength == 0))
+                    {
+                        shouldBreak = true;
+                        break;
+                    }
+                    errors = 0;
+                    result = (List<Object>) this.arrayConcat(result, response);
+                    Map<String, Object> last = this.safeDict(response, (((long) responseLength) - 1L), null);
+                    Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
+                    if (java.util.Objects.equals(lastTimestamp, null))
+                    {
+                        shouldBreak = true;
+                        break;
+                    }
+                    Long nextPaginationTimestamp = (Long) (lastTimestamp + 1L);
+                    paginationTimestamp = nextPaginationTimestamp;
+                    if ((!java.util.Objects.equals(until, null)) && ((until == null || (nextPaginationTimestamp != null && nextPaginationTimestamp >= until))))
+                    {
+                        shouldBreak = true;
+                        break;
                     }
                 }
-                if (Boolean.TRUE.equals(shouldBreak))
-                {
-                    break; // go turns a break inside try into a panic that only ends the iteration
-                }
-            }
-            Object uniqueResults = result;
-            if (Helpers.isTrue(removeRepeatedOption))
+            } catch(Exception e)
             {
-                uniqueResults = this.removeRepeatedElementsFromArray(result, true);
+                errors = (errors + 1L);
+                if (((maxRetriesOption == null || errors > maxRetriesOption)))
+                {
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                }
             }
-            Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
-            List<Object> sortedRes = this.sortBy(uniqueResults, key);
-            return this.filterBySinceLimit(sortedRes, since, limit, key, false);
-        });
+            if (Boolean.TRUE.equals(shouldBreak))
+            {
+                break; // go turns a break inside try into a panic that only ends the iteration
+            }
+        }
+        Object uniqueResults = result;
+        if (Helpers.isTrue(removeRepeatedOption))
+        {
+            uniqueResults = this.removeRepeatedElementsFromArray(result, true);
+        }
+        Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
+        List<Object> sortedRes = this.sortBy(uniqueResults, key);
+        return this.filterBySinceLimit(sortedRes, since, limit, key, false);
 
     }
 
     public CompletableFuture<Object> safeDeterministicCall(Object method, String symbol, Long since, Long limit, String timeframe, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.safeDeterministicCallCore(method, symbol, since, limit, timeframe, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object safeDeterministicCallCore(Object method, String symbol, Long since, Long limit, String timeframe, Map<String, Object> parameters)
+    {
 
-            Long maxRetries = 3L;
-            List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
-            Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
-            Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-            long errors = 0;
-            while (((maxRetriesOption != null && errors <= maxRetriesOption)))
+        Long maxRetries = 3L;
+        List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "maxRetries", maxRetries);
+        Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
+        Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
+        long errors = 0;
+        while (((maxRetriesOption != null && errors <= maxRetriesOption)))
+        {
+            try
             {
-                try
+                if ((!java.util.Objects.equals(timeframe, null) && !java.util.Objects.equals(timeframe, "")) && !java.util.Objects.equals(method, "fetchFundingRateHistory"))
                 {
-                    if ((!java.util.Objects.equals(timeframe, null) && !java.util.Objects.equals(timeframe, "")) && !java.util.Objects.equals(method, "fetchFundingRateHistory"))
-                    {
-                        return ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, timeframe, since, limit, paramsMaxRetries })).join();
-                    } else
-                    {
-                        return ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, limit, paramsMaxRetries })).join();
-                    }
-                } catch(Exception e)
+                    return ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, timeframe, since, limit, paramsMaxRetries })).join();
+                } else
                 {
-                    if (Helpers.isInstance(e, RateLimitExceeded.class))
-                    {
-                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                    }
-                    errors = (errors + 1L);
-                    if (((maxRetriesOption == null || errors > maxRetriesOption)))
-                    {
-                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                    }
+                    return ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, limit, paramsMaxRetries })).join();
+                }
+            } catch(Exception e)
+            {
+                if (Helpers.isInstance(e, RateLimitExceeded.class))
+                {
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                }
+                errors = (errors + 1L);
+                if (((maxRetriesOption == null || errors > maxRetriesOption)))
+                {
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
             }
-            return new ArrayList<Object>(Arrays.asList());
-        });
+        }
+        return new ArrayList<Object>(Arrays.asList());
 
     }
 
     public CompletableFuture<Object> fetchPaginatedCallDeterministic(Object method, String symbol, Long since, Long limit, String timeframe, Map<String, Object> parameters, Long maxEntriesPerRequest)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPaginatedCallDeterministicCore(method, symbol, since, limit, timeframe, parameters, maxEntriesPerRequest));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPaginatedCallDeterministicCore(Object method, String symbol, Long since, Long limit, String timeframe, Map<String, Object> parameters, Long maxEntriesPerRequest)
+    {
 
-            Long maxCalls = 10L;
-            List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
-            Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
-            Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
-            Long maxCallsLimit = this.parseToInt(maxCallsPaginationCalls);
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls);
-            Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
-            Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
-            // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
-            // pagination always walks forward internally, so strip it here to avoid leaking an
-            // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-            Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "paginationDirection");
-            Long current = this.milliseconds();
-            List<Object> tasks = new ArrayList<Object>(Arrays.asList());
-            Long time = (((long) this.parseTimeframe(timeframe)) * 1000L);
-            Long maxEntriesPerRequestValue = (Long) this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
-            Long step = (time * this.parseToInt(maxEntriesPerRequestValue));
-            Long until = (Long) this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
-            Long currentSince = ((current - ((maxCallsLimit * step))) - 1L);
-            if (!java.util.Objects.equals(since, null))
-            {
-                if (!java.util.Objects.equals(until, null))
-                {
-                    // the recent-window floor below would jump past a fully-historical [ since, until ]
-                    // range and return an empty result - requiredCalls is validated against maxCalls
-                    // further down, so anchoring at since directly is safe here,
-                    // see https://github.com/ccxt/ccxt/issues/26252
-                    currentSince = since;
-                } else
-                {
-                    currentSince = (currentSince == null ? null : Math.max(currentSince, since));
-                }
-            } else
-            {
-                currentSince = (currentSince == null ? null : Math.max(currentSince, 1241440531000L)); // avoid timestamps older than 2009
-            }
+        Long maxCalls = 10L;
+        List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+        Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
+        Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
+        Long maxCallsLimit = this.parseToInt(maxCallsPaginationCalls);
+        List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls);
+        Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
+        Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
+        // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        // pagination always walks forward internally, so strip it here to avoid leaking an
+        // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+        Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "paginationDirection");
+        Long current = this.milliseconds();
+        List<Object> tasks = new ArrayList<Object>(Arrays.asList());
+        Long time = (((long) this.parseTimeframe(timeframe)) * 1000L);
+        Long maxEntriesPerRequestValue = (Long) this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
+        Long step = (time * this.parseToInt(maxEntriesPerRequestValue));
+        Long until = (Long) this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
+        Long currentSince = ((current - ((maxCallsLimit * step))) - 1L);
+        if (!java.util.Objects.equals(since, null))
+        {
             if (!java.util.Objects.equals(until, null))
             {
-                if (java.util.Objects.equals(since, null))
-                {
-                    throw new ArgumentsRequired((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
-                }
-                Double requiredCalls = Math.ceil(Double.parseDouble(String.valueOf((((double) ((until - since))) / ((double) step)))));
-                if ((requiredCalls != null && (maxCallsLimit == null || requiredCalls > maxCallsLimit)))
-                {
-                    throw new BadRequest(((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + String.valueOf(maxCallsLimit)) + " required calls is ") + String.valueOf(requiredCalls))) ;
-                }
-            }
-            for (var i = 0; (maxCallsLimit != null && i < maxCallsLimit); i++)
+                // the recent-window floor below would jump past a fully-historical [ since, until ]
+                // range and return an empty result - requiredCalls is validated against maxCalls
+                // further down, so anchoring at since directly is safe here,
+                // see https://github.com/ccxt/ccxt/issues/26252
+                currentSince = since;
+            } else
             {
-                if ((!java.util.Objects.equals(until, null)) && ((until == null || (currentSince != null && currentSince >= until))))
-                {
-                    break;
-                }
-                if ((current == null || (currentSince != null && currentSince >= current)))
-                {
-                    break;
-                }
-                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
-                // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
-                currentSince = ((this.sum(currentSince, step)) - 1L);
+                currentSince = (currentSince == null ? null : Math.max(currentSince, since));
             }
-            List<Object> results = (((List<?>)(tasks)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < results.size(); i++)
+        } else
+        {
+            currentSince = (currentSince == null ? null : Math.max(currentSince, 1241440531000L)); // avoid timestamps older than 2009
+        }
+        if (!java.util.Objects.equals(until, null))
+        {
+            if (java.util.Objects.equals(since, null))
             {
-                result = (List<Object>) this.arrayConcat(result, (results == null || i < 0 || i >= results.size() ? null : results.get(i)));
+                throw new ArgumentsRequired((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
-            Object uniqueResults = ((Object)this.removeRepeatedElementsFromArray(result, true));
-            Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
-            return this.filterBySinceLimit(uniqueResults, since, limit, key, false);
-        });
+            Double requiredCalls = Math.ceil(Double.parseDouble(String.valueOf((((double) ((until - since))) / ((double) step)))));
+            if ((requiredCalls != null && (maxCallsLimit == null || requiredCalls > maxCallsLimit)))
+            {
+                throw new BadRequest(((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + String.valueOf(maxCallsLimit)) + " required calls is ") + String.valueOf(requiredCalls))) ;
+            }
+        }
+        for (var i = 0; (maxCallsLimit != null && i < maxCallsLimit); i++)
+        {
+            if ((!java.util.Objects.equals(until, null)) && ((until == null || (currentSince != null && currentSince >= until))))
+            {
+                break;
+            }
+            if ((current == null || (currentSince != null && currentSince >= current)))
+            {
+                break;
+            }
+            ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = ((this.sum(currentSince, step)) - 1L);
+        }
+        List<Object> results = (((List<?>)(tasks)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < results.size(); i++)
+        {
+            result = (List<Object>) this.arrayConcat(result, (results == null || i < 0 || i >= results.size() ? null : results.get(i)));
+        }
+        Object uniqueResults = ((Object)this.removeRepeatedElementsFromArray(result, true));
+        Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
+        return this.filterBySinceLimit(uniqueResults, since, limit, key, false);
 
     }
 
@@ -11803,188 +11869,192 @@ public Map<String, Object> describe()
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     public CompletableFuture<Object> fetchPaginatedCallCursor(Object method, Object symbol, Long since, Long limit, Map<String, Object> parameters, String cursorReceived, String cursorSent, Long cursorIncrement, Long maxEntriesPerRequest)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPaginatedCallCursorCore(method, symbol, since, limit, parameters, cursorReceived, cursorSent, cursorIncrement, maxEntriesPerRequest));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPaginatedCallCursorCore(Object method, Object symbol, Long since, Long limit, Map<String, Object> parameters, String cursorReceived, String cursorSent, Long cursorIncrement, Long maxEntriesPerRequest)
+    {
 
-            Long maxCalls = 10L;
-            List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
-            Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
-            Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
-            Long maxRetries = 3L;
-            List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", maxRetries);
-            Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
-            Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
-            Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
-            Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
-            Object cursorValue = null;
-            long errors = 0;
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            String timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
-            Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
-            Boolean shouldBreak = false;
-            for (var i = 0; (maxCallsPaginationCalls != null && i < maxCallsPaginationCalls); i++)
+        Long maxCalls = 10L;
+        List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+        Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
+        Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
+        Long maxRetries = 3L;
+        List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", maxRetries);
+        Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
+        Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
+        List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
+        Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
+        Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
+        Object cursorValue = null;
+        long errors = 0;
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        String timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
+        Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
+        Boolean shouldBreak = false;
+        for (var i = 0; (maxCallsPaginationCalls != null && i < maxCallsPaginationCalls); i++)
+        {
+            try
             {
-                try
+                if (!java.util.Objects.equals(cursorValue, null))
                 {
+                    if (!java.util.Objects.equals(cursorIncrement, null))
+                    {
+                        cursorValue = this.sum(this.parseToInt(cursorValue), cursorIncrement);
+                    }
+                    paramsOmitted.put((String)((String)cursorSent), cursorValue);
+                }
+                Object response = null;
+                if (java.util.Objects.equals(method, "fetchAccounts"))
+                {
+                    response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { paramsOmitted })).join();
+                } else if (java.util.Objects.equals(method, "getLeverageTiersPaginated") || java.util.Objects.equals(method, "fetchPositions"))
+                {
+                    response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paramsOmitted })).join();
+                } else if (java.util.Objects.equals(method, "fetchOpenInterestHistory"))
+                {
+                    if (!(symbol instanceof String))
+                    {
+                        throw new ArgumentsRequired((this.id + " fetchPaginatedCallCursor() requires a symbol argument")) ;
+                    }
+                    if (java.util.Objects.equals(timeframe, null))
+                    {
+                        throw new ArgumentsRequired((this.id + " fetchPaginatedCallCursor() requires a timeframe argument")) ;
+                    }
+                    response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted })).join();
+                } else
+                {
+                    response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsOmitted })).join();
+                }
+                errors = 0;
+                if (java.util.Objects.equals(response, null))
+                {
+                    throw new NullResponse((this.id + " fetchPaginatedCallCursor() returned empty response")) ;
+                }
+                Integer responseLength = ((List<?>)response).size();
+                if (this.verbose)
+                {
+                    String cursorString = "";
                     if (!java.util.Objects.equals(cursorValue, null))
                     {
-                        if (!java.util.Objects.equals(cursorIncrement, null))
-                        {
-                            cursorValue = this.sum(this.parseToInt(cursorValue), cursorIncrement);
-                        }
-                        paramsOmitted.put((String)((String)cursorSent), cursorValue);
+                        cursorString = String.valueOf(cursorValue);
                     }
-                    Object response = null;
-                    if (java.util.Objects.equals(method, "fetchAccounts"))
-                    {
-                        response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { paramsOmitted })).join();
-                    } else if (java.util.Objects.equals(method, "getLeverageTiersPaginated") || java.util.Objects.equals(method, "fetchPositions"))
-                    {
-                        response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paramsOmitted })).join();
-                    } else if (java.util.Objects.equals(method, "fetchOpenInterestHistory"))
-                    {
-                        if (!(symbol instanceof String))
-                        {
-                            throw new ArgumentsRequired((this.id + " fetchPaginatedCallCursor() requires a symbol argument")) ;
-                        }
-                        if (java.util.Objects.equals(timeframe, null))
-                        {
-                            throw new ArgumentsRequired((this.id + " fetchPaginatedCallCursor() requires a timeframe argument")) ;
-                        }
-                        response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, timeframe, since, maxEntriesPerRequestOption, paramsOmitted })).join();
-                    } else
-                    {
-                        response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsOmitted })).join();
-                    }
-                    errors = 0;
-                    if (java.util.Objects.equals(response, null))
-                    {
-                        throw new NullResponse((this.id + " fetchPaginatedCallCursor() returned empty response")) ;
-                    }
-                    Integer responseLength = ((List<?>)response).size();
-                    if (this.verbose)
-                    {
-                        String cursorString = "";
-                        if (!java.util.Objects.equals(cursorValue, null))
-                        {
-                            cursorString = String.valueOf(cursorValue);
-                        }
-                        String cursorMessage = ((((((("Cursor pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor ") + cursorString);
-                        this.log(cursorMessage);
-                    }
-                    if (java.util.Objects.equals(responseLength, 0))
-                    {
-                        shouldBreak = true;
-                        break;
-                    }
-                    result = (List<Object>) this.arrayConcat(result, response);
-                    Map<String, Object> last = this.safeDict(response, (((long) responseLength) - 1L), null);
-                    // cursorValue = this.safeValue (last['info'], cursorReceived);
-                    cursorValue = null; // search for the cursor
-                    // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
-                    for (var j = 0; (responseLength != null && j < responseLength); j++)
-                    {
-                        if (java.util.Objects.equals(cursorValue, null))
-                        {
-                            Long index = ((((long) responseLength) - ((long) j)) - 1L);
-                            Map<String, Object> entry = this.safeDict(response, index, null);
-                            Map<String, Object> info = this.safeDict(entry, "info", null);
-                            if (!java.util.Objects.equals(cursorReceived, null))
-                            {
-                                cursorValue = this.safeValue(info, cursorReceived);
-                            }
-                        }
-                    }
+                    String cursorMessage = ((((((("Cursor pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor ") + cursorString);
+                    this.log(cursorMessage);
+                }
+                if (java.util.Objects.equals(responseLength, 0))
+                {
+                    shouldBreak = true;
+                    break;
+                }
+                result = (List<Object>) this.arrayConcat(result, response);
+                Map<String, Object> last = this.safeDict(response, (((long) responseLength) - 1L), null);
+                // cursorValue = this.safeValue (last['info'], cursorReceived);
+                cursorValue = null; // search for the cursor
+                // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
+                for (var j = 0; (responseLength != null && j < responseLength); j++)
+                {
                     if (java.util.Objects.equals(cursorValue, null))
                     {
-                        shouldBreak = true;
-                        break;
-                    }
-                    Long lastTimestamp = this.safeInteger(last, "timestamp");
-                    if (java.util.Objects.equals(since, null))
-                    {
-                        throw new ArgumentsRequired((this.id + " fetchPaginatedCallCursor() requires a since argument")) ;
-                    }
-                    if (!java.util.Objects.equals(lastTimestamp, null) && ((lastTimestamp == null || lastTimestamp < since)))
-                    {
-                        shouldBreak = true;
-                        break;
-                    }
-                } catch(Exception e)
-                {
-                    errors = (errors + 1L);
-                    if (((maxRetriesOption == null || errors > maxRetriesOption)))
-                    {
-                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                        Long index = ((((long) responseLength) - ((long) j)) - 1L);
+                        Map<String, Object> entry = this.safeDict(response, index, null);
+                        Map<String, Object> info = this.safeDict(entry, "info", null);
+                        if (!java.util.Objects.equals(cursorReceived, null))
+                        {
+                            cursorValue = this.safeValue(info, cursorReceived);
+                        }
                     }
                 }
-                if (Boolean.TRUE.equals(shouldBreak))
+                if (java.util.Objects.equals(cursorValue, null))
                 {
-                    break; // go turns a break inside try into a panic that only ends the iteration
+                    shouldBreak = true;
+                    break;
+                }
+                Long lastTimestamp = this.safeInteger(last, "timestamp");
+                if (java.util.Objects.equals(since, null))
+                {
+                    throw new ArgumentsRequired((this.id + " fetchPaginatedCallCursor() requires a since argument")) ;
+                }
+                if (!java.util.Objects.equals(lastTimestamp, null) && ((lastTimestamp == null || lastTimestamp < since)))
+                {
+                    shouldBreak = true;
+                    break;
+                }
+            } catch(Exception e)
+            {
+                errors = (errors + 1L);
+                if (((maxRetriesOption == null || errors > maxRetriesOption)))
+                {
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
             }
-            Object sorted = this.sortCursorPaginatedResult(result);
-            Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
-            return this.filterBySinceLimit(sorted, since, limit, key, false);
-        });
+            if (Boolean.TRUE.equals(shouldBreak))
+            {
+                break; // go turns a break inside try into a panic that only ends the iteration
+            }
+        }
+        Object sorted = this.sortCursorPaginatedResult(result);
+        Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
+        return this.filterBySinceLimit(sorted, since, limit, key, false);
 
     }
 
     public CompletableFuture<Object> fetchPaginatedCallIncremental(Object method, String symbol, Long since, Long limit, Map<String, Object> parameters, String pageKey, Long maxEntriesPerRequest)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPaginatedCallIncrementalCore(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPaginatedCallIncrementalCore(Object method, String symbol, Long since, Long limit, Map<String, Object> parameters, String pageKey, Long maxEntriesPerRequest)
+    {
 
-            Long maxCalls = 10L;
-            List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
-            Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
-            Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
-            Long maxCallsLimit = this.parseToInt(maxCallsPaginationCalls);
-            Long maxRetries = 3L;
-            List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", maxRetries);
-            Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
-            Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
-            Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
-            Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
-            long errors = 0;
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Boolean shouldBreak = false;
-            for (var i = 0; (maxCallsLimit != null && i < maxCallsLimit); i++)
+        Long maxCalls = 10L;
+        List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+        Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
+        Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
+        Long maxCallsLimit = this.parseToInt(maxCallsPaginationCalls);
+        Long maxRetries = 3L;
+        List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", maxRetries);
+        Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
+        Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
+        List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
+        Long maxEntriesPerRequestOption = (Long) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
+        Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
+        long errors = 0;
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Boolean shouldBreak = false;
+        for (var i = 0; (maxCallsLimit != null && i < maxCallsLimit); i++)
+        {
+            try
             {
-                try
+                paramsMaxEntriesPerRequest.put(((String)pageKey), (((long) i) + 1L));
+                Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
+                errors = 0;
+                Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v48 -> j39v48.size(); case String j39v49 -> j39v49.length(); case Object j39v50 -> j39v50.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v50) : 0; });
+                if (this.verbose)
                 {
-                    paramsMaxEntriesPerRequest.put(((String)pageKey), (((long) i) + 1L));
-                    Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                    errors = 0;
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v48 -> j39v48.size(); case String j39v49 -> j39v49.length(); case Object j39v50 -> j39v50.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v50) : 0; });
-                    if (this.verbose)
-                    {
-                        String incrementalMessage = ((((("Incremental pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
-                        this.log(incrementalMessage);
-                    }
-                    if ((responseLength != null && responseLength == 0))
-                    {
-                        shouldBreak = true;
-                        break;
-                    }
-                    result = (List<Object>) this.arrayConcat(result, response);
-                } catch(Exception e)
-                {
-                    errors = (errors + 1L);
-                    if (((maxRetriesOption == null || errors > maxRetriesOption)))
-                    {
-                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                    }
+                    String incrementalMessage = ((((("Incremental pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
+                    this.log(incrementalMessage);
                 }
-                if (Boolean.TRUE.equals(shouldBreak))
+                if ((responseLength != null && responseLength == 0))
                 {
-                    break; // go turns a break inside try into a panic that only ends the iteration
+                    shouldBreak = true;
+                    break;
+                }
+                result = (List<Object>) this.arrayConcat(result, response);
+            } catch(Exception e)
+            {
+                errors = (errors + 1L);
+                if (((maxRetriesOption == null || errors > maxRetriesOption)))
+                {
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
             }
-            return this.filterBySinceLimit(this.sortCursorPaginatedResult(result), since, limit, (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp", false);
-        });
+            if (Boolean.TRUE.equals(shouldBreak))
+            {
+                break; // go turns a break inside try into a panic that only ends the iteration
+            }
+        }
+        return this.filterBySinceLimit(this.sortCursorPaginatedResult(result), since, limit, (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp", false);
 
     }
 
@@ -12382,12 +12452,14 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Object> loadMarketsAndSignIn()
     {
+        return BaseExchange.supplyAsync(() -> this.loadMarketsAndSignInCore());
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object loadMarketsAndSignInCore()
+    {
 
-            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.signIn(new HashMap<String, Object>() {{}})))).join();
-            return null;
-        });
+        (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.signIn(new HashMap<String, Object>() {{}})))).join();
+        return null;
 
     }
 
@@ -12658,11 +12730,13 @@ public Map<String, Object> describe()
 
     public CompletableFuture<Boolean> isUTAEnabled(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.isUTAEnabledCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Boolean isUTAEnabledCore(Map<String, Object> parameters)
+    {
 
-            return false;  // stub
-        });
+        return false;  // stub
 
     }
 }

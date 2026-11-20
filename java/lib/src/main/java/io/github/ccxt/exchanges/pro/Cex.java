@@ -89,20 +89,22 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBalanceCore(Map<String, Object> parameters)
+    {
 
-            (this.authenticate(parameters)).join();
-            String messageHash = String.valueOf(this.requestId());
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            Map<String, Object> subscribe = new HashMap<String, Object>() {{
-                put( "e", "get-balance" );
-                put( "data", new HashMap<String, Object>() {{}} );
-                put( "oid", messageHash );
-            }};
-            Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            return (this.watch(url, messageHash, request, messageHash, request)).join();
-        }).thenApply(Balances::new);
+        (this.authenticate(parameters)).join();
+        String messageHash = String.valueOf(this.requestId());
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        Map<String, Object> subscribe = new HashMap<String, Object>() {{
+            put( "e", "get-balance" );
+            put( "data", new HashMap<String, Object>() {{}} );
+            put( "oid", messageHash );
+        }};
+        Map<String,Object> request = this.deepExtend(subscribe, parameters);
+        return (this.watch(url, messageHash, request, messageHash, request)).join();
 
     }
 
@@ -172,54 +174,56 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String currentSymbol = this.safeString(this.options.get("watchTrades"), "symbol");
-            if (!java.util.Objects.equals(currentSymbol, null) && !java.util.Objects.equals(currentSymbol, symbol))
+        String currentSymbol = this.safeString(this.options.get("watchTrades"), "symbol");
+        if (!java.util.Objects.equals(currentSymbol, null) && !java.util.Objects.equals(currentSymbol, symbol))
+        {
+            throw new ArgumentsRequired((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
+        }
+        Map<String, Object> watchTradesDict = this.safeDict(this.options, "watchTrades", new HashMap<String, Object>() {{}});
+        watchTradesDict.put("symbol", symbol);
+        this.options.put("watchTrades", watchTradesDict);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = "trades";
+        String subscriptionHash = ("old:" + symbolValue);
+        Client client = (Client)this.safeValue(this.clients, url);
+        if (!java.util.Objects.equals(client, null))
+        {
+            List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
+            for (var i = 0; i < subscriptionKeys.size(); i++)
             {
-                throw new ArgumentsRequired((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
-            }
-            Map<String, Object> watchTradesDict = this.safeDict(this.options, "watchTrades", new HashMap<String, Object>() {{}});
-            watchTradesDict.put("symbol", symbol);
-            this.options.put("watchTrades", watchTradesDict);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = "trades";
-            String subscriptionHash = ("old:" + symbolValue);
-            Client client = (Client)this.safeValue(this.clients, url);
-            if (!java.util.Objects.equals(client, null))
-            {
-                List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
-                for (var i = 0; i < subscriptionKeys.size(); i++)
+                Object subscriptionKey = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
+                if (java.util.Objects.equals(subscriptionKey, subscriptionHash))
                 {
-                    Object subscriptionKey = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
-                    if (java.util.Objects.equals(subscriptionKey, subscriptionHash))
-                    {
-                        continue;
-                    }
-                    subscriptionKey = (subscriptionKey == null ? null : ((String)subscriptionKey).substring(0, Math.min(3, ((String)subscriptionKey).length())));
-                    if (java.util.Objects.equals(subscriptionKey, "old"))
-                    {
-                        throw new ExchangeError((this.id + " watchTrades() only supports watching one symbol at a time.")) ;
-                    }
+                    continue;
+                }
+                subscriptionKey = (subscriptionKey == null ? null : ((String)subscriptionKey).substring(0, Math.min(3, ((String)subscriptionKey).length())));
+                if (java.util.Objects.equals(subscriptionKey, "old"))
+                {
+                    throw new ExchangeError((this.id + " watchTrades() only supports watching one symbol at a time.")) ;
                 }
             }
-            String baseId = this.safeString(market, "base", "");
-            String quoteId = this.safeString(market, "quote", "");
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "e", "subscribe" );
-                put( "rooms", new ArrayList<Object>(Arrays.asList(((("pair-" + baseId) + "-") + quoteId))) );
-            }};
-            Map<String,Object> request = this.deepExtend(message, parameters);
-            List<Object> trades = (List<Object>) (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }
+        String baseId = this.safeString(market, "base", "");
+        String quoteId = this.safeString(market, "quote", "");
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "e", "subscribe" );
+            put( "rooms", new ArrayList<Object>(Arrays.asList(((("pair-" + baseId) + "-") + quoteId))) );
+        }};
+        Map<String,Object> request = this.deepExtend(message, parameters);
+        List<Object> trades = (List<Object>) (this.watch(url, messageHash, request, subscriptionHash, null)).join();
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
 
     }
 
@@ -328,36 +332,38 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = ("ticker:" + symbolValue);
-            String method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "e", "subscribe" );
-                put( "rooms", new ArrayList<Object>(Arrays.asList("tickers")) );
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = ("ticker:" + symbolValue);
+        String method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "e", "subscribe" );
+            put( "rooms", new ArrayList<Object>(Arrays.asList("tickers")) );
+        }};
+        String subscriptionHash = "tickers";
+        if (java.util.Objects.equals(method, "private"))
+        {
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            message = new HashMap<String, Object>() {{
+                put( "e", "ticker" );
+                put( "data", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
+                put( "oid", String.valueOf(Cex.this.requestId()) );
             }};
-            String subscriptionHash = "tickers";
-            if (java.util.Objects.equals(method, "private"))
-            {
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
-                message = new HashMap<String, Object>() {{
-                    put( "e", "ticker" );
-                    put( "data", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
-                    put( "oid", String.valueOf(Cex.this.requestId()) );
-                }};
-                subscriptionHash = ("ticker:" + symbolValue);
-            }
-            Map<String,Object> request = this.deepExtend(message, parameters);
-            return (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-        }).thenApply(Ticker::new);
+            subscriptionHash = ("ticker:" + symbolValue);
+        }
+        Map<String,Object> request = this.deepExtend(message, parameters);
+        return (this.watch(url, messageHash, request, subscriptionHash, null)).join();
 
     }
 
@@ -372,38 +378,40 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = "tickers";
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "e", "subscribe" );
+            put( "rooms", new ArrayList<Object>(Arrays.asList("tickers")) );
+        }};
+        Map<String,Object> request = this.deepExtend(message, parameters);
+        Object ticker = (this.watch(url, messageHash, request, messageHash, null)).join();
+        String tickerSymbol = this.safeString(ticker, "symbol");
+        if (!java.util.Objects.equals(symbolsNormalized, null) && !this.inArray(tickerSymbol, symbolsNormalized))
+        {
+            return (this.watchTickers(symbolsNormalized, parameters)).join();
+        }
+        if (this.newUpdates)
+        {
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(tickerSymbol, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                result.put(tickerSymbol, ticker);
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = "tickers";
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "e", "subscribe" );
-                put( "rooms", new ArrayList<Object>(Arrays.asList("tickers")) );
-            }};
-            Map<String,Object> request = this.deepExtend(message, parameters);
-            Object ticker = (this.watch(url, messageHash, request, messageHash, null)).join();
-            String tickerSymbol = this.safeString(ticker, "symbol");
-            if (!java.util.Objects.equals(symbolsNormalized, null) && !this.inArray(tickerSymbol, symbolsNormalized))
-            {
-                return (this.watchTickers(symbolsNormalized, parameters)).join();
-            }
-            if (this.newUpdates)
-            {
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
-                if (!java.util.Objects.equals(tickerSymbol, null))
-                {
-                    result.put(tickerSymbol, ticker);
-                }
-                return result;
-            }
-            return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
-        }).thenApply(Tickers::new);
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
 
     }
 
@@ -418,23 +426,25 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Ticker> fetchTickerWs(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerWsCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerWsCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = String.valueOf(this.requestId());
-            Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
-                put( "e", "ticker" );
-                put( "oid", messageHash );
-                put( "data", new ArrayList<Object>(Arrays.asList(market.get("base"), market.get("quote"))) );
-            }}, parameters);
-            return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = String.valueOf(this.requestId());
+        Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
+            put( "e", "ticker" );
+            put( "oid", messageHash );
+            put( "data", new ArrayList<Object>(Arrays.asList(market.get("base"), market.get("quote"))) );
+        }}, parameters);
+        return (this.watch(url, messageHash, request, messageHash, null)).join();
 
     }
 
@@ -548,22 +558,24 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Balances> fetchBalanceWs(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceWsCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceWsCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = String.valueOf(this.requestId());
-            Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
-                put( "e", "get-balance" );
-                put( "oid", messageHash );
-            }}, parameters);
-            return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = String.valueOf(this.requestId());
+        Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
+            put( "e", "get-balance" );
+            put( "oid", messageHash );
+        }}, parameters);
+        return (this.watch(url, messageHash, request, messageHash, null)).join();
 
     }
 
@@ -580,38 +592,40 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " watchOrders() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(parameters)).join();
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String messageHash = ("orders:" + symbolValue);
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "e", "open-orders" );
-                put( "data", new HashMap<String, Object>() {{
-                    put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
-                }} );
-                put( "oid", symbolValue );
-            }};
-            Map<String,Object> request = this.deepExtend(message, parameters);
-            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, request)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolValue, limit);
-            }
-            return this.filterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " watchOrders() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(parameters)).join();
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        String messageHash = ("orders:" + symbolValue);
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "e", "open-orders" );
+            put( "data", new HashMap<String, Object>() {{
+                put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
+            }} );
+            put( "oid", symbolValue );
+        }};
+        Map<String,Object> request = this.deepExtend(message, parameters);
+        List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, request)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolValue, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true);
 
     }
 
@@ -628,34 +642,36 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " watchMyTrades() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(parameters)).join();
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String messageHash = ("myTrades:" + symbolValue);
-            String subscriptionHash = ("orders:" + symbolValue);
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "e", "open-orders" );
-                put( "data", new HashMap<String, Object>() {{
-                    put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
-                }} );
-                put( "oid", market.get("symbol") );
-            }};
-            Map<String,Object> request = this.deepExtend(message, parameters);
-            List<Object> orders = (List<Object>) (this.watch(url, messageHash, request, subscriptionHash, request)).join();
-            return this.filterBySymbolSinceLimit(orders, this.safeString(market, "symbol"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " watchMyTrades() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(parameters)).join();
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String messageHash = ("myTrades:" + symbolValue);
+        String subscriptionHash = ("orders:" + symbolValue);
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "e", "open-orders" );
+            put( "data", new HashMap<String, Object>() {{
+                put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
+            }} );
+            put( "oid", market.get("symbol") );
+        }};
+        Map<String,Object> request = this.deepExtend(message, parameters);
+        List<Object> orders = (List<Object>) (this.watch(url, messageHash, request, subscriptionHash, request)).join();
+        return this.filterBySymbolSinceLimit(orders, this.safeString(market, "symbol"), since, limit, false);
 
     }
 
@@ -1128,32 +1144,34 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = ("orderbook:" + symbolValue);
-            Long depth = (((java.util.Objects.equals(limit, null)))) ? 0 : limit;
-            Map<String, Object> subscribe = new HashMap<String, Object>() {{
-                put( "e", "order-book-subscribe" );
-                put( "data", new HashMap<String, Object>() {{
-                    put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
-                    put( "subscribe", true );
-                    put( "depth", depth );
-                }} );
-                put( "oid", String.valueOf(Cex.this.requestId()) );
-            }};
-            Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = ("orderbook:" + symbolValue);
+        Long depth = (((java.util.Objects.equals(limit, null)))) ? 0 : limit;
+        Map<String, Object> subscribe = new HashMap<String, Object>() {{
+            put( "e", "order-book-subscribe" );
+            put( "data", new HashMap<String, Object>() {{
+                put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
+                put( "subscribe", true );
+                put( "depth", depth );
+            }} );
+            put( "oid", String.valueOf(Cex.this.requestId()) );
+        }};
+        Map<String,Object> request = this.deepExtend(subscribe, parameters);
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
+        return orderbook.limit();
 
     }
 
@@ -1296,32 +1314,34 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = this.safeString(market, "symbol", "");
-            String messageHash = ("ohlcv:" + symbolValue);
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String baseId = this.safeString(market, "baseId", "");
-            String quoteId = this.safeString(market, "quoteId", "");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "e", "init-ohlcv" );
-                put( "i", java.util.Objects.requireNonNullElse(timeframe, "1m") );
-                put( "rooms", new ArrayList<Object>(Arrays.asList(((("pair-" + baseId) + "-") + quoteId))) );
-            }};
-            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = this.safeString(market, "symbol", "");
+        String messageHash = ("ohlcv:" + symbolValue);
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String baseId = this.safeString(market, "baseId", "");
+        String quoteId = this.safeString(market, "quoteId", "");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "e", "init-ohlcv" );
+            put( "i", java.util.Objects.requireNonNullElse(timeframe, "1m") );
+            put( "rooms", new ArrayList<Object>(Arrays.asList(((("pair-" + baseId) + "-") + quoteId))) );
+        }};
+        List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
 
     }
 
@@ -1473,32 +1493,34 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Order> fetchOrderWs(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderWsCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderWsCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
-                put( "order_id", String.valueOf(id) );
-            }}, parameters);
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = String.valueOf(this.requestId());
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "e", "get-order" );
-                put( "oid", messageHash );
-                put( "data", data );
-            }};
-            Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
+            put( "order_id", String.valueOf(id) );
+        }}, parameters);
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = String.valueOf(this.requestId());
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "e", "get-order" );
+            put( "oid", messageHash );
+            put( "data", data );
+        }};
+        Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
+        return this.parseOrder(response, market);
 
     }
 
@@ -1515,32 +1537,34 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<List<Order>> fetchOpenOrdersWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersWsCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersWsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchOpenOrdersWs requires a symbol.")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = String.valueOf(this.requestId());
-            Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
-                put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
-            }}, parameters);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "e", "open-orders" );
-                put( "oid", messageHash );
-                put( "data", data );
-            }};
-            Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
-            return this.parseOrders(response, market, since, limit, parameters);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchOpenOrdersWs requires a symbol.")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = String.valueOf(this.requestId());
+        Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
+            put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
+        }}, parameters);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "e", "open-orders" );
+            put( "oid", messageHash );
+            put( "data", data );
+        }};
+        Object response = (this.watch(url, messageHash, request, messageHash, null)).join();
+        return this.parseOrders(response, market, since, limit, parameters);
 
     }
 
@@ -1560,35 +1584,37 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderWsCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(price, null))
-            {
-                throw new BadRequest((this.id + " createOrderWs requires a price argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            String messageHash = String.valueOf(this.requestId());
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))));
-            mapLiteral6.put("amount", amount);
-            mapLiteral6.put("price", price);
-            mapLiteral6.put("type", side);
-            Map<String, Object> data = this.extend(mapLiteral6, parameters);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "e", "place-order" );
-                put( "oid", messageHash );
-                put( "data", data );
-            }};
-            Object rawOrder = (this.watch(url, messageHash, request, messageHash, null)).join();
-            return this.parseOrder(rawOrder, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(price, null))
+        {
+            throw new BadRequest((this.id + " createOrderWs requires a price argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        String messageHash = String.valueOf(this.requestId());
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))));
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("type", side);
+        Map<String, Object> data = this.extend(mapLiteral6, parameters);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "e", "place-order" );
+            put( "oid", messageHash );
+            put( "data", data );
+        }};
+        Object rawOrder = (this.watch(url, messageHash, request, messageHash, null)).join();
+        return this.parseOrder(rawOrder, market);
 
     }
 
@@ -1608,40 +1634,42 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderWsCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderWsCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(amount, null))
-            {
-                throw new ArgumentsRequired((this.id + " editOrder() requires a amount argument")) ;
-            }
-            if (java.util.Objects.equals(price, null))
-            {
-                throw new ArgumentsRequired((this.id + " editOrder() requires a price argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))));
-            mapLiteral7.put("type", side);
-            mapLiteral7.put("amount", amount);
-            mapLiteral7.put("price", price);
-            mapLiteral7.put("order_id", id);
-            Map<String, Object> data = this.extend(mapLiteral7, parameters);
-            String messageHash = String.valueOf(this.requestId());
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "e", "cancel-replace-order" );
-                put( "oid", messageHash );
-                put( "data", data );
-            }};
-            Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(amount, null))
+        {
+            throw new ArgumentsRequired((this.id + " editOrder() requires a amount argument")) ;
+        }
+        if (java.util.Objects.equals(price, null))
+        {
+            throw new ArgumentsRequired((this.id + " editOrder() requires a price argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))));
+        mapLiteral7.put("type", side);
+        mapLiteral7.put("amount", amount);
+        mapLiteral7.put("price", price);
+        mapLiteral7.put("order_id", id);
+        Map<String, Object> data = this.extend(mapLiteral7, parameters);
+        String messageHash = String.valueOf(this.requestId());
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "e", "cancel-replace-order" );
+            put( "oid", messageHash );
+            put( "data", data );
+        }};
+        Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
+        return this.parseOrder(response, market);
 
     }
 
@@ -1657,32 +1685,34 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderWsCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderWsCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }}, parameters);
-            String messageHash = String.valueOf(this.requestId());
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "e", "cancel-order" );
-                put( "oid", messageHash );
-                put( "data", data );
-            }};
-            Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }}, parameters);
+        String messageHash = String.valueOf(this.requestId());
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "e", "cancel-order" );
+            put( "oid", messageHash );
+            put( "data", data );
+        }};
+        Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
+        return this.parseOrder(response, market);
 
     }
 
@@ -1698,42 +1728,44 @@ public class Cex extends io.github.ccxt.exchanges.Cex
      */
     public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersWsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrdersWsCore(Object ids, String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                throw new BadRequest((this.id + " cancelOrderWs does not allow filtering by symbol")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String messageHash = String.valueOf(this.requestId());
-            Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
-                put( "cancel-orders", ids );
-            }}, parameters);
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "e", "mass-cancel-place-orders" );
-                put( "oid", messageHash );
-                put( "data", data );
-            }};
-            Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
-            //
-            //    {
-            //        "cancel-orders": [{
-            //            "order_id": 69202557979,
-            //            "fremains": "0.15000000"
-            //        }],
-            //        "place-orders": [],
-            //        "placed-cancelled": []
-            //    }
-            //
-            List<Object> canceledOrders = this.safeList(response, "cancel-orders", null);
-            return this.parseOrders(canceledOrders, (Map<String, Object>) null, (Long) null, (Long) null, parameters);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            throw new BadRequest((this.id + " cancelOrderWs does not allow filtering by symbol")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String messageHash = String.valueOf(this.requestId());
+        Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
+            put( "cancel-orders", ids );
+        }}, parameters);
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "e", "mass-cancel-place-orders" );
+            put( "oid", messageHash );
+            put( "data", data );
+        }};
+        Object response = (this.watch(url, messageHash, request, messageHash, messageHash)).join();
+        //
+        //    {
+        //        "cancel-orders": [{
+        //            "order_id": 69202557979,
+        //            "fremains": "0.15000000"
+        //        }],
+        //        "place-orders": [],
+        //        "placed-cancelled": []
+        //    }
+        //
+        List<Object> canceledOrders = this.safeList(response, "cancel-orders", null);
+        return this.parseOrders(canceledOrders, (Map<String, Object>) null, (Long) null, (Long) null, parameters);
 
     }
 
@@ -1905,31 +1937,33 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object authenticateCore(Map<String, Object> parameters)
+    {
 
-            String url = this.safeString(this.urls.get("api"), "ws", "");
-            Client client = this.client(url);
-            String messageHash = "authenticated";
-            Object future = client.reusableFuture("authenticated");
-            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
-            if (!authenticated)
-            {
-                this.checkRequiredCredentials(true);
-                String nonce = String.valueOf(this.seconds());
-                String auth = (nonce + this.apiKey);
-                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("e", "auth");
-                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-                mapLiteral8.put("key", this.apiKey);
-                mapLiteral8.put("signature", signature.toUpperCase());
-                mapLiteral8.put("timestamp", nonce);
-                request.put("auth", mapLiteral8);
-                this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
-            }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
-        });
+        String url = this.safeString(this.urls.get("api"), "ws", "");
+        Client client = this.client(url);
+        String messageHash = "authenticated";
+        Object future = client.reusableFuture("authenticated");
+        boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
+        {
+            this.checkRequiredCredentials(true);
+            String nonce = String.valueOf(this.seconds());
+            String auth = (nonce + this.apiKey);
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("e", "auth");
+            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+            mapLiteral8.put("key", this.apiKey);
+            mapLiteral8.put("signature", signature.toUpperCase());
+            mapLiteral8.put("timestamp", nonce);
+            request.put("auth", mapLiteral8);
+            this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
+        }
+        return ((io.github.ccxt.ws.Future)future).getFuture().join();
 
     }
 }

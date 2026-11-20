@@ -77,24 +77,26 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("orderbook:" + market.get("symbol"));
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "subscribe" );
-                put( "channel", (Coincheck.this.safeString(market, "id", "") + "-orderbook") );
-            }};
-            Map<String, Object> message = this.extend(request, parameters);
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("orderbook:" + market.get("symbol"));
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subscribe" );
+            put( "channel", (Coincheck.this.safeString(market, "id", "") + "-orderbook") );
+        }};
+        Map<String, Object> message = this.extend(request, parameters);
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
+        return orderbook.limit();
 
     }
 
@@ -143,29 +145,31 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("trade:" + market.get("symbol"));
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "subscribe" );
-                put( "channel", (Coincheck.this.safeString(market, "id", "") + "-trades") );
-            }};
-            Map<String, Object> message = this.extend(request, parameters);
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("trade:" + market.get("symbol"));
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subscribe" );
+            put( "channel", (Coincheck.this.safeString(market, "id", "") + "-trades") );
+        }};
+        Map<String, Object> message = this.extend(request, parameters);
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 

@@ -317,23 +317,25 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            List<PredictionEvent> events = (this.fetchEvents(parameters)).join();
-            Integer eventsLength = events.size();
-            List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            for (var ei = 0; (eventsLength != null && ei < eventsLength); ei++)
+        List<PredictionEvent> events = (this.fetchEvents(parameters)).join();
+        Integer eventsLength = events.size();
+        List<Object> markets = new ArrayList<Object>(Arrays.asList());
+        for (var ei = 0; (eventsLength != null && ei < eventsLength); ei++)
+        {
+            List<Object> eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
+            Integer eventMarketsLength = eventMarkets.size();
+            for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
             {
-                List<Object> eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
-                Integer eventMarketsLength = eventMarkets.size();
-                for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
-                {
-                    ((List<Object>)markets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
-                }
+                ((List<Object>)markets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
             }
-            return markets;
-        });
+        }
+        return markets;
 
     }
 
@@ -349,21 +351,23 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchEventCore(id, parameters)).thenApply(PredictionEvent::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchEventCore(String id, Map<String, Object> parameters)
+    {
 
-            // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
-            // overrides it so a caller can pass the slug the same way fetchEvents () takes it
-            String slug = this.safeString(parameters, "slug", id);
-            if (java.util.Objects.equals(slug, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchEvent() requires the \"id\" argument or the \"slug\" parameter")) ;
-            }
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("slug", slug);
-            List<PredictionEvent> events = (this.fetchEvents(this.extend(mapLiteral1, parameters))).join();
-            return this.safeDict(events, 0, null);
-        }).thenApply(PredictionEvent::new);
+        // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
+        // overrides it so a caller can pass the slug the same way fetchEvents () takes it
+        String slug = this.safeString(parameters, "slug", id);
+        if (java.util.Objects.equals(slug, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchEvent() requires the \"id\" argument or the \"slug\" parameter")) ;
+        }
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("slug", slug);
+        List<PredictionEvent> events = (this.fetchEvents(this.extend(mapLiteral1, parameters))).join();
+        return this.safeDict(events, 0, null);
 
     }
 
@@ -386,283 +390,285 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchEventsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchEventsCore(Map<String, Object> parameters)
+    {
 
-            Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-            if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
+        Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
+        if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
+        {
+            this.requireEventQuery(parameters);
+        }
+        List<Object> queries = this.parseSearchQueries(parameters);
+        Integer queriesLength = queries.size();
+        Map<String, Object> paramsValue = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+        // keys dropped before the client-side pass; the categories listing also drops its limit
+        List<Object> postOmitKeys = new ArrayList<Object>(Arrays.asList("tags"));
+        Long userLimit = this.safeInteger(paramsValue, "limit");
+        Long fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
+        if (!java.util.Objects.equals(userLimit, null))
+        {
+            fetchCap = userLimit;
+        }
+        String slug = this.safeString2(paramsValue, "slug", "eventId");
+        Map<String, Object> rest = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "eventId", "slug", "tags", "marketVariant")));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            this.markets = this.createSafeDictionary();
+        }
+        Object rawTopics = new ArrayList<Object>(Arrays.asList());
+        if (!java.util.Objects.equals(slug, null))
+        {
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("slug", slug);
+            Map<String, Object> response = (this.predictfunGetV1CategoriesSlug(this.extend(mapLiteral2, rest))).join();
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", null);
+            rawTopics = new ArrayList<Object>(Arrays.asList(data));
+        } else if ((queriesLength != null && queriesLength > 0))
+        {
+            // a query/queries scope is answered by the dedicated search endpoint — the categories
+            // listing has no text filter, so paging it and matching client-side would both miss
+            // the venue's semantic matches and cost one request per page
+            rawTopics = (this.fetchRawTopicsByQueries(queries, paramsValue)).join();
+        } else
+        {
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            List<String> tags = (List<String>) this.safeList(paramsValue, "tags", new ArrayList<Object>(Arrays.asList()));
+            if (tags.size() > 0)
             {
-                this.requireEventQuery(parameters);
+                request.put("tagIds", String.join(",", tags));
             }
-            List<Object> queries = this.parseSearchQueries(parameters);
-            Integer queriesLength = queries.size();
-            Map<String, Object> paramsValue = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
-            // keys dropped before the client-side pass; the categories listing also drops its limit
-            List<Object> postOmitKeys = new ArrayList<Object>(Arrays.asList("tags"));
-            Long userLimit = this.safeInteger(paramsValue, "limit");
-            Long fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
-            if (!java.util.Objects.equals(userLimit, null))
+            ((List<Object>)postOmitKeys).add("limit");
+            Map<String, Object> paramsCategories = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("limit", "tags")));
+            Map<String, Object> extendedRequest = this.extend(request, paramsCategories);
+            Map<String, Object> rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
+            //
+            //     {
+            //         "cursor": "NDA1MDA0",
+            //         "data": [
+            //             {
+            //                 "createdAt": "2026-08-26T14:00:02.000Z",
+            //                 "description": "This market will resolve to \"Up\" if the ETH/USDT price at the end of the time range specified in the title is greater than the price at the beginning of that range.\r\n\r\nIt will resolve to \"Down\" if the ETH/USDT price at the end of the time range is lower than the price at the beginning of that range.\r\n\r\nIf the two prices are exactly equal, the market will resolve 50-50.\r\n\r\nThe primary resolution source for this market is Chainlink, specifically the ETH/USDT data stream available at https://data.chain.link/streams/eth-usdt-topofbook-datalink?timeframe=1d&chart=candlestick.\r\n\r\nTo verify the final price, use the close price of the 5m candlestick just before the market's end time. For example, for a market running from 1:00 to 1:15 PM ET or 1:10 to 1:15 PM ET, use the close price of the 1:10 PM candlestick as the final price.\r\n\r\nThe Chainlink stream uses the mid-price, which is calculated as the average price between the bid and ask prices from Binance's Top of Book, converted into the quote currency.\r\n\r\nThis market is based solely on the price reported by the Chainlink ETH/USDT data stream, not on other sources or spot markets.\r\n\r\nIf Chainlink data is unavailable or otherwise unusable for resolution, the market will resolve based on a consensus of reliable sources.\n2026-08-27T14:00:00Z",
+            //                 "endsAt": "2026-08-27T14:15:00.000Z",
+            //                 "id": 405022,
+            //                 "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
+            //                 "isNegRisk": false,
+            //                 "isVisible": true,
+            //                 "isYieldBearing": false,
+            //                 "marketVariant": "CRYPTO_UP_DOWN",
+            //                 "markets": [
+            //                     {
+            //                         "boostEndsAt": "2026-08-27T14:15:00.000Z",
+            //                         "boostStartsAt": "2026-08-27T14:00:00.000Z",
+            //                         "categorySlug": "eth-updown-15m-1787839200",
+            //                         "conditionId": "0xa8e9c348c299989329debd86aaef81a1c4880d42c3954a684bdc731f7a113487",
+            //                         "createdAt": "2026-08-26T14:00:02.000Z",
+            //                         "decimalPrecision": 2,
+            //                         "description": "This market will resolve to \"Up\" if the ETH/USDT price at the end of the time range specified in the title is greater than the price at the beginning of that range.\r\n\r\nIt will resolve to \"Down\" if the ETH/USDT price at the end of the time range is lower than the price at the beginning of that range.\r\n\r\nIf the two prices are exactly equal, the market will resolve 50-50.\r\n\r\nThe primary resolution source for this market is Chainlink, specifically the ETH/USDT data stream available at https://data.chain.link/streams/eth-usdt-topofbook-datalink?timeframe=1d&chart=candlestick.\r\n\r\nTo verify the final price, use the close price of the 5m candlestick just before the market's end time. For example, for a market running from 1:00 to 1:15 PM ET or 1:10 to 1:15 PM ET, use the close price of the 1:10 PM candlestick as the final price.\r\n\r\nThe Chainlink stream uses the mid-price, which is calculated as the average price between the bid and ask prices from Binance's Top of Book, converted into the quote currency.\r\n\r\nThis market is based solely on the price reported by the Chainlink ETH/USDT data stream, not on other sources or spot markets.\r\n\r\nIf Chainlink data is unavailable or otherwise unusable for resolution, the market will resolve based on a consensus of reliable sources.",
+            //                         "feeRateBps": 200,
+            //                         "id": 1739803,
+            //                         "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
+            //                         "isBoosted": false,
+            //                         "isNegRisk": false,
+            //                         "isVisible": true,
+            //                         "isYieldBearing": false,
+            //                         "kalshiMarketTicker": null,
+            //                         "marketType": null,
+            //                         "marketVariant": "CRYPTO_UP_DOWN",
+            //                         "oracleQuestionId": "0x6ab55f25f108508e7c6cc9bb22e3304d3fcecd0771d741fdf6d67e6b7ab9af2c",
+            //                         "outcomes": [
+            //                             {
+            //                                 "bestAsk": {
+            //                                     "price": 0.98,
+            //                                     "size": 100
+            //                                 },
+            //                                 "bestBid": {
+            //                                     "price": 0.02,
+            //                                     "size": 100
+            //                                 },
+            //                                 "indexSet": 1,
+            //                                 "name": "Up",
+            //                                 "onChainId": "63015212288887519605689521802215931005858239156918107575780791658588345185817",
+            //                                 "status": null,
+            //                                 "team": null,
+            //                                 "variantData": null
+            //                             },
+            //                             {
+            //                                 "bestAsk": {
+            //                                     "price": 0.98,
+            //                                     "size": 100
+            //                                 },
+            //                                 "bestBid": {
+            //                                     "price": 0.02,
+            //                                     "size": 100
+            //                                 },
+            //                                 "indexSet": 2,
+            //                                 "name": "Down",
+            //                                 "onChainId": "111913554301217491431600756326792444318464112865057816486042507140136158411642",
+            //                                 "status": null,
+            //                                 "team": null,
+            //                                 "variantData": null
+            //                             }
+            //                         ],
+            //                         "polymarketConditionIds": [],
+            //                         "question": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                         "questionIndex": null,
+            //                         "resolution": null,
+            //                         "resolverAddress": "0x77620FAb2969dF2D5696F1f081940E416Cf17cA5",
+            //                         "rewards": {
+            //                             "current": null,
+            //                             "schedule": [
+            //                                 {
+            //                                     "endsAt": "2026-08-27T14:15:00.000Z",
+            //                                     "hourlyRate": 3000,
+            //                                     "startsAt": "2026-08-27T14:00:00.000Z"
+            //                                 }
+            //                             ]
+            //                         },
+            //                         "shareThreshold": 100,
+            //                         "spreadThreshold": 0.06,
+            //                         "status": "REGISTERED",
+            //                         "team": null,
+            //                         "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                         "tradingStatus": "OPEN",
+            //                         "variantData": {
+            //                             "endPrice": null,
+            //                             "priceFeedId": "0x0003543336278a459ac24c2f239ffa36f279cadc71f4babc9f8126c6ff10011d",
+            //                             "priceFeedProvider": "CHAINLINK",
+            //                             "priceFeedSymbol": "ETHUSDT",
+            //                             "startPrice": null,
+            //                             "type": "CRYPTO_UP_DOWN"
+            //                         }
+            //                     }
+            //                 ],
+            //                 "negRiskOnChainId": null,
+            //                 "parentSlug": null,
+            //                 "publishedAt": "2026-08-26T14:00:20.780Z",
+            //                 "resolutionProvider": "CHAINLINK",
+            //                 "shortTitle": "ETH Up or Down 15m",
+            //                 "slug": "eth-updown-15m-1787839200",
+            //                 "startsAt": "2026-08-27T14:00:00.000Z",
+            //                 "stats": null,
+            //                 "status": "OPEN",
+            //                 "tags": [
+            //                     {
+            //                         "id": "2",
+            //                         "level": 1,
+            //                         "makerRebateBps": 0,
+            //                         "name": "Crypto",
+            //                         "parentId": null
+            //                     },
+            //                     {
+            //                         "id": "7",
+            //                         "level": null,
+            //                         "makerRebateBps": 0,
+            //                         "name": "ETH",
+            //                         "parentId": null
+            //                     },
+            //                     {
+            //                         "id": "111",
+            //                         "level": 2,
+            //                         "makerRebateBps": 2500,
+            //                         "name": "Up/Down",
+            //                         "parentId": "2"
+            //                     },
+            //                     {
+            //                         "id": "146",
+            //                         "level": 2,
+            //                         "makerRebateBps": 0,
+            //                         "name": "15 Min",
+            //                         "parentId": "2"
+            //                     }
+            //                 ],
+            //                 "teams": null,
+            //                 "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                 "variantData": {
+            //                     "endPrice": null,
+            //                     "priceFeedId": "0x0003543336278a459ac24c2f239ffa36f279cadc71f4babc9f8126c6ff10011d",
+            //                     "priceFeedProvider": "CHAINLINK",
+            //                     "priceFeedSymbol": "ETHUSDT",
+            //                     "startPrice": null,
+            //                     "type": "CRYPTO_UP_DOWN"
+            //                 },
+            //                 "variantDetails": {
+            //                     "crypto": {
+            //                         "priceFeedId": "0x0003543336278a459ac24c2f239ffa36f279cadc71f4babc9f8126c6ff10011d",
+            //                         "priceFeedProvider": "CHAINLINK",
+            //                         "priceFeedSymbol": "ETHUSDT"
+            //                     },
+            //                     "upDown": {
+            //                         "priceFeedId": "0x0003543336278a459ac24c2f239ffa36f279cadc71f4babc9f8126c6ff10011d",
+            //                         "priceFeedProvider": "CHAINLINK",
+            //                         "priceFeedSymbol": "ETHUSDT"
+            //                     }
+            //                 }
+            //             }
+            //         ],
+            //         "success": true
+            //     }
+            //
+            List<Object> data = this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
+            rawTopics = this.arrayConcat(rawTopics, data);
+            Integer topicsLength = ((List<?>)rawTopics).size();
+            while ((fetchCap != null && (topicsLength == null || topicsLength < fetchCap)))
             {
-                fetchCap = userLimit;
-            }
-            String slug = this.safeString2(paramsValue, "slug", "eventId");
-            Map<String, Object> rest = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("status", "limit", "sort", "eventId", "slug", "tags", "marketVariant")));
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                this.markets = this.createSafeDictionary();
-            }
-            Object rawTopics = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(slug, null))
-            {
-                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                mapLiteral2.put("slug", slug);
-                Map<String, Object> response = (this.predictfunGetV1CategoriesSlug(this.extend(mapLiteral2, rest))).join();
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", null);
-                rawTopics = new ArrayList<Object>(Arrays.asList(data));
-            } else if ((queriesLength != null && queriesLength > 0))
-            {
-                // a query/queries scope is answered by the dedicated search endpoint — the categories
-                // listing has no text filter, so paging it and matching client-side would both miss
-                // the venue's semantic matches and cost one request per page
-                rawTopics = (this.fetchRawTopicsByQueries(queries, paramsValue)).join();
-            } else
-            {
-                Map<String, Object> request = new HashMap<String, Object>() {{}};
-                List<String> tags = (List<String>) this.safeList(paramsValue, "tags", new ArrayList<Object>(Arrays.asList()));
-                if (tags.size() > 0)
+                String nextPageToken = this.safeString(rawTopicsResponse, "cursor");
+                if (java.util.Objects.equals(nextPageToken, null))
                 {
-                    request.put("tagIds", String.join(",", tags));
+                    break;
                 }
-                ((List<Object>)postOmitKeys).add("limit");
-                Map<String, Object> paramsCategories = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("limit", "tags")));
-                Map<String, Object> extendedRequest = this.extend(request, paramsCategories);
-                Map<String, Object> rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
-                //
-                //     {
-                //         "cursor": "NDA1MDA0",
-                //         "data": [
-                //             {
-                //                 "createdAt": "2026-08-26T14:00:02.000Z",
-                //                 "description": "This market will resolve to \"Up\" if the ETH/USDT price at the end of the time range specified in the title is greater than the price at the beginning of that range.\r\n\r\nIt will resolve to \"Down\" if the ETH/USDT price at the end of the time range is lower than the price at the beginning of that range.\r\n\r\nIf the two prices are exactly equal, the market will resolve 50-50.\r\n\r\nThe primary resolution source for this market is Chainlink, specifically the ETH/USDT data stream available at https://data.chain.link/streams/eth-usdt-topofbook-datalink?timeframe=1d&chart=candlestick.\r\n\r\nTo verify the final price, use the close price of the 5m candlestick just before the market's end time. For example, for a market running from 1:00 to 1:15 PM ET or 1:10 to 1:15 PM ET, use the close price of the 1:10 PM candlestick as the final price.\r\n\r\nThe Chainlink stream uses the mid-price, which is calculated as the average price between the bid and ask prices from Binance's Top of Book, converted into the quote currency.\r\n\r\nThis market is based solely on the price reported by the Chainlink ETH/USDT data stream, not on other sources or spot markets.\r\n\r\nIf Chainlink data is unavailable or otherwise unusable for resolution, the market will resolve based on a consensus of reliable sources.\n2026-08-27T14:00:00Z",
-                //                 "endsAt": "2026-08-27T14:15:00.000Z",
-                //                 "id": 405022,
-                //                 "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
-                //                 "isNegRisk": false,
-                //                 "isVisible": true,
-                //                 "isYieldBearing": false,
-                //                 "marketVariant": "CRYPTO_UP_DOWN",
-                //                 "markets": [
-                //                     {
-                //                         "boostEndsAt": "2026-08-27T14:15:00.000Z",
-                //                         "boostStartsAt": "2026-08-27T14:00:00.000Z",
-                //                         "categorySlug": "eth-updown-15m-1787839200",
-                //                         "conditionId": "0xa8e9c348c299989329debd86aaef81a1c4880d42c3954a684bdc731f7a113487",
-                //                         "createdAt": "2026-08-26T14:00:02.000Z",
-                //                         "decimalPrecision": 2,
-                //                         "description": "This market will resolve to \"Up\" if the ETH/USDT price at the end of the time range specified in the title is greater than the price at the beginning of that range.\r\n\r\nIt will resolve to \"Down\" if the ETH/USDT price at the end of the time range is lower than the price at the beginning of that range.\r\n\r\nIf the two prices are exactly equal, the market will resolve 50-50.\r\n\r\nThe primary resolution source for this market is Chainlink, specifically the ETH/USDT data stream available at https://data.chain.link/streams/eth-usdt-topofbook-datalink?timeframe=1d&chart=candlestick.\r\n\r\nTo verify the final price, use the close price of the 5m candlestick just before the market's end time. For example, for a market running from 1:00 to 1:15 PM ET or 1:10 to 1:15 PM ET, use the close price of the 1:10 PM candlestick as the final price.\r\n\r\nThe Chainlink stream uses the mid-price, which is calculated as the average price between the bid and ask prices from Binance's Top of Book, converted into the quote currency.\r\n\r\nThis market is based solely on the price reported by the Chainlink ETH/USDT data stream, not on other sources or spot markets.\r\n\r\nIf Chainlink data is unavailable or otherwise unusable for resolution, the market will resolve based on a consensus of reliable sources.",
-                //                         "feeRateBps": 200,
-                //                         "id": 1739803,
-                //                         "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
-                //                         "isBoosted": false,
-                //                         "isNegRisk": false,
-                //                         "isVisible": true,
-                //                         "isYieldBearing": false,
-                //                         "kalshiMarketTicker": null,
-                //                         "marketType": null,
-                //                         "marketVariant": "CRYPTO_UP_DOWN",
-                //                         "oracleQuestionId": "0x6ab55f25f108508e7c6cc9bb22e3304d3fcecd0771d741fdf6d67e6b7ab9af2c",
-                //                         "outcomes": [
-                //                             {
-                //                                 "bestAsk": {
-                //                                     "price": 0.98,
-                //                                     "size": 100
-                //                                 },
-                //                                 "bestBid": {
-                //                                     "price": 0.02,
-                //                                     "size": 100
-                //                                 },
-                //                                 "indexSet": 1,
-                //                                 "name": "Up",
-                //                                 "onChainId": "63015212288887519605689521802215931005858239156918107575780791658588345185817",
-                //                                 "status": null,
-                //                                 "team": null,
-                //                                 "variantData": null
-                //                             },
-                //                             {
-                //                                 "bestAsk": {
-                //                                     "price": 0.98,
-                //                                     "size": 100
-                //                                 },
-                //                                 "bestBid": {
-                //                                     "price": 0.02,
-                //                                     "size": 100
-                //                                 },
-                //                                 "indexSet": 2,
-                //                                 "name": "Down",
-                //                                 "onChainId": "111913554301217491431600756326792444318464112865057816486042507140136158411642",
-                //                                 "status": null,
-                //                                 "team": null,
-                //                                 "variantData": null
-                //                             }
-                //                         ],
-                //                         "polymarketConditionIds": [],
-                //                         "question": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
-                //                         "questionIndex": null,
-                //                         "resolution": null,
-                //                         "resolverAddress": "0x77620FAb2969dF2D5696F1f081940E416Cf17cA5",
-                //                         "rewards": {
-                //                             "current": null,
-                //                             "schedule": [
-                //                                 {
-                //                                     "endsAt": "2026-08-27T14:15:00.000Z",
-                //                                     "hourlyRate": 3000,
-                //                                     "startsAt": "2026-08-27T14:00:00.000Z"
-                //                                 }
-                //                             ]
-                //                         },
-                //                         "shareThreshold": 100,
-                //                         "spreadThreshold": 0.06,
-                //                         "status": "REGISTERED",
-                //                         "team": null,
-                //                         "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
-                //                         "tradingStatus": "OPEN",
-                //                         "variantData": {
-                //                             "endPrice": null,
-                //                             "priceFeedId": "0x0003543336278a459ac24c2f239ffa36f279cadc71f4babc9f8126c6ff10011d",
-                //                             "priceFeedProvider": "CHAINLINK",
-                //                             "priceFeedSymbol": "ETHUSDT",
-                //                             "startPrice": null,
-                //                             "type": "CRYPTO_UP_DOWN"
-                //                         }
-                //                     }
-                //                 ],
-                //                 "negRiskOnChainId": null,
-                //                 "parentSlug": null,
-                //                 "publishedAt": "2026-08-26T14:00:20.780Z",
-                //                 "resolutionProvider": "CHAINLINK",
-                //                 "shortTitle": "ETH Up or Down 15m",
-                //                 "slug": "eth-updown-15m-1787839200",
-                //                 "startsAt": "2026-08-27T14:00:00.000Z",
-                //                 "stats": null,
-                //                 "status": "OPEN",
-                //                 "tags": [
-                //                     {
-                //                         "id": "2",
-                //                         "level": 1,
-                //                         "makerRebateBps": 0,
-                //                         "name": "Crypto",
-                //                         "parentId": null
-                //                     },
-                //                     {
-                //                         "id": "7",
-                //                         "level": null,
-                //                         "makerRebateBps": 0,
-                //                         "name": "ETH",
-                //                         "parentId": null
-                //                     },
-                //                     {
-                //                         "id": "111",
-                //                         "level": 2,
-                //                         "makerRebateBps": 2500,
-                //                         "name": "Up/Down",
-                //                         "parentId": "2"
-                //                     },
-                //                     {
-                //                         "id": "146",
-                //                         "level": 2,
-                //                         "makerRebateBps": 0,
-                //                         "name": "15 Min",
-                //                         "parentId": "2"
-                //                     }
-                //                 ],
-                //                 "teams": null,
-                //                 "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
-                //                 "variantData": {
-                //                     "endPrice": null,
-                //                     "priceFeedId": "0x0003543336278a459ac24c2f239ffa36f279cadc71f4babc9f8126c6ff10011d",
-                //                     "priceFeedProvider": "CHAINLINK",
-                //                     "priceFeedSymbol": "ETHUSDT",
-                //                     "startPrice": null,
-                //                     "type": "CRYPTO_UP_DOWN"
-                //                 },
-                //                 "variantDetails": {
-                //                     "crypto": {
-                //                         "priceFeedId": "0x0003543336278a459ac24c2f239ffa36f279cadc71f4babc9f8126c6ff10011d",
-                //                         "priceFeedProvider": "CHAINLINK",
-                //                         "priceFeedSymbol": "ETHUSDT"
-                //                     },
-                //                     "upDown": {
-                //                         "priceFeedId": "0x0003543336278a459ac24c2f239ffa36f279cadc71f4babc9f8126c6ff10011d",
-                //                         "priceFeedProvider": "CHAINLINK",
-                //                         "priceFeedSymbol": "ETHUSDT"
-                //                     }
-                //                 }
-                //             }
-                //         ],
-                //         "success": true
-                //     }
-                //
-                List<Object> data = this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                extendedRequest.put("after", nextPageToken);
+                rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
+                data = (List<Object>) this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 rawTopics = this.arrayConcat(rawTopics, data);
-                Integer topicsLength = ((List<?>)rawTopics).size();
-                while ((fetchCap != null && (topicsLength == null || topicsLength < fetchCap)))
-                {
-                    String nextPageToken = this.safeString(rawTopicsResponse, "cursor");
-                    if (java.util.Objects.equals(nextPageToken, null))
-                    {
-                        break;
-                    }
-                    extendedRequest.put("after", nextPageToken);
-                    rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
-                    data = (List<Object>) this.safeList(rawTopicsResponse, "data", new ArrayList<Object>(Arrays.asList()));
-                    rawTopics = this.arrayConcat(rawTopics, data);
-                    topicsLength = ((List<?>)rawTopics).size();
-                }
-                if ((topicsLength != null && (fetchCap == null || topicsLength > fetchCap)))
-                {
-                    rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
-                }
+                topicsLength = ((List<?>)rawTopics).size();
             }
-            Integer rawTopicsLength = ((List<?>)rawTopics).size();
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
+            if ((topicsLength != null && (fetchCap == null || topicsLength > fetchCap)))
             {
-                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
-                ((List<Object>)result).add(parsedEvent);
-                List<Object> parsedMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
-                Integer parsedMarketsLength = parsedMarkets.size();
-                for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
+                rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
+            }
+        }
+        Integer rawTopicsLength = ((List<?>)rawTopics).size();
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
+        {
+            Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
+            ((List<Object>)result).add(parsedEvent);
+            List<Object> parsedMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
+            Integer parsedMarketsLength = parsedMarkets.size();
+            for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
+            {
+                Object m = (parsedMarkets == null || mi < 0 || mi >= parsedMarkets.size() ? null : parsedMarkets.get(mi));
+                // prediction market rows are keyed by the unified 'market' handle
+                String handle = this.safeString(m, "market");
+                if (!java.util.Objects.equals(handle, null))
                 {
-                    Object m = (parsedMarkets == null || mi < 0 || mi >= parsedMarkets.size() ? null : parsedMarkets.get(mi));
-                    // prediction market rows are keyed by the unified 'market' handle
-                    String handle = this.safeString(m, "market");
-                    if (!java.util.Objects.equals(handle, null))
-                    {
-                        this.markets.put(handle, m);
-                    }
+                    this.markets.put(handle, m);
                 }
             }
-            this.populateOutcomes();
-            // scoping already happened server-side: the tag filter needs an event-level tags field
-            // predictfun topics lack, and the query filter would drop semantic-search matches whose
-            // title uses different words than the query
-            Map<String, Object> postParams = this.omit(paramsValue, postOmitKeys);
-            // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
-            // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
-            String rawStatus = this.safeString(paramsValue, "status");
-            if (java.util.Objects.equals(rawStatus, "OPEN"))
-            {
-                postParams = this.extend(postParams, new HashMap<String, Object>() {{
-                    put( "status", "active" );
-                }});
-            } else if (java.util.Objects.equals(rawStatus, "RESOLVED"))
-            {
-                postParams = this.extend(postParams, new HashMap<String, Object>() {{
-                    put( "status", "closed" );
-                }});
-            }
-            return this.applyEventFetchParams(result, postParams, queries);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
+        }
+        this.populateOutcomes();
+        // scoping already happened server-side: the tag filter needs an event-level tags field
+        // predictfun topics lack, and the query filter would drop semantic-search matches whose
+        // title uses different words than the query
+        Map<String, Object> postParams = this.omit(paramsValue, postOmitKeys);
+        // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
+        // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
+        String rawStatus = this.safeString(paramsValue, "status");
+        if (java.util.Objects.equals(rawStatus, "OPEN"))
+        {
+            postParams = this.extend(postParams, new HashMap<String, Object>() {{
+                put( "status", "active" );
+            }});
+        } else if (java.util.Objects.equals(rawStatus, "RESOLVED"))
+        {
+            postParams = this.extend(postParams, new HashMap<String, Object>() {{
+                put( "status", "closed" );
+            }});
+        }
+        return this.applyEventFetchParams(result, postParams, queries);
 
     }
 
@@ -679,171 +685,173 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<Object>> fetchRawTopicsByQueries(Object queries, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRawTopicsByQueriesCore(queries, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private List<Object> fetchRawTopicsByQueriesCore(Object queries, Map<String, Object> parameters)
+    {
 
-            // always ask for the venue's maximum page size - this is the per-type page size of the
-            // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which
-            // applyEventFetchParams () applies to the parsed events afterwards
-            Integer limit = 25;
-            // resolved rows are excluded unless asked for — the unified status filter drives that
-            String status = this.safeString(parameters, "status");
-            String includeResolved = "false";
-            if ((!java.util.Objects.equals(status, null)) && (!java.util.Objects.equals(status, "active")) && (!java.util.Objects.equals(status, "OPEN")))
+        // always ask for the venue's maximum page size - this is the per-type page size of the
+        // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which
+        // applyEventFetchParams () applies to the parsed events afterwards
+        Integer limit = 25;
+        // resolved rows are excluded unless asked for — the unified status filter drives that
+        String status = this.safeString(parameters, "status");
+        String includeResolved = "false";
+        if ((!java.util.Objects.equals(status, null)) && (!java.util.Objects.equals(status, "active")) && (!java.util.Objects.equals(status, "OPEN")))
+        {
+            includeResolved = "true";
+        }
+        // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
+        Integer queriesLength = ((List<?>)queries).size();
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        // the venue answers every term separately and the same category comes back for each term
+        // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
+        // caller's limit after filtering, spends a slot on a repeat instead of a distinct event
+        Map<String, Object> seenSlugs = new HashMap<String, Object>() {{}};
+        // market rows whose category row did not come back, bucketed by the slug they carry
+        Map<String, Object> orphanMarkets = new HashMap<String, Object>() {{}};
+        List<String> orphanSlugs = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; (queriesLength != null && i < queriesLength); i++)
+        {
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("query", this.safeString(queries, i, ""));
+            request.put("limit", limit);
+            request.put("includeResolved", includeResolved);
+            Map<String, Object> response = (this.predictfunGetV1Search(this.extend(request, rest))).join();
+            //
+            //     {
+            //         "data": {
+            //             "categories": [
+            //                 {
+            //                     "id": 405022,
+            //                     "slug": "eth-updown-15m-1787839200",
+            //                     "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                     "description": "This market will resolve to \"Up\" ...",
+            //                     "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
+            //                     "isNegRisk": false,
+            //                     "isYieldBearing": false,
+            //                     "marketVariant": "CRYPTO_UP_DOWN",
+            //                     "variantData": null,
+            //                     "createdAt": "2026-08-26T14:00:02.000Z",
+            //                     "publishedAt": "2026-08-26T14:00:20.780Z",
+            //                     "startsAt": "2026-08-27T14:00:00.000Z",
+            //                     "endsAt": "2026-08-27T14:15:00.000Z",
+            //                     "status": "OPEN",
+            //                     "isVisible": true,
+            //                     "tags": [ { "id": "2", "name": "Crypto" } ],
+            //                     "markets": [ { "id": 1739803, "categorySlug": "eth-updown-15m-1787839200", ... } ]
+            //                 }
+            //             ],
+            //             "markets": [
+            //                 {
+            //                     "id": 1739803,
+            //                     "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
+            //                     "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                     "question": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                     "description": "This market will resolve to \"Up\" ...",
+            //                     "tradingStatus": "OPEN",
+            //                     "status": "REGISTERED",
+            //                     "isVisible": true,
+            //                     "isNegRisk": false,
+            //                     "isYieldBearing": false,
+            //                     "feeRateBps": 200,
+            //                     "conditionId": "0xa8e9c348c299989329debd86aaef81a1c4880d42c3954a684bdc731f7a113487",
+            //                     "outcomes": [ { "name": "Up", "indexSet": 1, "onChainId": "630152...", "status": null } ],
+            //                     "isBoosted": false,
+            //                     "categorySlug": "eth-updown-15m-1787839200",
+            //                     "marketVariant": "CRYPTO_UP_DOWN"
+            //                 }
+            //             ]
+            //         },
+            //         "success": true
+            //     }
+            //
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> categories = (List<Object>)(this.safeList(data, "categories", new ArrayList<Object>(Arrays.asList())));
+            Integer categoriesLength = categories.size();
+            for (var ci = 0; (categoriesLength != null && ci < categoriesLength); ci++)
             {
-                includeResolved = "true";
-            }
-            // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant")));
-            Integer queriesLength = ((List<?>)queries).size();
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            // the venue answers every term separately and the same category comes back for each term
-            // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
-            // caller's limit after filtering, spends a slot on a repeat instead of a distinct event
-            Map<String, Object> seenSlugs = new HashMap<String, Object>() {{}};
-            // market rows whose category row did not come back, bucketed by the slug they carry
-            Map<String, Object> orphanMarkets = new HashMap<String, Object>() {{}};
-            List<String> orphanSlugs = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; (queriesLength != null && i < queriesLength); i++)
-            {
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("query", this.safeString(queries, i, ""));
-                request.put("limit", limit);
-                request.put("includeResolved", includeResolved);
-                Map<String, Object> response = (this.predictfunGetV1Search(this.extend(request, rest))).join();
-                //
-                //     {
-                //         "data": {
-                //             "categories": [
-                //                 {
-                //                     "id": 405022,
-                //                     "slug": "eth-updown-15m-1787839200",
-                //                     "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
-                //                     "description": "This market will resolve to \"Up\" ...",
-                //                     "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
-                //                     "isNegRisk": false,
-                //                     "isYieldBearing": false,
-                //                     "marketVariant": "CRYPTO_UP_DOWN",
-                //                     "variantData": null,
-                //                     "createdAt": "2026-08-26T14:00:02.000Z",
-                //                     "publishedAt": "2026-08-26T14:00:20.780Z",
-                //                     "startsAt": "2026-08-27T14:00:00.000Z",
-                //                     "endsAt": "2026-08-27T14:15:00.000Z",
-                //                     "status": "OPEN",
-                //                     "isVisible": true,
-                //                     "tags": [ { "id": "2", "name": "Crypto" } ],
-                //                     "markets": [ { "id": 1739803, "categorySlug": "eth-updown-15m-1787839200", ... } ]
-                //                 }
-                //             ],
-                //             "markets": [
-                //                 {
-                //                     "id": 1739803,
-                //                     "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
-                //                     "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
-                //                     "question": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
-                //                     "description": "This market will resolve to \"Up\" ...",
-                //                     "tradingStatus": "OPEN",
-                //                     "status": "REGISTERED",
-                //                     "isVisible": true,
-                //                     "isNegRisk": false,
-                //                     "isYieldBearing": false,
-                //                     "feeRateBps": 200,
-                //                     "conditionId": "0xa8e9c348c299989329debd86aaef81a1c4880d42c3954a684bdc731f7a113487",
-                //                     "outcomes": [ { "name": "Up", "indexSet": 1, "onChainId": "630152...", "status": null } ],
-                //                     "isBoosted": false,
-                //                     "categorySlug": "eth-updown-15m-1787839200",
-                //                     "marketVariant": "CRYPTO_UP_DOWN"
-                //                 }
-                //             ]
-                //         },
-                //         "success": true
-                //     }
-                //
-                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                List<Object> categories = (List<Object>)(this.safeList(data, "categories", new ArrayList<Object>(Arrays.asList())));
-                Integer categoriesLength = categories.size();
-                for (var ci = 0; (categoriesLength != null && ci < categoriesLength); ci++)
+                Map<String, Object> category = this.safeDict(categories, ci, null);
+                String categorySlug = this.safeString(category, "slug");
+                if (java.util.Objects.equals(categorySlug, null))
                 {
-                    Map<String, Object> category = this.safeDict(categories, ci, null);
-                    String categorySlug = this.safeString(category, "slug");
-                    if (java.util.Objects.equals(categorySlug, null))
-                    {
-                        // nothing to key a duplicate on, keep the row rather than drop it
-                        ((List<Object>)result).add(category);
-                    } else if (!(seenSlugs.containsKey(categorySlug)))
-                    {
-                        seenSlugs.put(categorySlug, true);
-                        ((List<Object>)result).add(category);
-                    }
-                }
-                // a term can match a market whose category row is not in the response - those rows are
-                // the other half of the payload and would otherwise be dropped, so bucket them by the
-                // categorySlug they carry
-                List<Object> rawMarkets = this.safeList(data, "markets", new ArrayList<Object>(Arrays.asList()));
-                Integer rawMarketsLength = rawMarkets.size();
-                for (var mi = 0; (rawMarketsLength != null && mi < rawMarketsLength); mi++)
+                    // nothing to key a duplicate on, keep the row rather than drop it
+                    ((List<Object>)result).add(category);
+                } else if (!(seenSlugs.containsKey(categorySlug)))
                 {
-                    Object rawMarket = (rawMarkets == null || mi < 0 || mi >= rawMarkets.size() ? null : rawMarkets.get(mi));
-                    String marketSlug = this.safeString(rawMarket, "categorySlug");
-                    if (!java.util.Objects.equals(marketSlug, null))
-                    {
-                        if (orphanMarkets.containsKey(marketSlug))
-                        {
-                            // push through a local and write the slice back - the go transpiler's
-                            // AppendToArray reassigns only a local copy of a map-stored array
-                            List<Object> bucket = (List<Object>) ((orphanMarkets == null || marketSlug == null ? null : orphanMarkets.get(marketSlug)));
-                            bucket.add(rawMarket);
-                            orphanMarkets.put(marketSlug, bucket);
-                        } else
-                        {
-                            orphanMarkets.put(marketSlug, new ArrayList<Object>(Arrays.asList(rawMarket)));
-                            orphanSlugs.add(marketSlug);
-                        }
-                    }
+                    seenSlugs.put(categorySlug, true);
+                    ((List<Object>)result).add(category);
                 }
             }
-            // whatever the category rows did not claim is a market-only hit: synthesize the enclosing
-            // topic from the market rows themselves, without spending a request per slug
-            Integer orphanSlugsLength = orphanSlugs.size();
-            for (var i = 0; (orphanSlugsLength != null && i < orphanSlugsLength); i++)
+            // a term can match a market whose category row is not in the response - those rows are
+            // the other half of the payload and would otherwise be dropped, so bucket them by the
+            // categorySlug they carry
+            List<Object> rawMarkets = this.safeList(data, "markets", new ArrayList<Object>(Arrays.asList()));
+            Integer rawMarketsLength = rawMarkets.size();
+            for (var mi = 0; (rawMarketsLength != null && mi < rawMarketsLength); mi++)
             {
-                String orphanSlug = (orphanSlugs == null || i < 0 || i >= orphanSlugs.size() ? null : orphanSlugs.get(i));
-                if (!(seenSlugs.containsKey(orphanSlug)))
+                Object rawMarket = (rawMarkets == null || mi < 0 || mi >= rawMarkets.size() ? null : rawMarkets.get(mi));
+                String marketSlug = this.safeString(rawMarket, "categorySlug");
+                if (!java.util.Objects.equals(marketSlug, null))
                 {
-                    seenSlugs.put(orphanSlug, true);
-                    Object markets = (orphanMarkets == null || orphanSlug == null ? null : orphanMarkets.get(orphanSlug));
-                    Map<String, Object> first = this.safeDict(markets, 0, new HashMap<String, Object>() {{}});
-                    // the market row's 'status' is the registration enum ('REGISTERED' /
-                    // 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /
-                    // 'RESOLVED') - copying it verbatim would report resolved: false for a resolved hit
-                    String marketStatus = this.safeString(first, "status");
-                    String tradingStatus = this.safeString(first, "tradingStatus");
-                    String topicStatus = null;
-                    if ((java.util.Objects.equals(marketStatus, "RESOLVED")) || (java.util.Objects.equals(marketStatus, "SETTLED")))
+                    if (orphanMarkets.containsKey(marketSlug))
                     {
-                        topicStatus = "RESOLVED";
-                    } else if (java.util.Objects.equals(tradingStatus, "OPEN"))
+                        // push through a local and write the slice back - the go transpiler's
+                        // AppendToArray reassigns only a local copy of a map-stored array
+                        List<Object> bucket = (List<Object>) ((orphanMarkets == null || marketSlug == null ? null : orphanMarkets.get(marketSlug)));
+                        bucket.add(rawMarket);
+                        orphanMarkets.put(marketSlug, bucket);
+                    } else
                     {
-                        topicStatus = "OPEN";
+                        orphanMarkets.put(marketSlug, new ArrayList<Object>(Arrays.asList(rawMarket)));
+                        orphanSlugs.add(marketSlug);
                     }
-                    HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-                    mapLiteral3.put("id", orphanSlug);
-                    mapLiteral3.put("slug", orphanSlug);
-                    mapLiteral3.put("title", this.safeString(first, "title"));
-                    mapLiteral3.put("description", this.safeString(first, "description"));
-                    mapLiteral3.put("imageUrl", this.safeString(first, "imageUrl"));
-                    mapLiteral3.put("marketVariant", this.safeString(first, "marketVariant"));
-                    mapLiteral3.put("isNegRisk", this.safeBool(first, "isNegRisk", (Object) null));
-                    mapLiteral3.put("isYieldBearing", this.safeBool(first, "isYieldBearing", (Object) null));
-                    mapLiteral3.put("isVisible", this.safeBool(first, "isVisible", (Object) null));
-                    mapLiteral3.put("status", topicStatus);
-                    mapLiteral3.put("createdAt", this.safeString(first, "createdAt"));
-                    mapLiteral3.put("markets", markets);
-                    ((List<Object>)result).add(mapLiteral3);
                 }
             }
-            return result;
-        });
+        }
+        // whatever the category rows did not claim is a market-only hit: synthesize the enclosing
+        // topic from the market rows themselves, without spending a request per slug
+        Integer orphanSlugsLength = orphanSlugs.size();
+        for (var i = 0; (orphanSlugsLength != null && i < orphanSlugsLength); i++)
+        {
+            String orphanSlug = (orphanSlugs == null || i < 0 || i >= orphanSlugs.size() ? null : orphanSlugs.get(i));
+            if (!(seenSlugs.containsKey(orphanSlug)))
+            {
+                seenSlugs.put(orphanSlug, true);
+                Object markets = (orphanMarkets == null || orphanSlug == null ? null : orphanMarkets.get(orphanSlug));
+                Map<String, Object> first = this.safeDict(markets, 0, new HashMap<String, Object>() {{}});
+                // the market row's 'status' is the registration enum ('REGISTERED' /
+                // 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /
+                // 'RESOLVED') - copying it verbatim would report resolved: false for a resolved hit
+                String marketStatus = this.safeString(first, "status");
+                String tradingStatus = this.safeString(first, "tradingStatus");
+                String topicStatus = null;
+                if ((java.util.Objects.equals(marketStatus, "RESOLVED")) || (java.util.Objects.equals(marketStatus, "SETTLED")))
+                {
+                    topicStatus = "RESOLVED";
+                } else if (java.util.Objects.equals(tradingStatus, "OPEN"))
+                {
+                    topicStatus = "OPEN";
+                }
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("id", orphanSlug);
+                mapLiteral3.put("slug", orphanSlug);
+                mapLiteral3.put("title", this.safeString(first, "title"));
+                mapLiteral3.put("description", this.safeString(first, "description"));
+                mapLiteral3.put("imageUrl", this.safeString(first, "imageUrl"));
+                mapLiteral3.put("marketVariant", this.safeString(first, "marketVariant"));
+                mapLiteral3.put("isNegRisk", this.safeBool(first, "isNegRisk", (Object) null));
+                mapLiteral3.put("isYieldBearing", this.safeBool(first, "isYieldBearing", (Object) null));
+                mapLiteral3.put("isVisible", this.safeBool(first, "isVisible", (Object) null));
+                mapLiteral3.put("status", topicStatus);
+                mapLiteral3.put("createdAt", this.safeString(first, "createdAt"));
+                mapLiteral3.put("markets", markets);
+                ((List<Object>)result).add(mapLiteral3);
+            }
+        }
+        return result;
 
     }
 
@@ -1386,76 +1394,78 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBookCore(Object outcome, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", Predictfun.this.safeString(info, "marketId") );
-            }};
-            Map<String, Object> response = (this.predictfunGetV1MarketsIdOrderbook(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data":
-            //             {
-            //             "asks": [
-            //                 [ 0.99, 101 ]
-            //             ],
-            //             "bids": [
-            //                 [ 0.01, 101 ]
-            //             ],
-            //             "lastOrderSettled": null,
-            //             "marketId": 1743016,
-            //             "updateTimestampMs": 1787770521244
-            //         },
-            //         "success":true
-            //     }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Long timestamp = this.safeInteger(data, "updateTimestampMs");
-            // The outcome lables are not the same as the outcome indexSet values, so we need to check the indexSet to determine which outcome is being requested
-            Long indexSet = this.safeInteger(info, "indexSet");
-            Boolean isYesOutcome = ((indexSet != null && indexSet == 1));
-            Object outcomeSymbol = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
-            // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-            if (Boolean.TRUE.equals(isYesOutcome))
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", Predictfun.this.safeString(info, "marketId") );
+        }};
+        Map<String, Object> response = (this.predictfunGetV1MarketsIdOrderbook(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data":
+        //             {
+        //             "asks": [
+        //                 [ 0.99, 101 ]
+        //             ],
+        //             "bids": [
+        //                 [ 0.01, 101 ]
+        //             ],
+        //             "lastOrderSettled": null,
+        //             "marketId": 1743016,
+        //             "updateTimestampMs": 1787770521244
+        //         },
+        //         "success":true
+        //     }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Long timestamp = this.safeInteger(data, "updateTimestampMs");
+        // The outcome lables are not the same as the outcome indexSet values, so we need to check the indexSet to determine which outcome is being requested
+        Long indexSet = this.safeInteger(info, "indexSet");
+        Boolean isYesOutcome = ((indexSet != null && indexSet == 1));
+        Object outcomeSymbol = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
+        if (Boolean.TRUE.equals(isYesOutcome))
+        {
+            Map<String, Object> yesOrderbook = (Map<String, Object>) this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1, 2);
+            return this.safePredictionOrderBook(yesOrderbook, outcomeObj);
+        } else
+        {
+            List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> noBids = new ArrayList<Object>(Arrays.asList());
+            List<Object> noAsks = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < bids.size(); i++)
             {
-                Map<String, Object> yesOrderbook = (Map<String, Object>) this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1, 2);
-                return this.safePredictionOrderBook(yesOrderbook, outcomeObj);
-            } else
-            {
-                List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-                List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-                List<Object> noBids = new ArrayList<Object>(Arrays.asList());
-                List<Object> noAsks = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < bids.size(); i++)
-                {
-                    List<Object> bid = this.safeList(bids, i, null);
-                    String bidPrice = this.safeString(bid, 0);
-                    Double bidSize = this.parseNumber(this.safeString(bid, 1));
-                    Double complementPrice = this.parseNumber(Precise.stringSub("1", bidPrice));
-                    ((List<Object>)noAsks).add(new ArrayList<Object>(Arrays.asList(complementPrice, bidSize)));
-                }
-                for (var i = 0; i < asks.size(); i++)
-                {
-                    List<Object> ask = this.safeList(asks, i, null);
-                    String askPrice = this.safeString(ask, 0);
-                    Double askSize = this.parseNumber(this.safeString(ask, 1));
-                    Double complementPrice = this.parseNumber(Precise.stringSub("1", askPrice));
-                    ((List<Object>)noBids).add(new ArrayList<Object>(Arrays.asList(complementPrice, askSize)));
-                }
-                Map<String, Object> noOrderbook = new HashMap<String, Object>() {{
-                    put( "bids", Predictfun.this.sortBy(noBids, 0, true) );
-                    put( "asks", Predictfun.this.sortBy(noAsks, 0) );
-                    put( "timestamp", timestamp );
-                    put( "datetime", Predictfun.this.iso8601(timestamp) );
-                    put( "nonce", null );
-                }};
-                return this.safePredictionOrderBook(noOrderbook, outcomeObj);
+                List<Object> bid = this.safeList(bids, i, null);
+                String bidPrice = this.safeString(bid, 0);
+                Double bidSize = this.parseNumber(this.safeString(bid, 1));
+                Double complementPrice = this.parseNumber(Precise.stringSub("1", bidPrice));
+                ((List<Object>)noAsks).add(new ArrayList<Object>(Arrays.asList(complementPrice, bidSize)));
             }
-        }).thenApply(PredictionOrderBook::new);
+            for (var i = 0; i < asks.size(); i++)
+            {
+                List<Object> ask = this.safeList(asks, i, null);
+                String askPrice = this.safeString(ask, 0);
+                Double askSize = this.parseNumber(this.safeString(ask, 1));
+                Double complementPrice = this.parseNumber(Precise.stringSub("1", askPrice));
+                ((List<Object>)noBids).add(new ArrayList<Object>(Arrays.asList(complementPrice, askSize)));
+            }
+            Map<String, Object> noOrderbook = new HashMap<String, Object>() {{
+                put( "bids", Predictfun.this.sortBy(noBids, 0, true) );
+                put( "asks", Predictfun.this.sortBy(noAsks, 0) );
+                put( "timestamp", timestamp );
+                put( "datetime", Predictfun.this.iso8601(timestamp) );
+                put( "nonce", null );
+            }};
+            return this.safePredictionOrderBook(noOrderbook, outcomeObj);
+        }
 
     }
 
@@ -1470,52 +1480,54 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(outcome, parameters)).thenApply(PredictionTicker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String outcome, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", Predictfun.this.safeString(info, "marketId") );
-            }};
-            // the market detail carries a bestBid/bestAsk per outcome, already sided for the NO
-            // outcome - last price and volume live behind /last-sale and /stats, one request each,
-            // so they are left undefined rather than spending extra calls on them
-            Map<String, Object> response = (this.predictfunGetV1MarketsId(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data": {
-            //             "id": 2107,
-            //             "title": "Will Trump acquire Greenland before 2027?",
-            //             "tradingStatus": "OPEN",
-            //             "status": "REGISTERED",
-            //             "decimalPrecision": 2,
-            //             "feeRateBps": 200,
-            //             "outcomes": [
-            //                 {
-            //                     "name": "Yes",
-            //                     "indexSet": 1,
-            //                     "onChainId": "43765171147442247918432418752066697760469767620931280624762484655579631167373",
-            //                     "bestBid": { "price": 0.02, "size": 1448.4122448979592 },
-            //                     "bestAsk": { "price": 0.032, "size": 675.29 },
-            //                     "status": null
-            //                 },
-            //                 {
-            //                     "name": "No",
-            //                     "indexSet": 2,
-            //                     "bestBid": { "price": 0.968, "size": 675.29 },
-            //                     "bestAsk": { "price": 0.98, "size": 1448.4122448979592 },
-            //                     "status": null
-            //                 }
-            //             ]
-            //         },
-            //         "success": true
-            //     }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePredictionTicker(data, outcomeObj);
-        }).thenApply(PredictionTicker::new);
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", Predictfun.this.safeString(info, "marketId") );
+        }};
+        // the market detail carries a bestBid/bestAsk per outcome, already sided for the NO
+        // outcome - last price and volume live behind /last-sale and /stats, one request each,
+        // so they are left undefined rather than spending extra calls on them
+        Map<String, Object> response = (this.predictfunGetV1MarketsId(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": {
+        //             "id": 2107,
+        //             "title": "Will Trump acquire Greenland before 2027?",
+        //             "tradingStatus": "OPEN",
+        //             "status": "REGISTERED",
+        //             "decimalPrecision": 2,
+        //             "feeRateBps": 200,
+        //             "outcomes": [
+        //                 {
+        //                     "name": "Yes",
+        //                     "indexSet": 1,
+        //                     "onChainId": "43765171147442247918432418752066697760469767620931280624762484655579631167373",
+        //                     "bestBid": { "price": 0.02, "size": 1448.4122448979592 },
+        //                     "bestAsk": { "price": 0.032, "size": 675.29 },
+        //                     "status": null
+        //                 },
+        //                 {
+        //                     "name": "No",
+        //                     "indexSet": 2,
+        //                     "bestBid": { "price": 0.968, "size": 675.29 },
+        //                     "bestAsk": { "price": 0.98, "size": 1448.4122448979592 },
+        //                     "status": null
+        //                 }
+        //             ]
+        //         },
+        //         "success": true
+        //     }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        return this.parsePredictionTicker(data, outcomeObj);
 
     }
 
@@ -1627,72 +1639,74 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String signerAddress = this.safeString(parameters, "signerAddress", this.walletAddress);
-            if (java.util.Objects.equals(signerAddress, null))
+        String signerAddress = this.safeString(parameters, "signerAddress", this.walletAddress);
+        if (java.util.Objects.equals(signerAddress, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a walletAddress, or a \"signerAddress\" parameter for any other address")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("signerAddress", signerAddress);
+        Map<String, Object> outcomeObj = null;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+            outcomeObj = this.outcome((String) (outcome));
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            request.put("marketId", this.safeString(info, "marketId"));
+        }
+        Map<String, Object> query = this.omit(parameters, "signerAddress");
+        // the endpoint carries no time filter, it pages back from the most recent match, so
+        // since is applied client side by parsePredictionTrades
+        Map<String, Object> response = (this.predictfunGetV1OrdersMatches(this.extend(request, query))).join();
+        // the venue answers with the shape documented in fetchTrades below
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        String wallet = signerAddress.toLowerCase();
+        // a settlement names one taker and several makers, and the wallet may sit on either side,
+        // so the legs it signed are the ones to report - a self trade legitimately yields two rows
+        List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
+        Integer dataLength = data.size();
+        for (var i = 0; (dataLength != null && i < dataLength); i++)
+        {
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> taker = this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
+            String takerSigner = this.safeStringLower(taker, "signer");
+            if (java.util.Objects.equals(takerSigner, wallet))
             {
-                throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a walletAddress, or a \"signerAddress\" parameter for any other address")) ;
+                Map<String, Object> takerParty = this.extend(taker, new HashMap<String, Object>() {{
+                    put( "role", "taker" );
+                    put( "takerOrMaker", "taker" );
+                    put( "type", "market" );
+                }});
+                ((List<Object>)flattenTrades).add(this.extend(entry, new HashMap<String, Object>() {{
+                    put( "partyToParse", takerParty );
+                }}));
             }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("signerAddress", signerAddress);
-            Map<String, Object> outcomeObj = null;
-            if (!java.util.Objects.equals(outcome, null))
+            List<Object> makers = this.safeList(entry, "makers", new ArrayList<Object>(Arrays.asList()));
+            Integer makersLength = makers.size();
+            for (var j = 0; (makersLength != null && j < makersLength); j++)
             {
-                (this.loadOutcome((String) (outcome), false)).join();
-                outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                request.put("marketId", this.safeString(info, "marketId"));
-            }
-            Map<String, Object> query = this.omit(parameters, "signerAddress");
-            // the endpoint carries no time filter, it pages back from the most recent match, so
-            // since is applied client side by parsePredictionTrades
-            Map<String, Object> response = (this.predictfunGetV1OrdersMatches(this.extend(request, query))).join();
-            // the venue answers with the shape documented in fetchTrades below
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            String wallet = signerAddress.toLowerCase();
-            // a settlement names one taker and several makers, and the wallet may sit on either side,
-            // so the legs it signed are the ones to report - a self trade legitimately yields two rows
-            List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = data.size();
-            for (var i = 0; (dataLength != null && i < dataLength); i++)
-            {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Map<String, Object> taker = this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
-                String takerSigner = this.safeStringLower(taker, "signer");
-                if (java.util.Objects.equals(takerSigner, wallet))
+                Object maker = (makers == null || j < 0 || j >= makers.size() ? null : makers.get(j));
+                String makerSigner = this.safeStringLower(maker, "signer");
+                if (java.util.Objects.equals(makerSigner, wallet))
                 {
-                    Map<String, Object> takerParty = this.extend(taker, new HashMap<String, Object>() {{
-                        put( "role", "taker" );
-                        put( "takerOrMaker", "taker" );
-                        put( "type", "market" );
+                    Map<String, Object> makerParty = this.extend(maker, new HashMap<String, Object>() {{
+                        put( "role", "maker" );
+                        put( "takerOrMaker", "maker" );
+                        put( "type", "limit" );
                     }});
                     ((List<Object>)flattenTrades).add(this.extend(entry, new HashMap<String, Object>() {{
-                        put( "partyToParse", takerParty );
+                        put( "partyToParse", makerParty );
                     }}));
                 }
-                List<Object> makers = this.safeList(entry, "makers", new ArrayList<Object>(Arrays.asList()));
-                Integer makersLength = makers.size();
-                for (var j = 0; (makersLength != null && j < makersLength); j++)
-                {
-                    Object maker = (makers == null || j < 0 || j >= makers.size() ? null : makers.get(j));
-                    String makerSigner = this.safeStringLower(maker, "signer");
-                    if (java.util.Objects.equals(makerSigner, wallet))
-                    {
-                        Map<String, Object> makerParty = this.extend(maker, new HashMap<String, Object>() {{
-                            put( "role", "maker" );
-                            put( "takerOrMaker", "maker" );
-                            put( "type", "limit" );
-                        }});
-                        ((List<Object>)flattenTrades).add(this.extend(entry, new HashMap<String, Object>() {{
-                            put( "partyToParse", makerParty );
-                        }}));
-                    }
-                }
             }
-            return this.parsePredictionTrades(flattenTrades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        }
+        return this.parsePredictionTrades(flattenTrades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1711,105 +1725,107 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketId", Predictfun.this.safeString(info, "marketId") );
-            }};
-            // the endpoint carries no time filter, it pages back from the most recent match, so
-            // since is applied client side by parsePredictionTrades
-            Map<String, Object> response = (this.predictfunGetV1OrdersMatches(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTA1VDIzOjU1OjU2WiJ9",
-            //         "data": [
-            //             {
-            //                 "amountFilled": "8409090909090909720",
-            //                 "executedAt": "2026-09-06T11:45:23.000Z",
-            //                 "priceExecuted": "111200000000000000",
-            //                 "settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
-            //                 "transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
-            //                 "taker": {
-            //                     "amount": "8409090909090909720",
-            //                     "fee": { "amount": "151363636363636374", "type": "SHARES" },
-            //                     "hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
-            //                     "outcome": { "indexSet": 1, "name": "Up", "onChainId": "44616422429987613582483910707767544579739686077414897363305263997555112684875" },
-            //                     "price": "112000000000000000",
-            //                     "quoteType": "Bid",
-            //                     "signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
-            //                 },
-            //                 "makers": [
-            //                     {
-            //                         "amount": "1009090909090909720",
-            //                         "fee": { "amount": "0", "type": "SHARES" },
-            //                         "hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
-            //                         "outcome": { "indexSet": 2, "name": "Down", "onChainId": "39857821499700810175970492505692306870421072168717601114846981613437602260320" },
-            //                         "price": "880000000000000000",
-            //                         "quoteType": "Bid",
-            //                         "signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
-            //                     }
-            //                 ],
-            //                 "market": { "id": 1965449 }
-            //             }
-            //         ],
-            //         "success": true
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = data.size();
-            for (var i = 0; (dataLength != null && i < dataLength); i++)
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "marketId", Predictfun.this.safeString(info, "marketId") );
+        }};
+        // the endpoint carries no time filter, it pages back from the most recent match, so
+        // since is applied client side by parsePredictionTrades
+        Map<String, Object> response = (this.predictfunGetV1OrdersMatches(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTA1VDIzOjU1OjU2WiJ9",
+        //         "data": [
+        //             {
+        //                 "amountFilled": "8409090909090909720",
+        //                 "executedAt": "2026-09-06T11:45:23.000Z",
+        //                 "priceExecuted": "111200000000000000",
+        //                 "settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
+        //                 "transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
+        //                 "taker": {
+        //                     "amount": "8409090909090909720",
+        //                     "fee": { "amount": "151363636363636374", "type": "SHARES" },
+        //                     "hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
+        //                     "outcome": { "indexSet": 1, "name": "Up", "onChainId": "44616422429987613582483910707767544579739686077414897363305263997555112684875" },
+        //                     "price": "112000000000000000",
+        //                     "quoteType": "Bid",
+        //                     "signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
+        //                 },
+        //                 "makers": [
+        //                     {
+        //                         "amount": "1009090909090909720",
+        //                         "fee": { "amount": "0", "type": "SHARES" },
+        //                         "hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
+        //                         "outcome": { "indexSet": 2, "name": "Down", "onChainId": "39857821499700810175970492505692306870421072168717601114846981613437602260320" },
+        //                         "price": "880000000000000000",
+        //                         "quoteType": "Bid",
+        //                         "signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
+        //                     }
+        //                 ],
+        //                 "market": { "id": 1965449 }
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> flattenTrades = new ArrayList<Object>(Arrays.asList());
+        Integer dataLength = data.size();
+        for (var i = 0; (dataLength != null && i < dataLength); i++)
+        {
+            Map<String, Object> entry = this.safeDict(data, i, null);
+            Map<String, Object> taker = this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
+            Map<String, Object> takerOutcome = this.safeDict(taker, "outcome", new HashMap<String, Object>() {{}});
+            Long takerIndexSet = this.safeInteger(takerOutcome, "indexSet");
+            Long outcomeIndexSet = this.safeInteger(info, "indexSet");
+            Object partyToParse = this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
+            if (java.util.Objects.equals(takerIndexSet, outcomeIndexSet))
             {
-                Map<String, Object> entry = this.safeDict(data, i, null);
-                Map<String, Object> taker = this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
-                Map<String, Object> takerOutcome = this.safeDict(taker, "outcome", new HashMap<String, Object>() {{}});
-                Long takerIndexSet = this.safeInteger(takerOutcome, "indexSet");
-                Long outcomeIndexSet = this.safeInteger(info, "indexSet");
-                Object partyToParse = this.safeDict(entry, "taker", new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(takerIndexSet, outcomeIndexSet))
+                // a public print carries no takerOrMaker: the unified fetchTrades contract allows
+                // only 'taker' or nothing there, and the leg that matches the requested outcome is
+                // genuinely the maker one whenever the taker crossed into the opposite outcome.
+                // the role is kept for pricing and surfaces as the type of the order behind the leg
+                Map<String, Object> takerParty = new HashMap<String, Object>() {{
+                    put( "role", "taker" );
+                    put( "type", "market" );
+                }};
+                partyToParse = this.extend(partyToParse, takerParty);
+                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                mapLiteral4.put("partyToParse", partyToParse);
+                ((List<Object>)flattenTrades).add(this.extend(entry, mapLiteral4));
+            } else
+            {
+                List<Object> makers = this.safeList(entry, "makers", new ArrayList<Object>(Arrays.asList()));
+                Integer makersLength = makers.size();
+                Map<String, Object> makerParty = new HashMap<String, Object>() {{
+                    put( "role", "maker" );
+                    put( "type", "limit" );
+                }};
+                for (var j = 0; (makersLength != null && j < makersLength); j++)
                 {
-                    // a public print carries no takerOrMaker: the unified fetchTrades contract allows
-                    // only 'taker' or nothing there, and the leg that matches the requested outcome is
-                    // genuinely the maker one whenever the taker crossed into the opposite outcome.
-                    // the role is kept for pricing and surfaces as the type of the order behind the leg
-                    Map<String, Object> takerParty = new HashMap<String, Object>() {{
-                        put( "role", "taker" );
-                        put( "type", "market" );
-                    }};
-                    partyToParse = this.extend(partyToParse, takerParty);
-                    HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-                    mapLiteral4.put("partyToParse", partyToParse);
-                    ((List<Object>)flattenTrades).add(this.extend(entry, mapLiteral4));
-                } else
-                {
-                    List<Object> makers = this.safeList(entry, "makers", new ArrayList<Object>(Arrays.asList()));
-                    Integer makersLength = makers.size();
-                    Map<String, Object> makerParty = new HashMap<String, Object>() {{
-                        put( "role", "maker" );
-                        put( "type", "limit" );
-                    }};
-                    for (var j = 0; (makersLength != null && j < makersLength); j++)
+                    Object maker = (makers == null || j < 0 || j >= makers.size() ? null : makers.get(j));
+                    Map<String, Object> makerOutcome = this.safeDict(maker, "outcome", new HashMap<String, Object>() {{}});
+                    Long makerIndexSet = this.safeInteger(makerOutcome, "indexSet");
+                    if (java.util.Objects.equals(makerIndexSet, outcomeIndexSet))
                     {
-                        Object maker = (makers == null || j < 0 || j >= makers.size() ? null : makers.get(j));
-                        Map<String, Object> makerOutcome = this.safeDict(maker, "outcome", new HashMap<String, Object>() {{}});
-                        Long makerIndexSet = this.safeInteger(makerOutcome, "indexSet");
-                        if (java.util.Objects.equals(makerIndexSet, outcomeIndexSet))
-                        {
-                            partyToParse = maker;
-                            partyToParse = this.extend(partyToParse, makerParty);
-                            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                            mapLiteral5.put("partyToParse", partyToParse);
-                            ((List<Object>)flattenTrades).add(this.extend(entry, mapLiteral5));
-                        }
+                        partyToParse = maker;
+                        partyToParse = this.extend(partyToParse, makerParty);
+                        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                        mapLiteral5.put("partyToParse", partyToParse);
+                        ((List<Object>)flattenTrades).add(this.extend(entry, mapLiteral5));
                     }
                 }
             }
-            return this.parsePredictionTrades(flattenTrades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        }
+        return this.parsePredictionTrades(flattenTrades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1980,54 +1996,56 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object authenticateCore(Map<String, Object> parameters)
+    {
 
-            if ((java.util.Objects.equals(this.walletAddress, null)) || (java.util.Objects.equals(this.privateKey, null)))
-            {
-                throw new ArgumentsRequired((this.id + " authenticate() requires a walletAddress and a privateKey")) ;
-            }
-            Long now = this.milliseconds();
-            String cached = this.safeString(this.options, "jwtToken");
-            Long expiresAt = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
-            // a token outlives its window silently: the venue answers 401 on every order action once
-            // it lapses, so re-issue before that rather than after the first failure
-            if ((!java.util.Objects.equals(cached, null)) && ((expiresAt != null && (now == null || now < expiresAt))))
-            {
-                return cached;
-            }
-            Map<String, Object> messageResponse = (this.predictfunGetV1AuthMessage(parameters)).join();
-            //
-            //     { "data": { "message": "Sign this message to authenticate ..." }, "success": true }
-            //
-            Map<String, Object> messageData = this.safeDict(messageResponse, "data", new HashMap<String, Object>() {{}});
-            String message = this.safeString(messageData, "message");
-            if (java.util.Objects.equals(message, null))
-            {
-                throw new AuthenticationError((this.id + " authenticate() got an auth reply without the \"message\" field to sign")) ;
-            }
-            String signature = this.signHash((String) (this.hashMessage((String) (message))), (String) (this.privateKey));
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("signer", this.walletAddress);
-            request.put("message", message);
-            request.put("signature", signature);
-            Map<String, Object> response = (this.predictfunPostV1Auth(request)).join();
-            //
-            //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            String token = this.safeString(data, "token");
-            if (java.util.Objects.equals(token, null))
-            {
-                throw new AuthenticationError((this.id + " authenticate() did not return a token")) ;
-            }
-            this.options.put("jwtToken", token);
-            // measured from before the round trip, so the cached window closes a little early rather
-            // than a little late
-            Long tokenExpiresIn = this.safeInteger(this.options, "tokenExpiresIn", 86400000);
-            this.options.put("jwtTokenExpiresAt", this.sum(now, tokenExpiresIn));
-            return token;
-        });
+        if ((java.util.Objects.equals(this.walletAddress, null)) || (java.util.Objects.equals(this.privateKey, null)))
+        {
+            throw new ArgumentsRequired((this.id + " authenticate() requires a walletAddress and a privateKey")) ;
+        }
+        Long now = this.milliseconds();
+        String cached = this.safeString(this.options, "jwtToken");
+        Long expiresAt = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
+        // a token outlives its window silently: the venue answers 401 on every order action once
+        // it lapses, so re-issue before that rather than after the first failure
+        if ((!java.util.Objects.equals(cached, null)) && ((expiresAt != null && (now == null || now < expiresAt))))
+        {
+            return cached;
+        }
+        Map<String, Object> messageResponse = (this.predictfunGetV1AuthMessage(parameters)).join();
+        //
+        //     { "data": { "message": "Sign this message to authenticate ..." }, "success": true }
+        //
+        Map<String, Object> messageData = this.safeDict(messageResponse, "data", new HashMap<String, Object>() {{}});
+        String message = this.safeString(messageData, "message");
+        if (java.util.Objects.equals(message, null))
+        {
+            throw new AuthenticationError((this.id + " authenticate() got an auth reply without the \"message\" field to sign")) ;
+        }
+        String signature = this.signHash((String) (this.hashMessage((String) (message))), (String) (this.privateKey));
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("signer", this.walletAddress);
+        request.put("message", message);
+        request.put("signature", signature);
+        Map<String, Object> response = (this.predictfunPostV1Auth(request)).join();
+        //
+        //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        String token = this.safeString(data, "token");
+        if (java.util.Objects.equals(token, null))
+        {
+            throw new AuthenticationError((this.id + " authenticate() did not return a token")) ;
+        }
+        this.options.put("jwtToken", token);
+        // measured from before the round trip, so the cached window closes a little early rather
+        // than a little late
+        Long tokenExpiresIn = this.safeInteger(this.options, "tokenExpiresIn", 86400000);
+        this.options.put("jwtTokenExpiresAt", this.sum(now, tokenExpiresIn));
+        return token;
 
     }
 
@@ -2130,198 +2148,200 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(outcome, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
-            if (java.util.Objects.equals(tokenId, null))
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        String tokenId = this.safeString(outcomeObj, "outcomeId");
+        if (java.util.Objects.equals(tokenId, null))
+        {
+            throw new ArgumentsRequired(((this.id + " createOrder() could not resolve the on chain token id of ") + outcome)) ;
+        }
+        String strategy = "LIMIT";
+        if (java.util.Objects.equals(type, "market"))
+        {
+            strategy = "MARKET";
+        }
+        Boolean isMarket = (java.util.Objects.equals(strategy, "MARKET"));
+        if ((!Boolean.TRUE.equals(isMarket)) && (java.util.Objects.equals(price, null)))
+        {
+            throw new ArgumentsRequired((this.id + " createOrder() requires a \"price\" argument for a limit order")) ;
+        }
+        Boolean isBuy = (java.util.Objects.equals(side, "buy"));
+        // amounts cross the wire as collateral wei, the venue truncates the price to three
+        // significant digits and the quantity to five, so send what it will actually use
+        // the venue sizes an order from both legs and refuses anything else: a limitless style
+        // takerAmount sentinel of 1 is rejected as create_order_min_order_value_not_met (the order
+        // value is read off the taker leg) and signing at the maximum price of 1 is rejected as
+        // create_order_price_out_of_range (it wants 0 < price < 1)
+        String amountString = this.numberToString(amount);
+        String priceString = this.numberToString(price);
+        String priceToProvide = priceString;
+        // read through the extractor rather than off the instance, so one call can opt in without
+        // reconfiguring the exchange - and so the key is taken out of params instead of riding
+        // along into the request body
+        Pair<Boolean, Map<String, Object>> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "warnOnMarketOrderWithoutPrice", true);
+        Boolean warnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.first();
+        Map<String, Object> paramsWarnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.second();
+        if (java.util.Objects.equals(price, null))
+        {
+            // a priceless limit order already threw above, so this is a market order
+            if (Boolean.TRUE.equals(warnOnMarketOrderWithoutPrice))
             {
-                throw new ArgumentsRequired(((this.id + " createOrder() could not resolve the on chain token id of ") + outcome)) ;
+                throw new ArgumentsRequired((this.id + " createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options")) ;
             }
-            String strategy = "LIMIT";
-            if (java.util.Objects.equals(type, "market"))
-            {
-                strategy = "MARKET";
-            }
-            Boolean isMarket = (java.util.Objects.equals(strategy, "MARKET"));
-            if ((!Boolean.TRUE.equals(isMarket)) && (java.util.Objects.equals(price, null)))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a \"price\" argument for a limit order")) ;
-            }
-            Boolean isBuy = (java.util.Objects.equals(side, "buy"));
-            // amounts cross the wire as collateral wei, the venue truncates the price to three
-            // significant digits and the quantity to five, so send what it will actually use
-            // the venue sizes an order from both legs and refuses anything else: a limitless style
-            // takerAmount sentinel of 1 is rejected as create_order_min_order_value_not_met (the order
-            // value is read off the taker leg) and signing at the maximum price of 1 is rejected as
-            // create_order_price_out_of_range (it wants 0 < price < 1)
-            String amountString = this.numberToString(amount);
-            String priceString = this.numberToString(price);
-            String priceToProvide = priceString;
-            // read through the extractor rather than off the instance, so one call can opt in without
-            // reconfiguring the exchange - and so the key is taken out of params instead of riding
-            // along into the request body
-            Pair<Boolean, Map<String, Object>> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "warnOnMarketOrderWithoutPrice", true);
-            Boolean warnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.first();
-            Map<String, Object> paramsWarnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.second();
-            if (java.util.Objects.equals(price, null))
-            {
-                // a priceless limit order already threw above, so this is a market order
-                if (Boolean.TRUE.equals(warnOnMarketOrderWithoutPrice))
-                {
-                    throw new ArgumentsRequired((this.id + " createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options")) ;
-                }
-                // it still has to name a price, so it takes the aggressive end of the range the venue
-                // allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill happens at the
-                // book's own prices, this is only the worst price the order accepts - which is also
-                // the collateral the maker leg has to cover
-                priceToProvide = ((Boolean.TRUE.equals(isBuy))) ? this.numberToString(this.safeNumber(this.options, "marketBuyPrice", 0.99)) : this.numberToString(this.safeNumber(this.options, "marketSellPrice", 0.01));
-            }
-            String quantityWei = Precise.stringMul(amountString, "1000000000000000000");
-            String priceWei = Precise.stringMul(priceToProvide, "1000000000000000000");
-            // the collateral leg follows from the price and the size, exactly as for a limit order -
-            // both legs have to agree or the venue rejects the order
-            String costWei = Precise.stringMul(priceToProvide, quantityWei);
-            String makerAmount = quantityWei;
-            String takerAmount = costWei;
+            // it still has to name a price, so it takes the aggressive end of the range the venue
+            // allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill happens at the
+            // book's own prices, this is only the worst price the order accepts - which is also
+            // the collateral the maker leg has to cover
+            priceToProvide = ((Boolean.TRUE.equals(isBuy))) ? this.numberToString(this.safeNumber(this.options, "marketBuyPrice", 0.99)) : this.numberToString(this.safeNumber(this.options, "marketSellPrice", 0.01));
+        }
+        String quantityWei = Precise.stringMul(amountString, "1000000000000000000");
+        String priceWei = Precise.stringMul(priceToProvide, "1000000000000000000");
+        // the collateral leg follows from the price and the size, exactly as for a limit order -
+        // both legs have to agree or the venue rejects the order
+        String costWei = Precise.stringMul(priceToProvide, quantityWei);
+        String makerAmount = quantityWei;
+        String takerAmount = costWei;
+        if (Boolean.TRUE.equals(isBuy))
+        {
+            // a buy pays collateral for shares, a sell hands over shares for collateral
+            makerAmount = costWei;
+            takerAmount = quantityWei;
+        }
+        String slippageBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "slippageBps", "0");
+        if (Precise.stringGt(slippageBps, "0"))
+        {
             if (Boolean.TRUE.equals(isBuy))
             {
-                // a buy pays collateral for shares, a sell hands over shares for collateral
-                makerAmount = costWei;
-                takerAmount = quantityWei;
-            }
-            String slippageBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "slippageBps", "0");
-            if (Precise.stringGt(slippageBps, "0"))
+                // widen what the taker is willing to pay, capped at one unit of collateral a share
+                makerAmount = Precise.stringMin(Precise.stringDiv(Precise.stringMul(makerAmount, Precise.stringAdd("10000", slippageBps)), "10000"), quantityWei);
+            } else
             {
-                if (Boolean.TRUE.equals(isBuy))
-                {
-                    // widen what the taker is willing to pay, capped at one unit of collateral a share
-                    makerAmount = Precise.stringMin(Precise.stringDiv(Precise.stringMul(makerAmount, Precise.stringAdd("10000", slippageBps)), "10000"), quantityWei);
-                } else
-                {
-                    takerAmount = Precise.stringMax(Precise.stringDiv(Precise.stringMul(takerAmount, Precise.stringSub("10000", slippageBps)), "10000"), "0");
-                }
+                takerAmount = Precise.stringMax(Precise.stringDiv(Precise.stringMul(takerAmount, Precise.stringSub("10000", slippageBps)), "10000"), "0");
             }
-            // feeRateBps and the two exchange selectors live on the market row, not on the outcome
-            // row - signing with the wrong pair places the order under a different verifying contract
-            // and the venue answers create_order_hash_mismatch
-            String marketSymbol = this.safeString(outcomeObj, "market");
-            Map<String, Object> marketObj = this.safeDict(this.markets, marketSymbol, new HashMap<String, Object>() {{}});
-            Map<String, Object> marketRow = this.safeDict(marketObj, "info", new HashMap<String, Object>() {{}});
-            String marketFeeRateBps = this.safeString(marketRow, "feeRateBps", "200"); // should be at least 200
-            String feeRateBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", marketFeeRateBps);
-            Boolean marketIsNegRisk = (Boolean) this.safeBool(marketRow, "isNegRisk", false);
-            Boolean isNegRisk = (java.util.Objects.equals(this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", marketIsNegRisk), true));
-            Boolean marketIsYieldBearing = (Boolean) this.safeBool(marketRow, "isYieldBearing", false);
-            Boolean isYieldBearing = (java.util.Objects.equals(this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing), true));
-            Long defaultExpiration = this.safeInteger(this.options, "defaultExpiration", 3600); // 1 hour
-            Long expirationDelta = defaultExpiration;
-            Object expiration = this.safeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration");
-            if (java.util.Objects.equals(expiration, null))
+        }
+        // feeRateBps and the two exchange selectors live on the market row, not on the outcome
+        // row - signing with the wrong pair places the order under a different verifying contract
+        // and the venue answers create_order_hash_mismatch
+        String marketSymbol = this.safeString(outcomeObj, "market");
+        Map<String, Object> marketObj = this.safeDict(this.markets, marketSymbol, new HashMap<String, Object>() {{}});
+        Map<String, Object> marketRow = this.safeDict(marketObj, "info", new HashMap<String, Object>() {{}});
+        String marketFeeRateBps = this.safeString(marketRow, "feeRateBps", "200"); // should be at least 200
+        String feeRateBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", marketFeeRateBps);
+        Boolean marketIsNegRisk = (Boolean) this.safeBool(marketRow, "isNegRisk", false);
+        Boolean isNegRisk = (java.util.Objects.equals(this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", marketIsNegRisk), true));
+        Boolean marketIsYieldBearing = (Boolean) this.safeBool(marketRow, "isYieldBearing", false);
+        Boolean isYieldBearing = (java.util.Objects.equals(this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing), true));
+        Long defaultExpiration = this.safeInteger(this.options, "defaultExpiration", 3600); // 1 hour
+        Long expirationDelta = defaultExpiration;
+        Object expiration = this.safeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration");
+        if (java.util.Objects.equals(expiration, null))
+        {
+            if (Boolean.TRUE.equals(isMarket))
             {
-                if (Boolean.TRUE.equals(isMarket))
-                {
-                    expirationDelta = this.safeInteger(this.options, "marketOrderExpiration", defaultExpiration);
-                }
-                Long now = this.seconds();
-                expiration = this.sum(now, expirationDelta);
+                expirationDelta = this.safeInteger(this.options, "marketOrderExpiration", defaultExpiration);
             }
-            Long nonce = this.incrementingNonce();
-            String salt = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "salt", this.numberToString(nonce));
-            String taker = "0x0000000000000000000000000000000000000000";
-            List<Object> takerOptionparamsTakerVariable = (List<Object>) this.handleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker);
-            var takerOption = ((List<Object>) takerOptionparamsTakerVariable).get(0);
-            Map<String, Object> paramsTaker = (Map<String, Object>) ((List<Object>) takerOptionparamsTakerVariable).get(1);
-            Map<String, Object> contractOrder = new HashMap<String, Object>();
-            contractOrder.put("salt", salt);
-            contractOrder.put("maker", this.walletAddress);
-            contractOrder.put("signer", this.walletAddress);
-            contractOrder.put("taker", takerOption);
-            contractOrder.put("tokenId", tokenId);
-            contractOrder.put("makerAmount", this.decimalToPrecision(makerAmount, TRUNCATE, 0, DECIMAL_PLACES));
-            contractOrder.put("takerAmount", this.decimalToPrecision(takerAmount, TRUNCATE, 0, DECIMAL_PLACES));
-            contractOrder.put("expiration", expiration);
-            contractOrder.put("nonce", this.safeString(paramsTaker, "nonce", "0"));
-            contractOrder.put("feeRateBps", feeRateBps);
-            contractOrder.put("side", ((Boolean.TRUE.equals(isBuy))) ? 0 : 1);
-            contractOrder.put("signatureType", 0);
-            Map<String, Object> signed = this.signPredictfunOrder(contractOrder, isNegRisk, isYieldBearing);
-            Map<String, Object> orderPayload = this.extend(contractOrder, new HashMap<String, Object>() {{
-                put( "hash", Predictfun.this.safeString(signed, "hash") );
-                put( "signature", Predictfun.this.safeString(signed, "signature") );
-            }});
-            Map<String, Object> data = new HashMap<String, Object>();
-            data.put("order", orderPayload);
-            data.put("pricePerShare", this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES));
-            data.put("strategy", strategy);
-            Boolean postOnly = (Boolean) this.safeBool(paramsTaker, "isPostOnly", false);
-            Pair<Boolean, Map<String, Object>> postOnlyOptionparamsPostOnlyVariable = this.handlePostOnly(isMarket, postOnly, paramsTaker);
-            Boolean postOnlyOption = postOnlyOptionparamsPostOnlyVariable.first();
-            Map<String, Object> paramsPostOnly = postOnlyOptionparamsPostOnlyVariable.second();
-            if (Boolean.TRUE.equals(postOnlyOption))
-            {
-                data.put("isPostOnly", postOnlyOption);
-            }
-            String timeInForce = this.safeStringUpper(paramsPostOnly, "timeInForce");
-            if (java.util.Objects.equals(timeInForce, "FOK"))
-            {
-                data.put("isFillOrKill", true);
-            }
-            // documented, and the venue takes it inside data rather than as a top level key
-            String selfTradePrevention = this.safeStringUpper(paramsPostOnly, "selfTradePrevention");
-            if (!java.util.Objects.equals(selfTradePrevention, null))
-            {
-                data.put("selfTradePrevention", selfTradePrevention);
-            }
-            // every param the method consumes itself has to come out, otherwise it survives into the
-            // extend below and is posted as a top level key next to 'data'
-            Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
-            // the JWT authorises the order, the api key only authorises the request
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "data", data );
-            }};
-            Map<String, Object> response = (this.predictfunPostV1Orders(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "data": {
-            //             "code": "OK",
-            //             "orderHash": "0x5ae1a7893b1a804530151dec3866cd0bb8ffe4e4c3640aca1b3ab5ef26c57747",
-            //             "orderId": "415535",
-            //             "removalLockedUntil": null
-            //         },
-            //         "success ": true
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            // the venue answers with an id and a hash and nothing else - no price, size, side or
-            // status - so the returned order is built from what was requested and signed, with only
-            // the identifiers taken from the response
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("id", this.safeString2(result, "orderHash", "hash"));
-            mapLiteral7.put("clientOrderId", null);
-            mapLiteral7.put("info", response);
-            mapLiteral7.put("timestamp", null);
-            mapLiteral7.put("datetime", null);
-            mapLiteral7.put("status", null);
-            mapLiteral7.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
-            mapLiteral7.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-            mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
-            mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
-            mapLiteral7.put("event", this.safeString(outcomeObj, "event"));
-            mapLiteral7.put("type", type);
-            mapLiteral7.put("side", side);
-            mapLiteral7.put("price", this.parseNumber(priceString));
-            mapLiteral7.put("amount", this.parseNumber(amountString));
-            mapLiteral7.put("filled", null);
-            mapLiteral7.put("remaining", null);
-            mapLiteral7.put("cost", null);
-            mapLiteral7.put("fee", null);
-            mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
-            return this.safePredictionOrder(mapLiteral7, (Object) null);
-        }).thenApply(PredictionOrder::new);
+            Long now = this.seconds();
+            expiration = this.sum(now, expirationDelta);
+        }
+        Long nonce = this.incrementingNonce();
+        String salt = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "salt", this.numberToString(nonce));
+        String taker = "0x0000000000000000000000000000000000000000";
+        List<Object> takerOptionparamsTakerVariable = (List<Object>) this.handleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker);
+        var takerOption = ((List<Object>) takerOptionparamsTakerVariable).get(0);
+        Map<String, Object> paramsTaker = (Map<String, Object>) ((List<Object>) takerOptionparamsTakerVariable).get(1);
+        Map<String, Object> contractOrder = new HashMap<String, Object>();
+        contractOrder.put("salt", salt);
+        contractOrder.put("maker", this.walletAddress);
+        contractOrder.put("signer", this.walletAddress);
+        contractOrder.put("taker", takerOption);
+        contractOrder.put("tokenId", tokenId);
+        contractOrder.put("makerAmount", this.decimalToPrecision(makerAmount, TRUNCATE, 0, DECIMAL_PLACES));
+        contractOrder.put("takerAmount", this.decimalToPrecision(takerAmount, TRUNCATE, 0, DECIMAL_PLACES));
+        contractOrder.put("expiration", expiration);
+        contractOrder.put("nonce", this.safeString(paramsTaker, "nonce", "0"));
+        contractOrder.put("feeRateBps", feeRateBps);
+        contractOrder.put("side", ((Boolean.TRUE.equals(isBuy))) ? 0 : 1);
+        contractOrder.put("signatureType", 0);
+        Map<String, Object> signed = this.signPredictfunOrder(contractOrder, isNegRisk, isYieldBearing);
+        Map<String, Object> orderPayload = this.extend(contractOrder, new HashMap<String, Object>() {{
+            put( "hash", Predictfun.this.safeString(signed, "hash") );
+            put( "signature", Predictfun.this.safeString(signed, "signature") );
+        }});
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("order", orderPayload);
+        data.put("pricePerShare", this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES));
+        data.put("strategy", strategy);
+        Boolean postOnly = (Boolean) this.safeBool(paramsTaker, "isPostOnly", false);
+        Pair<Boolean, Map<String, Object>> postOnlyOptionparamsPostOnlyVariable = this.handlePostOnly(isMarket, postOnly, paramsTaker);
+        Boolean postOnlyOption = postOnlyOptionparamsPostOnlyVariable.first();
+        Map<String, Object> paramsPostOnly = postOnlyOptionparamsPostOnlyVariable.second();
+        if (Boolean.TRUE.equals(postOnlyOption))
+        {
+            data.put("isPostOnly", postOnlyOption);
+        }
+        String timeInForce = this.safeStringUpper(paramsPostOnly, "timeInForce");
+        if (java.util.Objects.equals(timeInForce, "FOK"))
+        {
+            data.put("isFillOrKill", true);
+        }
+        // documented, and the venue takes it inside data rather than as a top level key
+        String selfTradePrevention = this.safeStringUpper(paramsPostOnly, "selfTradePrevention");
+        if (!java.util.Objects.equals(selfTradePrevention, null))
+        {
+            data.put("selfTradePrevention", selfTradePrevention);
+        }
+        // every param the method consumes itself has to come out, otherwise it survives into the
+        // extend below and is posted as a top level key next to 'data'
+        Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, new ArrayList<Object>(Arrays.asList("isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker")));
+        // the JWT authorises the order, the api key only authorises the request
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "data", data );
+        }};
+        Map<String, Object> response = (this.predictfunPostV1Orders(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "data": {
+        //             "code": "OK",
+        //             "orderHash": "0x5ae1a7893b1a804530151dec3866cd0bb8ffe4e4c3640aca1b3ab5ef26c57747",
+        //             "orderId": "415535",
+        //             "removalLockedUntil": null
+        //         },
+        //         "success ": true
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        // the venue answers with an id and a hash and nothing else - no price, size, side or
+        // status - so the returned order is built from what was requested and signed, with only
+        // the identifiers taken from the response
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("id", this.safeString2(result, "orderHash", "hash"));
+        mapLiteral7.put("clientOrderId", null);
+        mapLiteral7.put("info", response);
+        mapLiteral7.put("timestamp", null);
+        mapLiteral7.put("datetime", null);
+        mapLiteral7.put("status", null);
+        mapLiteral7.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
+        mapLiteral7.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
+        mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral7.put("event", this.safeString(outcomeObj, "event"));
+        mapLiteral7.put("type", type);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("price", this.parseNumber(priceString));
+        mapLiteral7.put("amount", this.parseNumber(amountString));
+        mapLiteral7.put("filled", null);
+        mapLiteral7.put("remaining", null);
+        mapLiteral7.put("cost", null);
+        mapLiteral7.put("fee", null);
+        mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
+        return this.safePredictionOrder(mapLiteral7, (Object) null);
 
     }
 
@@ -2343,82 +2363,84 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    {
 
-            Integer outcomesLength = 0;
-            if (!java.util.Objects.equals(outcomes, null))
+        Integer outcomesLength = 0;
+        if (!java.util.Objects.equals(outcomes, null))
+        {
+            outcomesLength = ((List<?>)outcomes).size();
+            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+        }
+        String address = this.safeString(parameters, "address");
+        Map<String, Object> response = null;
+        if (!java.util.Objects.equals(address, null))
+        {
+            // the by-address endpoint reads any wallet and is happy with just the api key
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("address", address);
+            Map<String, Object> rest = this.omit(parameters, "address");
+            response = (this.predictfunGetV1PositionsAddress(this.extend(request, rest))).join();
+        } else
+        {
+            // the JWT is what names the wallet whose positions come back
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            response = (this.predictfunGetV1Positions(parameters)).join();
+        }
+        //
+        //     {
+        //         "cursor": "eyJtYXJrZXRJZCI6MjAzMjU3OCwib3V0Y29tZUlkIjo0MDAyOTQ3fQ==",
+        //         "data": [
+        //             {
+        //                 "id": "eyJtYXJrZXRJZCI6MjAzMjU4MSwib3V0Y29tZUlkIjo0MDAyOTUyfQ==",
+        //                 "amount": "11819508771929824562",
+        //                 "averageBuyPriceUsd": "0.57",
+        //                 "pnlUsd": 0,
+        //                 "valueUsd": 6.74,
+        //                 "market": { "id": 2032581, "categorySlug": "btc-updown-5m-1788776400", "status": "REGISTERED", "tradingStatus": "OPEN" },
+        //                 "outcome": {
+        //                     "indexSet": 1,
+        //                     "name": "Up",
+        //                     "onChainId": "104613341090911893615899927839535241203421132680281479852748534361460565051967",
+        //                     "status": null,
+        //                     "bestBid": { "price": 0.57, "size": 192.88842738205366 },
+        //                     "bestAsk": { "price": 0.58, "size": 58 }
+        //                 }
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        if (java.util.Objects.equals(outcomesLength, 0))
+        {
+            return this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
+        }
+        List<Object> parsed = this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
+        // the venue filters by marketId only, so a set of outcome handles is applied here
+        Map<String, Object> wanted = new HashMap<String, Object>() {{}};
+        List<Object> wantedOutcomes = this.toArray(outcomes);
+        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
+        {
+            Map<String, Object> outcomeObj = this.outcome(this.safeString(wantedOutcomes, i));
+            String wantedId = this.safeString(outcomeObj, "outcomeId", "");
+            wanted.put(wantedId, true);
+        }
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Integer parsedLength = parsed.size();
+        for (var i = 0; (parsedLength != null && i < parsedLength); i++)
+        {
+            Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
+            String outcomeId = this.safeString(position, "outcomeId");
+            if ((!java.util.Objects.equals(outcomeId, null)) && (wanted.containsKey(outcomeId)))
             {
-                outcomesLength = ((List<?>)outcomes).size();
-                (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+                ((List<Object>)result).add(position);
             }
-            String address = this.safeString(parameters, "address");
-            Map<String, Object> response = null;
-            if (!java.util.Objects.equals(address, null))
-            {
-                // the by-address endpoint reads any wallet and is happy with just the api key
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("address", address);
-                Map<String, Object> rest = this.omit(parameters, "address");
-                response = (this.predictfunGetV1PositionsAddress(this.extend(request, rest))).join();
-            } else
-            {
-                // the JWT is what names the wallet whose positions come back
-                (this.authenticate(new HashMap<String, Object>() {{}})).join();
-                response = (this.predictfunGetV1Positions(parameters)).join();
-            }
-            //
-            //     {
-            //         "cursor": "eyJtYXJrZXRJZCI6MjAzMjU3OCwib3V0Y29tZUlkIjo0MDAyOTQ3fQ==",
-            //         "data": [
-            //             {
-            //                 "id": "eyJtYXJrZXRJZCI6MjAzMjU4MSwib3V0Y29tZUlkIjo0MDAyOTUyfQ==",
-            //                 "amount": "11819508771929824562",
-            //                 "averageBuyPriceUsd": "0.57",
-            //                 "pnlUsd": 0,
-            //                 "valueUsd": 6.74,
-            //                 "market": { "id": 2032581, "categorySlug": "btc-updown-5m-1788776400", "status": "REGISTERED", "tradingStatus": "OPEN" },
-            //                 "outcome": {
-            //                     "indexSet": 1,
-            //                     "name": "Up",
-            //                     "onChainId": "104613341090911893615899927839535241203421132680281479852748534361460565051967",
-            //                     "status": null,
-            //                     "bestBid": { "price": 0.57, "size": 192.88842738205366 },
-            //                     "bestAsk": { "price": 0.58, "size": 58 }
-            //                 }
-            //             }
-            //         ],
-            //         "success": true
-            //     }
-            //
-            List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            if (java.util.Objects.equals(outcomesLength, 0))
-            {
-                return this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
-            }
-            List<Object> parsed = this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
-            // the venue filters by marketId only, so a set of outcome handles is applied here
-            Map<String, Object> wanted = new HashMap<String, Object>() {{}};
-            List<Object> wantedOutcomes = this.toArray(outcomes);
-            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
-            {
-                Map<String, Object> outcomeObj = this.outcome(this.safeString(wantedOutcomes, i));
-                String wantedId = this.safeString(outcomeObj, "outcomeId", "");
-                wanted.put(wantedId, true);
-            }
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer parsedLength = parsed.size();
-            for (var i = 0; (parsedLength != null && i < parsedLength); i++)
-            {
-                Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
-                String outcomeId = this.safeString(position, "outcomeId");
-                if ((!java.util.Objects.equals(outcomeId, null)) && (wanted.containsKey(outcomeId)))
-                {
-                    ((List<Object>)result).add(position);
-                }
-            }
-            return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+        }
+        return result;
 
     }
 
@@ -2434,21 +2456,23 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<PredictionPosition> fetchPosition(Object outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionCore(outcome, parameters)).thenApply(PredictionPosition::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionCore(Object outcome, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            // scope the call to the outcome's market so the wallet's other positions are not paged through
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "marketId", Predictfun.this.safeString(info, "marketId") );
-            }};
-            List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), this.extend(request, parameters))).join();
-            // holding none of an outcome is an ordinary read, so the empty slot is returned rather
-            // than raised - the same shape polymarket and binance answer with
-            return this.safeDict(positions, 0, null);
-        }).thenApply(PredictionPosition::new);
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        // scope the call to the outcome's market so the wallet's other positions are not paged through
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "marketId", Predictfun.this.safeString(info, "marketId") );
+        }};
+        List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), this.extend(request, parameters))).join();
+        // holding none of an outcome is an ordinary read, so the empty slot is returned rather
+        // than raised - the same shape polymarket and binance answer with
+        return this.safeDict(positions, 0, null);
 
     }
 
@@ -2549,17 +2573,19 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String outcome, Map<String, Object> parameters)
+    {
 
-            List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
-            Map<String, Object> order = this.safeDict(orders, 0, null);
-            if (java.util.Objects.equals(order, null))
-            {
-                throw new OrderNotFound(((this.id + " cancelOrder() could not remove ") + id)) ;
-            }
-            return order;
-        }).thenApply(PredictionOrder::new);
+        List<PredictionOrder> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
+        Map<String, Object> order = this.safeDict(orders, 0, null);
+        if (java.util.Objects.equals(order, null))
+        {
+            throw new OrderNotFound(((this.id + " cancelOrder() could not remove ") + id)) ;
+        }
+        return order;
 
     }
 
@@ -2575,69 +2601,71 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = null;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcome), false)).join();
-                outcomeObj = this.outcome((String) (outcome));
-            }
-            Integer idsLength = ((List<?>)ids).size();
-            if (java.util.Objects.equals(idsLength, 0))
-            {
-                throw new ArgumentsRequired((this.id + " cancelOrders() requires at least one order hash")) ;
-            }
-            if ((idsLength != null && idsLength > 100))
-            {
-                throw new BadRequest((this.id + " cancelOrders() takes at most 100 order hashes per call")) ;
-            }
-            // the JWT identifies the signer whose orders may be pulled
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "data", new HashMap<String, Object>() {{
-                    put( "hashes", ids );
-                }} );
-            }};
-            // this only pulls the orders off the book, it does not cancel them on chain
-            Map<String, Object> response = (this.predictfunPostV1OrdersRemoveByHash(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "removed": [ "0xebf11bdff189b8609c9ae66bebb20b94742865a2d94970856f3fb6b0896f9ec0" ],
-            //         "rejected": [],
-            //         "noop": [ "0x00de1b3b4d8647c371022c3b952c82d89298ed3746d4677e582ef9808bbdc6cf" ],
-            //         "success": true
-            //     }
-            //
-            List<Object> rejected = this.safeList(response, "rejected", new ArrayList<Object>(Arrays.asList()));
-            Integer rejectedLength = rejected.size();
-            if ((rejectedLength != null && rejectedLength > 0))
-            {
-                throw new OrderNotFound(((this.id + " cancelOrders() was refused for ") + this.json(rejected))) ;
-            }
-            // the venue reports hashes only, so each one becomes a row the shared order parser can
-            // read: it takes the hash off orderHash and the status through parseOrderStatus
-            List<Object> removed = this.safeList(response, "removed", new ArrayList<Object>(Arrays.asList()));
-            List<Object> noop = this.safeList(response, "noop", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            Integer removedLength = removed.size();
-            for (var i = 0; (removedLength != null && i < removedLength); i++)
-            {
-                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)));
-                j39v2.put("status", "CANCELLED");
-                ((List<Object>)rows).add(this.extend(response, j39v2));
-            }
-            Integer noopLength = noop.size();
-            for (var i = 0; (noopLength != null && i < noopLength); i++)
-            {
-                // accepted, but nothing was resting to pull: the order had already filled, expired,
-                // was never booked, or had been removed before - so the status is left unknown
-                ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i))); yield j39v3; } })));
-            }
-            return this.parsePredictionOrders(rows, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        Map<String, Object> outcomeObj = null;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+            outcomeObj = this.outcome((String) (outcome));
+        }
+        Integer idsLength = ((List<?>)ids).size();
+        if (java.util.Objects.equals(idsLength, 0))
+        {
+            throw new ArgumentsRequired((this.id + " cancelOrders() requires at least one order hash")) ;
+        }
+        if ((idsLength != null && idsLength > 100))
+        {
+            throw new BadRequest((this.id + " cancelOrders() takes at most 100 order hashes per call")) ;
+        }
+        // the JWT identifies the signer whose orders may be pulled
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "data", new HashMap<String, Object>() {{
+                put( "hashes", ids );
+            }} );
+        }};
+        // this only pulls the orders off the book, it does not cancel them on chain
+        Map<String, Object> response = (this.predictfunPostV1OrdersRemoveByHash(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "removed": [ "0xebf11bdff189b8609c9ae66bebb20b94742865a2d94970856f3fb6b0896f9ec0" ],
+        //         "rejected": [],
+        //         "noop": [ "0x00de1b3b4d8647c371022c3b952c82d89298ed3746d4677e582ef9808bbdc6cf" ],
+        //         "success": true
+        //     }
+        //
+        List<Object> rejected = this.safeList(response, "rejected", new ArrayList<Object>(Arrays.asList()));
+        Integer rejectedLength = rejected.size();
+        if ((rejectedLength != null && rejectedLength > 0))
+        {
+            throw new OrderNotFound(((this.id + " cancelOrders() was refused for ") + this.json(rejected))) ;
+        }
+        // the venue reports hashes only, so each one becomes a row the shared order parser can
+        // read: it takes the hash off orderHash and the status through parseOrderStatus
+        List<Object> removed = this.safeList(response, "removed", new ArrayList<Object>(Arrays.asList()));
+        List<Object> noop = this.safeList(response, "noop", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
+        Integer removedLength = removed.size();
+        for (var i = 0; (removedLength != null && i < removedLength); i++)
+        {
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)));
+            j39v2.put("status", "CANCELLED");
+            ((List<Object>)rows).add(this.extend(response, j39v2));
+        }
+        Integer noopLength = noop.size();
+        for (var i = 0; (noopLength != null && i < noopLength); i++)
+        {
+            // accepted, but nothing was resting to pull: the order had already filled, expired,
+            // was never booked, or had been removed before - so the status is left unknown
+            ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i))); yield j39v3; } })));
+        }
+        return this.parsePredictionOrders(rows, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2653,56 +2681,58 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String outcome, Map<String, Object> parameters)
+    {
 
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> outcomeObj = null;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcome), false)).join();
-                outcomeObj = this.outcome((String) (outcome));
-            }
-            // the JWT identifies the wallet whose orders can be read
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "hash", id );
-            }};
-            Map<String, Object> response = (this.predictfunGetV1OrdersHash(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data": {
-            //             "amount": "10000000000000000000",
-            //             "amountFilled": "0",
-            //             "currency": "USDT",
-            //             "id": "415537",
-            //             "isNegRisk": false,
-            //             "isYieldBearing": true,
-            //             "marketId": 2004048,
-            //             "order": {
-            //             "expiration": 1788717567,
-            //             "feeRateBps": "200",
-            //             "hash": "0xd0933a7528d1f4d8f82861a097a8e44298806f072a76bc9ec9c423707c94dfe7",
-            //             "maker": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
-            //             "makerAmount": "5000000000000000000",
-            //             "nonce": "0",
-            //             "salt": "1788713967425",
-            //             "side": 0,
-            //             "signature": "0x019cfd569d6d678a5ba900d43d93dfd55b3ef98c38d5b9bd243ac356a1fbffaa351e417d534195aa43bf20f07c6b82c25e7c49591f7c74565c3b9fa75b298bbb1c",
-            //             "signatureType": 0,
-            //             "signer": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
-            //             "taker": "0x0000000000000000000000000000000000000000",
-            //             "takerAmount": "10000000000000000000",
-            //             "tokenId": "21794117812663370870023674333212505719146120894214542748572818978538793884650"},
-            //             "rewardEarningRate": 0,
-            //             "status": "CANCELLED",
-            //             "strategy": "LIMIT"
-            //         },
-            //         "success": true
-            //     }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePredictionOrder(data, outcomeObj);
-        }).thenApply(PredictionOrder::new);
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> outcomeObj = null;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+            outcomeObj = this.outcome((String) (outcome));
+        }
+        // the JWT identifies the wallet whose orders can be read
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "hash", id );
+        }};
+        Map<String, Object> response = (this.predictfunGetV1OrdersHash(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": {
+        //             "amount": "10000000000000000000",
+        //             "amountFilled": "0",
+        //             "currency": "USDT",
+        //             "id": "415537",
+        //             "isNegRisk": false,
+        //             "isYieldBearing": true,
+        //             "marketId": 2004048,
+        //             "order": {
+        //             "expiration": 1788717567,
+        //             "feeRateBps": "200",
+        //             "hash": "0xd0933a7528d1f4d8f82861a097a8e44298806f072a76bc9ec9c423707c94dfe7",
+        //             "maker": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
+        //             "makerAmount": "5000000000000000000",
+        //             "nonce": "0",
+        //             "salt": "1788713967425",
+        //             "side": 0,
+        //             "signature": "0x019cfd569d6d678a5ba900d43d93dfd55b3ef98c38d5b9bd243ac356a1fbffaa351e417d534195aa43bf20f07c6b82c25e7c49591f7c74565c3b9fa75b298bbb1c",
+        //             "signatureType": 0,
+        //             "signer": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
+        //             "taker": "0x0000000000000000000000000000000000000000",
+        //             "takerAmount": "10000000000000000000",
+        //             "tokenId": "21794117812663370870023674333212505719146120894214542748572818978538793884650"},
+        //             "rewardEarningRate": 0,
+        //             "status": "CANCELLED",
+        //             "strategy": "LIMIT"
+        //         },
+        //         "success": true
+        //     }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        return this.parsePredictionOrder(data, outcomeObj);
 
     }
 
@@ -2720,14 +2750,16 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "OPEN" );
-            }};
-            return (this.fetchOrdersHelper(outcome, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "OPEN" );
+        }};
+        return (this.fetchOrdersHelper(outcome, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -2745,16 +2777,18 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            // the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
-            // orders cannot be asked for, so a closed order here means one that filled
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "FILLED" );
-            }};
-            return (this.fetchOrdersHelper(outcome, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        // the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
+        // orders cannot be asked for, so a closed order here means one that filled
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "FILLED" );
+        }};
+        return (this.fetchOrdersHelper(outcome, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -2774,60 +2808,62 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> fetchOrdersHelper(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersHelperCore(outcome, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersHelperCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = null;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcome), false)).join();
-                outcomeObj = this.outcome((String) (outcome));
-            }
-            // the JWT identifies the wallet whose orders are returned
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> response = (this.predictfunGetV1Orders(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "cursor": null,
-            //         "data": [
-            //             {
-            //                 "amount": "10000000000000000000",
-            //                 "amountFilled": "0",
-            //                 "currency": "USDT",
-            //                 "id": "3295357412",
-            //                 "isNegRisk": false,
-            //                 "isYieldBearing": true,
-            //                 "marketId": 2107,
-            //                 "order": {
-            //                     "expiration": 1788888638,
-            //                     "feeRateBps": "200",
-            //                     "hash": "0x620e0237aaf75a86facfaa6840cba9d3bff4bb7a9c5606ad404c2a65ffadf14d",
-            //                     "maker": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "makerAmount": "1000000000000000000",
-            //                     "nonce": "0",
-            //                     "salt": "1788885038954",
-            //                     "side": 0,
-            //                     "signature": "0x564ea556c53aa58d66497639e82723402fe40fe8214f35ce5963aa5e09fd72e752a35b6bdc616017a55cefd4d34a32005497a0ae324a7d6f30a4998d130b04e81b",
-            //                     "signatureType": 0,
-            //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "taker": "0x0000000000000000000000000000000000000000",
-            //                     "takerAmount": "10000000000000000000",
-            //                     "tokenId": "11755619521560507246941857733124673401539364429068333264940202564484253415073"
-            //                 },
-            //                 "rewardEarningRate": 0,
-            //                 "status": "OPEN",
-            //                 "strategy": "LIMIT"
-            //             }
-            //         ],
-            //         "success": true
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            // since is deliberately not forwarded: the rows carry no timestamp, so the shared
-            // since filter would drop every one of them
-            return this.parsePredictionOrders(data, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
-        });
+        Map<String, Object> outcomeObj = null;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+            outcomeObj = this.outcome((String) (outcome));
+        }
+        // the JWT identifies the wallet whose orders are returned
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = (this.predictfunGetV1Orders(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "cursor": null,
+        //         "data": [
+        //             {
+        //                 "amount": "10000000000000000000",
+        //                 "amountFilled": "0",
+        //                 "currency": "USDT",
+        //                 "id": "3295357412",
+        //                 "isNegRisk": false,
+        //                 "isYieldBearing": true,
+        //                 "marketId": 2107,
+        //                 "order": {
+        //                     "expiration": 1788888638,
+        //                     "feeRateBps": "200",
+        //                     "hash": "0x620e0237aaf75a86facfaa6840cba9d3bff4bb7a9c5606ad404c2a65ffadf14d",
+        //                     "maker": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "makerAmount": "1000000000000000000",
+        //                     "nonce": "0",
+        //                     "salt": "1788885038954",
+        //                     "side": 0,
+        //                     "signature": "0x564ea556c53aa58d66497639e82723402fe40fe8214f35ce5963aa5e09fd72e752a35b6bdc616017a55cefd4d34a32005497a0ae324a7d6f30a4998d130b04e81b",
+        //                     "signatureType": 0,
+        //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "taker": "0x0000000000000000000000000000000000000000",
+        //                     "takerAmount": "10000000000000000000",
+        //                     "tokenId": "11755619521560507246941857733124673401539364429068333264940202564484253415073"
+        //                 },
+        //                 "rewardEarningRate": 0,
+        //                 "status": "OPEN",
+        //                 "strategy": "LIMIT"
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        // since is deliberately not forwarded: the rows carry no timestamp, so the shared
+        // since filter would drop every one of them
+        return this.parsePredictionOrders(data, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3137,119 +3173,121 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> approve(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.approveCore(outcome, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object approveCore(String outcome, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.privateKey, null))
+        if (java.util.Objects.equals(this.privateKey, null))
+        {
+            throw new ArgumentsRequired((this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
+        }
+        String side = this.safeStringLower(parameters, "side", "buy");
+        Long chainId = this.safeInteger(this.options, "chainId", 56);
+        String chainKey = this.numberToString(chainId);
+        Map<String, Object> rpcUrls = this.safeDict(this.options, "rpcUrls", new HashMap<String, Object>() {{}});
+        String rpcUrl = this.safeString(parameters, "rpcUrl", this.safeString(rpcUrls, chainKey));
+        String owner = this.safeString(parameters, "owner", this.walletAddress);
+        if (java.util.Objects.equals(owner, null))
+        {
+            owner = this.ethGetAddressFromPrivateKey(this.privateKey);
+        }
+        String gasLimit = this.safeString(parameters, "gasLimit", "0x186a0");
+        // which of the four exchanges settles a market is a property of the market, so an
+        // approval granted for one of them is worth nothing on the others
+        Boolean isNegRisk = false;
+        Boolean isYieldBearing = false;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            String marketSymbol = this.safeString(outcomeObj, "market");
+            Map<String, Object> marketObj = this.safeDict(this.markets, marketSymbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> marketRow = this.safeDict(marketObj, "info", new HashMap<String, Object>() {{}});
+            isNegRisk = (java.util.Objects.equals(this.safeBool(marketRow, "isNegRisk", false), true));
+            isYieldBearing = (java.util.Objects.equals(this.safeBool(marketRow, "isYieldBearing", false), true));
+        }
+        if (java.util.Objects.equals(side, "sell"))
+        {
+            String ctfToken = this.safeString(parameters, "token", this.conditionalTokensAddress(isNegRisk, isYieldBearing));
+            List<String> operators = new ArrayList<String>(Arrays.asList());
+            String explicitOperator = this.safeString(parameters, "spender");
+            if (!java.util.Objects.equals(explicitOperator, null))
             {
-                throw new ArgumentsRequired((this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
-            }
-            String side = this.safeStringLower(parameters, "side", "buy");
-            Long chainId = this.safeInteger(this.options, "chainId", 56);
-            String chainKey = this.numberToString(chainId);
-            Map<String, Object> rpcUrls = this.safeDict(this.options, "rpcUrls", new HashMap<String, Object>() {{}});
-            String rpcUrl = this.safeString(parameters, "rpcUrl", this.safeString(rpcUrls, chainKey));
-            String owner = this.safeString(parameters, "owner", this.walletAddress);
-            if (java.util.Objects.equals(owner, null))
+                operators.add(explicitOperator);
+            } else if (java.util.Objects.equals(outcome, null))
             {
-                owner = this.ethGetAddressFromPrivateKey(this.privateKey);
-            }
-            String gasLimit = this.safeString(parameters, "gasLimit", "0x186a0");
-            // which of the four exchanges settles a market is a property of the market, so an
-            // approval granted for one of them is worth nothing on the others
-            Boolean isNegRisk = false;
-            Boolean isYieldBearing = false;
-            if (!java.util.Objects.equals(outcome, null))
+                throw new ArgumentsRequired((this.id + " approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter")) ;
+            } else
             {
-                (this.loadOutcome((String) (outcome), false)).join();
-                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-                String marketSymbol = this.safeString(outcomeObj, "market");
-                Map<String, Object> marketObj = this.safeDict(this.markets, marketSymbol, new HashMap<String, Object>() {{}});
-                Map<String, Object> marketRow = this.safeDict(marketObj, "info", new HashMap<String, Object>() {{}});
-                isNegRisk = (java.util.Objects.equals(this.safeBool(marketRow, "isNegRisk", false), true));
-                isYieldBearing = (java.util.Objects.equals(this.safeBool(marketRow, "isYieldBearing", false), true));
-            }
-            if (java.util.Objects.equals(side, "sell"))
-            {
-                String ctfToken = this.safeString(parameters, "token", this.conditionalTokensAddress(isNegRisk, isYieldBearing));
-                List<String> operators = new ArrayList<String>(Arrays.asList());
-                String explicitOperator = this.safeString(parameters, "spender");
-                if (!java.util.Objects.equals(explicitOperator, null))
+                operators.add(this.exchangeAddress(isNegRisk, isYieldBearing));
+                // a neg risk match mints and merges through the adapter, which moves the seller's
+                // shares itself, so approving the exchange alone leaves the sell side half open
+                if (Boolean.TRUE.equals(isNegRisk))
                 {
-                    operators.add(explicitOperator);
-                } else if (java.util.Objects.equals(outcome, null))
-                {
-                    throw new ArgumentsRequired((this.id + " approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter")) ;
-                } else
-                {
-                    operators.add(this.exchangeAddress(isNegRisk, isYieldBearing));
-                    // a neg risk match mints and merges through the adapter, which moves the seller's
-                    // shares itself, so approving the exchange alone leaves the sell side half open
-                    if (Boolean.TRUE.equals(isNegRisk))
-                    {
-                        operators.add(this.adapterAddress(isYieldBearing));
-                    }
+                    operators.add(this.adapterAddress(isYieldBearing));
                 }
-                if ((java.util.Objects.equals(rpcUrl, null)) || (java.util.Objects.equals(ctfToken, null)))
-                {
-                    throw new ArgumentsRequired(((this.id + " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ") + chainKey)) ;
-                }
-                Boolean approved = (Boolean) this.safeBool(parameters, "approved", true);
-                String approvedHex = "0000000000000000000000000000000000000000000000000000000000000000";
-                if (Boolean.TRUE.equals(approved))
-                {
-                    approvedHex = "0000000000000000000000000000000000000000000000000000000000000001";
-                }
-                List<Object> receipts = new ArrayList<Object>(Arrays.asList());
-                Integer operatorsLength = operators.size();
-                for (var i = 0; (operatorsLength != null && i < operatorsLength); i++)
-                {
-                    String operatorAddress = this.safeString(operators, i);
-                    if (java.util.Objects.equals(operatorAddress, null))
-                    {
-                        throw new ArgumentsRequired(((this.id + " approve() could not resolve the operator to approve for chain ") + chainKey)) ;
-                    }
-                    // setApprovalForAll(operator, approved) -> selector 0xa22cb465
-                    String approvalData = (("0xa22cb465" + this.padHexAddress((String) (operatorAddress))) + approvedHex);
-                    // each receipt is awaited before the next transaction goes out, so the nonce the
-                    // second one looks up already counts the first
-                    String approvalHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (ctfToken), "0x0", approvalData, (String) (gasLimit))).join();
-                    Object receipt = (this.waitForTransactionReceipt((String) (rpcUrl), approvalHash, 60000L)).join();
-                    ((List<Object>)receipts).add(receipt);
-                }
-                return receipts;
             }
-            Map<String, Object> collaterals = this.safeDict(this.options, "collateral", new HashMap<String, Object>() {{}});
-            String token = this.safeString(parameters, "token", this.safeString(collaterals, chainKey));
-            String spender = this.safeString(parameters, "spender");
-            if (java.util.Objects.equals(spender, null))
+            if ((java.util.Objects.equals(rpcUrl, null)) || (java.util.Objects.equals(ctfToken, null)))
             {
-                if (java.util.Objects.equals(outcome, null))
+                throw new ArgumentsRequired(((this.id + " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ") + chainKey)) ;
+            }
+            Boolean approved = (Boolean) this.safeBool(parameters, "approved", true);
+            String approvedHex = "0000000000000000000000000000000000000000000000000000000000000000";
+            if (Boolean.TRUE.equals(approved))
+            {
+                approvedHex = "0000000000000000000000000000000000000000000000000000000000000001";
+            }
+            List<Object> receipts = new ArrayList<Object>(Arrays.asList());
+            Integer operatorsLength = operators.size();
+            for (var i = 0; (operatorsLength != null && i < operatorsLength); i++)
+            {
+                String operatorAddress = this.safeString(operators, i);
+                if (java.util.Objects.equals(operatorAddress, null))
                 {
-                    throw new ArgumentsRequired((this.id + " approve() requires an \"outcome\" to resolve the exchange to approve, or an explicit \"spender\" parameter")) ;
+                    throw new ArgumentsRequired(((this.id + " approve() could not resolve the operator to approve for chain ") + chainKey)) ;
                 }
-                spender = this.exchangeAddress(isNegRisk, isYieldBearing);
+                // setApprovalForAll(operator, approved) -> selector 0xa22cb465
+                String approvalData = (("0xa22cb465" + this.padHexAddress((String) (operatorAddress))) + approvedHex);
+                // each receipt is awaited before the next transaction goes out, so the nonce the
+                // second one looks up already counts the first
+                String approvalHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (ctfToken), "0x0", approvalData, (String) (gasLimit))).join();
+                Object receipt = (this.waitForTransactionReceipt((String) (rpcUrl), approvalHash, 60000L)).join();
+                ((List<Object>)receipts).add(receipt);
             }
-            if ((java.util.Objects.equals(rpcUrl, null)) || (java.util.Objects.equals(token, null)) || (java.util.Objects.equals(spender, null)))
+            return receipts;
+        }
+        Map<String, Object> collaterals = this.safeDict(this.options, "collateral", new HashMap<String, Object>() {{}});
+        String token = this.safeString(parameters, "token", this.safeString(collaterals, chainKey));
+        String spender = this.safeString(parameters, "spender");
+        if (java.util.Objects.equals(spender, null))
+        {
+            if (java.util.Objects.equals(outcome, null))
             {
-                throw new ArgumentsRequired(((this.id + " approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain ") + chainKey)) ;
+                throw new ArgumentsRequired((this.id + " approve() requires an \"outcome\" to resolve the exchange to approve, or an explicit \"spender\" parameter")) ;
             }
-            Object amountHex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-            String amount = this.safeString(parameters, "amount");
-            if (!java.util.Objects.equals(amount, null))
-            {
-                // the collateral has eighteen decimals, so the scaled amount runs past what a float
-                // can hold - it has to stay a string all the way into the bigint
-                String scaled = Precise.stringMul(amount, "1000000000000000000");
-                String amountInt = this.decimalToPrecision(scaled, TRUNCATE, 0, DECIMAL_PLACES);
-                String amountBase16 = this.intToBase16(this.convertToBigInt(amountInt));
-                amountHex = (((String)amountBase16).length() >= 64 ? ((String)amountBase16).substring(((String)amountBase16).length() - 64) : String.format("%" + (64 - ((String)amountBase16).length()) + "s", "").replace(' ', '0') + ((String)amountBase16));
-            }
-            // approve(spender, amount) -> selector 0x095ea7b3
-            String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
-            String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-            return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
-        });
+            spender = this.exchangeAddress(isNegRisk, isYieldBearing);
+        }
+        if ((java.util.Objects.equals(rpcUrl, null)) || (java.util.Objects.equals(token, null)) || (java.util.Objects.equals(spender, null)))
+        {
+            throw new ArgumentsRequired(((this.id + " approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain ") + chainKey)) ;
+        }
+        Object amountHex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        String amount = this.safeString(parameters, "amount");
+        if (!java.util.Objects.equals(amount, null))
+        {
+            // the collateral has eighteen decimals, so the scaled amount runs past what a float
+            // can hold - it has to stay a string all the way into the bigint
+            String scaled = Precise.stringMul(amount, "1000000000000000000");
+            String amountInt = this.decimalToPrecision(scaled, TRUNCATE, 0, DECIMAL_PLACES);
+            String amountBase16 = this.intToBase16(this.convertToBigInt(amountInt));
+            amountHex = (((String)amountBase16).length() >= 64 ? ((String)amountBase16).substring(((String)amountBase16).length() - 64) : String.format("%" + (64 - ((String)amountBase16).length()) + "s", "").replace(' ', '0') + ((String)amountBase16));
+        }
+        // approve(spender, amount) -> selector 0x095ea7b3
+        String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
+        String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
+        return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
 
     }
 
@@ -3265,41 +3303,43 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String marketId = this.safeString(info, "marketId");
-            if (java.util.Objects.equals(marketId, null))
-            {
-                throw new ArgumentsRequired(((this.id + " watchOrderBook() could not resolve the market id of ") + outcome)) ;
-            }
-            Object outcomeHandle = this.safeOutcomeSymbol((String) (null), outcomeObj);
-            // the venue publishes one book per market, quoted on the yes side, and the no side is its
-            // complement - so a single subscription serves both outcomes and each waits on its own hash
-            String topic = ("predictOrderbook/" + marketId);
-            String messageHash = ("orderbook::" + outcomeHandle);
-            Long requestId = this.requestId();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "requestId", requestId );
-                put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
-            }};
-            // the subscription travels as a dict rather than the default boolean: a reply carries only
-            // the request id, so every registered subscription is indexed on it - and indexBy cannot
-            // look inside a boolean. both outcomes wait on this one topic, so a rejected request has to
-            // be able to release both of them
-            Map<String, Object> subscription = new HashMap<String, Object>();
-            subscription.put("id", this.numberToString(requestId));
-            subscription.put("topic", topic);
-            subscription.put("subscribeHash", topic);
-            subscription.put("messageHashes", this.orderBookMessageHashes((String) (marketId)));
-            String url = this.socketUrl();
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
-            return orderbook.limit();
-        }).thenApply(PredictionOrderBook::new);
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String marketId = this.safeString(info, "marketId");
+        if (java.util.Objects.equals(marketId, null))
+        {
+            throw new ArgumentsRequired(((this.id + " watchOrderBook() could not resolve the market id of ") + outcome)) ;
+        }
+        Object outcomeHandle = this.safeOutcomeSymbol((String) (null), outcomeObj);
+        // the venue publishes one book per market, quoted on the yes side, and the no side is its
+        // complement - so a single subscription serves both outcomes and each waits on its own hash
+        String topic = ("predictOrderbook/" + marketId);
+        String messageHash = ("orderbook::" + outcomeHandle);
+        Long requestId = this.requestId();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "subscribe" );
+            put( "requestId", requestId );
+            put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
+        }};
+        // the subscription travels as a dict rather than the default boolean: a reply carries only
+        // the request id, so every registered subscription is indexed on it - and indexBy cannot
+        // look inside a boolean. both outcomes wait on this one topic, so a rejected request has to
+        // be able to release both of them
+        Map<String, Object> subscription = new HashMap<String, Object>();
+        subscription.put("id", this.numberToString(requestId));
+        subscription.put("topic", topic);
+        subscription.put("subscribeHash", topic);
+        subscription.put("messageHashes", this.orderBookMessageHashes((String) (marketId)));
+        String url = this.socketUrl();
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
+        return orderbook.limit();
 
     }
 
@@ -3314,54 +3354,56 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> unWatchOrderBook(Object outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(outcome, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOrderBookCore(Object outcome, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String marketId = this.safeString(info, "marketId");
-            if (java.util.Objects.equals(marketId, null))
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String marketId = this.safeString(info, "marketId");
+        if (java.util.Objects.equals(marketId, null))
+        {
+            throw new ArgumentsRequired(((this.id + " unWatchOrderBook() could not resolve the market id of ") + outcome)) ;
+        }
+        String topic = ("predictOrderbook/" + marketId);
+        List<Object> outcomes = (List<Object>) this.outcomesByMarketId((String) (marketId));
+        Integer outcomesLength = outcomes.size();
+        List<String> handles = new ArrayList<String>(Arrays.asList());
+        List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
+        {
+            String handle = this.safeString((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)), "outcome");
+            if (!java.util.Objects.equals(handle, null))
             {
-                throw new ArgumentsRequired(((this.id + " unWatchOrderBook() could not resolve the market id of ") + outcome)) ;
+                handles.add(handle);
+                subMessageHashes.add(("orderbook::" + handle));
+                messageHashes.add(("unsubscribe::orderbook::" + handle));
             }
-            String topic = ("predictOrderbook/" + marketId);
-            List<Object> outcomes = (List<Object>) this.outcomesByMarketId((String) (marketId));
-            Integer outcomesLength = outcomes.size();
-            List<String> handles = new ArrayList<String>(Arrays.asList());
-            List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
-            {
-                String handle = this.safeString((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)), "outcome");
-                if (!java.util.Objects.equals(handle, null))
-                {
-                    handles.add(handle);
-                    subMessageHashes.add(("orderbook::" + handle));
-                    messageHashes.add(("unsubscribe::orderbook::" + handle));
-                }
-            }
-            Long requestId = this.requestId();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "unsubscribe" );
-                put( "requestId", requestId );
-                put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
-            }};
-            // the acknowledgement carries the request id and nothing else - no topic - so the id is
-            // what ties the reply back to this subscription, which travels with it as the last argument
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "unsubscribe", true );
-                put( "id", Predictfun.this.numberToString(requestId) );
-                put( "topic", "orderbook" );
-                put( "symbols", handles );
-                put( "subMessageHashes", subMessageHashes );
-                put( "messageHashes", messageHashes );
-                put( "subscribeHash", topic );
-            }};
-            String messageHash = ("unsubscribe::orderbook::" + this.safeOutcomeSymbol((String) (null), outcomeObj));
-            String url = this.socketUrl();
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        }
+        Long requestId = this.requestId();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "unsubscribe" );
+            put( "requestId", requestId );
+            put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
+        }};
+        // the acknowledgement carries the request id and nothing else - no topic - so the id is
+        // what ties the reply back to this subscription, which travels with it as the last argument
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "unsubscribe", true );
+            put( "id", Predictfun.this.numberToString(requestId) );
+            put( "topic", "orderbook" );
+            put( "symbols", handles );
+            put( "subMessageHashes", subMessageHashes );
+            put( "messageHashes", messageHashes );
+            put( "subscribeHash", topic );
+        }};
+        String messageHash = ("unsubscribe::orderbook::" + this.safeOutcomeSymbol((String) (null), outcomeObj));
+        String url = this.socketUrl();
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
 
     }
 
@@ -3493,34 +3535,36 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionOrder>> watchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String messageHash = "orders";
-            Object outcomeResolved = outcome;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcomeResolved), false)).join();
-                Map<String, Object> outcomeObj = this.outcome((String) (outcomeResolved));
-                outcomeResolved = this.safeOutcomeSymbol((String) (null), outcomeObj);
-                messageHash = ("orders::" + outcomeResolved);
-            } else
-            {
-                // events arrive for whatever market the wallet traded, and the handler that resolves
-                // them is synchronous - so the universe is warmed here, while there is still a place to
-                // await. without it the first events land on a cold cache and every one of them buckets
-                // into the cache under the same undefined outcome. the call is idempotent and returns
-                // without a request once the cache is warm
-                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> orders = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, outcomeResolved, limitResolved);
-            }
-            return this.filterByOutcomeSinceLimit(orders, java.util.Objects.toString(outcomeResolved, null), since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        String messageHash = "orders";
+        Object outcomeResolved = outcome;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcomeResolved), false)).join();
+            Map<String, Object> outcomeObj = this.outcome((String) (outcomeResolved));
+            outcomeResolved = this.safeOutcomeSymbol((String) (null), outcomeObj);
+            messageHash = ("orders::" + outcomeResolved);
+        } else
+        {
+            // events arrive for whatever market the wallet traded, and the handler that resolves
+            // them is synchronous - so the universe is warmed here, while there is still a place to
+            // await. without it the first events land on a cold cache and every one of them buckets
+            // into the cache under the same undefined outcome. the call is idempotent and returns
+            // without a request once the cache is warm
+            (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> orders = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, outcomeResolved, limitResolved);
+        }
+        return this.filterByOutcomeSinceLimit(orders, java.util.Objects.toString(outcomeResolved, null), since, limitResolved, true);
 
     }
 
@@ -3537,31 +3581,33 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<List<PredictionTrade>> watchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String messageHash = "myTrades";
-            Object outcomeResolved = outcome;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcomeResolved), false)).join();
-                Map<String, Object> outcomeObj = this.outcome((String) (outcomeResolved));
-                outcomeResolved = this.safeOutcomeSymbol((String) (null), outcomeObj);
-                messageHash = ("myTrades::" + outcomeResolved);
-            } else
-            {
-                // same as watchOrders (): the fills come from the one wallet topic and are resolved by
-                // a synchronous handler, so the cache is warmed here rather than on the first event
-                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> trades = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, outcomeResolved, limitResolved);
-            }
-            return this.filterByOutcomeSinceLimit(trades, java.util.Objects.toString(outcomeResolved, null), since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        String messageHash = "myTrades";
+        Object outcomeResolved = outcome;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcomeResolved), false)).join();
+            Map<String, Object> outcomeObj = this.outcome((String) (outcomeResolved));
+            outcomeResolved = this.safeOutcomeSymbol((String) (null), outcomeObj);
+            messageHash = ("myTrades::" + outcomeResolved);
+        } else
+        {
+            // same as watchOrders (): the fills come from the one wallet topic and are resolved by
+            // a synchronous handler, so the cache is warmed here rather than on the first event
+            (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> trades = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, outcomeResolved, limitResolved);
+        }
+        return this.filterByOutcomeSinceLimit(trades, java.util.Objects.toString(outcomeResolved, null), since, limitResolved, true);
 
     }
 
@@ -3576,11 +3622,13 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> unWatchOrders(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrdersCore(outcome, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOrdersCore(String outcome, Map<String, Object> parameters)
+    {
 
-            return (this.unWatchWalletEvents("orders", parameters)).join();
-        });
+        return (this.unWatchWalletEvents("orders", parameters)).join();
 
     }
 
@@ -3595,11 +3643,13 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> unWatchMyTrades(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchMyTradesCore(outcome, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchMyTradesCore(String outcome, Map<String, Object> parameters)
+    {
 
-            return (this.unWatchWalletEvents("myTrades", parameters)).join();
-        });
+        return (this.unWatchWalletEvents("myTrades", parameters)).join();
 
     }
 
@@ -3612,18 +3662,20 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<String> walletEventsTopic()
     {
+        return BaseExchange.supplyAsync(() -> this.walletEventsTopicCore());
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private String walletEventsTopicCore()
+    {
 
-            // authenticate () serves the cached token until it expires, so subscribe and unsubscribe
-            // name the same topic. a re-minted token is a different topic, which is why the socket
-            // subscription is keyed by a stable hash instead of by this string - the token is a secret
-            // and has no business sitting in a subscription key
-            // the local is not called jwt: that is the name of a base method, and the regex transpiler
-            // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
-            Object walletToken = (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            return ("predictWalletEvents/" + walletToken);
-        });
+        // authenticate () serves the cached token until it expires, so subscribe and unsubscribe
+        // name the same topic. a re-minted token is a different topic, which is why the socket
+        // subscription is keyed by a stable hash instead of by this string - the token is a secret
+        // and has no business sitting in a subscription key
+        // the local is not called jwt: that is the name of a base method, and the regex transpiler
+        // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
+        Object walletToken = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        return ("predictWalletEvents/" + walletToken);
 
     }
 
@@ -3638,26 +3690,28 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> watchWalletEvents(String messageHash, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchWalletEventsCore(messageHash, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchWalletEventsCore(String messageHash, Map<String, Object> parameters)
+    {
 
-            String topic = (this.walletEventsTopic()).join();
-            Long requestId = this.requestId();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "requestId", requestId );
-                put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
-            }};
-            String url = this.socketUrl();
-            Client client = this.client(url);
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", Predictfun.this.numberToString(requestId) );
-                put( "topic", "walletEvents" );
-                put( "subscribeHash", "walletEvents" );
-                put( "messageHashes", Predictfun.this.walletEventMessageHashes(client, messageHash) );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), "walletEvents", subscription)).join();
-        });
+        String topic = (this.walletEventsTopic()).join();
+        Long requestId = this.requestId();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "subscribe" );
+            put( "requestId", requestId );
+            put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
+        }};
+        String url = this.socketUrl();
+        Client client = this.client(url);
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "id", Predictfun.this.numberToString(requestId) );
+            put( "topic", "walletEvents" );
+            put( "subscribeHash", "walletEvents" );
+            put( "messageHashes", Predictfun.this.walletEventMessageHashes(client, messageHash) );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), "walletEvents", subscription)).join();
 
     }
 
@@ -3705,29 +3759,31 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> unWatchWalletEvents(String channel, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchWalletEventsCore(channel, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchWalletEventsCore(String channel, Map<String, Object> parameters)
+    {
 
-            String topic = (this.walletEventsTopic()).join();
-            Long requestId = this.requestId();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "unsubscribe" );
-                put( "requestId", requestId );
-                put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "unsubscribe", true );
-                put( "id", Predictfun.this.numberToString(requestId) );
-                put( "topic", "walletEvents" );
-                put( "symbols", new ArrayList<Object>(Arrays.asList()) );
-                put( "subMessageHashes", new ArrayList<Object>(Arrays.asList("orders", "myTrades")) );
-                put( "messageHashes", new ArrayList<Object>(Arrays.asList("unsubscribe::orders", "unsubscribe::myTrades")) );
-                put( "subscribeHash", "walletEvents" );
-            }};
-            String messageHash = ("unsubscribe::" + channel);
-            String url = this.socketUrl();
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        String topic = (this.walletEventsTopic()).join();
+        Long requestId = this.requestId();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "method", "unsubscribe" );
+            put( "requestId", requestId );
+            put( "params", new ArrayList<Object>(Arrays.asList(topic)) );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "unsubscribe", true );
+            put( "id", Predictfun.this.numberToString(requestId) );
+            put( "topic", "walletEvents" );
+            put( "symbols", new ArrayList<Object>(Arrays.asList()) );
+            put( "subMessageHashes", new ArrayList<Object>(Arrays.asList("orders", "myTrades")) );
+            put( "messageHashes", new ArrayList<Object>(Arrays.asList("unsubscribe::orders", "unsubscribe::myTrades")) );
+            put( "subscribeHash", "walletEvents" );
+        }};
+        String messageHash = ("unsubscribe::" + channel);
+        String url = this.socketUrl();
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
 
     }
 
@@ -4296,25 +4352,27 @@ public class Predictfun extends PredictfunApi
      */
     public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
     {
+        return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object pongCore(Client client, Map<String, Object> message)
+    {
 
-            // the server probes every fifteen seconds and drops the connection on the next probe unless
-            // the exact timestamp it sent comes back, so the reply echoes it verbatim
-            Map<String, Object> reply = new HashMap<String, Object>() {{
-                put( "method", "heartbeat" );
-                put( "data", Predictfun.this.safeInteger(message, "data") );
-            }};
-            try
-            {
-                (client.send(reply)).join();
-            } catch(Exception e)
-            {
-                var error = new NetworkError(((this.id + " pong failed - ") + this.exceptionMessage(e, true)));
-                client.reset(error);
-            }
-            return null;
-        });
+        // the server probes every fifteen seconds and drops the connection on the next probe unless
+        // the exact timestamp it sent comes back, so the reply echoes it verbatim
+        Map<String, Object> reply = new HashMap<String, Object>() {{
+            put( "method", "heartbeat" );
+            put( "data", Predictfun.this.safeInteger(message, "data") );
+        }};
+        try
+        {
+            (client.send(reply)).join();
+        } catch(Exception e)
+        {
+            var error = new NetworkError(((this.id + " pong failed - ") + this.exceptionMessage(e, true)));
+            client.reset(error);
+        }
+        return null;
 
     }
 

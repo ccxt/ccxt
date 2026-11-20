@@ -306,37 +306,39 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            List<Object> queries = this.parseSearchQueries(parameters);
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
-            Integer queriesLength = queries.size();
-            List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
-            if ((queriesLength != null && queriesLength > 0))
+        List<Object> queries = this.parseSearchQueries(parameters);
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
+        Integer queriesLength = queries.size();
+        List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
+        if ((queriesLength != null && queriesLength > 0))
+        {
+            rawMarkets = (this.fetchRawMarketsBySearch(queries, rest)).join();
+        } else
+        {
+            rawMarkets = (this.fetchRawMarketsList(rest)).join();
+        }
+        List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
+        Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < rawMarkets.size(); i++)
+        {
+            Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+            Map<String, Object> m = this.parseMyriadMarket(raw, (String) null);
+            ((List<Object>)flatMarkets).add(m);
+            Map<String, Object> ev = this.parseMarketToEvent(raw, m);
+            String evKey = this.safeString(ev, "event");
+            if (!java.util.Objects.equals(evKey, null))
             {
-                rawMarkets = (this.fetchRawMarketsBySearch(queries, rest)).join();
-            } else
-            {
-                rawMarkets = (this.fetchRawMarketsList(rest)).join();
+                eventsDict.put(evKey, ev);
             }
-            List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < rawMarkets.size(); i++)
-            {
-                Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
-                Map<String, Object> m = this.parseMyriadMarket(raw, (String) null);
-                ((List<Object>)flatMarkets).add(m);
-                Map<String, Object> ev = this.parseMarketToEvent(raw, m);
-                String evKey = this.safeString(ev, "event");
-                if (!java.util.Objects.equals(evKey, null))
-                {
-                    eventsDict.put(evKey, ev);
-                }
-            }
-            this.events = eventsDict;
-            return flatMarkets;
-        });
+        }
+        this.events = eventsDict;
+        return flatMarkets;
 
     }
 
@@ -354,39 +356,41 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<Object>> fetchRawMarketsBySearch(Object queries, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRawMarketsBySearchCore(queries, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private List<Object> fetchRawMarketsBySearchCore(Object queries, Map<String, Object> parameters)
+    {
 
-            Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
-            String state = this.safeString(parameters, "state", this.safeString(this.options, "defaultMarketStatus", "open"));
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "state")));
-            Map<String, Object> seen = new HashMap<String, Object>() {{}};
-            List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)queries).size(); i++)
+        Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
+        String state = this.safeString(parameters, "state", this.safeString(this.options, "defaultMarketStatus", "open"));
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "state")));
+        Map<String, Object> seen = new HashMap<String, Object>() {{}};
+        List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)queries).size(); i++)
+        {
+            Object q = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
+            Map<String, Object> response = (this.myriadPublicGetMarkets(this.extend(new HashMap<String, Object>() {{
+                put( "keyword", q );
+                put( "state", state );
+                put( "limit", limit );
+            }}, rest))).join();
+            Boolean responseIsArray = (response instanceof List);
+            List<Object> found = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
+            for (var j = 0; j < found.size(); j++)
             {
-                Object q = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
-                Map<String, Object> response = (this.myriadPublicGetMarkets(this.extend(new HashMap<String, Object>() {{
-                    put( "keyword", q );
-                    put( "state", state );
-                    put( "limit", limit );
-                }}, rest))).join();
-                Boolean responseIsArray = (response instanceof List);
-                List<Object> found = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
-                for (var j = 0; j < found.size(); j++)
+                Object raw = (found == null || j < 0 || j >= found.size() ? null : found.get(j));
+                String networkId = this.safeString(raw, "networkId", "");
+                String marketId = this.safeString(raw, "id", "");
+                String key = ((networkId + ":") + marketId);
+                if (!(seen.containsKey(key)))
                 {
-                    Object raw = (found == null || j < 0 || j >= found.size() ? null : found.get(j));
-                    String networkId = this.safeString(raw, "networkId", "");
-                    String marketId = this.safeString(raw, "id", "");
-                    String key = ((networkId + ":") + marketId);
-                    if (!(seen.containsKey(key)))
-                    {
-                        seen.put(key, true);
-                        ((List<Object>)rawMarkets).add(raw);
-                    }
+                    seen.put(key, true);
+                    ((List<Object>)rawMarkets).add(raw);
                 }
             }
-            return rawMarkets;
-        });
+        }
+        return rawMarkets;
 
     }
 
@@ -402,53 +406,55 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<Object>> fetchRawMarketsList(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRawMarketsListCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private List<Object> fetchRawMarketsListCore(Map<String, Object> parameters)
+    {
 
-            Long limit = this.safeInteger(this.options, "defaultFetchMarketsLimit", 50);
-            // scope the listing: without a search query loadMarkets would otherwise page through
-            // every open myriad market. Cap the total number of markets collected.
-            Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
-            String state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
-            // include both AMM and order-book markets so order-book trading methods can resolve their markets
-            String tradingModel = this.safeString2(parameters, "tradingModel", "trading_model", this.safeString(this.options, "defaultTradingModel", "all"));
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
-            List<Object> allRawMarkets = new ArrayList<Object>(Arrays.asList());
-            // track the running count with an explicit counter (avoids inline array .length / .slice,
-            // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
-            Integer collected = 0;
-            Object page = 1;
-            while (true)
+        Long limit = this.safeInteger(this.options, "defaultFetchMarketsLimit", 50);
+        // scope the listing: without a search query loadMarkets would otherwise page through
+        // every open myriad market. Cap the total number of markets collected.
+        Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
+        String state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
+        // include both AMM and order-book markets so order-book trading methods can resolve their markets
+        String tradingModel = this.safeString2(parameters, "tradingModel", "trading_model", this.safeString(this.options, "defaultTradingModel", "all"));
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
+        List<Object> allRawMarkets = new ArrayList<Object>(Arrays.asList());
+        // track the running count with an explicit counter (avoids inline array .length / .slice,
+        // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
+        Integer collected = 0;
+        Object page = 1;
+        while (true)
+        {
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("state", state);
+            mapLiteral1.put("limit", limit);
+            mapLiteral1.put("page", page);
+            mapLiteral1.put("trading_model", tradingModel);
+            Map<String, Object> response = (this.myriadPublicGetMarkets(this.extend(mapLiteral1, rest))).join();
+            Boolean responseIsArray = (response instanceof List);
+            List<Object> rawMarkets = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
+            Integer rawMarketsLength = rawMarkets.size();
+            if (java.util.Objects.equals(rawMarketsLength, 0))
             {
-                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                mapLiteral1.put("state", state);
-                mapLiteral1.put("limit", limit);
-                mapLiteral1.put("page", page);
-                mapLiteral1.put("trading_model", tradingModel);
-                Map<String, Object> response = (this.myriadPublicGetMarkets(this.extend(mapLiteral1, rest))).join();
-                Boolean responseIsArray = (response instanceof List);
-                List<Object> rawMarkets = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
-                Integer rawMarketsLength = rawMarkets.size();
-                if (java.util.Objects.equals(rawMarketsLength, 0))
+                break;
+            }
+            for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
+            {
+                if ((maxMarkets != null && (collected == null || collected < maxMarkets)))
                 {
-                    break;
-                }
-                for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
-                {
-                    if ((maxMarkets != null && (collected == null || collected < maxMarkets)))
-                    {
-                        ((List<Object>)allRawMarkets).add((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i)));
-                        collected = allRawMarkets.size();
-                    }
-                }
-                page = this.sum(page, 1);
-                if ((limit != null && (rawMarketsLength == null || rawMarketsLength < limit)) || (maxMarkets == null || (collected != null && collected >= maxMarkets)))
-                {
-                    break;
+                    ((List<Object>)allRawMarkets).add((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i)));
+                    collected = allRawMarkets.size();
                 }
             }
-            return allRawMarkets;
-        });
+            page = this.sum(page, 1);
+            if ((limit != null && (rawMarketsLength == null || rawMarketsLength < limit)) || (maxMarkets == null || (collected != null && collected >= maxMarkets)))
+            {
+                break;
+            }
+        }
+        return allRawMarkets;
 
     }
 
@@ -463,22 +469,24 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchEventCore(id, parameters)).thenApply(PredictionEvent::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchEventCore(String id, Map<String, Object> parameters)
+    {
 
-            if (((String)id).indexOf(":") < 0)
-            {
-                Map<String, Object> rawQuestion = (this.fetchRawQuestionById((String) (id), parameters)).join();
-                Map<String, Object> orderBookEvent = this.parseEvent(rawQuestion);
-                this.indexEventOutcomes(orderBookEvent);
-                return orderBookEvent;
-            }
-            Map<String, Object> response = (this.fetchRawMarketById((String) (id), parameters)).join();
-            Map<String, Object> market = this.parseMyriadMarket(response, (String) null);
-            Map<String, Object> eventVar = this.parseMarketToEvent(response, market);
-            this.indexEventOutcomes(eventVar);
-            return eventVar;
-        }).thenApply(PredictionEvent::new);
+        if (((String)id).indexOf(":") < 0)
+        {
+            Map<String, Object> rawQuestion = (this.fetchRawQuestionById((String) (id), parameters)).join();
+            Map<String, Object> orderBookEvent = this.parseEvent(rawQuestion);
+            this.indexEventOutcomes(orderBookEvent);
+            return orderBookEvent;
+        }
+        Map<String, Object> response = (this.fetchRawMarketById((String) (id), parameters)).join();
+        Map<String, Object> market = this.parseMyriadMarket(response, (String) null);
+        Map<String, Object> eventVar = this.parseMarketToEvent(response, market);
+        this.indexEventOutcomes(eventVar);
+        return eventVar;
 
     }
 
@@ -493,23 +501,25 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Map<String, Object>> fetchRawMarketById(String id, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRawMarketByIdCore(id, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> fetchRawMarketByIdCore(String id, Map<String, Object> parameters)
+    {
 
-            // the unified event id is a composite networkId:marketId
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(":"))));
-            Integer partsLength = parts.size();
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if ((partsLength != null && partsLength > 1))
-            {
-                request.put("network_id", this.safeString(parts, 0));
-                request.put("id", this.safeString(parts, 1));
-            } else
-            {
-                request.put("id", id);
-            }
-            return (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
-        });
+        // the unified event id is a composite networkId:marketId
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(":"))));
+        Integer partsLength = parts.size();
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if ((partsLength != null && partsLength > 1))
+        {
+            request.put("network_id", this.safeString(parts, 0));
+            request.put("id", this.safeString(parts, 1));
+        } else
+        {
+            request.put("id", id);
+        }
+        return (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
 
     }
 
@@ -524,46 +534,48 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Map<String, Object>> fetchRawQuestionById(String id, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRawQuestionByIdCore(id, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> fetchRawQuestionByIdCore(String id, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", id );
-            }};
-            Map<String, Object> result = null;
-            try
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", id );
+        }};
+        Map<String, Object> result = null;
+        try
+        {
+            result = (this.myriadPublicGetQuestionsId(this.extend(request, parameters))).join();
+        } catch(Exception e)
+        {
+            if ((Helpers.isInstance(e, RateLimitExceeded.class)) || (Helpers.isInstance(e, AuthenticationError.class)))
             {
-                result = (this.myriadPublicGetQuestionsId(this.extend(request, parameters))).join();
-            } catch(Exception e)
-            {
-                if ((Helpers.isInstance(e, RateLimitExceeded.class)) || (Helpers.isInstance(e, AuthenticationError.class)))
-                {
-                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                }
-                Map<String, Object> keywordRequest = new HashMap<String, Object>() {{
-                    put( "keyword", id );
-                    put( "limit", 50 );
-                }};
-                Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(keywordRequest, parameters))).join();
-                List<Object> questions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                Integer questionsLength = questions.size();
-                String idLower = ((String)id).toLowerCase();
-                for (var i = 0; (questionsLength != null && i < questionsLength); i++)
-                {
-                    Map<String, Object> q = this.safeDict(questions, i, new HashMap<String, Object>() {{}});
-                    String qId = this.safeString(q, "id", "");
-                    String qSlug = this.safeString(q, "slug", "");
-                    String qTitle = this.safeString(q, "title", "");
-                    String qHandle = this.shortenSlug((String) (qSlug));
-                    if ((java.util.Objects.equals(qId.toLowerCase(), idLower)) || (java.util.Objects.equals(qSlug.toLowerCase(), idLower)) || (java.util.Objects.equals(qTitle.toLowerCase(), idLower)) || ((!java.util.Objects.equals(qHandle, null)) && (java.util.Objects.equals(qHandle.toLowerCase(), idLower))))
-                    {
-                        return q;
-                    }
-                }
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            return result;
-        });
+            Map<String, Object> keywordRequest = new HashMap<String, Object>() {{
+                put( "keyword", id );
+                put( "limit", 50 );
+            }};
+            Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(keywordRequest, parameters))).join();
+            List<Object> questions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer questionsLength = questions.size();
+            String idLower = ((String)id).toLowerCase();
+            for (var i = 0; (questionsLength != null && i < questionsLength); i++)
+            {
+                Map<String, Object> q = this.safeDict(questions, i, new HashMap<String, Object>() {{}});
+                String qId = this.safeString(q, "id", "");
+                String qSlug = this.safeString(q, "slug", "");
+                String qTitle = this.safeString(q, "title", "");
+                String qHandle = this.shortenSlug((String) (qSlug));
+                if ((java.util.Objects.equals(qId.toLowerCase(), idLower)) || (java.util.Objects.equals(qSlug.toLowerCase(), idLower)) || (java.util.Objects.equals(qTitle.toLowerCase(), idLower)) || ((!java.util.Objects.equals(qHandle, null)) && (java.util.Objects.equals(qHandle.toLowerCase(), idLower))))
+                {
+                    return q;
+                }
+            }
+            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+        }
+        return result;
 
     }
 
@@ -578,35 +590,37 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Object> fetchRawQuestionsBySearch(Object queries, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRawQuestionsBySearchCore(queries, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchRawQuestionsBySearchCore(Object queries, Map<String, Object> parameters)
+    {
 
-            Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
-            Map<String, Object> seen = new HashMap<String, Object>() {{}};
-            List<Object> rawQuestions = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)queries).size(); i++)
+        Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
+        Map<String, Object> seen = new HashMap<String, Object>() {{}};
+        List<Object> rawQuestions = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)queries).size(); i++)
+        {
+            Object q = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
+            Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(new HashMap<String, Object>() {{
+                put( "keyword", q );
+                put( "limit", limit );
+            }}, rest))).join();
+            Boolean responseIsArray = (response instanceof List);
+            List<Object> found = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
+            for (var j = 0; j < found.size(); j++)
             {
-                Object q = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
-                Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(new HashMap<String, Object>() {{
-                    put( "keyword", q );
-                    put( "limit", limit );
-                }}, rest))).join();
-                Boolean responseIsArray = (response instanceof List);
-                List<Object> found = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
-                for (var j = 0; j < found.size(); j++)
+                Object raw = (found == null || j < 0 || j >= found.size() ? null : found.get(j));
+                String questionId = this.safeString(raw, "id");
+                if ((!java.util.Objects.equals(questionId, null)) && !(seen.containsKey(questionId)))
                 {
-                    Object raw = (found == null || j < 0 || j >= found.size() ? null : found.get(j));
-                    String questionId = this.safeString(raw, "id");
-                    if ((!java.util.Objects.equals(questionId, null)) && !(seen.containsKey(questionId)))
-                    {
-                        seen.put(questionId, true);
-                        ((List<Object>)rawQuestions).add(raw);
-                    }
+                    seen.put(questionId, true);
+                    ((List<Object>)rawQuestions).add(raw);
                 }
             }
-            return rawQuestions;
-        });
+        }
+        return rawQuestions;
 
     }
 
@@ -621,60 +635,62 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Object> fetchRawQuestionsList(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRawQuestionsListCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchRawQuestionsListCore(Map<String, Object> parameters)
+    {
 
-            Long limit = this.safeInteger(this.options, "defaultFetchEventsLimit", 50);
-            Long maxQuestions = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchEventsLimit", 1000));
-            String state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
-            List<Object> allRawQuestions = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> seen = new HashMap<String, Object>() {{}};
-            Integer collected = 0;
-            Object page = 1;
-            while (true)
+        Long limit = this.safeInteger(this.options, "defaultFetchEventsLimit", 50);
+        Long maxQuestions = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchEventsLimit", 1000));
+        String state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
+        List<Object> allRawQuestions = new ArrayList<Object>(Arrays.asList());
+        Map<String, Object> seen = new HashMap<String, Object>() {{}};
+        Integer collected = 0;
+        Object page = 1;
+        while (true)
+        {
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("limit", limit);
+            request.put("page", page);
+            if (!java.util.Objects.equals(state, null))
             {
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("limit", limit);
-                request.put("page", page);
-                if (!java.util.Objects.equals(state, null))
+                request.put("state", state);
+            }
+            Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(request, rest))).join();
+            Boolean responseIsArray = (response instanceof List);
+            List<Object> rawQuestions = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
+            Integer rawQuestionsLength = rawQuestions.size();
+            if (java.util.Objects.equals(rawQuestionsLength, 0))
+            {
+                break;
+            }
+            for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
+            {
+                Object rawQuestion = (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
+                String questionId = this.safeString(rawQuestion, "id");
+                if ((!java.util.Objects.equals(questionId, null)) && (seen.containsKey(questionId)))
                 {
-                    request.put("state", state);
+                    continue;
                 }
-                Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(request, rest))).join();
-                Boolean responseIsArray = (response instanceof List);
-                List<Object> rawQuestions = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
-                Integer rawQuestionsLength = rawQuestions.size();
-                if (java.util.Objects.equals(rawQuestionsLength, 0))
+                if (!java.util.Objects.equals(questionId, null))
                 {
-                    break;
+                    seen.put(questionId, true);
                 }
-                for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
+                if ((maxQuestions != null && (collected == null || collected < maxQuestions)))
                 {
-                    Object rawQuestion = (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
-                    String questionId = this.safeString(rawQuestion, "id");
-                    if ((!java.util.Objects.equals(questionId, null)) && (seen.containsKey(questionId)))
-                    {
-                        continue;
-                    }
-                    if (!java.util.Objects.equals(questionId, null))
-                    {
-                        seen.put(questionId, true);
-                    }
-                    if ((maxQuestions != null && (collected == null || collected < maxQuestions)))
-                    {
-                        ((List<Object>)allRawQuestions).add(rawQuestion);
-                        collected = allRawQuestions.size();
-                    }
-                }
-                page = this.sum(page, 1);
-                if (((limit != null && (rawQuestionsLength == null || rawQuestionsLength < limit))) || ((maxQuestions == null || (collected != null && collected >= maxQuestions))))
-                {
-                    break;
+                    ((List<Object>)allRawQuestions).add(rawQuestion);
+                    collected = allRawQuestions.size();
                 }
             }
-            return allRawQuestions;
-        });
+            page = this.sum(page, 1);
+            if (((limit != null && (rawQuestionsLength == null || rawQuestionsLength < limit))) || ((maxQuestions == null || (collected != null && collected >= maxQuestions))))
+            {
+                break;
+            }
+        }
+        return allRawQuestions;
 
     }
 
@@ -690,75 +706,77 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    {
 
-            // resolve the owner the same way fetchBalance does — derive from the configured privateKey
-            // when no explicit walletAddress/param is set, so a privateKey-only config works for both
-            String address = this.safeString2(parameters, "address", "user", this.walletAddressOrUndefined());
-            if (java.util.Objects.equals(address, null))
+        // resolve the owner the same way fetchBalance does — derive from the configured privateKey
+        // when no explicit walletAddress/param is set, so a privateKey-only config works for both
+        String address = this.safeString2(parameters, "address", "user", this.walletAddressOrUndefined());
+        if (java.util.Objects.equals(address, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchPositions() requires a walletAddress or an address parameter")) ;
+        }
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("address", "user")));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("address", address);
+        Map<String, Object> response = (this.myriadPublicGetUsersAddressPortfolio(this.extend(mapLiteral2, rest))).join();
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "marketId": 170145,
+        //                 "marketTitle": "Will Base TGE in 2026?",
+        //                 "marketSlug": "will-base-tge-in-2026",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        //                 "outcomeId": 0,
+        //                 "outcomeTitle": "Yes",
+        //                 "networkId": 56,
+        //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        //                 "tokenId": null,
+        //                 "shares": 8.23666644,
+        //                 "price": 0.1214083400468503,
+        //                 "value": 0.9823048396344001,
+        //                 "profit": -0.017695160365599896,
+        //                 "roi": -0.017695160365599896,
+        //                 "totalProfit": -0.017695160365599927,
+        //                 "totalRoi": -0.017695160365599927,
+        //                 "positionFees": 0.02,
+        //                 "totalFees": 0.02,
+        //                 "winningsToClaim": false,
+        //                 "winningsClaimed": false,
+        //                 "voidedWinningsToClaim": false,
+        //                 "voidedWinningsClaimed": false,
+        //                 "status": "ongoing",
+        //                 "claimed": false,
+        //                 "executionMode": 0,
+        //                 "expiresAt": "2026-12-31 23:59:00",
+        //                 "eventId": null
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 20,
+        //             "total": 1,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> position = this.parsePredictionPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
+            if ((java.util.Objects.equals(outcomes, null)) || this.inArray(position.get("outcome"), outcomes))
             {
-                throw new ArgumentsRequired((this.id + " fetchPositions() requires a walletAddress or an address parameter")) ;
+                ((List<Object>)result).add(position);
             }
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("address", "user")));
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("address", address);
-            Map<String, Object> response = (this.myriadPublicGetUsersAddressPortfolio(this.extend(mapLiteral2, rest))).join();
-            //
-            //     {
-            //         "data": [
-            //             {
-            //                 "marketId": 170145,
-            //                 "marketTitle": "Will Base TGE in 2026?",
-            //                 "marketSlug": "will-base-tge-in-2026",
-            //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
-            //                 "outcomeId": 0,
-            //                 "outcomeTitle": "Yes",
-            //                 "networkId": 56,
-            //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
-            //                 "tokenId": null,
-            //                 "shares": 8.23666644,
-            //                 "price": 0.1214083400468503,
-            //                 "value": 0.9823048396344001,
-            //                 "profit": -0.017695160365599896,
-            //                 "roi": -0.017695160365599896,
-            //                 "totalProfit": -0.017695160365599927,
-            //                 "totalRoi": -0.017695160365599927,
-            //                 "positionFees": 0.02,
-            //                 "totalFees": 0.02,
-            //                 "winningsToClaim": false,
-            //                 "winningsClaimed": false,
-            //                 "voidedWinningsToClaim": false,
-            //                 "voidedWinningsClaimed": false,
-            //                 "status": "ongoing",
-            //                 "claimed": false,
-            //                 "executionMode": 0,
-            //                 "expiresAt": "2026-12-31 23:59:00",
-            //                 "eventId": null
-            //             }
-            //         ],
-            //         "pagination": {
-            //             "page": 1,
-            //             "limit": 20,
-            //             "total": 1,
-            //             "totalPages": 1,
-            //             "hasNext": false,
-            //             "hasPrev": false
-            //         }
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Map<String, Object> position = this.parsePredictionPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
-                if ((java.util.Objects.equals(outcomes, null)) || this.inArray(position.get("outcome"), outcomes))
-                {
-                    ((List<Object>)result).add(position);
-                }
-            }
-            return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+        }
+        return result;
 
     }
 
@@ -820,52 +838,54 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Map<String, Object>> fetchTradeQuote(String outcome, String side, Object amount, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradeQuoteCore(outcome, side, amount, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Map<String, Object> fetchTradeQuoteCore(String outcome, String side, Object amount, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(info, "networkId");
-            String marketId = this.safeString(info, "marketId");
-            Long outcomeId = this.safeInteger(info, "outcomeId");
-            String sideStr = ((String)side).toLowerCase();
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("market_id", this.parseToInt(marketId));
-            request.put("network_id", this.parseToInt(networkId));
-            request.put("outcome_id", outcomeId);
-            request.put("action", sideStr);
-            request.put("slippage", this.safeNumber(parameters, "slippage", 0.005));
-            if (java.util.Objects.equals(sideStr, "buy"))
-            {
-                request.put("value", amount);
-            } else
-            {
-                request.put("shares", amount);
-            }
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("slippage")));
-            Map<String, Object> response = (this.myriadPublicPostMarketsQuote(this.extend(request, rest))).join();
-            //
-            //     {
-            //         "value": 10,
-            //         "shares": 21.566766528674936,
-            //         "shares_threshold": 21.45893269603156,
-            //         "price_average": 0.4636763692278168,
-            //         "price_before": 0.46100295,
-            //         "price_after": 0.46635187379825593,
-            //         "calldata": "0x1...680",
-            //         "net_amount": 10,
-            //         "fees": {
-            //             "treasury": 0,
-            //             "distributor": 0,
-            //             "fee": 0
-            //         }
-            //     }
-            //
-            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-            mapLiteral4.put("action", sideStr);
-            return this.parseTradeQuote((Map<String, Object>) (this.extend(response, mapLiteral4)), outcomeObj);
-        });
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String networkId = this.safeString(info, "networkId");
+        String marketId = this.safeString(info, "marketId");
+        Long outcomeId = this.safeInteger(info, "outcomeId");
+        String sideStr = ((String)side).toLowerCase();
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("market_id", this.parseToInt(marketId));
+        request.put("network_id", this.parseToInt(networkId));
+        request.put("outcome_id", outcomeId);
+        request.put("action", sideStr);
+        request.put("slippage", this.safeNumber(parameters, "slippage", 0.005));
+        if (java.util.Objects.equals(sideStr, "buy"))
+        {
+            request.put("value", amount);
+        } else
+        {
+            request.put("shares", amount);
+        }
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("slippage")));
+        Map<String, Object> response = (this.myriadPublicPostMarketsQuote(this.extend(request, rest))).join();
+        //
+        //     {
+        //         "value": 10,
+        //         "shares": 21.566766528674936,
+        //         "shares_threshold": 21.45893269603156,
+        //         "price_average": 0.4636763692278168,
+        //         "price_before": 0.46100295,
+        //         "price_after": 0.46635187379825593,
+        //         "calldata": "0x1...680",
+        //         "net_amount": 10,
+        //         "fees": {
+        //             "treasury": 0,
+        //             "distributor": 0,
+        //             "fee": 0
+        //         }
+        //     }
+        //
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("action", sideStr);
+        return this.parseTradeQuote((Map<String, Object>) (this.extend(response, mapLiteral4)), outcomeObj);
 
     }
 
@@ -957,55 +977,59 @@ public class Myriad extends MyriadApi
 
     public CompletableFuture<Object> ethRpc(String rpcUrl, Object method, Object rpcParams)
     {
+        return BaseExchange.supplyAsync(() -> this.ethRpcCore(rpcUrl, method, rpcParams));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ethRpcCore(String rpcUrl, Object method, Object rpcParams)
+    {
 
-            Map<String, Object> payload = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "id", 1 );
-                put( "method", method );
-                put( "params", rpcParams );
-            }};
-            Map<String, Object> headers = new HashMap<String, Object>() {{
-                put( "Content-Type", "application/json" );
-            }};
-            Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
-            Object rpcError = this.safeValue(response, "error");
-            if (!java.util.Objects.equals(rpcError, null))
-            {
-                throw new ExchangeError(((((this.id + " rpc ") + method) + " error: ") + this.json(rpcError))) ;
-            }
-            // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
-            // safeString would coerce a receipt object to "[object Object]"
-            return this.safeValue(response, "result");
-        });
+        Map<String, Object> payload = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "id", 1 );
+            put( "method", method );
+            put( "params", rpcParams );
+        }};
+        Map<String, Object> headers = new HashMap<String, Object>() {{
+            put( "Content-Type", "application/json" );
+        }};
+        Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
+        Object rpcError = this.safeValue(response, "error");
+        if (!java.util.Objects.equals(rpcError, null))
+        {
+            throw new ExchangeError(((((this.id + " rpc ") + method) + " error: ") + this.json(rpcError))) ;
+        }
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+        // safeString would coerce a receipt object to "[object Object]"
+        return this.safeValue(response, "result");
 
     }
 
     public CompletableFuture<Object> ensureErc20Allowance(String rpcUrl, String networkId, String token, String owner, String spender)
     {
+        return BaseExchange.supplyAsync(() -> this.ensureErc20AllowanceCore(rpcUrl, networkId, token, owner, spender));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object ensureErc20AllowanceCore(String rpcUrl, String networkId, String token, String owner, String spender)
+    {
 
-            // allowance(owner, spender)
-            String allowanceData = (("0xdd62ed3e" + this.padHexAddress((String) (owner))) + this.padHexAddress((String) (spender)));
-            Object current = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
-        put( "to", token );
-        put( "data", allowanceData );
-    }}, "latest")))).join();
-            String trimmed = this.hexToRlpBytes((String) (current));
-            // a max-approved allowance is ~32 bytes (64 nibbles); anything much smaller needs (re)approval
-            if (trimmed.length() >= 50)
-            {
-                return null;
-            }
-            // approve(spender, maxUint256)
-            String maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-            String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + maxUint);
-            String approveHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (owner), (String) (token), "0x0", approveData, "0x186a0")).join();
-            (this.waitForTransactionReceipt((String) (rpcUrl), approveHash, 60000L)).join();
+        // allowance(owner, spender)
+        String allowanceData = (("0xdd62ed3e" + this.padHexAddress((String) (owner))) + this.padHexAddress((String) (spender)));
+        Object current = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "to", token );
+    put( "data", allowanceData );
+}}, "latest")))).join();
+        String trimmed = this.hexToRlpBytes((String) (current));
+        // a max-approved allowance is ~32 bytes (64 nibbles); anything much smaller needs (re)approval
+        if (trimmed.length() >= 50)
+        {
             return null;
-        });
+        }
+        // approve(spender, maxUint256)
+        String maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + maxUint);
+        String approveHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (owner), (String) (token), "0x0", approveData, "0x186a0")).join();
+        (this.waitForTransactionReceipt((String) (rpcUrl), approveHash, 60000L)).join();
+        return null;
 
     }
 
@@ -1027,27 +1051,29 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(outcome, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String defaultModel = this.safeString(info, "tradingModel", "amm");
-            String tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel")));
-            if (java.util.Objects.equals(tradingModel, "ob"))
-            {
-                return (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, rest)).join();
-            }
-            // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
-            // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
-            Boolean enableAmm = (Boolean) this.safeBool2(parameters, "enableAmm", "enableAmmOrders", this.safeBool(this.options, "enableAmmOrders", false));
-            if (!Boolean.TRUE.equals(enableAmm))
-            {
-                throw new NotSupported((this.id + " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
-            }
-            return (this.createAmmOrder((String) (outcome), (String) (type), (String) (side), amount, price, this.omit(rest, new ArrayList<Object>(Arrays.asList("enableAmm", "enableAmmOrders"))))).join();
-        }).thenApply(PredictionOrder::new);
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String defaultModel = this.safeString(info, "tradingModel", "amm");
+        String tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel")));
+        if (java.util.Objects.equals(tradingModel, "ob"))
+        {
+            return (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, rest)).join();
+        }
+        // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
+        // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
+        Boolean enableAmm = (Boolean) this.safeBool2(parameters, "enableAmm", "enableAmmOrders", this.safeBool(this.options, "enableAmmOrders", false));
+        if (!Boolean.TRUE.equals(enableAmm))
+        {
+            throw new NotSupported((this.id + " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
+        }
+        return (this.createAmmOrder((String) (outcome), (String) (type), (String) (side), amount, price, this.omit(rest, new ArrayList<Object>(Arrays.asList("enableAmm", "enableAmmOrders"))))).join();
 
     }
 
@@ -1060,75 +1086,77 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Object> createOrderbookOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderbookOrderCore(outcome, type, side, amount, price, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderbookOrderCore(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> built = this.buildOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, parameters);
-            Map<String, Object> order = this.safeDict(built, "order", null);
-            String networkId = this.safeString(built, "networkId");
-            String timeInForce = this.safeString(built, "timeInForce");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order", order );
-                put( "signature", Myriad.this.safeString(built, "signature") );
-                put( "network_id", Myriad.this.parseToInt(networkId) );
-                put( "time_in_force", timeInForce );
-            }};
-            Map<String, Object> response = (this.myriadPublicPostOrders(request)).join();
-            //
-            //     {
-            //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
-            //         "status": "open",
-            //         "timeInForce": "GTC"
-            //     }
-            //
-            Map<String, Object> orderForResponse = new HashMap<String, Object>() {{
-                put( "trader", Myriad.this.safeString(order, "trader") );
-                put( "marketId", Myriad.this.safeString(order, "marketId") );
-                put( "outcomeId", Myriad.this.safeNumber(order, "outcomeId", (Object) null) );
-                put( "side", Myriad.this.safeNumber(order, "side", (Object) null) );
-                put( "amount", Myriad.this.safeString(order, "amount") );
-                put( "price", Myriad.this.safeString(order, "price") );
-                put( "minFillAmount", Myriad.this.safeString(order, "minFillAmount") );
-                put( "nonce", Myriad.this.safeString(order, "nonce") );
-                put( "expiration", Myriad.this.safeString(order, "expiration") );
-            }};
-            Map<String, Object> wrapper = this.extend(response, new HashMap<String, Object>() {{
-                put( "order", orderForResponse );
-                put( "networkId", networkId );
-                put( "timeInForce", timeInForce );
-            }});
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> parsed = this.parsePredictionOrder(wrapper, outcomeObj);
-            // the POST /orders response is minimal (hash + status), so backfill the known request values
-            // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-            String sideStr = (((java.util.Objects.equals(side, null)))) ? null : ((String)((String)side)).toLowerCase();
-            String typeStr = (((java.util.Objects.equals(type, null)))) ? "limit" : ((String)type).toLowerCase();
-            if (java.util.Objects.equals(this.safeString(parsed, "side"), null))
-            {
-                parsed.put("side", sideStr);
-            }
-            if (java.util.Objects.equals(this.safeString(parsed, "type"), null))
-            {
-                parsed.put("type", typeStr);
-            }
-            if (java.util.Objects.equals(this.safeString(parsed, "timeInForce"), null))
-            {
-                parsed.put("timeInForce", timeInForce);
-            }
-            if ((java.util.Objects.equals(this.safeNumber(parsed, "price", (Object) null), null)) && (!java.util.Objects.equals(price, null)))
-            {
-                parsed.put("price", price);
-            }
-            if ((java.util.Objects.equals(this.safeNumber(parsed, "amount", (Object) null), null)) && (!java.util.Objects.equals(amount, null)))
-            {
-                parsed.put("amount", amount);
-            }
-            if (java.util.Objects.equals(this.safeString(parsed, "status"), null))
-            {
-                parsed.put("status", "open");
-            }
-            return parsed;
-        });
+        Map<String, Object> built = this.buildOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> order = this.safeDict(built, "order", null);
+        String networkId = this.safeString(built, "networkId");
+        String timeInForce = this.safeString(built, "timeInForce");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order", order );
+            put( "signature", Myriad.this.safeString(built, "signature") );
+            put( "network_id", Myriad.this.parseToInt(networkId) );
+            put( "time_in_force", timeInForce );
+        }};
+        Map<String, Object> response = (this.myriadPublicPostOrders(request)).join();
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "status": "open",
+        //         "timeInForce": "GTC"
+        //     }
+        //
+        Map<String, Object> orderForResponse = new HashMap<String, Object>() {{
+            put( "trader", Myriad.this.safeString(order, "trader") );
+            put( "marketId", Myriad.this.safeString(order, "marketId") );
+            put( "outcomeId", Myriad.this.safeNumber(order, "outcomeId", (Object) null) );
+            put( "side", Myriad.this.safeNumber(order, "side", (Object) null) );
+            put( "amount", Myriad.this.safeString(order, "amount") );
+            put( "price", Myriad.this.safeString(order, "price") );
+            put( "minFillAmount", Myriad.this.safeString(order, "minFillAmount") );
+            put( "nonce", Myriad.this.safeString(order, "nonce") );
+            put( "expiration", Myriad.this.safeString(order, "expiration") );
+        }};
+        Map<String, Object> wrapper = this.extend(response, new HashMap<String, Object>() {{
+            put( "order", orderForResponse );
+            put( "networkId", networkId );
+            put( "timeInForce", timeInForce );
+        }});
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> parsed = this.parsePredictionOrder(wrapper, outcomeObj);
+        // the POST /orders response is minimal (hash + status), so backfill the known request values
+        // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
+        String sideStr = (((java.util.Objects.equals(side, null)))) ? null : ((String)((String)side)).toLowerCase();
+        String typeStr = (((java.util.Objects.equals(type, null)))) ? "limit" : ((String)type).toLowerCase();
+        if (java.util.Objects.equals(this.safeString(parsed, "side"), null))
+        {
+            parsed.put("side", sideStr);
+        }
+        if (java.util.Objects.equals(this.safeString(parsed, "type"), null))
+        {
+            parsed.put("type", typeStr);
+        }
+        if (java.util.Objects.equals(this.safeString(parsed, "timeInForce"), null))
+        {
+            parsed.put("timeInForce", timeInForce);
+        }
+        if ((java.util.Objects.equals(this.safeNumber(parsed, "price", (Object) null), null)) && (!java.util.Objects.equals(price, null)))
+        {
+            parsed.put("price", price);
+        }
+        if ((java.util.Objects.equals(this.safeNumber(parsed, "amount", (Object) null), null)) && (!java.util.Objects.equals(amount, null)))
+        {
+            parsed.put("amount", amount);
+        }
+        if (java.util.Objects.equals(this.safeString(parsed, "status"), null))
+        {
+            parsed.put("status", "open");
+        }
+        return parsed;
 
     }
 
@@ -1217,35 +1245,37 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    {
 
-            Integer ordersLength = ((List<?>)orders).size();
-            List<String> orderOutcomes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; (ordersLength != null && i < ordersLength); i++)
+        Integer ordersLength = ((List<?>)orders).size();
+        List<String> orderOutcomes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; (ordersLength != null && i < ordersLength); i++)
+        {
+            String __oc = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "outcome");
+            if (!java.util.Objects.equals(__oc, null))
             {
-                String __oc = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "outcome");
-                if (!java.util.Objects.equals(__oc, null))
-                {
-                    orderOutcomes.add(__oc);
-                }
+                orderOutcomes.add(__oc);
             }
-            (this.loadOutcomes(orderOutcomes, false, new HashMap<String, Object>() {{}})).join();
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; (ordersLength != null && i < ordersLength); i++)
-            {
-                Map<String, Object> o = this.safeDict(orders, i, null);
-                String outcome = this.safeString(o, "outcome");
-                String type = this.safeString(o, "type");
-                String side = this.safeString(o, "side");
-                Double amount = this.safeNumber(o, "amount", (Object) null);
-                Double price = this.safeNumber(o, "price", (Object) null);
-                Map<String, Object> orderParams = this.safeDict(o, "params", new HashMap<String, Object>() {{}});
-                Object placed = (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, this.extend(orderParams, parameters))).join();
-                ((List<Object>)result).add(placed);
-            }
-            return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        }
+        (this.loadOutcomes(orderOutcomes, false, new HashMap<String, Object>() {{}})).join();
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; (ordersLength != null && i < ordersLength); i++)
+        {
+            Map<String, Object> o = this.safeDict(orders, i, null);
+            String outcome = this.safeString(o, "outcome");
+            String type = this.safeString(o, "type");
+            String side = this.safeString(o, "side");
+            Double amount = this.safeNumber(o, "amount", (Object) null);
+            Double price = this.safeNumber(o, "price", (Object) null);
+            Map<String, Object> orderParams = this.safeDict(o, "params", new HashMap<String, Object>() {{}});
+            Object placed = (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, this.extend(orderParams, parameters))).join();
+            ((List<Object>)result).add(placed);
+        }
+        return result;
 
     }
 
@@ -1269,13 +1299,15 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionOrder> editOrder(String id, String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, outcome, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderCore(String id, String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            (this.cancelOrder(id, outcome, parameters)).join();
-            return (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, parameters)).join();
-        }).thenApply(PredictionOrder::new);
+        (this.loadOutcome((String) (outcome), false)).join();
+        (this.cancelOrder(id, outcome, parameters)).join();
+        return (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, parameters)).join();
 
     }
 
@@ -1298,69 +1330,71 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Object> createAmmOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createAmmOrderCore(outcome, type, side, amount, price, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createAmmOrderCore(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
-            // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
-            // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
-            // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-            String sideLower = ((String)side).toLowerCase();
-            Boolean isCostDenominated = (Boolean) this.safeBool(parameters, "costDenominated", false);
-            if ((java.util.Objects.equals(sideLower, "buy")) && (!Boolean.TRUE.equals(isCostDenominated)))
-            {
-                throw new NotSupported((this.id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
-            }
-            if (java.util.Objects.equals(this.privateKey, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a privateKey to sign the on-chain transaction")) ;
-            }
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(info, "networkId");
-            Map<String, Object> chains = this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
-            Map<String, Object> chainConfig = this.safeDict(chains, networkId, null);
-            if (java.util.Objects.equals(chainConfig, null))
-            {
-                throw new NotSupported(((this.id + " createOrder() has no on-chain config for network ") + networkId)) ;
-            }
-            String rpcUrl = this.safeString2(parameters, "rpcUrl", "rpc", this.safeString(chainConfig, "rpcUrl"));
-            String predictionMarket = this.safeString(chainConfig, "predictionMarket");
-            String tokenAddress = this.safeString2(parameters, "token", "tokenAddress", this.safeString(info, "tokenAddress"));
-            String gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
-            String sideStr = sideLower;
-            Map<String, Object> quoteParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt")));
-            Map<String, Object> quote = this.safeDict(parameters, "quote", null);
-            if (java.util.Objects.equals(quote, null))
-            {
-                quote = (this.fetchTradeQuote((String) (outcome), sideStr, amount, quoteParams)).join();
-            }
-            String calldata = this.safeString(this.safeDict(quote, "info", new HashMap<String, Object>() {{}}), "calldata");
-            if (java.util.Objects.equals(calldata, null))
-            {
-                throw new BadRequest((this.id + " createAmmOrder is missing calldata from fetchTradeQuote")) ;
-            }
-            String fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
-            String txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
-            Boolean hasPreBroadcastTxHash = (!java.util.Objects.equals(txHashParam, null));
-            Boolean skipAllowance = (Boolean) this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
-            if ((java.util.Objects.equals(sideStr, "buy")) && (!java.util.Objects.equals(tokenAddress, null)) && (!Boolean.TRUE.equals(skipAllowance)))
-            {
-                (this.ensureErc20Allowance((String) (rpcUrl), (String) (networkId), (String) (tokenAddress), (String) (fromAddress), (String) (predictionMarket))).join();
-            }
-            Boolean skipWaitForReceipt = (Boolean) this.safeBool(parameters, "skipWaitForReceipt", hasPreBroadcastTxHash);
-            Object txHash = txHashParam;
-            if (java.util.Objects.equals(txHash, null))
-            {
-                txHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (fromAddress), (String) (predictionMarket), "0x0", (String) (calldata), (String) (gasLimit))).join();
-            }
-            if (!Boolean.TRUE.equals(skipWaitForReceipt))
-            {
-                (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000L)).join();
-            }
-            return this.parseTradeTx((String) (txHash), quote, outcomeObj, sideStr);
-        });
+        // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
+        // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
+        // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
+        // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
+        String sideLower = ((String)side).toLowerCase();
+        Boolean isCostDenominated = (Boolean) this.safeBool(parameters, "costDenominated", false);
+        if ((java.util.Objects.equals(sideLower, "buy")) && (!Boolean.TRUE.equals(isCostDenominated)))
+        {
+            throw new NotSupported((this.id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
+        }
+        if (java.util.Objects.equals(this.privateKey, null))
+        {
+            throw new ArgumentsRequired((this.id + " createOrder() requires a privateKey to sign the on-chain transaction")) ;
+        }
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String networkId = this.safeString(info, "networkId");
+        Map<String, Object> chains = this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
+        Map<String, Object> chainConfig = this.safeDict(chains, networkId, null);
+        if (java.util.Objects.equals(chainConfig, null))
+        {
+            throw new NotSupported(((this.id + " createOrder() has no on-chain config for network ") + networkId)) ;
+        }
+        String rpcUrl = this.safeString2(parameters, "rpcUrl", "rpc", this.safeString(chainConfig, "rpcUrl"));
+        String predictionMarket = this.safeString(chainConfig, "predictionMarket");
+        String tokenAddress = this.safeString2(parameters, "token", "tokenAddress", this.safeString(info, "tokenAddress"));
+        String gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
+        String sideStr = sideLower;
+        Map<String, Object> quoteParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt")));
+        Map<String, Object> quote = this.safeDict(parameters, "quote", null);
+        if (java.util.Objects.equals(quote, null))
+        {
+            quote = (this.fetchTradeQuote((String) (outcome), sideStr, amount, quoteParams)).join();
+        }
+        String calldata = this.safeString(this.safeDict(quote, "info", new HashMap<String, Object>() {{}}), "calldata");
+        if (java.util.Objects.equals(calldata, null))
+        {
+            throw new BadRequest((this.id + " createAmmOrder is missing calldata from fetchTradeQuote")) ;
+        }
+        String fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+        String txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
+        Boolean hasPreBroadcastTxHash = (!java.util.Objects.equals(txHashParam, null));
+        Boolean skipAllowance = (Boolean) this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
+        if ((java.util.Objects.equals(sideStr, "buy")) && (!java.util.Objects.equals(tokenAddress, null)) && (!Boolean.TRUE.equals(skipAllowance)))
+        {
+            (this.ensureErc20Allowance((String) (rpcUrl), (String) (networkId), (String) (tokenAddress), (String) (fromAddress), (String) (predictionMarket))).join();
+        }
+        Boolean skipWaitForReceipt = (Boolean) this.safeBool(parameters, "skipWaitForReceipt", hasPreBroadcastTxHash);
+        Object txHash = txHashParam;
+        if (java.util.Objects.equals(txHash, null))
+        {
+            txHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (fromAddress), (String) (predictionMarket), "0x0", (String) (calldata), (String) (gasLimit))).join();
+        }
+        if (!Boolean.TRUE.equals(skipWaitForReceipt))
+        {
+            (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000L)).join();
+        }
+        return this.parseTradeTx((String) (txHash), quote, outcomeObj, sideStr);
 
     }
 
@@ -1376,17 +1410,19 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCost(String outcome, Object cost, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(outcome, cost, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketBuyOrderWithCostCore(String outcome, Object cost, Map<String, Object> parameters)
+    {
 
-            // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
-            // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
-            Map<String, Object> request = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "enableAmm", true );
-                put( "costDenominated", true );
-            }});
-            return (this.createOrder(outcome, "market", "buy", cost, (Object) null, request)).join();
-        }).thenApply(PredictionOrder::new);
+        // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
+        // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
+        Map<String, Object> request = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "enableAmm", true );
+            put( "costDenominated", true );
+        }});
+        return (this.createOrder(outcome, "market", "buy", cost, (Object) null, request)).join();
 
     }
 
@@ -1773,96 +1809,98 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Object> fetchAmmOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchAmmOrdersCore(outcome, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchAmmOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String requestedStatus = this.safeStringLower(parameters, "status");
-            if ((java.util.Objects.equals(requestedStatus, "open")) || (java.util.Objects.equals(requestedStatus, "cancelled")) || (java.util.Objects.equals(requestedStatus, "canceled")) || (java.util.Objects.equals(requestedStatus, "expired")))
+        String requestedStatus = this.safeStringLower(parameters, "status");
+        if ((java.util.Objects.equals(requestedStatus, "open")) || (java.util.Objects.equals(requestedStatus, "cancelled")) || (java.util.Objects.equals(requestedStatus, "canceled")) || (java.util.Objects.equals(requestedStatus, "expired")))
+        {
+            return new ArrayList<Object>(Arrays.asList());
+        }
+        String traderParam = this.safeString2(parameters, "trader", "address");
+        String trader = (((!java.util.Objects.equals(traderParam, null)))) ? traderParam : this.walletAddressOrUndefined();
+        if (java.util.Objects.equals(trader, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("address", trader);
+        Map<String, Object> outcomeObj = null;
+        String outcomeSymbol = null;
+        String rowOutcomeId = null;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+            outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            request.put("market_id", this.safeString(info, "marketId"));
+            request.put("network_id", this.safeString(info, "networkId"));
+            rowOutcomeId = this.safeString(info, "outcomeId");
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("since", this.parseToInt((((double) since) / ((double) 1000))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trader", "address", "status")));
+        Map<String, Object> response = (this.myriadPublicGetUsersAddressEvents(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "user": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //                 "action": "sell",
+        //                 "marketTitle": "Will Base TGE in 2026?",
+        //                 "marketSlug": "will-base-tge-in-2026",
+        //                 "marketId": 170145,
+        //                 "networkId": 56,
+        //                 "outcomeTitle": "Yes",
+        //                 "outcomeId": 0,
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
+        //                 "shares": 8.22739948,
+        //                 "value": 0.9789,
+        //                 "timestamp": 1784708801,
+        //                 "blockNumber": 111442601,
+        //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
+        //                 "txId": "0x93842cbb56b852436f53f7bd5d03580a550c0ac08d49fa80cafaed316d7590d7"
+        //             },
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 20,
+        //             "total": 2,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
+        List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Integer rowsLength = rows.size();
+        for (var i = 0; (rowsLength != null && i < rowsLength); i++)
+        {
+            Map<String, Object> row = (Map<String, Object>) (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+            String action = this.safeStringLower(row, "action");
+            if ((!java.util.Objects.equals(action, "buy")) && (!java.util.Objects.equals(action, "sell")))
             {
-                return new ArrayList<Object>(Arrays.asList());
+                continue;
             }
-            String traderParam = this.safeString2(parameters, "trader", "address");
-            String trader = (((!java.util.Objects.equals(traderParam, null)))) ? traderParam : this.walletAddressOrUndefined();
-            if (java.util.Objects.equals(trader, null))
+            String currentOutcomeId = this.safeString(row, "outcomeId");
+            if ((!java.util.Objects.equals(rowOutcomeId, null)) && (!java.util.Objects.equals(currentOutcomeId, rowOutcomeId)))
             {
-                throw new ArgumentsRequired((this.id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
+                continue;
             }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("address", trader);
-            Map<String, Object> outcomeObj = null;
-            String outcomeSymbol = null;
-            String rowOutcomeId = null;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
-                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                request.put("market_id", this.safeString(info, "marketId"));
-                request.put("network_id", this.safeString(info, "networkId"));
-                rowOutcomeId = this.safeString(info, "outcomeId");
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("since", this.parseToInt((((double) since) / ((double) 1000))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trader", "address", "status")));
-            Map<String, Object> response = (this.myriadPublicGetUsersAddressEvents(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "data": [
-            //             {
-            //                 "user": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
-            //                 "action": "sell",
-            //                 "marketTitle": "Will Base TGE in 2026?",
-            //                 "marketSlug": "will-base-tge-in-2026",
-            //                 "marketId": 170145,
-            //                 "networkId": 56,
-            //                 "outcomeTitle": "Yes",
-            //                 "outcomeId": 0,
-            //                 "imageUrl": "https://cdn.polkamarkets.com/Qmacfs1qiiUW5cnMRUyzji393Vn2DcvNdydGukf1Xk82b6",
-            //                 "shares": 8.22739948,
-            //                 "value": 0.9789,
-            //                 "timestamp": 1784708801,
-            //                 "blockNumber": 111442601,
-            //                 "token": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d",
-            //                 "txId": "0x93842cbb56b852436f53f7bd5d03580a550c0ac08d49fa80cafaed316d7590d7"
-            //             },
-            //         ],
-            //         "pagination": {
-            //             "page": 1,
-            //             "limit": 20,
-            //             "total": 2,
-            //             "totalPages": 1,
-            //             "hasNext": false,
-            //             "hasPrev": false
-            //         }
-            //     }
-            //
-            List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer rowsLength = rows.size();
-            for (var i = 0; (rowsLength != null && i < rowsLength); i++)
-            {
-                Map<String, Object> row = (Map<String, Object>) (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                String action = this.safeStringLower(row, "action");
-                if ((!java.util.Objects.equals(action, "buy")) && (!java.util.Objects.equals(action, "sell")))
-                {
-                    continue;
-                }
-                String currentOutcomeId = this.safeString(row, "outcomeId");
-                if ((!java.util.Objects.equals(rowOutcomeId, null)) && (!java.util.Objects.equals(currentOutcomeId, rowOutcomeId)))
-                {
-                    continue;
-                }
-                ((List<Object>)result).add(this.parseAmmEventToOrder(row, outcomeObj));
-            }
-            List<Object> sorted = this.sortBy(result, "timestamp", true);
-            return this.filterByOutcomeSinceLimit(sorted, outcomeSymbol, since, limit, false);
-        });
+            ((List<Object>)result).add(this.parseAmmEventToOrder(row, outcomeObj));
+        }
+        List<Object> sorted = this.sortBy(result, "timestamp", true);
+        return this.filterByOutcomeSinceLimit(sorted, outcomeSymbol, since, limit, false);
 
     }
 
@@ -1881,69 +1919,71 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String outcome, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.privateKey, null))
-            {
-                throw new ArgumentsRequired((this.id + " cancelOrder() requires a privateKey to sign the cancellation")) ;
-            }
-            Map<String, Object> fetched = this.getOrderResponseFromParams((String) (id), parameters);
-            String networkIdParam = this.safeString2(parameters, "networkId", "network_id");
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
-            if (java.util.Objects.equals(fetched, null))
-            {
-                fetched = (this.myriadPublicGetOrdersHash(this.extend(new HashMap<String, Object>() {{
-                    put( "hash", id );
-                }}, paramsOmitted))).join();
-            }
-            Map<String, Object> fetchedInfo = this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> rawOrder = this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
-            List<String> rawOrderKeys = new ArrayList<String>(rawOrder.keySet());
-            Integer rawOrderKeysLength = rawOrderKeys.size();
-            if (java.util.Objects.equals(rawOrderKeysLength, 0))
-            {
-                rawOrder = (Map<String, Object>) this.safeDict(fetchedInfo, "order", new HashMap<String, Object>() {{}});
-            }
-            String networkId = this.safeStringN(fetched, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
-            if (java.util.Objects.equals(networkId, null))
-            {
-                networkId = this.safeStringN(fetchedInfo, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
-            }
-            if (java.util.Objects.equals(networkId, null))
-            {
-                networkId = networkIdParam;
-            }
-            if (java.util.Objects.equals(networkId, null))
-            {
-                networkId = this.safeString(this.options, "defaultNetworkId", "56");
-            }
-            Map<String, Object> message = this.clobOrderMessage(rawOrder);
-            String signature = this.signClobOrder(message, (String) (networkId));
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("hash", id);
-            request.put("order", message);
-            request.put("signature", signature);
-            request.put("network_id", this.parseToInt(networkId));
-            Map<String, Object> response = (this.myriadPublicDeleteOrdersHash(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
-            //         "status": "cancelled"
-            //     }
-            //
-            String status = this.safeString(response, "status", "canceled");
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("status", status);
-            mapLiteral7.put("networkId", networkId);
-            Map<String, Object> wrapper = this.extend(fetched, mapLiteral7);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                market = (this.loadOutcome((String) (outcome), false)).join();
-            }
-            return this.parsePredictionOrder(wrapper, market);
-        }).thenApply(PredictionOrder::new);
+        if (java.util.Objects.equals(this.privateKey, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelOrder() requires a privateKey to sign the cancellation")) ;
+        }
+        Map<String, Object> fetched = this.getOrderResponseFromParams((String) (id), parameters);
+        String networkIdParam = this.safeString2(parameters, "networkId", "network_id");
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
+        if (java.util.Objects.equals(fetched, null))
+        {
+            fetched = (this.myriadPublicGetOrdersHash(this.extend(new HashMap<String, Object>() {{
+                put( "hash", id );
+            }}, paramsOmitted))).join();
+        }
+        Map<String, Object> fetchedInfo = this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawOrder = this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
+        List<String> rawOrderKeys = new ArrayList<String>(rawOrder.keySet());
+        Integer rawOrderKeysLength = rawOrderKeys.size();
+        if (java.util.Objects.equals(rawOrderKeysLength, 0))
+        {
+            rawOrder = (Map<String, Object>) this.safeDict(fetchedInfo, "order", new HashMap<String, Object>() {{}});
+        }
+        String networkId = this.safeStringN(fetched, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
+        if (java.util.Objects.equals(networkId, null))
+        {
+            networkId = this.safeStringN(fetchedInfo, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
+        }
+        if (java.util.Objects.equals(networkId, null))
+        {
+            networkId = networkIdParam;
+        }
+        if (java.util.Objects.equals(networkId, null))
+        {
+            networkId = this.safeString(this.options, "defaultNetworkId", "56");
+        }
+        Map<String, Object> message = this.clobOrderMessage(rawOrder);
+        String signature = this.signClobOrder(message, (String) (networkId));
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("hash", id);
+        request.put("order", message);
+        request.put("signature", signature);
+        request.put("network_id", this.parseToInt(networkId));
+        Map<String, Object> response = (this.myriadPublicDeleteOrdersHash(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "status": "cancelled"
+        //     }
+        //
+        String status = this.safeString(response, "status", "canceled");
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("status", status);
+        mapLiteral7.put("networkId", networkId);
+        Map<String, Object> wrapper = this.extend(fetched, mapLiteral7);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            market = (this.loadOutcome((String) (outcome), false)).join();
+        }
+        return this.parsePredictionOrder(wrapper, market);
 
     }
 
@@ -1958,50 +1998,52 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String outcome, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.privateKey, null))
-            {
-                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
-            }
-            String trader = this.ethGetAddressFromPrivateKey(this.privateKey);
-            String marketId = this.safeString(parameters, "market_id", "0");
-            String networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                marketId = this.safeString(info, "marketId", marketId);
-                networkId = this.safeString(info, "networkId", networkId);
-            }
-            // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
-            String timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.seconds()));
-            Map<String, Object> message = new HashMap<String, Object>();
-            message.put("trader", trader);
-            message.put("marketId", marketId);
-            message.put("timestamp", timestamp);
-            String signature = this.signCancelAll(message, (String) (networkId));
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("trader", trader);
-            request.put("market_id", this.parseToInt(marketId));
-            request.put("timestamp", timestamp);
-            request.put("signature", signature);
-            request.put("network_id", this.parseToInt(networkId));
-            Map<String, Object> response = (this.myriadPublicPostOrdersCancelAll(request)).join();
-            //
-            //     {
-            //         "cancelled_count": 2,
-            //         "market_ids_affected": [ "2cfe87e8-12df-4671-b9a9-0758898fd54b" ]
-            //     }
-            //
-            // the endpoint returns a count, not the orders: hand back one canceled order
-            // structure carrying the raw response, like limitless does
-            return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder(new HashMap<String, Object>() {{
-        put( "info", response );
-        put( "status", "canceled" );
-    }}, (Object) null)));
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.privateKey, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
+        }
+        String trader = this.ethGetAddressFromPrivateKey(this.privateKey);
+        String marketId = this.safeString(parameters, "market_id", "0");
+        String networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            marketId = this.safeString(info, "marketId", marketId);
+            networkId = this.safeString(info, "networkId", networkId);
+        }
+        // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
+        String timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.seconds()));
+        Map<String, Object> message = new HashMap<String, Object>();
+        message.put("trader", trader);
+        message.put("marketId", marketId);
+        message.put("timestamp", timestamp);
+        String signature = this.signCancelAll(message, (String) (networkId));
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("trader", trader);
+        request.put("market_id", this.parseToInt(marketId));
+        request.put("timestamp", timestamp);
+        request.put("signature", signature);
+        request.put("network_id", this.parseToInt(networkId));
+        Map<String, Object> response = (this.myriadPublicPostOrdersCancelAll(request)).join();
+        //
+        //     {
+        //         "cancelled_count": 2,
+        //         "market_ids_affected": [ "2cfe87e8-12df-4671-b9a9-0758898fd54b" ]
+        //     }
+        //
+        // the endpoint returns a count, not the orders: hand back one canceled order
+        // structure carrying the raw response, like limitless does
+        return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder(new HashMap<String, Object>() {{
+    put( "info", response );
+    put( "status", "canceled" );
+}}, (Object) null)));
 
     }
 
@@ -2019,77 +2061,79 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.privateKey, null))
+        if (java.util.Objects.equals(this.privateKey, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelOrders() requires a privateKey to sign the cancellations")) ;
+        }
+        Map<String, Object> paramsForLookup = parameters;
+        String networkIdParam = this.safeString2(parameters, "networkId", "network_id");
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
+        Integer idsLength = ((List<?>)ids).size();
+        List<Object> signedOrders = new ArrayList<Object>(Arrays.asList());
+        List<Object> wrappers = new ArrayList<Object>(Arrays.asList());
+        String networkId = this.safeString(this.options, "defaultNetworkId", "56");
+        for (var i = 0; (idsLength != null && i < idsLength); i++)
+        {
+            String id = (String) (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+            Map<String, Object> fetched = this.getOrderResponseFromParams(id, paramsForLookup);
+            if (java.util.Objects.equals(fetched, null))
             {
-                throw new ArgumentsRequired((this.id + " cancelOrders() requires a privateKey to sign the cancellations")) ;
+                fetched = (this.myriadPublicGetOrdersHash(new HashMap<String, Object>() {{
+                    put( "hash", id );
+                }})).join();
             }
-            Map<String, Object> paramsForLookup = parameters;
-            String networkIdParam = this.safeString2(parameters, "networkId", "network_id");
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderResponse", "orderResponses", "rawOrder", "networkId", "network_id")));
-            Integer idsLength = ((List<?>)ids).size();
-            List<Object> signedOrders = new ArrayList<Object>(Arrays.asList());
-            List<Object> wrappers = new ArrayList<Object>(Arrays.asList());
-            String networkId = this.safeString(this.options, "defaultNetworkId", "56");
-            for (var i = 0; (idsLength != null && i < idsLength); i++)
+            Map<String, Object> fetchedInfo = this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrder = this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
+            List<String> rawOrderKeys = new ArrayList<String>(rawOrder.keySet());
+            Integer rawOrderKeysLength = rawOrderKeys.size();
+            if (java.util.Objects.equals(rawOrderKeysLength, 0))
             {
-                String id = (String) (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
-                Map<String, Object> fetched = this.getOrderResponseFromParams(id, paramsForLookup);
-                if (java.util.Objects.equals(fetched, null))
-                {
-                    fetched = (this.myriadPublicGetOrdersHash(new HashMap<String, Object>() {{
-                        put( "hash", id );
-                    }})).join();
-                }
-                Map<String, Object> fetchedInfo = this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
-                Map<String, Object> rawOrder = this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
-                List<String> rawOrderKeys = new ArrayList<String>(rawOrder.keySet());
-                Integer rawOrderKeysLength = rawOrderKeys.size();
-                if (java.util.Objects.equals(rawOrderKeysLength, 0))
-                {
-                    rawOrder = (Map<String, Object>) this.safeDict(fetchedInfo, "order", new HashMap<String, Object>() {{}});
-                }
-                String fetchedNetworkId = this.safeStringN(fetched, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
-                if (java.util.Objects.equals(fetchedNetworkId, null))
-                {
-                    fetchedNetworkId = this.safeStringN(fetchedInfo, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
-                }
-                if (java.util.Objects.equals(fetchedNetworkId, null))
-                {
-                    fetchedNetworkId = networkIdParam;
-                }
-                if (!java.util.Objects.equals(fetchedNetworkId, null))
-                {
-                    networkId = fetchedNetworkId;
-                }
-                Map<String, Object> message = this.clobOrderMessage(rawOrder);
-                String signature = this.signClobOrder(message, (String) (networkId));
-                ((List<Object>)signedOrders).add(new HashMap<String, Object>() {{
-                    put( "order", message );
-                    put( "signature", signature );
-                }});
-                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-                mapLiteral8.put("status", "canceled");
-                mapLiteral8.put("networkId", networkId);
-                ((List<Object>)wrappers).add(this.extend(fetched, mapLiteral8));
+                rawOrder = (Map<String, Object>) this.safeDict(fetchedInfo, "order", new HashMap<String, Object>() {{}});
             }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("orders", signedOrders);
-            request.put("network_id", this.parseToInt(networkId));
-            (this.myriadPublicPostOrdersCancelBatch(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "cancelled": [
-            //             "0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
-            //             "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff"
-            //         ],
-            //         "errors": []
-            //     }
-            //
-            return this.parsePredictionOrders(wrappers, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+            String fetchedNetworkId = this.safeStringN(fetched, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
+            if (java.util.Objects.equals(fetchedNetworkId, null))
+            {
+                fetchedNetworkId = this.safeStringN(fetchedInfo, new ArrayList<Object>(Arrays.asList("networkId", "network_id")));
+            }
+            if (java.util.Objects.equals(fetchedNetworkId, null))
+            {
+                fetchedNetworkId = networkIdParam;
+            }
+            if (!java.util.Objects.equals(fetchedNetworkId, null))
+            {
+                networkId = fetchedNetworkId;
+            }
+            Map<String, Object> message = this.clobOrderMessage(rawOrder);
+            String signature = this.signClobOrder(message, (String) (networkId));
+            ((List<Object>)signedOrders).add(new HashMap<String, Object>() {{
+                put( "order", message );
+                put( "signature", signature );
+            }});
+            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+            mapLiteral8.put("status", "canceled");
+            mapLiteral8.put("networkId", networkId);
+            ((List<Object>)wrappers).add(this.extend(fetched, mapLiteral8));
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("orders", signedOrders);
+        request.put("network_id", this.parseToInt(networkId));
+        (this.myriadPublicPostOrdersCancelBatch(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "cancelled": [
+        //             "0x5d9d278f049c6e159f3028ec9f174e47fdab5a66665306454e6700a2b310736b",
+        //             "0x0ad92bb0ec7571ca806cf630b1b78dbd2492015570342ff23c1fa0ea3fcaacff"
+        //         ],
+        //         "errors": []
+        //     }
+        //
+        return this.parsePredictionOrders(wrappers, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2105,45 +2149,47 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String outcome, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.myriadPublicGetOrdersHash(this.extend(new HashMap<String, Object>() {{
-                put( "hash", id );
-            }}, parameters))).join();
-            //
-            //     {
-            //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
-            //         "clientOrderId": null,
-            //         "order": {
-            //             "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
-            //             "marketId": 827,
-            //             "outcomeId": 0,
-            //             "side": 0,
-            //             "amount": "1000000000000000000",
-            //             "price": "10000000000000000",
-            //             "minFillAmount": "0",
-            //             "nonce": "1784793980668",
-            //             "expiration": "0"
-            //         },
-            //         "status": "cancelled",
-            //         "signatureType": 0,
-            //         "filledAmount": "0",
-            //         "timeInForce": "GTC",
-            //         "createdAt": "2026-07-23T08:06:21.279Z",
-            //         "filledAt": null,
-            //         "networkId": 56,
-            //         "updatedAt": "2026-07-23T08:22:23.987Z",
-            //         "cancelledAt": "2026-07-23T08:22:23.987Z"
-            //     }
-            //
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                market = (this.loadOutcome((String) (outcome), false)).join();
-            }
-            return this.parsePredictionOrder(response, market);
-        }).thenApply(PredictionOrder::new);
+        Map<String, Object> response = (this.myriadPublicGetOrdersHash(this.extend(new HashMap<String, Object>() {{
+            put( "hash", id );
+        }}, parameters))).join();
+        //
+        //     {
+        //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
+        //         "clientOrderId": null,
+        //         "order": {
+        //             "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //             "marketId": 827,
+        //             "outcomeId": 0,
+        //             "side": 0,
+        //             "amount": "1000000000000000000",
+        //             "price": "10000000000000000",
+        //             "minFillAmount": "0",
+        //             "nonce": "1784793980668",
+        //             "expiration": "0"
+        //         },
+        //         "status": "cancelled",
+        //         "signatureType": 0,
+        //         "filledAmount": "0",
+        //         "timeInForce": "GTC",
+        //         "createdAt": "2026-07-23T08:06:21.279Z",
+        //         "filledAt": null,
+        //         "networkId": 56,
+        //         "updatedAt": "2026-07-23T08:22:23.987Z",
+        //         "cancelledAt": "2026-07-23T08:22:23.987Z"
+        //     }
+        //
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            market = (this.loadOutcome((String) (outcome), false)).join();
+        }
+        return this.parsePredictionOrder(response, market);
 
     }
 
@@ -2162,82 +2208,84 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String trader = this.safeString(parameters, "trader");
-            if (java.util.Objects.equals(trader, null))
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        String trader = this.safeString(parameters, "trader");
+        if (java.util.Objects.equals(trader, null))
+        {
+            if (!java.util.Objects.equals(this.privateKey, null))
             {
-                if (!java.util.Objects.equals(this.privateKey, null))
-                {
-                    request.put("trader", this.ethGetAddressFromPrivateKey(this.privateKey));
-                } else if (!java.util.Objects.equals(this.walletAddress, null))
-                {
-                    request.put("trader", this.walletAddress);
-                }
-            }
-            String requestedTradingModel = this.safeStringLower2(parameters, "tradingModel", "trading_model");
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel", "trading_model")));
-            Map<String, Object> outcomeObj = null;
-            String outcomeSymbol = null;
-            if (!java.util.Objects.equals(outcome, null))
+                request.put("trader", this.ethGetAddressFromPrivateKey(this.privateKey));
+            } else if (!java.util.Objects.equals(this.walletAddress, null))
             {
-                outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
-                if (java.util.Objects.equals(requestedTradingModel, null))
-                {
-                    Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                    requestedTradingModel = this.safeStringLower(info, "tradingModel");
-                }
+                request.put("trader", this.walletAddress);
             }
-            if (java.util.Objects.equals(requestedTradingModel, "amm"))
+        }
+        String requestedTradingModel = this.safeStringLower2(parameters, "tradingModel", "trading_model");
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel", "trading_model")));
+        Map<String, Object> outcomeObj = null;
+        String outcomeSymbol = null;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+            outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
+            if (java.util.Objects.equals(requestedTradingModel, null))
             {
-                return (this.fetchAmmOrders(outcome, since, limit, paramsOmitted)).join();
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                requestedTradingModel = this.safeStringLower(info, "tradingModel");
             }
-            Map<String, Object> response = (this.myriadPublicGetOrders(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "data": [
-            //             {
-            //                 "orderHash": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
-            //                 "clientOrderId": null,
-            //                 "order": {
-            //                     "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
-            //                     "marketId": 827,
-            //                     "outcomeId": 0,
-            //                     "side": 0,
-            //                     "amount": "1000000000000000000",
-            //                     "price": "10000000000000000",
-            //                     "minFillAmount": "0",
-            //                     "nonce": "1784713298605",
-            //                     "expiration": "0"
-            //                 },
-            //                 "status": "open",
-            //                 "signatureType": 0,
-            //                 "filledAmount": "0",
-            //                 "timeInForce": "GTC",
-            //                 "createdAt": "2026-07-22T09:41:39.035Z",
-            //                 "filledAt": null
-            //             }
-            //         ],
-            //         "pagination": {
-            //             "page": 1,
-            //             "limit": 5000,
-            //             "total": 1,
-            //             "totalPages": 1,
-            //             "hasNext": false,
-            //             "hasPrev": false
-            //         }
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
-            // valid market), so parse every order — each self-resolves its outcome from the network/market/
-            // outcome ids — and filter by the requested outcome client-side
-            Object orders = this.parsePredictionOrders(data, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        }
+        if (java.util.Objects.equals(requestedTradingModel, "amm"))
+        {
+            return (this.fetchAmmOrders(outcome, since, limit, paramsOmitted)).join();
+        }
+        Map<String, Object> response = (this.myriadPublicGetOrders(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "orderHash": "0x88e5c348bedc7336037bf9a2dc3e074431d386a01a2be07763373c794d28ffc2",
+        //                 "clientOrderId": null,
+        //                 "order": {
+        //                     "trader": "0xd282B1436BC99A86eC24A164f7BEeed42CFE8511",
+        //                     "marketId": 827,
+        //                     "outcomeId": 0,
+        //                     "side": 0,
+        //                     "amount": "1000000000000000000",
+        //                     "price": "10000000000000000",
+        //                     "minFillAmount": "0",
+        //                     "nonce": "1784713298605",
+        //                     "expiration": "0"
+        //                 },
+        //                 "status": "open",
+        //                 "signatureType": 0,
+        //                 "filledAmount": "0",
+        //                 "timeInForce": "GTC",
+        //                 "createdAt": "2026-07-22T09:41:39.035Z",
+        //                 "filledAt": null
+        //             }
+        //         ],
+        //         "pagination": {
+        //             "page": 1,
+        //             "limit": 5000,
+        //             "total": 1,
+        //             "totalPages": 1,
+        //             "hasNext": false,
+        //             "hasPrev": false
+        //         }
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
+        // valid market), so parse every order — each self-resolves its outcome from the network/market/
+        // outcome ids — and filter by the requested outcome client-side
+        Object orders = this.parsePredictionOrders(data, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit, false);
 
     }
 
@@ -2254,14 +2302,16 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "open" );
-            }};
-            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "open" );
+        }};
+        return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -2278,14 +2328,16 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "filled" );
-            }};
-            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "filled" );
+        }};
+        return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -2302,14 +2354,16 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchCanceledOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "cancelled" );
-            }};
-            return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "cancelled" );
+        }};
+        return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -2328,22 +2382,24 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "status", "filled" );
-            }};
-            List<PredictionOrder> orders = (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
-            List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            Integer ordersLength = orders.size();
-            for (var i = 0; (ordersLength != null && i < ordersLength); i++)
-            {
-                PredictionOrder order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                ((List<Object>)trades).add(this.orderToTrade((Map<String, Object>) (order)));
-            }
-            return this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "status", "filled" );
+        }};
+        List<PredictionOrder> orders = (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
+        List<Object> trades = new ArrayList<Object>(Arrays.asList());
+        Integer ordersLength = orders.size();
+        for (var i = 0; (ordersLength != null && i < ordersLength); i++)
+        {
+            PredictionOrder order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
+            ((List<Object>)trades).add(this.orderToTrade((Map<String, Object>) (order)));
+        }
+        return this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true);
 
     }
 
@@ -2392,41 +2448,43 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            String networkId = this.safeString2(parameters, "network_id", "network", this.safeString(this.options, "defaultNetworkId", "56"));
-            Map<String, Object> chains = this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
-            Map<String, Object> chainConfig = this.safeDict(chains, networkId, new HashMap<String, Object>() {{}});
-            String rpcUrl = this.safeString2(parameters, "rpcUrl", "rpc", this.safeString(chainConfig, "rpcUrl"));
-            String token = this.safeString2(parameters, "token", "tokenAddress", this.safeString(chainConfig, "collateralToken"));
-            if (java.util.Objects.equals(token, null))
-            {
-                throw new NotSupported(((this.id + " fetchBalance() has no collateral token configured for network ") + networkId)) ;
-            }
-            String currency = this.safeString(parameters, "currency", this.safeString(chainConfig, "collateralCurrency", "USD1"));
-            Long decimals = this.safeInteger(parameters, "decimals", this.safeInteger(chainConfig, "collateralDecimals", 18));
-            String owner = this.walletAddressFromKeys();
-            // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
-            String callData = ("0x70a08231" + this.padHexAddress((String) (owner)));
-            HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-            mapLiteral10.put("to", token);
-            mapLiteral10.put("data", callData);
-            List<Object> callParams = new ArrayList<Object>(Arrays.asList(mapLiteral10, "latest"));
-            Object raw = (this.ethRpc((String) (rpcUrl), "eth_call", callParams)).join();
-            String balanceString = this.fromWeiWithDecimals((String) (raw), decimals);
-            Map<String, Object> result = new HashMap<String, Object>();
-            HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-            mapLiteral11.put("balanceHex", raw);
-            mapLiteral11.put("token", token);
-            mapLiteral11.put("networkId", networkId);
-            result.put("info", mapLiteral11);
-            Map<String, Object> account = this.account();
-            account.put("free", balanceString);
-            account.put("total", balanceString);
-            result.put(currency, account);
-            return this.safeBalance(result);
-        }).thenApply(Balances::new);
+        String networkId = this.safeString2(parameters, "network_id", "network", this.safeString(this.options, "defaultNetworkId", "56"));
+        Map<String, Object> chains = this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
+        Map<String, Object> chainConfig = this.safeDict(chains, networkId, new HashMap<String, Object>() {{}});
+        String rpcUrl = this.safeString2(parameters, "rpcUrl", "rpc", this.safeString(chainConfig, "rpcUrl"));
+        String token = this.safeString2(parameters, "token", "tokenAddress", this.safeString(chainConfig, "collateralToken"));
+        if (java.util.Objects.equals(token, null))
+        {
+            throw new NotSupported(((this.id + " fetchBalance() has no collateral token configured for network ") + networkId)) ;
+        }
+        String currency = this.safeString(parameters, "currency", this.safeString(chainConfig, "collateralCurrency", "USD1"));
+        Long decimals = this.safeInteger(parameters, "decimals", this.safeInteger(chainConfig, "collateralDecimals", 18));
+        String owner = this.walletAddressFromKeys();
+        // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
+        String callData = ("0x70a08231" + this.padHexAddress((String) (owner)));
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("to", token);
+        mapLiteral10.put("data", callData);
+        List<Object> callParams = new ArrayList<Object>(Arrays.asList(mapLiteral10, "latest"));
+        Object raw = (this.ethRpc((String) (rpcUrl), "eth_call", callParams)).join();
+        String balanceString = this.fromWeiWithDecimals((String) (raw), decimals);
+        Map<String, Object> result = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("balanceHex", raw);
+        mapLiteral11.put("token", token);
+        mapLiteral11.put("networkId", networkId);
+        result.put("info", mapLiteral11);
+        Map<String, Object> account = this.account();
+        account.put("free", balanceString);
+        account.put("total", balanceString);
+        result.put(currency, account);
+        return this.safeBalance(result);
 
     }
 
@@ -2723,92 +2781,94 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(outcome, parameters)).thenApply(PredictionTicker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String outcome, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String networkId = this.safeString(outcomeObj.get("info"), "networkId");
-            String marketId = this.safeString(outcomeObj.get("info"), "marketId");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", marketId );
-                put( "network_id", networkId );
-            }};
-            Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "id": "756",
-            //         "networkId": "2741",
-            //         "slug": "will-trump-capture-another-president-before-his-birthday",
-            //         "title": "Will Trump capture another president before his birthday?",
-            //         "description": "string"
-            //         "publishedAt": "2026-01-16T18:05:36.000Z",
-            //         "expiresAt": "2026-06-14T04:59:00.000Z",
-            //         "resolvesAt": null,
-            //         "fees": {
-            //             "buy": { "fee": "0.01", "treasury_fee": "0.01", "distributor_fee": "0.01" },
-            //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" },
-            //             "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-            //             "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-            //         },
-            //         "state": "open",
-            //         "voided": false,
-            //         "resolvedOutcomeId": "-1",
-            //         "topics": [ "Politics" ],
-            //         "resolutionSource": "https://www.whitehouse.gov/",
-            //         "resolutionTitle": "White House",
-            //         "token": {
-            //             "name": "Bridged USDC (Stargate)",
-            //             "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-            //             "symbol": "USDC.e",
-            //             "decimals": "6"
-            //         },
-            //         "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-            //         "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
-            //         "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/cf1af79c-07b9-40f0-283b-ed59865b3c00/public",
-            //         "liquidity": "2000",
-            //         "liquidityPrice": "0.32532445",
-            //         "volume": "10891.236893",
-            //         "volume24h": "0.939",
-            //         "volumeNotional": "13570.426814",
-            //         "volumeNotional24h": "1.028382",
-            //         "users": "122",
-            //         "shares": "4098.474144",
-            //         "featured": false,
-            //         "featuredAt": null,
-            //         "inPlay": false,
-            //         "inPlayStartsAt": null,
-            //         "perpetual": false,
-            //         "moneyline": false,
-            //         "executionMode": "0",
-            //         "tradingModel": "amm",
-            //         "topHolders": [
-            //             "0x8A611AEE71b6448a6F99B6001D1234d020f7d546",
-            //             "0x2993249A3D107B759c886a4BD4e02B70d471eA9B",
-            //             "0x82a5b3BD2A9216369537583f63fa576a1D57c7E7"
-            //         ],
-            //         "outcomes": [
-            //             {
-            //                 "id": "0",
-            //                 "title": "Yes",
-            //                 "shares": "3742.174971",
-            //                 "sharesHeld": "138.741271",
-            //                 "price": "0.08693459",
-            //                 "closingPrice": null,
-            //                 "priceChange24h": "0.00045828",
-            //                 "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-            //                 "holders": "7",
-            //                 "tokenId": "1512",
-            //                 "price_charts": [Array]
-            //             },
-            //         ],
-            //         "eventId": null,
-            //         "outcomeIndex": null,
-            //         "negRisk": false,
-            //         "externalSources": []
-            //     }
-            //
-            return this.parsePredictionTicker(response, outcomeObj);
-        }).thenApply(PredictionTicker::new);
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        String networkId = this.safeString(outcomeObj.get("info"), "networkId");
+        String marketId = this.safeString(outcomeObj.get("info"), "marketId");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", marketId );
+            put( "network_id", networkId );
+        }};
+        Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "id": "756",
+        //         "networkId": "2741",
+        //         "slug": "will-trump-capture-another-president-before-his-birthday",
+        //         "title": "Will Trump capture another president before his birthday?",
+        //         "description": "string"
+        //         "publishedAt": "2026-01-16T18:05:36.000Z",
+        //         "expiresAt": "2026-06-14T04:59:00.000Z",
+        //         "resolvesAt": null,
+        //         "fees": {
+        //             "buy": { "fee": "0.01", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" },
+        //             "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+        //             "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+        //         },
+        //         "state": "open",
+        //         "voided": false,
+        //         "resolvedOutcomeId": "-1",
+        //         "topics": [ "Politics" ],
+        //         "resolutionSource": "https://www.whitehouse.gov/",
+        //         "resolutionTitle": "White House",
+        //         "token": {
+        //             "name": "Bridged USDC (Stargate)",
+        //             "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+        //             "symbol": "USDC.e",
+        //             "decimals": "6"
+        //         },
+        //         "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //         "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
+        //         "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/cf1af79c-07b9-40f0-283b-ed59865b3c00/public",
+        //         "liquidity": "2000",
+        //         "liquidityPrice": "0.32532445",
+        //         "volume": "10891.236893",
+        //         "volume24h": "0.939",
+        //         "volumeNotional": "13570.426814",
+        //         "volumeNotional24h": "1.028382",
+        //         "users": "122",
+        //         "shares": "4098.474144",
+        //         "featured": false,
+        //         "featuredAt": null,
+        //         "inPlay": false,
+        //         "inPlayStartsAt": null,
+        //         "perpetual": false,
+        //         "moneyline": false,
+        //         "executionMode": "0",
+        //         "tradingModel": "amm",
+        //         "topHolders": [
+        //             "0x8A611AEE71b6448a6F99B6001D1234d020f7d546",
+        //             "0x2993249A3D107B759c886a4BD4e02B70d471eA9B",
+        //             "0x82a5b3BD2A9216369537583f63fa576a1D57c7E7"
+        //         ],
+        //         "outcomes": [
+        //             {
+        //                 "id": "0",
+        //                 "title": "Yes",
+        //                 "shares": "3742.174971",
+        //                 "sharesHeld": "138.741271",
+        //                 "price": "0.08693459",
+        //                 "closingPrice": null,
+        //                 "priceChange24h": "0.00045828",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //                 "holders": "7",
+        //                 "tokenId": "1512",
+        //                 "price_charts": [Array]
+        //             },
+        //         ],
+        //         "eventId": null,
+        //         "outcomeIndex": null,
+        //         "negRisk": false,
+        //         "externalSources": []
+        //     }
+        //
+        return this.parsePredictionTicker(response, outcomeObj);
 
     }
 
@@ -2823,37 +2883,39 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionTradingFee> fetchTradingFee(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradingFeeCore(outcome, parameters)).thenApply(PredictionTradingFee::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradingFeeCore(String outcome, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", Myriad.this.safeString(info, "marketId") );
-                put( "network_id", Myriad.this.safeString(info, "networkId") );
-            }};
-            Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "fees": {
-            //             "buy": { "fee": "0.02", "treasury_fee": "0.01", "distributor_fee": "0.01" },
-            //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" }
-            //         }
-            //     }
-            //
-            Map<String, Object> fees = this.safeDict(response, "fees", new HashMap<String, Object>() {{}});
-            Map<String, Object> buy = this.safeDict(fees, "buy", new HashMap<String, Object>() {{}});
-            Map<String, Object> sell = this.safeDict(fees, "sell", new HashMap<String, Object>() {{}});
-            return new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "outcome", Myriad.this.safeOutcomeSymbol((String) (null), outcomeObj) );
-                put( "outcomeId", Myriad.this.safeString(outcomeObj, "outcomeId") );
-                put( "maker", Myriad.this.safeNumber(sell, "fee", (Object) null) );
-                put( "taker", Myriad.this.safeNumber(buy, "fee", (Object) null) );
-                put( "percentage", true );
-                put( "tierBased", false );
-            }};
-        }).thenApply(PredictionTradingFee::new);
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", Myriad.this.safeString(info, "marketId") );
+            put( "network_id", Myriad.this.safeString(info, "networkId") );
+        }};
+        Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "fees": {
+        //             "buy": { "fee": "0.02", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" }
+        //         }
+        //     }
+        //
+        Map<String, Object> fees = this.safeDict(response, "fees", new HashMap<String, Object>() {{}});
+        Map<String, Object> buy = this.safeDict(fees, "buy", new HashMap<String, Object>() {{}});
+        Map<String, Object> sell = this.safeDict(fees, "sell", new HashMap<String, Object>() {{}});
+        return new HashMap<String, Object>() {{
+            put( "info", response );
+            put( "outcome", Myriad.this.safeOutcomeSymbol((String) (null), outcomeObj) );
+            put( "outcomeId", Myriad.this.safeString(outcomeObj, "outcomeId") );
+            put( "maker", Myriad.this.safeNumber(sell, "fee", (Object) null) );
+            put( "taker", Myriad.this.safeNumber(buy, "fee", (Object) null) );
+            put( "percentage", true );
+            put( "tierBased", false );
+        }};
 
     }
 
@@ -3008,154 +3070,156 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBookCore(Object outcome, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String networkId = this.safeString(outcomeObj.get("info"), "networkId");
-            String marketId = this.safeString(outcomeObj.get("info"), "marketId");
-            String outcomeId = this.safeString(outcomeObj.get("info"), "outcomeId");
-            String tradingModel = this.safeString(outcomeObj.get("info"), "tradingModel", "amm");
-            if (java.util.Objects.equals(tradingModel, "ob"))
-            {
-                Map<String, Object> obRequest = new HashMap<String, Object>() {{
-                    put( "id", marketId );
-                    put( "network_id", networkId );
-                    put( "outcome", outcomeId );
-                }};
-                Map<String, Object> obResponse = (this.myriadPublicGetMarketsIdOrderbook(this.extend(obRequest, parameters))).join();
-                //
-                //     {
-                //         "bids": [ [ "980000000000000000", "258412594752186597376" ] ],
-                //         "asks": [ [ "990000000000000000", "151975683890577539072" ] ]
-                //     }
-                //
-                return this.safePredictionOrderBook((Map<String, Object>) (this.parseWeiOrderBook(obResponse, (String) (this.safeOutcomeSymbol((String) (outcome), outcomeObj)))), outcomeObj);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        String networkId = this.safeString(outcomeObj.get("info"), "networkId");
+        String marketId = this.safeString(outcomeObj.get("info"), "marketId");
+        String outcomeId = this.safeString(outcomeObj.get("info"), "outcomeId");
+        String tradingModel = this.safeString(outcomeObj.get("info"), "tradingModel", "amm");
+        if (java.util.Objects.equals(tradingModel, "ob"))
+        {
+            Map<String, Object> obRequest = new HashMap<String, Object>() {{
                 put( "id", marketId );
                 put( "network_id", networkId );
+                put( "outcome", outcomeId );
             }};
-            Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
+            Map<String, Object> obResponse = (this.myriadPublicGetMarketsIdOrderbook(this.extend(obRequest, parameters))).join();
             //
             //     {
-            //         "id": "756",
-            //         "networkId": "2741",
-            //         "slug": "will-trump-capture-another-president-before-his-birthday",
-            //         "title": "Will Trump capture another president before his birthday?",
-            //         "shortName": null,
-            //         "description": "### **Market Dates:**"
-            //         "publishedAt": "2026-01-16T18:05:36.000Z",
-            //         "expiresAt": "2026-06-14T04:59:00.000Z",
-            //         "resolvesAt": null,
-            //         "fees": {
-            //             "buy": { "fee": "0.01", "treasury_fee": "0.01", "distributor_fee": "0.01" },
-            //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" },
-            //             "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
-            //             "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
-            //         },
-            //         "state": "open",
-            //         "voided": false,
-            //         "resolvedOutcomeId": "-1",
-            //         "topics": [ "Politics" ],
-            //         "resolutionSource": "https://www.whitehouse.gov/",
-            //         "resolutionTitle": "White House",
-            //         "token": {
-            //             "name": "Bridged USDC (Stargate)",
-            //             "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
-            //             "symbol": "USDC.e",
-            //             "decimals": "6"
-            //         },
-            //         "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-            //         "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
-            //         "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/d3d60089-3d08-45ac-aa9d-139156e3f900/public",
-            //         "liquidity": "2000",
-            //         "liquidityPrice": "0.29322839",
-            //         "volume": "11396.236893",
-            //         "volume24h": "500",
-            //         "volumeNotional": "14101.517862",
-            //         "volumeNotional24h": "525.779869",
-            //         "users": "124",
-            //         "shares": "4547.083096",
-            //         "featured": false,
-            //         "featuredAt": null,
-            //         "inPlay": false,
-            //         "inPlayStartsAt": null,
-            //         "perpetual": false,
-            //         "moneyline": false,
-            //         "executionMode": "0",
-            //         "tradingModel": "amm",
-            //         "topHolders": [
-            //             "0x8A611AEE71b6448a6F99B6001D1234d020f7d546",
-            //             "0x2993249A3D107B759c886a4BD4e02B70d471eA9B"
-            //         ],
-            //         "outcomes": [
-            //             {
-            //                 "id": "0",
-            //                 "title": "Yes",
-            //                 "shares": "4232.024971",
-            //                 "sharesHeld": "138.741271",
-            //                 "price": "0.06928796",
-            //                 "closingPrice": null,
-            //                 "priceChange24h": "-0.20109988",
-            //                 "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
-            //                 "holders": "7",
-            //                 "tokenId": "1512",
-            //                 "price_charts": [Array]
-            //             }
-            //         ],
-            //         "eventId": null,
-            //         "outcomeIndex": null,
-            //         "negRisk": false,
-            //         "externalSources": []
+            //         "bids": [ [ "980000000000000000", "258412594752186597376" ] ],
+            //         "asks": [ [ "990000000000000000", "151975683890577539072" ] ]
             //     }
             //
-            List<Object> outcomes = this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
-            // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
-            Double bid = null;
-            Double ask = null;
-            for (var i = 0; i < outcomes.size(); i++)
+            return this.safePredictionOrderBook((Map<String, Object>) (this.parseWeiOrderBook(obResponse, (String) (this.safeOutcomeSymbol((String) (outcome), outcomeObj)))), outcomeObj);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", marketId );
+            put( "network_id", networkId );
+        }};
+        Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "id": "756",
+        //         "networkId": "2741",
+        //         "slug": "will-trump-capture-another-president-before-his-birthday",
+        //         "title": "Will Trump capture another president before his birthday?",
+        //         "shortName": null,
+        //         "description": "### **Market Dates:**"
+        //         "publishedAt": "2026-01-16T18:05:36.000Z",
+        //         "expiresAt": "2026-06-14T04:59:00.000Z",
+        //         "resolvesAt": null,
+        //         "fees": {
+        //             "buy": { "fee": "0.01", "treasury_fee": "0.01", "distributor_fee": "0.01" },
+        //             "sell": { "fee": "0", "treasury_fee": "0", "distributor_fee": "0" },
+        //             "treasury": "0x5E3EbEc100e2294C0EB2264FC96225dF067AAaa3",
+        //             "distributor": "0xE44984C586FeBB31605D23b6316cA11B6f4D86b2"
+        //         },
+        //         "state": "open",
+        //         "voided": false,
+        //         "resolvedOutcomeId": "-1",
+        //         "topics": [ "Politics" ],
+        //         "resolutionSource": "https://www.whitehouse.gov/",
+        //         "resolutionTitle": "White House",
+        //         "token": {
+        //             "name": "Bridged USDC (Stargate)",
+        //             "address": "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
+        //             "symbol": "USDC.e",
+        //             "decimals": "6"
+        //         },
+        //         "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //         "bannerImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/255d431f-1bb4-4d90-032b-d1f7032e8000/public",
+        //         "ogImageUrl": "https://imagedelivery.net/YN1-rdnufJQJCgu3i1CbVw/d3d60089-3d08-45ac-aa9d-139156e3f900/public",
+        //         "liquidity": "2000",
+        //         "liquidityPrice": "0.29322839",
+        //         "volume": "11396.236893",
+        //         "volume24h": "500",
+        //         "volumeNotional": "14101.517862",
+        //         "volumeNotional24h": "525.779869",
+        //         "users": "124",
+        //         "shares": "4547.083096",
+        //         "featured": false,
+        //         "featuredAt": null,
+        //         "inPlay": false,
+        //         "inPlayStartsAt": null,
+        //         "perpetual": false,
+        //         "moneyline": false,
+        //         "executionMode": "0",
+        //         "tradingModel": "amm",
+        //         "topHolders": [
+        //             "0x8A611AEE71b6448a6F99B6001D1234d020f7d546",
+        //             "0x2993249A3D107B759c886a4BD4e02B70d471eA9B"
+        //         ],
+        //         "outcomes": [
+        //             {
+        //                 "id": "0",
+        //                 "title": "Yes",
+        //                 "shares": "4232.024971",
+        //                 "sharesHeld": "138.741271",
+        //                 "price": "0.06928796",
+        //                 "closingPrice": null,
+        //                 "priceChange24h": "-0.20109988",
+        //                 "imageUrl": "https://cdn.polkamarkets.com/Qma9FAX15kHewT8vm61vykGA9bqQhNdDLvEbQWSp72i3PQ",
+        //                 "holders": "7",
+        //                 "tokenId": "1512",
+        //                 "price_charts": [Array]
+        //             }
+        //         ],
+        //         "eventId": null,
+        //         "outcomeIndex": null,
+        //         "negRisk": false,
+        //         "externalSources": []
+        //     }
+        //
+        List<Object> outcomes = this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
+        // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
+        Double bid = null;
+        Double ask = null;
+        for (var i = 0; i < outcomes.size(); i++)
+        {
+            Map<String, Object> o = this.safeDict(outcomes, i, null);
+            if (java.util.Objects.equals(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
             {
-                Map<String, Object> o = this.safeDict(outcomes, i, null);
-                if (java.util.Objects.equals(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
+                Double price = this.safeNumber(o, "price", (Object) null);
+                if (!java.util.Objects.equals(price, null))
                 {
-                    Double price = this.safeNumber(o, "price", (Object) null);
-                    if (!java.util.Objects.equals(price, null))
+                    if ((price != null && price > 0.001))
                     {
-                        if ((price != null && price > 0.001))
-                        {
-                            bid = this.parseNumber(Precise.stringSub(this.numberToString(price), "0.001"));
-                        }
-                        if (((price == null || 0.999 > price)))
-                        {
-                            ask = this.parseNumber(Precise.stringAdd(this.numberToString(price), "0.001"));
-                        }
+                        bid = this.parseNumber(Precise.stringSub(this.numberToString(price), "0.001"));
                     }
-                    break;
+                    if (((price == null || 0.999 > price)))
+                    {
+                        ask = this.parseNumber(Precise.stringAdd(this.numberToString(price), "0.001"));
+                    }
                 }
+                break;
             }
-            // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
-            Double synthSize = this.parseNumber("9999");
-            List<Object> bids = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(bid, null))
-            {
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(bid, synthSize)));
-            }
-            List<Object> asks = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(ask, null))
-            {
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(ask, synthSize)));
-            }
-            Map<String, Object> orderbook = new HashMap<String, Object>() {{
-                put( "outcome", Myriad.this.safeOutcomeSymbol((String) (outcome), outcomeObj) );
-                put( "bids", bids );
-                put( "asks", asks );
-                put( "timestamp", null );
-                put( "datetime", null );
-                put( "nonce", null );
-            }};
-            return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+        }
+        // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
+        Double synthSize = this.parseNumber("9999");
+        List<Object> bids = new ArrayList<Object>(Arrays.asList());
+        if (!java.util.Objects.equals(bid, null))
+        {
+            ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(bid, synthSize)));
+        }
+        List<Object> asks = new ArrayList<Object>(Arrays.asList());
+        if (!java.util.Objects.equals(ask, null))
+        {
+            ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(ask, synthSize)));
+        }
+        Map<String, Object> orderbook = new HashMap<String, Object>() {{
+            put( "outcome", Myriad.this.safeOutcomeSymbol((String) (outcome), outcomeObj) );
+            put( "bids", bids );
+            put( "asks", asks );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "nonce", null );
+        }};
+        return this.safePredictionOrderBook(orderbook, outcomeObj);
 
     }
 
@@ -3212,116 +3276,118 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(outcome, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(outcomeInfo, "networkId");
-            String marketId = this.safeString(outcomeInfo, "marketId");
-            String outcomeId = this.safeString(outcomeInfo, "outcomeId", this.safeString(outcomeInfo, "id"));
-            String outcomeTitle = this.safeString(outcomeInfo, "outcomeLabel", this.safeString(outcomeInfo, "label", this.safeString(outcomeInfo, "title")));
-            String bucketKey = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"), "30d");
-            Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(new HashMap<String, Object>() {{
-                put( "id", marketId );
-                put( "network_id", networkId );
-            }}, parameters))).join();
-            //
-            //     {
-            //         "id": "164",
-            //         "networkId": "2741",
-            //         "slug": "trump-out-as-president-2027",
-            //         "title": "Will Trump cease to be President before 2027?",
-            //         "state": "open",
-            //         "outcomes": [
-            //             {
-            //                 "id": "0",
-            //                 "outcomeId": "0",
-            //                 "title": "YES",
-            //                 "label": "YES",
-            //                 "price": 0.42,
-            //                 "priceChange24h": -0.02
-            //             }
-            //         ],
-            //         "price_charts": {
-            //             "24h": {
-            //                 "timeframe": "24h",
-            //                 "prices": [
-            //                     {
-            //                         "timestamp": 1705318200,
-            //                         "open": 0.40,
-            //                         "high": 0.45,
-            //                         "low": 0.39,
-            //                         "close": 0.42,
-            //                         "price": 0.42,
-            //                         "value": 0.42
-            //                     }
-            //                 ]
-            //             },
-            //             "7d": {...},
-            //             "30d": {...}
-            //         }
-            //     }
-            //
-            List<Object> outcomes = this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
-            Object selectedOutcome = null;
-            for (var i = 0; i < outcomes.size(); i++)
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String networkId = this.safeString(outcomeInfo, "networkId");
+        String marketId = this.safeString(outcomeInfo, "marketId");
+        String outcomeId = this.safeString(outcomeInfo, "outcomeId", this.safeString(outcomeInfo, "id"));
+        String outcomeTitle = this.safeString(outcomeInfo, "outcomeLabel", this.safeString(outcomeInfo, "label", this.safeString(outcomeInfo, "title")));
+        String bucketKey = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"), "30d");
+        Map<String, Object> response = (this.myriadPublicGetMarketsId(this.extend(new HashMap<String, Object>() {{
+            put( "id", marketId );
+            put( "network_id", networkId );
+        }}, parameters))).join();
+        //
+        //     {
+        //         "id": "164",
+        //         "networkId": "2741",
+        //         "slug": "trump-out-as-president-2027",
+        //         "title": "Will Trump cease to be President before 2027?",
+        //         "state": "open",
+        //         "outcomes": [
+        //             {
+        //                 "id": "0",
+        //                 "outcomeId": "0",
+        //                 "title": "YES",
+        //                 "label": "YES",
+        //                 "price": 0.42,
+        //                 "priceChange24h": -0.02
+        //             }
+        //         ],
+        //         "price_charts": {
+        //             "24h": {
+        //                 "timeframe": "24h",
+        //                 "prices": [
+        //                     {
+        //                         "timestamp": 1705318200,
+        //                         "open": 0.40,
+        //                         "high": 0.45,
+        //                         "low": 0.39,
+        //                         "close": 0.42,
+        //                         "price": 0.42,
+        //                         "value": 0.42
+        //                     }
+        //                 ]
+        //             },
+        //             "7d": {...},
+        //             "30d": {...}
+        //         }
+        //     }
+        //
+        List<Object> outcomes = this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
+        Object selectedOutcome = null;
+        for (var i = 0; i < outcomes.size(); i++)
+        {
+            Object oc = (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i));
+            String currentId = this.safeString(oc, "id", this.safeString(oc, "outcomeId"));
+            String currentTitle = this.safeString(oc, "title", this.safeString(oc, "label"));
+            if ((!java.util.Objects.equals(outcomeId, null)) && (java.util.Objects.equals(currentId, outcomeId)))
             {
-                Object oc = (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i));
-                String currentId = this.safeString(oc, "id", this.safeString(oc, "outcomeId"));
-                String currentTitle = this.safeString(oc, "title", this.safeString(oc, "label"));
-                if ((!java.util.Objects.equals(outcomeId, null)) && (java.util.Objects.equals(currentId, outcomeId)))
+                selectedOutcome = oc;
+                break;
+            }
+            if ((java.util.Objects.equals(selectedOutcome, null)) && (!java.util.Objects.equals(outcomeTitle, null)) && (java.util.Objects.equals(currentTitle, outcomeTitle)))
+            {
+                selectedOutcome = oc;
+            }
+        }
+        // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
+        Object chart = null;
+        List<Object> chartsList = this.safeList(selectedOutcome, "price_charts", null);
+        if (!java.util.Objects.equals(chartsList, null))
+        {
+            for (var i = 0; i < chartsList.size(); i++)
+            {
+                Object chartObj = (chartsList == null || i < 0 || i >= chartsList.size() ? null : chartsList.get(i));
+                if (java.util.Objects.equals(this.safeString(chartObj, "timeframe"), bucketKey))
                 {
-                    selectedOutcome = oc;
+                    chart = chartObj;
                     break;
                 }
-                if ((java.util.Objects.equals(selectedOutcome, null)) && (!java.util.Objects.equals(outcomeTitle, null)) && (java.util.Objects.equals(currentTitle, outcomeTitle)))
-                {
-                    selectedOutcome = oc;
-                }
             }
-            // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
-            Object chart = null;
-            List<Object> chartsList = this.safeList(selectedOutcome, "price_charts", null);
-            if (!java.util.Objects.equals(chartsList, null))
+        } else
+        {
+            Map<String, Object> chartsDict = this.safeDict(selectedOutcome, "price_charts", new HashMap<String, Object>() {{}});
+            chart = this.safeDict(chartsDict, bucketKey, null);
+        }
+        Object pointsList = this.safeList(chart, "prices", this.safeList(chart, "data", ((Object)chart)));
+        List<?> points = (List<?>) ((((!java.util.Objects.equals(pointsList, null)))) ? pointsList : new ArrayList<Object>(Arrays.asList()));
+        Integer pointsLength = points.size();
+        if (java.util.Objects.equals(pointsLength, 0))
+        {
+            Map<String, Object> priceCharts = this.safeDict(response, "price_charts", new HashMap<String, Object>() {{}});
+            Map<String, Object> bucket = this.safeDict(priceCharts, bucketKey, new HashMap<String, Object>() {{}});
+            points = (List<Object>)(this.safeList(bucket, outcomeId, this.safeList(bucket, "data", new ArrayList<Object>(Arrays.asList()))));
+        }
+        List<Object> usablePoints = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < points.size(); i++)
+        {
+            Object point = (points == null || i < 0 || i >= points.size() ? null : points.get(i));
+            Double pointOpen = this.safeNumber(point, "open", (Object) null);
+            Double pointPrice = this.safeNumber(point, "price", this.safeNumber(point, "value", (Object) null));
+            Long pointTs = this.safeInteger(point, "timestamp");
+            if (((!java.util.Objects.equals(pointOpen, null)) || (!java.util.Objects.equals(pointPrice, null))) && (!java.util.Objects.equals(pointTs, null)))
             {
-                for (var i = 0; i < chartsList.size(); i++)
-                {
-                    Object chartObj = (chartsList == null || i < 0 || i >= chartsList.size() ? null : chartsList.get(i));
-                    if (java.util.Objects.equals(this.safeString(chartObj, "timeframe"), bucketKey))
-                    {
-                        chart = chartObj;
-                        break;
-                    }
-                }
-            } else
-            {
-                Map<String, Object> chartsDict = this.safeDict(selectedOutcome, "price_charts", new HashMap<String, Object>() {{}});
-                chart = this.safeDict(chartsDict, bucketKey, null);
+                ((List<Object>)usablePoints).add(point);
             }
-            Object pointsList = this.safeList(chart, "prices", this.safeList(chart, "data", ((Object)chart)));
-            List<?> points = (List<?>) ((((!java.util.Objects.equals(pointsList, null)))) ? pointsList : new ArrayList<Object>(Arrays.asList()));
-            Integer pointsLength = points.size();
-            if (java.util.Objects.equals(pointsLength, 0))
-            {
-                Map<String, Object> priceCharts = this.safeDict(response, "price_charts", new HashMap<String, Object>() {{}});
-                Map<String, Object> bucket = this.safeDict(priceCharts, bucketKey, new HashMap<String, Object>() {{}});
-                points = (List<Object>)(this.safeList(bucket, outcomeId, this.safeList(bucket, "data", new ArrayList<Object>(Arrays.asList()))));
-            }
-            List<Object> usablePoints = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < points.size(); i++)
-            {
-                Object point = (points == null || i < 0 || i >= points.size() ? null : points.get(i));
-                Double pointOpen = this.safeNumber(point, "open", (Object) null);
-                Double pointPrice = this.safeNumber(point, "price", this.safeNumber(point, "value", (Object) null));
-                Long pointTs = this.safeInteger(point, "timestamp");
-                if (((!java.util.Objects.equals(pointOpen, null)) || (!java.util.Objects.equals(pointPrice, null))) && (!java.util.Objects.equals(pointTs, null)))
-                {
-                    ((List<Object>)usablePoints).add(point);
-                }
-            }
-            return this.parseOHLCVs(usablePoints, outcomeObj, java.util.Objects.requireNonNullElse(timeframe, "1d"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }
+        return this.parseOHLCVs(usablePoints, outcomeObj, java.util.Objects.requireNonNullElse(timeframe, "1d"), since, limit, false);
 
     }
 
@@ -3366,66 +3432,68 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(Object outcomes, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(outcomes, null))
+        if (java.util.Objects.equals(outcomes, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+        }
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        // resolve the uncached outcomes first, then group by parent market to fetch each market only once
+        (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> outcomesByMarket = new HashMap<String, Object>() {{}};
+        List<Object> marketKeys = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+        {
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            String networkId = this.safeString(info, "networkId", "");
+            String marketId = this.safeString(info, "marketId", "");
+            String key = ((networkId + ":") + marketId);
+            if (!(outcomesByMarket.containsKey(key)))
             {
-                throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+                outcomesByMarket.put(key, new ArrayList<Object>(Arrays.asList()));
+                ((List<Object>)marketKeys).add(key);
             }
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            // resolve the uncached outcomes first, then group by parent market to fetch each market only once
-            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> outcomesByMarket = new HashMap<String, Object>() {{}};
-            List<Object> marketKeys = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            List<Object> grouped = (List<Object>) ((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
+            grouped.add(outcomeObj);
+            outcomesByMarket.put(key, grouped);
+        }
+        List<Object> promises = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < marketKeys.size(); i++)
+        {
+            Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
+            Object grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
+            Map<String, Object> firstOutcome = this.safeDict(grouped, 0, null);
+            Map<String, Object> info = this.safeDict(firstOutcome, "info", new HashMap<String, Object>() {{}});
+            ((List<Object>)promises).add(this.myriadPublicGetMarketsId(this.extend(new HashMap<String, Object>() {{
+                put( "id", Myriad.this.safeString(info, "marketId") );
+                put( "network_id", Myriad.this.safeString(info, "networkId") );
+            }}, parameters)));
+        }
+        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        for (var i = 0; i < marketKeys.size(); i++)
+        {
+            Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
+            Object response = (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i));
+            List<Object> grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
+            for (var j = 0; j < grouped.size(); j++)
             {
-                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                String networkId = this.safeString(info, "networkId", "");
-                String marketId = this.safeString(info, "marketId", "");
-                String key = ((networkId + ":") + marketId);
-                if (!(outcomesByMarket.containsKey(key)))
+                Object outcomeObj = (grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j));
+                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                String symbolKey = this.safeString(ticker, "outcome");
+                if (!java.util.Objects.equals(symbolKey, null))
                 {
-                    outcomesByMarket.put(key, new ArrayList<Object>(Arrays.asList()));
-                    ((List<Object>)marketKeys).add(key);
-                }
-                // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-                List<Object> grouped = (List<Object>) ((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
-                grouped.add(outcomeObj);
-                outcomesByMarket.put(key, grouped);
-            }
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < marketKeys.size(); i++)
-            {
-                Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
-                Object grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
-                Map<String, Object> firstOutcome = this.safeDict(grouped, 0, null);
-                Map<String, Object> info = this.safeDict(firstOutcome, "info", new HashMap<String, Object>() {{}});
-                ((List<Object>)promises).add(this.myriadPublicGetMarketsId(this.extend(new HashMap<String, Object>() {{
-                    put( "id", Myriad.this.safeString(info, "marketId") );
-                    put( "network_id", Myriad.this.safeString(info, "networkId") );
-                }}, parameters)));
-            }
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < marketKeys.size(); i++)
-            {
-                Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
-                Object response = (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i));
-                List<Object> grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
-                for (var j = 0; j < grouped.size(); j++)
-                {
-                    Object outcomeObj = (grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j));
-                    Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-                    String symbolKey = this.safeString(ticker, "outcome");
-                    if (!java.util.Objects.equals(symbolKey, null))
-                    {
-                        result.put(symbolKey, ticker);
-                    }
+                    result.put(symbolKey, ticker);
                 }
             }
-            return result;
-        }).thenApply(PredictionTickers::new);
+        }
+        return result;
 
     }
 
@@ -3442,65 +3510,67 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(info, "networkId");
-            String marketId = this.safeString(info, "marketId");
-            String outcomeId = this.safeString(info, "outcomeId");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", marketId );
-                put( "network_id", networkId );
-            }};
-            if (!java.util.Objects.equals(limit, null))
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String networkId = this.safeString(info, "networkId");
+        String marketId = this.safeString(info, "marketId");
+        String outcomeId = this.safeString(info, "outcomeId");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", marketId );
+            put( "network_id", networkId );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        Map<String, Object> response = (this.myriadPublicGetMarketsIdEvents(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "user": "0xAE7Bfff784EeEe7812D6527B72c77A7Ed773Ed9D",
+        //                 "action": "buy",
+        //                 "marketTitle": "BNB candles from 10:00 to 10:05 UTC",
+        //                 "marketSlug": "bnb-candles-from-10-00-to-10-05-utc",
+        //                 "marketId": 218,
+        //                 "networkId": 56,
+        //                 "outcomeTitle": "More Green",
+        //                 "outcomeId": 0,
+        //                 "shares": 500,
+        //                 "value": 500,
+        //                 "timestamp": 1761645928,
+        //                 "blockNumber": 66193433,
+        //                 "token": "0x55d398326f99059fF775485246999027B3197955",
+        //                 "txId": "0x3c81447bd6e5c4c80a6e1425383c0b044ddcb1525d09027c2b371ff84f9b9fa0"
+        //             }
+        //         ]
+        //     }
+        //
+        Boolean responseIsArray = (response instanceof List);
+        List<Object> rows = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
+        List<Object> trades = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < rows.size(); i++)
+        {
+            Map<String, Object> row = this.safeDict(rows, i, null);
+            String action = this.safeString(row, "action");
+            if ((!java.util.Objects.equals(action, "buy")) && (!java.util.Objects.equals(action, "sell")))
             {
-                request.put("limit", limit);
+                continue;
             }
-            Map<String, Object> response = (this.myriadPublicGetMarketsIdEvents(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "data": [
-            //             {
-            //                 "user": "0xAE7Bfff784EeEe7812D6527B72c77A7Ed773Ed9D",
-            //                 "action": "buy",
-            //                 "marketTitle": "BNB candles from 10:00 to 10:05 UTC",
-            //                 "marketSlug": "bnb-candles-from-10-00-to-10-05-utc",
-            //                 "marketId": 218,
-            //                 "networkId": 56,
-            //                 "outcomeTitle": "More Green",
-            //                 "outcomeId": 0,
-            //                 "shares": 500,
-            //                 "value": 500,
-            //                 "timestamp": 1761645928,
-            //                 "blockNumber": 66193433,
-            //                 "token": "0x55d398326f99059fF775485246999027B3197955",
-            //                 "txId": "0x3c81447bd6e5c4c80a6e1425383c0b044ddcb1525d09027c2b371ff84f9b9fa0"
-            //             }
-            //         ]
-            //     }
-            //
-            Boolean responseIsArray = (response instanceof List);
-            List<Object> rows = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
-            List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < rows.size(); i++)
+            String rowOutcomeId = this.safeString(row, "outcomeId");
+            if ((!java.util.Objects.equals(outcomeId, null)) && (!java.util.Objects.equals(rowOutcomeId, outcomeId)))
             {
-                Map<String, Object> row = this.safeDict(rows, i, null);
-                String action = this.safeString(row, "action");
-                if ((!java.util.Objects.equals(action, "buy")) && (!java.util.Objects.equals(action, "sell")))
-                {
-                    continue;
-                }
-                String rowOutcomeId = this.safeString(row, "outcomeId");
-                if ((!java.util.Objects.equals(outcomeId, null)) && (!java.util.Objects.equals(rowOutcomeId, outcomeId)))
-                {
-                    continue;
-                }
-                ((List<Object>)trades).add(row);
+                continue;
             }
-            return this.parsePredictionTrades(trades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+            ((List<Object>)trades).add(row);
+        }
+        return this.parsePredictionTrades(trades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -3559,135 +3629,137 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchEventsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchEventsCore(Map<String, Object> parameters)
+    {
 
-            Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-            if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
+        Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
+        if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
+        {
+            this.requireEventQuery(parameters);
+        }
+        List<Object> queries = this.parseSearchQueries(parameters);
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags")));
+        if (java.util.Objects.equals(queries, null))
+        {
+            throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
+        }
+        Integer queriesLength = queries.size();
+        String eventId = this.safeString(parameters, "eventId");
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
+        // an eventId does a direct lookup, and tags map to server-side keyword searches (the
+        // markets listing ignores tag filter params, but tag slugs match through keyword=)
+        List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawQuestions = new ArrayList<Object>(Arrays.asList());
+        if ((queriesLength != null && queriesLength > 0))
+        {
+            // some markets are only discoverable through the questions search endpoint
+            Object responses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(queries, rest), this.fetchRawQuestionsBySearch(queries, rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            rawMarkets = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
+            rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
+        } else if (!java.util.Objects.equals(eventId, null))
+        {
+            if (((String)eventId).indexOf(":") > -1)
             {
-                this.requireEventQuery(parameters);
-            }
-            List<Object> queries = this.parseSearchQueries(parameters);
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags")));
-            if (java.util.Objects.equals(queries, null))
-            {
-                throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
-            }
-            Integer queriesLength = queries.size();
-            String eventId = this.safeString(parameters, "eventId");
-            // always fetch fresh from the API (never serve the possibly-cold cache): a query searches,
-            // an eventId does a direct lookup, and tags map to server-side keyword searches (the
-            // markets listing ignores tag filter params, but tag slugs match through keyword=)
-            List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
-            List<Object> rawQuestions = new ArrayList<Object>(Arrays.asList());
-            if ((queriesLength != null && queriesLength > 0))
-            {
-                // some markets are only discoverable through the questions search endpoint
-                Object responses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(queries, rest), this.fetchRawQuestionsBySearch(queries, rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                rawMarkets = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
-                rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
-            } else if (!java.util.Objects.equals(eventId, null))
-            {
-                if (((String)eventId).indexOf(":") > -1)
-                {
-                    Map<String, Object> rawMarket = (this.fetchRawMarketById((String) (eventId), rest)).join();
-                    rawMarkets = new ArrayList<Object>(Arrays.asList(rawMarket));
-                } else
-                {
-                    Map<String, Object> rawQuestion = (this.fetchRawQuestionById((String) (eventId), rest)).join();
-                    rawQuestions = new ArrayList<Object>(Arrays.asList(rawQuestion));
-                }
+                Map<String, Object> rawMarket = (this.fetchRawMarketById((String) (eventId), rest)).join();
+                rawMarkets = new ArrayList<Object>(Arrays.asList(rawMarket));
             } else
             {
-                List<Object> requestedTags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-                Integer requestedTagsLength = requestedTags.size();
-                if (java.util.Objects.equals(requestedTagsLength, 0))
-                {
-                    // unscoped mode: fetch bounded open lists from both sources and merge
-                    Object listResponses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsList(rest), this.fetchRawQuestionsList(rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                    rawMarkets = (List<Object>) this.safeList(listResponses, 0, new ArrayList<Object>(Arrays.asList()));
-                    rawQuestions = (List<Object>) this.safeList(listResponses, 1, new ArrayList<Object>(Arrays.asList()));
-                } else
-                {
-                    List<Object> tagQueries = new ArrayList<Object>(Arrays.asList());
-                    for (var i = 0; (requestedTagsLength != null && i < requestedTagsLength); i++)
-                    {
-                        // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                        Object tagSlug = (requestedTags == null || i < 0 || i >= requestedTags.size() ? null : requestedTags.get(i));
-                        ((List<Object>)tagQueries).add((tagSlug == null ? null : ((String)tagSlug).replace("-", " ")));
-                    }
-                    // run both searches in parallel; some events are only discoverable from questions,
-                    // while market search is still the primary source for market-level data
-                    Object responses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(tagQueries, rest), this.fetchRawQuestionsBySearch(tagQueries, rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                    rawMarkets = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
-                    rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
-                }
+                Map<String, Object> rawQuestion = (this.fetchRawQuestionById((String) (eventId), rest)).join();
+                rawQuestions = new ArrayList<Object>(Arrays.asList(rawQuestion));
             }
-            if (java.util.Objects.equals(this.markets, null))
+        } else
+        {
+            List<Object> requestedTags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+            Integer requestedTagsLength = requestedTags.size();
+            if (java.util.Objects.equals(requestedTagsLength, 0))
             {
-                this.markets = this.createSafeDictionary();
-            }
-            Map<String, Object> seenMarketHandles = new HashMap<String, Object>() {{}};
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer rawQuestionsLength = rawQuestions.size();
-            for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
+                // unscoped mode: fetch bounded open lists from both sources and merge
+                Object listResponses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsList(rest), this.fetchRawQuestionsList(rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                rawMarkets = (List<Object>) this.safeList(listResponses, 0, new ArrayList<Object>(Arrays.asList()));
+                rawQuestions = (List<Object>) this.safeList(listResponses, 1, new ArrayList<Object>(Arrays.asList()));
+            } else
             {
-                Map<String, Object> rawQuestion = (Map<String, Object>) (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
-                Map<String, Object> ev = this.parseEvent(rawQuestion);
-                List<Object> evMarkets = this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
-                Integer evMarketsLength = evMarkets.size();
-                List<Object> filteredMarkets = new ArrayList<Object>(Arrays.asList());
-                for (var j = 0; (evMarketsLength != null && j < evMarketsLength); j++)
+                List<Object> tagQueries = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; (requestedTagsLength != null && i < requestedTagsLength); i++)
                 {
-                    Map<String, Object> m = this.safeDict(evMarkets, j, new HashMap<String, Object>() {{}});
-                    String marketHandle = this.safeString(m, "market");
-                    if (!java.util.Objects.equals(marketHandle, null))
-                    {
-                        if (seenMarketHandles.containsKey(marketHandle))
-                        {
-                            continue;
-                        }
-                        seenMarketHandles.put(marketHandle, true);
-                        this.markets.put(marketHandle, m);
-                    }
-                    ((List<Object>)filteredMarkets).add(m);
+                    // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
+                    Object tagSlug = (requestedTags == null || i < 0 || i >= requestedTags.size() ? null : requestedTags.get(i));
+                    ((List<Object>)tagQueries).add((tagSlug == null ? null : ((String)tagSlug).replace("-", " ")));
                 }
-                // skip question events that contribute no new markets after de-duplicating by market handle
-                Integer filteredMarketsLength = filteredMarkets.size();
-                if (((evMarketsLength != null && evMarketsLength > 0)) && (java.util.Objects.equals(filteredMarketsLength, 0)))
-                {
-                    continue;
-                }
-                ev.put("markets", filteredMarkets);
-                ((List<Object>)result).add(ev);
+                // run both searches in parallel; some events are only discoverable from questions,
+                // while market search is still the primary source for market-level data
+                Object responses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(tagQueries, rest), this.fetchRawQuestionsBySearch(tagQueries, rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                rawMarkets = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
+                rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
             }
-            Integer rawMarketsLength = rawMarkets.size();
-            for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            this.markets = this.createSafeDictionary();
+        }
+        Map<String, Object> seenMarketHandles = new HashMap<String, Object>() {{}};
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Integer rawQuestionsLength = rawQuestions.size();
+        for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
+        {
+            Map<String, Object> rawQuestion = (Map<String, Object>) (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
+            Map<String, Object> ev = this.parseEvent(rawQuestion);
+            List<Object> evMarkets = this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
+            Integer evMarketsLength = evMarkets.size();
+            List<Object> filteredMarkets = new ArrayList<Object>(Arrays.asList());
+            for (var j = 0; (evMarketsLength != null && j < evMarketsLength); j++)
             {
-                Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
-                Map<String, Object> m = this.parseMyriadMarket(raw, (String) null);
+                Map<String, Object> m = this.safeDict(evMarkets, j, new HashMap<String, Object>() {{}});
                 String marketHandle = this.safeString(m, "market");
-                if ((!java.util.Objects.equals(marketHandle, null)) && (seenMarketHandles.containsKey(marketHandle)))
-                {
-                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(marketHandle, m);
-                    continue;
-                }
                 if (!java.util.Objects.equals(marketHandle, null))
                 {
+                    if (seenMarketHandles.containsKey(marketHandle))
+                    {
+                        continue;
+                    }
                     seenMarketHandles.put(marketHandle, true);
-                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(marketHandle, m);
+                    this.markets.put(marketHandle, m);
                 }
-                Map<String, Object> ev = this.parseMarketToEvent(raw, m);
-                ((List<Object>)result).add(ev);
+                ((List<Object>)filteredMarkets).add(m);
             }
-            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
-            this.setEvents(result);
-            this.populateOutcomes();
-            // tags were already applied server-side (mapped to keyword searches); strip them before
-            // the client-side pass — raw markets don't carry a matching event-level tags field
-            Map<String, Object> postParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tags")));
-            return this.applyEventFetchParams(result, postParams, queries);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
+            // skip question events that contribute no new markets after de-duplicating by market handle
+            Integer filteredMarketsLength = filteredMarkets.size();
+            if (((evMarketsLength != null && evMarketsLength > 0)) && (java.util.Objects.equals(filteredMarketsLength, 0)))
+            {
+                continue;
+            }
+            ev.put("markets", filteredMarkets);
+            ((List<Object>)result).add(ev);
+        }
+        Integer rawMarketsLength = rawMarkets.size();
+        for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
+        {
+            Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+            Map<String, Object> m = this.parseMyriadMarket(raw, (String) null);
+            String marketHandle = this.safeString(m, "market");
+            if ((!java.util.Objects.equals(marketHandle, null)) && (seenMarketHandles.containsKey(marketHandle)))
+            {
+                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(marketHandle, m);
+                continue;
+            }
+            if (!java.util.Objects.equals(marketHandle, null))
+            {
+                seenMarketHandles.put(marketHandle, true);
+                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(marketHandle, m);
+            }
+            Map<String, Object> ev = this.parseMarketToEvent(raw, m);
+            ((List<Object>)result).add(ev);
+        }
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        this.setEvents(result);
+        this.populateOutcomes();
+        // tags were already applied server-side (mapped to keyword searches); strip them before
+        // the client-side pass — raw markets don't carry a matching event-level tags field
+        Map<String, Object> postParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tags")));
+        return this.applyEventFetchParams(result, postParams, queries);
 
     }
 
@@ -3775,67 +3847,73 @@ public class Myriad extends MyriadApi
 
     public CompletableFuture<Object> connectCentrifugo(String url)
     {
+        return BaseExchange.supplyAsync(() -> this.connectCentrifugoCore(url));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object connectCentrifugoCore(String url)
+    {
 
-            // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
-            // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
-            // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
-            Client client = this.client(url);
-            if (!(client.subscriptions.containsKey("connect")))
-            {
-                this.options.put("wsConnected", false);
-                Long requestId = this.requestId((String) (url));
-                // give the anonymous connect a name so the params object is non-empty (PHP serialises an
-                // empty array as a JSON array, which Centrifugo rejects)
-                Map<String, Object> connectMsg = new HashMap<String, Object>() {{
-                    put( "connect", new HashMap<String, Object>() {{
-                        put( "name", "ccxt" );
-                    }} );
-                    put( "id", requestId );
-                }};
-                return (this.watch(url, "centrifugoConnected", connectMsg, "connect", null)).join();
-            }
-            if (Boolean.TRUE.equals(this.safeBool(this.options, "wsConnected", false)))
-            {
-                // the connect reply already arrived on this connection — safe to subscribe immediately
-                return null;
-            }
-            // connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
-            return client.future("centrifugoConnected").getFuture().join();
-        });
+        // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
+        // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
+        // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
+        Client client = this.client(url);
+        if (!(client.subscriptions.containsKey("connect")))
+        {
+            this.options.put("wsConnected", false);
+            Long requestId = this.requestId((String) (url));
+            // give the anonymous connect a name so the params object is non-empty (PHP serialises an
+            // empty array as a JSON array, which Centrifugo rejects)
+            Map<String, Object> connectMsg = new HashMap<String, Object>() {{
+                put( "connect", new HashMap<String, Object>() {{
+                    put( "name", "ccxt" );
+                }} );
+                put( "id", requestId );
+            }};
+            return (this.watch(url, "centrifugoConnected", connectMsg, "connect", null)).join();
+        }
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "wsConnected", false)))
+        {
+            // the connect reply already arrived on this connection — safe to subscribe immediately
+            return null;
+        }
+        // connect is in flight (sent by a concurrent subscribe) — wait on the shared reply future
+        return client.future("centrifugoConnected").getFuture().join();
 
     }
 
     public CompletableFuture<Object> pong(Client client, Object message)
     {
+        return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object pongCore(Client client, Object message)
+    {
 
-            // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
-            (client.send("{}")).join();
-            return null;
-        });
+        // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
+        (client.send("{}")).join();
+        return null;
 
     }
 
     public CompletableFuture<Object> subscribeMyriadChannel(String messageHash, String channel, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.subscribeMyriadChannelCore(messageHash, channel, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object subscribeMyriadChannelCore(String messageHash, String channel, Map<String, Object> parameters)
+    {
 
-            String url = this.safeString(this.urls.get("api"), "ws");
-            // finish the connect handshake first so the subscribe frame is sent after the connect reply
-            (this.connectCentrifugo((String) (url))).join();
-            Long requestId = this.requestId((String) (url));
-            Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
-                put( "subscribe", new HashMap<String, Object>() {{
-                    put( "channel", channel );
-                }} );
-                put( "id", requestId );
-            }};
-            return (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
-        });
+        String url = this.safeString(this.urls.get("api"), "ws");
+        // finish the connect handshake first so the subscribe frame is sent after the connect reply
+        (this.connectCentrifugo((String) (url))).join();
+        Long requestId = this.requestId((String) (url));
+        Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
+            put( "subscribe", new HashMap<String, Object>() {{
+                put( "channel", channel );
+            }} );
+            put( "id", requestId );
+        }};
+        return (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
 
     }
 
@@ -3922,57 +4000,61 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String outcome, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(info, "networkId", "");
-            String marketId = this.safeString(info, "marketId", "");
-            Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
-            String channel = ((("orderbook:" + networkId) + ":") + marketId);
-            String messageHash = ("orderbook::" + sym);
-            String url = this.safeString(this.urls.get("api"), "ws");
-            // finish the connect handshake first so the client exists and the subscribe follows the connect reply
-            (this.connectCentrifugo((String) (url))).join();
-            Client client = this.client(url);
-            Boolean isNewSubscription = !(client.subscriptions.containsKey(channel));
-            if (Boolean.TRUE.equals(isNewSubscription))
-            {
-                // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
-                // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
-                (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
-            }
-            Long requestId = this.requestId((String) (url));
-            Map<String, Object> subscribeMsg = new HashMap<String, Object>();
-            HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
-            mapLiteral14.put("channel", channel);
-            subscribeMsg.put("subscribe", mapLiteral14);
-            subscribeMsg.put("id", requestId);
-            Object future = this.watch(url, messageHash, subscribeMsg, channel, null);
-            if (Boolean.TRUE.equals(isNewSubscription))
-            {
-                // return the freshly-seeded book immediately instead of blocking until the next delta
-                client.resolve(this.safeValue(this.orderbooks, sym), messageHash);
-            }
-            Object orderbook = ((io.github.ccxt.ws.Future)future).getFuture().join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(PredictionOrderBook::new);
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String networkId = this.safeString(info, "networkId", "");
+        String marketId = this.safeString(info, "marketId", "");
+        Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        String channel = ((("orderbook:" + networkId) + ":") + marketId);
+        String messageHash = ("orderbook::" + sym);
+        String url = this.safeString(this.urls.get("api"), "ws");
+        // finish the connect handshake first so the client exists and the subscribe follows the connect reply
+        (this.connectCentrifugo((String) (url))).join();
+        Client client = this.client(url);
+        Boolean isNewSubscription = !(client.subscriptions.containsKey(channel));
+        if (Boolean.TRUE.equals(isNewSubscription))
+        {
+            // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
+            // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
+            (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
+        }
+        Long requestId = this.requestId((String) (url));
+        Map<String, Object> subscribeMsg = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+        mapLiteral14.put("channel", channel);
+        subscribeMsg.put("subscribe", mapLiteral14);
+        subscribeMsg.put("id", requestId);
+        Object future = this.watch(url, messageHash, subscribeMsg, channel, null);
+        if (Boolean.TRUE.equals(isNewSubscription))
+        {
+            // return the freshly-seeded book immediately instead of blocking until the next delta
+            client.resolve(this.safeValue(this.orderbooks, sym), messageHash);
+        }
+        Object orderbook = ((io.github.ccxt.ws.Future)future).getFuture().join();
+        return Helpers.callDynamically(orderbook, "limit", new Object[]{});
 
     }
 
     public CompletableFuture<Object> seedOrderBook(String outcome, String sym, Long limit)
     {
+        return BaseExchange.supplyAsync(() -> this.seedOrderBookCore(outcome, sym, limit));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object seedOrderBookCore(String outcome, String sym, Long limit)
+    {
 
-            // the order book channel streams deltas only, so seed the live book from the REST snapshot
-            PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
-            orderbook.reset(snapshot);
-            this.orderbooks.put(sym, orderbook);
-            return null;
-        });
+        // the order book channel streams deltas only, so seed the live book from the REST snapshot
+        PredictionOrderBook snapshot = (this.fetchOrderBook(outcome, limit, new HashMap<String, Object>() {{}})).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
+        orderbook.reset(snapshot);
+        this.orderbooks.put(sym, orderbook);
+        return null;
 
     }
 
@@ -4029,19 +4111,21 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(info, "networkId", "");
-            String marketId = this.safeString(info, "marketId", "");
-            Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
-            String channel = ((("trades:" + networkId) + ":") + marketId);
-            String messageHash = ("trades::" + sym);
-            List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String networkId = this.safeString(info, "networkId", "");
+        String marketId = this.safeString(info, "marketId", "");
+        Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        String channel = ((("trades:" + networkId) + ":") + marketId);
+        String messageHash = ("trades::" + sym);
+        List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
 
     }
 
@@ -4059,23 +4143,25 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionTrade>> watchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(outcome, null))
-            {
-                throw new ArgumentsRequired((this.id + " watchMyTrades() requires a outcome (the trades channel is per-market)")) ;
-            }
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(info, "networkId", "");
-            String marketId = this.safeString(info, "marketId", "");
-            Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
-            String channel = ((("trades:" + networkId) + ":") + marketId);
-            String messageHash = "myTrades";
-            List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
-            return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(outcome, null))
+        {
+            throw new ArgumentsRequired((this.id + " watchMyTrades() requires a outcome (the trades channel is per-market)")) ;
+        }
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String networkId = this.safeString(info, "networkId", "");
+        String marketId = this.safeString(info, "marketId", "");
+        Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        String channel = ((("trades:" + networkId) + ":") + marketId);
+        String messageHash = "myTrades";
+        List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+        return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
 
     }
 
@@ -4219,18 +4305,20 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionTicker> watchTicker(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(outcome, parameters)).thenApply(PredictionTicker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String outcome, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            String networkId = this.safeString(info, "networkId", "");
-            String marketId = this.safeString(info, "marketId", "");
-            Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
-            String channel = ((("prices:" + networkId) + ":") + marketId);
-            String messageHash = ("ticker::" + sym);
-            return (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
-        }).thenApply(PredictionTicker::new);
+        Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        String networkId = this.safeString(info, "networkId", "");
+        String marketId = this.safeString(info, "marketId", "");
+        Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        String channel = ((("prices:" + networkId) + ":") + marketId);
+        String messageHash = ("ticker::" + sym);
+        return (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
 
     }
 
@@ -4245,43 +4333,45 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<PredictionTickers> watchTickers(Object outcomes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(Object outcomes, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(outcomes, null))
+        if (java.util.Objects.equals(outcomes, null))
+        {
+            throw new ArgumentsRequired((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
+        }
+        Integer symbolsLength = ((List<?>)outcomes).size();
+        String url = this.safeString(this.urls.get("api"), "ws");
+        (this.connectCentrifugo((String) (url))).join();
+        (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+        Client client = this.client(url);
+        Map<String, Object> seenChannels = new HashMap<String, Object>() {{}};
+        List<Object> resolvedSymbols = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+        {
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            String networkId = this.safeString(info, "networkId", "");
+            String marketId = this.safeString(info, "marketId", "");
+            String channel = ((("prices:" + networkId) + ":") + marketId);
+            ((List<Object>)resolvedSymbols).add(this.safeOutcomeSymbol((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))), outcomeObj));
+            if (!(seenChannels.containsKey(channel)))
             {
-                throw new ArgumentsRequired((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
+                seenChannels.put(channel, true);
+                Long requestId = this.requestId((String) (url));
+                Map<String, Object> subscribeMsg = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
+                mapLiteral16.put("channel", channel);
+                subscribeMsg.put("subscribe", mapLiteral16);
+                subscribeMsg.put("id", requestId);
+                this.watch(url, "tickers", subscribeMsg, channel, null);
             }
-            Integer symbolsLength = ((List<?>)outcomes).size();
-            String url = this.safeString(this.urls.get("api"), "ws");
-            (this.connectCentrifugo((String) (url))).join();
-            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
-            Client client = this.client(url);
-            Map<String, Object> seenChannels = new HashMap<String, Object>() {{}};
-            List<Object> resolvedSymbols = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
-            {
-                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                String networkId = this.safeString(info, "networkId", "");
-                String marketId = this.safeString(info, "marketId", "");
-                String channel = ((("prices:" + networkId) + ":") + marketId);
-                ((List<Object>)resolvedSymbols).add(this.safeOutcomeSymbol((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))), outcomeObj));
-                if (!(seenChannels.containsKey(channel)))
-                {
-                    seenChannels.put(channel, true);
-                    Long requestId = this.requestId((String) (url));
-                    Map<String, Object> subscribeMsg = new HashMap<String, Object>();
-                    HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
-                    mapLiteral16.put("channel", channel);
-                    subscribeMsg.put("subscribe", mapLiteral16);
-                    subscribeMsg.put("id", requestId);
-                    this.watch(url, "tickers", subscribeMsg, channel, null);
-                }
-            }
-            Object tickers = client.future("tickers").getFuture().join();
-            return this.filterByArray(tickers, "outcome", resolvedSymbols, true);
-        }).thenApply(PredictionTickers::new);
+        }
+        Object tickers = client.future("tickers").getFuture().join();
+        return this.filterByArray(tickers, "outcome", resolvedSymbols, true);
 
     }
 
@@ -4299,21 +4389,23 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(outcome, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
-            Object trades = (this.watchTrades(outcome, since, limit, parameters)).join();
-            List<List<Object>> ohlcvc = this.buildOHLCVC(((Object)trades), java.util.Objects.requireNonNullElse(timeframe, "1m"), 0L, 2147483647L);
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer ohlcvcLength = ohlcvc.size();
-            for (var i = 0; (ohlcvcLength != null && i < ohlcvcLength); i++)
-            {
-                Object candle = (ohlcvc == null || i < 0 || i >= ohlcvc.size() ? null : ohlcvc.get(i));
-                ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((List<Object>)candle).get(0), ((List<Object>)candle).get(1), ((List<Object>)candle).get(2), ((List<Object>)candle).get(3), ((List<Object>)candle).get(4), ((List<Object>)candle).get(5))));
-            }
-            return this.filterBySinceLimit(result, since, limit, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
+        Object trades = (this.watchTrades(outcome, since, limit, parameters)).join();
+        List<List<Object>> ohlcvc = this.buildOHLCVC(((Object)trades), java.util.Objects.requireNonNullElse(timeframe, "1m"), 0L, 2147483647L);
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Integer ohlcvcLength = ohlcvc.size();
+        for (var i = 0; (ohlcvcLength != null && i < ohlcvcLength); i++)
+        {
+            Object candle = (ohlcvc == null || i < 0 || i >= ohlcvc.size() ? null : ohlcvc.get(i));
+            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((List<Object>)candle).get(0), ((List<Object>)candle).get(1), ((List<Object>)candle).get(2), ((List<Object>)candle).get(3), ((List<Object>)candle).get(4), ((List<Object>)candle).get(5))));
+        }
+        return this.filterBySinceLimit(result, since, limit, 0, true);
 
     }
 
@@ -4382,24 +4474,26 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionOrder>> watchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String trader = this.walletAddressFromKeys();
-            String networkId = this.safeString(this.options, "defaultNetworkId", "56");
-            Object outcomeResolved = outcome;
-            if (!java.util.Objects.equals(outcomeResolved, null))
-            {
-                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcomeResolved), false)).join();
-                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-                networkId = this.safeString(info, "networkId", networkId);
-                outcomeResolved = this.safeOutcomeSymbol((String) (outcomeResolved), outcomeObj);
-            }
-            String channel = ((("orders:" + networkId) + ":") + trader);
-            String messageHash = "orders";
-            List<Object> orders = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
-            return this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        String trader = this.walletAddressFromKeys();
+        String networkId = this.safeString(this.options, "defaultNetworkId", "56");
+        Object outcomeResolved = outcome;
+        if (!java.util.Objects.equals(outcomeResolved, null))
+        {
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcomeResolved), false)).join();
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            networkId = this.safeString(info, "networkId", networkId);
+            outcomeResolved = this.safeOutcomeSymbol((String) (outcomeResolved), outcomeObj);
+        }
+        String channel = ((("orders:" + networkId) + ":") + trader);
+        String messageHash = "orders";
+        List<Object> orders = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
+        return this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true);
 
     }
 
@@ -4467,65 +4561,69 @@ public class Myriad extends MyriadApi
      */
     public CompletableFuture<List<PredictionPosition>> watchPositions(Object outcomes, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchPositionsCore(outcomes, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchPositionsCore(Object outcomes, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(outcomes, null))
-            {
-                (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
-            }
-            String trader = this.walletAddressFromKeys();
-            String networkId = this.safeString(this.options, "defaultNetworkId", "56");
-            String channel = ((("positions:" + networkId) + ":") + trader);
-            String messageHash = "positions";
-            String url = this.safeString(this.urls.get("api"), "ws");
-            (this.connectCentrifugo((String) (url))).join();
-            Client client = this.client(url);
-            Boolean isNewSubscription = !(client.subscriptions.containsKey(channel));
-            if (Boolean.TRUE.equals(isNewSubscription))
-            {
-                // the channel pushes only signed deltas; seed absolute share balances from REST so
-                // handlePosition can maintain a running contracts figure
-                (this.seedPositionBalances((String) (trader))).join();
-            }
-            Long requestId = this.requestId((String) (url));
-            Map<String, Object> subscribeMsg = new HashMap<String, Object>();
-            HashMap<String, Object> mapLiteral19 = new HashMap<String, Object>();
-            mapLiteral19.put("channel", channel);
-            subscribeMsg.put("subscribe", mapLiteral19);
-            subscribeMsg.put("id", requestId);
-            List<Object> positions = (List<Object>) (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
-            if (this.newUpdates)
-            {
-                return positions;
-            }
-            return this.filterByOutcomesSinceLimit(positions, outcomes, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(outcomes, null))
+        {
+            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+        }
+        String trader = this.walletAddressFromKeys();
+        String networkId = this.safeString(this.options, "defaultNetworkId", "56");
+        String channel = ((("positions:" + networkId) + ":") + trader);
+        String messageHash = "positions";
+        String url = this.safeString(this.urls.get("api"), "ws");
+        (this.connectCentrifugo((String) (url))).join();
+        Client client = this.client(url);
+        Boolean isNewSubscription = !(client.subscriptions.containsKey(channel));
+        if (Boolean.TRUE.equals(isNewSubscription))
+        {
+            // the channel pushes only signed deltas; seed absolute share balances from REST so
+            // handlePosition can maintain a running contracts figure
+            (this.seedPositionBalances((String) (trader))).join();
+        }
+        Long requestId = this.requestId((String) (url));
+        Map<String, Object> subscribeMsg = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral19 = new HashMap<String, Object>();
+        mapLiteral19.put("channel", channel);
+        subscribeMsg.put("subscribe", mapLiteral19);
+        subscribeMsg.put("id", requestId);
+        List<Object> positions = (List<Object>) (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
+        if (this.newUpdates)
+        {
+            return positions;
+        }
+        return this.filterByOutcomesSinceLimit(positions, outcomes, since, limit, true);
 
     }
 
     public CompletableFuture<Object> seedPositionBalances(String trader)
     {
+        return BaseExchange.supplyAsync(() -> this.seedPositionBalancesCore(trader));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object seedPositionBalancesCore(String trader)
+    {
 
-            List<PredictionPosition> positions = (this.fetchPositions((Object) null, new HashMap<String, Object>() {{
-                put( "address", trader );
-            }})).join();
-            Map<String, Object> balances = new HashMap<String, Object>() {{}};
-            Integer positionsLength = positions.size();
-            for (var i = 0; (positionsLength != null && i < positionsLength); i++)
+        List<PredictionPosition> positions = (this.fetchPositions((Object) null, new HashMap<String, Object>() {{
+            put( "address", trader );
+        }})).join();
+        Map<String, Object> balances = new HashMap<String, Object>() {{}};
+        Integer positionsLength = positions.size();
+        for (var i = 0; (positionsLength != null && i < positionsLength); i++)
+        {
+            Map<String, Object> p = this.safeDict(positions, i, null);
+            String id = this.safeString(p, "id");
+            if (!java.util.Objects.equals(id, null))
             {
-                Map<String, Object> p = this.safeDict(positions, i, null);
-                String id = this.safeString(p, "id");
-                if (!java.util.Objects.equals(id, null))
-                {
-                    balances.put(id, this.numberToString(this.safeNumber(p, "contracts", 0)));
-                }
+                balances.put(id, this.numberToString(this.safeNumber(p, "contracts", 0)));
             }
-            this.options.put("positionBalances", balances);
-            return null;
-        });
+        }
+        this.options.put("positionBalances", balances);
+        return null;
 
     }
 

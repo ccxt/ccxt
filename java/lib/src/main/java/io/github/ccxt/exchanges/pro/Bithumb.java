@@ -67,21 +67,23 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     public CompletableFuture<Object> pong(Client client, Object message)
     {
+        return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object pongCore(Client client, Object message)
+    {
 
-            Long ping = this.safeInteger(message, "ping");
-            if (!java.util.Objects.equals(ping, null))
-            {
-                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                mapLiteral1.put("pong", ping);
-                (client.send(mapLiteral1)).join();
-            } else
-            {
-                (client.send("PONG")).join();
-            }
-            return null;
-        });
+        Long ping = this.safeInteger(message, "ping");
+        if (!java.util.Objects.equals(ping, null))
+        {
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("pong", ping);
+            (client.send(mapLiteral1)).join();
+        } else
+        {
+            (client.send("PONG")).join();
+        }
+        return null;
 
     }
 
@@ -109,41 +111,43 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-            String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("ticker:" + market.get("symbol"));
-            String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
-            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
-            Object request = new HashMap<String, Object>() {{
-                put( "type", "ticker" );
-                put( "symbols", new ArrayList<Object>(Arrays.asList(((Bithumb.this.safeString(market, "base", "") + "_") + Bithumb.this.safeString(market, "quote", "")))) );
-                put( "tickTypes", new ArrayList<Object>(Arrays.asList(tickTypes)) );
-            }};
-            if (Boolean.TRUE.equals(isGenerationTwo))
-            {
-                String marketIdRequest = this.getGen2MarketId(market);
-                request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
-        put( "ticket", Bithumb.this.uuid() );
-    }}, this.extend(new HashMap<String, Object>() {{
-        put( "type", "ticker" );
-        put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
-    }}, paramsOmitted)));
-                return (this.watch(url, messageHash, request, messageHash, null)).join();
-            }
-            return (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, null)).join();
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Boolean isGenerationTwo = ((generation != null && generation == 2));
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("ticker:" + market.get("symbol"));
+        String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
+        Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
+        Object request = new HashMap<String, Object>() {{
+            put( "type", "ticker" );
+            put( "symbols", new ArrayList<Object>(Arrays.asList(((Bithumb.this.safeString(market, "base", "") + "_") + Bithumb.this.safeString(market, "quote", "")))) );
+            put( "tickTypes", new ArrayList<Object>(Arrays.asList(tickTypes)) );
+        }};
+        if (Boolean.TRUE.equals(isGenerationTwo))
+        {
+            String marketIdRequest = this.getGen2MarketId(market);
+            request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "ticket", Bithumb.this.uuid() );
+}}, this.extend(new HashMap<String, Object>() {{
+    put( "type", "ticker" );
+    put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
+}}, paramsOmitted)));
+            return (this.watch(url, messageHash, request, messageHash, null)).join();
+        }
+        return (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, null)).join();
 
     }
 
@@ -161,80 +165,82 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Boolean isGenerationTwo = ((generation != null && generation == 2));
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : symbolsNormalized.size();
-            if (Boolean.TRUE.equals(isGenerationTwo) && ((symbolsLength != null && symbolsLength == 0)))
-            {
-                throw new ArgumentsRequired((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
-            }
-            List<String> symbolsResolved = this.symbols;
-            if (!java.util.Objects.equals(symbolsNormalized, null))
-            {
-                symbolsResolved = symbolsNormalized;
-            }
-            Integer symbolsLengthDefined = symbolsResolved.size();
-            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-            String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
-            List<Object> streamMarketIds = new ArrayList<Object>(Arrays.asList());
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; (symbolsLengthDefined != null && i < symbolsLengthDefined); i++)
-            {
-                String symbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
-                Map<String, Object> market = this.market(symbol);
-                String streamMarketId = null;
-                if (Boolean.TRUE.equals(isGenerationTwo))
-                {
-                    streamMarketId = this.getGen2MarketId(market);
-                } else
-                {
-                    streamMarketId = ((this.safeString(market, "base", "") + "_") + this.safeString(market, "quote", ""));
-                }
-                ((List<Object>)streamMarketIds).add(streamMarketId);
-                messageHashes.add(("ticker:" + market.get("symbol")));
-            }
-            String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
-            Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
-            Object message = new HashMap<String, Object>() {{
-                put( "type", "ticker" );
-                put( "symbols", streamMarketIds );
-                put( "tickTypes", new ArrayList<Object>(Arrays.asList(tickTypes)) );
-            }};
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Boolean isGenerationTwo = ((generation != null && generation == 2));
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
+        Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : symbolsNormalized.size();
+        if (Boolean.TRUE.equals(isGenerationTwo) && ((symbolsLength != null && symbolsLength == 0)))
+        {
+            throw new ArgumentsRequired((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
+        }
+        List<String> symbolsResolved = this.symbols;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsResolved = symbolsNormalized;
+        }
+        Integer symbolsLengthDefined = symbolsResolved.size();
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
+        List<Object> streamMarketIds = new ArrayList<Object>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; (symbolsLengthDefined != null && i < symbolsLengthDefined); i++)
+        {
+            String symbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
+            Map<String, Object> market = this.market(symbol);
+            String streamMarketId = null;
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                message = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
-        put( "ticket", Bithumb.this.uuid() );
-    }}, this.extend(new HashMap<String, Object>() {{
-        put( "type", "ticker" );
-        put( "codes", streamMarketIds );
-    }}, paramsOmitted)));
+                streamMarketId = this.getGen2MarketId(market);
             } else
             {
-                message = this.extend(message, paramsOmitted);
+                streamMarketId = ((this.safeString(market, "base", "") + "_") + this.safeString(market, "quote", ""));
             }
-            Object newTicker = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-            if (this.newUpdates)
+            ((List<Object>)streamMarketIds).add(streamMarketId);
+            messageHashes.add(("ticker:" + market.get("symbol")));
+        }
+        String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
+        Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "tickTypes");
+        Object message = new HashMap<String, Object>() {{
+            put( "type", "ticker" );
+            put( "symbols", streamMarketIds );
+            put( "tickTypes", new ArrayList<Object>(Arrays.asList(tickTypes)) );
+        }};
+        if (Boolean.TRUE.equals(isGenerationTwo))
+        {
+            message = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "ticket", Bithumb.this.uuid() );
+}}, this.extend(new HashMap<String, Object>() {{
+    put( "type", "ticker" );
+    put( "codes", streamMarketIds );
+}}, paramsOmitted)));
+        } else
+        {
+            message = this.extend(message, paramsOmitted);
+        }
+        Object newTicker = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+        if (this.newUpdates)
+        {
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            String newTickerSymbol = this.safeString(newTicker, "symbol");
+            if (!java.util.Objects.equals(newTickerSymbol, null))
             {
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
-                String newTickerSymbol = this.safeString(newTicker, "symbol");
-                if (!java.util.Objects.equals(newTickerSymbol, null))
-                {
-                    result.put(newTickerSymbol, newTicker);
-                }
-                return result;
+                result.put(newTickerSymbol, newTicker);
             }
-            return this.filterByArray(this.tickers, "symbol", symbolsResolved, true);
-        }).thenApply(Tickers::new);
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbolsResolved, true);
 
     }
 
@@ -451,42 +457,44 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-            String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String messageHash = (("orderbook" + ":") + symbolValue);
-            Object request = new HashMap<String, Object>() {{
-                put( "type", "orderbookdepth" );
-                put( "symbols", new ArrayList<Object>(Arrays.asList(((Bithumb.this.safeString(market, "base", "") + "_") + Bithumb.this.safeString(market, "quote", "")))) );
-            }};
-            if (Boolean.TRUE.equals(isGenerationTwo))
-            {
-                String marketIdRequest = this.getGen2MarketId(market);
-                request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
-        put( "ticket", Bithumb.this.uuid() );
-    }}, this.extend(new HashMap<String, Object>() {{
-        put( "type", "orderbook" );
-        put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
-    }}, paramsGeneration)));
-            } else
-            {
-                request = this.extend(request, paramsGeneration);
-            }
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Boolean isGenerationTwo = ((generation != null && generation == 2));
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        String messageHash = (("orderbook" + ":") + symbolValue);
+        Object request = new HashMap<String, Object>() {{
+            put( "type", "orderbookdepth" );
+            put( "symbols", new ArrayList<Object>(Arrays.asList(((Bithumb.this.safeString(market, "base", "") + "_") + Bithumb.this.safeString(market, "quote", "")))) );
+        }};
+        if (Boolean.TRUE.equals(isGenerationTwo))
+        {
+            String marketIdRequest = this.getGen2MarketId(market);
+            request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "ticket", Bithumb.this.uuid() );
+}}, this.extend(new HashMap<String, Object>() {{
+    put( "type", "orderbook" );
+    put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
+}}, paramsGeneration)));
+        } else
+        {
+            request = this.extend(request, paramsGeneration);
+        }
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
+        return orderbook.limit();
 
     }
 
@@ -652,47 +660,49 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
-            Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
-            Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-            String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String messageHash = ("trade:" + symbolValue);
-            Object request = new HashMap<String, Object>() {{
-                put( "type", "transaction" );
-                put( "symbols", new ArrayList<Object>(Arrays.asList(((Bithumb.this.safeString(market, "base", "") + "_") + Bithumb.this.safeString(market, "quote", "")))) );
-            }};
-            if (Boolean.TRUE.equals(isGenerationTwo))
-            {
-                String marketIdRequest = this.getGen2MarketId(market);
-                request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
-        put( "ticket", Bithumb.this.uuid() );
-    }}, this.extend(new HashMap<String, Object>() {{
-        put( "type", "trade" );
-        put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
-    }}, paramsGeneration)));
-            } else
-            {
-                request = this.extend(request, paramsGeneration);
-            }
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationparamsGenerationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
+        Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
+        Boolean isGenerationTwo = ((generation != null && generation == 2));
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        String messageHash = ("trade:" + symbolValue);
+        Object request = new HashMap<String, Object>() {{
+            put( "type", "transaction" );
+            put( "symbols", new ArrayList<Object>(Arrays.asList(((Bithumb.this.safeString(market, "base", "") + "_") + Bithumb.this.safeString(market, "quote", "")))) );
+        }};
+        if (Boolean.TRUE.equals(isGenerationTwo))
+        {
+            String marketIdRequest = this.getGen2MarketId(market);
+            request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "ticket", Bithumb.this.uuid() );
+}}, this.extend(new HashMap<String, Object>() {{
+    put( "type", "trade" );
+    put( "codes", new ArrayList<Object>(Arrays.asList(marketIdRequest)) );
+}}, paramsGeneration)));
+        } else
+        {
+            request = this.extend(request, paramsGeneration);
+        }
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -902,29 +912,31 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationVariable).get(0);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "privateGen2", "");
-            String messageHash = "myAsset";
-            List<Object> request = (List<Object>) this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
-                put( "type", messageHash );
-            }});
-            Object balance = (this.watch(url, messageHash, request, messageHash, null)).join();
-            return balance;
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationVariable).get(0);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "privateGen2", "");
+        String messageHash = "myAsset";
+        List<Object> request = (List<Object>) this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
+            put( "type", messageHash );
+        }});
+        Object balance = (this.watch(url, messageHash, request, messageHash, null)).join();
+        return balance;
 
     }
 
@@ -1004,33 +1016,35 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object authenticateCore(Map<String, Object> parameters)
+    {
 
-            this.checkRequiredCredentials(true);
-            Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-            String authenticated = this.safeString(wsOptions, "token");
-            if (java.util.Objects.equals(authenticated, null))
-            {
-                Map<String, Object> payload = new HashMap<String, Object>() {{
-                    put( "access_key", Bithumb.this.apiKey );
-                    put( "nonce", Bithumb.this.uuid() );
-                    put( "timestamp", Bithumb.this.milliseconds() );
-                }};
-                String jwtToken = jwt(payload, this.encode(this.secret), sha256());
-                wsOptions.put("token", jwtToken);
-                wsOptions.put("options", new HashMap<String, Object>() {{
-        put( "headers", new HashMap<String, Object>() {{
-            put( "authorization", ("Bearer " + jwtToken) );
-        }} );
-    }});
-                this.options.put("ws", wsOptions);
-            }
-            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "privateGen2", "");
-            Client client = this.client(url);
-            return client;
-        });
+        this.checkRequiredCredentials(true);
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        String authenticated = this.safeString(wsOptions, "token");
+        if (java.util.Objects.equals(authenticated, null))
+        {
+            Map<String, Object> payload = new HashMap<String, Object>() {{
+                put( "access_key", Bithumb.this.apiKey );
+                put( "nonce", Bithumb.this.uuid() );
+                put( "timestamp", Bithumb.this.milliseconds() );
+            }};
+            String jwtToken = jwt(payload, this.encode(this.secret), sha256());
+            wsOptions.put("token", jwtToken);
+            wsOptions.put("options", new HashMap<String, Object>() {{
+    put( "headers", new HashMap<String, Object>() {{
+        put( "authorization", ("Bearer " + jwtToken) );
+    }} );
+}});
+            this.options.put("ws", wsOptions);
+        }
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "privateGen2", "");
+        Client client = this.client(url);
+        return client;
 
     }
 
@@ -1049,43 +1063,45 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> generationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2L);
-            Long generation = (Long) ((List<Object>) generationVariable).get(0);
-            if ((generation == null || generation != 2))
-            {
-                throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;
-            }
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-            String url = this.safeString(wsUrls, "privateGen2", "");
-            String messageHash = "myOrder";
-            List<Object> codes = this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
-            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-            mapLiteral5.put("type", messageHash);
-            mapLiteral5.put("codes", codes);
-            List<Object> request = this.buildGen2SubscriptionRequest(messageHash, mapLiteral5);
-            String symbolResolved = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                symbolResolved = this.safeString(market, "symbol");
-                messageHash = ((messageHash + ":") + this.safeString(market, "symbol", ""));
-            }
-            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
-            }
-            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> generationVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2L);
+        Long generation = (Long) ((List<Object>) generationVariable).get(0);
+        if ((generation == null || generation != 2))
+        {
+            throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;
+        }
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "privateGen2", "");
+        String messageHash = "myOrder";
+        List<Object> codes = this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("type", messageHash);
+        mapLiteral5.put("codes", codes);
+        List<Object> request = this.buildGen2SubscriptionRequest(messageHash, mapLiteral5);
+        String symbolResolved = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = ((messageHash + ":") + this.safeString(market, "symbol", ""));
+        }
+        List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
 
     }
 

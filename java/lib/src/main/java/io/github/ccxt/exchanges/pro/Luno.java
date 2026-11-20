@@ -68,41 +68,43 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            this.checkRequiredCredentials(true);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String marketId = this.safeString(market, "id", "");
-            String subscriptionHash = ("/stream/" + marketId);
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "symbol", symbolValue );
-            }};
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
-            }
-            String url = (wsUrl + subscriptionHash);
-            String messageHash = ("trades:" + symbolValue);
-            Map<String, Object> subscribe = new HashMap<String, Object>() {{
-                put( "api_key_id", Luno.this.apiKey );
-                put( "api_key_secret", Luno.this.secret );
-            }};
-            Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscriptionHash, subscription)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        this.checkRequiredCredentials(true);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        String marketId = this.safeString(market, "id", "");
+        String subscriptionHash = ("/stream/" + marketId);
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "symbol", symbolValue );
+        }};
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+        }
+        String url = (wsUrl + subscriptionHash);
+        String messageHash = ("trades:" + symbolValue);
+        Map<String, Object> subscribe = new HashMap<String, Object>() {{
+            put( "api_key_id", Luno.this.apiKey );
+            put( "api_key_secret", Luno.this.secret );
+        }};
+        Map<String,Object> request = this.deepExtend(subscribe, parameters);
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscriptionHash, subscription)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -201,36 +203,38 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            this.checkRequiredCredentials(true);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String marketId = this.safeString(market, "id", "");
-            String subscriptionHash = ("/stream/" + marketId);
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "symbol", symbolValue );
-            }};
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
-            }
-            String url = (wsUrl + subscriptionHash);
-            String messageHash = ("orderbook:" + symbolValue);
-            Map<String, Object> subscribe = new HashMap<String, Object>() {{
-                put( "api_key_id", Luno.this.apiKey );
-                put( "api_key_secret", Luno.this.secret );
-            }};
-            Map<String,Object> request = this.deepExtend(subscribe, parameters);
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscriptionHash, subscription)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        this.checkRequiredCredentials(true);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        String marketId = this.safeString(market, "id", "");
+        String subscriptionHash = ("/stream/" + marketId);
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "symbol", symbolValue );
+        }};
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+        }
+        String url = (wsUrl + subscriptionHash);
+        String messageHash = ("orderbook:" + symbolValue);
+        Map<String, Object> subscribe = new HashMap<String, Object>() {{
+            put( "api_key_id", Luno.this.apiKey );
+            put( "api_key_secret", Luno.this.secret );
+        }};
+        Map<String,Object> request = this.deepExtend(subscribe, parameters);
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscriptionHash, subscription)).join();
+        return orderbook.limit();
 
     }
 

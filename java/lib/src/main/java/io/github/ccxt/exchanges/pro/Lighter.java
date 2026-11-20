@@ -104,67 +104,75 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     public CompletableFuture<Object> subscribePublic(String messageHash, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.subscribePublicCore(messageHash, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object subscribePublicCore(String messageHash, Map<String, Object> parameters)
+    {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "subscribe" );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "messageHash", messageHash );
-                put( "params", parameters );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subscribe" );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "messageHash", messageHash );
+            put( "params", parameters );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
 
     }
 
     public CompletableFuture<Object> subscribePublicMultiple(Object messageHashes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.subscribePublicMultipleCore(messageHashes, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object subscribePublicMultipleCore(Object messageHashes, Map<String, Object> parameters)
+    {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "subscribe" );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "messageHashes", messageHashes );
-                put( "params", parameters );
-            }};
-            return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
-        });
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subscribe" );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "messageHashes", messageHashes );
+            put( "params", parameters );
+        }};
+        return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
 
     }
 
     public CompletableFuture<Object> unsubscribe(String messageHash, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unsubscribeCore(messageHash, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unsubscribeCore(String messageHash, Map<String, Object> parameters)
+    {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "unsubscribe" );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "messageHash", messageHash );
-                put( "params", parameters );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-        });
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "unsubscribe" );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "messageHash", messageHash );
+            put( "params", parameters );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
 
     }
 
     public CompletableFuture<Object> subscribePrivate(String messageHash, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.subscribePrivateCore(messageHash, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object subscribePrivateCore(String messageHash, Map<String, Object> parameters)
+    {
 
-            (this.preLoadLighterLibrary(new HashMap<String, Object>() {{}})).join();
-            Helpers.addElementToObject(parameters, "auth", this.createAuth(parameters));
-            return (this.subscribePublic((String) (messageHash), parameters)).join();
-        });
+        (this.preLoadLighterLibrary(new HashMap<String, Object>() {{}})).join();
+        Helpers.addElementToObject(parameters, "auth", this.createAuth(parameters));
+        return (this.subscribePublic((String) (messageHash), parameters)).join();
 
     }
 
@@ -260,22 +268,24 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("order_book/" + Lighter.this.safeString(market, "id", "")) );
-            }};
-            String messageHash = this.getMessageHash("orderbook", symbolValue, (String) null);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("order_book/" + Lighter.this.safeString(market, "id", "")) );
+        }};
+        String messageHash = this.getMessageHash("orderbook", symbolValue, (String) null);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
+        return orderbook.limit();
 
     }
 
@@ -290,22 +300,24 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOrderBookCore(Object symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("order_book/" + Lighter.this.safeString(market, "id", "")) );
-            }};
-            String subMessageHash = this.getMessageHash("orderbook", symbolValue, (String) null);
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("order_book/" + Lighter.this.safeString(market, "id", "")) );
+        }};
+        String subMessageHash = this.getMessageHash("orderbook", symbolValue, (String) null);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
 
     }
 
@@ -399,25 +411,27 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-            {
-                throw new NotSupported((this.id + " watchTicker() is only supported for swap markets")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("market_stats/" + Lighter.this.safeString(market, "id", "")) );
-            }};
-            String messageHash = this.getMessageHash("ticker", symbolValue, (String) null);
-            return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+        {
+            throw new NotSupported((this.id + " watchTicker() is only supported for swap markets")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("market_stats/" + Lighter.this.safeString(market, "id", "")) );
+        }};
+        String messageHash = this.getMessageHash("ticker", symbolValue, (String) null);
+        return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
 
     }
 
@@ -432,26 +446,28 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTickerCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-            {
-                throw new NotSupported((this.id + " unWatchTicker() is only supported for swap markets")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("market_stats/" + Lighter.this.safeString(market, "id", "")) );
-            }};
-            String subMessageHash = this.getMessageHash("ticker", symbolValue, (String) null);
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String symbolValue = (String) market.get("symbol");
+        if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+        {
+            throw new NotSupported((this.id + " unWatchTicker() is only supported for swap markets")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("market_stats/" + Lighter.this.safeString(market, "id", "")) );
+        }};
+        String subMessageHash = this.getMessageHash("ticker", symbolValue, (String) null);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
 
     }
 
@@ -466,52 +482,54 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
+        Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
+        if ((!java.util.Objects.equals(firstMarket, null)) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "swap", false))))
+        {
+            throw new NotSupported((this.id + " watchTickers() is only supported for swap markets")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", "market_stats/all" );
+        }};
+        List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsLength = symbolsNormalized.size();
+        }
+        if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
+        {
+            ((List<Object>)messageHashes).add(this.getMessageHash("ticker", (String) null, (String) null));
+        } else
+        {
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                ((List<Object>)messageHashes).add(this.getMessageHash("ticker", symbol, (String) null));
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            if ((!java.util.Objects.equals(firstMarket, null)) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "swap", false))))
+        }
+        Object newTicker = (this.subscribePublicMultiple(messageHashes, this.extend(request, parameters))).join();
+        if (this.newUpdates)
+        {
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            String newTickerSymbol = this.safeString(newTicker, "symbol");
+            if (!java.util.Objects.equals(newTickerSymbol, null))
             {
-                throw new NotSupported((this.id + " watchTickers() is only supported for swap markets")) ;
+                result.put(newTickerSymbol, newTicker);
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", "market_stats/all" );
-            }};
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Integer symbolsLength = 0;
-            if (!java.util.Objects.equals(symbolsNormalized, null))
-            {
-                symbolsLength = symbolsNormalized.size();
-            }
-            if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
-            {
-                ((List<Object>)messageHashes).add(this.getMessageHash("ticker", (String) null, (String) null));
-            } else
-            {
-                for (var i = 0; i < symbolsNormalized.size(); i++)
-                {
-                    String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    ((List<Object>)messageHashes).add(this.getMessageHash("ticker", symbol, (String) null));
-                }
-            }
-            Object newTicker = (this.subscribePublicMultiple(messageHashes, this.extend(request, parameters))).join();
-            if (this.newUpdates)
-            {
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
-                String newTickerSymbol = this.safeString(newTicker, "symbol");
-                if (!java.util.Objects.equals(newTickerSymbol, null))
-                {
-                    result.put(newTickerSymbol, newTicker);
-                }
-                return result;
-            }
-            return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
-        }).thenApply(Tickers::new);
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
 
     }
 
@@ -526,26 +544,28 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTickersCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            if ((!java.util.Objects.equals(firstMarket, null)) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "swap", false))))
-            {
-                throw new NotSupported((this.id + " unWatchTickers() is only supported for swap markets")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", "market_stats/all" );
-            }};
-            String subMessageHash = this.getMessageHash("ticker", (String) null, (String) null);
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
+        Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
+        if ((!java.util.Objects.equals(firstMarket, null)) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "swap", false))))
+        {
+            throw new NotSupported((this.id + " unWatchTickers() is only supported for swap markets")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", "market_stats/all" );
+        }};
+        String subMessageHash = this.getMessageHash("ticker", (String) null, (String) null);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
 
     }
 
@@ -560,11 +580,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Ticker> watchMarkPrice(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMarkPriceCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMarkPriceCore(String symbol, Map<String, Object> parameters)
+    {
 
-            return (this.watchTicker(symbol, parameters)).join();
-        }).thenApply(Ticker::new);
+        return (this.watchTicker(symbol, parameters)).join();
 
     }
 
@@ -579,11 +601,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Tickers> watchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMarkPricesCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMarkPricesCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            return (this.watchTickers(symbols, parameters)).join();
-        }).thenApply(Tickers::new);
+        return (this.watchTickers(symbols, parameters)).join();
 
     }
 
@@ -598,11 +622,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchMarkPriceCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchMarkPriceCore(String symbol, Map<String, Object> parameters)
+    {
 
-            return (this.unWatchTicker(symbol, parameters)).join();
-        });
+        return (this.unWatchTicker(symbol, parameters)).join();
 
     }
 
@@ -617,11 +643,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchMarkPricesCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchMarkPricesCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            return (this.unWatchTickers(symbols, parameters)).join();
-        });
+        return (this.unWatchTickers(symbols, parameters)).join();
 
     }
 
@@ -763,21 +791,23 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("trade/" + Lighter.this.safeString(market, "id", "")) );
-            }};
-            String messageHash = this.getMessageHash("trade", this.safeString(market, "symbol"), (String) null);
-            List<Object> trades = (List<Object>) (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("trade/" + Lighter.this.safeString(market, "id", "")) );
+        }};
+        String messageHash = this.getMessageHash("trade", this.safeString(market, "symbol"), (String) null);
+        List<Object> trades = (List<Object>) (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
 
     }
 
@@ -792,21 +822,23 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("trade/" + Lighter.this.safeString(market, "id", "")) );
-            }};
-            String subMessageHash = this.getMessageHash("trade", this.safeString(market, "symbol"), (String) null);
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("trade/" + Lighter.this.safeString(market, "id", "")) );
+        }};
+        String subMessageHash = this.getMessageHash("trade", this.safeString(market, "symbol"), (String) null);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
 
     }
 
@@ -999,35 +1031,37 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index", (Object) null)).join();
-            Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            String messageHash = this.getMessageHash("myTrades", (String) null, (String) null);
-            String symbolResolved = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                symbolResolved = this.safeString(market, "symbol");
-                messageHash = this.getMessageHash("myTrades", symbolResolved, (String) null);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("account_all_trades/" + Lighter.this.numberToString(accountIndex)) );
-            }};
-            List<Object> trades = (List<Object>) (this.subscribePublic((String) (messageHash), this.extend(request, paramsAccountIndex))).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
-            }
-            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index", (Object) null)).join();
+        Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
+        var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+        String messageHash = this.getMessageHash("myTrades", (String) null, (String) null);
+        String symbolResolved = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = this.getMessageHash("myTrades", symbolResolved, (String) null);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("account_all_trades/" + Lighter.this.numberToString(accountIndex)) );
+        }};
+        List<Object> trades = (List<Object>) (this.subscribePublic((String) (messageHash), this.extend(request, paramsAccountIndex))).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
 
     }
 
@@ -1043,23 +1077,25 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchMyTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchMyTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                throw new NotSupported((this.id + " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only")) ;
-            }
-            List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index", (Object) null)).join();
-            Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            String subMessageHash = this.getMessageHash("myTrades", (String) null, (String) null);
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("account_all_trades/" + Lighter.this.numberToString(accountIndex)) );
-            }};
-            return (this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex))).join();
-        });
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            throw new NotSupported((this.id + " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only")) ;
+        }
+        List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index", (Object) null)).join();
+        Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
+        var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+        String subMessageHash = this.getMessageHash("myTrades", (String) null, (String) null);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("account_all_trades/" + Lighter.this.numberToString(accountIndex)) );
+        }};
+        return (this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex))).join();
 
     }
 
@@ -1198,20 +1234,22 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<List<Liquidation>> watchLiquidations(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchLiquidationsCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "channel", ("trade/" + Lighter.this.safeString(market, "id", "")) );
-            }};
-            String messageHash = this.getMessageHash("liquidations", symbol, (String) null);
-            return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "channel", ("trade/" + Lighter.this.safeString(market, "id", "")) );
+        }};
+        String messageHash = this.getMessageHash("liquidations", symbol, (String) null);
+        return (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
 
     }
 
@@ -1226,32 +1264,34 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String defaultType = this.safeString2(this.options, "watchBalance", "defaultType", "spot");
-            List<Object> typeparamsTypeVariable = (List<Object>) this.handleParamString(parameters, "type", defaultType);
-            String type = (String) ((List<Object>) typeparamsTypeVariable).get(0);
-            var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
-            List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsType, "watchBalance", "accountIndex", "account_index", (Object) null)).join();
-            Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            String messageHash = this.getMessageHash("balances", (String) null, type);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(type, "spot"))
-            {
-                request.put("channel", ("account_all_assets/" + this.numberToString(accountIndex)));
-                return (this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex))).join();
-            } else
-            {
-                request.put("channel", ("user_stats/" + this.numberToString(accountIndex)));
-                return (this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex))).join();
-            }
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String defaultType = this.safeString2(this.options, "watchBalance", "defaultType", "spot");
+        List<Object> typeparamsTypeVariable = (List<Object>) this.handleParamString(parameters, "type", defaultType);
+        String type = (String) ((List<Object>) typeparamsTypeVariable).get(0);
+        var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
+        List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsType, "watchBalance", "accountIndex", "account_index", (Object) null)).join();
+        Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
+        var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+        String messageHash = this.getMessageHash("balances", (String) null, type);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(type, "spot"))
+        {
+            request.put("channel", ("account_all_assets/" + this.numberToString(accountIndex)));
+            return (this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex))).join();
+        } else
+        {
+            request.put("channel", ("user_stats/" + this.numberToString(accountIndex)));
+            return (this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex))).join();
+        }
 
     }
 
@@ -1366,36 +1406,38 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index", (Object) null)).join();
-            Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            String messageHash = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                messageHash = this.getMessageHash("orders", this.safeString(market, "symbol"), (String) null);
-                request.put("channel", ((("account_orders/" + this.safeString(market, "id", "")) + "/") + this.numberToString(accountIndex)));
-            } else
-            {
-                messageHash = this.getMessageHash("orders", (String) null, (String) null);
-                request.put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
-            }
-            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex))).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
-            }
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index", (Object) null)).join();
+        Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
+        var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+        String messageHash = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            messageHash = this.getMessageHash("orders", this.safeString(market, "symbol"), (String) null);
+            request.put("channel", ((("account_orders/" + this.safeString(market, "id", "")) + "/") + this.numberToString(accountIndex)));
+        } else
+        {
+            messageHash = this.getMessageHash("orders", (String) null, (String) null);
+            request.put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
+        }
+        List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex))).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true);
 
     }
 
@@ -1410,31 +1452,33 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrdersCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "unWatchOrders", "accountIndex", "account_index", (Object) null)).join();
-            Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
-            var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            String subMessageHash = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                subMessageHash = this.getMessageHash("orders", this.safeString(market, "symbol"), (String) null);
-                request.put("channel", ((("account_orders/" + this.safeString(market, "id", "")) + "/") + this.numberToString(accountIndex)));
-            } else
-            {
-                subMessageHash = this.getMessageHash("orders", (String) null, (String) null);
-                request.put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
-            }
-            String messageHash = ("unsubscribe:" + subMessageHash);
-            return (this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex))).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(parameters, "unWatchOrders", "accountIndex", "account_index", (Object) null)).join();
+        Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
+        var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
+        String subMessageHash = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            subMessageHash = this.getMessageHash("orders", this.safeString(market, "symbol"), (String) null);
+            request.put("channel", ((("account_orders/" + this.safeString(market, "id", "")) + "/") + this.numberToString(accountIndex)));
+        } else
+        {
+            subMessageHash = this.getMessageHash("orders", (String) null, (String) null);
+            request.put("channel", ("account_all_orders/" + this.numberToString(accountIndex)));
+        }
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        return (this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex))).join();
 
     }
 
@@ -1471,34 +1515,36 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderWsCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Long nextId = this.requestId(url);
-            // the venue takes a string request id
-            String requestId = String.valueOf(nextId);
-            String messageHash = ("jsonapi/sendtx:" + requestId);
-            var txTypetxInfoorderVariable = (this.signAndCreateOrder("createOrderWs", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
-            var txType = ((List<Object>) txTypetxInfoorderVariable).get(0);
-            var txInfo = ((List<Object>) txTypetxInfoorderVariable).get(1);
-            var order = ((List<Object>) txTypetxInfoorderVariable).get(2);
-            Map<String, Object> market = this.market(symbol);
-            Object parsedTx = this.parseJson(txInfo);
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "type", "jsonapi/sendtx" );
-                put( "data", new HashMap<String, Object>() {{
-                    put( "id", requestId );
-                    put( "tx_type", txType );
-                    put( "tx_info", parsedTx );
-                }} );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Long nextId = this.requestId(url);
+        // the venue takes a string request id
+        String requestId = String.valueOf(nextId);
+        String messageHash = ("jsonapi/sendtx:" + requestId);
+        var txTypetxInfoorderVariable = (this.signAndCreateOrder("createOrderWs", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
+        var txType = ((List<Object>) txTypetxInfoorderVariable).get(0);
+        var txInfo = ((List<Object>) txTypetxInfoorderVariable).get(1);
+        var order = ((List<Object>) txTypetxInfoorderVariable).get(2);
+        Map<String, Object> market = this.market(symbol);
+        Object parsedTx = this.parseJson(txInfo);
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "type", "jsonapi/sendtx" );
+            put( "data", new HashMap<String, Object>() {{
                 put( "id", requestId );
-            }};
-            Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
-            return this.parseOrder(this.deepExtend(rawMessage, order), market);
-        }).thenApply(Order::new);
+                put( "tx_type", txType );
+                put( "tx_info", parsedTx );
+            }} );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "id", requestId );
+        }};
+        Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+        return this.parseOrder(this.deepExtend(rawMessage, order), market);
 
     }
 
@@ -1516,33 +1562,35 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderWsCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderWsCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Long nextId = this.requestId(url);
-            // the venue takes a string request id
-            String requestId = String.valueOf(nextId);
-            String messageHash = ("jsonapi/sendtx:" + requestId);
-            var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrderWs", (String) (id), symbol, parameters)).join();
-            var txType = ((List<Object>) txTypetxInfoVariable).get(0);
-            var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
-            Map<String, Object> market = this.market(symbol);
-            Object parsedTx = this.parseJson(txInfo);
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "type", "jsonapi/sendtx" );
-                put( "data", new HashMap<String, Object>() {{
-                    put( "id", requestId );
-                    put( "tx_type", txType );
-                    put( "tx_info", parsedTx );
-                }} );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Long nextId = this.requestId(url);
+        // the venue takes a string request id
+        String requestId = String.valueOf(nextId);
+        String messageHash = ("jsonapi/sendtx:" + requestId);
+        var txTypetxInfoVariable = (this.signAndCancelOrder("cancelOrderWs", (String) (id), symbol, parameters)).join();
+        var txType = ((List<Object>) txTypetxInfoVariable).get(0);
+        var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
+        Map<String, Object> market = this.market(symbol);
+        Object parsedTx = this.parseJson(txInfo);
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "type", "jsonapi/sendtx" );
+            put( "data", new HashMap<String, Object>() {{
                 put( "id", requestId );
-            }};
-            Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
-            return this.parseOrder(rawMessage, market);
-        }).thenApply(Order::new);
+                put( "tx_type", txType );
+                put( "tx_info", parsedTx );
+            }} );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "id", requestId );
+        }};
+        Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+        return this.parseOrder(rawMessage, market);
 
     }
 
@@ -1559,32 +1607,34 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      */
     public CompletableFuture<List<Order>> cancelAllOrdersWs(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersWsCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersWsCore(String symbol, Map<String, Object> parameters)
+    {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Long nextId = this.requestId(url);
-            // the venue takes a string request id
-            String requestId = String.valueOf(nextId);
-            String messageHash = ("jsonapi/sendtx:" + requestId);
-            var txTypetxInfoVariable = (this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters)).join();
-            var txType = ((List<Object>) txTypetxInfoVariable).get(0);
-            var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
-            Object parsedTx = this.parseJson(txInfo);
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "type", "jsonapi/sendtx" );
-                put( "data", new HashMap<String, Object>() {{
-                    put( "id", requestId );
-                    put( "tx_type", txType );
-                    put( "tx_info", parsedTx );
-                }} );
-            }};
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Long nextId = this.requestId(url);
+        // the venue takes a string request id
+        String requestId = String.valueOf(nextId);
+        String messageHash = ("jsonapi/sendtx:" + requestId);
+        var txTypetxInfoVariable = (this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters)).join();
+        var txType = ((List<Object>) txTypetxInfoVariable).get(0);
+        var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
+        Object parsedTx = this.parseJson(txInfo);
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "type", "jsonapi/sendtx" );
+            put( "data", new HashMap<String, Object>() {{
                 put( "id", requestId );
-            }};
-            Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
-            return this.parseOrders(new ArrayList<Object>(Arrays.asList(rawMessage)), (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+                put( "tx_type", txType );
+                put( "tx_info", parsedTx );
+            }} );
+        }};
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "id", requestId );
+        }};
+        Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
+        return this.parseOrders(new ArrayList<Object>(Arrays.asList(rawMessage)), (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1981,15 +2031,17 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     public CompletableFuture<Object> pong(Client client, Object message)
     {
+        return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object pongCore(Client client, Object message)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "pong" );
-            }};
-            (client.send(request)).join();
-            return null;
-        });
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "pong" );
+        }};
+        (client.send(request)).join();
+        return null;
 
     }
 }

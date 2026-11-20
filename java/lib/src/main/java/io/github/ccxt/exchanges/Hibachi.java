@@ -443,38 +443,40 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicGetMarketExchangeInfo(parameters)).join();
-            // {
-            //     "displayName": "ETH/USDT Perps",
-            //     "id": 1,
-            //     "maintenanceFactorForPositions": "0.030000",
-            //     "marketCloseTimestamp": null,
-            //     "marketOpenTimestamp": null,
-            //     "minNotional": "1",
-            //     "minOrderSize": "0.000000001",
-            //     "orderbookGranularities": [
-            //         "0.01",
-            //         "0.1",
-            //         "1",
-            //         "10"
-            //     ],
-            //     "riskFactorForOrders": "0.066667",
-            //     "riskFactorForPositions": "0.030000",
-            //     "settlementDecimals": 6,
-            //     "settlementSymbol": "USDT",
-            //     "status": "LIVE",
-            //     "stepSize": "0.000000001",
-            //     "symbol": "ETH/USDT-P",
-            //     "tickSize": "0.000001",
-            //     "underlyingDecimals": 9,
-            //     "underlyingSymbol": "ETH"
-            // },
-            List<Object> rows = this.safeList(response, "futureContracts", new ArrayList<Object>(Arrays.asList()));
-            return this.parseMarkets(rows);
-        });
+        Map<String, Object> response = (this.publicGetMarketExchangeInfo(parameters)).join();
+        // {
+        //     "displayName": "ETH/USDT Perps",
+        //     "id": 1,
+        //     "maintenanceFactorForPositions": "0.030000",
+        //     "marketCloseTimestamp": null,
+        //     "marketOpenTimestamp": null,
+        //     "minNotional": "1",
+        //     "minOrderSize": "0.000000001",
+        //     "orderbookGranularities": [
+        //         "0.01",
+        //         "0.1",
+        //         "1",
+        //         "10"
+        //     ],
+        //     "riskFactorForOrders": "0.066667",
+        //     "riskFactorForPositions": "0.030000",
+        //     "settlementDecimals": 6,
+        //     "settlementSymbol": "USDT",
+        //     "status": "LIVE",
+        //     "stepSize": "0.000000001",
+        //     "symbol": "ETH/USDT-P",
+        //     "tickSize": "0.000001",
+        //     "underlyingDecimals": 9,
+        //     "underlyingSymbol": "ETH"
+        // },
+        List<Object> rows = this.safeList(response, "futureContracts", new ArrayList<Object>(Arrays.asList()));
+        return this.parseMarkets(rows);
 
     }
 
@@ -560,31 +562,33 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            Map<String, Object> response = (this.privateGetTradeAccountInfo(this.extend(request, parameters))).join();
-            //
-            // {
-            //     assets: [ { quantity: '3.000000', symbol: 'USDT' } ],
-            //     balance: '3.000000',
-            //     maximalWithdraw: '3.000000',
-            //     numFreeTransfersRemaining: '100',
-            //     positions: [],
-            //     totalOrderNotional: '0.000000',
-            //     totalPositionNotional: '0.000000',
-            //     totalUnrealizedFundingPnl: '0.000000',
-            //     totalUnrealizedPnl: '0.000000',
-            //     totalUnrealizedTradingPnl: '0.000000',
-            //     tradeMakerFeeRate: '0.00000000',
-            //     tradeTakerFeeRate: '0.00020000'
-            // }
-            //
-            return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        Map<String, Object> response = (this.privateGetTradeAccountInfo(this.extend(request, parameters))).join();
+        //
+        // {
+        //     assets: [ { quantity: '3.000000', symbol: 'USDT' } ],
+        //     balance: '3.000000',
+        //     maximalWithdraw: '3.000000',
+        //     numFreeTransfersRemaining: '100',
+        //     positions: [],
+        //     totalOrderNotional: '0.000000',
+        //     totalPositionNotional: '0.000000',
+        //     totalUnrealizedFundingPnl: '0.000000',
+        //     totalUnrealizedPnl: '0.000000',
+        //     totalUnrealizedTradingPnl: '0.000000',
+        //     tradeMakerFeeRate: '0.00000000',
+        //     tradeTakerFeeRate: '0.00020000'
+        // }
+        //
+        return this.parseBalance(response);
 
     }
 
@@ -713,38 +717,40 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetMarketDataTrades(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "trades": [
-            //         {
-            //             "price": "111091.38352",
-            //             "quantity": "0.0090090093",
-            //             "takerSide": "Buy",
-            //             "timestamp": 1752095479
-            //         },
-            //     ]
-            // }
-            //
-            List<Object> trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(trades, null))
-            {
-                tradesList = trades;
-            }
-            return this.parseTrades(tradesList, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetMarketDataTrades(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "trades": [
+        //         {
+        //             "price": "111091.38352",
+        //             "quantity": "0.0090090093",
+        //             "takerSide": "Buy",
+        //             "timestamp": 1752095479
+        //         },
+        //     ]
+        // }
+        //
+        List<Object> trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
+        if (!java.util.Objects.equals(trades, null))
+        {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -760,45 +766,47 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))));
-            var pricesResponsestatsResponseVariable = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            var pricesResponse = ((List<Object>) pricesResponsestatsResponseVariable).get(0);
-            var statsResponse = ((List<Object>) pricesResponsestatsResponseVariable).get(1);
-            // {
-            //     "askPrice": "3514.650296",
-            //     "bidPrice": "3513.596112",
-            //     "fundingRateEstimation": {
-            //         "estimatedFundingRate": "0.000001",
-            //         "nextFundingTimestamp": 1712707200
-            //     },
-            //     "markPrice": "3514.288858",
-            //     "spotPrice": "3514.715000",
-            //     "symbol": "ETH/USDT-P",
-            //     "tradePrice": "2372.746570"
-            // }
-            // {
-            //     "high24h": "3819.507827",
-            //     "low24h": "3754.474162",
-            //     "symbol": "ETH/USDT-P",
-            //     "volume24h": "23554.858590416"
-            // }
-            Map<String, Object> ticker = new HashMap<String, Object>() {{
-                put( "prices", pricesResponse );
-                put( "stats", statsResponse );
-            }};
-            return this.parseTicker(ticker, market);
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))));
+        var pricesResponsestatsResponseVariable = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        var pricesResponse = ((List<Object>) pricesResponsestatsResponseVariable).get(0);
+        var statsResponse = ((List<Object>) pricesResponsestatsResponseVariable).get(1);
+        // {
+        //     "askPrice": "3514.650296",
+        //     "bidPrice": "3513.596112",
+        //     "fundingRateEstimation": {
+        //         "estimatedFundingRate": "0.000001",
+        //         "nextFundingTimestamp": 1712707200
+        //     },
+        //     "markPrice": "3514.288858",
+        //     "spotPrice": "3514.715000",
+        //     "symbol": "ETH/USDT-P",
+        //     "tradePrice": "2372.746570"
+        // }
+        // {
+        //     "high24h": "3819.507827",
+        //     "low24h": "3754.474162",
+        //     "symbol": "ETH/USDT-P",
+        //     "volume24h": "23554.858590416"
+        // }
+        Map<String, Object> ticker = new HashMap<String, Object>() {{
+            put( "prices", pricesResponse );
+            put( "stats", statsResponse );
+        }};
+        return this.parseTicker(ticker, market);
 
     }
 
@@ -909,25 +917,27 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", id );
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            Map<String, Object> response = (this.privateGetTradeOrder(this.extend(request, parameters))).join();
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "orderId", id );
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        Map<String, Object> response = (this.privateGetTradeOrder(this.extend(request, parameters))).join();
+        return this.parseOrder(response, market);
 
     }
 
@@ -941,38 +951,40 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradingFeesCore(parameters)).thenApply(TradingFees::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradingFeesCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            Map<String, Object> response = (this.privateGetTradeAccountInfo(this.extend(request, parameters))).join();
-            //    {
-            //        "tradeMakerFeeRate": "0.00000000",
-            //        "tradeTakerFeeRate": "0.00020000"
-            //    },
-            Double makerFeeRate = this.safeNumber(response, "tradeMakerFeeRate", (Object) null);
-            Double takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate", (Object) null);
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> symbols = this.symbols;
-            for (var i = 0; i < symbols.size(); i++)
-            {
-                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put(symbol, new HashMap<String, Object>() {{
-        put( "info", response );
-        put( "symbol", symbol );
-        put( "maker", makerFeeRate );
-        put( "taker", takerFeeRate );
-        put( "percentage", true );
-    }});
-            }
-            return result;
-        }).thenApply(TradingFees::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        Map<String, Object> response = (this.privateGetTradeAccountInfo(this.extend(request, parameters))).join();
+        //    {
+        //        "tradeMakerFeeRate": "0.00000000",
+        //        "tradeTakerFeeRate": "0.00020000"
+        //    },
+        Double makerFeeRate = this.safeNumber(response, "tradeMakerFeeRate", (Object) null);
+        Double takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate", (Object) null);
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        List<String> symbols = this.symbols;
+        for (var i = 0; i < symbols.size(); i++)
+        {
+            String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            result.put(symbol, new HashMap<String, Object>() {{
+    put( "info", response );
+    put( "symbol", symbol );
+    put( "maker", makerFeeRate );
+    put( "taker", takerFeeRate );
+    put( "percentage", true );
+}});
+        }
+        return result;
 
     }
 
@@ -1106,27 +1118,29 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Long nonce = this.incrementingNonce();
-            Map<String, Object> request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            request.put("accountId", this.getAccountId());
-            Map<String, Object> response = (this.privatePostTradeOrder(request)).join();
-            //
-            // {
-            //     "orderId": "578721673790138368"
-            // }
-            //
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "id", Hibachi.this.safeString(response, "orderId") );
-                put( "status", "pending" );
-            }}, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Long nonce = this.incrementingNonce();
+        Map<String, Object> request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        request.put("accountId", this.getAccountId());
+        Map<String, Object> response = (this.privatePostTradeOrder(request)).join();
+        //
+        // {
+        //     "orderId": "578721673790138368"
+        // }
+        //
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "id", Hibachi.this.safeString(response, "orderId") );
+            put( "status", "pending" );
+        }}, (Map<String, Object>) null);
 
     }
 
@@ -1141,50 +1155,52 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrdersCore(Object orders, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Long nonceValue = this.incrementingNonce();
-            Long nonce = this.parseToInt(nonceValue);
-            List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
-            {
-                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
-                String symbol = this.safeString(rawOrder, "symbol");
-                String type = this.safeString(rawOrder, "type");
-                String side = this.safeString(rawOrder, "side");
-                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
-                Double price = this.safeNumber(rawOrder, "price", (Object) null);
-                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.createOrderRequest((nonce + ((long) i)), symbol, type, side, amount, price, orderParams);
-                orderRequest.put("action", "place");
-                ((List<Object>)requestOrders).add(orderRequest);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-                put( "orders", requestOrders );
-            }};
-            Map<String, Object> response = (this.privatePostTradeOrders(this.extend(request, parameters))).join();
-            //
-            // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
-            //
-            List<Object> ret = new ArrayList<Object>(Arrays.asList());
-            List<Object> responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < responseOrders.size(); i++)
-            {
-                Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
-                    put( "info", responseOrder );
-                    put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
-                    put( "status", "pending" );
-                }}, (Map<String, Object>) null));
-            }
-            return ret;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Long nonceValue = this.incrementingNonce();
+        Long nonce = this.parseToInt(nonceValue);
+        List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        {
+            Map<String, Object> rawOrder = this.safeDict(orders, i, null);
+            String symbol = this.safeString(rawOrder, "symbol");
+            String type = this.safeString(rawOrder, "type");
+            String side = this.safeString(rawOrder, "side");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
+            Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderRequest = this.createOrderRequest((nonce + ((long) i)), symbol, type, side, amount, price, orderParams);
+            orderRequest.put("action", "place");
+            ((List<Object>)requestOrders).add(orderRequest);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+            put( "orders", requestOrders );
+        }};
+        Map<String, Object> response = (this.privatePostTradeOrders(this.extend(request, parameters))).join();
+        //
+        // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
+        //
+        List<Object> ret = new ArrayList<Object>(Arrays.asList());
+        List<Object> responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < responseOrders.size(); i++)
+        {
+            Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
+            ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+                put( "info", responseOrder );
+                put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
+                put( "status", "pending" );
+            }}, (Map<String, Object>) null));
+        }
+        return ret;
 
     }
 
@@ -1231,26 +1247,28 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Long nonce = this.incrementingNonce();
-            Map<String, Object> request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            request.put("accountId", this.getAccountId());
-            (this.privatePutTradeOrder(request)).join();
-            // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
-            //
-            // {}
-            //
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "id", id );
-                put( "status", "pending" );
-            }}, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Long nonce = this.incrementingNonce();
+        Map<String, Object> request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        request.put("accountId", this.getAccountId());
+        (this.privatePutTradeOrder(request)).join();
+        // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
+        //
+        // {}
+        //
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "status", "pending" );
+        }}, (Map<String, Object>) null);
 
     }
 
@@ -1265,51 +1283,53 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Order>> editOrders(Object orders, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrdersCore(Object orders, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Long nonceValue = this.incrementingNonce();
-            Long nonce = this.parseToInt(nonceValue);
-            List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
-            {
-                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
-                String id = this.safeString(rawOrder, "id");
-                String symbol = this.safeString(rawOrder, "symbol");
-                String type = this.safeString(rawOrder, "type");
-                String side = this.safeString(rawOrder, "side");
-                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
-                Double price = this.safeNumber(rawOrder, "price", (Object) null);
-                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> orderRequest = this.editOrderRequest((nonce + ((long) i)), id, symbol, type, side, amount, price, orderParams);
-                orderRequest.put("action", "modify");
-                ((List<Object>)requestOrders).add(orderRequest);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-                put( "orders", requestOrders );
-            }};
-            Map<String, Object> response = (this.privatePostTradeOrders(this.extend(request, parameters))).join();
-            //
-            // { "orders": [ { "orderId": "589636801329628160" } ] }
-            //
-            List<Object> ret = new ArrayList<Object>(Arrays.asList());
-            List<Object> responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < responseOrders.size(); i++)
-            {
-                Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
-                    put( "info", responseOrder );
-                    put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
-                    put( "status", "pending" );
-                }}, (Map<String, Object>) null));
-            }
-            return ret;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Long nonceValue = this.incrementingNonce();
+        Long nonce = this.parseToInt(nonceValue);
+        List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        {
+            Map<String, Object> rawOrder = this.safeDict(orders, i, null);
+            String id = this.safeString(rawOrder, "id");
+            String symbol = this.safeString(rawOrder, "symbol");
+            String type = this.safeString(rawOrder, "type");
+            String side = this.safeString(rawOrder, "side");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
+            Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderRequest = this.editOrderRequest((nonce + ((long) i)), id, symbol, type, side, amount, price, orderParams);
+            orderRequest.put("action", "modify");
+            ((List<Object>)requestOrders).add(orderRequest);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+            put( "orders", requestOrders );
+        }};
+        Map<String, Object> response = (this.privatePostTradeOrders(this.extend(request, parameters))).join();
+        //
+        // { "orders": [ { "orderId": "589636801329628160" } ] }
+        //
+        List<Object> ret = new ArrayList<Object>(Arrays.asList());
+        List<Object> responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < responseOrders.size(); i++)
+        {
+            Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
+            ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+                put( "info", responseOrder );
+                put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
+                put( "status", "pending" );
+            }}, (Map<String, Object>) null));
+        }
+        return ret;
 
     }
 
@@ -1338,22 +1358,24 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = this.cancelOrderRequest((String) (id));
-            request.put("accountId", this.getAccountId());
-            Map<String, Object> response = (this.privateDeleteTradeOrder(this.extend(request, parameters))).join();
-            // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
-            //
-            // {}
-            //
-            return this.safeOrder(new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "id", id );
-                put( "status", "canceled" );
-            }}, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        Map<String, Object> request = this.cancelOrderRequest((String) (id));
+        request.put("accountId", this.getAccountId());
+        Map<String, Object> response = (this.privateDeleteTradeOrder(this.extend(request, parameters))).join();
+        // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
+        //
+        // {}
+        //
+        return this.safeOrder(new HashMap<String, Object>() {{
+            put( "info", response );
+            put( "id", id );
+            put( "status", "canceled" );
+        }}, (Map<String, Object>) null);
 
     }
 
@@ -1369,37 +1391,39 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrdersCore(Object ids, String symbol, Map<String, Object> parameters)
+    {
 
-            List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
-            {
-                Map<String, Object> orderRequest = this.cancelOrderRequest(this.safeString(ids, i, ""));
-                orderRequest.put("action", "cancel");
-                ((List<Object>)orders).add(orderRequest);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-                put( "orders", orders );
-            }};
-            Map<String, Object> response = (this.privatePostTradeOrders(this.extend(request, parameters))).join();
-            //
-            // { "orders": [ { "orderId": "589636801329628160" } ] }
-            //
-            List<Object> ret = new ArrayList<Object>(Arrays.asList());
-            List<Object> responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < responseOrders.size(); i++)
-            {
-                Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-                ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
-                    put( "info", responseOrder );
-                    put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
-                    put( "status", "canceled" );
-                }}, (Map<String, Object>) null));
-            }
-            return ret;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        List<Object> orders = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        {
+            Map<String, Object> orderRequest = this.cancelOrderRequest(this.safeString(ids, i, ""));
+            orderRequest.put("action", "cancel");
+            ((List<Object>)orders).add(orderRequest);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+            put( "orders", orders );
+        }};
+        Map<String, Object> response = (this.privatePostTradeOrders(this.extend(request, parameters))).join();
+        //
+        // { "orders": [ { "orderId": "589636801329628160" } ] }
+        //
+        List<Object> ret = new ArrayList<Object>(Arrays.asList());
+        List<Object> responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < responseOrders.size(); i++)
+        {
+            Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
+            ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+                put( "info", responseOrder );
+                put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
+                put( "status", "canceled" );
+            }}, (Map<String, Object>) null));
+        }
+        return ret;
 
     }
 
@@ -1414,37 +1438,39 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Long nonce = this.incrementingNonce();
-            String nonce16 = this.intToBase16(nonce);
-            String noncePadded = (((String)nonce16).length() >= 16 ? ((String)nonce16).substring(((String)nonce16).length() - 16) : String.format("%" + (16 - ((String)nonce16).length()) + "s", "").replace(' ', '0') + ((String)nonce16));
-            Object message = this.base16ToBinary(noncePadded);
-            Object signature = this.signMessage(message, (String) (this.privateKey));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-                put( "nonce", nonce );
-                put( "signature", signature );
-            }};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                request.put("contractId", this.safeInteger(market, "numericId"));
-            }
-            Map<String, Object> response = (this.privateDeleteTradeOrders(this.extend(request, parameters))).join();
-            // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
-            //
-            // {}
-            //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
-        put( "info", response );
-    }}, (Map<String, Object>) null)));
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Long nonce = this.incrementingNonce();
+        String nonce16 = this.intToBase16(nonce);
+        String noncePadded = (((String)nonce16).length() >= 16 ? ((String)nonce16).substring(((String)nonce16).length() - 16) : String.format("%" + (16 - ((String)nonce16).length()) + "s", "").replace(' ', '0') + ((String)nonce16));
+        Object message = this.base16ToBinary(noncePadded);
+        Object signature = this.signMessage(message, (String) (this.privateKey));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+            put( "nonce", nonce );
+            put( "signature", signature );
+        }};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            request.put("contractId", this.safeInteger(market, "numericId"));
+        }
+        Map<String, Object> response = (this.privateDeleteTradeOrders(this.extend(request, parameters))).join();
+        // At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
+        //
+        // {}
+        //
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+    put( "info", response );
+}}, (Map<String, Object>) null)));
 
     }
 
@@ -1490,67 +1516,69 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
+    {
 
-            String withdrawAddress = (address == null ? null : ((String)address).substring(Math.max(((String)address).length() - 40, 0)));
-            // Get the withdraw fees
-            Map<String, Object> exchangeInfo = (this.publicGetMarketExchangeInfo(parameters)).join();
-            // {
-            //      "feeConfig": {
-            //          "depositFees": "0.004518",
-            //          "tradeMakerFeeRate": "0.00000000",
-            //          "tradeTakerFeeRate": "0.00020000",
-            //          "transferFeeRate": "0.00010000",
-            //          "withdrawalFees": "0.012050"
-            //    },
-            // }
-            Map<String, Object> feeConfig = this.safeDict(exchangeInfo, "feeConfig", null);
-            Double maxFees = this.safeNumber(feeConfig, "withdrawalFees", (Object) null);
-            // Generate the signature
-            Object message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
-            Object signature = this.signMessage(message, (String) (this.privateKey));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-                put( "coin", "USDT" );
-                put( "network", "ARBITRUM" );
-                put( "withdrawAddress", withdrawAddress );
-                put( "selfWithdrawal", false );
-                put( "quantity", Hibachi.this.numberToString(amount) );
-                put( "maxFees", Hibachi.this.numberToString(maxFees) );
-                put( "signature", signature );
-            }};
-            (this.privatePostCapitalWithdraw(this.extend(request, parameters))).join();
-            // At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
-            //
-            // {}
-            //
-            return new HashMap<String, Object>() {{
-                put( "info", null );
-                put( "id", null );
-                put( "txid", null );
-                put( "timestamp", Hibachi.this.milliseconds() );
-                put( "datetime", null );
-                put( "address", null );
-                put( "addressFrom", null );
-                put( "addressTo", withdrawAddress );
-                put( "tag", null );
-                put( "tagFrom", null );
-                put( "tagTo", null );
-                put( "type", "withdrawal" );
-                put( "amount", amount );
-                put( "currency", code );
-                put( "status", "pending" );
-                put( "fee", new HashMap<String, Object>() {{
-                    put( "currency", "USDT" );
-                    put( "cost", maxFees );
-                }} );
-                put( "network", "ARBITRUM" );
-                put( "updated", null );
-                put( "comment", null );
-                put( "internal", null );
-            }};
-        }).thenApply(Transaction::new);
+        String withdrawAddress = (address == null ? null : ((String)address).substring(Math.max(((String)address).length() - 40, 0)));
+        // Get the withdraw fees
+        Map<String, Object> exchangeInfo = (this.publicGetMarketExchangeInfo(parameters)).join();
+        // {
+        //      "feeConfig": {
+        //          "depositFees": "0.004518",
+        //          "tradeMakerFeeRate": "0.00000000",
+        //          "tradeTakerFeeRate": "0.00020000",
+        //          "transferFeeRate": "0.00010000",
+        //          "withdrawalFees": "0.012050"
+        //    },
+        // }
+        Map<String, Object> feeConfig = this.safeDict(exchangeInfo, "feeConfig", null);
+        Double maxFees = this.safeNumber(feeConfig, "withdrawalFees", (Object) null);
+        // Generate the signature
+        Object message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
+        Object signature = this.signMessage(message, (String) (this.privateKey));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+            put( "coin", "USDT" );
+            put( "network", "ARBITRUM" );
+            put( "withdrawAddress", withdrawAddress );
+            put( "selfWithdrawal", false );
+            put( "quantity", Hibachi.this.numberToString(amount) );
+            put( "maxFees", Hibachi.this.numberToString(maxFees) );
+            put( "signature", signature );
+        }};
+        (this.privatePostCapitalWithdraw(this.extend(request, parameters))).join();
+        // At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
+        //
+        // {}
+        //
+        return new HashMap<String, Object>() {{
+            put( "info", null );
+            put( "id", null );
+            put( "txid", null );
+            put( "timestamp", Hibachi.this.milliseconds() );
+            put( "datetime", null );
+            put( "address", null );
+            put( "addressFrom", null );
+            put( "addressTo", withdrawAddress );
+            put( "tag", null );
+            put( "tagFrom", null );
+            put( "tagTo", null );
+            put( "type", "withdrawal" );
+            put( "amount", amount );
+            put( "currency", code );
+            put( "status", "pending" );
+            put( "fee", new HashMap<String, Object>() {{
+                put( "currency", "USDT" );
+                put( "cost", maxFees );
+            }} );
+            put( "network", "ARBITRUM" );
+            put( "updated", null );
+            put( "comment", null );
+            put( "internal", null );
+        }};
 
     }
 
@@ -1589,61 +1617,63 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetMarketDataOrderbook(this.extend(request, parameters))).join();
-            Map<String, Object> formattedResponse = new HashMap<String, Object>() {{}};
-            formattedResponse.put("ask", this.safeList(this.safeDict(response, "ask", null), "levels", null));
-            formattedResponse.put("bid", this.safeList(this.safeDict(response, "bid", null), "levels", null));
-            // {
-            //     "ask": {
-            //         "endPrice": "3512.63",
-            //         "levels": [
-            //             {
-            //                 "price": "3511.93",
-            //                 "quantity": "0.284772482"
-            //             },
-            //             {
-            //                 "price": "3512.28",
-            //                 "quantity": "0.569544964"
-            //             },
-            //             {
-            //                 "price": "3512.63",
-            //                 "quantity": "0.854317446"
-            //             }
-            //         ],
-            //         "startPrice": "3511.93"
-            //     },
-            //     "bid": {
-            //         "endPrice": "3510.87",
-            //         "levels": [
-            //             {
-            //                 "price": "3515.39",
-            //                 "quantity": "2.345153070"
-            //             },
-            //             {
-            //                 "price": "3511.22",
-            //                 "quantity": "0.284772482"
-            //             },
-            //             {
-            //                 "price": "3510.87",
-            //                 "quantity": "0.569544964"
-            //             }
-            //         ],
-            //         "startPrice": "3515.39"
-            //     }
-            // }
-            return this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity", 2);
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetMarketDataOrderbook(this.extend(request, parameters))).join();
+        Map<String, Object> formattedResponse = new HashMap<String, Object>() {{}};
+        formattedResponse.put("ask", this.safeList(this.safeDict(response, "ask", null), "levels", null));
+        formattedResponse.put("bid", this.safeList(this.safeDict(response, "bid", null), "levels", null));
+        // {
+        //     "ask": {
+        //         "endPrice": "3512.63",
+        //         "levels": [
+        //             {
+        //                 "price": "3511.93",
+        //                 "quantity": "0.284772482"
+        //             },
+        //             {
+        //                 "price": "3512.28",
+        //                 "quantity": "0.569544964"
+        //             },
+        //             {
+        //                 "price": "3512.63",
+        //                 "quantity": "0.854317446"
+        //             }
+        //         ],
+        //         "startPrice": "3511.93"
+        //     },
+        //     "bid": {
+        //         "endPrice": "3510.87",
+        //         "levels": [
+        //             {
+        //                 "price": "3515.39",
+        //                 "quantity": "2.345153070"
+        //             },
+        //             {
+        //                 "price": "3511.22",
+        //                 "quantity": "0.284772482"
+        //             },
+        //             {
+        //                 "price": "3510.87",
+        //                 "quantity": "0.569544964"
+        //             }
+        //         ],
+        //         "startPrice": "3515.39"
+        //     }
+        // }
+        return this.parseOrderBook(formattedResponse, symbol, this.milliseconds(), "bid", "ask", "price", "quantity", 2);
 
     }
 
@@ -1660,51 +1690,53 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            Map<String, Object> response = (this.privateGetTradeAccountTrades(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "trades": [
-            //         {
-            //             "askAccountId": 221,
-            //             "askOrderId": 589168494921909200,
-            //             "bidAccountId": 132,
-            //             "bidOrderId": 589168494829895700,
-            //             "fee": "0.000477",
-            //             "id": 199511136,
-            //             "orderType": "MARKET",
-            //             "price": "119257.90000",
-            //             "quantity": "0.0000200000",
-            //             "realizedPnl": "-0.000352",
-            //             "side": "Sell",
-            //             "symbol": "BTC/USDT-P",
-            //             "timestamp": 1752543391
-            //         }
-            //     ]
-            // }
-            //
-            List<Object> trades = this.safeList(response, "trades", null);
-            List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(trades, null))
-            {
-                tradesList = trades;
-            }
-            return this.parseTrades(tradesList, market, since, limit, parameters);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        Map<String, Object> response = (this.privateGetTradeAccountTrades(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "trades": [
+        //         {
+        //             "askAccountId": 221,
+        //             "askOrderId": 589168494921909200,
+        //             "bidAccountId": 132,
+        //             "bidOrderId": 589168494829895700,
+        //             "fee": "0.000477",
+        //             "id": 199511136,
+        //             "orderType": "MARKET",
+        //             "price": "119257.90000",
+        //             "quantity": "0.0000200000",
+        //             "realizedPnl": "-0.000352",
+        //             "side": "Sell",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752543391
+        //         }
+        //     ]
+        // }
+        //
+        List<Object> trades = this.safeList(response, "trades", null);
+        List<Object> tradesList = new ArrayList<Object>(Arrays.asList());
+        if (!java.util.Objects.equals(trades, null))
+        {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit, parameters);
 
     }
 
@@ -1739,52 +1771,54 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            List<Object> response = (this.privateGetTradeOrders(this.extend(request, parameters))).join();
-            // [
-            //     {
-            //         "accountId": 12452,
-            //         "availableQuantity": "0.0000230769",
-            //         "contractId": 2,
-            //         "creationTime": 1752684501,
-            //         "orderId": "589205486123876352",
-            //         "orderType": "LIMIT",
-            //         "price": "130000.00000",
-            //         "side": "ASK",
-            //         "status": "PLACED",
-            //         "symbol": "BTC/USDT-P",
-            //         "totalQuantity": "0.0000230769"
-            //     },
-            //     {
-            //         "accountId": 12452,
-            //         "availableQuantity": "1.234000000",
-            //         "contractId": 1,
-            //         "creationTime": 1752240682,
-            //         "orderId": "589089141754429441",
-            //         "orderType": "LIMIT",
-            //         "price": "1.234000",
-            //         "side": "BID",
-            //         "status": "PLACED",
-            //         "symbol": "ETH/USDT-P",
-            //         "totalQuantity": "1.234000000"
-            //     }
-            // ]
-            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        List<Object> response = (this.privateGetTradeOrders(this.extend(request, parameters))).join();
+        // [
+        //     {
+        //         "accountId": 12452,
+        //         "availableQuantity": "0.0000230769",
+        //         "contractId": 2,
+        //         "creationTime": 1752684501,
+        //         "orderId": "589205486123876352",
+        //         "orderType": "LIMIT",
+        //         "price": "130000.00000",
+        //         "side": "ASK",
+        //         "status": "PLACED",
+        //         "symbol": "BTC/USDT-P",
+        //         "totalQuantity": "0.0000230769"
+        //     },
+        //     {
+        //         "accountId": 12452,
+        //         "availableQuantity": "1.234000000",
+        //         "contractId": 1,
+        //         "creationTime": 1752240682,
+        //         "orderId": "589089141754429441",
+        //         "orderType": "LIMIT",
+        //         "price": "1.234000",
+        //         "side": "BID",
+        //         "status": "PLACED",
+        //         "symbol": "ETH/USDT-P",
+        //         "totalQuantity": "1.234000000"
+        //     }
+        // ]
+        return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1805,67 +1839,69 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByStatusCore(status, symbol, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersByStatusCore(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            if (!java.util.Objects.equals(status, null))
-            {
-                request.put("status", status);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("startTime", since);
-            }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until", (Long) null);
-            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("endTime", until);
-            }
-            Map<String, Object> response = (this.privateGetTradeOrdersHistory(this.extend(request, paramsUntil))).join();
-            //
-            //     {
-            //         "hasMore": false,
-            //         "orders": [
-            //             {
-            //                 "accountId": 128,
-            //                 "avgFillPrice": "2900.000000",
-            //                 "closedAt": 1777811627000,
-            //                 "createdAt": 1777811620000,
-            //                 "filledQuantity": "1.200000000",
-            //                 "orderFlags": null,
-            //                 "orderId": "596002791293190100",
-            //                 "orderType": "MARKET",
-            //                 "parentOrderId": null,
-            //                 "price": null,
-            //                 "side": "BID",
-            //                 "sourceType": "regular",
-            //                 "status": "Filled",
-            //                 "symbol": "ETH/USDT-P",
-            //                 "totalQuantity": "1.200000000",
-            //                 "triggerDirection": null,
-            //                 "triggerPrice": null
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        if (!java.util.Objects.equals(status, null))
+        {
+            request.put("status", status);
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("startTime", since);
+        }
+        List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOrdersByStatus", "until", (Long) null);
+        Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
+        Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("endTime", until);
+        }
+        Map<String, Object> response = (this.privateGetTradeOrdersHistory(this.extend(request, paramsUntil))).join();
+        //
+        //     {
+        //         "hasMore": false,
+        //         "orders": [
+        //             {
+        //                 "accountId": 128,
+        //                 "avgFillPrice": "2900.000000",
+        //                 "closedAt": 1777811627000,
+        //                 "createdAt": 1777811620000,
+        //                 "filledQuantity": "1.200000000",
+        //                 "orderFlags": null,
+        //                 "orderId": "596002791293190100",
+        //                 "orderType": "MARKET",
+        //                 "parentOrderId": null,
+        //                 "price": null,
+        //                 "side": "BID",
+        //                 "sourceType": "regular",
+        //                 "status": "Filled",
+        //                 "symbol": "ETH/USDT-P",
+        //                 "totalQuantity": "1.200000000",
+        //                 "triggerDirection": null,
+        //                 "triggerPrice": null
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
 
     }
 
@@ -1884,13 +1920,15 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Object orders = (this.fetchOrdersByStatus("filled", symbol, since, limit, parameters)).join();
-            List<Object> filtered = this.filterBy(orders, "status", "closed");
-            return this.filterBySinceLimit(filtered, since, limit, "timestamp", false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Object orders = (this.fetchOrdersByStatus("filled", symbol, since, limit, parameters)).join();
+        List<Object> filtered = this.filterBy(orders, "status", "closed");
+        return this.filterBySinceLimit(filtered, since, limit, "timestamp", false);
 
     }
 
@@ -1909,13 +1947,15 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Object orders = (this.fetchOrdersByStatus((String) (null), symbol, since, limit, parameters)).join();
-            List<Object> filtered = this.filterBy(orders, "status", "canceled");
-            return this.filterBySinceLimit(filtered, since, limit, "timestamp", false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Object orders = (this.fetchOrdersByStatus((String) (null), symbol, since, limit, parameters)).join();
+        List<Object> filtered = this.filterBy(orders, "status", "canceled");
+        return this.filterBySinceLimit(filtered, since, limit, "timestamp", false);
 
     }
 
@@ -1934,47 +1974,49 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-                put( "interval", timeframeValue );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("fromMs", since);
-            }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until", (Long) null);
-            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("toMs", until);
-            }
-            Map<String, Object> response = (this.publicGetMarketDataKlines(this.extend(request, paramsUntil))).join();
-            //
-            // [
-            //     {
-            //       "close": "3704.751036",
-            //       "high": "3716.530378",
-            //       "interval": "1h",
-            //       "low": "3699.627883",
-            //       "open": "3716.406894",
-            //       "timestamp": 1712628000,
-            //       "volumeNotional": "1637355.846362"
-            //     }
-            //   ]
-            //
-            List<Object> klines = this.safeList(response, "klines", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(klines, market, timeframeValue, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+            put( "interval", timeframeValue );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("fromMs", since);
+        }
+        List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until", (Long) null);
+        Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
+        Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("toMs", until);
+        }
+        Map<String, Object> response = (this.publicGetMarketDataKlines(this.extend(request, paramsUntil))).join();
+        //
+        // [
+        //     {
+        //       "close": "3704.751036",
+        //       "high": "3716.530378",
+        //       "interval": "1h",
+        //       "low": "3699.627883",
+        //       "open": "3716.406894",
+        //       "timestamp": 1712628000,
+        //       "volumeNotional": "1637355.846362"
+        //     }
+        //   ]
+        //
+        List<Object> klines = this.safeList(response, "klines", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOHLCVs(klines, market, timeframeValue, since, limit, false);
 
     }
 
@@ -1989,63 +2031,65 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(symbols, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            Map<String, Object> response = (this.privateGetTradeAccountInfo(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "assets": [
-            //       {
-            //         "quantity": "14.130626",
-            //         "symbol": "USDT"
-            //       }
-            //     ],
-            //     "balance": "14.186087",
-            //     "maximalWithdraw": "4.152340",
-            //     "numFreeTransfersRemaining": 96,
-            //     "positions": [
-            //       {
-            //         "direction": "Short",
-            //         "entryNotional": "10.302213",
-            //         "notionalValue": "10.225008",
-            //         "quantity": "0.004310550",
-            //         "symbol": "ETH/USDT-P",
-            //         "unrealizedFundingPnl": "0.000000",
-            //         "unrealizedTradingPnl": "0.077204"
-            //       },
-            //       {
-            //         "direction": "Short",
-            //         "entryNotional": "2.000016",
-            //         "notionalValue": "1.999390",
-            //         "quantity": "0.0000328410",
-            //         "symbol": "BTC/USDT-P",
-            //         "unrealizedFundingPnl": "0.000000",
-            //         "unrealizedTradingPnl": "0.000625"
-            //       },
-            //       {
-            //         "direction": "Short",
-            //         "entryNotional": "2.000015",
-            //         "notionalValue": "2.022384",
-            //         "quantity": "0.01470600",
-            //         "symbol": "SOL/USDT-P",
-            //         "unrealizedFundingPnl": "0.000000",
-            //         "unrealizedTradingPnl": "-0.022369"
-            //       }
-            //     ],
-            //   }
-            //
-            List<Object> data = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        Map<String, Object> response = (this.privateGetTradeAccountInfo(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "assets": [
+        //       {
+        //         "quantity": "14.130626",
+        //         "symbol": "USDT"
+        //       }
+        //     ],
+        //     "balance": "14.186087",
+        //     "maximalWithdraw": "4.152340",
+        //     "numFreeTransfersRemaining": 96,
+        //     "positions": [
+        //       {
+        //         "direction": "Short",
+        //         "entryNotional": "10.302213",
+        //         "notionalValue": "10.225008",
+        //         "quantity": "0.004310550",
+        //         "symbol": "ETH/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "0.077204"
+        //       },
+        //       {
+        //         "direction": "Short",
+        //         "entryNotional": "2.000016",
+        //         "notionalValue": "1.999390",
+        //         "quantity": "0.0000328410",
+        //         "symbol": "BTC/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "0.000625"
+        //       },
+        //       {
+        //         "direction": "Short",
+        //         "entryNotional": "2.000015",
+        //         "notionalValue": "2.022384",
+        //         "quantity": "0.01470600",
+        //         "symbol": "SOL/USDT-P",
+        //         "unrealizedFundingPnl": "0.000000",
+        //         "unrealizedTradingPnl": "-0.022369"
+        //       }
+        //     ],
+        //   }
+        //
+        List<Object> data = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+        return this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2272,105 +2316,107 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchLedgerCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchLedgerCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency("USDT");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
-            List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Map<String, Object> responseCapitalHistory = this.safeDict(promises, 0, null);
-            //
-            // {
-            //     "transactions": [
-            //         {
-            //             "assetId": 1,
-            //             "blockNumber": 358396669,
-            //             "chain": "Arbitrum",
-            //             "etaTsSec": null,
-            //             "id": 358396669,
-            //             "quantity": "0.999500",
-            //             "status": "pending",
-            //             "timestampSec": 1752692872,
-            //             "token": "USDT",
-            //             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
-            //             "transactionType": "deposit"
-            //         },
-            //         {
-            //             "assetId": 1,
-            //             "etaTsSec": null,
-            //             "id": 13116,
-            //             "instantWithdrawalChain": null,
-            //             "instantWithdrawalToken": null,
-            //             "isInstantWithdrawal": false,
-            //             "quantity": "0.040000",
-            //             "status": "completed",
-            //             "timestampSec": 1752542708,
-            //             "transactionHash": "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
-            //             "transactionType": "withdrawal",
-            //             "withdrawalAddress": "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
-            //         },
-            //         {
-            //             "assetId": 1,
-            //             "id": 167,
-            //             "quantity": "10.000000",
-            //             "srcAccountId": 175,
-            //             "srcAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
-            //             "status": "completed",
-            //             "timestampSec": 1732224729,
-            //             "transactionType": "transfer-in"
-            //         },
-            //         {
-            //             "assetId": 1,
-            //             "id": 170,
-            //             "quantity": "10.000000",
-            //             "receivingAccountId": 175,
-            //             "receivingAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
-            //             "status": "completed",
-            //             "timestampSec": 1732225631,
-            //             "transactionType": "transfer-out"
-            //         },
-            //     ]
-            // }
-            //
-            List<Object> rowsCapitalHistory = this.safeList(responseCapitalHistory, "transactions", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> responseTradingHistory = this.safeDict(promises, 1, null);
-            //
-            // {
-            //     "tradingHistory": [
-            //         {
-            //             "eventType": "MARKET",
-            //             "fee": "0.000008",
-            //             "priceOrFundingRate": "119687.82481",
-            //             "quantity": "0.0000003727",
-            //             "realizedPnl": "0.004634",
-            //             "side": "Sell",
-            //             "symbol": "BTC/USDT-P",
-            //             "timestamp": 1752522571
-            //         },
-            //         {
-            //             "eventType": "FundingEvent",
-            //             "fee": "0",
-            //             "priceOrFundingRate": "0.000203",
-            //             "quantity": "0.0000003727",
-            //             "realizedPnl": "-0.000009067899008751979",
-            //             "side": "Long",
-            //             "symbol": "BTC/USDT-P",
-            //             "timestamp": 1752508800
-            //         },
-            //     ]
-            // }
-            //
-            List<Object> rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rows = (List<Object>) this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
-            return this.parseLedger(rows, currency, since, limit, parameters);
-        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency("USDT");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
+        List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        Map<String, Object> responseCapitalHistory = this.safeDict(promises, 0, null);
+        //
+        // {
+        //     "transactions": [
+        //         {
+        //             "assetId": 1,
+        //             "blockNumber": 358396669,
+        //             "chain": "Arbitrum",
+        //             "etaTsSec": null,
+        //             "id": 358396669,
+        //             "quantity": "0.999500",
+        //             "status": "pending",
+        //             "timestampSec": 1752692872,
+        //             "token": "USDT",
+        //             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
+        //             "transactionType": "deposit"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "etaTsSec": null,
+        //             "id": 13116,
+        //             "instantWithdrawalChain": null,
+        //             "instantWithdrawalToken": null,
+        //             "isInstantWithdrawal": false,
+        //             "quantity": "0.040000",
+        //             "status": "completed",
+        //             "timestampSec": 1752542708,
+        //             "transactionHash": "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
+        //             "transactionType": "withdrawal",
+        //             "withdrawalAddress": "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "id": 167,
+        //             "quantity": "10.000000",
+        //             "srcAccountId": 175,
+        //             "srcAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+        //             "status": "completed",
+        //             "timestampSec": 1732224729,
+        //             "transactionType": "transfer-in"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "id": 170,
+        //             "quantity": "10.000000",
+        //             "receivingAccountId": 175,
+        //             "receivingAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+        //             "status": "completed",
+        //             "timestampSec": 1732225631,
+        //             "transactionType": "transfer-out"
+        //         },
+        //     ]
+        // }
+        //
+        List<Object> rowsCapitalHistory = this.safeList(responseCapitalHistory, "transactions", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> responseTradingHistory = this.safeDict(promises, 1, null);
+        //
+        // {
+        //     "tradingHistory": [
+        //         {
+        //             "eventType": "MARKET",
+        //             "fee": "0.000008",
+        //             "priceOrFundingRate": "119687.82481",
+        //             "quantity": "0.0000003727",
+        //             "realizedPnl": "0.004634",
+        //             "side": "Sell",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752522571
+        //         },
+        //         {
+        //             "eventType": "FundingEvent",
+        //             "fee": "0",
+        //             "priceOrFundingRate": "0.000203",
+        //             "quantity": "0.0000003727",
+        //             "realizedPnl": "-0.000009067899008751979",
+        //             "side": "Long",
+        //             "symbol": "BTC/USDT-P",
+        //             "timestamp": 1752508800
+        //         },
+        //     ]
+        // }
+        //
+        List<Object> rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rows = (List<Object>) this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
+        return this.parseLedger(rows, currency, since, limit, parameters);
 
     }
 
@@ -2386,25 +2432,27 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressCore(code, parameters)).thenApply(DepositAddress::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "publicKey", Hibachi.this.safeString(parameters, "publicKey") );
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            Map<String, Object> response = (this.privateGetCapitalDepositInfo(this.extend(request, parameters))).join();
-            // {
-            //     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
-            // }
-            return new HashMap<String, Object>() {{
-                put( "info", response );
-                put( "currency", "USDT" );
-                put( "network", "ARBITRUM" );
-                put( "address", Hibachi.this.safeString(response, "depositAddressEvm") );
-                put( "tag", null );
-            }};
-        }).thenApply(DepositAddress::new);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "publicKey", Hibachi.this.safeString(parameters, "publicKey") );
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        Map<String, Object> response = (this.privateGetCapitalDepositInfo(this.extend(request, parameters))).join();
+        // {
+        //     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
+        // }
+        return new HashMap<String, Object>() {{
+            put( "info", response );
+            put( "currency", "USDT" );
+            put( "network", "ARBITRUM" );
+            put( "address", Hibachi.this.safeString(response, "depositAddressEvm") );
+            put( "tag", null );
+        }};
 
     }
 
@@ -2456,48 +2504,50 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            Map<String, Object> response = (this.privateGetCapitalHistory(this.extend(request, parameters))).join();
-            // {
-            //     "transactions": [
-            //         {
-            //             "assetId": 1,
-            //             "blockNumber": 0,
-            //             "chain": null,
-            //             "etaTsSec": 1752758789,
-            //             "id": 42688,
-            //             "quantity": "6.130000",
-            //             "status": "completed",
-            //             "timestampSec": 1752758788,
-            //             "token": null,
-            //             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
-            //             "transactionType": "deposit"
-            //         },
-            //         {
-            //             "assetId": 1,
-            //             "etaTsSec": null,
-            //             "id": 12993,
-            //             "instantWithdrawalChain": null,
-            //             "instantWithdrawalToken": null,
-            //             "isInstantWithdrawal": false,
-            //             "quantity": "0.111930",
-            //             "status": "completed",
-            //             "timestampSec": 1752387891,
-            //             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
-            //             "transactionType": "withdrawal",
-            //             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-            //         },
-            //     ]
-            // }
-            List<Object> transactions = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(transactions, currency, since, limit, parameters);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        Map<String, Object> response = (this.privateGetCapitalHistory(this.extend(request, parameters))).join();
+        // {
+        //     "transactions": [
+        //         {
+        //             "assetId": 1,
+        //             "blockNumber": 0,
+        //             "chain": null,
+        //             "etaTsSec": 1752758789,
+        //             "id": 42688,
+        //             "quantity": "6.130000",
+        //             "status": "completed",
+        //             "timestampSec": 1752758788,
+        //             "token": null,
+        //             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+        //             "transactionType": "deposit"
+        //         },
+        //         {
+        //             "assetId": 1,
+        //             "etaTsSec": null,
+        //             "id": 12993,
+        //             "instantWithdrawalChain": null,
+        //             "instantWithdrawalToken": null,
+        //             "isInstantWithdrawal": false,
+        //             "quantity": "0.111930",
+        //             "status": "completed",
+        //             "timestampSec": 1752387891,
+        //             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+        //             "transactionType": "withdrawal",
+        //             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
+        //         },
+        //     ]
+        // }
+        List<Object> transactions = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransactions(transactions, currency, since, limit, parameters);
 
     }
 
@@ -2514,13 +2564,15 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            List<Transaction> transactions = (this.fetchDepositsWithdrawals(code, since, (Long) null, parameters)).join();
-            List<Object> deposits = this.filterBy(transactions, "type", "deposit");
-            return this.filterBySinceLimit(deposits, since, limit, "timestamp", false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        List<Transaction> transactions = (this.fetchDepositsWithdrawals(code, since, (Long) null, parameters)).join();
+        List<Object> deposits = this.filterBy(transactions, "type", "deposit");
+        return this.filterBySinceLimit(deposits, since, limit, "timestamp", false);
 
     }
 
@@ -2537,13 +2589,15 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            List<Transaction> transactions = (this.fetchDepositsWithdrawals(code, since, (Long) null, parameters)).join();
-            List<Object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
-            return this.filterBySinceLimit(withdrawals, since, limit, "timestamp", false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        List<Transaction> transactions = (this.fetchDepositsWithdrawals(code, since, (Long) null, parameters)).join();
+        List<Object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
+        return this.filterBySinceLimit(withdrawals, since, limit, "timestamp", false);
 
     }
 
@@ -2595,57 +2649,59 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Object> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "accountId", Hibachi.this.getAccountId() );
-            }};
-            String symbolResolved = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("contractId", market.get("numericId"));
-                symbolResolved = this.safeString(market, "symbol");
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("startTime", this.parseToInt((((double) since) / ((double) 1000))));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until", (Long) null);
-            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("endTime", this.parseToInt((((double) until) / ((double) 1000))));
-            }
-            Map<String, Object> response = (this.privateGetTradeAccountSettlementsHistory(this.extend(request, paramsUntil))).join();
-            //
-            //     {
-            //         "settlements": [
-            //             {
-            //                 "direction": "Long",
-            //                 "indexPrice": "81.8781761",
-            //                 "quantity": "0.10000000",
-            //                 "settledAmount": "0.00005994405060281047",
-            //                 "symbol": "SOL/USDT-P",
-            //                 "timestamp": 1783389600,
-            //                 "timestampNsPartial": 0
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
-            List<Object> settlements = this.parseSettlements(data, market);
-            List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
-        });
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "accountId", Hibachi.this.getAccountId() );
+        }};
+        String symbolResolved = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("contractId", market.get("numericId"));
+            symbolResolved = this.safeString(market, "symbol");
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("startTime", this.parseToInt((((double) since) / ((double) 1000))));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMySettlementHistory", "until", (Long) null);
+        Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
+        Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("endTime", this.parseToInt((((double) until) / ((double) 1000))));
+        }
+        Map<String, Object> response = (this.privateGetTradeAccountSettlementsHistory(this.extend(request, paramsUntil))).join();
+        //
+        //     {
+        //         "settlements": [
+        //             {
+        //                 "direction": "Long",
+        //                 "indexPrice": "81.8781761",
+        //                 "quantity": "0.10000000",
+        //                 "settledAmount": "0.00005994405060281047",
+        //                 "symbol": "SOL/USDT-P",
+        //                 "timestamp": 1783389600,
+        //                 "timestampNsPartial": 0
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
+        List<Object> settlements = this.parseSettlements(data, market);
+        List<Object> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
 
     }
 
@@ -2659,15 +2715,17 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTimeCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Long fetchTimeCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicGetExchangeUtcTimestamp(parameters)).join();
-            //
-            //     { "timestampMs":1754077574040 }
-            //
-            return this.safeInteger(response, "timestampMs");
-        });
+        Map<String, Object> response = (this.publicGetExchangeUtcTimestamp(parameters)).join();
+        //
+        //     { "timestampMs":1754077574040 }
+        //
+        return this.safeInteger(response, "timestampMs");
 
     }
 
@@ -2682,31 +2740,33 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenInterestCore(symbol, parameters)).thenApply(OpenInterest::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenInterestCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetMarketDataOpenInterest(this.extend(request, parameters))).join();
-            //
-            //   { "totalQuantity" : "2.3299770166" }
-            //
-            Long timestamp = this.milliseconds();
-            return this.safeOpenInterest(new HashMap<String, Object>() {{
-                put( "symbol", symbol );
-                put( "openInterestAmount", Hibachi.this.safeString(response, "totalQuantity") );
-                put( "openInterestValue", null );
-                put( "timestamp", timestamp );
-                put( "datetime", Hibachi.this.iso8601(timestamp) );
-                put( "info", response );
-            }}, market);
-        }).thenApply(OpenInterest::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetMarketDataOpenInterest(this.extend(request, parameters))).join();
+        //
+        //   { "totalQuantity" : "2.3299770166" }
+        //
+        Long timestamp = this.milliseconds();
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
+            put( "symbol", symbol );
+            put( "openInterestAmount", Hibachi.this.safeString(response, "totalQuantity") );
+            put( "openInterestValue", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Hibachi.this.iso8601(timestamp) );
+            put( "info", response );
+        }}, market);
 
     }
 
@@ -2721,56 +2781,58 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateCore(symbol, parameters)).thenApply(FundingRate::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetMarketDataPrices(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "askPrice": "3514.650296",
-            //     "bidPrice": "3513.596112",
-            //     "fundingRateEstimation": {
-            //         "estimatedFundingRate": "0.000001",
-            //         "nextFundingTimestamp": 1712707200
-            //     },
-            //     "markPrice": "3514.288858",
-            //     "spotPrice": "3514.715000",
-            //     "symbol": "ETH/USDT-P",
-            //     "tradePrice": "2372.746570"
-            // }
-            //
-            Map<String, Object> funding = this.safeDict(response, "fundingRateEstimation", new HashMap<String, Object>() {{}});
-            Long timestamp = this.milliseconds();
-            Long nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
-            return new HashMap<String, Object>() {{
-                put( "info", funding );
-                put( "symbol", market.get("symbol") );
-                put( "markPrice", null );
-                put( "indexPrice", null );
-                put( "interestRate", Hibachi.this.parseNumber("0") );
-                put( "estimatedSettlePrice", null );
-                put( "timestamp", timestamp );
-                put( "datetime", Hibachi.this.iso8601(timestamp) );
-                put( "fundingRate", Hibachi.this.safeNumber(funding, "estimatedFundingRate", (Object) null) );
-                put( "fundingTimestamp", nextFundingTimestamp );
-                put( "fundingDatetime", Hibachi.this.iso8601(nextFundingTimestamp) );
-                put( "nextFundingRate", null );
-                put( "nextFundingTimestamp", null );
-                put( "nextFundingDatetime", null );
-                put( "previousFundingRate", null );
-                put( "previousFundingTimestamp", null );
-                put( "previousFundingDatetime", null );
-                put( "interval", "8h" );
-            }};
-        }).thenApply(FundingRate::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetMarketDataPrices(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "askPrice": "3514.650296",
+        //     "bidPrice": "3513.596112",
+        //     "fundingRateEstimation": {
+        //         "estimatedFundingRate": "0.000001",
+        //         "nextFundingTimestamp": 1712707200
+        //     },
+        //     "markPrice": "3514.288858",
+        //     "spotPrice": "3514.715000",
+        //     "symbol": "ETH/USDT-P",
+        //     "tradePrice": "2372.746570"
+        // }
+        //
+        Map<String, Object> funding = this.safeDict(response, "fundingRateEstimation", new HashMap<String, Object>() {{}});
+        Long timestamp = this.milliseconds();
+        Long nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
+        return new HashMap<String, Object>() {{
+            put( "info", funding );
+            put( "symbol", market.get("symbol") );
+            put( "markPrice", null );
+            put( "indexPrice", null );
+            put( "interestRate", Hibachi.this.parseNumber("0") );
+            put( "estimatedSettlePrice", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Hibachi.this.iso8601(timestamp) );
+            put( "fundingRate", Hibachi.this.safeNumber(funding, "estimatedFundingRate", (Object) null) );
+            put( "fundingTimestamp", nextFundingTimestamp );
+            put( "fundingDatetime", Hibachi.this.iso8601(nextFundingTimestamp) );
+            put( "nextFundingRate", null );
+            put( "nextFundingTimestamp", null );
+            put( "nextFundingDatetime", null );
+            put( "previousFundingRate", null );
+            put( "previousFundingTimestamp", null );
+            put( "previousFundingDatetime", null );
+            put( "interval", "8h" );
+        }};
 
     }
 
@@ -2787,47 +2849,49 @@ public class Hibachi extends HibachiApi
      */
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetMarketDataFundingRates(this.extend(request, parameters))).join();
-            //
-            // {
-            //     "data": [
-            //         {
-            //             "contractId": 2,
-            //             "fundingTimestamp": 1753488000,
-            //             "fundingRate": "0.000137",
-            //             "indexPrice": "117623.65010"
-            //         }
-            //     ]
-            // }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Long timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
-                ((List<Object>)rates).add(new HashMap<String, Object>() {{
-                    put( "info", entry );
-                    put( "symbol", symbol );
-                    put( "fundingRate", Hibachi.this.safeNumber(entry, "fundingRate", (Object) null) );
-                    put( "timestamp", timestamp );
-                    put( "datetime", Hibachi.this.iso8601(timestamp) );
-                }});
-            }
-            List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetMarketDataFundingRates(this.extend(request, parameters))).join();
+        //
+        // {
+        //     "data": [
+        //         {
+        //             "contractId": 2,
+        //             "fundingTimestamp": 1753488000,
+        //             "fundingRate": "0.000137",
+        //             "indexPrice": "117623.65010"
+        //         }
+        //     ]
+        // }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rates = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Long timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
+            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+                put( "info", entry );
+                put( "symbol", symbol );
+                put( "fundingRate", Hibachi.this.safeNumber(entry, "fundingRate", (Object) null) );
+                put( "timestamp", timestamp );
+                put( "datetime", Hibachi.this.iso8601(timestamp) );
+            }});
+        }
+        List<Object> sorted = this.sortBy(rates, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
 
     }
 }

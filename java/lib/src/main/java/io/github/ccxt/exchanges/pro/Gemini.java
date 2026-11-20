@@ -72,41 +72,43 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("trades:" + this.safeString(market, "symbol", ""));
-            String marketId = (String) market.get("id");
-            if (java.util.Objects.equals(marketId, null))
-            {
-                throw new ArgumentsRequired((this.id + " watchTrades() marketId is required")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("type", "subscribe");
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("name", "l2");
-            mapLiteral1.put("symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase())));
-            request.put("subscriptions", new ArrayList<Object>(Arrays.asList(mapLiteral1)));
-            String subscribeHash = ("l2:" + this.safeString(market, "symbol", ""));
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
-            }
-            String url = (wsUrl + "/v2/marketdata");
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscribeHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("trades:" + this.safeString(market, "symbol", ""));
+        String marketId = (String) market.get("id");
+        if (java.util.Objects.equals(marketId, null))
+        {
+            throw new ArgumentsRequired((this.id + " watchTrades() marketId is required")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("type", "subscribe");
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("name", "l2");
+        mapLiteral1.put("symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase())));
+        request.put("subscriptions", new ArrayList<Object>(Arrays.asList(mapLiteral1)));
+        String subscribeHash = ("l2:" + this.safeString(market, "symbol", ""));
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+        }
+        String url = (wsUrl + "/v2/marketdata");
+        List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscribeHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -123,19 +125,21 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      */
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesForSymbolsCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            List<Object> trades = (List<Object>) (this.helperForWatchMultipleConstruct("trades", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
-            Map<String, Object> first = this.safeDict(trades, 0, null);
-            String tradeSymbol = this.safeString(first, "symbol");
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
-            }
-            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        List<Object> trades = (List<Object>) (this.helperForWatchMultipleConstruct("trades", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+        Map<String, Object> first = this.safeDict(trades, 0, null);
+        String tradeSymbol = this.safeString(first, "symbol");
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
 
     }
 
@@ -338,37 +342,39 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String timeframeId = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "subscribe" );
-                put( "subscriptions", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
-        put( "name", ("candles_" + timeframeId) );
-        put( "symbols", new ArrayList<Object>(Arrays.asList(Gemini.this.safeStringUpper(market, "id"))) );
-    }})) );
-            }};
-            String messageHash = ((("ohlcv:" + this.safeString(market, "symbol", "")) + ":") + timeframeId);
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchOHLCV() has no websocket url")) ;
-            }
-            String url = (wsUrl + "/v2/marketdata");
-            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
-            }
-            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String timeframeId = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subscribe" );
+            put( "subscriptions", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "name", ("candles_" + timeframeId) );
+    put( "symbols", new ArrayList<Object>(Arrays.asList(Gemini.this.safeStringUpper(market, "id"))) );
+}})) );
+        }};
+        String messageHash = ((("ohlcv:" + this.safeString(market, "symbol", "")) + ":") + timeframeId);
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchOHLCV() has no websocket url")) ;
+        }
+        String url = (wsUrl + "/v2/marketdata");
+        List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
 
     }
 
@@ -446,36 +452,38 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
-            String marketId = (String) market.get("id");
-            if (java.util.Objects.equals(marketId, null))
-            {
-                throw new ArgumentsRequired((this.id + " watchOrderBook() marketId is required")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("type", "subscribe");
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("name", "l2");
-            mapLiteral3.put("symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase())));
-            request.put("subscriptions", new ArrayList<Object>(Arrays.asList(mapLiteral3)));
-            String subscribeHash = ("l2:" + this.safeString(market, "symbol", ""));
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
-            }
-            String url = (wsUrl + "/v2/marketdata");
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscribeHash, null)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
+        String marketId = (String) market.get("id");
+        if (java.util.Objects.equals(marketId, null))
+        {
+            throw new ArgumentsRequired((this.id + " watchOrderBook() marketId is required")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("type", "subscribe");
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("name", "l2");
+        mapLiteral3.put("symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase())));
+        request.put("subscriptions", new ArrayList<Object>(Arrays.asList(mapLiteral3)));
+        String subscribeHash = ("l2:" + this.safeString(market, "symbol", ""));
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+        }
+        String url = (wsUrl + "/v2/marketdata");
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscribeHash, null)).join();
+        return orderbook.limit();
 
     }
 
@@ -549,12 +557,14 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      */
     public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookForSymbolsCore(symbols, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookForSymbolsCore(Object symbols, Long limit, Map<String, Object> parameters)
+    {
 
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.helperForWatchMultipleConstruct("orderbook", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
-            return orderbook.limit();
-        }).thenApply(OrderBook::new);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.helperForWatchMultipleConstruct("orderbook", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
+        return orderbook.limit();
 
     }
 
@@ -569,11 +579,13 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      */
     public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBidsAsksCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBidsAsksCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            return (this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters)).join();
-        }).thenApply(Tickers::new);
+        return (this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters)).join();
 
     }
 
@@ -655,52 +667,54 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     public CompletableFuture<Object> helperForWatchMultipleConstruct(String itemHashName, List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.helperForWatchMultipleConstructCore(itemHashName, symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object helperForWatchMultipleConstructCore(String itemHashName, List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(symbols, null))
-            {
-                throw new NotSupported((this.id + " watchMultiple requires at least one symbol")) ;
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-            if ((!Boolean.TRUE.equals(this.safeBool(firstMarket, "spot", false))) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "linear", false))))
-            {
-                throw new NotSupported((this.id + " watchMultiple supports only spot or linear-swap symbols")) ;
-            }
-            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < symbolsNormalized.size(); i++)
-            {
-                String symbol = this.safeString(symbolsNormalized, i, "");
-                String messageHash = ((itemHashName + ":") + symbol);
-                messageHashes.add(messageHash);
-                Map<String, Object> market = this.market(symbol);
-                ((List<Object>)marketIds).add(market.get("id"));
-            }
-            String queryStr = String.join(",", (List<String>)marketIds);
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " helperForWatchMultipleConstruct() has no websocket url")) ;
-            }
-            String url = (((wsUrl + "/v1/multimarketdata?symbols=") + queryStr) + "&heartbeat=true&");
-            if (java.util.Objects.equals(itemHashName, "orderbook"))
-            {
-                url = (url + "trades=false&bids=true&offers=true");
-            } else if (java.util.Objects.equals(itemHashName, "bidsasks"))
-            {
-                url = (url + "trades=false&bids=true&offers=true&top_of_book=true");
-            } else if (java.util.Objects.equals(itemHashName, "trades"))
-            {
-                url = (url + "trades=true&bids=false&offers=false");
-            }
-            return (this.watchMultiple(url, messageHashes, null, null, null)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(symbols, null))
+        {
+            throw new NotSupported((this.id + " watchMultiple requires at least one symbol")) ;
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
+        Map<String, Object> firstMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
+        if ((!Boolean.TRUE.equals(this.safeBool(firstMarket, "spot", false))) && (!Boolean.TRUE.equals(this.safeBool(firstMarket, "linear", false))))
+        {
+            throw new NotSupported((this.id + " watchMultiple supports only spot or linear-swap symbols")) ;
+        }
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+        Object marketIds = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < symbolsNormalized.size(); i++)
+        {
+            String symbol = this.safeString(symbolsNormalized, i, "");
+            String messageHash = ((itemHashName + ":") + symbol);
+            messageHashes.add(messageHash);
+            Map<String, Object> market = this.market(symbol);
+            ((List<Object>)marketIds).add(market.get("id"));
+        }
+        String queryStr = String.join(",", (List<String>)marketIds);
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " helperForWatchMultipleConstruct() has no websocket url")) ;
+        }
+        String url = (((wsUrl + "/v1/multimarketdata?symbols=") + queryStr) + "&heartbeat=true&");
+        if (java.util.Objects.equals(itemHashName, "orderbook"))
+        {
+            url = (url + "trades=false&bids=true&offers=true");
+        } else if (java.util.Objects.equals(itemHashName, "bidsasks"))
+        {
+            url = (url + "trades=false&bids=true&offers=true&top_of_book=true");
+        } else if (java.util.Objects.equals(itemHashName, "trades"))
+        {
+            url = (url + "trades=true&bids=false&offers=false");
+        }
+        return (this.watchMultiple(url, messageHashes, null, null, null)).join();
 
     }
 
@@ -812,38 +826,40 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            String wsUrl = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " watchOrders() has no websocket url")) ;
-            }
-            String url = (wsUrl + "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> authParams = new HashMap<String, Object>() {{
-                put( "url", url );
-            }};
-            (this.authenticate(authParams)).join();
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
-            String messageHash = "orders";
-            List<Object> orders = (this.<List<Object>>watch(url, messageHash, null, messageHash, null)).join();
-            Long limitResolved = limit;
-            if (this.newUpdates)
-            {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
-            }
-            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        String wsUrl = this.safeString(this.urls.get("api"), "ws");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " watchOrders() has no websocket url")) ;
+        }
+        String url = (wsUrl + "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> authParams = new HashMap<String, Object>() {{
+            put( "url", url );
+        }};
+        (this.authenticate(authParams)).join();
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
+        String messageHash = "orders";
+        List<Object> orders = (this.<List<Object>>watch(url, messageHash, null, messageHash, null)).join();
+        Long limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
 
     }
 
@@ -1143,53 +1159,55 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object authenticateCore(Map<String, Object> parameters)
+    {
 
-            String url = this.safeString(parameters, "url");
-            if (java.util.Objects.equals(url, null))
-            {
-                return null;
-            }
-            if ((!java.util.Objects.equals(this.clients, null)) && (((Map<?, ?>)this.clients).containsKey(url)))
-            {
-                return null;
-            }
-            this.checkRequiredCredentials(true);
-            String wsBaseUrl = this.safeString(this.urls.get("api"), "ws", "");
-            Integer startIndex = wsBaseUrl.length();
-            Integer urlParamsIndex = ((String)url).indexOf("?");
-            Integer urlLength = url.length();
-            Integer endIndex = (((((urlParamsIndex != null && urlParamsIndex >= 0))))) ? urlParamsIndex : urlLength;
-            String request = (url == null ? null : url.substring((int) Math.min(Math.min(startIndex, url.length()), Math.min(endIndex < 0 ? url.length() + endIndex : endIndex, url.length())), (int) Math.min(endIndex < 0 ? url.length() + endIndex : endIndex, url.length())));
-            Map<String, Object> payload = new HashMap<String, Object>() {{
-                put( "request", request );
-                put( "nonce", Gemini.this.incrementingNonce() );
-            }};
-            String b64 = this.stringToBase64(this.json(payload));
-            String signature = (String) this.hmac(this.encode(b64), this.encode(this.secret), sha384(), "hex");
-            Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
-                put( "ws", new HashMap<String, Object>() {{
-                    put( "options", new HashMap<String, Object>() {{
-                        put( "headers", new HashMap<String, Object>() {{}} );
-                    }} );
-                }} );
-            }};
-            // this.options = this.extend (defaultOptions, this.options);
-            this.extendExchangeOptions(defaultOptions);
-            Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsSubOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
-            Map<String, Object> originalHeaders = this.safeDict(wsSubOptions, "headers", new HashMap<String, Object>() {{}});
-            Map<String, Object> headers = new HashMap<String, Object>() {{
-                put( "X-GEMINI-APIKEY", Gemini.this.apiKey );
-                put( "X-GEMINI-PAYLOAD", b64 );
-                put( "X-GEMINI-SIGNATURE", signature );
-            }};
-            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
-            this.client(url);
-            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
+        String url = this.safeString(parameters, "url");
+        if (java.util.Objects.equals(url, null))
+        {
             return null;
-        });
+        }
+        if ((!java.util.Objects.equals(this.clients, null)) && (((Map<?, ?>)this.clients).containsKey(url)))
+        {
+            return null;
+        }
+        this.checkRequiredCredentials(true);
+        String wsBaseUrl = this.safeString(this.urls.get("api"), "ws", "");
+        Integer startIndex = wsBaseUrl.length();
+        Integer urlParamsIndex = ((String)url).indexOf("?");
+        Integer urlLength = url.length();
+        Integer endIndex = (((((urlParamsIndex != null && urlParamsIndex >= 0))))) ? urlParamsIndex : urlLength;
+        String request = (url == null ? null : url.substring((int) Math.min(Math.min(startIndex, url.length()), Math.min(endIndex < 0 ? url.length() + endIndex : endIndex, url.length())), (int) Math.min(endIndex < 0 ? url.length() + endIndex : endIndex, url.length())));
+        Map<String, Object> payload = new HashMap<String, Object>() {{
+            put( "request", request );
+            put( "nonce", Gemini.this.incrementingNonce() );
+        }};
+        String b64 = this.stringToBase64(this.json(payload));
+        String signature = (String) this.hmac(this.encode(b64), this.encode(this.secret), sha384(), "hex");
+        Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
+            put( "ws", new HashMap<String, Object>() {{
+                put( "options", new HashMap<String, Object>() {{
+                    put( "headers", new HashMap<String, Object>() {{}} );
+                }} );
+            }} );
+        }};
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsSubOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        Map<String, Object> originalHeaders = this.safeDict(wsSubOptions, "headers", new HashMap<String, Object>() {{}});
+        Map<String, Object> headers = new HashMap<String, Object>() {{
+            put( "X-GEMINI-APIKEY", Gemini.this.apiKey );
+            put( "X-GEMINI-PAYLOAD", b64 );
+            put( "X-GEMINI-SIGNATURE", signature );
+        }};
+        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
+        this.client(url);
+        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
+        return null;
 
     }
 }
