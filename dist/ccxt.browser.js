@@ -179889,7 +179889,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const targets = Object.keys(fallbacks);
         for(let i = 0; i < targets.length; i++){
             const target = targets[i];
-            const source = fallbacks[target];
+            const source = this.safeString(fallbacks, target, '');
             const sourceDefined = source in this.has && this.has[source] !== undefined;
             const targetDefined = target in this.has && this.has[target] !== undefined;
             if (sourceDefined && !targetDefined) {
@@ -574820,15 +574820,16 @@ class hashkey extends _hashkey_js__rspack_import_0/* ["default"] */.A {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = message;
+        const balance = this.safeDict(this.balance, type, {});
         const currencyId = this.safeString(balanceUpdate, 'a');
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
         account['free'] = this.safeString(balanceUpdate, 'f');
         account['used'] = this.safeString(balanceUpdate, 'l');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         const messageHash = 'balance:' + type;
         client.resolve(this.balance[type], messageHash);
     }
@@ -594865,17 +594866,18 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = data;
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        const balance = this.safeDict(this.balance, type, {});
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
         const currencyId = this.safeString2(data, 'currency', 'vcoinName');
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
         account['free'] = this.safeString2(data, 'balanceAmount', 'availableBalance');
         account['used'] = this.safeString2(data, 'frozenBalance', 'frozenAmount');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         client.resolve(this.balance[type], messageHash);
     }
     /**
@@ -617270,10 +617272,8 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
             accountType = 'swap';
         }
         const messageHash = accountType + ':balance';
-        if (!(accountType in this.balance)) {
-            this.balance[accountType] = {};
-        }
-        this.balance[accountType]['info'] = message;
+        const balance = this.safeDict(this.balance, accountType, {});
+        balance['info'] = message;
         const balanceUpdates = this.safeList(message, 'd', []);
         for(let i = 0; i < balanceUpdates.length; i++){
             const entry = this.safeDict(balanceUpdates, i);
@@ -617284,13 +617284,13 @@ class weex extends _weex_js__rspack_import_0/* ["default"] */.A {
             account['used'] = this.safeString(entry, 'frozen');
             account['total'] = this.safeString2(entry, 'equity', 'legacyAmount');
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger(message, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance(this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve(this.balance[accountType], messageHash);
     }
     /**

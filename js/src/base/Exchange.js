@@ -3509,7 +3509,7 @@ export class BaseExchange {
         const targets = Object.keys(fallbacks);
         for (let i = 0; i < targets.length; i++) {
             const target = targets[i];
-            const source = fallbacks[target];
+            const source = this.safeString(fallbacks, target, '');
             const sourceDefined = (source in this.has) && (this.has[source] !== undefined);
             const targetDefined = (target in this.has) && (this.has[target] !== undefined);
             if (sourceDefined && !targetDefined) {
