@@ -21132,6 +21132,7 @@ function goStringAddLeafSelfTest (ok: SelfTestOk): void {
 
 // exchange_generated.go / exchange_prediction.go bypass formatGoSource: run its typed-receiver native passes on them
 function goBaseNativePasses (content: string): string {
+    content = goStrPtrLocalRetype (content);  // the venue-file *string local retype, on the base tier too
     content = nativeLoopBoundedSliceReads (content);
     goTupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');
     content = nativeTypedContainerAccess (goTypedAddElemRetypeMapLocals (content));
@@ -21153,6 +21154,8 @@ function goBaseNativePassesSelfTest (ok: SelfTestOk): void {
     ok (!loop.includes ('ObjectKeys(m)'), 'ObjectKeys on a typed map param goes native: ' + loop);
     const keep = run ('\tfor i := 0; i < GetArrayLength(p); i++ {\n\t\t_ = GetValue(p, i)\n\t}\n');
     ok (keep.includes ('GetArrayLength(p)') && keep.includes ('GetValue(p, i)'), 'any receiver keeps the helpers: ' + keep);
+    const ptr = run ('\tvar f any = this.SafeString(m, "f")\n\tif IsEqual(f, nil) {\n\t}\n');
+    ok (ptr.includes ('var f *string = this.SafeString(m, "f")') && ptr.includes ('if f == nil {'), 'a SafeString local is *string on the base tier: ' + ptr);
 }
 
 // `var x *int64 = this.SafeInteger(o, k, 5)` -> `var x int64 = *this.SafeInteger(o, k, 5)` when the
