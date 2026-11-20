@@ -4788,7 +4788,6 @@ class BaseExchange(object):
 
     def create_ccxt_trade_id(self, timestamp: Int = None, side: Str = None, amount: Str = None, price: Str = None, takerOrMaker: Str = None):
         # this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        id = None
         if timestamp is not None:
             id = self.number_to_string(timestamp)
             if side is not None:
@@ -4799,7 +4798,8 @@ class BaseExchange(object):
                 id += '-' + price
             if takerOrMaker is not None:
                 id += '-' + takerOrMaker
-        return id
+            return id
+        return None
 
     def parsed_fee_and_fees(self, container: object):
         fee = self.safe_dict(container, 'fee')

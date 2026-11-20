@@ -1772,11 +1772,12 @@ class kucoin(Exchange, ImplicitAPI):
             nextIndex = 1
         if requestMarginables:
             crossIndex = nextIndex
-            nextIndex = self.sum(nextIndex, 2)
-            isolatedIndex = self.sum(crossIndex, 1)
+            nextIndex = nextIndex + 1
+            isolatedIndex = nextIndex
+            nextIndex = nextIndex + 1
         if fetchTickersFees:
             tickersIndex = nextIndex
-            nextIndex = self.sum(nextIndex, 1)
+            nextIndex = nextIndex + 1
         if fetchContractMarkets:
             contractIndex = nextIndex
         crossData = self.safe_dict(responses[crossIndex], 'data', {}) if (requestMarginables) else {}

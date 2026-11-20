@@ -3393,6 +3393,7 @@ class binance(ccxt.async_support.binance):
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
         self.balance[accountType]['info'] = message
+        balance = self.safe_dict(self.balance, accountType, {})
         event = self.safe_string(message, 'e')
         # balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         balanceMessage = self.safe_dict(message, 'a', message)
@@ -3401,15 +3402,15 @@ class binance(ccxt.async_support.binance):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             delta = self.safe_string(message, 'd')
-            if (code is not None) and (code in self.balance[accountType]):
-                previousValue = self.safe_value(self.balance[accountType][code], 'free')
+            if (code is not None) and (code in balance):
+                previousValue = self.safe_value(balance[code], 'free')
                 if not isinstance(previousValue, str):
                     previousValue = self.number_to_string(previousValue)
                 account['free'] = Precise.string_add(previousValue, delta)
             else:
                 account['free'] = delta
             if code is not None:
-                self.balance[accountType][code] = account
+                balance[code] = account
         else:
             B = self.safe_list(balanceMessage, 'B')
             if B is None:
@@ -3423,11 +3424,11 @@ class binance(ccxt.async_support.binance):
                 account['used'] = self.safe_string(entry, 'l')
                 account['total'] = self.safe_string(entry, wallet)
                 if code is not None:
-                    self.balance[accountType][code] = account
+                    balance[code] = account
         timestamp = self.safe_integer(balanceMessage, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
+        self.balance[accountType] = self.safe_balance(balance)
         client.resolve(self.balance[accountType], messageHash)
 
     def get_account_type_from_subscriptions(self, subscriptions: list[str]) -> str:

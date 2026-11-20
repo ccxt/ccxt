@@ -436,7 +436,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         for i in range(0, tagsLength):
             queries.append(tags[i])
         rest = self.omit(params, ['eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit'])
-        rawMarkets: list[dict]
+        rawMarkets = []
         if eventId is not None:
             rawMarkets = await self.fetch_raw_markets_paged(self.extend({'sportXeventId': eventId}, rest), None)
             # the venue's sportXeventId filter on /markets/active is unreliable (observed live

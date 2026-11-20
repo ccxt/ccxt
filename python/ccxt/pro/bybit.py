@@ -2250,10 +2250,10 @@ class bybit(ccxt.async_support.bybit):
         # is the consistent total, the spot rows fall back to the wallet balance
         account['total'] = self.safe_string_2(balance, 'equity', 'walletBalance')
         if accountType is not None:
-            if self.safe_dict(self.balance, accountType) is None:
-                self.balance[accountType] = {}
-            if (accountType is not None) and (code is not None):
-                self.balance[accountType][code] = account
+            accountBalance = self.safe_dict(self.balance, accountType, {})
+            if code is not None:
+                accountBalance[code] = account
+            self.balance[accountType] = accountBalance
         else:
             if code is not None:
                 self.balance[code] = account

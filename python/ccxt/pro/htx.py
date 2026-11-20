@@ -1758,7 +1758,7 @@ class htx(ccxt.async_support.htx):
                     if marginMode == 'isolated':
                         # isolated margin only allows filtering by symbol3
                         if (symbol is not None) and (market is not None):
-                            messageHash += '.' + self.safe_string(market, 'id', '')
+                            messageHash = prefix + '.' + self.safe_string(market, 'id', '')
                             channel = messageHash
                         else:
                             # subscribe to all
@@ -1774,7 +1774,7 @@ class htx(ccxt.async_support.htx):
             elif type == 'future':
                 # inverse futures account
                 if currencyCode is not None:
-                    messageHash += '.' + self.safe_string(currencyCode, 'id', '')
+                    messageHash = prefix + '.' + self.safe_string(currencyCode, 'id', '')
                     channel = messageHash
                 else:
                     # subscribe to all
@@ -1782,7 +1782,7 @@ class htx(ccxt.async_support.htx):
             else:
                 # inverse swaps account
                 if market is not None:
-                    messageHash += '.' + self.safe_string(market, 'id', '')
+                    messageHash = prefix + '.' + self.safe_string(market, 'id', '')
                     channel = messageHash
                 else:
                     # subscribe to all
