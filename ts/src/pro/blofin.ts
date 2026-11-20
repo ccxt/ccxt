@@ -736,13 +736,11 @@ export default class blofin extends blofinRest {
             const position = this.parseWsPosition (this.safeDict (data, i, {}));
             newPositions.push (position);
             cache.append (position);
+            if (channelName !== undefined) {
+                client.resolve ([ position ], channelName + ':' + this.safeString (position, 'symbol', ''));
+            }
         }
         if (channelName !== undefined) {
-            for (let i = 0; i < newPositions.length; i++) {
-                const symbol = this.safeString (newPositions[i], 'symbol', '');
-                const positions = this.filterByArray (newPositions, 'symbol', [ symbol ], false);
-                client.resolve (positions, channelName + ':' + symbol);
-            }
             client.resolve (newPositions, channelName);
         }
     }
