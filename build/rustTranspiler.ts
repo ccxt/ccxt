@@ -5381,8 +5381,14 @@ function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BU
         while ((d = decl.exec (content)) !== null) {
             const open = d.index + d[0].length, end = content.indexOf (tail, open);
             if (end < 0) throw new Error (fn + ': declaration without the Value::Null tail');
-            const body = content.slice (open, end).replace (/^( *return )([^\n]*)$/gm, (_l, r: string, e: string) => {
+            const head0 = rustDictBuilderHeadParam (content, fn, d[0]);
+            if (head0 !== undefined) d[0] = d[0].replace ('(&self, mut ' + head0 + ': Value, ', '(&self, mut ' + head0 + ': crate::value::Dict, ');
+            const whole = content.slice (open, end);
+            const body = whole.replace (/^( *return )([^\n]*)$/gm, (_l, r: string, e: string, at: number) => {
                 if (e.startsWith ('self.extend(') && e.endsWith (');')) return r + 'self.extend_t(' + e.slice ('self.extend('.length);
+                if (head0 !== undefined && e === head0 + ';') return r + e;
+                // a multi-line `return self.extend(head, ..);` (one call up to its `;`) answers the merged map
+                if (head0 !== undefined && e.startsWith ('self.extend(' + head0 + ', ') && /^\);(?:\n|$)/.test (whole.slice (balancedCloseIndex (whole, at + r.length + 'self.extend('.length)))) return r + 'self.extend_t(' + e.slice ('self.extend('.length);
                 // the boxed call of a builder typed earlier in this list already answers Dict
                 const b = /^Value::Dict\(self\.(\w+)\(/.exec (e);
                 if (b && fns.indexOf (b[1]) >= 0 && fns.indexOf (b[1]) < fns.indexOf (fn) && e.endsWith ('));') && balancedCloseIndex (e, b[0].length) === e.length - 3) return r + e.slice ('Value::Dict('.length, -2) + ';';
@@ -5402,6 +5408,8 @@ function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BU
         for (const s of starts.reverse ()) {
             let close = balancedCloseIndex (content, content.indexOf ('(', s) + 1);
             if (close >= content.length) continue;
+            const typedHead = rustDictBuilderHeadArg (content, s, close);
+            if (typedHead !== undefined) { content = typedHead; continue; }
             if (content.startsWith ('.await', close + 1)) close += '.await'.length;
             const rest = content.slice (close + 1);
             if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
@@ -5411,6 +5419,37 @@ function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BU
         }
     }
     return content;
+}
+
+// A builder returning its first parameter as is takes that parameter as `Dict` when every caller hands a boxed map
+// (`Value::Dict(x)`, unwrapped) and only the by-name arm hands a `Value` (a non-map comes back unchanged).
+function rustDictBuilderHeadParam (content: string, fn: string, decl: string): string | undefined {
+    const p = /^\n    pub fn \w+\(&self, mut (\w+): Value, /.exec (decl);
+    if (p === null) return undefined;
+    const arm = 'self.' + fn + '(args.get(0).cloned().unwrap_or(crate::Value::Null), ';
+    const head = new RegExp ('(?<![\\w.])self\\.' + fn + '\\(', 'g');
+    let m: RegExpExecArray | null, calls = 0;
+    while ((m = head.exec (content)) !== null) {
+        calls++;
+        if (!content.startsWith ('Value::Dict(', m.index + m[0].length) && !(content.startsWith (arm, m.index) && content.slice (m.index - fn.length - 6, m.index) === '"' + fn + '" => ')) return undefined;
+    }
+    return calls > 0 ? p[1] : undefined;
+}
+// The caller side of rustDictBuilderHeadParam (`s`..`close` is the call); undefined when the head is not typed.
+function rustDictBuilderHeadArg (content: string, s: number, close: number): string | undefined {
+    const name = /^self\.(\w+)\(/.exec (content.slice (s, s + 120));
+    if (name === null || !new RegExp ('\\n    pub fn ' + name[1] + '\\(&self, mut \\w+: crate::value::Dict, ').test (content)) return undefined;
+    const open = s + name[0].length, arg0 = 'args.get(0).cloned().unwrap_or(crate::Value::Null)';
+    if (content.startsWith (arg0, open)) {
+        const rest = content.slice (open + arg0.length, close);
+        return content.slice (0, s) + `match ${arg0} { crate::Value::Dict(__h) => crate::Value::Dict(self.${name[1]}(__h${rest})), other => other }` + content.slice (close + 1);
+    }
+    const inner = balancedCloseIndex (content, open + 'Value::Dict('.length);
+    const tail = content.slice (close + 1);
+    const call = content.slice (s, open) + content.slice (open + 'Value::Dict('.length, inner) + content.slice (inner + 1, close + 1);
+    if (tail.startsWith ('.into_dict()')) return content.slice (0, s) + call + tail.slice ('.into_dict()'.length);
+    if (tail.startsWith ('.into_opt_dict()')) return content.slice (0, s) + 'Some(' + call + ')' + tail.slice ('.into_opt_dict()'.length);
+    return content.slice (0, s) + 'Value::Dict(' + call + ')' + tail;
 }
 
 // Every `safeTrade` caller passes an object literal (`Value::Map(..)`), so it takes and returns `Dict`; a venue
@@ -8417,6 +8456,7 @@ const RUST_DICT_BUILDER_VENUE_FNS: Array<[string, string]> = [
     [ 'set_api_credentials', 'prediction/polymarket' ],
     [ 'derive_api_key', 'prediction/polymarket' ],
     [ 'create_api_key', 'prediction/polymarket' ],
+    [ 'merge_position_break_info', 'xt' ],
 ];
 // hyperliquid signing: `signHash` returns the `{r, s, v}` literal, `signMessage` returns `signHash (..)`, `signL1Action`
 // returns that dict (a Dict local or `signMessage (..)`), so all three return `Dict`; any other return throws.
