@@ -440,6 +440,10 @@ class BaseExchange(SyncExchange):
             on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
+            # copy the nested dicts (like js deepExtend does), otherwise an exchange that sets
+            # options['ws']['options']['headers'] before client() and restores it afterwards
+            # would also wipe the headers of this client, since both would share the same dict
+            ws_options = self.copy_nested_dicts(ws_options)
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
@@ -456,6 +460,13 @@ class BaseExchange(SyncExchange):
             if (httpProxy or httpsProxy):
                 self.clients[url].proxy = httpProxy if httpProxy else httpsProxy
         return self.clients[url]
+
+    @staticmethod
+    def copy_nested_dicts(value):
+        # copies the dict containers only, leaving the leaf values (callables, throttlers, etc) as is
+        if isinstance(value, dict):
+            return {key: Exchange.copy_nested_dicts(item) for key, item in value.items()}
+        return value
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
