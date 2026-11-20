@@ -363,12 +363,12 @@ func (this *Backpack) watchPublicBody(ch chan ccxt.AsyncResult[any], topics any,
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Backpack) WatchPrivateAsync(topics any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Backpack) WatchPrivateAsync(topics any, messageHashes []string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, topics, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchPrivateBody(ch chan ccxt.AsyncResult[any], topics any, messageHashes any, optionalArgs ...any) any {
+func (this *Backpack) watchPrivateBody(ch chan ccxt.AsyncResult[any], topics any, messageHashes []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1053,7 +1053,7 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[stri
 			panic(r1.Err)
 		}
 	}
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		var marketId *string = this.SafeString(this.SafeList(symbolsAndTimeframes, i), 0)
@@ -1120,7 +1120,7 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 			panic(r1.Err)
 		}
 	}
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		var marketId *string = this.SafeString(this.SafeList(symbolsAndTimeframes, i), 0)
@@ -1344,7 +1344,7 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -1410,7 +1410,7 @@ func (this *Backpack) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchTradesForSymbols() requires a non-empty array of symbols"))
 	}
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -1618,7 +1618,7 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
-	var topics []any = []any{}
+	var topics []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "orderbook:"+symbol)
@@ -1711,7 +1711,7 @@ func (this *Backpack) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bo
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
-	var topics []any = []any{}
+	var topics []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+symbol)
@@ -1910,7 +1910,7 @@ func (this *Backpack) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		topics = append(topics, "account.rfqUpdate")
 	}
 
-	r2 := <-this.WatchPrivateAsync(topics, []any{messageHash}, this.Omit(query, "stock"))
+	r2 := <-this.WatchPrivateAsync(topics, []string{messageHash}, this.Omit(query, "stock"))
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1984,7 +1984,7 @@ func (this *Backpack) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 		topics = append(topics, "account.rfqUpdate")
 	}
 
-	r2 := <-this.WatchPrivateAsync(topics, []any{messageHash}, this.Omit(query, "stock"), true)
+	r2 := <-this.WatchPrivateAsync(topics, []string{messageHash}, this.Omit(query, "stock"), true)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -2129,7 +2129,7 @@ func (this *Backpack) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 		}
 	}
 
-	r2 := <-this.WatchPrivateAsync([]any{"account.balanceUpdate"}, []any{"balance"}, this.Omit(query, "stock"))
+	r2 := <-this.WatchPrivateAsync([]any{"account.balanceUpdate"}, []string{"balance"}, this.Omit(query, "stock"))
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -2190,7 +2190,7 @@ func (this *Backpack) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], optiona
 	}
 	query := r.Value
 
-	r1 := <-this.WatchPrivateAsync([]any{"account.balanceUpdate"}, []any{"unsubscribe:balance"}, this.Omit(query, "stock"), true)
+	r1 := <-this.WatchPrivateAsync([]any{"account.balanceUpdate"}, []string{"unsubscribe:balance"}, this.Omit(query, "stock"), true)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2387,7 +2387,7 @@ func (this *Backpack) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var topics []any = []any{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
@@ -2454,7 +2454,7 @@ func (this *Backpack) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optio
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var topics []any = []any{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {

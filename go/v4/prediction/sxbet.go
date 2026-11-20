@@ -404,7 +404,7 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 		return str[max(len(str)-6, 0):]
 	}()
 	var marketSlug string = this.ShortenSlug(outcomeOneName) + "_" + hashSuffix
-	var marketSymbol any = this.SlugToMarketSymbol(eventSlug, marketSlug)
+	var marketSymbol string = this.SlugToMarketSymbol(eventSlug, marketSlug)
 	var status *string = this.SafeStringUpper(raw, "status")
 	var active bool = (status != nil && *status == "ACTIVE")
 	// guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
@@ -418,7 +418,7 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 	var outcomes []any = []any{}
 	for oi := 0; oi < len(outcomeLabels); oi++ {
 		var label *string = ccxt.SafeStringPtr(outcomeLabels[oi])
-		var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, marketSlug, label)
+		var outcomeHandle string = this.SlugToOutcomeSymbol(eventSlug, marketSlug, label)
 		outcomes = append(outcomes, map[string]any{
 			"id": func() any {
 				if oi >= 0 && oi < len(outcomeIds) {
@@ -540,7 +540,7 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		queries = append(queries, tags[i])
 	}
 	var rest map[string]any = this.OmitDict(params, []any{"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"})
-	var rawMarkets any = nil
+	var rawMarkets []any = []any{}
 	if eventId != nil {
 
 		r := <-this.FetchRawMarketsPagedAsync(this.Extend(map[string]any{
@@ -600,19 +600,19 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 	var queriesLength int = len(queries)
 	if queriesLength > 0 {
 		var filtered []any = []any{}
-		var preFilterLength int = ccxt.GetArrayLength(rawMarkets)
+		var preFilterLength int = len(rawMarkets)
 		for i := 0; i < preFilterLength; i++ {
-			if this.MatchesEventQuery(ccxt.GetValue(rawMarkets, i), queries) {
-				filtered = append(filtered, ccxt.GetValue(rawMarkets, i))
+			if this.MatchesEventQuery(rawMarkets[i], queries) {
+				filtered = append(filtered, rawMarkets[i])
 			}
 		}
 		rawMarkets = filtered
 	}
 	var grouped map[string]any = map[string]any{}
 	var order []any = []any{}
-	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var raw any = ccxt.GetValue(rawMarkets, i)
+		var raw any = rawMarkets[i]
 		var sportXeventId *string = this.SafeString(raw, "sportXeventId")
 		if sportXeventId == nil {
 			continue
@@ -1752,13 +1752,14 @@ func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) map[stri
  * @param {int} limit the user-requested limit
  * @returns {int} the limit clamped to at most 100
  */
-func (this *Sxbet) ClampSxbetPerPage(limit any) any {
-	if ccxt.IsEqual(limit, nil) {
+func (this *Sxbet) ClampSxbetPerPage(limit *int64) *int64 {
+	if limit == nil {
 		return limit
 	}
 	var requested int64 = this.ParseToInt(limit)
 	if requested >= 100 {
-		return 100
+		resultValue := int64(100)
+		return &resultValue
 	}
 	return limit
 }
@@ -1786,7 +1787,7 @@ func (this *Sxbet) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	_ = outcome
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1930,7 +1931,7 @@ func (this *Sxbet) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTra
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1993,7 +1994,7 @@ func (this *Sxbet) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 	_ = outcome
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -2354,7 +2355,7 @@ func (this *Sxbet) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	_ = outcome
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params

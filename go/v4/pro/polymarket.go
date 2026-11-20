@@ -393,7 +393,7 @@ func (this *Polymarket) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var messageHashes []any = []any{}
-	var channels []any = []any{}
+	var channels []string = []string{}
 	if symbolsNormalized == nil {
 		messageHashes = append(messageHashes, "tickers")
 		channels = append(channels, "tickers::all")
@@ -490,7 +490,7 @@ func (this *Polymarket) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]cc
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var messageHashes []any = []any{}
-	var channels []any = []any{}
+	var channels []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		messageHashes = append(messageHashes, "bidask:"+*this.SafeString(market, "symbol", ""))

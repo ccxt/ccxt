@@ -367,7 +367,7 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) map[string
 	if (eventSlug != nil) && (slug != nil) && (ccxt.GetIndexOf(slug, eventSlug) == 0) {
 		effectiveEventSlug = nil
 	}
-	var marketSymbol any = this.SlugToMarketSymbol(effectiveEventSlug, slug)
+	var marketSymbol string = this.SlugToMarketSymbol(effectiveEventSlug, slug)
 	var statusEnum *string = this.SafeString(raw, "statusEnum")
 	var active bool = (statusEnum != nil && *statusEnum == "Activated")
 	var resolved bool = (statusEnum != nil && *statusEnum == "Resolved")
@@ -376,11 +376,11 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) map[string
 	var outcomeLabels []any = []any{this.SafeString(raw, "yesLabel", "YES"), this.SafeString(raw, "noLabel", "NO")}
 	var outcomeTokenIds []any = []any{this.SafeString(raw, "yesTokenId"), this.SafeString(raw, "noTokenId")}
 	var outcomes []any = []any{}
-	var resolvedOutcome any = nil
+	var resolvedOutcome *string = nil
 	for i := 0; i < len(outcomeLabels); i++ {
 		var label *string = this.SafeString(outcomeLabels, i)
 		var tokenId *string = this.SafeString(outcomeTokenIds, i)
-		var outcomeHandle any = this.SlugToOutcomeSymbol(effectiveEventSlug, slug, label)
+		var outcomeHandle string = this.SlugToOutcomeSymbol(effectiveEventSlug, slug, label)
 		var winner any = nil
 		var settleFraction any = nil
 		if hasResult {
@@ -392,7 +392,8 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) map[string
 				return 0
 			}()
 			if winner == true {
-				resolvedOutcome = outcomeHandle
+				resolvedOutcomeStr := outcomeHandle
+				resolvedOutcome = &resolvedOutcomeStr
 			}
 		}
 		outcomes = append(outcomes, map[string]any{
@@ -407,7 +408,7 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) map[string
 			"info":           raw,
 		})
 	}
-	var marketResolvedOutcome any = resolvedOutcome
+	var marketResolvedOutcome *string = resolvedOutcome
 	// the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
 	// undefined instead of the epoch, same for the event-level end date
 	var expiryTimestamp *int64 = nil

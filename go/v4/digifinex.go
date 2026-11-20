@@ -5262,12 +5262,12 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol s
 		dataRequest = "data"
 	}
 	var data []any = SafeListTyped(response, dataRequest)
-	var position map[string]any = PositionToMap(this.ParsePosition(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return data[0]
-		}
-		return nil
-	}(), market))
+	var position map[string]any
+	if len(data) > 0 {
+		position = PositionToMap(this.ParsePosition(data[0], market))
+	} else {
+		position = PositionToMap(this.ParsePosition(nil, market))
+	}
 	if marketType != nil && *marketType == "swap" {
 
 		ch <- AsyncResult[Position]{Value: PositionFromMap(position)}
@@ -5880,12 +5880,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 				feeStructure["info"] = []any{}
 				depositWithdrawFees[*code] = feeStructure
 			}
-			var depositWithdrawFee any = func() any {
-				if code == nil {
-					return nil
-				}
-				return depositWithdrawFees[*code]
-			}()
+			var depositWithdrawFee any = depositWithdrawFees[*code]
 			var depositWithdrawInfo any = GetValue(depositWithdrawFee, "info")
 			AppendToArray(&depositWithdrawInfo, entry)
 			var networkId *string = this.SafeString(entry, "chain")

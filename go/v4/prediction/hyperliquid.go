@@ -1964,12 +1964,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			if _, ok := deduped[*oid]; !ok {
 				deduped[*oid] = raw
 			} else {
-				var existingTs *int64 = this.SafeInteger(func() any {
-					if oid == nil {
-						return nil
-					}
-					return deduped[*oid]
-				}(), "statusTimestamp")
+				var existingTs *int64 = this.SafeInteger(deduped[*oid], "statusTimestamp")
 				var currentTs *int64 = this.SafeInteger(raw, "statusTimestamp")
 				if (currentTs != nil) && ((existingTs == nil) || (*currentTs > *existingTs)) {
 					deduped[*oid] = raw

@@ -11616,12 +11616,12 @@ func (this *Htx) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbol
 		return nil
 	}
 	var data []any = SafeListTyped(response, "data")
-	var openInterest map[string]any = OpenInterestToMap(this.ParseOpenInterest(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return data[0]
-		}
-		return nil
-	}(), market))
+	var openInterest map[string]any
+	if len(data) > 0 {
+		openInterest = OpenInterestToMap(this.ParseOpenInterest(data[0], market))
+	} else {
+		openInterest = OpenInterestToMap(this.ParseOpenInterest(nil, market))
+	}
 	openInterest["timestamp"] = timestamp
 	openInterest["datetime"] = this.Iso8601(timestamp)
 

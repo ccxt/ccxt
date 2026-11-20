@@ -4851,9 +4851,9 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 	apiAccess, _ = apiAccessSrc[apiName].(map[string]any)
 	var methodAccess map[string]any = SafeMapTyped(apiAccess, method)
 	var access string = *this.SafeString(methodAccess, path, "public")
-	var endpoint any = *version + "/" + this.ImplodeParams(path, paramsOmitted)
+	var endpoint string = *version + "/" + this.ImplodeParams(path, paramsOmitted)
 	var paramsOmitted2 any = this.Omit(paramsOmitted, this.ExtractParams(path))
-	var query any = endpoint
+	var query string = endpoint
 	var postData string = ""
 	if path == "batchorder" {
 		postData = "json=" + this.Json(paramsOmitted2)
@@ -4863,13 +4863,13 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 		} else {
 			postData = this.Urlencode(paramsOmitted2)
 		}
-		query = Add(query, "?"+postData)
+		query += "?" + postData
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url *string = SafeStringPtr(Add(apiUrl, query))
+	var url string = *apiUrl + query
 	var requestBody *string = func() *string {
 		if path == "batchorder" {
 			retStr := postData
@@ -4880,11 +4880,11 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 	var privateHeaders map[string]any = nil
 	if (apiName == "private") || (access == "private") {
 		this.CheckRequiredCredentials()
-		var auth any = postData + "/api/"
+		var auth string = postData + "/api/"
 		if apiName != "private" {
-			auth = Add(auth, apiName+"/")
+			auth += apiName + "/"
 		}
-		auth = Add(auth, endpoint)                                       // 1
+		auth += endpoint                                                 // 1
 		var hash any = this.Hash(this.Encode(auth), sha256, "binary")    // 2
 		var secret []byte = this.Base64ToBinary(this.Secret)             // 3
 		var signature string = this.Hmac(hash, secret, sha512, "base64") // 4-5

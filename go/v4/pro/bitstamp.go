@@ -145,7 +145,7 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 	var channel string = "diff_order_book_" + *this.SafeString(market, "id", "")
 	var subHash string = "orderbook:" + symbolValue
 
-	r1 := <-this.UnWatchChannelAsync(channel, subHash, "orderbook", []any{symbolValue}, params)
+	r1 := <-this.UnWatchChannelAsync(channel, subHash, "orderbook", []string{symbolValue}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -164,12 +164,12 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Bitstamp) UnWatchChannelAsync(channel string, subHash string, topic string, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitstamp) UnWatchChannelAsync(channel string, subHash string, topic string, symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchChannelBody(ch, channel, subHash, topic, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], channel string, subHash string, topic string, symbols any, optionalArgs ...any) any {
+func (this *Bitstamp) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], channel string, subHash string, topic string, symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -387,7 +387,7 @@ func (this *Bitstamp) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 	var channel string = "live_trades_" + *this.SafeString(market, "id", "")
 	var subHash string = "trades:" + symbolValue
 
-	r1 := <-this.UnWatchChannelAsync(channel, subHash, "trades", []any{symbolValue}, params)
+	r1 := <-this.UnWatchChannelAsync(channel, subHash, "trades", []string{symbolValue}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -659,7 +659,7 @@ func (this *Bitstamp) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 	}
 	var channel string = "private-my_orders_" + *this.SafeString(market, "id", "") + "-" + *userId
 
-	r2 := <-this.UnWatchChannelAsync(channel, channel, "orders", []any{symbolValue}, params)
+	r2 := <-this.UnWatchChannelAsync(channel, channel, "orders", []string{symbolValue}, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -773,7 +773,7 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 	}
 	var channel string = "private-my_trades_" + *this.SafeString(market, "id", "") + "-" + *userId
 
-	r2 := <-this.UnWatchChannelAsync(channel, channel, "myTrades", []any{symbolValue}, params)
+	r2 := <-this.UnWatchChannelAsync(channel, channel, "myTrades", []string{symbolValue}, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}

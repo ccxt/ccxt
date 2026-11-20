@@ -198,7 +198,7 @@ func (this *Whitebit) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-
 func (this *Whitebit) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -210,12 +210,12 @@ func (this *Whitebit) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitValue any = func() any {
-		if limit == nil {
-			return 10
-		}
-		return limit
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = 10
+	} else {
+		limitValue = *limit
+	}
 	messageHashStr := "orderbook" + ":" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var method string = "depth_subscribe"

@@ -552,7 +552,7 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "trades"
 	var marketIds []any = []any{}
-	var subMessageHashes []any = []any{}
+	var subMessageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
@@ -860,7 +860,7 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		}
 	}
 	var name string = "candles"
-	var subMessageHashes []any = []any{}
+	var subMessageHashes []string = []string{}
 	var marketIdsByInterval map[string]any = map[string]any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = symbolsAndTimeframes[i]
@@ -1099,7 +1099,7 @@ func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "book"
 	var marketIds []any = []any{}
-	var subMessageHashes []any = []any{}
+	var subMessageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
@@ -1334,12 +1334,12 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string
 		}
 	}
 }
-func (this *Bitvavo) UnWatchChannelsAsync(topic string, channels []any, subMessageHashes []any, subscriptionArgs map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitvavo) UnWatchChannelsAsync(topic string, channels []any, subMessageHashes []string, subscriptionArgs map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchChannelsBody(ch, topic, channels, subMessageHashes, subscriptionArgs, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic string, channels []any, subMessageHashes []any, subscriptionArgs map[string]any, optionalArgs ...any) any {
+func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic string, channels []any, subMessageHashes []string, subscriptionArgs map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1351,7 +1351,7 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic s
 	}
 	var unsubHashes []any = []any{}
 	for i := 0; i < len(subMessageHashes); i++ {
-		unsubHashes = append(unsubHashes, "unsubscribe:"+*this.SafeString(subMessageHashes, i, ""))
+		unsubHashes = append(unsubHashes, "unsubscribe:"+subMessageHashes[i])
 	}
 	var subscription map[string]any = this.Extend(map[string]any{
 		"topic":            topic,

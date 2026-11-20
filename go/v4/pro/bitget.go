@@ -260,7 +260,7 @@ func (this *Bitget) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchTickers", "uta", false)
 	instType, paramsValue := this.GetInstType("watchTickers", market, uta, paramsUta)
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsList); i++ {
 		var symbol string = symbolsList[i]
 		var marketInner map[string]any = this.Market(symbol)
@@ -542,7 +542,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchBidsAsks", "uta", false)
 	instType, paramsValue := this.GetInstType("watchBidsAsks", market, uta, paramsUta)
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsList); i++ {
 		var symbol string = symbolsList[i]
 		var marketInner map[string]any = this.Market(symbol)
@@ -1136,7 +1136,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		incrementalFeed = (limit != nil && *limit == 50)
 	}
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var paramsCursor map[string]any = paramsUta
 	for i := 0; i < symbolsLength; i++ {
 		var symbol string = symbolsNormalized[i]
@@ -1435,7 +1435,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchTradesForSymbols", "uta", false)
 	var paramsCursor any = paramsUta
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -3339,12 +3339,12 @@ func (this *Bitget) unWatchPrivateBody(ch chan ccxt.AsyncResult[bool], uta any, 
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Bitget) WatchPublicMultipleAsync(uta any, messageHashes any, argsArray []any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bitget) WatchPublicMultipleAsync(uta any, messageHashes []string, argsArray []any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPublicMultipleBody(ch, uta, messageHashes, argsArray, optionalArgs...)
 	return ch
 }
-func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta any, messageHashes any, argsArray []any, optionalArgs ...any) any {
+func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta any, messageHashes []string, argsArray []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

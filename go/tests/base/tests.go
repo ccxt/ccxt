@@ -2161,13 +2161,13 @@ func (this *testMainClass) CountSignificantKeys(exchange ccxt.ICoreExchange, tar
 	// count the keys of `target`, skipping those the other side does not have at
 	// all and which carry no data here (see isVacantValue)
 	var keys []string = ObjectKeys(target)
-	var count any = 0
+	var count int = 0
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		if !EvalTruthy((exchange.InArray(key, otherKeys))) && EvalTruthy(this.IsVacantValue(exchange, GetValue(target, key))) {
 			continue
 		}
-		count = Add(count, 1)
+		count = count + 1
 	}
 	return count
 }

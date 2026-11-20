@@ -846,7 +846,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	if subtitle != nil {
 		subtitleOrTicker = subtitle
 	}
-	var marketSymbol any = this.SlugToMarketSymbol(eventTicker, subtitleOrTicker)
+	var marketSymbol string = this.SlugToMarketSymbol(eventTicker, subtitleOrTicker)
 	// kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
 	// e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
 	// used tick_size (in cents). amount is a whole number of contracts
@@ -865,10 +865,10 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	var outcomeLabels []string = []string{"YES", "NO"}
 	var outcomeIds []any = []any{ticker, ccxt.Add(ticker, "-NO")}
 	var outcomes []any = []any{}
-	var resolvedOutcome any = nil
+	var resolvedOutcome *string = nil
 	for oi := 0; oi < len(outcomeLabels); oi++ {
 		var label string = outcomeLabels[oi]
-		var outcomeHandle any = this.SlugToOutcomeSymbol(eventTicker, subtitleOrTicker, label)
+		var outcomeHandle string = this.SlugToOutcomeSymbol(eventTicker, subtitleOrTicker, label)
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil
 		if resolved && (result != nil) && (result == nil || *result != "") {
@@ -880,7 +880,8 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 				return 0
 			}()
 			if winnerRaw == true {
-				resolvedOutcome = outcomeHandle
+				resolvedOutcomeStr := outcomeHandle
+				resolvedOutcome = &resolvedOutcomeStr
 			}
 		}
 		// effectively-final copies for the object literal below (Java cannot capture a
@@ -920,7 +921,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		})
 	}
 	// effectively-final copy for the market object literal below (reassigned in the loop)
-	var marketResolvedOutcome any = resolvedOutcome
+	var marketResolvedOutcome *string = resolvedOutcome
 	return map[string]any{
 		"id":              ticker,
 		"market":          marketSymbol,
@@ -1433,12 +1434,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 			if (marketTicker == nil) || !(marketTickerInOutcomesByTicker) {
 				continue
 			}
-			var grouped any = func() any {
-				if marketTicker == nil {
-					return nil
-				}
-				return outcomesByTicker[*marketTicker]
-			}()
+			var grouped any = outcomesByTicker[*marketTicker]
 			for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
 				var ticker map[string]any = this.ParsePredictionTicker(raw, ccxt.GetValue(grouped, j))
 				var symbolKey *string = this.SafeString(ticker, "outcome")

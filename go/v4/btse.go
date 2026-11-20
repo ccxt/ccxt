@@ -3673,12 +3673,12 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Btse) RequestWalletHistoryRowsAsync(methodName string, historyTypes any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+func (this *Btse) RequestWalletHistoryRowsAsync(methodName string, historyTypes []string, optionalArgs ...any) <-chan AsyncResult[[]any] {
 	ch := make(chan AsyncResult[[]any], 1)
 	go this.requestWalletHistoryRowsBody(ch, methodName, historyTypes, optionalArgs...)
 	return ch
 }
-func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], methodName string, historyTypes any, optionalArgs ...any) any {
+func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], methodName string, historyTypes []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// the helper always receives a non empty history type list, the list is
@@ -3815,7 +3815,7 @@ func (this *Btse) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []any{"DEPOSIT", "WITHDRAW"}, code, since, limit, params)
+	r := <-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []string{"DEPOSIT", "WITHDRAW"}, code, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -3858,7 +3858,7 @@ func (this *Btse) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.RequestWalletHistoryRowsAsync("fetchDeposits", []any{"DEPOSIT"}, code, since, limit, params)
+	r := <-this.RequestWalletHistoryRowsAsync("fetchDeposits", []string{"DEPOSIT"}, code, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -3901,7 +3901,7 @@ func (this *Btse) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []any{"WITHDRAW"}, code, since, limit, params)
+	r := <-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []string{"WITHDRAW"}, code, since, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}

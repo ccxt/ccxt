@@ -2259,7 +2259,7 @@ func (this *Aster) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	var url string = this.GetPrivateUrl(typeVar)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var messageHash string = "positions"
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true)
 	if symbolsNormalized == nil {

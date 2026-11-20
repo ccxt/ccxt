@@ -2367,7 +2367,7 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 				if marginMode != nil && *marginMode == "isolated" {
 					// isolated margin only allows filtering by symbol3
 					if (symbol != nil) && (market != nil) {
-						messageHash = ccxt.Add(messageHash, "."+*this.SafeString(market, "id", ""))
+						messageHash = prefix + "." + *this.SafeString(market, "id", "")
 						channel = messageHash
 					} else {
 						// subscribe to all
@@ -2387,7 +2387,7 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 		} else if typeVar != nil && *typeVar == "future" {
 			// inverse futures account
 			if currencyCode != nil {
-				messageHash = ccxt.Add(messageHash, "."+*this.SafeString(currencyCode, "id", ""))
+				messageHash = prefix + "." + *this.SafeString(currencyCode, "id", "")
 				channel = messageHash
 			} else {
 				// subscribe to all
@@ -2396,7 +2396,7 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 		} else {
 			// inverse swaps account
 			if market != nil {
-				messageHash = ccxt.Add(messageHash, "."+*this.SafeString(market, "id", ""))
+				messageHash = prefix + "." + *this.SafeString(market, "id", "")
 				channel = messageHash
 			} else {
 				// subscribe to all

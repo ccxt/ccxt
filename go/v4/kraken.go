@@ -1092,7 +1092,11 @@ func (this *Kraken) SafeCurrencyCode(currencyId any, optionalArgs ...any) *strin
 		var parts []string = Split(currencyId, ".")
 		var firstPart *string = this.SafeString(parts, 0)
 		var secondPart *string = this.SafeString(parts, 1)
-		return SafeStringPtr(Add(Add(this.Exchange.SafeCurrencyCode(firstPart, currency), "."), secondPart))
+		if retPiece := this.Exchange.SafeCurrencyCode(firstPart, currency); retPiece != nil && secondPart != nil {
+			retStr := *retPiece + "." + *secondPart
+			return &retStr
+		}
+		return nil
 	}
 	return SafeStringPtr(this.Exchange.SafeCurrencyCode(currencyId, currency))
 }
@@ -1704,12 +1708,12 @@ func (this *Kraken) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(items, currency, since, limit))}
 	return nil
 }
-func (this *Kraken) FetchLedgerEntriesByIdsAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry] {
+func (this *Kraken) FetchLedgerEntriesByIdsAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry] {
 	ch := make(chan AsyncResult[[]LedgerEntry], 1)
 	go this.fetchLedgerEntriesByIdsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[[]LedgerEntry], ids any, optionalArgs ...any) any {
+func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[[]LedgerEntry], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// https://www.kraken.com/features/api#query-ledgers
@@ -1724,7 +1728,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[[]LedgerEntr
 			panic(r.Err)
 		}
 	}
-	var idsValue string = Join(ids, ",")
+	var idsValue string = strings.Join(ids, ",")
 	var request map[string]any = this.Extend(map[string]any{
 		"id": idsValue,
 	}, params)
@@ -1775,7 +1779,7 @@ func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[LedgerEntry], id st
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.FetchLedgerEntriesByIdsAsync([]any{id}, code, params)
+	r := <-this.FetchLedgerEntriesByIdsAsync([]string{id}, code, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}

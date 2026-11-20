@@ -940,7 +940,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	if this.IsEmpty(symbolsNormalized) {
 		messageHashes = append(messageHashes, "myLiquidations")
 	} else {

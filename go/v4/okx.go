@@ -10100,12 +10100,7 @@ func (this *Okx) ParseBorrowRateHistories(response []any, codes any, since any, 
 			var borrowRateStructure map[string]any = this.ParseBorrowRate(item)
 			// GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
 			borrowRateStructure["period"] = 31536000000
-			var borrrowRateCode any = func() any {
-				if code == nil {
-					return nil
-				}
-				return borrowRateHistories[*code]
-			}()
+			var borrrowRateCode any = borrowRateHistories[*code]
 			AppendToArray(&borrrowRateCode, borrowRateStructure)
 		}
 	}
@@ -10919,12 +10914,11 @@ func (this *Okx) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbol
 	//
 	var data []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return data[0]
-		}
-		return nil
-	}(), market)}
+	if len(data) > 0 {
+		ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(data[0], market)}
+	} else {
+		ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(nil, market)}
+	}
 	return nil
 }
 

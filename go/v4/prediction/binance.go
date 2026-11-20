@@ -827,7 +827,7 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) map[string]an
 	var vendor *string = this.SafeString(rawTopic, "vendor")
 	var collateral *string = this.SafeString(rawTopic, "collateral", "USDT")
 	var title *string = this.SafeString(rawMarket, "title", marketId)
-	var marketSymbol any = this.SlugToMarketSymbol(topicSlug, title)
+	var marketSymbol string = this.SlugToMarketSymbol(topicSlug, title)
 	var tradingStatus *string = this.SafeString(rawMarket, "tradingStatus")
 	var status *string = this.SafeString(rawMarket, "status")
 	var active bool = (tradingStatus != nil && *tradingStatus == "OPEN")
@@ -854,7 +854,7 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) map[string]an
 		var rawOutcome map[string]any = ccxt.SafeMapTyped(rawOutcomes, oi)
 		var label *string = this.SafeStringUpper(rawOutcome, "name")
 		var tokenId *string = this.SafeString(rawOutcome, "tokenId")
-		var outcomeHandle any = ccxt.Add(ccxt.Add(marketSymbol, ":"), label)
+		var outcomeHandle any = ccxt.Add(marketSymbol+":", label)
 		var price *string = this.SafeString(rawOutcome, "price")
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil

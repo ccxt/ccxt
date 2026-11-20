@@ -11599,12 +11599,12 @@ func (this *Bybit) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, o
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTyped(result, "list")
-	var greeks map[string]any = GreeksToMap(this.ParseGreeks(func() any {
-		if 0 >= 0 && 0 < len(data) {
-			return data[0]
-		}
-		return nil
-	}(), market))
+	var greeks map[string]any
+	if len(data) > 0 {
+		greeks = GreeksToMap(this.ParseGreeks(data[0], market))
+	} else {
+		greeks = GreeksToMap(this.ParseGreeks(nil, market))
+	}
 
 	ch <- AsyncResult[Greeks]{Value: GreeksFromMap(this.Extend(greeks, map[string]any{
 		"timestamp": timestamp,

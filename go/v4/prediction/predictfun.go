@@ -411,7 +411,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if this.Markets == nil {
 		this.Markets = map[string]any{}
 	}
-	var rawTopics any = []any{}
+	var rawTopics []any = []any{}
 	if slug != nil {
 
 		r1 := <-this.PredictfunGetV1CategoriesSlug(this.Extend(map[string]any{
@@ -619,7 +619,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		//
 		var data any = this.SafeList(rawTopicsResponse, "data", []any{})
 		rawTopics = this.ArrayConcat(rawTopics, data)
-		var topicsLength int = ccxt.GetArrayLength(rawTopics)
+		var topicsLength int = len(rawTopics)
 		for fetchCap != nil && int64(topicsLength) < *fetchCap {
 			var nextPageToken *string = this.SafeString(rawTopicsResponse, "cursor")
 			if nextPageToken == nil {
@@ -634,16 +634,16 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 			rawTopicsResponse = r4.Raw
 			data = this.SafeList(rawTopicsResponse, "data", []any{})
 			rawTopics = this.ArrayConcat(rawTopics, data)
-			topicsLength = ccxt.GetArrayLength(rawTopics)
+			topicsLength = len(rawTopics)
 		}
 		if fetchCap == nil || int64(topicsLength) > *fetchCap {
 			rawTopics = this.ArraySlice(rawTopics, 0, fetchCap)
 		}
 	}
-	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
+	var rawTopicsLength int = len(rawTopics)
 	var result []any = []any{}
 	for i := 0; i < rawTopicsLength; i++ {
-		var parsedEvent map[string]any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
+		var parsedEvent map[string]any = this.ParseEvent(rawTopics[i])
 		result = append(result, parsedEvent)
 		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var parsedMarketsLength int = len(parsedMarkets)
@@ -812,12 +812,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 				if _, ok := orphanMarkets[*marketSlug]; ok {
 					// push through a local and write the slice back - the go transpiler's
 					// ccxt.AppendToArray reassigns only a local copy of a map-stored array
-					var bucket any = func() any {
-						if marketSlug == nil {
-							return nil
-						}
-						return orphanMarkets[*marketSlug]
-					}()
+					var bucket any = orphanMarkets[*marketSlug]
 					ccxt.AppendToArray(&bucket, rawMarket)
 					ccxt.AddElementToObject(orphanMarkets, marketSlug, bucket)
 				} else {
@@ -1265,7 +1260,7 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string
 	var topicMarkets []any = ccxt.SafeListTyped(rawTopic, "markets")
 	var marketCount int = len(topicMarkets)
 	var symbolTitle any = this.TitleForMarketSymbol(topicSlug, title, marketCount)
-	var marketSymbol any = this.SlugToMarketSymbol(topicSlug, symbolTitle)
+	var marketSymbol string = this.SlugToMarketSymbol(topicSlug, symbolTitle)
 	var tradingStatus *string = this.SafeString(rawMarket, "tradingStatus")
 	var status *string = this.SafeString(rawMarket, "status")
 	var active bool = (tradingStatus != nil && *tradingStatus == "OPEN")
@@ -1293,7 +1288,7 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string
 		var rawLabel *string = this.SafeStringUpper(rawOutcome, "name")
 		var label any = this.StripPriceFormatting(rawLabel)
 		var tokenId *string = this.SafeString(rawOutcome, "onChainId")
-		var outcomeHandle any = ccxt.Add(ccxt.Add(marketSymbol, ":"), label)
+		var outcomeHandle any = ccxt.Add(marketSymbol+":", label)
 		var winner any = nil
 		var outcomeStatus *string = this.SafeString(rawOutcome, "status")
 		var settleFractionRaw any = nil

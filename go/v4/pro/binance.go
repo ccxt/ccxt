@@ -452,7 +452,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]
 		}
 	}
 	var subscriptionHashes []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var streamHash string = "liquidations"
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	if this.IsEmpty(symbolsNormalized) {
@@ -741,7 +741,7 @@ func (this *Binance) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
-	var messageHashes []any = []any{"myLiquidations"}
+	var messageHashes []string = []string{"myLiquidations"}
 	if !this.IsEmpty(symbolsNormalized) {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
@@ -973,7 +973,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 		watchOrderBookRate = this.NumberToString(500)
 	}
 	var subParams []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var subscribeHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -1635,7 +1635,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 		}
 		typeVar = &typeVarStr2
 	}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var subscribeHashes []any = []any{}
 	var subParams []any = []any{}
 	if isOption != nil && *isOption == true {
@@ -2298,7 +2298,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	timezone, paramsTimezone := this.HandleParamString(paramsChannel, "timezone")
 	var isUtc8 bool = (timezone != nil) && ((timezone != nil && *timezone == "+08:00") || ccxt.Precise.StringEq(timezone, "8"))
 	var rawHashes []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var subscribeHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var symAndTf any = symbolsAndTimeframes[i]
@@ -5069,6 +5069,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
 		entry["info"] = message
 	}
+	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
 	var event *string = this.SafeString(message, "e")
 	// balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
 	var balanceMessage map[string]any = this.SafeDictMap(message, "a", message)
@@ -5077,8 +5078,8 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		var delta *string = this.SafeString(message, "d")
-		if (code != nil) && (ccxt.InOp(this.Balance[accountType], code)) {
-			var previousValue any = this.SafeValue(ccxt.GetValue(this.Balance[accountType], code), "free")
+		if (code != nil) && (ccxt.InOp(balance, code)) {
+			var previousValue any = this.SafeValue(balance[*code], "free")
 			if !ccxt.IsString(previousValue) {
 				previousValue = ccxt.DerefScalar(this.NumberToString(previousValue))
 			}
@@ -5087,9 +5088,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["free"] = delta
 		}
 		if code != nil {
-			if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
+			balance[*code] = account
 		}
 	} else {
 		var B []any = ccxt.SafeListTyped(balanceMessage, "B")
@@ -5105,28 +5104,22 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			account["used"] = this.SafeString(entry, "l")
 			account["total"] = this.SafeString(entry, wallet)
 			if code != nil {
-				if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-					entry[*code] = account
-				}
+				balance[*code] = account
 			}
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(balanceMessage, "E")
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		if timestamp != nil {
-			entry["timestamp"] = *timestamp
-		} else {
-			entry["timestamp"] = nil
-		}
+	if timestamp != nil {
+		balance["timestamp"] = *timestamp
+	} else {
+		balance["timestamp"] = nil
 	}
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-			entry["datetime"] = *ptrValue
-		} else {
-			entry["datetime"] = nil
-		}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		balance["datetime"] = *ptrValue
+	} else {
+		balance["datetime"] = nil
 	}
-	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
+	this.Balance[accountType] = this.SafeBalance(balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
 }
 func (this *Binance) GetAccountTypeFromSubscriptions(subscriptions []string) string {
@@ -7493,9 +7486,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes569432 := order["fees"]
-							ccxt.AppendToArray(&retRes569432, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes569432)
+							retRes569532 := order["fees"]
+							ccxt.AppendToArray(&retRes569532, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes569532)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

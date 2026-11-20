@@ -892,8 +892,8 @@ func (this *Myriad) ParsePredictionPosition(position any, optionalArgs ...any) a
 	_ = market
 	var marketSlug *string = this.SafeString(position, "marketSlug", "")
 	var outcomeTitle *string = this.SafeString(position, "outcomeTitle", "")
-	var outcome any = this.SlugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle)
-	var marketSymbol any = this.SlugToMarketSymbol(marketSlug, marketSlug)
+	var outcome string = this.SlugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle)
+	var marketSymbol string = this.SlugToMarketSymbol(marketSlug, marketSlug)
 	var outcomeId *string = this.SafeString(position, "outcomeId")
 	var id string = *this.SafeString(position, "networkId", "") + ":" + *this.SafeString(position, "marketId", "") + "/" + *this.SafeString(position, "outcomeId", "")
 	var shares *float64 = this.SafeNumber(position, "shares")
@@ -1981,19 +1981,19 @@ func (this *Myriad) ParseAmmEventToOrder(trade any, optionalArgs ...any) any {
 	var marketSlug *string = this.SafeString(trade, "marketSlug", marketId)
 	var outcomeTitle *string = this.SafeString(trade, "outcomeTitle", rawOutcomeId)
 	var outcomeValue *string = this.SafeString(outcomeObj, "outcome")
-	var outcome any = func() any {
-		if outcomeValue != nil {
-			return outcomeValue
-		}
-		return this.SlugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle)
-	}()
+	var outcome string
+	if outcomeValue != nil {
+		outcome = *outcomeValue
+	} else {
+		outcome = this.SlugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle)
+	}
 	var marketSymbolValue *string = this.SafeString(outcomeObj, "market")
-	var marketSymbol any = func() any {
-		if marketSymbolValue != nil {
-			return marketSymbolValue
-		}
-		return this.SlugToMarketSymbol(marketSlug, marketSlug)
-	}()
+	var marketSymbol string
+	if marketSymbolValue != nil {
+		marketSymbol = *marketSymbolValue
+	} else {
+		marketSymbol = this.SlugToMarketSymbol(marketSlug, marketSlug)
+	}
 	var label *string = this.SafeString(outcomeObj, "label")
 	if label == nil {
 		label = outcomeTitle
@@ -3047,12 +3047,12 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]a
 	var voided *bool = this.SafeBool(raw, "voided", false)
 	var hasResolution bool = (resolvedOutcomeId == nil || *resolvedOutcomeId != "-1") && (resolvedOutcomeId != nil) && (resolvedOutcomeId == nil || *resolvedOutcomeId != "")
 	var marketResolved bool = hasResolution || (voided != nil && *voided)
-	var resolvedOutcome any = nil
+	var resolvedOutcome *string = nil
 	var volume24h *float64 = this.SafeNumber(raw, "volume24h")
 	// qualify the handle only with a real event slug (when passed); myriad market slugs are
 	// globally unique, so do NOT fall back to networkId — that would prefix every handle.
 	// eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
-	var marketSymbol any = this.SlugToMarketSymbol(eventSlug, slug)
+	var marketSymbol string = this.SlugToMarketSymbol(eventSlug, slug)
 	// the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
 	var tokenObj map[string]any = ccxt.SafeMapTyped(raw, "token")
 	var tokenAddress *string = this.SafeString(tokenObj, "address")
@@ -3070,7 +3070,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]a
 		var outcomeId *string = this.SafeString(outcome, "outcomeId", this.SafeString(outcome, "id", strconv.Itoa(i)))
 		var outcomeLabel *string = this.SafeString(outcome, "label", this.SafeString(outcome, "title", outcomeId))
 		var price *float64 = this.SafeNumber(outcome, "price")
-		var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, slug, outcomeLabel)
+		var outcomeHandle string = this.SlugToOutcomeSymbol(eventSlug, slug, outcomeLabel)
 		var outcomeCompositeId *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(networkId, ":"), marketId), "/"), outcomeId))
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil
@@ -3083,7 +3083,8 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]a
 				return 0
 			}()
 			if winnerRaw == true {
-				resolvedOutcome = outcomeHandle
+				resolvedOutcomeStr := outcomeHandle
+				resolvedOutcome = &resolvedOutcomeStr
 			}
 		} else if voided != nil && *voided {
 			winnerRaw = false
@@ -3127,7 +3128,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]a
 	}
 	var outcomesLength int = len(outcomes)
 	// effectively-final copy for the market object literal below (reassigned in the loop)
-	var marketResolvedOutcome any = resolvedOutcome
+	var marketResolvedOutcome *string = resolvedOutcome
 	var marketTypeValue string
 	if outcomesLength > 2 {
 		marketTypeValue = "categorical"

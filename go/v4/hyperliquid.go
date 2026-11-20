@@ -926,12 +926,12 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 		// Get the part after the decimal separator
 		var decimalPart *string = this.SafeString(priceSplitted, 1, "")
 		// Count the number of leading zeros in the decimal part
-		var leadingZeros int64 = 0
-		for (leadingZeros <= int64(len(*decimalPart))) && (GetValue(decimalPart, leadingZeros) == "0") {
+		var leadingZeros int = 0
+		for (leadingZeros <= len(*decimalPart)) && (GetValue(decimalPart, leadingZeros) == "0") {
 			leadingZeros = leadingZeros + 1
 		}
 		// Calculate price precision based on leading zeros and significant digits
-		pricePrecision = leadingZeros + int64(significantDigits)
+		pricePrecision = leadingZeros + significantDigits
 		// Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
 		pricePrecision = mathMin(decimalsLeft, pricePrecision)
 	} else {
@@ -4496,12 +4496,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalA
 			if _, ok := deduplicatedByOid[*oid]; !ok {
 				deduplicatedByOid[*oid] = rawOrder
 			} else {
-				var existingTimestamp *int64 = this.SafeInteger(func() any {
-					if oid == nil {
-						return nil
-					}
-					return deduplicatedByOid[*oid]
-				}(), "statusTimestamp")
+				var existingTimestamp *int64 = this.SafeInteger(deduplicatedByOid[*oid], "statusTimestamp")
 				var currentTimestamp *int64 = this.SafeInteger(rawOrder, "statusTimestamp")
 				if (currentTimestamp != nil) && ((existingTimestamp == nil) || (*currentTimestamp > *existingTimestamp)) {
 					deduplicatedByOid[*oid] = rawOrder

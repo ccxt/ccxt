@@ -843,7 +843,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	var subMessageHash string = "orderbook" + ":" + symbolValue
 	var messageHash string = "unsubscribe:orderbook" + ":" + symbolValue
 
-	r1 := <-this.UnSubscribePublicMultipleAsync(&url, "orderbook", []any{symbolValue}, []any{messageHash}, []any{subMessageHash}, payload, channel, paramsInterval)
+	r1 := <-this.UnSubscribePublicMultipleAsync(&url, "orderbook", []string{symbolValue}, []string{messageHash}, []string{subMessageHash}, payload, channel, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1271,7 +1271,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan ccxt.AsyncResult[
 	if isWatchTickers {
 		prefix = "ticker"
 	}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, prefix+":"+symbol)
@@ -1423,7 +1423,7 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	var market map[string]any = this.Market(symbolsNormalizedElem98236)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".trades"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "trades:"+symbol)
@@ -1480,8 +1480,8 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	var market map[string]any = this.Market(symbolsNormalizedElem101536)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".trades"
-	var subMessageHashes []any = []any{}
-	var messageHashes []any = []any{}
+	var subMessageHashes []string = []string{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		subMessageHashes = append(subMessageHashes, "trades:"+symbol)
@@ -3289,12 +3289,12 @@ func (this *Gate) subscribePublicBody(ch chan ccxt.AsyncResult[any], url *string
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Gate) SubscribePublicMultipleAsync(url *string, messageHashes any, payload any, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Gate) SubscribePublicMultipleAsync(url *string, messageHashes []string, payload any, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicMultipleBody(ch, url, messageHashes, payload, channel, optionalArgs...)
 	return ch
 }
-func (this *Gate) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[any], url *string, messageHashes any, payload any, channel string, optionalArgs ...any) any {
+func (this *Gate) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[any], url *string, messageHashes []string, payload any, channel string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3317,12 +3317,12 @@ func (this *Gate) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[any], url
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Gate) UnSubscribePublicMultipleAsync(url *string, topic string, symbols any, messageHashes any, subMessageHashes any, payload any, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Gate) UnSubscribePublicMultipleAsync(url *string, topic string, symbols []string, messageHashes []string, subMessageHashes []string, payload any, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribePublicMultipleBody(ch, url, topic, symbols, messageHashes, subMessageHashes, payload, channel, optionalArgs...)
 	return ch
 }
-func (this *Gate) unSubscribePublicMultipleBody(ch chan ccxt.AsyncResult[bool], url *string, topic string, symbols any, messageHashes any, subMessageHashes any, payload any, channel string, optionalArgs ...any) any {
+func (this *Gate) unSubscribePublicMultipleBody(ch chan ccxt.AsyncResult[bool], url *string, topic string, symbols []string, messageHashes []string, subMessageHashes []string, payload any, channel string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

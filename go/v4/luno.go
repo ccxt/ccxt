@@ -799,24 +799,9 @@ func (this *Luno) ParseBalance(response map[string]any) map[string]any {
 			_, codeInResult = result[*code]
 		}
 		if (code != nil) && (codeInResult) {
-			result[*code] = this.Extend(func() any {
-				if code == nil {
-					return nil
-				}
-				return result[*code]
-			}(), map[string]any{
-				"used": Precise.StringAdd(this.SafeString(func() any {
-					if code == nil {
-						return nil
-					}
-					return result[*code]
-				}(), "used"), reservedUnconfirmed),
-				"total": Precise.StringAdd(this.SafeString(func() any {
-					if code == nil {
-						return nil
-					}
-					return result[*code]
-				}(), "total"), balanceUnconfirmed),
+			result[*code] = this.Extend(result[*code], map[string]any{
+				"used":  Precise.StringAdd(this.SafeString(result[*code], "used"), reservedUnconfirmed),
+				"total": Precise.StringAdd(this.SafeString(result[*code], "total"), balanceUnconfirmed),
 			})
 		} else if code != nil {
 			var account map[string]any = this.Account()

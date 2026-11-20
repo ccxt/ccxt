@@ -3141,23 +3141,23 @@ func (this *BaseExchange) CreateCcxtTradeId(optionalArgs ...any) any {
 	_ = price
 	var takerOrMaker *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = takerOrMaker
-	var id any = nil
 	if timestamp != nil {
-		id = this.NumberToString(timestamp)
+		var id string = *this.NumberToString(timestamp)
 		if side != nil {
-			id = Add(id, "-"+*side)
+			id += "-" + *side
 		}
 		if amount != nil {
-			id = Add(id, "-"+*amount)
+			id += "-" + *amount
 		}
 		if price != nil {
-			id = Add(id, "-"+*price)
+			id += "-" + *price
 		}
 		if takerOrMaker != nil {
-			id = Add(id, "-"+*takerOrMaker)
+			id += "-" + *takerOrMaker
 		}
+		return id
 	}
-	return id
+	return nil
 }
 func (this *BaseExchange) ParsedFeeAndFees(container any) any {
 	var fee any = this.SafeDict(container, "fee")
@@ -7940,9 +7940,9 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					response := r.Value
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
-						var backwardMessage any = "Dynamic pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
+						var backwardMessage string = "Dynamic pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
 						if paginationTimestamp != nil {
-							backwardMessage = Add(backwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
+							backwardMessage += " timestamp " + *this.NumberToString(paginationTimestamp)
 						}
 						this.Log(backwardMessage)
 					}
@@ -7972,9 +7972,9 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					response := r1.Value
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
-						var forwardMessage any = "Dynamic pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
+						var forwardMessage string = "Dynamic pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
 						if paginationTimestamp != nil {
-							forwardMessage = Add(forwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
+							forwardMessage += " timestamp " + *this.NumberToString(paginationTimestamp)
 						}
 						this.Log(forwardMessage)
 					}

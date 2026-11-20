@@ -137,7 +137,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
 	var url any = this.GetWsPublicUrl()
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -312,7 +312,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	var url any = this.GetWsPublicUrl()
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []string = []string{}
 	var limitValue int64
 	if limit == nil {
@@ -338,12 +338,12 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Apex) WatchTopicsAsync(url any, messageHashes any, topics any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Apex) WatchTopicsAsync(url any, messageHashes any, topics []string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTopicsBody(ch, url, messageHashes, topics, optionalArgs...)
 	return ch
 }
-func (this *Apex) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, topics any, optionalArgs ...any) any {
+func (this *Apex) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, topics []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// apex's server rejects a subscribe whose args include any
@@ -355,9 +355,9 @@ func (this *Apex) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messag
 	_ = params
 	var client ccxt.ClientInterface = this.Client(url)
 	var newTopics []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(topics); i++ {
+	for i := 0; i < len(topics); i++ {
 		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(messageHashes, i))) {
-			newTopics = append(newTopics, ccxt.GetValue(topics, i))
+			newTopics = append(newTopics, topics[i])
 		}
 	}
 	var newTopicsLength int = len(newTopics)
@@ -543,7 +543,7 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []string = []string{}
 	var url any = this.GetWsPublicUrl()
-	var topics []any = []any{}
+	var topics []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -706,7 +706,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 		}
 	}
 	var url any = this.GetWsPublicUrl()
-	var rawHashes []any = []any{}
+	var rawHashes []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
@@ -864,7 +864,7 @@ func (this *Apex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 		panic(r1.Err)
 	}
 
-	r2 := <-this.WatchTopicsAsync(url, []any{messageHash}, []any{"myTrades"}, params)
+	r2 := <-this.WatchTopicsAsync(url, []any{messageHash}, []string{"myTrades"}, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}

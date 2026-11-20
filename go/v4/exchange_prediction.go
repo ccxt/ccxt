@@ -608,7 +608,7 @@ func (this *PredictionExchange) ShortenSlug(slug any) string {
 	var joined string = strings.Join(parts, "_")
 	return strings.ToUpper(joined)
 }
-func (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any) any {
+func (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any) string {
 	// eventSlug is nullable (Str): markets without a parent event (e.g. myriad's 1:1 markets)
 	// pass undefined — the body already collapses an absent event to just the market part.
 	// a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
@@ -625,7 +625,7 @@ func (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any
 	}
 	return eventPart + "_" + marketPart
 }
-func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug any, outcome any) any {
+func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug any, outcome any) string {
 	// build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
 	// — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
 	// the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
@@ -658,7 +658,7 @@ func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug an
 		// a label with no alphanumerics at all (unrealistic, but keep the :LABEL contract)
 		label = upper
 	}
-	return Add(Add(this.SlugToMarketSymbol(eventSlug, marketSlug), ":"), label)
+	return this.SlugToMarketSymbol(eventSlug, marketSlug) + ":" + label
 }
 func (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	// prediction market rows carry only the unified `market` handle — `symbol` is

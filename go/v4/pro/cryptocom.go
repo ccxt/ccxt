@@ -201,7 +201,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []any = []any{}
 	var limitResolved any = 50
 	if (limit != nil) && (limit == nil || *limit != 0) {
@@ -267,7 +267,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	var limit int64 = *this.SafeInteger(params, "limit", 50)

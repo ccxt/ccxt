@@ -590,8 +590,8 @@ func (this *Limitless) ParseMarket(raw any) map[string]any {
 	// resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
 	var winningOutcomeIndex *int64 = this.SafeInteger(raw, "winningOutcomeIndex")
 	var marketResolved bool = (winningOutcomeIndex != nil)
-	var resolvedOutcome any = nil
-	var marketSymbol any = this.SlugToMarketSymbol(groupId, slug)
+	var resolvedOutcome *string = nil
+	var marketSymbol string = this.SlugToMarketSymbol(groupId, slug)
 	// amount precision comes from the collateral token decimals (USDC, 6); limitless does not
 	// expose a price tick, so 0.001 is the platform convention
 	var collateralToken map[string]any = ccxt.SafeMapTyped(raw, "collateralToken")
@@ -612,7 +612,7 @@ func (this *Limitless) ParseMarket(raw any) map[string]any {
 		var outcomeLabel string = tokenEntries[i]
 		var tokenData any = tokens[outcomeLabel]
 		var tokenId any = tokenData
-		var outcomeHandle any = this.SlugToOutcomeSymbol(groupId, slug, outcomeLabel)
+		var outcomeHandle string = this.SlugToOutcomeSymbol(groupId, slug, outcomeLabel)
 		// winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
 		// limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
 		// languages (Go randomizes map iteration), so map the leg to its canonical index by
@@ -635,7 +635,8 @@ func (this *Limitless) ParseMarket(raw any) map[string]any {
 				return 0
 			}()
 			if winnerRaw == true {
-				resolvedOutcome = outcomeHandle
+				resolvedOutcomeStr := outcomeHandle
+				resolvedOutcome = &resolvedOutcomeStr
 			}
 		}
 		// effectively-final copies for the object literal below (Java cannot capture a
@@ -663,7 +664,7 @@ func (this *Limitless) ParseMarket(raw any) map[string]any {
 	}
 	var outcomesLength int = len(outcomes)
 	// effectively-final copy for the market object literal below (reassigned in the loop)
-	var marketResolvedOutcome any = resolvedOutcome
+	var marketResolvedOutcome *string = resolvedOutcome
 	var marketTypeValue string
 	if outcomesLength > 2 {
 		marketTypeValue = "categorical"

@@ -1057,7 +1057,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 		var closed *bool = this.SafeBool(market, "closed", false)
 		// resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
 		var marketResolved bool = (closed != nil && *closed) || (this.SafeStringLower(market, "umaResolutionStatus") != nil && *this.SafeStringLower(market, "umaResolutionStatus") == "resolved")
-		var resolvedOutcome any = nil
+		var resolvedOutcome *string = nil
 		// gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
 		var tickSize *float64 = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
 		// real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
@@ -1099,7 +1099,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 			continue
 		}
 		// ccxt.Market outcome (no outcome suffix)
-		var marketSymbol any = this.SlugToMarketSymbol(eventSlug, marketSlug)
+		var marketSymbol string = this.SlugToMarketSymbol(eventSlug, marketSlug)
 		// Build outcomes array
 		var outcomes []any = []any{}
 		for oi := 0; oi < ccxt.GetArrayLength(outcomeLabels); oi++ {
@@ -1109,7 +1109,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 			if (clobTokenId == nil) || (clobTokenId == "") {
 				continue
 			}
-			var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel)
+			var outcomeHandle string = this.SlugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel)
 			var winnerRaw any = nil
 			var settleFractionRaw any = nil
 			if marketResolved && (outcomePrice != nil) {
@@ -1120,7 +1120,8 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 				if *outcomePrice >= 0.99 {
 					winnerRaw = true
 					settleFractionRaw = 1
-					resolvedOutcome = outcomeHandle
+					resolvedOutcomeStr := outcomeHandle
+					resolvedOutcome = &resolvedOutcomeStr
 				} else if 0.01 >= *outcomePrice {
 					winnerRaw = false
 					settleFractionRaw = 0
@@ -1160,7 +1161,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 			marketType = "binary"
 		}
 		// effectively-final copy for the market object literal below (reassigned in the loop)
-		var marketResolvedOutcome any = resolvedOutcome
+		var marketResolvedOutcome *string = resolvedOutcome
 		result = append(result, map[string]any{
 			"id":              conditionId,
 			"market":          marketSymbol,
@@ -1590,12 +1591,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 			if (tokenId == nil) || !(tokenIdInOutcomesByTokenId) {
 				continue
 			}
-			var outcomeObj any = func() any {
-				if tokenId == nil {
-					return nil
-				}
-				return outcomesByTokenId[*tokenId]
-			}()
+			var outcomeObj any = outcomesByTokenId[*tokenId]
 			var mid *string = this.SafeString(midpoints, tokenId)
 			var tickerInput map[string]any = map[string]any{
 				"midpoint": map[string]any{
