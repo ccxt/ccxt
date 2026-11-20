@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Cex {
                 "handle_ohlcv24" => self.handle_ohlcv24(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "pair_to_symbol" => self.pair_to_symbol(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_ws_old_trade" => Value::Dict(self.parse_ws_old_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()).map_or(crate::Value::Null, crate::Value::Dict),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
@@ -133,7 +133,6 @@ impl Cex {
             "handle_transaction" => { self.handle_transaction(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "pair_to_symbol" => self.pair_to_symbol(args.get(0).copied().and_then(crate::Value::as_text).as_deref()),
             "parse_ws_old_trade" => Value::Dict(self.parse_ws_old_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_order_update" => self.parse_ws_order_update(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "request_id" => crate::Value::from(self.request_id()),
@@ -1127,43 +1126,44 @@ impl Cex {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let ordersBySymbol: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.clone()));
-        let mut order: Value = self.safe_value(&ordersBySymbol, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
-        if (order == Value::Null) {
+        let mut order: Option<crate::value::Dict> = self.safe_dict_o(&ordersBySymbol, orderId.map(Value::from).unwrap_or(Value::Null));
+        if (order.is_none()) {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             order = self.parse_ws_order_update(&data, Some(&market));
         }
-        add_element_to_object(&mut order, &Value::Str("remaining".into()), remains.map(Value::from).unwrap_or(Value::Null));
+        if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("remaining".into(), remains.map(Value::from).unwrap_or(Value::Null)); }
         let canceled: bool = self.safe_bool_k_opt(&data, "cancel", &[Value::Bool(false)]).unwrap_or(false);
         if canceled {
-            add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
+            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("canceled".into())); }
         }
         if isTransaction {
-            add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("closed".into()));
+            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("closed".into())); }
         }
         let fee: Option<f64> = self.safe_number_k(&data, "fee", &[]).as_f64();
         if (fee.is_some()) {
-            add_element_to_object(&mut order, &Value::Str("fee".into()), Value::Map({
+            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::from(fee));
         m.insert("currency".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("rate".to_string(), Value::Null);
     m
-}));
+})); }
         }
         let timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
-        add_element_to_object(&mut order, &Value::Str("timestamp".into()), Value::from(timestamp));
-        add_element_to_object(&mut order, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(timestamp)); }
         // a fresh map copy: the cached entry is untyped
         let __ws_arg_0 = self.extend(order, &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]);
-        order = Value::Dict(self.safe_order(__ws_arg_0, None));
-        self.orders.append(order);
+        let parsedOrder: Value = Value::Dict(self.safe_order(__ws_arg_0, None));
+        self.orders.append(parsedOrder);
         let messageHash: String = format!("{}{}", "orders:", symbol);
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }
 
-    pub fn parse_ws_order_update(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order_update(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
         //
         //      {
@@ -1206,14 +1206,14 @@ impl Cex {
         let mut remaining: Option<String> = None;
         if (remainsPrecision.is_some()) {
             if (market.is_none()) {
-                return Value::Null;
+                return None;
             }
             remaining = self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), remainsPrecision.map(Value::from).unwrap_or(Value::Null));
         }
         let amount: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
         if !isTransaction {
             if (market.is_none()) {
-                return Value::Null;
+                return None;
             }
             self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), amount.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         }
@@ -1278,9 +1278,7 @@ impl Cex {
         if isTransaction {
             parsedOrder.insert("trades".into(), Value::Dict(self.parse_ws_trade(order, Some(&marketResolved))));
         }
-        return Value::Dict(self.safe_order(Value::Map(parsedOrder), Some(&marketResolved)));
-
-    Value::Null
+        return if let Value::Dict(__m) = Value::Dict(self.safe_order(Value::Map(parsedOrder), Some(&marketResolved))) { Some(__m) } else { None }
 }
 
     pub fn from_precision(&self, mut amount: Value, scale: impl Into<crate::Value>) -> Option<String> {

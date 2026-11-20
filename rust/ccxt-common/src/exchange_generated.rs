@@ -6729,7 +6729,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    fn find_broadly_matched_key(&self, mut broad: Value, mut string: Value) -> Value {
+    fn find_broadly_matched_key(&self, mut broad: Value, mut errorString: Value) -> Value {
         let __broad_empty = indexmap::IndexMap::new();
         let broad = broad.as_map().unwrap_or(&__broad_empty);
         // a helper for matching error strings exactly vs broadly
@@ -6739,8 +6739,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_137: bool = true;
             while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (keys.len() as i64) } {
             let key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if (string != Value::Null) {
-                if Value::Int(string.as_str().zip(key.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if (errorString != Value::Null) {
+                if Value::Int(errorString.as_str().zip(key.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     return key.map(Value::from).unwrap_or(Value::Null);
                 }
             }

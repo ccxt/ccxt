@@ -293,11 +293,11 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
         Box::pin(async move {
             match method {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "create_api_key" => Value::Dict(self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "delete_api_key" => self.delete_api_key(&args[..].iter().collect::<Vec<_>>()).await,
-                "fetch_api_key" => self.fetch_api_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_api_key" => Value::Dict(self.fetch_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_event" => crate::types::IntoRaw::into_raw(self.fetch_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -332,7 +332,7 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64)).await,
-                "set_api_credentials" => self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "set_api_credentials" => Value::Dict(self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -2467,7 +2467,7 @@ impl Opinion {
  * @param {object} [params] extra parameters
  * @returns {object} the api credentials { apiKey, walletAddress }
  */
-    pub async fn create_api_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn create_api_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2476,7 +2476,7 @@ impl Opinion {
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return self.set_api_credentials(&result);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2487,7 +2487,7 @@ impl Opinion {
  * @param {object} [params] extra parameters
  * @returns {object} the api credentials { apiKey, walletAddress }
  */
-    pub async fn fetch_api_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_api_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2496,7 +2496,7 @@ impl Opinion {
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return self.set_api_credentials(&result);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2547,19 +2547,19 @@ impl Opinion {
         }
         let mut creds: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            creds = self.fetch_api_key(&[]).await.into_opt_dict();
+            creds = Some(self.fetch_api_key(&[]).await);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
             // no key exists for this wallet yet (11010) - self-issue one; any other
             // failure (unregistered wallet, disabled issuance) surfaces from the create call
-            creds = self.create_api_key(&[]).await.into_opt_dict();
+            creds = Some(self.create_api_key(&[]).await);
         }
         return self.safe_string_k(&creds, "apiKey", &[]);
 
     Value::Null
 }
 
-    pub fn set_api_credentials(&mut self, response: impl Into<crate::Value>) -> Value {
+    pub fn set_api_credentials(&mut self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
@@ -2577,9 +2577,9 @@ if _try_result.is_err() {
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         // an empty string, not undefined: the strict base types the credential as string
         { let __t = self.safe_string_k(&creds, "apiKey", &[Value::Str("".into())]); self.apiKey = __t; }
-        return Value::Map(creds);
+        return std::sync::Arc::new(creds);
 
-    Value::Null
+    Default::default()
 }
 
 /*

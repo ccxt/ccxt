@@ -438,13 +438,13 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "create_api_key" => Value::Dict(self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_or_derive_api_key" => self.create_or_derive_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "derive_api_key" => self.derive_api_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "derive_api_key" => Value::Dict(self.derive_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_event" => crate::types::IntoRaw::into_raw(self.fetch_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_events" => crate::types::IntoRaw::into_raw(self.fetch_events(args.get(0).cloned().unwrap_or_default()).await),
@@ -488,7 +488,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "polymarket_order_raw_amounts" => self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_f64)),
-                "set_api_credentials" => self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "set_api_credentials" => Value::Dict(self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -4507,7 +4507,7 @@ impl Polymarket {
  * @param {int} [params.nonce] the nonce used to derive the credentials, defaults to 0
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-    pub async fn derive_api_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn derive_api_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4515,7 +4515,7 @@ impl Polymarket {
         let response: crate::value::Dict = self.clob_private_get_auth_derive_api_key(&[&params]).await.unwrap_or_default();
         return self.set_api_credentials(&response);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -4527,7 +4527,7 @@ impl Polymarket {
  * @param {int} [params.nonce] the nonce used to create the credentials, defaults to 0
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-    pub async fn create_api_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn create_api_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4535,7 +4535,7 @@ impl Polymarket {
         let response: crate::value::Dict = self.clob_private_post_auth_api_key(&[&params]).await.unwrap_or_default();
         return self.set_api_credentials(&response);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -4553,10 +4553,10 @@ impl Polymarket {
 }));
         let mut creds: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            creds = self.derive_api_key(&[&params]).await.into_opt_dict();
+            creds = Some(self.derive_api_key(&[&params]).await);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            creds = self.create_api_key(&[&params]).await.into_opt_dict();
+            creds = Some(self.create_api_key(&[&params]).await);
         }
         if (creds.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createOrDeriveApiKey() returned no credentials")));
@@ -4566,7 +4566,7 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn set_api_credentials(&mut self, response: impl Into<crate::Value>) -> Value {
+    pub fn set_api_credentials(&mut self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         //
         //     { "apiKey": "...", "secret": "...", "passphrase": "..." }
@@ -4583,9 +4583,9 @@ if _try_result.is_err() {
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("l2ApiKey".into(), creds.get("apiKey").cloned().unwrap_or(Value::Null)); }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("l2Secret".into(), creds.get("secret").cloned().unwrap_or(Value::Null)); }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("l2Passphrase".into(), creds.get("passphrase").cloned().unwrap_or(Value::Null)); }
-        return Value::Map(creds);
+        return std::sync::Arc::new(creds);
 
-    Value::Null
+    Default::default()
 }
 
 /*

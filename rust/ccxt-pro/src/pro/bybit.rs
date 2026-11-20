@@ -3181,10 +3181,14 @@ impl Bybit {
 })); }
             }
             { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(account.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), info.clone()); } }
+            let mut balance: indexmap::IndexMap<String, Value> = self.balance.get(account.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })).as_map().cloned().unwrap_or_default();
             let timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-            { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(account.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-            { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(account.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
-            { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = account.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(account.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+            balance.insert("timestamp".into(), Value::from(timestamp));
+            balance.insert("datetime".into(), self.iso8601(timestamp));
+            { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(balance))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(account.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             messageHash = format!("{}{}", "balances:", account.as_deref().unwrap_or("null"));
             client.resolve((if let Some(__k) = account.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
         }  else {
