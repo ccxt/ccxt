@@ -23,6 +23,14 @@ export default class apex extends apexRest {
                 'watchOrders': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
                 'watchPositions': true,
                 'watchMyTrades': true,
                 'watchBalance': false,
@@ -110,6 +118,48 @@ export default class apex extends apexRest {
             limitResolved = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name apex#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name apex#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel for a list of symbols
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const url = this.getWsPublicUrl ();
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
+        const subMessageHashes: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
+            const market = this.market (symbol);
+            const marketId = this.safeString (market, 'id2', '');
+            topics.push ('recentlyTrade.H.' + marketId);
+            subMessageHashes.push ('trade:' + symbol);
+            messageHashes.push ('unsubscribe:trade:' + symbol);
+        }
+        return await this.unsubscribeTopics (url, 'trades', symbolsNormalized, messageHashes, subMessageHashes, topics, params);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -243,6 +293,52 @@ export default class apex extends apexRest {
         return orderbook.limit ();
     }
 
+    /**
+     * @method
+     * @name apex#unWatchOrderBook
+     * @description unsubscribes from the order book channel
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] the limit the subscription was opened with, default is 25
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name apex#unWatchOrderBookForSymbols
+     * @description unsubscribes from the order book channel for a list of symbols
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] the limit the subscription was opened with, default is 25
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const url = this.getWsPublicUrl ();
+        const limitString = this.safeString (params, 'limit', '25');
+        const paramsOmitted = this.omit (params, 'limit');
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
+        const subMessageHashes: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
+            const market = this.market (symbol);
+            const marketId = this.safeString (market, 'id2', '');
+            topics.push ('orderBook' + limitString + '.H.' + marketId);
+            subMessageHashes.push ('orderbook:' + symbol);
+            messageHashes.push ('unsubscribe:orderbook:' + symbol);
+        }
+        return await this.unsubscribeTopics (url, 'orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsOmitted);
+    }
+
     async watchTopics (url: string, messageHashes: string[], topics: string[], params: Dict = {}) {
         // apex's server rejects a subscribe whose args include any
         // already-subscribed topic ("topic:already subscribed ..."). Since the
@@ -266,6 +362,39 @@ export default class apex extends apexRest {
             message = this.extend (request, params);
         }
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name apex#unsubscribeTopics
+     * @description sends one unsubscribe request for a list of topics and registers the pending unsubscription under a hash built from those topics
+     * @param {string} url websocket url of the connection holding the subscriptions
+     * @param {string} topic unified cache topic: trades, orderbook, ticker, ohlcv
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {string[]} messageHashes hashes resolved once the unsubscription is acknowledged
+     * @param {string[]} subMessageHashes hashes of the subscriptions to remove
+     * @param {string[]} topics exchange topics to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [subExtension] extra fields stored with the pending unsubscription
+     * @returns {any} status of the unwatch request
+     */
+    async unsubscribeTopics (url: string, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params: Dict = {}, subExtension: Dict = {}): Promise<any> {
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': topics,
+        };
+        // the acknowledgement carries no request id, only an echo of the request, so the pending unsubscription is stored under the joined topics
+        const subscribeHash = 'unsubscribe:' + topics.join (',');
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'topic': topic,
+            'symbols': symbols,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, [ subscribeHash ], this.extend (subscription, subExtension));
     }
 
     getWsPublicUrl (): string {
@@ -425,6 +554,48 @@ export default class apex extends apexRest {
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
+    /**
+     * @method
+     * @name apex#unWatchTicker
+     * @description unsubscribes from the ticker channel
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name apex#unWatchTickers
+     * @description unsubscribes from the ticker channel for a list of symbols
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const url = this.getWsPublicUrl ();
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
+        const subMessageHashes: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
+            const market = this.market (symbol);
+            const marketId = this.safeString (market, 'id2', '');
+            topics.push ('instrumentInfo.H.' + marketId);
+            subMessageHashes.push ('ticker:' + symbol);
+            messageHashes.push ('unsubscribe:ticker:' + symbol);
+        }
+        return await this.unsubscribeTopics (url, 'ticker', symbolsNormalized, messageHashes, subMessageHashes, topics, params);
+    }
+
     handleTicker (client: Client, message: Dict) {
         // "topic":"instrumentInfo.H.BTCUSDT",
         //     "type":"snapshot",
@@ -527,6 +698,63 @@ export default class apex extends apexRest {
         }
         const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    /**
+     * @method
+     * @name apex#unWatchOHLCV
+     * @description unsubscribes from the candles channel
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    }
+
+    /**
+     * @method
+     * @name apex#unWatchOHLCVForSymbols
+     * @description unsubscribes from the candles channel for a list of symbols and timeframes
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unsubscribe from, example [['BTC/USDT:USDT', '1m'], ['LTC/USDT:USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const pairsLength = symbolsAndTimeframes.length;
+        if (pairsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' unWatchOHLCVForSymbols() requires a non-empty array of symbols and timeframes');
+        }
+        const url = this.getWsPublicUrl ();
+        const symbols: string[] = [];
+        const normalizedPairs: string[][] = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
+        const subMessageHashes: string[] = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = this.safeList (symbolsAndTimeframes, i);
+            const symbolString = this.safeString (data, 0);
+            const market = this.market (symbolString);
+            const symbol = market['symbol'];
+            const marketId = this.safeString (market, 'id2', '');
+            const unifiedTimeframe = this.safeString (data, 1, '1m');
+            const timeframeId = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
+            topics.push ('candle.' + timeframeId + '.' + marketId);
+            subMessageHashes.push ('ohlcv::' + symbol + '::' + unifiedTimeframe);
+            messageHashes.push ('unsubscribe::ohlcv::' + symbol + '::' + unifiedTimeframe);
+            symbols.push (symbol);
+            normalizedPairs.push ([ symbol, unifiedTimeframe ]);
+        }
+        const subExtension: Dict = {
+            'symbolsAndTimeframes': normalizedPairs,
+        };
+        return await this.unsubscribeTopics (url, 'ohlcv', symbols, messageHashes, subMessageHashes, topics, params, subExtension);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -1034,6 +1262,12 @@ export default class apex extends apexRest {
             this.handlePong (client, message);
             return;
         }
+        const request = this.safeDict (message, 'request', {});
+        const requestOp = this.safeString (request, 'op');
+        if (requestOp === 'unsubscribe') {
+            this.handleUnSubscribe (client, message);
+            return;
+        }
         const topic = this.safeString2 (message, 'topic', 'op', '');
         const methods: Dict = {
             'ws_zk_accounts_v3': this.handleAccount,
@@ -1168,6 +1402,42 @@ export default class apex extends apexRest {
         //        "msg": "Success"
         //    }
         //
+        return message;
+    }
+
+    handleUnSubscribe (client: Client, message: Dict): Dict {
+        //
+        //     {
+        //         "success": true,
+        //         "ret_msg": "",
+        //         "conn_id": "385e9b6a-7c71-4f37-86c3-cfae4a58dcb7",
+        //         "request": {
+        //             "op": "unsubscribe",
+        //             "args": [
+        //                 "recentlyTrade.H.BTCUSDT",
+        //                 "recentlyTrade.H.ETHUSDT"
+        //             ]
+        //         }
+        //     }
+        //
+        const request = this.safeDict (message, 'request', {});
+        const topics = this.safeList (request, 'args', []);
+        const subscribeHash = 'unsubscribe:' + topics.join (',');
+        const subscription = this.safeDict (client.subscriptions, subscribeHash);
+        if (subscription === undefined) {
+            return message;
+        }
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const unsubHash = this.safeString (messageHashes, i);
+            const subHash = this.safeString (subMessageHashes, i);
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
+        this.cleanCache (subscription);
+        if (subscribeHash in client.subscriptions) {
+            delete client.subscriptions[subscribeHash];
+        }
         return message;
     }
 }
