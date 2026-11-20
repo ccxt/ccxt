@@ -4967,13 +4967,13 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
     }
 
-    public function find_broadly_matched_key(array $broad, ?string $string) {
+    public function find_broadly_matched_key(array $broad, ?string $errorString) {
         // a helper for matching error strings exactly vs broadly
         $keys = is_array($broad) ? array_keys($broad) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if ($string !== null) { // #issues/12698
-                if (mb_strpos($string, $key) !== false) {
+            if ($errorString !== null) { // #issues/12698
+                if (mb_strpos($errorString, $key) !== false) {
                     return $key;
                 }
             }

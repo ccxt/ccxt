@@ -2485,10 +2485,11 @@ class bybit extends \ccxt\async\bybit {
                 $this->balance[$account] = array();
             }
             $this->balance[$account]['info'] = $info;
+            $balance = $this->safe_dict($this->balance, $account, array());
             $timestamp = $this->safe_integer($message, 'ts');
-            $this->balance[$account]['timestamp'] = $timestamp;
-            $this->balance[$account]['datetime'] = $this->iso8601($timestamp);
-            $this->balance[$account] = $this->safe_balance($this->balance[$account]);
+            $balance['timestamp'] = $timestamp;
+            $balance['datetime'] = $this->iso8601($timestamp);
+            $this->balance[$account] = $this->safe_balance($balance);
             $messageHash = 'balances:' . $account;
             $client->resolve($this->balance[$account], $messageHash);
         } else {

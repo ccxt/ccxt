@@ -833,8 +833,9 @@ class cex extends \ccxt\async\cex {
         }
         $storedOrders = $this->orders;
         $ordersBySymbol = $this->safe_dict($storedOrders->hashmap, $symbol, array());
-        $order = $this->safe_value($ordersBySymbol, $orderId);
+        $order = $this->safe_dict($ordersBySymbol, $orderId);
         if ($order === null) {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             $order = $this->parse_ws_order_update($data, $market);
         }
         $order['remaining'] = $remains;
@@ -857,13 +858,13 @@ class cex extends \ccxt\async\cex {
         $order['timestamp'] = $timestamp;
         $order['datetime'] = $this->iso8601($timestamp);
         // a fresh map copy: the cached entry is untyped
-        $order = $this->safe_order($this->extend($order, array()));
-        $storedOrders->append($order);
+        $parsedOrder = $this->safe_order($this->extend($order, array()));
+        $storedOrders->append($parsedOrder);
         $messageHash = 'orders:' . $symbol;
         $client->resolve($storedOrders, $messageHash);
     }
 
-    public function parse_ws_order_update(array $order, ?array $market = null) {
+    public function parse_ws_order_update(array $order, ?array $market = null): ?array {
         //
         //      {
         //          "id": "150714937",
