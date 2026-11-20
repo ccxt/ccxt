@@ -1487,6 +1487,7 @@ const CORE_IDICT_ARGS: Record<string, number[]> = {
     'parseWsUtaTicker': [ 0 ],
     'parseWsUtaTrade': [ 0 ],
     'removeKeysFromDict': [ 0 ],
+    'invertFlatStringDictionary': [ 0 ],
 };
 
 // collection helpers whose every return site yields a list or null (a return-site census); the
