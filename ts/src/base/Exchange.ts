@@ -5250,9 +5250,8 @@ export class BaseExchange {
 
     createCcxtTradeId (timestamp: Int = undefined, side: Str = undefined, amount: Str = undefined, price: Str = undefined, takerOrMaker: Str = undefined): Str {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        let id: Str = undefined;
         if (timestamp !== undefined) {
-            id = this.numberToString (timestamp);
+            let id: string = this.numberToString (timestamp);
             if (side !== undefined) {
                 id += '-' + side;
             }
@@ -5265,8 +5264,9 @@ export class BaseExchange {
             if (takerOrMaker !== undefined) {
                 id += '-' + takerOrMaker;
             }
+            return id;
         }
-        return id;
+        return undefined;
     }
 
     parsedFeeAndFees (container:any) {
