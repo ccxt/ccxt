@@ -2273,7 +2273,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_395: bool = true;
             while { if !__for_first_395 { i += 1; } __for_first_395 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let mut position: Value = Value::Dict(self.parse_position(Value::Dict(rawPosition), None));
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
@@ -2396,7 +2396,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if (marginMode.as_deref() == Some("isolated")) {
                         // isolated margin only allows filtering by symbol3
                         if (symbol.is_some()) && (market.is_some()) {
-                            messageHash = Some(format!("{}{}", messageHash.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(".".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]))));
+                            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", prefix, ".").into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])));
                             channel = messageHash.clone();
                         }  else {
                             // subscribe to all
@@ -2416,7 +2416,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else if (type_var.as_deref() == Some("future")) {
                 // inverse futures account
                 if (currencyCode.is_some()) {
-                    messageHash = Some(format!("{}{}", messageHash.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(".".into()), self.safe_string_k(&currencyCode, "id", &[Value::Str("".into())]))));
+                    messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", prefix, ".").into()), self.safe_string_k(&currencyCode, "id", &[Value::Str("".into())])));
                     channel = messageHash.clone();
                 }  else {
                     // subscribe to all
@@ -2425,7 +2425,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else {
                 // inverse swaps account
                 if (market.is_some()) {
-                    messageHash = Some(format!("{}{}", messageHash.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(".".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]))));
+                    messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", prefix, ".").into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])));
                     channel = messageHash.clone();
                 }  else {
                     // subscribe to all
@@ -3323,7 +3323,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                         let mut i: i64 = 0;
                     let mut __for_first_403: bool = true;
                     while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < (rawTrades.len() as i64) } {
-                    let trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let trade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
                     let mut parsedTrade: Value = Value::Dict(self.parse_trade(Value::Dict(trade), Some(&market)));
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = self.extend(parsedTrade, &[&extendParams]);

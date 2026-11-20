@@ -512,7 +512,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
                         let mut j: i64 = 0;
             let mut __for_first_747: bool = true;
             while { if !__for_first_747 { j += 1; } __for_first_747 = false; j < (rawNetworks.len() as i64) } {
-            let rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(j));
             let networkId: Option<String> = self.safe_string2_opt(&rawNetwork, Value::Str("protocol".into()), Value::Str("network".into()), &[]);
             let rawNetworkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
@@ -4481,7 +4481,7 @@ impl Hitbtc {
                                 let mut j: i64 = 0;
                 let mut __for_first_755: bool = true;
                 while { if !__for_first_755 { j += 1; } __for_first_755 = false; j < (fundingRateData.len() as i64) } {
-                let entry: crate::value::Dict = fundingRateData.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let entry: crate::value::Dict = self.safe_dict_t(&fundingRateData, Value::Int(j));
                 let symbolInner: Option<String> = self.safe_symbol((crate::value::KeyRead::key_read(&&marketInner, "symbol")).as_str(), None, &[]).as_str().map(str::to_owned);
                 let fundingRate: Option<f64> = self.safe_number_k(&entry, "funding_rate", &[]).as_f64();
                 let datetime: Option<String> = self.safe_string_k_opt(&entry, "timestamp", &[]);

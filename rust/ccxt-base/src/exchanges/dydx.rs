@@ -1742,7 +1742,7 @@ impl Dydx {
                         let mut i: i64 = 0;
             let mut __for_first_661: bool = true;
             while { if !__for_first_661 { i += 1; } __for_first_661 = false; i < (rows.len() as i64) } {
-            let entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&entry, "effectiveAt", &[]));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "ticker", &[]);
             rates.push(Value::Map({
@@ -3447,7 +3447,7 @@ impl Dydx {
                         let mut i: i64 = 0;
             let mut __for_first_663: bool = true;
             while { if !__for_first_663 { i += 1; } __for_first_663 = false; i < (rows.len() as i64) } {
-            let account: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let account: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let accountId: Option<String> = self.safe_string_k_opt(&account, "subaccountNumber", &[]);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

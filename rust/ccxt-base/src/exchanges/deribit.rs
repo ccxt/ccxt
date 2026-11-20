@@ -2618,7 +2618,7 @@ impl Deribit {
                                 let mut k: i64 = 0;
                 let mut __for_first_623: bool = true;
                 while { if !__for_first_623 { k += 1; } __for_first_623 = false; k < (instrumentsResult.len() as i64) } {
-                let market: crate::value::Dict = instrumentsResult.get(k as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let market: crate::value::Dict = self.safe_dict_t(&instrumentsResult, Value::Int(k));
                 let kind: Option<String> = self.safe_string_k_opt(&market, "kind", &[]);
                 let isSpot: bool = kind.as_deref() == Some("spot");
                 let id: Option<String> = self.safe_string_k_opt(&market, "instrument_name", &[]);
@@ -3432,7 +3432,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_628: bool = true;
             while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (fees.len() as i64) } {
-            let feeEntry: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let feeEntry: crate::value::Dict = self.safe_dict_t(&fees, Value::Int(i));
             let instrumentType: Option<String> = self.safe_string_k_opt(&feeEntry, "instrument_type", &[]);
             if (instrumentType.as_deref() == Some("future")) {
                 futureFee = ({

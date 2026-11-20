@@ -1739,7 +1739,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_739: bool = true;
             while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (responseOrders.len() as i64) } {
-            let responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let responseOrder: crate::value::Dict = self.safe_dict_t(&responseOrders, Value::Int(i));
             ret.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&responseOrder));
@@ -1893,7 +1893,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_741: bool = true;
             while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (responseOrders.len() as i64) } {
-            let responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let responseOrder: crate::value::Dict = self.safe_dict_t(&responseOrders, Value::Int(i));
             ret.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&responseOrder));
@@ -2010,7 +2010,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_743: bool = true;
             while { if !__for_first_743 { i += 1; } __for_first_743 = false; i < (responseOrders.len() as i64) } {
-            let responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let responseOrder: crate::value::Dict = self.safe_dict_t(&responseOrders, Value::Int(i));
             ret.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&responseOrder));
@@ -3298,7 +3298,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_745: bool = true;
             while { if !__for_first_745 { i += 1; } __for_first_745 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_product_k(&entry, "fundingTimestamp", Value::Int(1000), &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

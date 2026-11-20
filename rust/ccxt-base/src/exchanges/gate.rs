@@ -1155,7 +1155,7 @@ impl crate::exchange::DerivedExchange for Gate {
                         let mut j: i64 = 0;
             let mut __for_first_693: bool = true;
             while { if !__for_first_693 { j += 1; } __for_first_693 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "name", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -6189,7 +6189,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_694: bool = true;
             while { if !__for_first_694 { i += 1; } __for_first_694 = false; i < (addresses.len() as i64) } {
-            let entry: crate::value::Dict = addresses.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&addresses, Value::Int(i));
             //
             //    {
             //        "chain": "ETH",

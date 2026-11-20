@@ -1182,7 +1182,7 @@ impl Krakenfutures {
                                         let mut i: i64 = 0;
                     let mut __for_first_441: bool = true;
                     while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (trades.len() as i64) } {
-                    let currentTrade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let currentTrade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
                     totalCost = crate::precise::Precise::stringAdd(&totalCost, &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "cost")))).as_str().map(str::to_owned);
                     totalAmount = crate::precise::Precise::stringAdd(&totalAmount, &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "amount")))).as_str().map(str::to_owned);
                 }
@@ -1349,7 +1349,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_443: bool = true;
             while { if !__for_first_443 { i += 1; } __for_first_443 = false; i < (orders.len() as i64) } {
-            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_ws_order(&order, None);
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
@@ -2117,7 +2117,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_451: bool = true;
             while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (trades.len() as i64) } {
-            let trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let trade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
             let parsedTrade: crate::value::Dict = self.parse_ws_my_trade(Value::Dict(trade), None);
             let tradeSymbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
             if (tradeSymbol.is_some()) {

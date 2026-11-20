@@ -449,7 +449,7 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_565: bool = true;
             while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (tickers.len() as i64) } {
-            let ticker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None);

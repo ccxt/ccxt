@@ -4295,7 +4295,7 @@ impl Woo {
                         let mut i: i64 = 0;
             let mut __for_first_1177: bool = true;
             while { if !__for_first_1177 { i += 1; } __for_first_1177 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&row, "symbol", &[]);
             if (marketId.is_none()) {
                 continue;
@@ -5648,7 +5648,7 @@ impl Woo {
                         let mut i: i64 = 0;
             let mut __for_first_1179: bool = true;
             while { if !__for_first_1179 { i += 1; } __for_first_1179 = false; i < (rows.len() as i64) } {
-            let entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "fundingRateTimestamp", &[]).as_i64();
             rates.push(Value::Map({
@@ -6325,7 +6325,7 @@ impl Woo {
                         let mut i: i64 = 0;
             let mut __for_first_1181: bool = true;
             while { if !__for_first_1181 { i += 1; } __for_first_1181 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&entry, "token", &[]);
             let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
             if (code.is_some()) {

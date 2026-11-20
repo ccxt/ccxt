@@ -2198,7 +2198,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                         let mut i: i64 = 0;
             let mut __for_first_31: bool = true;
             while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (B.len() as i64) } {
-            let entry: crate::value::Dict = B.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&B, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "a", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -2367,7 +2367,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                         let mut i: i64 = 0;
             let mut __for_first_34: bool = true;
             while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None);
             let timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), Value::from(timestamp));
@@ -2624,7 +2624,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                                                                 let mut i: i64 = 0;
                                 let mut __for_first_36: bool = true;
                                 while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (fees.len() as i64) } {
-                                let orderFee: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                                let orderFee: crate::value::Dict = self.safe_dict_t(&fees, Value::Int(i));
                                 if (self.safe_string_k(&orderFee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
                                     let feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&orderFee, "cost")]);
                                     let feeCostString: Option<String> = self.currency_to_precision((tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)).as_str(), feeCost, &[]);

@@ -1222,7 +1222,7 @@ impl Predictfun {
                                 let mut mi: i64 = 0;
                 let mut __for_first_1465: bool = true;
                 while { if !__for_first_1465 { mi += 1; } __for_first_1465 = false; mi < parsedMarketsLength } {
-                let m: crate::value::Dict = parsedMarkets.get(mi as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let m: crate::value::Dict = self.safe_dict_t(&parsedMarkets, Value::Int(mi));
                 // prediction market rows are keyed by the unified 'market' handle
                 let handle: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
                 if (handle.is_some()) {
@@ -1389,7 +1389,7 @@ impl Predictfun {
                                 let mut mi: i64 = 0;
                 let mut __for_first_1468: bool = true;
                 while { if !__for_first_1468 { mi += 1; } __for_first_1468 = false; mi < rawMarketsLength } {
-                let rawMarket: crate::value::Dict = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let rawMarket: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(mi));
                 let mut marketSlug: Option<String> = self.safe_string_k_opt(&rawMarket, "categorySlug", &[]);
                 if (marketSlug.is_some()) {
                     if (matches!(marketSlug.as_deref(), Some(__k) if orphanMarkets.contains_key(__k))) {
@@ -1874,7 +1874,7 @@ impl Predictfun {
                         let mut oi: i64 = 0;
             let mut __for_first_1473: bool = true;
             while { if !__for_first_1473 { oi += 1; } __for_first_1473 = false; oi < rawOutcomesLength } {
-            let rawOutcome: crate::value::Dict = rawOutcomes.get(oi as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawOutcome: crate::value::Dict = self.safe_dict_t(&rawOutcomes, Value::Int(oi));
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             let rawLabel: Option<String> = self.safe_string_upper_k_opt(&rawOutcome, "name", &[]);
@@ -2326,7 +2326,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1478: bool = true;
             while { if !__for_first_1478 { i += 1; } __for_first_1478 = false; i < dataLength } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let taker: crate::value::Dict = self.safe_dict_k_t(&entry, "taker");
             let takerSigner: Option<String> = self.safe_string_lower_k_opt(&taker, "signer", &[]);
             if (takerSigner == wallet) {
@@ -2349,7 +2349,7 @@ impl Predictfun {
                                 let mut j: i64 = 0;
                 let mut __for_first_1477: bool = true;
                 while { if !__for_first_1477 { j += 1; } __for_first_1477 = false; j < makersLength } {
-                let maker: crate::value::Dict = makers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let maker: crate::value::Dict = self.safe_dict_t(&makers, Value::Int(j));
                 let makerSigner: Option<String> = self.safe_string_lower_k_opt(&maker, "signer", &[]);
                 if (makerSigner == wallet) {
                     let makerParty: crate::value::Dict = self.extend_t(maker, &[Value::Map({

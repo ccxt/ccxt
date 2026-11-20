@@ -543,7 +543,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_490: bool = true;
             while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::Int(i)).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut ticker: Value = Value::Null;
             if (isSpot.as_bool() == Some(true)) {
                 ticker = Value::Dict(self.parse_ws_ticker(Value::from(&entry), Some(&market)));

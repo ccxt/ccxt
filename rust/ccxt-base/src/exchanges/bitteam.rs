@@ -2492,7 +2492,7 @@ impl Bitteam {
                         let mut i: i64 = 0;
             let mut __for_first_444: bool = true;
             while { if !__for_first_444 { i += 1; } __for_first_444 = false; i < (rawTickers.len() as i64) } {
-            let rawTicker: crate::value::Dict = rawTickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawTicker: crate::value::Dict = self.safe_dict_t(&rawTickers, Value::Int(i));
             let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, None).unwrap_or_default();
             tickers.push(Value::Dict(ticker));
         }

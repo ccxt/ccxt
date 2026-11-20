@@ -291,7 +291,7 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_486: bool = true;
             while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (rawTrades.len() as i64) } {
-            let rawTrade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawTrade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
             let trade: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_trade(self, &rawTrade, Some(&market)).unwrap_or_default();
             stored.append(Value::Dict(trade));
         }
@@ -533,7 +533,7 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_488: bool = true;
             while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (tradeUpdates.len() as i64) } {
-            let tradeUpdate: crate::value::Dict = tradeUpdates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let tradeUpdate: crate::value::Dict = self.safe_dict_t(&tradeUpdates, Value::Int(i));
             let makerOrderId: Option<String> = self.safe_string_k_opt(&tradeUpdate, "maker_order_id", &[]);
             let tradedAmount: Option<String> = self.safe_string_k_opt(&tradeUpdate, "base", &[]);
             if (makerOrderId.is_some()) && (tradedAmount.is_some()) {

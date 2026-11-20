@@ -344,7 +344,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_451: bool = true;
             while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Dict(self.account())]).as_map().cloned().unwrap_or_default();
@@ -1828,7 +1828,7 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_447: bool = true;
             while { if !__for_first_447 { i += 1; } __for_first_447 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let baseId: Option<String> = self.safe_string_k_opt(&market, "base-currency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quote-currency", &[]);
             let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
@@ -3016,7 +3016,7 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_454: bool = true;
             while { if !__for_first_454 { i += 1; } __for_first_454 = false; i < (failed.len() as i64) } {
-            let order: Option<crate::value::Dict> = crate::value::KeyRead::read(&&failed, &Value::Int(i)).into_opt_dict();
+            let order: Option<crate::value::Dict> = self.safe_dict_o(&failed, Value::Int(i));
             result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));

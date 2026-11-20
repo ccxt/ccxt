@@ -846,7 +846,7 @@ impl crate::exchange::DerivedExchange for Backpack {
                         let mut j: i64 = 0;
             let mut __for_first_244: bool = true;
             while { if !__for_first_244 { j += 1; } __for_first_244 = false; j < (networks.len() as i64) } {
-            let network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let network: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&network, "blockchain", &[]);
             let networkIdLowerCase: Option<String> = self.safe_string_lower_k_opt(&network, "blockchain", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkIdLowerCase.as_deref(), code.as_deref());
@@ -3411,7 +3411,7 @@ impl Backpack {
                         let mut i: i64 = 0;
             let mut __for_first_253: bool = true;
             while { if !__for_first_253 { i += 1; } __for_first_253 = false; i < (rawRates.len() as i64) } {
-            let rate: crate::value::Dict = rawRates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rate: crate::value::Dict = self.safe_dict_t(&rawRates, Value::Int(i));
             let datetime: Option<String> = self.safe_string_k_opt(&rate, "intervalEndTimestamp", &[]);
             let timestamp: Option<i64> = self.parse8601(&datetime);
             rates.push(Value::Map({

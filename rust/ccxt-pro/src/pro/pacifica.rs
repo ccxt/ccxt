@@ -1208,7 +1208,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_581: bool = true;
             while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (data.len() as i64) } {
-            let info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let info: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -1274,7 +1274,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_582: bool = true;
             while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (data.len() as i64) } {
-            let rawTrade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
             if (symbol.is_some()) {
@@ -1896,7 +1896,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_585: bool = true;
             while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (data.len() as i64) } {
-            let rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawOrder: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
             self.orders.append(Value::from(&order));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);

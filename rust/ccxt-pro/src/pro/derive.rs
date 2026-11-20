@@ -1060,7 +1060,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_307: bool = true;
             while { if !__for_first_307 { i += 1; } __for_first_307 = false; i < (rawOrders.len() as i64) } {
-            let data: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let data: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
             let mut parsed: Value = Value::Dict(self.parse_order(Value::Dict(data), None));
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             let orderId: Option<String> = self.safe_string_k_opt(&parsed, "id", &[]);

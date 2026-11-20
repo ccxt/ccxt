@@ -1410,7 +1410,7 @@ impl Kalshi {
                                 let mut i: i64 = 0;
                 let mut __for_first_1268: bool = true;
                 while { if !__for_first_1268 { i += 1; } __for_first_1268 = false; i < (rawMarkets.len() as i64) } {
-                let raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
                 let parsed: Vec<Value> = self.parse_binary_market_to_outcomes(Value::from(&raw)).as_array().cloned().unwrap_or_default();
                 let eventTicker: Option<String> = self.safe_string_k_opt(&raw, "event_ticker", &[]);
                 let eventTitle: Option<String> = self.safe_string_k_opt(&raw, "title", &[&eventTicker]);
@@ -2088,7 +2088,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut i: i64 = 0;
                 let mut __for_first_1276: bool = true;
                 while { if !__for_first_1276 { i += 1; } __for_first_1276 = false; i < (rawMarkets.len() as i64) } {
-                let raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
                 let mut marketTicker: Option<String> = self.safe_string_k_opt(&raw, "ticker", &[]);
                 if (marketTicker.is_none()) || !(matches!(marketTicker.as_deref(), Some(__k) if outcomesByTicker.contains_key(__k))) {
                     continue;
@@ -2347,7 +2347,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1282: bool = true;
             while { if !__for_first_1282 { i += 1; } __for_first_1282 = false; i < (candles.len() as i64) } {
-            let candle: crate::value::Dict = candles.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let candle: crate::value::Dict = self.safe_dict_t(&candles, Value::Int(i));
             let priceObj: crate::value::Dict = self.safe_dict_k_t(&candle, "price");
             let openPrice: Option<f64> = self.safe_number_k(&priceObj, "open_dollars", &[]).as_f64();
             let previousPrice: Option<f64> = self.safe_number_k(&priceObj, "previous_dollars", &[]).as_f64();
@@ -2417,7 +2417,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1283: bool = true;
             while { if !__for_first_1283 { i += 1; } __for_first_1283 = false; i < (trades.len() as i64) } {
-            let trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let trade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
             let tradeTicker: Option<String> = self.safe_string2_opt(&trade, Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]);
             if (tradeTicker.is_none()) || (tradeTicker == ticker) {
                 filteredTrades.push(Value::Dict(trade));
@@ -2683,7 +2683,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1289: bool = true;
             while { if !__for_first_1289 { i += 1; } __for_first_1289 = false; i < (parsed.len() as i64) } {
-            let settlement: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let settlement: crate::value::Dict = self.safe_dict_t(&parsed, Value::Int(i));
             if (wantedOutcome.is_none()) || ((wantedOutcome.as_deref() == self.safe_string_k(&settlement, "outcome", &[]).as_str())) {
                 result.push(Value::Dict(settlement));
             }
@@ -3247,7 +3247,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1291: bool = true;
             while { if !__for_first_1291 { i += 1; } __for_first_1291 = false; i < restingOrdersLength } {
-            let restingOrder: crate::value::Dict = restingOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let restingOrder: crate::value::Dict = self.safe_dict_t(&restingOrders, Value::Int(i));
             let orderId: Option<String> = self.safe_string_k_opt(&restingOrder, "order_id", &[]);
             if (orderId.is_some()) {
                 let __ws_arg_14 = self.extend(Value::Map({
@@ -3795,7 +3795,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1305: bool = true;
             while { if !__for_first_1305 { i += 1; } __for_first_1305 = false; i < (rawMarkets.len() as i64) } {
-            let rawMarket: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawMarket: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
             let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_market(self, &rawMarket).into_dict();
             marketsList.push(Value::Dict(parsed));
             totalVolume = self.sum(&[std::mem::take(&mut totalVolume), self.safe_number2(&rawMarket, Value::Str("volume_fp".into()), Value::Str("volume".into()), &[Value::Int(0)])]);

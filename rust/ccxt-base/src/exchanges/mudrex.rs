@@ -1082,7 +1082,7 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_972: bool = true;
             while { if !__for_first_972 { i += 1; } __for_first_972 = false; i < (rows.len() as i64) } {
-            let t: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let t: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let sym: Option<String> = self.safe_string_k_opt(&t, "symbol", &[]);
             if (sym.is_none()) {
                 continue;
@@ -1789,7 +1789,7 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_976: bool = true;
             while { if !__for_first_976 { i += 1; } __for_first_976 = false; i < (rows.len() as i64) } {
-            let p: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let p: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let symRaw: Option<String> = self.safe_string_k_opt(&p, "symbol", &[]);
             let m: crate::types::Market = self.safe_market(symRaw.as_deref(), None, &[]);
             let pos: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, &p, Some(&m)).unwrap_or_default();
@@ -2084,7 +2084,7 @@ impl Mudrex {
                                 let mut i: i64 = 0;
                 let mut __for_first_977: bool = true;
                 while { if !__for_first_977 { i += 1; } __for_first_977 = false; i < (data.len() as i64) } {
-                let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
                 allRows.push(Value::from(&entry));
                 if (self.safe_string_k(&entry, "fee_type", &[]).as_str() == Some("TRANSACTION")) {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
@@ -2114,7 +2114,7 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_978: bool = true;
             while { if !__for_first_978 { i += 1; } __for_first_978 = false; i < (allRows.len() as i64) } {
-            let entry: crate::value::Dict = allRows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&allRows, Value::Int(i));
             let feeType: Option<String> = self.safe_string_k_opt(&entry, "fee_type", &[]);
             let pairKey: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&entry, "created_at", &[Value::Str("".into())])).into()), ":").into()), self.safe_string_k(&entry, "transaction_amount", &[Value::Str("".into())]));
             if (feeType.as_deref() == Some("TRANSACTION")) {

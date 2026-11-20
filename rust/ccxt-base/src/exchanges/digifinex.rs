@@ -2336,7 +2336,7 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_642: bool = true;
             while { if !__for_first_642 { i += 1; } __for_first_642 = false; i < (response.len() as i64) } {
-            let market: crate::value::Dict = response.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let id: Option<String> = self.safe_string2_opt(&market, Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
             let baseId: Option<String> = self.safe_string2_opt(&market, Value::Str("base_asset".into()), Value::Str("base_currency".into()), &[]);
             let quoteId: Option<String> = self.safe_string2_opt(&market, Value::Str("quote_asset".into()), Value::Str("quote_currency".into()), &[]);
@@ -2474,7 +2474,7 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_643: bool = true;
             while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "market", &[]);
             if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchMarketsV1() missing id")));
@@ -5366,7 +5366,7 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_656: bool = true;
             while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&data, "instrument_id", &[]);
             let symbolInner: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "time", &[]).as_i64();

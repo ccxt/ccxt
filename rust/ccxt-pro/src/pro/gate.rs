@@ -1647,7 +1647,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_332: bool = true;
             while { if !__for_first_332 { i += 1; } __for_first_332 = false; i < (parsedTrades.len() as i64) } {
-            let mut trade: Option<crate::value::Dict> = crate::value::KeyRead::read(&&parsedTrades, &Value::Int(i)).into_opt_dict();
+            let mut trade: Option<crate::value::Dict> = self.safe_dict_o(&parsedTrades, Value::Int(i));
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
             let mut cachedTrades: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (cachedTrades.is_none()) {
@@ -1830,7 +1830,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_333: bool = true;
             while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (result.len() as i64) } {
-            let ohlcv: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let ohlcv: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let mut subscription: String = self.safe_string_k(&ohlcv, "n", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let parts: crate::value::List = crate::value::List::new(subscription.split("_").map(Value::from).collect());
             let timeframeId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
@@ -1983,7 +1983,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_335: bool = true;
             while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (parsed.len() as i64) } {
-            let trade: Option<crate::value::Dict> = crate::value::KeyRead::read(&&parsed, &Value::Int(i)).into_opt_dict();
+            let trade: Option<crate::value::Dict> = self.safe_dict_o(&parsed, Value::Int(i));
             self.myTrades.append(trade.clone().map_or(Value::Null, Value::Dict));
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
             if (symbol.is_some()) {
@@ -2323,7 +2323,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_339: bool = true;
             while { if !__for_first_339 { i += 1; } __for_first_339 = false; i < (data.len() as i64) } {
-            let rawPosition: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             let symbol: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             let side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
@@ -2729,7 +2729,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_343: bool = true;
             while { if !__for_first_343 { i += 1; } __for_first_343 = false; i < (rawLiquidations.len() as i64) } {
-            let rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawLiquidation: crate::value::Dict = self.safe_dict_t(&rawLiquidations, Value::Int(i));
             let liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), None);
             self.liquidations.append(Value::from(&liquidation));
             std::sync::Arc::make_mut(&mut newLiquidations).push(Value::from(&liquidation));

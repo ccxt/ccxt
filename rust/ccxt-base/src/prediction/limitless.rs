@@ -2383,7 +2383,7 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1321: bool = true;
             while { if !__for_first_1321 { i += 1; } __for_first_1321 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let rowTokenId: Option<String> = self.safe_string_k_opt(&row, "tokenId", &[]);
             if (tokenId.is_some()) && (rowTokenId.is_some()) && (rowTokenId != tokenId) {
                 continue;
@@ -4094,7 +4094,7 @@ if _try_result.is_err() {
                                         let mut j: i64 = 0;
                     let mut __for_first_1335: bool = true;
                     while { if !__for_first_1335 { j += 1; } __for_first_1335 = false; j < (found.len() as i64) } {
-                    let raw: crate::value::Dict = found.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let raw: crate::value::Dict = self.safe_dict_t(&found, Value::Int(j));
                     let mut rawSlug: Option<String> = self.safe_string_k_opt(&raw, "slug", &[]);
                     if ((rawSlug.is_some()) && (rawSlug.as_deref() != Some(""))) && !(matches!(rawSlug.as_deref(), Some(__k) if seen.contains_key(__k))) {
                         seen.insert(rawSlug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));

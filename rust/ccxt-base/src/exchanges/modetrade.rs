@@ -635,7 +635,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
                         let mut j: i64 = 0;
             let mut __for_first_964: bool = true;
             while { if !__for_first_964 { j += 1; } __for_first_964 = false; j < (networks.len() as i64) } {
-            let network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let network: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             // TODO: transform chain id to human readable name
             let networkId: String = self.safe_string_k(&network, "chain_id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let precision: Option<String> = self.parse_precision(&[self.safe_string_k(&network, "decimals", &[])]).as_str().map(str::to_owned);
@@ -2670,7 +2670,7 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_965: bool = true;
             while { if !__for_first_965 { i += 1; } __for_first_965 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_rate_timestamp", &[]).as_i64();
             rates.push(Value::Map({
@@ -2790,7 +2790,7 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_966: bool = true;
             while { if !__for_first_966 { i += 1; } __for_first_966 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 continue;
@@ -2885,7 +2885,7 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_967: bool = true;
             while { if !__for_first_967 { i += 1; } __for_first_967 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 continue;

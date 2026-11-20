@@ -345,7 +345,7 @@ impl Bitopro {
                         let mut i: i64 = 0;
             let mut __for_first_136: bool = true;
             while { if !__for_first_136 { i += 1; } __for_first_136 = false; i < (trades.len() as i64) } {
-            let mut trade: Option<crate::value::Dict> = crate::value::KeyRead::read(&&trades, &Value::Int(i)).into_opt_dict();
+            let mut trade: Option<crate::value::Dict> = self.safe_dict_o(&trades, Value::Int(i));
             tradesCache.append(trade.map_or(Value::Null, Value::Dict));
         }
         }

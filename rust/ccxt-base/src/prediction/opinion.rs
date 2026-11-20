@@ -682,7 +682,7 @@ impl Opinion {
                                 let mut i: i64 = 0;
                 let mut __for_first_1392: bool = true;
                 while { if !__for_first_1392 { i += 1; } __for_first_1392 = false; i < rawMarketsLength } {
-                let raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
                 fetchedRawRows.push(Value::from(&raw));
                 let marketType: Option<i64> = self.safe_integer_k(&raw, "marketType", &[]).as_i64();
                 if (marketType == Some(1)) {
@@ -1598,7 +1598,7 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1403: bool = true;
             while { if !__for_first_1403 { i += 1; } __for_first_1403 = false; i < listLength } {
-            let entry: crate::value::Dict = list.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&list, Value::Int(i));
             let address: Option<String> = self.safe_string_lower_k_opt(&entry, "quoteTokenAddress", &[]);
             if (address.is_some()) {
                 quoteTokens.insert(address.as_deref().unwrap_or("null").to_string(), Value::Dict(entry));

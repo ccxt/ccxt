@@ -2597,7 +2597,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_496: bool = true;
             while { if !__for_first_496 { i += 1; } __for_first_496 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let datetime: Option<String> = self.safe_string_k_opt(&entry, "updatedAtDatetime", &[]);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

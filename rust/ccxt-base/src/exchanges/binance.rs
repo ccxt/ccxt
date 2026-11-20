@@ -2032,7 +2032,7 @@ impl crate::exchange::DerivedExchange for Binance {
                         let mut j: i64 = 0;
             let mut __for_first_271: bool = true;
             while { if !__for_first_271 { j += 1; } __for_first_271 = false; j < (networkList.len() as i64) } {
-            let networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let networkItem: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
             let network: Option<String> = self.safe_string_k_opt(&networkItem, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(network.as_deref(), code.as_deref());
             isETF = network.as_deref() == Some("ETF"); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
@@ -2804,7 +2804,7 @@ impl crate::exchange::DerivedExchange for Binance {
                         let mut j: i64 = 0;
             let mut __for_first_306: bool = true;
             while { if !__for_first_306 { j += 1; } __for_first_306 = false; j < (brackets.len() as i64) } {
-            let bracket: crate::value::Dict = brackets.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let bracket: crate::value::Dict = self.safe_dict_t(&brackets, Value::Int(j));
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_number_k(&bracket, "bracket", &[]));
@@ -16284,7 +16284,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_301: bool = true;
             while { if !__for_first_301 { i += 1; } __for_first_301 = false; i < (positions.len() as i64) } {
-            let position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
             let code: String = (if ((market).linear == Some(true)) { (market).quote.clone() } else { (market).base.clone() });
@@ -17433,7 +17433,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_308: bool = true;
             while { if !__for_first_308 { i += 1; } __for_first_308 = false; i < (positions.len() as i64) } {
-            let rawPosition: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let entryPriceString: Option<String> = self.safe_string_k_opt(&rawPosition, "entryPrice", &[]);
             if crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())).as_bool() == Some(true) {
                 result.push(self.parse_position_risk(Value::Dict(rawPosition), None));
@@ -20082,7 +20082,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_315: bool = true;
             while { if !__for_first_315 { i += 1; } __for_first_315 = false; i < (assets.len() as i64) } {
-            let entry: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&entry, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
             if (code.is_some()) {

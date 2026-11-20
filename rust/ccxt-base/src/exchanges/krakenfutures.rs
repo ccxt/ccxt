@@ -661,7 +661,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_881: bool = true;
                 while { if !__for_first_881 { i += 1; } __for_first_881 = false; i < (orderEvents.len() as i64) } {
-                let item: crate::value::Dict = orderEvents.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let item: crate::value::Dict = self.safe_dict_t(&orderEvents, Value::Int(i));
                 if (self.safe_string_k(&item, "type", &[]).as_str() == Some("EXECUTION")) {
                     executions.push(Value::from(&item));
                 }
@@ -2277,7 +2277,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_869: bool = true;
             while { if !__for_first_869 { i += 1; } __for_first_869 = false; i < (instruments.len() as i64) } {
-            let market: crate::value::Dict = instruments.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&instruments, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let marketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
             let mut type_var: Option<String> = None;
@@ -4125,7 +4125,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_883: bool = true;
             while { if !__for_first_883 { i += 1; } __for_first_883 = false; i < (logs.len() as i64) } {
-            let row: crate::value::Dict = logs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&logs, Value::Int(i));
             let asset: Option<String> = self.safe_string_k_opt(&row, "asset", &[]);
             let contract: Option<String> = self.safe_string_k_opt(&row, "contract", &[]);
             if (asset.is_some()) && (asset != contract) {

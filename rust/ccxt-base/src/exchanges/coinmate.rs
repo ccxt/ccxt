@@ -1190,7 +1190,7 @@ impl Coinmate {
                         let mut i: i64 = 0;
             let mut __for_first_570: bool = true;
             while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "name", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "firstCurrency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "secondCurrency", &[]);

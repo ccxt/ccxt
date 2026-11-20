@@ -960,7 +960,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
                         let mut j: i64 = 0;
             let mut __for_first_729: bool = true;
             while { if !__for_first_729 { j += 1; } __for_first_729 = false; j < (networks.len() as i64) } {
-            let network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let network: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&network, "chainType", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -1281,7 +1281,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_734: bool = true;
             while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (riskLimits.len() as i64) } {
-            let tier: crate::value::Dict = riskLimits.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let tier: crate::value::Dict = self.safe_dict_t(&riskLimits, Value::Int(i));
             let initialMarginRate: Option<String> = self.safe_string_k_opt(&tier, "initialMargin", &[]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4945,7 +4945,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_733: bool = true;
             while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (rows.len() as i64) } {
-            let entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "settleTime", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

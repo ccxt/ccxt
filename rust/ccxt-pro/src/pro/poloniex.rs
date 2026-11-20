@@ -650,7 +650,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (data.len() as i64) } {
-            let order: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let order: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None);
             std::sync::Arc::make_mut(&mut orders).push(Value::Dict(parsedOrder));
         }
@@ -1687,7 +1687,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_649: bool = true;
             while { if !__for_first_649 { i += 1; } __for_first_649 = false; i < (data.len() as i64) } {
-            let item: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let item: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&item, "symbol", &[]);
             if (marketId.is_some()) {
                 let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(item), None);

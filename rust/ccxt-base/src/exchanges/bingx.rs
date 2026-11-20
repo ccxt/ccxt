@@ -1328,7 +1328,7 @@ impl crate::exchange::DerivedExchange for Bingx {
                         let mut j: i64 = 0;
             let mut __for_first_316: bool = true;
             while { if !__for_first_316 { j += 1; } __for_first_316 = false; j < (networkList.len() as i64) } {
-            let rawNetwork: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawNetwork: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
             let network: Option<String> = self.safe_string_k_opt(&rawNetwork, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(network.as_deref(), code.as_deref());
             let limits: indexmap::IndexMap<String, Value> = ({

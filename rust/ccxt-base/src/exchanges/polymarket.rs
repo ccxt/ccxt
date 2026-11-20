@@ -1453,7 +1453,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1106: bool = true;
             while { if !__for_first_1106 { i += 1; } __for_first_1106 = false; i < (instruments.len() as i64) } {
-            let instrument: crate::value::Dict = instruments.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let instrument: crate::value::Dict = self.safe_dict_t(&instruments, Value::Int(i));
             let baseId: Option<String> = self.safe_string_k_opt(&instrument, "base_asset", &[]);
             if (baseId.is_none()) {
                 continue;
@@ -1512,7 +1512,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1107: bool = true;
             while { if !__for_first_1107 { i += 1; } __for_first_1107 = false; i < (assets.len() as i64) } {
-            let asset: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&asset, "asset", &[]);
             if (currencyId.is_none()) {
                 continue;
@@ -1680,7 +1680,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1108: bool = true;
             while { if !__for_first_1108 { i += 1; } __for_first_1108 = false; i < (statistics.len() as i64) } {
-            let entry: crate::value::Dict = statistics.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&statistics, Value::Int(i));
             let instrumentId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.omit(&entry, Value::Str("klines".into()), &[]));
@@ -1691,7 +1691,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1109: bool = true;
             while { if !__for_first_1109 { i += 1; } __for_first_1109 = false; i < (bbos.len() as i64) } {
-            let entry: crate::value::Dict = bbos.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&bbos, Value::Int(i));
             let instrumentId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
             let previous: crate::value::Dict = self.safe_dict_t(&merged, Value::from(instrumentId.as_deref()));
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
@@ -1704,7 +1704,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1110: bool = true;
             while { if !__for_first_1110 { i += 1; } __for_first_1110 = false; i < (tickers.len() as i64) } {
-            let entry: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             let instrumentId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
             let previous: crate::value::Dict = self.safe_dict_t(&merged, instrumentId.map(Value::from).unwrap_or(Value::Null));
             result.push(self.extend(previous, &[&entry]));
@@ -2068,7 +2068,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1111: bool = true;
             while { if !__for_first_1111 { i += 1; } __for_first_1111 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3233,7 +3233,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1120: bool = true;
             while { if !__for_first_1120 { i += 1; } __for_first_1120 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "instrument_id", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
             result.push(Value::Map({

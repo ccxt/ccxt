@@ -2477,7 +2477,7 @@ impl Btse {
                                         let mut j: i64 = 0;
                     let mut __for_first_486: bool = true;
                     while { if !__for_first_486 { j += 1; } __for_first_486 = false; j < (levels.len() as i64) } {
-                    let level: crate::value::Dict = levels.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let level: crate::value::Dict = self.safe_dict_t(&levels, Value::Int(j));
                     let mut maxNotional: Option<f64> = self.safe_number_k(&level, "value", &[]).as_f64();
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
@@ -2712,7 +2712,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_488: bool = true;
             while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (data.len() as i64) } {
-            let row: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             // spot rows do not carry an open interest
             if (self.safe_string_k(&row, "openInterest", &[]) != Value::Null) {
                 rows.push(Value::Dict(row));
@@ -2796,7 +2796,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_489: bool = true;
             while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (data.len() as i64) } {
-            let row: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             // spot rows do not carry a funding rate
             if (self.safe_string_k(&row, "fundingRate", &[]) != Value::Null) {
                 rows.push(Value::Dict(row));

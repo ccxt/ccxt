@@ -602,7 +602,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
                         let mut j: i64 = 0;
             let mut __for_first_1184: bool = true;
             while { if !__for_first_1184 { j += 1; } __for_first_1184 = false; j < (networks.len() as i64) } {
-            let networkEntry: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let networkEntry: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "chain_id", &[]);
             let mut networkRow: Option<crate::value::Dict> = self.safe_dict_o(&indexedChains, &networkId);
             let networkName: Option<String> = self.safe_string_k_opt(&networkRow, "name", &[&networkId]);
@@ -2424,7 +2424,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1183: bool = true;
             while { if !__for_first_1183 { i += 1; } __for_first_1183 = false; i < (tokenRows.len() as i64) } {
-            let token: crate::value::Dict = tokenRows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let token: crate::value::Dict = self.safe_dict_t(&tokenRows, Value::Int(i));
             let parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_currency(self, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_token".to_string(), Value::Dict(token));
@@ -2785,7 +2785,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1185: bool = true;
             while { if !__for_first_1185 { i += 1; } __for_first_1185 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 continue;
@@ -2908,7 +2908,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1186: bool = true;
             while { if !__for_first_1186 { i += 1; } __for_first_1186 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                 continue;
@@ -3005,7 +3005,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_1187: bool = true;
             while { if !__for_first_1187 { i += 1; } __for_first_1187 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_rate_timestamp", &[]).as_i64();
             rates.push(Value::Map({

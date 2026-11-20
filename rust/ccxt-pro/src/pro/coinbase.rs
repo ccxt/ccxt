@@ -708,7 +708,7 @@ impl Coinbase {
                                 let mut j: i64 = 0;
                 let mut __for_first_231: bool = true;
                 while { if !__for_first_231 { j += 1; } __for_first_231 = false; j < (tickers.len() as i64) } {
-                let ticker: crate::value::Dict = tickers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(j));
                 let wsMarketId: Option<String> = self.safe_string_k_opt(&ticker, "product_id", &[]);
                 if (wsMarketId.is_none()) {
                     continue;
@@ -856,13 +856,13 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_234: bool = true;
             while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (events.len() as i64) } {
-            let event: crate::value::Dict = events.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let candles: crate::value::List = self.safe_list_k_t(&event, "candles");
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_233: bool = true;
                 while { if !__for_first_233 { j += 1; } __for_first_233 = false; j < (candles.len() as i64) } {
-                let candle: crate::value::Dict = candles.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let candle: crate::value::Dict = self.safe_dict_t(&candles, Value::Int(j));
                 let marketId: Option<String> = self.safe_string_k_opt(&candle, "product_id", &[]);
                 let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
                 let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);

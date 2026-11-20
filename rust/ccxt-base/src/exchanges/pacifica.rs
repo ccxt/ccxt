@@ -3177,7 +3177,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1050: bool = true;
             while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (results.len() as i64) } {
-            let order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let order: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
             let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
             let success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
             let mut status: Option<String> = None;
@@ -3262,7 +3262,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1051: bool = true;
             while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (results.len() as i64) } {
-            let order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let order: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
             let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
             let success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
             let mut status: Option<String> = None;
@@ -3741,7 +3741,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1055: bool = true;
             while { if !__for_first_1055 { i += 1; } __for_first_1055 = false; i < (data.len() as i64) } {
-            let info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let info: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &info, None).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
@@ -4032,7 +4032,7 @@ if _try_result.is_err() {
         let dataLength: i64 = data.len() as i64;
         if hasMore {
             if (paginationCursor.is_some()) && (dataLength > 0) {
-                let mut first: Option<crate::value::Dict> = crate::value::KeyRead::read(&&data, &Value::Int(0)).into_opt_dict();
+                let mut first: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
                 if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("next_cursor".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
                 if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("has_more".into(), Value::Bool(hasMore)); }
                 std::sync::Arc::make_mut(&mut data)[0] = Value::from(first.map_or(Value::Null, Value::Dict));

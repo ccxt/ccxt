@@ -1067,7 +1067,7 @@ impl crate::exchange::DerivedExchange for Htx {
                         let mut j: i64 = 0;
             let mut __for_first_777: bool = true;
             while { if !__for_first_777 { j += 1; } __for_first_777 = false; j < (chains.len() as i64) } {
-            let chainEntry: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let chainEntry: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let uniqueChainId: Option<String> = self.safe_string_k_opt(&chainEntry, "chain", &[]); // i.e. usdterc20, trc20usdt ...
             let title: Option<String> = self.safe_string2_opt(&chainEntry, Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code.is_some()) && (title.is_some()) {
@@ -1608,7 +1608,7 @@ impl crate::exchange::DerivedExchange for Htx {
                                 let mut k: i64 = 0;
                 let mut __for_first_794: bool = true;
                 while { if !__for_first_794 { k += 1; } __for_first_794 = false; k < (ladders.len() as i64) } {
-                let bracket: crate::value::Dict = ladders.get(k as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let bracket: crate::value::Dict = self.safe_dict_t(&ladders, Value::Int(k));
                 let adjustFactor: Option<String> = self.safe_string_k_opt(&bracket, "adjust_factor", &[]);
                 tiers.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -5841,7 +5841,7 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_772: bool = true;
             while { if !__for_first_772 { i += 1; } __for_first_772 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let mut marketType: Option<String> = None;
             let mut baseId: Option<String> = None;
             let mut quoteId: Option<String> = None;
@@ -7588,7 +7588,7 @@ impl Htx {
                                                 let mut j: i64 = 0;
                         let mut __for_first_779: bool = true;
                         while { if !__for_first_779 { j += 1; } __for_first_779 = false; j < (balances.len() as i64) } {
-                        let mut balance: Option<crate::value::Dict> = crate::value::KeyRead::read(&&balances, &Value::Int(j)).into_opt_dict();
+                        let mut balance: Option<crate::value::Dict> = self.safe_dict_o(&balances, Value::Int(j));
                         let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
                         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                         if (code.is_some()) {
@@ -7614,7 +7614,7 @@ impl Htx {
                                         let mut i: i64 = 0;
                     let mut __for_first_782: bool = true;
                     while { if !__for_first_782 { i += 1; } __for_first_782 = false; i < (balances.len() as i64) } {
-                    let mut balance: Option<crate::value::Dict> = crate::value::KeyRead::read(&&balances, &Value::Int(i)).into_opt_dict();
+                    let mut balance: Option<crate::value::Dict> = self.safe_dict_o(&balances, Value::Int(i));
                     let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
                     let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                     if (code.is_some()) {
@@ -10136,7 +10136,7 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_788: bool = true;
             while { if !__for_first_788 { i += 1; } __for_first_788 = false; i < (failed.len() as i64) } {
-            let order: Option<crate::value::Dict> = crate::value::KeyRead::read(&&failed, &Value::Int(i)).into_opt_dict();
+            let order: Option<crate::value::Dict> = self.safe_dict_o(&failed, Value::Int(i));
             result.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
@@ -11137,7 +11137,7 @@ impl Htx {
                                 let mut i: i64 = 0;
                 let mut __for_first_791: bool = true;
                 while { if !__for_first_791 { i += 1; } __for_first_791 = false; i < (result.len() as i64) } {
-                let mut entry: Option<crate::value::Dict> = crate::value::KeyRead::read(&&result, &Value::Int(i)).into_opt_dict();
+                let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&result, Value::Int(i));
                 if let Some(__rdm) = &mut entry { std::sync::Arc::make_mut(__rdm).insert("current_page".to_string(), Value::from(cursor.clone())); }
                 let marketId: Option<String> = self.safe_string_k_opt(&entry, "contract_code", &[]);
                 let symbolInner: Value = self.safe_symbol(marketId.as_deref(), None, &[]);
@@ -11633,7 +11633,7 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_792: bool = true;
             while { if !__for_first_792 { i += 1; } __for_first_792 = false; i < (data.len() as i64) } {
-            let position: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let position: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, &position, None).unwrap_or_default();
             let __ws_arg_136 = self.iso8601(timestamp);
             result.push(self.extend(parsed, &[Value::Map({

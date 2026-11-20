@@ -1220,7 +1220,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_407: bool = true;
             while { if !__for_first_407 { i += 1; } __for_first_407 = false; i < (data.len() as i64) } {
-            let rawTrade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
             symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1266,7 +1266,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_409: bool = true;
             while { if !__for_first_409 { i += 1; } __for_first_409 = false; i < (fills.len() as i64) } {
-            let fill: crate::value::Dict = fills.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let fill: crate::value::Dict = self.safe_dict_t(&fills, Value::Int(i));
             let liquidation: crate::value::Dict = self.safe_dict_k_t(&fill, "liquidation");
             // liquidator fills carry the liquidated counterparty here
             if ((user.as_deref() == self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str())) {
@@ -2069,7 +2069,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_414: bool = true;
             while { if !__for_first_414 { i += 1; } __for_first_414 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             self.positions.append(Value::Dict(position));
@@ -2305,7 +2305,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_416: bool = true;
             while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < (data.len() as i64) } {
-            let rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawOrder: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
             self.orders.append(Value::from(&order));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);

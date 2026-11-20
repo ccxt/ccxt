@@ -334,7 +334,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
                         let mut j: i64 = 0;
             let mut __for_first_1209: bool = true;
             while { if !__for_first_1209 { j += 1; } __for_first_1209 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let depositAllowed: bool = self.safe_bool_k_opt(&chain, "isDepositEnabled", &[Value::Bool(false)]).unwrap_or(false);
@@ -2737,7 +2737,7 @@ impl Zebpay {
                         let mut i: i64 = 0;
             let mut __for_first_1211: bool = true;
             while { if !__for_first_1211 { i += 1; } __for_first_1211 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);
@@ -2841,7 +2841,7 @@ impl Zebpay {
                         let mut i: i64 = 0;
             let mut __for_first_1212: bool = true;
             while { if !__for_first_1212 { i += 1; } __for_first_1212 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);

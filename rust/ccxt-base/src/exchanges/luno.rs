@@ -1332,7 +1332,7 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_942: bool = true;
             while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "market_id", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "counter_currency", &[]);
@@ -1465,7 +1465,7 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_943: bool = true;
             while { if !__for_first_943 { i += 1; } __for_first_943 = false; i < (wallets.len() as i64) } {
-            let account: crate::value::Dict = wallets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let account: crate::value::Dict = self.safe_dict_t(&wallets, Value::Int(i));
             let accountId: Option<String> = self.safe_string_k_opt(&account, "account_id", &[]);
             let currencyId: Option<String> = self.safe_string_k_opt(&account, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);

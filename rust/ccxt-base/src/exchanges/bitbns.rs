@@ -1060,7 +1060,7 @@ impl Bitbns {
                         let mut i: i64 = 0;
             let mut __for_first_340: bool = true;
             while { if !__for_first_340 { i += 1; } __for_first_340 = false; i < (rawMarkets.len() as i64) } {
-            let market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "base", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quote", &[]);

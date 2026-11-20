@@ -1915,7 +1915,7 @@ impl Bingx {
                         let mut i: i64 = 0;
             let mut __for_first_93: bool = true;
             while { if !__for_first_93 { i += 1; } __for_first_93 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None);
             let symbol: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             if (symbol.is_none()) {
@@ -2377,7 +2377,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_98: bool = true;
             while { if !__for_first_98 { i += 1; } __for_first_98 = false; i < (data.len() as i64) } {
-            let balance: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::Int(i)).into_dict();
+            let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "a", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());

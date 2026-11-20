@@ -3210,7 +3210,7 @@ impl Whitebit {
                                         let mut i: i64 = 0;
                     let mut __for_first_1163: bool = true;
                     while { if !__for_first_1163 { i += 1; } __for_first_1163 = false; i < (orders.len() as i64) } {
-                    let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
                     let orderId: String = self.safe_string_k(&order, "orderId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     if (orderId == id.as_str().unwrap_or_default().to_string()) {
                         let marketId: Option<String> = self.safe_string_k_opt(&order, "market", &[]);
@@ -3244,7 +3244,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                                 let mut j: i64 = 0;
                         let mut __for_first_1164: bool = true;
                         while { if !__for_first_1164 { j += 1; } __for_first_1164 = false; j < (marketOrders.len() as i64) } {
-                        let order: crate::value::Dict = marketOrders.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                        let order: crate::value::Dict = self.safe_dict_t(&marketOrders, Value::Int(j));
                         let orderId: String = self.safe_string_k(&order, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                         if (orderId == id.as_str().unwrap_or_default().to_string()) {
                             return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&marketNew)).map_or(Value::Null, Value::Dict);

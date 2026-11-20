@@ -1973,7 +1973,7 @@ impl Lbank {
                         let mut i: i64 = 0;
             let mut __for_first_920: bool = true;
             while { if !__for_first_920 { i += 1; } __for_first_920 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let baseId: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2100,7 +2100,7 @@ impl Lbank {
                         let mut i: i64 = 0;
             let mut __for_first_921: bool = true;
             while { if !__for_first_921 { i += 1; } __for_first_921 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let settleId: Option<String> = self.safe_string_k_opt(&market, "clearCurrency", &[]);

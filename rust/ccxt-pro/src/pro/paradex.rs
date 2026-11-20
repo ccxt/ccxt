@@ -2433,7 +2433,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_616: bool = true;
             while { if !__for_first_616 { i += 1; } __for_first_616 = false; i < (cached.len() as i64) } {
-            let previous: crate::value::Dict = crate::value::KeyRead::read(&&cached, &Value::Int(i)).into_dict();
+            let previous: crate::value::Dict = self.safe_dict_t(&cached, Value::Int(i));
             let previousSide: Option<String> = self.safe_string_k_opt(&previous, "side", &[]);
             let previousContracts: Option<String> = self.safe_string_k_opt(&previous, "contracts", &[]);
             let isOpposite: bool = (side.is_some()) && (previousSide.is_some()) && (previousSide != side);

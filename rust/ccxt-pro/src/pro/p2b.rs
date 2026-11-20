@@ -577,7 +577,7 @@ impl P2b {
                         let mut i: i64 = 0;
             let mut __for_first_577: bool = true;
             while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (trades.len() as i64) } {
-            let item: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let item: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
             let trade: crate::value::Dict = self.parse_trade(Value::Dict(item), Some(&market));
             tradesArray.append(Value::Dict(trade));
         }

@@ -1727,7 +1727,7 @@ impl Phemex {
                                 let mut i: i64 = 0;
                 let mut __for_first_637: bool = true;
                 while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (orders.len() as i64) } {
-                let rawOrder: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
                 let parsedOrder: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
                 parsedOrders.push(Value::Dict(parsedOrder));
             }

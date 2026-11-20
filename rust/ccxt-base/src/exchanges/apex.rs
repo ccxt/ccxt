@@ -1884,7 +1884,7 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_226: bool = true;
             while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (resultList.len() as i64) } {
-            let entry: crate::value::Dict = resultList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&resultList, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "fundingTimestamp", &[]).as_i64();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             rates.push(Value::Map({

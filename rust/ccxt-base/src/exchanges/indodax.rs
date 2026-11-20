@@ -1009,7 +1009,7 @@ impl Indodax {
                         let mut i: i64 = 0;
             let mut __for_first_841: bool = true;
             while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (rawMarkets.len() as i64) } {
-            let market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "traded_currency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);

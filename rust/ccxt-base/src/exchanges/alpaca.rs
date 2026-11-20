@@ -2946,7 +2946,7 @@ impl Alpaca {
                                 let mut i: i64 = 0;
                 let mut __for_first_221: bool = true;
                 while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (ledger.len() as i64) } {
-                let entry: crate::value::Dict = ledger.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let entry: crate::value::Dict = self.safe_dict_t(&ledger, Value::Int(i));
                 let activityType: Option<String> = self.safe_string_k_opt(&entry, "activity_type", &[]);
                 let amount: Option<String> = self.safe_string_k_opt(&entry, "net_amount", &[]);
                 let isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true)));
@@ -2988,7 +2988,7 @@ impl Alpaca {
                         let mut i: i64 = 0;
             let mut __for_first_222: bool = true;
             while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (transfers.len() as i64) } {
-            let entry: crate::value::Dict = transfers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&transfers, Value::Int(i));
             let direction: Option<String> = self.safe_string_k_opt(&entry, "direction", &[]);
             if (direction.as_deref() == Some(type_var.as_str().unwrap_or_default().to_string().as_str())) {
                 results.push(Value::from(&entry));

@@ -731,7 +731,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_561: bool = true;
             while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (rawNetworks.len() as i64) } {
-            let rawNetwork: crate::value::Dict = rawNetworks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(i));
             let networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "resource_name", &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (network.is_some()) {
@@ -3449,7 +3449,7 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_565: bool = true;
             while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (logs.len() as i64) } {
-            let transaction: crate::value::Dict = logs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let transaction: crate::value::Dict = self.safe_dict_t(&logs, Value::Int(i));
             let transactionType: Option<String> = self.safe_string_k_opt(&transaction, "type", &[]);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {
                 transactions.push(Value::Dict(transaction));

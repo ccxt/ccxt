@@ -882,7 +882,7 @@ impl crate::exchange::DerivedExchange for Mexc {
                         let mut j: i64 = 0;
             let mut __for_first_950: bool = true;
             while { if !__for_first_950 { j += 1; } __for_first_950 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string2_opt(&chain, Value::Str("netWork".into()), Value::Str("network".into()), &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (network.is_some()) {
@@ -3711,7 +3711,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_951: bool = true;
             while { if !__for_first_951 { i += 1; } __for_first_951 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);
@@ -3870,7 +3870,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_952: bool = true;
             while { if !__for_first_952 { i += 1; } __for_first_952 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCoin", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
@@ -5946,7 +5946,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_954: bool = true;
             while { if !__for_first_954 { i += 1; } __for_first_954 = false; i < (data.len() as i64) } {
-            let account: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let account: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let currencyId: Option<String> = self.safe_string2_opt(&account, Value::Str("asset".into()), Value::Str("currency".into()), &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             result.push(Value::Map({
@@ -6640,7 +6640,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_958: bool = true;
             while { if !__for_first_958 { i += 1; } __for_first_958 = false; i < (resultList.len() as i64) } {
-            let entry: crate::value::Dict = resultList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&resultList, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "settleTime", &[]).as_i64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -6810,7 +6810,7 @@ impl Mexc {
                         let mut i: i64 = 0;
             let mut __for_first_959: bool = true;
             while { if !__for_first_959 { i += 1; } __for_first_959 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let symbolInner: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "settleTime", &[]).as_i64();

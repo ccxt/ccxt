@@ -400,7 +400,7 @@ impl crate::exchange::DerivedExchange for Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_915: bool = true;
             while { if !__for_first_915 { i += 1; } __for_first_915 = false; i < (bindings.len() as i64) } {
-            let binding: crate::value::Dict = bindings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let binding: crate::value::Dict = self.safe_dict_t(&bindings, Value::Int(i));
             let networkId: Option<String> = self.safe_string_k_opt(&binding, "providerName", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
@@ -1769,7 +1769,7 @@ impl Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_917: bool = true;
             while { if !__for_first_917 { i += 1; } __for_first_917 = false; i < (rawAsks.len() as i64) } {
-            let askEntry: crate::value::Dict = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let askEntry: crate::value::Dict = self.safe_dict_t(&rawAsks, Value::Int(i));
             let askQuantity: Option<String> = self.safe_string_k_opt(&askEntry, "quantity", &[]);
             if crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 asks.push(Value::Dict(askEntry));
@@ -1780,7 +1780,7 @@ impl Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_918: bool = true;
             while { if !__for_first_918 { i += 1; } __for_first_918 = false; i < (rawBids.len() as i64) } {
-            let bidEntry: crate::value::Dict = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let bidEntry: crate::value::Dict = self.safe_dict_t(&rawBids, Value::Int(i));
             let bidQuantity: Option<String> = self.safe_string_k_opt(&bidEntry, "quantity", &[]);
             if crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
                 bids.push(Value::Dict(bidEntry));

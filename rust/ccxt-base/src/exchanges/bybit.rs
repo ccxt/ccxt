@@ -1382,7 +1382,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                         let mut j: i64 = 0;
             let mut __for_first_501: bool = true;
             while { if !__for_first_501 { j += 1; } __for_first_501 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "chain", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -5887,7 +5887,7 @@ impl Bybit {
         let paginationCursor: Option<String> = self.safe_string2_opt(&result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]);
         let dataLength: i64 = data.len() as i64;
         if (paginationCursor.is_some()) && (dataLength > 0) {
-            let mut first: Option<crate::value::Dict> = crate::value::KeyRead::read(&&data, &Value::Int(0)).into_opt_dict();
+            let mut first: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
             if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("nextPageCursor".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
             std::sync::Arc::make_mut(&mut data)[0] = Value::from(first.map_or(Value::Null, Value::Dict));
         }
@@ -6385,7 +6385,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_505: bool = true;
             while { if !__for_first_505 { i += 1; } __for_first_505 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCoin", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
@@ -6579,7 +6579,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_506: bool = true;
             while { if !__for_first_506 { i += 1; } __for_first_506 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             if (category.is_none()) {
                 category = self.safe_string_k_opt(&market, "category", &[]);
             }
@@ -6791,7 +6791,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_507: bool = true;
             while { if !__for_first_507 { i += 1; } __for_first_507 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCoin", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
@@ -7504,7 +7504,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_511: bool = true;
             while { if !__for_first_511 { i += 1; } __for_first_511 = false; i < (resultList.len() as i64) } {
-            let entry: crate::value::Dict = resultList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&resultList, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "fundingRateTimestamp", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -8360,7 +8360,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_515: bool = true;
             while { if !__for_first_515 { i += 1; } __for_first_515 = false; i < (codes.len() as i64) } {
-            let code: crate::value::Dict = codes.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let code: crate::value::Dict = self.safe_dict_t(&codes, Value::Int(i));
             let retCode: Option<i64> = self.safe_integer_k(&code, "code", &[]).as_i64();
             if (retCode != Some(0)) {
                 { let __be_tmp = self.extend(crate::value::KeyRead::read(&&data, &Value::Int(i)), &[&code]); add_element_to_object(&mut data, &Value::Int(i), __be_tmp); }
@@ -8591,7 +8591,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_517: bool = true;
             while { if !__for_first_517 { i += 1; } __for_first_517 = false; i < (codes.len() as i64) } {
-            let code: crate::value::Dict = codes.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let code: crate::value::Dict = self.safe_dict_t(&codes, Value::Int(i));
             let retCode: Option<i64> = self.safe_integer_k(&code, "code", &[]).as_i64();
             if (retCode != Some(0)) {
                 { let __be_tmp = self.extend(crate::value::KeyRead::read(&&data, &Value::Int(i)), &[&code]); add_element_to_object(&mut data, &Value::Int(i), __be_tmp); }
@@ -13363,7 +13363,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_529: bool = true;
             while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (coins.len() as i64) } {
-            let entry: crate::value::Dict = coins.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&coins, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
             let disableFrom: bool = self.safe_bool_k_opt(&entry, "disableFrom", &[Value::Bool(false)]).unwrap_or(false);
             let disableTo: bool = self.safe_bool_k_opt(&entry, "disableTo", &[Value::Bool(false)]).unwrap_or(false);

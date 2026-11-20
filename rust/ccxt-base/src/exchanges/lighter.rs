@@ -2704,7 +2704,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_934: bool = true;
             while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "market_id", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&market, "market_type", &[]);
             if (type_var.as_deref() == Some("perp")) {

@@ -1037,7 +1037,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_281: bool = true;
             while { if !__for_first_281 { i += 1; } __for_first_281 = false; i < (data.len() as i64) } {
-            let ticker: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), Some(&market));
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
             if (symbol.is_some()) {
@@ -1575,7 +1575,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_286: bool = true;
             while { if !__for_first_286 { i += 1; } __for_first_286 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             self.positions.append(Value::Dict(position));

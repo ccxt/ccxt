@@ -1480,7 +1480,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_542: bool = true;
             while { if !__for_first_542 { i += 1; } __for_first_542 = false; i < (rawLiquidations.len() as i64) } {
-            let rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawLiquidation: crate::value::Dict = self.safe_dict_t(&rawLiquidations, Value::Int(i));
             let liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), None);
             let symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
@@ -1611,7 +1611,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_544: bool = true;
             while { if !__for_first_544 { i += 1; } __for_first_544 = false; i < (rawLiquidations.len() as i64) } {
-            let rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawLiquidation: crate::value::Dict = self.safe_dict_t(&rawLiquidations, Value::Int(i));
             let eventType: Option<String> = self.safe_string_k_opt(&rawLiquidation, "eventType", &[]);
             if (eventType.as_deref() != Some("liquidation")) {
                 return;
@@ -2408,7 +2408,7 @@ impl Okx {
                                 let mut i: i64 = 0;
                 let mut __for_first_552: bool = true;
                 while { if !__for_first_552 { i += 1; } __for_first_552 = false; i < (data.len() as i64) } {
-                let update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let update: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
                 // reset the existing orderbook instead of replacing it: a consumer
                 // holds a reference to the old object and would never see updates
                 // after a re-subscription snapshot
@@ -2439,7 +2439,7 @@ impl Okx {
                                         let mut i: i64 = 0;
                     let mut __for_first_553: bool = true;
                     while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (data.len() as i64) } {
-                    let update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let update: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
                     self.handle_order_book_message(&client, &update, Value::from(&updatedBook), messageHash.as_str(), Some(&market));
                     if !(__ch.has_subscription(messageHash.as_str())) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
@@ -2466,7 +2466,7 @@ impl Okx {
                                         let mut i: i64 = 0;
                     let mut __for_first_554: bool = true;
                     while { if !__for_first_554 { i += 1; } __for_first_554 = false; i < (data.len() as i64) } {
-                    let update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let update: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
                     let timestamp: Option<i64> = self.safe_integer_k(&update, "ts", &[]).as_i64();
                     let snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
                     bboBook.reset(Value::Dict(snapshot));
@@ -2951,7 +2951,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_556: bool = true;
             while { if !__for_first_556 { i += 1; } __for_first_556 = false; i < (data.len() as i64) } {
-            let rawPosition: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut position: crate::value::Dict = self.parse_position(Value::from(&rawPosition), None);
             let contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[]).as_f64();
             if (contracts == Some(0.0)) && (self.safe_string_k(&rawPosition, "posSide", &[]).as_str() == Some("net")) {
@@ -3216,16 +3216,16 @@ impl Okx {
         let arg: crate::value::Dict = message.key_dict("arg");
         let channel: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let rawOrders: crate::value::List = message.key_list("data");
-        let mut filteredOrders: Vec<crate::value::Dict> = Vec::new();
+        let mut filteredOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_559: bool = true;
             while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (rawOrders.len() as i64) } {
-            let rawOrder: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawOrder: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
             let mut tradeId: String = self.safe_string_k(&rawOrder, "tradeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if ((tradeId.chars().count() as i64)) > 0 {
                 let order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
-                filteredOrders.push(order);
+                filteredOrders.push(Value::Dict(order));
             }
         }
         }
@@ -3245,7 +3245,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_560: bool = true;
             while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (filteredOrders.len() as i64) } {
-            let rawTrade: crate::value::Dict = filteredOrders.get(i as usize).cloned().unwrap_or_default();
+            let rawTrade: crate::value::Dict = self.safe_dict_t(&filteredOrders, Value::Int(i));
             let trade: crate::value::Dict = self.order_to_trade(Value::Dict(rawTrade), None).into_dict();
             self.myTrades.append(Value::from(&trade));
             let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);

@@ -4918,8 +4918,9 @@ impl Kucoin {
         }
         if requestMarginables {
             crossIndex = nextIndex;
-            nextIndex = (nextIndex + 2);
-            isolatedIndex = (crossIndex + 1);
+            nextIndex = (nextIndex + 1);
+            isolatedIndex = nextIndex;
+            nextIndex = (nextIndex + 1);
         }
         if fetchTickersFees {
             tickersIndex = nextIndex;
@@ -4960,7 +4961,7 @@ impl Kucoin {
                         let mut i: i64 = 0;
             let mut __for_first_889: bool = true;
             while { if !__for_first_889 { i += 1; } __for_first_889 = false; i < (symbolsData.len() as i64) } {
-            let market: crate::value::Dict = symbolsData.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&symbolsData, Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             if (id.is_none()) {
                 continue;
@@ -5140,7 +5141,7 @@ impl Kucoin {
                         let mut i: i64 = 0;
             let mut __for_first_890: bool = true;
             while { if !__for_first_890 { i += 1; } __for_first_890 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let expiry: Option<i64> = self.safe_integer_k(&market, "expireDate", &[]).as_i64();
             let mut future: bool = (self.safe_string_k(&market, "nextFundingRateTime", &[]) == Value::Null);
@@ -5349,7 +5350,7 @@ impl Kucoin {
                         let mut i: i64 = 0;
             let mut __for_first_891: bool = true;
             while { if !__for_first_891 { i += 1; } __for_first_891 = false; i < (symbolsData.len() as i64) } {
-            let market: crate::value::Dict = symbolsData.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&symbolsData, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCurrency", &[]);
@@ -5670,7 +5671,7 @@ impl Kucoin {
                         let mut i: i64 = 0;
             let mut __for_first_893: bool = true;
             while { if !__for_first_893 { i += 1; } __for_first_893 = false; i < (data.len() as i64) } {
-            let account: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let account: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let accountId: Option<String> = self.safe_string_k_opt(&account, "id", &[]);
             let currencyId: Option<String> = self.safe_string_k_opt(&account, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -12278,7 +12279,7 @@ impl Kucoin {
                                 let mut i: i64 = 0;
                 let mut __for_first_900: bool = true;
                 while { if !__for_first_900 { i += 1; } __for_first_900 = false; i < (accounts.len() as i64) } {
-                let balance: crate::value::Dict = accounts.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let balance: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
                 let codeInner: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 if (codeInner.is_some()) {
@@ -14177,7 +14178,7 @@ impl Kucoin {
                         let mut i: i64 = 0;
             let mut __for_first_907: bool = true;
             while { if !__for_first_907 { i += 1; } __for_first_907 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
             let isFundingIndex: bool = (marketId.is_some()) && (marketId.as_deref().unwrap_or_default().starts_with("."));
@@ -14422,7 +14423,7 @@ impl Kucoin {
                         let mut i: i64 = 0;
             let mut __for_first_908: bool = true;
             while { if !__for_first_908 { i += 1; } __for_first_908 = false; i < (dataList.len() as i64) } {
-            let listItem: crate::value::Dict = dataList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let listItem: crate::value::Dict = self.safe_dict_t(&dataList, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer2(&listItem, Value::Str("timePoint".into()), Value::Str("settlementTime".into()), &[]).as_i64();
             let marketId: Option<String> = self.safe_string_k_opt(&listItem, "symbol", &[]);
             fees.push(Value::Map({

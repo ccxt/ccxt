@@ -5965,7 +5965,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1087: bool = true;
             while { if !__for_first_1087 { i += 1; } __for_first_1087 = false; i < (positions.len() as i64) } {
-            let position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, &position, None).map_or(Value::Null, Value::Dict));
         }
         }
@@ -6130,7 +6130,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1088: bool = true;
             while { if !__for_first_1088 { i += 1; } __for_first_1088 = false; i < (rows.len() as i64) } {
-            let entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "createTime", &[]).as_i64();
             let execFee: Option<String> = self.safe_string2_opt(&entry, Value::Str("execFeeEv".into()), Value::Str("execFeeRv".into()), &[]);
             let currencyCode: Option<String> = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]).as_str(), None);
@@ -6878,7 +6878,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1090: bool = true;
             while { if !__for_first_1090 { i += 1; } __for_first_1090 = false; i < (rates.len() as i64) } {
-            let item: crate::value::Dict = rates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let item: crate::value::Dict = self.safe_dict_t(&rates, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&item, "fundingTime", &[]).as_i64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -7343,7 +7343,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1091: bool = true;
             while { if !__for_first_1091 { i += 1; } __for_first_1091 = false; i < (ranks.len() as i64) } {
-            let rank: crate::value::Dict = ranks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rank: crate::value::Dict = self.safe_dict_t(&ranks, Value::Int(i));
             result.push(<Self as crate::exchange::DerivedExchange>::parse_adl_rank(self, &rank, None));
         }
         }

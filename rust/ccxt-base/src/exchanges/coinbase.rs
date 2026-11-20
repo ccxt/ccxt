@@ -2801,7 +2801,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_535: bool = true;
             while { if !__for_first_535 { i += 1; } __for_first_535 = false; i < (portfolios.len() as i64) } {
-            let portfolio: crate::value::Dict = portfolios.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let portfolio: crate::value::Dict = self.safe_dict_t(&portfolios, Value::Int(i));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(&portfolio, "uuid", &[]));
@@ -3199,7 +3199,7 @@ impl Coinbase {
                                         let mut j: i64 = 0;
                     let mut __for_first_537: bool = true;
                     while { if !__for_first_537 { j += 1; } __for_first_537 = false; j < (data.len() as i64) } {
-                    let quoteCurrency: crate::value::Dict = data.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let quoteCurrency: crate::value::Dict = self.safe_dict_t(&data, Value::Int(j));
                     let quoteId: Option<String> = self.safe_string_k_opt(&quoteCurrency, "id", &[]);
                     let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
                     if (quote.is_none()) || (quoteId.is_none()) {
@@ -3445,7 +3445,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_542: bool = true;
             while { if !__for_first_542 { i += 1; } __for_first_542 = false; i < (result.len() as i64) } {
-            let market: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let info: crate::value::Dict = self.safe_dict_k_t(&market, "info");
             let realMarketIds: crate::value::List = self.safe_list_k_t(&info, "alias_to");
             let length: i64 = realMarketIds.len() as i64;
@@ -3946,7 +3946,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_543: bool = true;
             while { if !__for_first_543 { i += 1; } __for_first_543 = false; i < (currencies.len() as i64) } {
-            let currency: crate::value::Dict = currencies.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let currency: crate::value::Dict = self.safe_dict_t(&currencies, Value::Int(i));
             let assetId: Option<String> = self.safe_string_k_opt(&currency, "asset_id", &[]);
             let id: Option<String> = self.safe_string2_opt(&currency, Value::Str("id".into()), Value::Str("code".into()), &[]);
             let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
@@ -4220,7 +4220,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_546: bool = true;
             while { if !__for_first_546 { i += 1; } __for_first_546 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "product_id", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -7093,7 +7093,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_552: bool = true;
             while { if !__for_first_552 { i += 1; } __for_first_552 = false; i < (spotPositions.len() as i64) } {
-            let position: crate::value::Dict = spotPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let position: crate::value::Dict = self.safe_dict_t(&spotPositions, Value::Int(i));
             let currencyCode: String = self.safe_string_k(&position, "asset", &[Value::Str("Unknown".into())]).as_str().unwrap_or("Unknown").to_string();
             let availableBalanceStr: String = self.safe_string_k(&position, "available_to_trade_fiat", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             let availableBalance: Option<f64> = self.parse_number(Value::from(availableBalanceStr), &[]).as_f64();

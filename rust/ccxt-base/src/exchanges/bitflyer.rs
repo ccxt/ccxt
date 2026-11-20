@@ -953,7 +953,7 @@ impl Bitflyer {
                         let mut i: i64 = 0;
             let mut __for_first_365: bool = true;
             while { if !__for_first_365 { i += 1; } __for_first_365 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "product_code", &[]);
             let currencies: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let marketType: Option<String> = self.safe_string_k_opt(&market, "market_type", &[]);

@@ -2332,7 +2332,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_1257: bool = true;
             while { if !__for_first_1257 { i += 1; } __for_first_1257 = false; i < (rawOrders.len() as i64) } {
-            let order: crate::value::Dict = crate::value::KeyRead::read(&&rawOrders, &Value::Int(i)).into_dict();
+            let order: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
             ordersWithStatus.push(self.extend(order, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ccxtStatus".to_string(), Value::Str("open".into()));
@@ -2721,7 +2721,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_1262: bool = true;
             while { if !__for_first_1262 { i += 1; } __for_first_1262 = false; i < (marketValues.len() as i64) } {
-            let mkt: crate::value::Dict = marketValues.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mkt: crate::value::Dict = self.safe_dict_t(&marketValues, Value::Int(i));
             if !matches!(self.safe_bool_k(&mkt, "prediction", &[Value::Bool(false)]), Value::Bool(true)) {
                 continue;
             }

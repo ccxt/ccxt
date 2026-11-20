@@ -1231,7 +1231,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_680: bool = true;
             while { if !__for_first_680 { i += 1; } __for_first_680 = false; i < (data.len() as i64) } {
-            let balance: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "a", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());

@@ -731,7 +731,7 @@ impl crate::exchange::DerivedExchange for Delta {
                         let mut j: i64 = 0;
             let mut __for_first_616: bool = true;
             while { if !__for_first_616 { j += 1; } __for_first_616 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -2521,7 +2521,7 @@ impl Delta {
                         let mut i: i64 = 0;
             let mut __for_first_618: bool = true;
             while { if !__for_first_618 { i += 1; } __for_first_618 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let mut type_var: Option<String> = self.safe_string_k_opt(&market, "contract_type", &[]);
             if (type_var.as_deref() == Some("options_combos")) || (type_var.as_deref() == Some("binary_call_options")) || (type_var.as_deref() == Some("binary_put_options")) {
                 continue;
@@ -2982,7 +2982,7 @@ impl Delta {
                         let mut i: i64 = 0;
             let mut __for_first_619: bool = true;
             while { if !__for_first_619 { i += 1; } __for_first_619 = false; i < (tickers.len() as i64) } {
-            let rawTicker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             let contractType: Option<String> = self.safe_string_k_opt(&rawTicker, "contract_type", &[]);
             if (contractType.as_deref() == Some("options_combos")) || (contractType.as_deref() == Some("binary_call_options")) || (contractType.as_deref() == Some("binary_put_options")) {
                 continue;

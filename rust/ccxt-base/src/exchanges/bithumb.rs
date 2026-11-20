@@ -2305,7 +2305,7 @@ impl Bithumb {
                                         let mut j: i64 = 0;
                     let mut __for_first_402: bool = true;
                     while { if !__for_first_402 { j += 1; } __for_first_402 = false; j < (tickers.len() as i64) } {
-                    let entry: crate::value::Dict = tickers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let entry: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(j));
                     let marketId: Option<String> = self.safe_string_k_opt(&entry, "market", &[&Value::from(expectedMarketId.as_deref())]);
                     if (marketId.is_none()) {
                         continue;

@@ -2421,7 +2421,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_206: bool = true;
             while { if !__for_first_206 { i += 1; } __for_first_206 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             let side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
             // hacky solution to handle closing positions
@@ -3259,15 +3259,14 @@ impl Bybit {
         // is the consistent total, the spot rows fall back to the wallet balance
         account.insert("total".into(), self.safe_string2(balance, Value::Str("equity".into()), Value::Str("walletBalance".into()), &[]));
         if (accountType != Value::Null) {
-            if (self.balance.get(crate::runtime::stringify_param(&accountType).as_str()).filter(|__v| matches!(__v, Value::Dict(_))).is_none()) {
-                { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})); }
+            let mut accountBalance: indexmap::IndexMap<String, Value> = self.balance.get(crate::runtime::stringify_param(&accountType).as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })).as_map().cloned().unwrap_or_default();
+            if (code.is_some()) {
+                accountBalance.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account.clone()));
             }
-            if (accountType != Value::Null) && (code.is_some()) {
-                if let Value::Dict(__r05d) = std::sync::Arc::make_mut(&mut self.balance).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null) { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account.clone())); }
-            }
+            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map(accountBalance)); }
         }  else {
             if (code.is_some()) {
                 { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }

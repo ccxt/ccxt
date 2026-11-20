@@ -1296,7 +1296,7 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_422: bool = true;
             while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "book", &[]);
             let parts: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let baseId: String = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1769,7 +1769,7 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_424: bool = true;
             while { if !__for_first_424 { i += 1; } __for_first_424 = false; i < (fees.len() as i64) } {
-            let fee: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let fee: crate::value::Dict = self.safe_dict_t(&fees, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&fee, "book", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("_".into())]).as_str().map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
@@ -2469,7 +2469,7 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_427: bool = true;
             while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (depositFees.len() as i64) } {
-            let depositFee: crate::value::Dict = depositFees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let depositFee: crate::value::Dict = self.safe_dict_t(&depositFees, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&depositFee, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (codes != Value::Null) && !self.in_array(&code, &codes) {
@@ -2650,7 +2650,7 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_429: bool = true;
             while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (depositResponse.len() as i64) } {
-            let entry: crate::value::Dict = depositResponse.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&depositResponse, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (codes == Value::Null) || ((code.is_some()) && self.in_array(&code, &codes)) {

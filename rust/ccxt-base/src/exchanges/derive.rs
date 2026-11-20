@@ -3033,7 +3033,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_635: bool = true;
             while { if !__for_first_635 { i += 1; } __for_first_635 = false; i < (tradesArray.len() as i64) } {
-            let mut rawTrade: crate::value::Dict = tradesArray.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rawTrade: crate::value::Dict = self.safe_dict_t(&tradesArray, Value::Int(i));
             let isFetchTrades: bool = !(rawTrade.contains_key("order_id"));
             let liquidityRole: Option<String> = self.safe_string_k_opt(&rawTrade, "liquidity_role", &[]);
             if isFetchTrades && (liquidityRole.as_deref() == Some("maker")) {
@@ -3227,7 +3227,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_636: bool = true;
             while { if !__for_first_636 { i += 1; } __for_first_636 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

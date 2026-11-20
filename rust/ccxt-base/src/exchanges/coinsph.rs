@@ -405,7 +405,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
                         let mut j: i64 = 0;
             let mut __for_first_576: bool = true;
             while { if !__for_first_576 { j += 1; } __for_first_576 = false; j < (networkList.len() as i64) } {
-            let networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let networkItem: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
             let network: Option<String> = self.safe_string_k_opt(&networkItem, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(network.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -1842,7 +1842,7 @@ impl Coinsph {
                         let mut i: i64 = 0;
             let mut __for_first_579: bool = true;
             while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);

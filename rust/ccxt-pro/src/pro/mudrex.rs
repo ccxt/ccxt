@@ -409,7 +409,7 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_507: bool = true;
             while { if !__for_first_507 { i += 1; } __for_first_507 = false; i < (data.len() as i64) } {
-            let t: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let t: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let s: Option<String> = self.safe_string_k_opt(&t, "s", &[]);
             if (s.is_none()) {
                 continue;

@@ -820,7 +820,7 @@ impl Myriad {
                         let mut i: i64 = 0;
             let mut __for_first_1346: bool = true;
             while { if !__for_first_1346 { i += 1; } __for_first_1346 = false; i < (rawMarkets.len() as i64) } {
-            let raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
             let m: crate::value::Dict = self.parse_myriad_market(&raw, None);
             flatMarkets.push(Value::from(&m));
             let ev: crate::value::Dict = self.parse_market_to_event(&raw, &m);
@@ -880,7 +880,7 @@ impl Myriad {
                                 let mut j: i64 = 0;
                 let mut __for_first_1347: bool = true;
                 while { if !__for_first_1347 { j += 1; } __for_first_1347 = false; j < (found.len() as i64) } {
-                let raw: crate::value::Dict = found.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let raw: crate::value::Dict = self.safe_dict_t(&found, Value::Int(j));
                 let networkId: String = self.safe_string_k(&raw, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let marketId: String = self.safe_string_k(&raw, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let key: String = format!("{}{}", Value::Str(format!("{}{}", networkId, ":").into()), marketId);
@@ -1128,7 +1128,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut j: i64 = 0;
                 let mut __for_first_1351: bool = true;
                 while { if !__for_first_1351 { j += 1; } __for_first_1351 = false; j < (found.len() as i64) } {
-                let raw: crate::value::Dict = found.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let raw: crate::value::Dict = self.safe_dict_t(&found, Value::Int(j));
                 let mut questionId: Option<String> = self.safe_string_k_opt(&raw, "id", &[]);
                 if (questionId.is_some()) && !(matches!(questionId.as_deref(), Some(__k) if seen.contains_key(__k))) {
                     seen.insert(questionId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1190,7 +1190,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut i: i64 = 0;
                 let mut __for_first_1353: bool = true;
                 while { if !__for_first_1353 { i += 1; } __for_first_1353 = false; i < rawQuestionsLength } {
-                let rawQuestion: crate::value::Dict = rawQuestions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let rawQuestion: crate::value::Dict = self.safe_dict_t(&rawQuestions, Value::Int(i));
                 let mut questionId: Option<String> = self.safe_string_k_opt(&rawQuestion, "id", &[]);
                 if (questionId.is_some()) && (matches!(questionId.as_deref(), Some(__k) if seen.contains_key(__k))) {
                     continue;
@@ -2331,7 +2331,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1359: bool = true;
             while { if !__for_first_1359 { i += 1; } __for_first_1359 = false; i < rowsLength } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let action: Option<String> = self.safe_string_lower_k_opt(&row, "action", &[]);
             if (action.as_deref() != Some("buy")) && (action.as_deref() != Some("sell")) {
                 continue;
@@ -4234,7 +4234,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1379: bool = true;
             while { if !__for_first_1379 { i += 1; } __for_first_1379 = false; i < rawQuestionsLength } {
-            let rawQuestion: crate::value::Dict = rawQuestions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawQuestion: crate::value::Dict = self.safe_dict_t(&rawQuestions, Value::Int(i));
             let mut ev: crate::value::Dict = self.parse_event(&rawQuestion);
             let evMarkets: crate::value::List = self.safe_list_k_t(&ev, "markets");
             let evMarketsLength: i64 = evMarkets.len() as i64;
@@ -4272,7 +4272,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1380: bool = true;
             while { if !__for_first_1380 { i += 1; } __for_first_1380 = false; i < rawMarketsLength } {
-            let raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
             let m: crate::value::Dict = self.parse_myriad_market(&raw, None);
             let mut marketHandle: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
             if (marketHandle.is_some()) && (matches!(marketHandle.as_deref(), Some(__k) if seenMarketHandles.contains_key(__k))) {
@@ -4315,7 +4315,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1381: bool = true;
             while { if !__for_first_1381 { i += 1; } __for_first_1381 = false; i < (rawMarkets.len() as i64) } {
-            let rawMarket: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawMarket: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
             marketsList.push(Value::Dict(self.parse_myriad_market(&rawMarket, questionSlug.as_deref())));
         }
         }
@@ -4803,7 +4803,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut i: i64 = 0;
                 let mut __for_first_1385: bool = true;
                 while { if !__for_first_1385 { i += 1; } __for_first_1385 = false; i < makersLength } {
-                let maker: crate::value::Dict = makers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let maker: crate::value::Dict = self.safe_dict_t(&makers, Value::Int(i));
                 let makerTrader: Option<String> = self.safe_string_lower_k_opt(&maker, "trader", &[]);
                 if (makerTrader == myWallet) {
                     let makerSym: Option<String> = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), self.safe_string_k(&maker, "outcome", &[]).as_str());
@@ -5016,7 +5016,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1389: bool = true;
             while { if !__for_first_1389 { i += 1; } __for_first_1389 = false; i < outcomesLength } {
-            let oc: crate::value::Dict = outcomes.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let oc: crate::value::Dict = self.safe_dict_t(&outcomes, Value::Int(i));
             let outcomeId: Option<String> = self.safe_string_k_opt(&oc, "outcome", &[]);
             let sym: Value = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), outcomeId.as_deref()).map(Value::from).unwrap_or(Value::Null);
             if (sym == Value::Null) {

@@ -447,7 +447,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_385: bool = true;
             while { if !__for_first_385 { i += 1; } __for_first_385 = false; i < (rawTrades.len() as i64) } {
-            let trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let trade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_trade(Value::from(&trade), None);
             self.myTrades.append(Value::Dict(parsed));
             let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);

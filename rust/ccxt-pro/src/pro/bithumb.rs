@@ -901,7 +901,7 @@ impl Bithumb {
                         let mut i: i64 = 0;
             let mut __for_first_133: bool = true;
             while { if !__for_first_133 { i += 1; } __for_first_133 = false; i < (rawTrades.len() as i64) } {
-            let rawTrade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawTrade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
             let marketId: Option<String> = self.safe_string2_opt(&rawTrade, Value::Str("symbol".into()), Value::Str("code".into()), &[]);
             if (marketId.is_none()) {
                 continue;

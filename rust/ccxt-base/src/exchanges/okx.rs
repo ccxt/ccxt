@@ -498,7 +498,7 @@ impl crate::exchange::DerivedExchange for Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1020: bool = true;
             while { if !__for_first_1020 { i += 1; } __for_first_1020 = false; i < (attachAlgoOrds.len() as i64) } {
-            let attached: crate::value::Dict = attachAlgoOrds.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let attached: crate::value::Dict = self.safe_dict_t(&attachAlgoOrds, Value::Int(i));
             if (stopLossPrice.is_none()) {
                 stopLossPrice = self.safe_number_k(&attached, "slTriggerPx", &[]).as_f64();
             }
@@ -5954,7 +5954,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1004: bool = true;
             while { if !__for_first_1004 { i += 1; } __for_first_1004 = false; i < (data.len() as i64) } {
-            let account: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let account: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let accountId: Option<String> = self.safe_string_k_opt(&account, "uid", &[]);
             let type_var: Option<String> = self.safe_string_k_opt(&account, "acctLv", &[]);
             result.push(Value::Map({
@@ -6102,7 +6102,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1009: bool = true;
             while { if !__for_first_1009 { i += 1; } __for_first_1009 = false; i < (dataResponse.len() as i64) } {
-            let data: crate::value::Dict = dataResponse.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let data: crate::value::Dict = self.safe_dict_t(&dataResponse, Value::Int(i));
             let instId: Option<String> = self.safe_string_k_opt(&data, "instId", &[&Value::Str("".into())]);
             if (instId.as_deref() == Some("")) {
                 continue;
@@ -6885,7 +6885,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1011: bool = true;
             while { if !__for_first_1011 { i += 1; } __for_first_1011 = false; i < (data.len() as i64) } {
-            let rate: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rate: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&rate, "fundingTime", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -10725,7 +10725,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1026: bool = true;
             while { if !__for_first_1026 { i += 1; } __for_first_1026 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "ts", &[]).as_i64();
             let instId: Option<String> = self.safe_string_k_opt(&entry, "instId", &[]);
             let marketInner: crate::types::Market = self.safe_market(instId.as_deref(), None, &[]);
@@ -12532,7 +12532,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1036: bool = true;
             while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "instId", &[]);
             if (entryMarketId.as_deref() == Some(marketId.as_str())) {
                 return <Self as crate::exchange::DerivedExchange>::parse_greeks(self, &entry, Some(&market));
@@ -13215,7 +13215,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1037: bool = true;
             while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&entry, "ccy", &[]);
             let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
             if (code.is_some()) {

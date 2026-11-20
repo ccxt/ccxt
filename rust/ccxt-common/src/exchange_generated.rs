@@ -2980,7 +2980,7 @@ pub trait ExchangeBase:
                                 let mut i: i64 = 0;
                 let mut __for_first_88: bool = true;
                 while { if !__for_first_88 { i += 1; } __for_first_88 = false; i < (values.len() as i64) } {
-                let market: crate::value::Dict = values.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let market: crate::value::Dict = self.safe_dict_t(&values, Value::Int(i));
                 let defaultCurrencyPrecision: Value = (if (self.precisionMode.as_f64() == Value::Int(crate::runtime::DECIMAL_PLACES).as_f64()) { Value::Int(8) } else { self.parse_number(Value::Str("1e-8".into()), &[]) });
                 let marketPrecision: crate::value::Dict = self.safe_dict_k_t(&market, "precision");
                 if (market.contains_key("base")) {
@@ -3660,9 +3660,8 @@ pub trait ExchangeBase:
         let price = get_arg(optional_args, 3, Value::Null);
         let takerOrMaker = get_arg(optional_args, 4, Value::Null);
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        let mut id: Option<String> = None;
         if (timestamp != Value::Null) {
-            id = self.number_to_string(timestamp);
+            let mut id: Option<String> = self.number_to_string(timestamp);
             if (side != Value::Null) {
                 id = Some(format!("{}{}", id.as_deref().unwrap_or("null"), format!("{}{}", "-", side)));
             }
@@ -3675,8 +3674,9 @@ pub trait ExchangeBase:
             if (takerOrMaker != Value::Null) {
                 id = Some(format!("{}{}", id.as_deref().unwrap_or("null"), format!("{}{}", "-", takerOrMaker)));
             }
+            return id.map(Value::from).unwrap_or(Value::Null);
         }
-        return id.map(Value::from).unwrap_or(Value::Null);
+        return Value::Null;
 
     Value::Null
 }

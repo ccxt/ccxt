@@ -1472,7 +1472,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_741: bool = true;
             while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (data.len() as i64) } {
-            let tickerData: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let tickerData: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(tickerData), None);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
             if (symbol.is_some()) {

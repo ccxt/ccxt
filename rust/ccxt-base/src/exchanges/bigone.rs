@@ -451,7 +451,7 @@ impl crate::exchange::DerivedExchange for Bigone {
                         let mut j: i64 = 0;
             let mut __for_first_262: bool = true;
             while { if !__for_first_262 { j += 1; } __for_first_262 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "gateway_name", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let mut deposit: Option<bool> = self.safe_bool_k_opt(&chain, "is_deposit_enabled", &[]);
@@ -1633,7 +1633,7 @@ impl Bigone {
                         let mut i: i64 = 0;
             let mut __for_first_263: bool = true;
             while { if !__for_first_263 { i += 1; } __for_first_263 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let baseAsset: crate::value::Dict = self.safe_dict_k_t(&market, "base_asset");
             let quoteAsset: crate::value::Dict = self.safe_dict_k_t(&market, "quote_asset");
             let baseId: Option<String> = self.safe_string_k_opt(&baseAsset, "symbol", &[]);
@@ -1714,7 +1714,7 @@ impl Bigone {
                         let mut i: i64 = 0;
             let mut __for_first_264: bool = true;
             while { if !__for_first_264 { i += 1; } __for_first_264 = false; i < (contractMarkets.len() as i64) } {
-            let market: crate::value::Dict = contractMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&contractMarkets, Value::Int(i));
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCurrency", &[]);
             let settleId: Option<String> = self.safe_string_k_opt(&market, "settleCurrency", &[]);

@@ -433,7 +433,7 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_149: bool = true;
             while { if !__for_first_149 { i += 1; } __for_first_149 = false; i < (tickers.len() as i64) } {
-            let data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let data: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&data, "market", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
             let ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market));
@@ -490,7 +490,7 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_150: bool = true;
             while { if !__for_first_150 { i += 1; } __for_first_150 = false; i < (tickers.len() as i64) } {
-            let data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let data: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             let ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None);
             let symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
@@ -850,7 +850,7 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_153: bool = true;
             while { if !__for_first_153 { i += 1; } __for_first_153 = false; i < (candles.len() as i64) } {
-            let candle: crate::value::Dict = candles.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let candle: crate::value::Dict = self.safe_dict_t(&candles, Value::Int(i));
             let parsed: crate::value::List = self.parse_ohlcv(Value::Dict(candle), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }

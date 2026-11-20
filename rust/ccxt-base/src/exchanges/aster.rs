@@ -2892,7 +2892,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_228: bool = true;
             while { if !__for_first_228 { i += 1; } __for_first_228 = false; i < (fapiRows.len() as i64) } {
-            let market: crate::value::Dict = fapiRows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&fapiRows, Value::Int(i));
             // tmp skip some markets with base = undefined
             if (self.safe_string_k(&market, "baseAsset", &[]) != Value::Null) {
                 fapiRowsFiltered.push(Value::Dict(market));
@@ -5155,7 +5155,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_234: bool = true;
             while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let entryPriceString: Option<String> = self.safe_string_k_opt(&rawPosition, "entryPrice", &[]);
             if crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())).as_bool() == Some(true) {
                 result.push(self.parse_position_risk(Value::Dict(rawPosition), None));
@@ -5244,7 +5244,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_236: bool = true;
             while { if !__for_first_236 { i += 1; } __for_first_236 = false; i < (positions.len() as i64) } {
-            let position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
             let code: Value = (if ((market).linear == Some(true)) { crate::value::KeyRead::key_read(&&market, "quote") } else { crate::value::KeyRead::key_read(&&market, "base") });

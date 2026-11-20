@@ -394,7 +394,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
                         let mut j: i64 = 0;
             let mut __for_first_553: bool = true;
             while { if !__for_first_553 { j += 1; } __for_first_553 = false; j < (supportedNetworks.len() as i64) } {
-            let network: crate::value::Dict = supportedNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let network: crate::value::Dict = self.safe_dict_t(&supportedNetworks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&network, "id", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -1742,7 +1742,7 @@ impl Coinbaseexchange {
                         let mut i: i64 = 0;
             let mut __for_first_554: bool = true;
             while { if !__for_first_554 { i += 1; } __for_first_554 = false; i < (rawMarkets.len() as i64) } {
-            let market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let parts: Vec<Value> = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut baseId: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);

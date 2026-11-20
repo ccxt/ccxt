@@ -564,7 +564,7 @@ impl crate::exchange::DerivedExchange for Toobit {
                         let mut j: i64 = 0;
             let mut __for_first_1137: bool = true;
             while { if !__for_first_1137 { j += 1; } __for_first_1137 = false; j < (rawNetworks.len() as i64) } {
-            let rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "chainType", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -2154,7 +2154,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_1136: bool = true;
             while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (coins.len() as i64) } {
-            let coin: crate::value::Dict = coins.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let coin: crate::value::Dict = self.safe_dict_t(&coins, Value::Int(i));
             let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &coin).into_dict();
             if (true) {
                 let code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);

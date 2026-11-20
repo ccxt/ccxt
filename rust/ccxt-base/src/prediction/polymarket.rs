@@ -1445,7 +1445,7 @@ impl Polymarket {
                         let mut rei: i64 = 0;
             let mut __for_first_1412: bool = true;
             while { if !__for_first_1412 { rei += 1; } __for_first_1412 = false; rei < (rawEvents.len() as i64) } {
-            let rawEvent: crate::value::Dict = rawEvents.get(rei as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawEvent: crate::value::Dict = self.safe_dict_t(&rawEvents, Value::Int(rei));
             let ccxtMarkets: Vec<Value> = Value::Arr(self.parse_event_to_markets(Value::from(&rawEvent))).as_array().cloned().unwrap_or_default();
             {
                                 let mut mi: i64 = 0;
@@ -1604,7 +1604,7 @@ impl Polymarket {
                                 let mut ei: i64 = 0;
                 let mut __for_first_1418: bool = true;
                 while { if !__for_first_1418 { ei += 1; } __for_first_1418 = false; ei < (allEvents.len() as i64) } {
-                let rawEvent: crate::value::Dict = allEvents.get(ei as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let rawEvent: crate::value::Dict = self.safe_dict_t(&allEvents, Value::Int(ei));
                 let mut eventId: Option<String> = self.safe_string_k_opt(&rawEvent, "id", &[]);
                 if ((eventId.is_some()) && (eventId.as_deref() != Some(""))) && !(matches!(eventId.as_deref(), Some(__k) if seen.contains_key(__k))) {
                     seen.insert(eventId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1827,7 +1827,7 @@ impl Polymarket {
                         let mut mi: i64 = 0;
             let mut __for_first_1429: bool = true;
             while { if !__for_first_1429 { mi += 1; } __for_first_1429 = false; mi < (rawMarkets.len() as i64) } {
-            let market: crate::value::Dict = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(mi));
             let conditionId: Option<String> = self.safe_string_k_opt(&market, "conditionId", &[]);
             let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let marketSlug: Option<String> = self.safe_string_k_opt(&market, "slug", &[&conditionId]);
@@ -2311,7 +2311,7 @@ impl Polymarket {
                                 let mut li: i64 = 0;
                 let mut __for_first_1438: bool = true;
                 while { if !__for_first_1438 { li += 1; } __for_first_1438 = false; li < lastTradesLength } {
-                let lastTradeEntry: crate::value::Dict = lastTrades.get(li as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let lastTradeEntry: crate::value::Dict = self.safe_dict_t(&lastTrades, Value::Int(li));
                 let lastTradeTokenId: Option<String> = self.safe_string_k_opt(&lastTradeEntry, "token_id", &[]);
                 if (lastTradeTokenId.is_some()) {
                     lastTradesByTokenId.insert(lastTradeTokenId.as_deref().unwrap_or("null").to_string(), Value::Dict(lastTradeEntry));
@@ -2323,7 +2323,7 @@ impl Polymarket {
                                 let mut i: i64 = 0;
                 let mut __for_first_1439: bool = true;
                 while { if !__for_first_1439 { i += 1; } __for_first_1439 = false; i < booksLength } {
-                let book: crate::value::Dict = books.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let book: crate::value::Dict = self.safe_dict_t(&books, Value::Int(i));
                 let mut tokenId: Option<String> = self.safe_string_k_opt(&book, "asset_id", &[]);
                 if (tokenId.is_none()) || !(matches!(tokenId.as_deref(), Some(__k) if outcomesByTokenId.contains_key(__k))) {
                     continue;
@@ -2888,7 +2888,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1442: bool = true;
             while { if !__for_first_1442 { i += 1; } __for_first_1442 = false; i < (rawTrades.len() as i64) } {
-            let trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let trade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
             let tradeAsset: Option<String> = self.safe_string_k_opt(&trade, "asset", &[]);
             if (tradeAsset.as_deref() == Some(tokenId.as_str())) {
                 filteredTrades.push(Value::Dict(trade));

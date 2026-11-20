@@ -4130,7 +4130,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1067: bool = true;
             while { if !__for_first_1067 { i += 1; } __for_first_1067 = false; i < (results.len() as i64) } {
-            let result: crate::value::Dict = results.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let result: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&result, "market", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let status: Option<String> = self.safe_string_k_opt(&result, "status", &[]);
@@ -4346,7 +4346,7 @@ impl Paradex {
         let paginationCursor: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         let ordersLength: i64 = orders.len() as i64;
         if (paginationCursor.is_some()) && (ordersLength > 0) {
-            let mut first: Option<crate::value::Dict> = crate::value::KeyRead::read(&&orders, &Value::Int(0)).into_opt_dict();
+            let mut first: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
             if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("next".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
             std::sync::Arc::make_mut(&mut orders)[0] = Value::from(first.map_or(Value::Null, Value::Dict));
         }
@@ -4697,7 +4697,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1071: bool = true;
             while { if !__for_first_1071 { i += 1; } __for_first_1071 = false; i < (data.len() as i64) } {
-            let position: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let position: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let status: Option<String> = self.safe_string_k_opt(&position, "status", &[]);
             let size: Option<String> = self.safe_string_k_opt(&position, "size", &[]);
             if (status.as_deref() != Some("CLOSED")) && !(crate::precise::Precise::stringEq(&size, &Value::Str("0".into())).as_bool() == Some(true)) {
@@ -4872,7 +4872,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1073: bool = true;
             while { if !__for_first_1073 { i += 1; } __for_first_1073 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             if allKinds || (self.safe_string_k(&row, "kind", &[]).as_str() == Some("DEPOSIT")) {
                 deposits.push(Value::Dict(row));
             }
@@ -4980,7 +4980,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1075: bool = true;
             while { if !__for_first_1075 { i += 1; } __for_first_1075 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             if allKinds || (self.safe_string_k(&row, "kind", &[]).as_str() == Some("WITHDRAWAL")) {
                 deposits.push(Value::Dict(row));
             }
@@ -5582,7 +5582,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1078: bool = true;
             while { if !__for_first_1078 { i += 1; } __for_first_1078 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: String = self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
             if ((if let (Some(__h), Some(__n)) = (Some(marketId.as_str()), Some(prefix.as_str())) { __h.starts_with(__n) } else { false })) {
@@ -5857,22 +5857,22 @@ impl Paradex {
         // every row is one observation of a rate quoted for a whole funding period,
         // not a settled payment: paradex accrues it into funding_index each second
         // and records an observation every five seconds, so the series cannot be summed
-        let results: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let results: crate::value::List = self.safe_list_k_t(&response, "results");
         let next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1080: bool = true;
             while { if !__for_first_1080 { i += 1; } __for_first_1080 = false; i < (results.len() as i64) } {
-            let mut rate: Value = get_value(&results, &Value::Int(i));
+            let mut rate: Option<crate::value::Dict> = self.safe_dict_o(&results, Value::Int(i));
             if (next.is_some()) {
-                if let Value::Dict(__rda) = &mut rate { std::sync::Arc::make_mut(__rda).insert("next".to_string(), next.clone().map(Value::from).unwrap_or(Value::Null)); } // the cursor helper reads it from info, the last page has none
+                if let Some(__rdm) = &mut rate { std::sync::Arc::make_mut(__rdm).insert("next".to_string(), Value::from(next.clone().map(Value::from).unwrap_or(Value::Null))); } // the cursor helper reads it from info, the last page has none
             }
             let timestamp: Option<i64> = self.safe_integer_k(&rate, "created_at", &[]).as_i64();
             let datetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), rate.clone());
+                    m.insert("info".to_string(), rate.clone().map_or(Value::Null, Value::Dict));
                     m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                     m.insert("fundingRate".to_string(), self.safe_number_k(&rate, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));

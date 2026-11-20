@@ -1593,7 +1593,7 @@ impl Woofipro {
                         let mut i: i64 = 0;
             let mut __for_first_734: bool = true;
             while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&rawPosition, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), Some(&market));

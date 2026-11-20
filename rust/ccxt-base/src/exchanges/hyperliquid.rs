@@ -5228,7 +5228,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_826: bool = true;
             while { if !__for_first_826 { i += 1; } __for_first_826 = false; i < (historicalOrders.len() as i64) } {
-            let rawOrder: crate::value::Dict = crate::value::KeyRead::read(&&historicalOrders, &Value::Int(i)).into_dict();
+            let rawOrder: crate::value::Dict = self.safe_dict_t(&historicalOrders, Value::Int(i));
             let entry: crate::value::Dict = self.safe_dict_k_or(&rawOrder, "order", Value::from(&rawOrder));
             let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
             if (oid.is_some()) {

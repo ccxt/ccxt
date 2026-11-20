@@ -1326,7 +1326,7 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_225: bool = true;
             while { if !__for_first_225 { i += 1; } __for_first_225 = false; i < (rawOrders.len() as i64) } {
-            let rawOrder: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawOrder: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
             let market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
             let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), Some(&market));
             std::sync::Arc::make_mut(&mut order).insert("status".into(), Value::Str("open".into()));

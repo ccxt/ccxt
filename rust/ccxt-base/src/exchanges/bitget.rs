@@ -8191,7 +8191,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_371: bool = true;
             while { if !__for_first_371 { i += 1; } __for_first_371 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCoin", &[]);
             let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
@@ -8352,7 +8352,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_374: bool = true;
             while { if !__for_first_374 { i += 1; } __for_first_374 = false; i < (markets.len() as i64) } {
-            let market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCoin", &[]);
             let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
@@ -10185,7 +10185,7 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_378: bool = true;
                 while { if !__for_first_378 { i += 1; } __for_first_378 = false; i < (rows.len() as i64) } {
-                let entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
                 let entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
                 if (entryMarketId.is_none()) || (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, entryMarketId.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                     continue;
@@ -10296,7 +10296,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_379: bool = true;
             while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -17053,7 +17053,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_391: bool = true;
             while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
             let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
             if (code.is_some()) {

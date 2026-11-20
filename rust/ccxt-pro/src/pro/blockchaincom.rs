@@ -793,7 +793,7 @@ impl Blockchaincom {
                                 let mut i: i64 = 0;
                 let mut __for_first_167: bool = true;
                 while { if !__for_first_167 { i += 1; } __for_first_167 = false; i < (orders.len() as i64) } {
-                let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
                 let parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None);
                 self.orders.append(Value::Dict(parsedOrder));
             }

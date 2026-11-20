@@ -939,7 +939,7 @@ impl Sxbet {
         }
         }
         let rest: crate::value::Dict = self.omit_t(&params, &["eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"], &[]);
-        let mut rawMarkets: Value = Value::Null;
+        let mut rawMarkets: Value = Value::from(vec![]);
         if (eventId.is_some()) {
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2497,7 +2497,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1521: bool = true;
             while { if !__for_first_1521 { i += 1; } __for_first_1521 = false; i < rawPositionsLength } {
-            let raw: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let raw: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let marketHash: String = self.safe_string_k(&raw, "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if outcomesLength > 0 {
                 if (self.safe_bool(&wantedMarkets, Value::from(marketHash), &[]) == Value::Null) {

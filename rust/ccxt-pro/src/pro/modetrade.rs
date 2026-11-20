@@ -1352,7 +1352,7 @@ impl Modetrade {
                                 let mut i: i64 = 0;
                 let mut __for_first_501: bool = true;
                 while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < dataListLength } {
-                let order: crate::value::Dict = dataList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let order: crate::value::Dict = self.safe_dict_t(&dataList, Value::Int(i));
                 let tradeIdStr: Option<String> = self.safe_string_k_opt(&data, "tradeId", &[]);
                 let tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
                 if (tradeId.is_some()) {

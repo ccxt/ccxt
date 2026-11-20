@@ -733,7 +733,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_297: bool = true;
             while { if !__for_first_297 { i += 1; } __for_first_297 = false; i < (trades.len() as i64) } {
-            let trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let trade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_trade(Value::Dict(trade), Some(&market));
             stored.append(Value::Dict(parsed));
         }
@@ -849,7 +849,7 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_298: bool = true;
             while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (parsed.len() as i64) } {
-            let trade: Option<crate::value::Dict> = crate::value::KeyRead::read(&&parsed, &Value::Int(i)).into_opt_dict();
+            let trade: Option<crate::value::Dict> = self.safe_dict_o(&parsed, Value::Int(i));
             cachedTrades.append(trade.clone().map_or(Value::Null, Value::Dict));
             let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));

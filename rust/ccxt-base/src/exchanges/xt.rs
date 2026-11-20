@@ -3429,7 +3429,7 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1193: bool = true;
             while { if !__for_first_1193 { i += 1; } __for_first_1193 = false; i < (currenciesData.len() as i64) } {
-            let entry: crate::value::Dict = currenciesData.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&currenciesData, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let networkEntry: crate::value::Dict = self.safe_dict_t(&chainsDataIndexed, &currencyId);
@@ -3442,7 +3442,7 @@ impl Xt {
                                 let mut j: i64 = 0;
                 let mut __for_first_1192: bool = true;
                 while { if !__for_first_1192 { j += 1; } __for_first_1192 = false; j < (rawNetworks.len() as i64) } {
-                let rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(j));
                 let networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "chain", &[]);
                 let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
                 if (networkCode.is_some()) {
@@ -4284,7 +4284,7 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1197: bool = true;
             while { if !__for_first_1197 { i += 1; } __for_first_1197 = false; i < (tickers.len() as i64) } {
-            let rawTicker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             let marketId: Option<String> = self.safe_string_k_opt(&rawTicker, "s", &[]);
@@ -7047,7 +7047,7 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1201: bool = true;
             while { if !__for_first_1201 { i += 1; } __for_first_1201 = false; i < (items.len() as i64) } {
-            let entry: crate::value::Dict = items.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&items, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let symbolInner: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "createdTime", &[]).as_i64();
@@ -7624,7 +7624,7 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1205: bool = true;
             while { if !__for_first_1205 { i += 1; } __for_first_1205 = false; i < (positions.len() as i64) } {
-            let entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
             let positionSize: Option<String> = self.safe_string_k_opt(&entry, "positionSize", &[]);
@@ -7726,7 +7726,7 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1206: bool = true;
             while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (positions.len() as i64) } {
-            let entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
             let merged: Option<crate::value::Dict> = Some(self.merge_position_break_info(entry, &breakBySymbolSide));

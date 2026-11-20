@@ -493,7 +493,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
                         let mut j: i64 = 0;
             let mut __for_first_590: bool = true;
             while { if !__for_first_590 { j += 1; } __for_first_590 = false; j < (chains.len() as i64) } {
-            let chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "network_id", &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             if (network.is_some()) {
@@ -2310,7 +2310,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_591: bool = true;
             while { if !__for_first_591 { i += 1; } __for_first_591 = false; i < (data.len() as i64) } {
-            let market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let inst_type: Option<String> = self.safe_string_k_opt(&market, "inst_type", &[]);
             let spot: bool = inst_type.as_deref() == Some("CCY_PAIR");
             let swap: bool = inst_type.as_deref() == Some("PERPETUAL_SWAP");
@@ -4765,7 +4765,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_600: bool = true;
             while { if !__for_first_600 { i += 1; } __for_first_600 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "t", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4920,7 +4920,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_601: bool = true;
             while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (positions.len() as i64) } {
-            let entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let entry: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "instrument_name", &[]);
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, &entry, Some(&marketInner)).map_or(Value::Null, Value::Dict));

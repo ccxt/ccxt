@@ -1218,7 +1218,7 @@ impl Bitbank {
                         let mut i: i64 = 0;
             let mut __for_first_338: bool = true;
             while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (pairs.len() as i64) } {
-            let pair: crate::value::Dict = pairs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let pair: crate::value::Dict = self.safe_dict_t(&pairs, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&pair, "name", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
