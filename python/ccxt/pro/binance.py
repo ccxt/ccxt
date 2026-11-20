@@ -2729,7 +2729,7 @@ class binance(ccxt.async_support.binance):
             return
         client.resolve(message, messageHash)
 
-    async def ensure_user_data_stream_ws_subscribe_listen_token(self, marketType: str = 'margin', params: dict = {}):
+    async def ensure_user_data_stream_ws_subscribe_listen_token(self, marketType: str, params: dict = {}):
         """
         subscribes to user data stream using listenToken(for margin)
         :param str marketType: - the market type(e.g., 'margin')

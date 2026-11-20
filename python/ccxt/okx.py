@@ -5876,25 +5876,39 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_leverage(data, market)
-
-    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = None
-        marginMode = None
+        rowMarginMode = None
         longLeverage = None
         shortLeverage = None
-        for i in range(0, len(leverage)):
-            entry = self.safe_dict(leverage, i)
-            marginMode = self.safe_string_lower(entry, 'mgnMode')
+        for i in range(0, len(data)):
+            entry = self.safe_dict(data, i)
+            rowMarginMode = self.safe_string_lower(entry, 'mgnMode')
             marketId = self.safe_string(entry, 'instId')
             positionSide = self.safe_string_lower(entry, 'posSide')
-            if positionSide == 'long':
-                longLeverage = self.safe_integer(entry, 'lever')
-            elif positionSide == 'short':
-                shortLeverage = self.safe_integer(entry, 'lever')
-            else:
-                longLeverage = self.safe_integer(entry, 'lever')
-                shortLeverage = self.safe_integer(entry, 'lever')
+            lever = self.safe_integer(entry, 'lever')
+            if positionSide != 'short':
+                longLeverage = lever
+            if positionSide != 'long':
+                shortLeverage = lever
+        return {
+            'info': data,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': rowMarginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        }
+
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        marketId = self.safe_string(leverage, 'instId')
+        positionSide = self.safe_string_lower(leverage, 'posSide')
+        lever = self.safe_integer(leverage, 'lever')
+        marginMode = self.safe_string_lower(leverage, 'mgnMode')
+        longLeverage = None
+        shortLeverage = None
+        if positionSide != 'short':
+            longLeverage = lever
+        if positionSide != 'long':
+            shortLeverage = lever
         return {
             'info': leverage,
             'symbol': self.safe_symbol(marketId, market),

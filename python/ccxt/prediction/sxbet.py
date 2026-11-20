@@ -498,6 +498,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
         """
+        rawMarkets = []
         rawMarkets = await self.fetch_raw_markets_paged(self.extend({'sportXeventId': id}, params), None)
         # enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets, id)

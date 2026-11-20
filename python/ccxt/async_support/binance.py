@@ -3191,7 +3191,7 @@ class binance(Exchange, ImplicitAPI):
         if fetchMargins:
             promises.append(self.sapiGetMarginAllPairs(params))
         results = await asyncio.gather(*promises)
-        responseCurrencies = self.safe_value(results, 0)
+        responseCurrencies = self.safe_list(results, 0, [])
         marginablesById = None
         if fetchMargins:
             responseMarginables = self.safe_list(results, 1)

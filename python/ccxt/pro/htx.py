@@ -869,11 +869,9 @@ class htx(ccxt.async_support.htx):
             limitResolved = trades.getLimit(symbolResolved, limit)
         return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
-    def get_order_channel_and_message_hash(self, type: Str, subType: Str, market: Market = None, params: dict = {}) -> list[Str]:
-        messageHash = None
-        channel = None
-        orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
-        orderType = self.safe_string(params, 'orderType', orderType)
+    def get_order_channel_and_message_hash(self, type: Str, subType: Str, market: Market = None, params: dict = {}) -> list:
+        defaultOrderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
+        orderType = self.safe_string(params, 'orderType', defaultOrderType)
         paramsOmitted = self.omit(params, 'orderType')
         marketCode = None
         if market is not None:
@@ -883,6 +881,7 @@ class htx(ccxt.async_support.htx):
             baseId = market['baseId']
         prefix = orderType
         messageHash = prefix
+        channel = prefix + '.' + '*'
         if subType == 'linear':
             # USDT Margined Contracts Example: LTC/USDT:USDT
             marginMode = self.safe_string(paramsOmitted, 'margin', 'cross')
@@ -891,22 +890,26 @@ class htx(ccxt.async_support.htx):
                 marginPrefix = prefix + '_cross'
             messageHash = marginPrefix
             if marketCode is not None:
-                messageHash = marginPrefix + '.' + marketCode
-                channel = messageHash
+                marketTopic = marginPrefix + '.' + marketCode
+                messageHash = marketTopic
+                channel = marketTopic
             else:
                 channel = marginPrefix + '.' + '*'
         elif type == 'future':
             # inverse futures Example: BCH/USD:BCH-220408
             if baseId is not None:
-                channel = prefix + '.' + baseId.lower()
-                messageHash = channel
+                lowerBaseId = baseId.lower()
+                baseTopic = prefix + '.' + lowerBaseId
+                channel = baseTopic
+                messageHash = baseTopic
             else:
                 channel = prefix + '.' + '*'
         else:
             # inverse swaps: Example: BTC/USD:BTC
             if marketCode is not None:
-                channel = prefix + '.' + marketCode
-                messageHash = channel
+                swapTopic = prefix + '.' + marketCode
+                channel = swapTopic
+                messageHash = swapTopic
             else:
                 channel = prefix + '.' + '*'
         return [channel, messageHash]
