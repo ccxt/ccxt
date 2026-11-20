@@ -6250,6 +6250,18 @@ public partial class bingx : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name bingx#addMargin
+     * @description add margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -6259,6 +6271,18 @@ public partial class bingx : Exchange
         return ((Dictionary<string, object>)((object)(ccxt.BaseExchange.FromMarginModification(await this.SetMargin(symbol, amount, this.extend(request, parameters))))));
     }
 
+    /**
+     * @method
+     * @name bingx#reduceMargin
+     * @description remove margin from a position
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
