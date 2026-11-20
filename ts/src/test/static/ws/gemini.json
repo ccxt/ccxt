@@ -3,6 +3,89 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchOHLCV": [
+            {
+                "description": "spot 1h candles: the v2 feed names the channel candles_1h, snapshot trimmed to the three latest candles",
+                "input": [
+                    "BTC/USD",
+                    "1h"
+                ],
+                "url": "wss://api.gemini.com/v2/marketdata",
+                "messages": [
+                    {
+                        "changes": [
+                            [
+                                1795597200000,
+                                59339.51,
+                                59339.51,
+                                58759.46,
+                                58972.0,
+                                1.74161795
+                            ],
+                            [
+                                1795593600000,
+                                58672.51,
+                                59361.77,
+                                58652.85,
+                                59339.51,
+                                2.95612235
+                            ],
+                            [
+                                1795590000000,
+                                59173.37,
+                                59300.82,
+                                58555.68,
+                                58672.51,
+                                5.88850712
+                            ]
+                        ],
+                        "symbol": "BTCUSD",
+                        "type": "candles_1h_updates"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "type": "subscribe",
+                        "subscriptions": [
+                            {
+                                "name": "candles_1h",
+                                "symbols": [
+                                    "BTCUSD"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1795590000000,
+                            59173.37,
+                            59300.82,
+                            58555.68,
+                            58672.51,
+                            5.88850712
+                        ],
+                        [
+                            1795593600000,
+                            58672.51,
+                            59361.77,
+                            58652.85,
+                            59339.51,
+                            2.95612235
+                        ],
+                        [
+                            1795597200000,
+                            59339.51,
+                            59339.51,
+                            58759.46,
+                            58972.0,
+                            1.74161795
+                        ]
+                    ]
+                ]
+            }
+        ],
         "unWatchTrades": [
             {
                 "description": "spot trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true",

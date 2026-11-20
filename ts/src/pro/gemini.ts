@@ -30,6 +30,20 @@ export default class gemini extends geminiRest {
                 'watchOHLCV': true,
                 'unWatchOHLCV': true,
             },
+            'options': {
+                'watchOHLCV': {
+                    // the v2 candles feed names its channels differently from the rest timeframes
+                    'timeframes': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '6h': '6h',
+                        '1d': '1d',
+                    },
+                },
+            },
             'urls': {
                 'api': {
                     'ws': 'wss://api.gemini.com',
@@ -79,7 +93,11 @@ export default class gemini extends geminiRest {
             throw new ExchangeError (this.id + ' watchTrades() has no websocket url');
         }
         const url = wsUrl + '/v2/marketdata';
-        const trades: ArrayCache = await this.watch (url, messageHash, request, subscribeHash);
+        const subscription: Dict = {
+            'topic': 'l2',
+            'symbol': market['symbol'],
+        };
+        const trades: ArrayCache = await this.watch (url, messageHash, request, subscribeHash, subscription);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (market['symbol'], limit);
@@ -318,7 +336,9 @@ export default class gemini extends geminiRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
+        const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
+        const wsTimeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
+        const timeframeId = this.safeString (wsTimeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'subscribe',
             'subscriptions': [
@@ -336,7 +356,12 @@ export default class gemini extends geminiRest {
             throw new ExchangeError (this.id + ' watchOHLCV() has no websocket url');
         }
         const url = wsUrl + '/v2/marketdata';
-        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
+        const subscription: Dict = {
+            'topic': 'ohlcv',
+            'symbol': market['symbol'],
+            'timeframe': timeframe,
+        };
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash, subscription);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbol, limit);
@@ -360,7 +385,9 @@ export default class gemini extends geminiRest {
         }
         const market = this.market (symbol);
         const marketSymbol = this.safeString (market, 'symbol', '');
-        const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
+        const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
+        const wsTimeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
+        const timeframeId = this.safeString (wsTimeframes, timeframe, timeframe);
         const subscription: Dict = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [ [ marketSymbol, timeframe ] ],
@@ -403,7 +430,9 @@ export default class gemini extends geminiRest {
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const changes: any[][] = this.safeList (message, 'changes', []);
-        const timeframe = this.findTimeframe (timeframeId);
+        const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
+        const wsTimeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
+        const timeframe = this.findTimeframe (timeframeId, wsTimeframes);
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
         if (!(messageHash in client.subscriptions)) {
             // gemini keeps streaming for a moment after an unsubscribe, late frames must not rebuild the dropped cache
@@ -467,7 +496,11 @@ export default class gemini extends geminiRest {
             throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
         }
         const url = wsUrl + '/v2/marketdata';
-        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, subscribeHash);
+        const subscription: Dict = {
+            'topic': 'l2',
+            'symbol': market['symbol'],
+        };
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, subscribeHash, subscription);
         return orderbook.limit ();
     }
 
@@ -1033,7 +1066,29 @@ export default class gemini extends geminiRest {
         //         "result": "error"
         //     }
         //
-        throw new ExchangeError (this.json (message));
+        // the error names no channel, so the subscriptions that have not delivered any data yet
+        // are dropped, otherwise a repeated watch call would wait forever without subscribing anew
+        const subscribeHashes = Object.keys (client.subscriptions);
+        const subscribeHashesLength = subscribeHashes.length;
+        for (let i = 0; i < subscribeHashesLength; i++) {
+            const subscribeHash = subscribeHashes[i];
+            const subscription = this.safeDict (client.subscriptions, subscribeHash);
+            const topic = this.safeString (subscription, 'topic');
+            const symbol = this.safeString (subscription, 'symbol', '');
+            let received = true;
+            if (topic === 'l2') {
+                received = (symbol in this.orderbooks);
+            } else if (topic === 'ohlcv') {
+                const timeframe = this.safeString (subscription, 'timeframe', '');
+                const stored = this.safeDict (this.ohlcvs, symbol, {});
+                received = (timeframe in stored);
+            }
+            if (!received) {
+                delete client.subscriptions[subscribeHash];
+            }
+        }
+        const error = new ExchangeError (this.id + ' ' + this.json (message));
+        client.reject (error);
     }
 
     override handleListMessage (client: Client, message: List) {
@@ -1076,9 +1131,10 @@ export default class gemini extends geminiRest {
         //         }
         //     ]
         //
-        const reason = this.safeString (message, 'reason');
-        if (reason === 'error') {
+        const result = this.safeString (message, 'result');
+        if (result === 'error') {
             this.handleError (client, message);
+            return;
         }
         const methods: Dict = {
             'l2_updates': this.handleL2Updates,
