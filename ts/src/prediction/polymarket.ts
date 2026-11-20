@@ -2297,7 +2297,7 @@ export default class polymarket extends Exchange {
             const eoaSig = this.signMessage (encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            const eoaSignature = '0x' + this.remove0xPrefix (eoaSig['r']) + this.remove0xPrefix (eoaSig['s']) + this.intToBase16 (eoaSig['v']);
+            const eoaSignature = '0x' + this.remove0xPrefix (this.safeString (eoaSig, 'r')) + this.remove0xPrefix (this.safeString (eoaSig, 's')) + this.intToBase16 (eoaSig['v']);
             return eoaSignature.toLowerCase ();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -2902,7 +2902,7 @@ export default class polymarket extends Exchange {
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
         const sig = this.signMessage (encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+        return '0x' + this.remove0xPrefix (this.safeString (sig, 'r')) + this.remove0xPrefix (this.safeString (sig, 's')) + this.intToBase16 (sig['v']);
     }
 
     /**
