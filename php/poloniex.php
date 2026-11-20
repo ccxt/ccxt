@@ -602,6 +602,10 @@ class poloniex extends Exchange {
                     '21001' => '\\ccxt\\OperationRejected', // POSITION_NOT_EXIST
                 ),
                 'broad' => array(
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature' => '\\ccxt\\AuthenticationError',
+                    'ApiKey not exist' => '\\ccxt\\AuthenticationError',
+                    'Illegal of ip' => '\\ccxt\\PermissionDenied',
                 ),
             ),
         ));
@@ -4060,8 +4064,8 @@ class poloniex extends Exchange {
         if (($responseCode !== null) && ($responseCode !== '200')) {
             $message = $this->safe_string_2($response, 'message', 'msg');
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
         return null;
