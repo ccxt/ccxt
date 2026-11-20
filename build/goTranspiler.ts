@@ -20725,7 +20725,7 @@ function goAsyncMapPairs (content: string): string {
                 const a = new RegExp ('^' + ind + '(\\w+) := ' + slot0 + '$').exec (mlines[j]);
                 const b = new RegExp ('^' + ind + '(\\w+) = ' + slot0 + '$').exec (mlines[j]);
                 const c = new RegExp ('^' + ind + 'var (\\w+) map\\[string\\]any = MapTyped\\(' + h + '\\[1\\]\\)$').exec (mlines[j]);
-                const d = new RegExp ('^' + ind + '(\\w+) = ' + h + '\\[1\\]$').exec (mlines[j]);
+                const d = new RegExp ('^' + ind + '(\\w+) = (?:MapTyped\\(' + h + '\\[1\\]\\)|' + h + '\\[1\\])$').exec (mlines[j]);
                 const line = (a !== null) ? ('var ' + a[1] + ' ' + T + ' = ' + r[1] + '.Value.V') : (b !== null) ? (b[1] + ' = ' + r[1] + '.Value.V')
                     : (c !== null) ? ('var ' + c[1] + ' map[string]any = ' + r[1] + '.Value.P') : (d !== null) ? (d[1] + ' = ' + r[1] + '.Value.P') : undefined;
                 if (line === undefined) {
