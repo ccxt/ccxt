@@ -100,10 +100,11 @@ export default class interactivebrokers extends interactivebrokersRest {
         let url = undefined;
         if (useGateway) {
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
-            const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
+            const gatewayUrl = this.safeString (this.options, 'gatewayUrl') as string;
             const replacedUrl = this.urls['api']['ws'].replace ('wss://', 'https://');
             const restUrl = this.ibkrGatewayBaseUrl (replacedUrl, gatewayUrl);
-            url = restUrl.replace ('https://', 'wss://').replace ('http://', 'ws://');
+            url = restUrl.replace ('https://', 'wss://');
+            url = url.replace ('http://', 'ws://');
         } else {
             // this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
             url = this.urls['api']['ws'] + '?oauth_token=' + this.apiKey;
