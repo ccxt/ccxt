@@ -514,6 +514,7 @@ class MarketInterface(TypedDict):
     resolved: Bool
     resolvedOutcome: Str
     outcomes: list['PredictionOutcome']
+    marketId: Str
 
 class Limit(TypedDict):
     min: Num

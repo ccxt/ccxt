@@ -272,6 +272,7 @@ public struct Market
     public string? collateral;
     public bool? resolved;
     public string? resolvedOutcome;
+    public string? marketId;
     public Market(object market2)
     {
         var market = (Dictionary<string, object>)market2;
@@ -320,6 +321,7 @@ public struct Market
         collateral = Exchange.SafeString(market, "collateral");
         resolved = market.ContainsKey("resolved") && market["resolved"] != null ? (bool)market["resolved"] : null;
         resolvedOutcome = Exchange.SafeString(market, "resolvedOutcome");
+        marketId = Exchange.SafeString(market, "marketId");
     }
 }
 
@@ -2008,6 +2010,7 @@ public struct MarketInterface
     public bool? resolved;
     public string? resolvedOutcome;
     public List<PredictionOutcome>? outcomes;
+    public string? marketId;
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -2063,6 +2066,7 @@ public struct MarketInterface
         resolved = Exchange.SafeValue(market, "resolved") != null ? (bool)Exchange.SafeValue(market, "resolved") : null;
         resolvedOutcome = Exchange.SafeString(market, "resolvedOutcome");
         outcomes = Exchange.SafeValue(market, "outcomes") != null ? ((IEnumerable<object>)Exchange.SafeValue(market, "outcomes")).Select(x => new PredictionOutcome(x)).ToList() : null;
+        marketId = Exchange.SafeString(market, "marketId");
     }
 
 }
