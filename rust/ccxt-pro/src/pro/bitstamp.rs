@@ -66,7 +66,7 @@ impl crate::exchange_generated::ExchangeBase for Bitstamp {
                 "parse_ws_my_trade" => Value::Dict(self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "prune_cached_by_symbols" => self.prune_cached_by_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "prune_cached_by_symbols" => self.prune_cached_by_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
                 "subscribe_private" => self.subscribe_private(&mut { let __m = args.get(0).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
                     __m }, args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "un_watch_channel" => self.un_watch_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
@@ -111,7 +111,7 @@ impl Bitstamp {
             "parse_ws_my_trade" => Value::Dict(self.parse_ws_my_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
-            "prune_cached_by_symbols" => self.prune_cached_by_symbols(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)),
+            "prune_cached_by_symbols" => self.prune_cached_by_symbols(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "un_watch_channel" => { crate::exchange_stubs::enqueue_spawn("un_watch_channel", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "un_watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
@@ -1175,12 +1175,12 @@ impl Bitstamp {
         if (topic.as_deref() == Some("orders")) && (self.orders.is_some()) {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let freshOrdersCache: crate::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::from(limit));
-            self.prune_cached_by_symbols(Value::from(&freshOrdersCache), Value::from(&self.orders), Value::from(&symbols));
+            self.prune_cached_by_symbols(Value::from(&freshOrdersCache), Value::from(&self.orders), &symbols);
             self.orders = Some(freshOrdersCache);
         }  else if (topic.as_deref() == Some("myTrades")) && (self.myTrades.is_some()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let freshTradesCache: crate::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::from(limit));
-            self.prune_cached_by_symbols(Value::from(&freshTradesCache), Value::from(&self.myTrades), Value::Arr(symbols));
+            self.prune_cached_by_symbols(Value::from(&freshTradesCache), Value::from(&self.myTrades), &symbols);
             self.myTrades = Some(freshTradesCache);
         }  else {
             self.clean_cache(subscription);
@@ -1197,7 +1197,7 @@ impl Bitstamp {
  * @param {string[]} symbols the symbols to remove from the cache
  * @returns {object} the new cache holding the remaining entries
  */
-    pub fn prune_cached_by_symbols(&self, mut newCache: Value, mut cache: Value, mut symbols: Value) -> Value {
+    pub fn prune_cached_by_symbols(&self, mut newCache: Value, mut cache: Value, symbols: &[crate::Value]) -> Value {
         let entries: crate::value::List = self.to_array_t(cache);
         {
                         let mut i: i64 = 0;
@@ -1205,7 +1205,7 @@ impl Bitstamp {
             while { if !__for_first_144 { i += 1; } __for_first_144 = false; i < (entries.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = entries.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             let entrySymbol: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
-            if !self.in_array(&entrySymbol, &symbols) {
+            if !self.in_array(&entrySymbol, symbols) {
                 newCache.append(entry.map_or(Value::Null, Value::Dict));
             }
         }

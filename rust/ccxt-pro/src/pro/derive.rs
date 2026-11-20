@@ -1480,35 +1480,35 @@ impl Derive {
         let symbolPositions: crate::value::Dict = self.safe_dict_t(cache.hashmap(), Value::from(symbol.clone()));
         // a fill through zero flattens the opposite side first
         let oppositeSide: String = (if isShort { "long".to_string() } else { "short".to_string() });
-        let mut opposite: Value = self.safe_dict(&symbolPositions, Value::from(oppositeSide), &[]);
-        if (opposite != Value::Null) {
+        let mut opposite: Option<crate::value::Dict> = self.safe_dict_o(&symbolPositions, Value::from(oppositeSide));
+        if (opposite.is_some()) {
             let oppositeContracts: Option<String> = self.safe_string_k_opt(&opposite, "contracts", &[]);
             if (oppositeContracts.is_some()) && (oppositeContracts.as_deref() != Some("0")) {
-                add_element_to_object(&mut opposite, &Value::Str("contracts".into()), self.parse_number(Value::Str("0".into()), &[]));
-                add_element_to_object(&mut opposite, &Value::Str("lastUpdateTimestamp".into()), Value::Int(self.milliseconds()));
-                cache.append(opposite);
+                if let Some(__d) = &mut opposite { std::sync::Arc::make_mut(__d).insert("contracts".into(), self.parse_number(Value::Str("0".into()), &[])); }
+                if let Some(__d) = &mut opposite { std::sync::Arc::make_mut(__d).insert("lastUpdateTimestamp".into(), Value::Int(self.milliseconds())); }
+                cache.append(opposite.map_or(Value::Null, Value::Dict));
             }
         }
-        let mut position: Value = self.safe_dict(&symbolPositions, Value::from(side.clone()), &[]);
-        if (position == Value::Null) {
+        let mut position: Option<crate::value::Dict> = self.safe_dict_o(&symbolPositions, Value::from(side.clone()));
+        if (position.is_none()) {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
             let timestamp: i64 = self.milliseconds();
-            position = Value::Dict(self.safe_position(std::sync::Arc::new({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), Value::from(symbol));
-                    m.insert("side".to_string(), Value::from(side.clone()));
-                    m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("datetime".to_string(), self.iso8601(timestamp));
-                    m.insert("info".to_string(), entry.clone());
-                m
-            })));
+            position = Some(self.safe_position(std::sync::Arc::new({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::from(symbol));
+        m.insert("side".to_string(), Value::from(side.clone()));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("info".to_string(), entry.clone());
+    m
+})));
         }
-        add_element_to_object(&mut position, &Value::Str("contracts".into()), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
-        add_element_to_object(&mut position, &Value::Str("side".into()), Value::from(side));
-        add_element_to_object(&mut position, &Value::Str("lastUpdateTimestamp".into()), Value::Int(self.milliseconds()));
-        add_element_to_object(&mut position, &Value::Str("info".into()), entry);
-        cache.append(position.clone());
-        return position;
+        if let Some(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("contracts".into(), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[])); }
+        if let Some(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("side".into(), Value::from(side)); }
+        if let Some(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("lastUpdateTimestamp".into(), Value::Int(self.milliseconds())); }
+        if let Some(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("info".into(), entry); }
+        cache.append(position.clone().map_or(Value::Null, Value::Dict));
+        return position.map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

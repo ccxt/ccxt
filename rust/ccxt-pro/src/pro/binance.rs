@@ -129,7 +129,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "watch_order_book_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_stock_market_stream" => self.watch_stock_market_stream(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "watch_stock_market_stream" => self.watch_stock_market_stream(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -682,7 +682,7 @@ impl Binance {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} the raw stream subscription response
  */
-    pub async fn watch_stock_market_stream(&mut self, mut streams: Value, mut messageHashes: Value, optional_args: &[&Value]) -> Value {
+    pub async fn watch_stock_market_stream(&mut self, mut streams: Value, messageHashes: &[crate::Value], optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -703,7 +703,7 @@ impl Binance {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&query]);
-        return self.watch_multiple(&url, &messageHashes, __ws_arg_0, &messageHashes, Value::Map(subscribe)).await;
+        return self.watch_multiple(&url, messageHashes, __ws_arg_0, messageHashes, Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -2452,7 +2452,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 stockMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", (stockMarket).symbol).into()), "::").into()), stockTimeframeString).into()));
             }
             }
-            let stockRes: Value = self.watch_stock_market_stream(Value::from(stockStreams), Value::from(stockMessageHashes), &[&Value::from(&paramsStock)]).await;
+            let stockRes: Value = self.watch_stock_market_stream(Value::from(stockStreams), &stockMessageHashes, &[&Value::from(&paramsStock)]).await;
             let stockSymbolstockTimeframestockCandlesVariable = stockRes;
             let stockSymbol: Value = get_value(&stockSymbolstockTimeframestockCandlesVariable, &Value::Int(0));
             let stockTimeframe: Value = get_value(&stockSymbolstockTimeframestockCandlesVariable, &Value::Int(1));
@@ -3126,7 +3126,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchTickers() with stock stream requires symbols")));
             }
             symbolsNormalized = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(false), Value::Bool(true)]);
-            let stockResult: Value = self.watch_stock_market_stream(Value::from(vec![Value::Str("price".into())]), Value::from(vec![Value::Str("stock:price".into())]), &[&Value::from(&paramsStock)]).await;
+            let stockResult: Value = self.watch_stock_market_stream(Value::from(vec![Value::Str("price".into())]), &[Value::Str("stock:price".into())], &[&Value::from(&paramsStock)]).await;
             if self.newUpdates.as_bool() == Some(true) {
                 return stockResult;
             }
@@ -3354,7 +3354,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 stockMessageHashes.push(Value::Str(format!("{}{}", "stock:quote:", stockSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
-            let stockResult: Value = self.watch_stock_market_stream(Value::from(stockStreams), Value::from(stockMessageHashes), &[&Value::from(&paramsStock)]).await;
+            let stockResult: Value = self.watch_stock_market_stream(Value::from(stockStreams), &stockMessageHashes, &[&Value::from(&paramsStock)]).await;
             if self.newUpdates.as_bool() == Some(true) {
                 return stockResult;
             }

@@ -1023,11 +1023,15 @@ impl Bullish {
             account.insert("total".into(), self.safe_string_k(&data, "availableQuantity", &[]));
             account.insert("used".into(), self.safe_string_k(&data, "lockedQuantity", &[]));
             let code: Option<String> = self.safe_currency_code(assetId.as_deref(), None);
-            if (tradingAccountId.is_some()) && (code.is_some()) {
-                { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(tradingAccountId.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
-            }
             { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(tradingAccountId.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
-            { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = tradingAccountId.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(tradingAccountId.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+            let mut deltaBalance: indexmap::IndexMap<String, Value> = self.balance.get(tradingAccountId.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })).as_map().cloned().unwrap_or_default();
+            if (tradingAccountId.is_some()) && (code.is_some()) {
+                deltaBalance.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
+            }
+            { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(deltaBalance))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(tradingAccountId.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }
         let messageHash: String = "balance".to_string();
         let tradingAccountIdHash: String = format!("{}{}", "::", tradingAccountId.as_deref().unwrap_or("null"));

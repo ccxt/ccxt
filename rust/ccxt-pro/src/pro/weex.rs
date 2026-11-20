@@ -75,7 +75,7 @@ impl crate::exchange_generated::ExchangeBase for Weex {
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "request_id" => crate::Value::from(self.request_id()),
                 "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..]).await,
-                "subscribe_public" => self.subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -298,7 +298,7 @@ impl Weex {
         return requestId;
 }
 
-    pub async fn subscribe_public(&mut self, mut messageHashes: Value, mut channels: Value, optional_args: &[&Value]) -> Value {
+    pub async fn subscribe_public(&mut self, messageHashes: &[crate::Value], mut channels: Value, optional_args: &[&Value]) -> Value {
         let isContract: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -332,7 +332,7 @@ impl Weex {
         }
         let url: String = format!("{}{}", self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(type_var), &[Value::Str("".into())]), Value::Str("/public".into()));
         let __ws_arg_0 = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch_multiple(url.as_str(), &messageHashes, __ws_arg_0, &messageHashes, &subscriptionExtended).await;
+        return self.watch_multiple(url.as_str(), messageHashes, __ws_arg_0, messageHashes, &subscriptionExtended).await;
 
     Value::Null
 }
@@ -507,7 +507,7 @@ impl Weex {
             channels.push(Value::from(channelName));
         }
         }
-        let newTicker: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(isContract), &params]).await;
+        let newTicker: Value = self.subscribe_public(&messageHashes, Value::from(channels), &[&Value::Bool(isContract), &params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -605,7 +605,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(isContract), &params, &Value::Map(subscription)]).await;
+        return self.subscribe_public(&unSubHashes, Value::from(channels), &[&Value::Bool(isContract), &params, &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -786,7 +786,7 @@ impl Weex {
             channels.push(Value::from(channelName));
         }
         }
-        let mut trades: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(isContract), &params]).await;
+        let mut trades: Value = self.subscribe_public(&messageHashes, Value::from(channels), &[&Value::Bool(isContract), &params]).await;
         let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -879,7 +879,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("trades".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(isContract), &params, &Value::Map(subscription)]).await;
+        return self.subscribe_public(&unSubHashes, Value::from(channels), &[&Value::Bool(isContract), &params, &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1087,7 +1087,7 @@ impl Weex {
             messageHashes.push(Value::from(messageHash));
         }
         }
-        let symboltimeframestoredVariable = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(isContract), &paramsPriceType]).await;
+        let symboltimeframestoredVariable = self.subscribe_public(&messageHashes, Value::from(channels), &[&Value::Bool(isContract), &paramsPriceType]).await;
         let symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
@@ -1199,7 +1199,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(isContract), &paramsPriceType, &Value::Map(subscription)]).await;
+        return self.subscribe_public(&unSubHashes, Value::from(channels), &[&Value::Bool(isContract), &paramsPriceType, &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1358,7 +1358,7 @@ impl Weex {
                 m.insert("limit".to_string(), Value::from(limit));
             m
         });
-        let mut orderbook: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(isContract), &Value::Dict(paramsDepth), &Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.subscribe_public(&messageHashes, Value::from(channels), &[&Value::Bool(isContract), &Value::Dict(paramsDepth), &Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1455,7 +1455,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(isContract), &Value::Dict(paramsDepth), &Value::Map(subscription)]).await;
+        return self.subscribe_public(&unSubHashes, Value::from(channels), &[&Value::Bool(isContract), &Value::Dict(paramsDepth), &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1566,7 +1566,7 @@ impl Weex {
             channels.push(Value::from(channelName));
         }
         }
-        let newTicker: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[&Value::Bool(false), &params]).await;
+        let newTicker: Value = self.subscribe_public(&messageHashes, Value::from(channels), &[&Value::Bool(false), &params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -1638,7 +1638,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("bidsasks".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[&Value::Bool(false), &params, &Value::Map(subscription)]).await;
+        return self.subscribe_public(&unSubHashes, Value::from(channels), &[&Value::Bool(false), &params, &Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }

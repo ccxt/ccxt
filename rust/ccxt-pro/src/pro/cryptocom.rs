@@ -92,7 +92,7 @@ impl crate::exchange_generated::ExchangeBase for Cryptocom {
                 "watch_private_request" => self.watch_private_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_private_subscribe" => self.watch_private_subscribe(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "watch_public_multiple" => self.watch_public_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "watch_public_multiple" => self.watch_public_multiple(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -389,7 +389,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), limitString.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut orderbook: Value = self.watch_public_multiple(Value::from(messageHashes), Value::from(topics), &[&Value::Dict(paramsBookUpdateFrequency2)]).await;
+        let mut orderbook: Value = self.watch_public_multiple(&messageHashes, Value::from(topics), &[&Value::Dict(paramsBookUpdateFrequency2)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -679,7 +679,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             std::sync::Arc::make_mut(&mut topics).push(Value::Str(format!("{}{}", Value::Str("trade.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
         }
         }
-        let mut trades: Value = self.watch_public_multiple(Value::Arr(topics.clone()), Value::Arr(topics), &[&params]).await;
+        let mut trades: Value = self.watch_public_multiple(&topics, Value::Arr(topics.clone()), &[&params]).await;
         let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -1930,7 +1930,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn watch_public_multiple(&mut self, mut messageHashes: Value, mut topics: Value, optional_args: &[&Value]) -> Value {
+    pub async fn watch_public_multiple(&mut self, messageHashes: &[crate::Value], mut topics: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1949,7 +1949,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_3 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_3, &messageHashes, Value::Null).await;
+        return self.watch_multiple(url.as_deref(), messageHashes, __ws_arg_3, messageHashes, Value::Null).await;
 
     Value::Null
 }

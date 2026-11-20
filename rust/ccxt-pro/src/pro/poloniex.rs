@@ -80,7 +80,7 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).is_some_and(crate::Value::is_truthy), &args[3.min(args.len())..]).await,
                 "trade_request" => self.trade_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "un_subscribe" => self.un_subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "un_subscribe" => self.un_subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -386,7 +386,7 @@ impl Poloniex {
  * @param {object} [params] extra parameters specific to the poloniex api
  * @returns {object} true once the exchange acknowledges the unsubscribe
  */
-    pub async fn un_subscribe(&mut self, name: &str, mut symbols: Value, mut messageHashes: Value, optional_args: &[&Value]) -> Value {
+    pub async fn un_subscribe(&mut self, name: &str, mut symbols: Value, messageHashes: &[crate::Value], optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -400,7 +400,7 @@ impl Poloniex {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_0, &messageHashes, Value::Null).await;
+        return self.watch_multiple(url.as_deref(), messageHashes, __ws_arg_0, messageHashes, Value::Null).await;
 
     Value::Null
 }
@@ -734,7 +734,7 @@ impl Poloniex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", channel.as_deref().unwrap_or("null")).into()), "::").into()), (market).symbol);
-        return self.un_subscribe(channel.as_deref().unwrap_or_default(), Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), &[&params]).await;
+        return self.un_subscribe(channel.as_deref().unwrap_or_default(), Value::from(vec![Value::from((market).symbol.clone())]), &[Value::from(messageHash)], &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -951,7 +951,7 @@ impl Poloniex {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", name).into()), "::").into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        return self.un_subscribe(name.as_str(), Value::Arr(symbolsNormalized), Value::from(messageHashes), &[&params]).await;
+        return self.un_subscribe(name.as_str(), Value::Arr(symbolsNormalized), &messageHashes, &[&params]).await;
         Value::Null
         }).await?))
     }

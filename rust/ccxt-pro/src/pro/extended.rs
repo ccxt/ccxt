@@ -59,7 +59,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
     {
         Box::pin(async move {
             match method {
-                "find_subscription" => self.find_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "find_subscription" => self.find_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).map_or(crate::Value::Null, crate::Value::Dict),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_ws_funding_rate" => Value::Dict(self.parse_ws_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
@@ -86,7 +86,6 @@ impl Extended {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "find_subscription" => self.find_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1209,7 +1208,7 @@ impl Extended {
         //         "seq": 1
         //     }
         //
-        let mut subscription: Option<crate::value::Dict> = self.find_subscription(client, Value::Str("ohlcv".into())).into_opt_dict();
+        let mut subscription: Option<crate::value::Dict> = self.find_subscription(client, Value::Str("ohlcv".into()));
         if (subscription.is_none()) {
             return;
         }
@@ -1249,7 +1248,7 @@ impl Extended {
         client.resolve(Value::from(&stored), messageHash.as_deref());
 }
 
-    pub fn find_subscription(&self, client: &Value, mut name: Value) -> Value {
+    pub fn find_subscription(&self, client: &Value, mut name: Value) -> Option<crate::value::Dict> {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let keys: Vec<Value> = __ch.subscription_keys();
         {
@@ -1260,13 +1259,11 @@ impl Extended {
             let subscription: Value = self.safe_dict(&__ch.subscriptions, key.map(Value::from).unwrap_or(Value::Null), &[]);
             let subscriptionName: Option<String> = self.safe_string_k_opt(&subscription, "name", &[]);
             if ((subscriptionName.as_deref() == name.as_str())) {
-                return subscription;
+                return if let Value::Dict(__m) = subscription { Some(__m) } else { None }
             }
         }
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 
     pub fn handle_error_message(&self, client: &Value, message: &Value) -> Value {

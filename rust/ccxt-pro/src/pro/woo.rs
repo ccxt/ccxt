@@ -92,7 +92,7 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "watch_private_multiple" => self.watch_private_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "watch_private_multiple" => self.watch_private_multiple(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1456,7 +1456,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     Value::Null
 }
 
-    pub async fn watch_private_multiple(&mut self, mut messageHashes: Value, message: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub async fn watch_private_multiple(&mut self, messageHashes: &[crate::Value], message: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
         let message: Value = message.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1472,7 +1472,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             m
         });
         let request: crate::value::Dict = self.extend_t(&subscribe, &[&message]);
-        return self.watch_multiple(url.as_str(), &messageHashes, &request, &messageHashes, Value::Map(subscribe)).await;
+        return self.watch_multiple(url.as_str(), messageHashes, &request, messageHashes, Value::Map(subscribe)).await;
 
     Value::Null
 }
@@ -1917,7 +1917,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 m.insert("topic".to_string(), Value::Str("position".into()));
             m
         });
-        let newPositions: Value = self.watch_private_multiple(Value::from(messageHashes), Value::Map(request), &[&params]).await;
+        let newPositions: Value = self.watch_private_multiple(&messageHashes, Value::Map(request), &[&params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

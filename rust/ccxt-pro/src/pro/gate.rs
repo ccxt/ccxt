@@ -84,7 +84,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "request_private" => self.request_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref()).await,
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "subscribe_public_multiple" => self.subscribe_public_multiple(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "subscribe_public_multiple" => self.subscribe_public_multiple(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "subscribe_watch_tickers_and_bids_asks" => self.subscribe_watch_tickers_and_bids_asks(&args[..].iter().collect::<Vec<_>>()).await,
                 "un_subscribe_public_multiple" => self.un_subscribe_public_multiple(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).and_then(crate::Value::as_text).as_deref(), &args[7.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -1396,7 +1396,7 @@ impl Gate {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, ":").into()), symbol.as_deref().unwrap_or("null")).into()));
         }
         }
-        let tickerOrBidAsk: Value = self.subscribe_public_multiple(url.as_deref(), Value::from(messageHashes), &marketIds, Some(channel.as_str()), &[&Value::Dict(paramsMethod)]).await;
+        let tickerOrBidAsk: Value = self.subscribe_public_multiple(url.as_deref(), &messageHashes, &marketIds, Some(channel.as_str()), &[&Value::Dict(paramsMethod)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut items: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -1536,7 +1536,7 @@ impl Gate {
         }
         }
         let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
-        let mut trades: Value = self.subscribe_public_multiple(url.as_deref(), Value::from(messageHashes), marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[&params]).await;
+        let mut trades: Value = self.subscribe_public_multiple(url.as_deref(), &messageHashes, marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[&params]).await;
         let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -3257,7 +3257,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn subscribe_public_multiple(&mut self, url: Option<&str>, mut messageHashes: Value, payload: impl Into<crate::Value>, channel: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub async fn subscribe_public_multiple(&mut self, url: Option<&str>, messageHashes: &[crate::Value], payload: impl Into<crate::Value>, channel: Option<&str>, optional_args: &[&Value]) -> Value {
         let payload: Value = payload.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3275,7 +3275,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
-        return self.watch_multiple(&Value::from(url), &messageHashes, &message, &messageHashes, Value::Null).await;
+        return self.watch_multiple(&Value::from(url), messageHashes, &message, messageHashes, Value::Null).await;
 
     Value::Null
 }

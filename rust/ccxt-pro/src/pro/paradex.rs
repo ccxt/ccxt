@@ -90,8 +90,8 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "sbe_read_var_strings" => self.sbe_read_var_strings(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
                 "send_request" => self.send_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref()).await,
                 "send_unsubscribe" => self.send_unsubscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "subscribe_channels" => self.subscribe_channels(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "subscribe_markets_summary" => self.subscribe_markets_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "subscribe_channels" => self.subscribe_channels(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "subscribe_markets_summary" => self.subscribe_markets_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "subscribe_request" => self.subscribe_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_funding_rate" => crate::types::IntoRaw::into_raw(self.un_watch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -101,15 +101,15 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "un_watch_tickers" => crate::types::IntoRaw::into_raw(self.un_watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "unsubscribe_channel_at" => self.unsubscribe_channel_at(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "unsubscribe_channels" => self.unsubscribe_channels(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "unsubscribe_channels_from" => self.unsubscribe_channels_from(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "unsubscribe_channel_at" => self.unsubscribe_channel_at(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "unsubscribe_channels" => self.unsubscribe_channels(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "unsubscribe_channels_from" => self.unsubscribe_channels_from(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "unsubscribe_request" => self.unsubscribe_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
-                "unsubscribed_channels" => self.unsubscribed_channels(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "wait_for_pending_unsubscribe" => self.wait_for_pending_unsubscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "unsubscribed_channels" => self.unsubscribed_channels(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
+                "wait_for_pending_unsubscribe" => self.wait_for_pending_unsubscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()).await,
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_funding_rate" => crate::types::IntoRaw::into_raw(self.watch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -198,7 +198,7 @@ impl Paradex {
             "unsubscribe_channels" => { crate::exchange_stubs::enqueue_spawn("unsubscribe_channels", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "unsubscribe_channels_from" => { crate::exchange_stubs::enqueue_spawn("unsubscribe_channels_from", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "unsubscribe_request" => self.unsubscribe_request(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
-            "unsubscribed_channels" => self.unsubscribed_channels(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
+            "unsubscribed_channels" => self.unsubscribed_channels(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
             "wait_for_pending_unsubscribe" => { crate::exchange_stubs::enqueue_spawn("wait_for_pending_unsubscribe", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
@@ -423,7 +423,7 @@ impl Paradex {
  * @param {object} [params] extra parameters merged into each subscribe request
  * @returns {object} the first update
  */
-    pub async fn subscribe_channels(&mut self, url: &str, mut messageHashes: Value, mut channels: Value, optional_args: &[&Value]) -> Value {
+    pub async fn subscribe_channels(&mut self, url: &str, messageHashes: &[crate::Value], channels: &[crate::Value], optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -431,46 +431,44 @@ impl Paradex {
         // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
         // starts a client without any. Each but the last is sent once the previous one is acknowledged
-        self.wait_for_pending_unsubscribe(url, channels.clone()).await;
+        self.wait_for_pending_unsubscribe(url, channels).await;
         let channelsLength: i64 = channels.len() as i64;
         {
                         let mut attempt: i64 = 0;
             let mut __for_first_588: bool = true;
             while { if !__for_first_588 { attempt += 1; } __for_first_588 = false; attempt < channelsLength } {
-            let pending: Vec<Value> = self.unsubscribed_channels(Value::from(url), channels.clone()).as_array().cloned().unwrap_or_default();
+            let pending: Vec<Value> = self.unsubscribed_channels(Value::from(url), channels).as_array().cloned().unwrap_or_default();
             let pendingLength: i64 = pending.len() as i64;
             if pendingLength < 2 {
                 break;
             }
-            let channel: Option<String> = get_value(&channels, &pending.get(0).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let channel: Option<String> = channels.get(pending.get(0).and_then(Value::as_i64).unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
             let pendingRequest: crate::value::Dict = self.subscribe_request(channel.as_deref().unwrap_or_default()).into_dict();
             self.send_request(url, self.deep_extend(pendingRequest, &[&params]), channel.as_deref()).await;
         }
         }
         // the last one goes with the watch, so that an update sent right after it is not missed
-        let missing: Vec<Value> = self.unsubscribed_channels(Value::from(url), channels.clone()).as_array().cloned().unwrap_or_default();
+        let missing: Vec<Value> = self.unsubscribed_channels(Value::from(url), channels).as_array().cloned().unwrap_or_default();
         let missingLength: i64 = missing.len() as i64;
         if (missingLength == 0) {
             return self.watch_multiple(&Value::from(url), messageHashes, Value::Null, channels, Value::Null).await;
         }
         let index: Option<i64> = missing.get(0).and_then(Value::as_i64);
-        let request: indexmap::IndexMap<String, Value> = self.subscribe_request((get_value(&channels, &Value::from(index))).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+        let request: indexmap::IndexMap<String, Value> = self.subscribe_request((channels.get(index.unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
         // a failed subscribe rejects the watchers of its own channel only
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("messageHashes".to_string(), Value::from(vec![get_value(&messageHashes, &Value::from(index))]));
+                m.insert("messageHashes".to_string(), Value::from(vec![messageHashes.get(index.unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)]));
             m
         });
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch_multiple(&Value::from(url), messageHashes, __ws_arg_0, Value::from(vec![get_value(&channels, &Value::from(index))]), Value::Map(subscription)).await;
+        return self.watch_multiple(&Value::from(url), messageHashes, __ws_arg_0, Value::from(vec![channels.get(index.unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)]), Value::Map(subscription)).await;
 
     Value::Null
 }
 
-    pub fn unsubscribed_channels(&mut self, mut url: Value, mut channels: Value) -> Value {
-        let __channels_empty = Vec::new();
-        let channels = channels.as_array().unwrap_or(&__channels_empty);
+    pub fn unsubscribed_channels(&mut self, mut url: Value, channels: &[crate::Value]) -> Value {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(&url));
         let mut result: Vec<Value> = Vec::new();
         {
@@ -537,7 +535,7 @@ impl Paradex {
  * @param {object} [params] extra parameters merged into each unsubscribe request
  * @returns {boolean} true once every channel is unsubscribed
  */
-    pub async fn unsubscribe_channels(&mut self, url: &str, topic: &str, mut channels: Value, mut subMessageHashes: Value, mut symbols: Value, optional_args: &[&Value]) -> Value {
+    pub async fn unsubscribe_channels(&mut self, url: &str, topic: &str, channels: &[crate::Value], subMessageHashes: &[crate::Value], mut symbols: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -547,11 +545,11 @@ impl Paradex {
             let mut __for_first_590: bool = true;
             while { if !__for_first_590 { i += 1; } __for_first_590 = false; i < (channels.len() as i64) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                self.unsubscribe_channel_at(url, topic, channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int(i), &[&params]).await;
+                self.unsubscribe_channel_at(url, topic, channels, subMessageHashes, symbols.clone(), Value::Int(i), &[&params]).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
-                self.unsubscribe_channels_from(url, topic, channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int((i + 1)), &[&params]).await;
+                self.unsubscribe_channels_from(url, topic, channels, subMessageHashes, symbols.clone(), Value::Int((i + 1)), &[&params]).await;
                 panic!("{}", e);
             }
         }
@@ -575,7 +573,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters merged into each unsubscribe request
  * @returns {int} the number of channels refused
  */
-    pub async fn unsubscribe_channels_from(&mut self, url: &str, topic: &str, mut channels: Value, mut subMessageHashes: Value, mut symbols: Value, mut start: Value, optional_args: &[&Value]) -> Value {
+    pub async fn unsubscribe_channels_from(&mut self, url: &str, topic: &str, channels: &[crate::Value], subMessageHashes: &[crate::Value], mut symbols: Value, mut start: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -587,7 +585,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_591 { i += 1; } __for_first_591 = false; i < (channels.len() as i64) } {
             if (i as f64) >= start.as_f64().unwrap_or(f64::NAN) {
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                    self.unsubscribe_channel_at(url, topic, channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int(i), &[&params]).await;
+                    self.unsubscribe_channel_at(url, topic, channels, subMessageHashes, symbols.clone(), Value::Int(i), &[&params]).await;
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
                     refused = (refused + 1);
@@ -614,14 +612,14 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters merged into the unsubscribe request
  * @returns {boolean} true once unsubscribed
  */
-    pub async fn unsubscribe_channel_at(&mut self, url: &str, topic: &str, mut channels: Value, mut subMessageHashes: Value, mut symbols: Value, mut index: Value, optional_args: &[&Value]) -> Value {
+    pub async fn unsubscribe_channel_at(&mut self, url: &str, topic: &str, channels: &[crate::Value], subMessageHashes: &[crate::Value], mut symbols: Value, mut index: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let channel: Value = get_value(&channels, &index);
+        let channel: Option<String> = channels.get(index.as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
         let symbol: Option<String> = self.safe_string_opt(symbols, &index, &[]);
-        let mut hashes: Vec<Value> = vec![get_value(&subMessageHashes, &index)];
+        let mut hashes: Vec<Value> = vec![subMessageHashes.get(index.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)];
         let mut channelSymbols: Vec<Value> = Vec::new();
         if (symbol.is_some()) {
             channelSymbols.push(symbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -633,13 +631,13 @@ if _try_result.is_err() {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::from(topic));
-                m.insert("subscribeHashes".to_string(), Value::from(vec![channel.clone()]));
+                m.insert("subscribeHashes".to_string(), Value::from(vec![channel.clone().map(Value::from).unwrap_or(Value::Null)]));
                 m.insert("subMessageHashes".to_string(), Value::from(hashes));
                 m.insert("symbols".to_string(), Value::from(channelSymbols));
             m
         });
-        let request: crate::value::Dict = self.unsubscribe_request(channel.as_str().unwrap_or_default()).into_dict();
-        return self.send_unsubscribe(url, Value::Str(format!("{}{}", "unsubscribe:", channel).into()), &request, Value::Map(subscription), &[&params]).await;
+        let request: crate::value::Dict = self.unsubscribe_request(channel.as_deref().unwrap_or_default()).into_dict();
+        return self.send_unsubscribe(url, Value::Str(format!("{}{}", "unsubscribe:", channel.as_deref().unwrap_or("null")).into()), &request, Value::Map(subscription), &[&params]).await;
 
     Value::Null
 }
@@ -653,7 +651,7 @@ if _try_result.is_err() {
  * @param {string[]} subscribeHashes the subscriptions the watch relies on
  * @returns {undefined}
  */
-    pub async fn wait_for_pending_unsubscribe(&mut self, url: &str, mut subscribeHashes: Value) -> Value {
+    pub async fn wait_for_pending_unsubscribe(&mut self, url: &str, subscribeHashes: &[crate::Value]) -> Value {
         if !(matches!((&self.clients, &Value::from(url)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return Value::Null;
         }
@@ -674,7 +672,7 @@ if _try_result.is_err() {
                                 let mut j: i64 = 0;
                 let mut __for_first_592: bool = true;
                 while { if !__for_first_592 { j += 1; } __for_first_592 = false; j < (pendingHashes.len() as i64) } {
-                if self.in_array(pendingHashes.get(j as usize).cloned().unwrap_or(Value::Null), &subscribeHashes) {
+                if self.in_array(pendingHashes.get(j as usize).cloned().unwrap_or(Value::Null), subscribeHashes) {
                     pending = true;
                 }
             }
@@ -902,7 +900,7 @@ if _try_result.is_err() {
             messageHash = format!("{}{}", "trades.", Value::from((market).id.as_deref()));
         }
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
-        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash.clone())])).await;
+        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &[Value::from(messageHash.clone())]).await;
         let request: indexmap::IndexMap<String, Value> = self.subscribe_request(messageHash.as_str()).as_map().cloned().unwrap_or_default();
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -964,7 +962,7 @@ if _try_result.is_err() {
         }
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         // handleTrade resolves the channel of each market
-        let mut trades: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), Value::Arr(channels.clone()), Value::Arr(channels), &[&params]).await;
+        let mut trades: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), &channels, &channels, &[&params]).await;
         let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -1000,7 +998,7 @@ if _try_result.is_err() {
             return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(vec![symbol.to_string()], params).await);
         }
         let channel: String = "trades.ALL".to_string();
-        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "trades", Value::from(vec![Value::from(channel.clone())]), Value::from(vec![Value::from(channel)]), Value::from(vec![]), &[&params]).await;
+        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "trades", &[Value::from(channel.clone())], &[Value::from(channel)], Value::from(vec![]), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1038,7 +1036,7 @@ if _try_result.is_err() {
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", "trades.", Value::from((market).id.as_deref())).into()));
         }
         }
-        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "trades", Value::Arr(channels.clone()), Value::Arr(channels), Value::Arr(symbolsNormalized), &[&params]).await;
+        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "trades", &channels, &channels, Value::Arr(symbolsNormalized), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1074,7 +1072,7 @@ if _try_result.is_err() {
         let channel: String = format!("{}{}", "trades.", Value::from((market).id.as_deref()));
         let messageHash: String = format!("{}{}", "liquidations:", (market).symbol);
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
-        let mut liquidations: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[&params]).await;
+        let mut liquidations: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], &[Value::from(channel)], &[&params]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = liquidations.get_limit(Some((market).symbol.as_str()), limit);
@@ -1253,7 +1251,7 @@ if _try_result.is_err() {
             feeds.push(self.get_order_book_channel(Value::from((feedMarket).id.as_deref()), &[&Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null));
         }
         }
-        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), Value::from(feeds)).await;
+        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &feeds).await;
         let mut client: Value = self.client(url.as_deref());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let mut channels: Vec<Value> = Vec::new();
@@ -1286,7 +1284,7 @@ if _try_result.is_err() {
             messageHashes.push(Value::Str(format!("{}{}", "orderbook:", (market).symbol).into()));
         }
         }
-        let mut orderbook: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(channels), &[&Value::Dict(paramsDeltas)]).await;
+        let mut orderbook: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), &messageHashes, &channels, &[&Value::Dict(paramsDeltas)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1370,7 +1368,7 @@ if _try_result.is_err() {
             subMessageHashes.push(Value::Str(format!("{}{}", "orderbook:", (market).symbol).into()));
         }
         }
-        return self.unsubscribe_channels(url.as_deref().unwrap_or_default(), "orderbook", Value::from(channels), Value::from(subMessageHashes), Value::Arr(symbolsNormalized), &[&Value::Dict(paramsDeltas)]).await;
+        return self.unsubscribe_channels(url.as_deref().unwrap_or_default(), "orderbook", &channels, &subMessageHashes, Value::Arr(symbolsNormalized), &[&Value::Dict(paramsDeltas)]).await;
         Value::Null
         }).await?))
     }
@@ -1590,7 +1588,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", "markets_summary.", (market).symbol);
-        return self.subscribe_markets_summary(Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), &[&params]).await;
+        return self.subscribe_markets_summary(Value::from(vec![Value::from((market).symbol.clone())]), &[Value::from(messageHash)], &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1634,12 +1632,12 @@ if _try_result.is_err() {
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
-            newTicker = self.subscribe_markets_summary(symbolsNormalized.clone(), Value::from(messageHashes), &[&params]).await;
+            newTicker = self.subscribe_markets_summary(symbolsNormalized.clone(), &messageHashes, &[&params]).await;
         }  else {
             // every listed market, options included
             let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
             let scopedHash: Value = Value::Str(format!("{}{}", channel, ":scoped").into());
-            self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(channel.clone()), scopedHash.clone()])).await;
+            self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &[Value::from(channel.clone()), scopedHash.clone()]).await;
             let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
             if (client.has_subscription(&scopedHash)) {
                 // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
@@ -1835,7 +1833,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters merged into the request
  * @returns {object} the first [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure} updated
  */
-    pub async fn subscribe_markets_summary(&mut self, mut symbols: Value, mut messageHashes: Value, optional_args: &[&Value]) -> Value {
+    pub async fn subscribe_markets_summary(&mut self, mut symbols: Value, messageHashes: &[crate::Value], optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1853,7 +1851,7 @@ if _try_result.is_err() {
             pendingHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), Value::from((market).id.as_deref())).into()));
         }
         }
-        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), Value::from(pendingHashes)).await;
+        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &pendingHashes).await;
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         if (client.has_subscription(channel.as_str())) {
             return self.watch_multiple(url.as_deref(), messageHashes, Value::Null, Value::from(vec![Value::from(channel.clone())]), Value::Null).await;
@@ -1874,7 +1872,7 @@ if _try_result.is_err() {
             subscribeHashes.push(Value::from(subscribeHash.clone()));
             if !(client.has_subscription(subscribeHash.as_str())) {
                 if let Value::Arr(__a) = &mut missing { std::sync::Arc::make_mut(__a).push(marketId); };
-                missingHashes.push(messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                missingHashes.push(messageHashes.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
@@ -2011,7 +2009,7 @@ if _try_result.is_err() {
             channels.push(Value::Str("bbo.ALL".into()));
             messageHashes.push(Value::Str("bidask".into()));
         }
-        let newBidAsk: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(channels), &[&params]).await;
+        let newBidAsk: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), &messageHashes, &channels, &[&params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -2071,7 +2069,7 @@ if _try_result.is_err() {
             channels.push(Value::Str("bbo.ALL".into()));
             subMessageHashes.push(Value::Str("bidask".into()));
         }
-        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "bidsasks", Value::from(channels), Value::from(subMessageHashes), Value::from(bidAskSymbols), &[&params]).await;
+        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "bidsasks", &channels, &subMessageHashes, Value::from(bidAskSymbols), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -2655,7 +2653,7 @@ if _try_result.is_err() {
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
         let messageHash: String = format!("{}{}", "fundingRate:", (market).symbol);
-        return self.subscribe_channels(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(channel)]), &[&params]).await;
+        return self.subscribe_channels(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], &[Value::from(channel)], &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -2686,7 +2684,7 @@ if _try_result.is_err() {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let channel: String = format!("{}{}", "funding_data.", Value::from((market).id.as_deref()));
         let messageHash: String = format!("{}{}", "fundingRate:", (market).symbol);
-        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "fundingRate", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from((market).symbol.clone())]), &[&params]).await;
+        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "fundingRate", &[Value::from(channel)], &[Value::from(messageHash)], Value::from(vec![Value::from((market).symbol.clone())]), &[&params]).await;
         Value::Null
         }).await?))
     }

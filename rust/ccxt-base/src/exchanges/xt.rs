@@ -1496,7 +1496,7 @@ impl crate::exchange_generated::ExchangeBase for Xt {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "index_position_break_list" => Value::Dict(self.index_position_break_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "merge_position_break_info" => self.merge_position_break_info(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "merge_position_break_info" => match args.get(0).cloned().unwrap_or(crate::Value::Null) { crate::Value::Dict(__h) => crate::Value::Dict(self.merge_position_break_info(__h, args.get(1).cloned().unwrap_or(crate::Value::Null))), other => other },
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "nonce" => self.nonce(),
                 "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -7510,7 +7510,7 @@ impl Xt {
  * @param {object} entry a single entry from a position/list response
  * @param {object} breakBySymbolSide the result of indexPositionBreakList()
  */
-    pub fn merge_position_break_info(&self, mut entry: Value, breakBySymbolSide: impl Into<crate::Value>) -> Value {
+    pub fn merge_position_break_info(&self, mut entry: crate::value::Dict, breakBySymbolSide: impl Into<crate::Value>) -> crate::value::Dict {
         let breakBySymbolSide: Value = breakBySymbolSide.into();
         let breakEntry: Option<crate::value::Dict> = self.safe_dict_o(breakBySymbolSide, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k(&entry, "positionSide", &[Value::Str("".into())])).into()));
         if (breakEntry.is_none()) {
@@ -7518,14 +7518,14 @@ impl Xt {
         }
         let __ws_arg_97 = self.safe_string_k(&breakEntry, "breakPrice", &[]);
         let __ws_arg_98 = self.safe_string_k(&breakEntry, "calMarkPrice", &[]);
-        return self.extend(entry, &[Value::Map({
+        return self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("breakPrice".to_string(), __ws_arg_97);
         m.insert("calMarkPrice".to_string(), __ws_arg_98);
     m
 })]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -7629,7 +7629,7 @@ impl Xt {
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
             let positionSize: Option<String> = self.safe_string_k_opt(&entry, "positionSize", &[]);
             if (positionSize.as_deref() != Some("0")) {
-                let merged: Option<crate::value::Dict> = self.merge_position_break_info(Value::Dict(entry), &breakBySymbolSide).into_opt_dict();
+                let merged: Option<crate::value::Dict> = Some(self.merge_position_break_info(entry, &breakBySymbolSide));
                 return <Self as crate::exchange::DerivedExchange>::parse_position(self, &merged, Some(&marketInner)).map_or(Value::Null, Value::Dict);
             }
         }
@@ -7729,7 +7729,7 @@ impl Xt {
             let entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
-            let merged: Option<crate::value::Dict> = self.merge_position_break_info(Value::Dict(entry), &breakBySymbolSide).into_opt_dict();
+            let merged: Option<crate::value::Dict> = Some(self.merge_position_break_info(entry, &breakBySymbolSide));
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, &merged, Some(&marketInner)).map_or(Value::Null, Value::Dict));
         }
         }

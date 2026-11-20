@@ -108,7 +108,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "watch_topics" => self.watch_topics(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "watch_topics" => self.watch_topics(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_trades_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -720,7 +720,7 @@ impl Bybit {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " watchTicker() only supports name tickers for contract markets")));
         }
         let topics: crate::value::List = std::sync::Arc::new(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]);
-        return self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[&Value::Dict(paramsValue)]).await;
+        return self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], &topics, &[&Value::Dict(paramsValue)]).await;
         Value::Null
         }).await?))
     }
@@ -766,7 +766,7 @@ impl Bybit {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string(&symbolsValue, Value::Int(i), &[Value::Str("".into())])).into()));
         }
         }
-        let ticker: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(topics), &[&Value::Dict(paramsValue)]).await;
+        let ticker: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(topics), &[&Value::Dict(paramsValue)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -1049,7 +1049,7 @@ impl Bybit {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), self.safe_string(&symbolsValue, Value::Int(i), &[Value::Str("".into())])).into()));
         }
         }
-        let ticker: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(topics), &[&Value::Dict(paramsValue)]).await;
+        let ticker: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(topics), &[&Value::Dict(paramsValue)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return ticker;
         }
@@ -1208,7 +1208,7 @@ impl Bybit {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe.as_deref().unwrap_or("null")).into()));
         }
         }
-        let symboltimeframestoredVariable = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(rawHashes), &[&params]).await;
+        let symboltimeframestoredVariable = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(rawHashes), &[&params]).await;
         let symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
@@ -1455,8 +1455,6 @@ impl Bybit {
         let url: Option<String> = self.get_url_by_market_type((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str(), &[&Value::Bool(false), &Value::Str("watchOrderBook".into()), &params]).await.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = self.clean_params(params).into_dict();
         let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let defaultLimit: i64 = (if (market).option { 100 } else { 50 });
-        let limitResolved: i64 = limit.unwrap_or(defaultLimit);
         if (limit.is_some()) {
             let limits: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1470,6 +1468,14 @@ impl Bybit {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOrderBookForSymbols(): for ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " markets limit can be one of: ").into()), json_stringify(&selectedLimits))));
             }
         }
+        let limitParam: Option<i64> = self.safe_integer(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("limit".to_string(), Value::from(limit));
+    m
+}), Value::Str("limit".into()), &[]).as_i64();
+        let limitDefault: i64 = (if (market).option { 100 } else { 50 });
+        let limitValue: i64 = limitParam.unwrap_or(limitDefault);
+        let topicPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), Value::Str(format!("{}", limitValue).into())).into()), ".");
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
@@ -1477,14 +1483,14 @@ impl Bybit {
             let mut __for_first_195: bool = true;
             while { if !__for_first_195 { i += 1; } __for_first_195 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let marketId: Option<String> = self.market_id(symbol.as_deref()).as_str().map(str::to_owned);
-            let topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), Value::from(self.number_to_string(Value::from(limitResolved)))).into()), ".").into()), marketId.as_deref().unwrap_or("null"));
+            let marketId: String = self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let topic: String = format!("{}{}", topicPrefix, marketId);
             topics.push(Value::from(topic));
             let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
             messageHashes.push(Value::from(messageHash));
         }
         }
-        let mut orderbook: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(topics), &[&Value::Dict(paramsValue)]).await;
+        let mut orderbook: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(topics), &[&Value::Dict(paramsValue)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1751,7 +1757,7 @@ impl Bybit {
             messageHashes.push(Value::from(messageHash));
         }
         }
-        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(topics), &[&Value::Dict(paramsValue)]).await;
+        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(topics), &[&Value::Dict(paramsValue)]).await;
         let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -2017,21 +2023,20 @@ impl Bybit {
         }
         let url: Option<String> = self.get_url_by_market_type(symbolResolved.as_deref(), &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let topicByMarket: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("ticketInfo".into()));
-                m.insert("unified".to_string(), Value::Str("execution".into()));
-                m.insert("usdc".to_string(), Value::Str("user.openapi.perp.trade".into()));
-            m
-        });
-        let mut topic: Option<String> = self.safe_string_opt(&topicByMarket, self.get_private_type(url.as_deref().unwrap_or_default()), &[]);
+        let privateType: Option<String> = self.get_private_type(url.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
+        let mut topic: String = "execution".to_string();
+        if (privateType.as_deref() == Some("spot")) {
+            topic = "ticketInfo".to_string();
+        }  else if (privateType.as_deref() == Some("usdc")) {
+            topic = "user.openapi.perp.trade".to_string();
+        }
         let executionFastparamsExecutionFastVariable = self.handle_option_bool_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]);
         let executionFast: bool = executionFastparamsExecutionFastVariable.0 == Some(true);
         let paramsExecutionFast: crate::value::Dict = executionFastparamsExecutionFastVariable.1;
         if executionFast {
-            topic = Some("execution.fast".to_string());
+            topic = "execution.fast".to_string();
         }
-        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![topic.map(Value::from).unwrap_or(Value::Null)]), &[&Value::Dict(paramsExecutionFast)]).await;
+        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], Value::from(vec![Value::from(topic)]), &[&Value::Dict(paramsExecutionFast)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
@@ -2075,21 +2080,20 @@ impl Bybit {
         }
         let url: Option<String> = self.get_url_by_market_type(symbol.as_str(), &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let topicByMarket: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("ticketInfo".into()));
-                m.insert("unified".to_string(), Value::Str("execution".into()));
-                m.insert("usdc".to_string(), Value::Str("user.openapi.perp.trade".into()));
-            m
-        });
-        let mut topic: Option<String> = self.safe_string_opt(&topicByMarket, self.get_private_type(url.as_deref().unwrap_or_default()), &[]);
+        let privateType: Option<String> = self.get_private_type(url.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
+        let mut topic: String = "execution".to_string();
+        if (privateType.as_deref() == Some("spot")) {
+            topic = "ticketInfo".to_string();
+        }  else if (privateType.as_deref() == Some("usdc")) {
+            topic = "user.openapi.perp.trade".to_string();
+        }
         let executionFastparamsExecutionFastVariable = self.handle_option_bool_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]);
         let executionFast: bool = executionFastparamsExecutionFastVariable.0 == Some(true);
         let paramsExecutionFast: crate::value::Dict = executionFastparamsExecutionFastVariable.1;
         if executionFast {
-            topic = Some("execution.fast".to_string());
+            topic = "execution.fast".to_string();
         }
-        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "myTrades", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), Value::from(vec![topic.map(Value::from).unwrap_or(Value::Null)]), &[&Value::Dict(paramsExecutionFast)]).await;
+        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "myTrades", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), Value::from(vec![Value::from(topic)]), &[&Value::Dict(paramsExecutionFast)]).await;
         Value::Null
         }).await?))
     }
@@ -2298,7 +2302,7 @@ impl Bybit {
             let snapshot: Option<crate::pro::cache::Cache> = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await.into();
             return Value::Arr(self.filter_by_symbols_since_limit(&snapshot, symbolsNormalized, since, limit, &[Value::Bool(true)]));
         }
-        let newPositions: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::Str("position".into())]), &[&params]).await;
+        let newPositions: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], Value::from(vec![Value::Str("position".into())]), &[&params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2486,8 +2490,8 @@ impl Bybit {
         }
         let url: Option<String> = self.get_url_by_market_type(None, &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let topics: crate::value::List = std::sync::Arc::new(vec![Value::Str("position".into())]);
-        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "positions", symbols, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), &topics, &[&params]).await;
+        let topics: Value = Value::from(vec![Value::Str("position".into())]);
+        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "positions", symbols, Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), topics, &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -2529,7 +2533,7 @@ impl Bybit {
         let messageHash: String = format!("{}{}", "liquidations::", symbolValue);
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let topic: String = format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), ".").into()), marketId);
-        let newLiquidation: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(topic)]), &[&Value::Dict(paramsMethod)]).await;
+        let newLiquidation: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], Value::from(vec![Value::from(topic)]), &[&Value::Dict(paramsMethod)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidation;
         }
@@ -2692,15 +2696,17 @@ impl Bybit {
         }
         let url: Option<String> = self.get_url_by_market_type(symbolResolved.as_deref(), &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let topicsByMarket: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::from(vec![Value::Str("order".into()), Value::Str("stopOrder".into())]));
-                m.insert("unified".to_string(), Value::from(vec![Value::Str("order".into())]));
-                m.insert("usdc".to_string(), Value::from(vec![Value::Str("user.openapi.perp.order".into())]));
-            m
-        });
-        let topics: crate::value::List = self.safe_list_t(&topicsByMarket, self.get_private_type(url.as_deref().unwrap_or_default()));
-        let mut orders: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[&params]).await;
+        let privateType: Option<String> = self.get_private_type(url.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
+        let mut topics: Vec<Value> = Vec::new();
+        if (privateType.as_deref() == Some("usdc")) {
+            topics.push(Value::Str("user.openapi.perp.order".into()));
+        }  else {
+            topics.push(Value::Str("order".into()));
+            if (privateType.as_deref() == Some("spot")) {
+                topics.push(Value::Str("stopOrder".into()));
+            }
+        }
+        let mut orders: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], Value::from(topics), &[&params]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
@@ -2742,15 +2748,17 @@ impl Bybit {
         }
         let url: Option<String> = self.get_url_by_market_type(symbol.as_str(), &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let topicsByMarket: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::from(vec![Value::Str("order".into()), Value::Str("stopOrder".into())]));
-                m.insert("unified".to_string(), Value::from(vec![Value::Str("order".into())]));
-                m.insert("usdc".to_string(), Value::from(vec![Value::Str("user.openapi.perp.order".into())]));
-            m
-        });
-        let topics: crate::value::List = self.safe_list_t(&topicsByMarket, self.get_private_type(url.as_deref().unwrap_or_default()));
-        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "orders", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), &topics, &[&params]).await;
+        let privateType: Option<String> = self.get_private_type(url.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
+        let mut topics: Vec<Value> = Vec::new();
+        if (privateType.as_deref() == Some("usdc")) {
+            topics.push(Value::Str("user.openapi.perp.order".into()));
+        }  else {
+            topics.push(Value::Str("order".into()));
+            if (privateType.as_deref() == Some("spot")) {
+                topics.push(Value::Str("stopOrder".into()));
+            }
+        }
+        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "orders", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), Value::from(topics), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -2944,12 +2952,6 @@ impl Bybit {
         let isUnifiedAccount: bool = unified.1.unwrap_or(false);
         let url: Option<String> = self.get_url_by_market_type(None, &[&Value::Bool(true), &Value::from(method), &Value::from(&paramsSubType)]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let topicByMarket: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("outboundAccountInfo".into()));
-                m.insert("unified".to_string(), Value::Str("wallet".into()));
-            m
-        });
         if isUnifiedAccount {
             // unified account
             if (subType.as_deref() == Some("inverse")) {
@@ -2978,8 +2980,16 @@ impl Bybit {
                 }
             }
         }
-        let topics: crate::value::List = std::sync::Arc::new(vec![self.safe_string(&topicByMarket, self.get_private_type(url.as_deref().unwrap_or_default()), &[])]);
-        return self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[&Value::Dict(paramsSubType)]).await;
+        let privateType: Option<String> = self.get_private_type(url.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
+        if (privateType.as_deref() == Some("usdc")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchBalance() is not supported on the usdc private stream")));
+        }
+        let mut topic: String = "wallet".to_string();
+        if (privateType.as_deref() == Some("spot")) {
+            topic = "outboundAccountInfo".to_string();
+        }
+        let topics: crate::value::List = std::sync::Arc::new(vec![Value::from(topic)]);
+        return self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], &topics, &[&Value::Dict(paramsSubType)]).await;
         Value::Null
         }).await?))
     }
@@ -3265,7 +3275,7 @@ impl Bybit {
         }
 }
 
-    pub async fn watch_topics(&mut self, url: &str, mut messageHashes: Value, topics: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub async fn watch_topics(&mut self, url: &str, messageHashes: &[crate::Value], topics: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
         let mut topics: Value = topics.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3282,7 +3292,7 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_213: bool = true;
                 while { if !__for_first_213 { i += 1; } __for_first_213 = false; i < topicsLength } {
-                let messageHash: Option<String> = messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if !(client.has_subscription(messageHash.as_deref())) {
                     newTopics.push(topics.get(i as usize).cloned().unwrap_or(Value::Null));
                 }
@@ -3317,9 +3327,9 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_216: bool = true;
                 while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < topicsLength } {
-                let topic: Value = topics.get(i as usize).cloned().unwrap_or(Value::Null);
-                if !(matches!(&topic, Value::Str(__k) if subscribedTopics.contains_key(__k.as_ref()))) {
-                    newTopics.push(topic);
+                let mut topic: Option<String> = topics.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                if !(matches!(topic.as_deref(), Some(__k) if subscribedTopics.contains_key(__k))) {
+                    newTopics.push(topic.map(Value::from).unwrap_or(Value::Null));
                 }
             }
             }
@@ -3344,13 +3354,12 @@ impl Bybit {
                 m
             }));
         }
-        return self.watch_multiple(url, &messageHashes, message, &messageHashes, subscription.map_or(Value::Null, Value::Dict)).await;
+        return self.watch_multiple(url, messageHashes, message, messageHashes, subscription.map_or(Value::Null, Value::Dict)).await;
 
     Value::Null
 }
 
-    pub async fn un_watch_topics(&mut self, url: &str, topic: &str, mut symbols: Value, mut messageHashes: Value, mut subMessageHashes: Value, topics: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
-        let topics: Value = topics.into();
+    pub async fn un_watch_topics(&mut self, url: &str, topic: &str, mut symbols: Value, mut messageHashes: Value, mut subMessageHashes: Value, mut topics: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m

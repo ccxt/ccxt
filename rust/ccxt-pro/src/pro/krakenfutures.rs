@@ -324,7 +324,7 @@ impl Krakenfutures {
         }
         let length: i64 = symbolsValue.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         if (length == 1) {
-            let mut market: crate::types::Market = (match self.market((marketIds.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market((symbolsValue.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash.push_str(&format!("{}{}", ":", (market).symbol));
         }
         subscribe.insert("product_ids".into(), Value::Arr(marketIds));
