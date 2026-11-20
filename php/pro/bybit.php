@@ -1481,8 +1481,9 @@ class bybit extends \ccxt\async\bybit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        $symbolResolved = null;
         if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
             $messageHash .= ':' . $symbolResolved;
         }
         $url = Async\await($this->get_url_by_market_type($symbolResolved, true, $method, $params));
@@ -2055,8 +2056,9 @@ class bybit extends \ccxt\async\bybit {
         }
         $method = 'watchOrders';
         $messageHash = 'orders';
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
+        $symbolResolved = null;
         if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
             $messageHash .= ':' . $symbolResolved;
         }
         $url = Async\await($this->get_url_by_market_type($symbolResolved, true, $method, $params));
@@ -2587,7 +2589,7 @@ class bybit extends \ccxt\async\bybit {
         $topicsLength = count($topics);
         $messageHashesLength = count($messageHashes);
         if ($topicsLength === $messageHashesLength) {
-            for ($i = 0; $i < $topicsLength; $i++) {
+            for ($i = 0; $i < $messageHashesLength; $i++) {
                 $messageHash = $messageHashes[$i];
                 if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                     $newTopics[] = $topics[$i];

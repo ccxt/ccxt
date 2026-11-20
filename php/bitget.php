@@ -9487,7 +9487,7 @@ class bitget extends Exchange {
         $productType = null;
         $uta = null;
         $response = null;
-        $result = null;
+        $result = array();
         $paramsProductType = null;
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $params);
         list($uta, $paramsProductType) = $this->handle_uta_and_params($paramsProductType, 'fetchFundingRateHistory', false);

@@ -1340,15 +1340,15 @@ class apex extends Exchange {
             if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($marketId ?? '', $this->markets))) {
                 $marketResolved = $this->markets[$marketId];
             } elseif (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
-                $marketResolved = $this->markets_by_id[$marketId];
+                $marketResolved = $this->safe_dict($this->markets_by_id[$marketId], 0);
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
                 if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($newMarketId ?? '', $this->markets_by_id))) {
                     $markets = $this->markets_by_id[$newMarketId];
                     $numMarkets = count($markets);
-                    if ($numMarkets > 0) {
-                        if ($markets[0]['id2'] === $marketId) {
-                            $marketResolved = $markets[0];
+                    for ($i = 0; $i < $numMarkets; $i++) {
+                        if (($i === 0) && ($markets[$i]['id2'] === $marketId)) {
+                            $marketResolved = $markets[$i];
                         }
                     }
                 }

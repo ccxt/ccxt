@@ -1416,12 +1416,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $account['total'] = $this->safe_string($balance, 'total');
         }
         if ($accountType !== null) {
-            if ($this->safe_value($this->balance, $accountType) === null) {
-                $this->balance[$accountType] = array();
+            $accountBalance = $this->safe_dict($this->balance, $accountType, array());
+            if ($code !== null) {
+                $accountBalance[$code] = $account;
             }
-            if (($accountType !== null) && ($code !== null)) {
-                $this->balance[$accountType][$code] = $account;
-            }
+            $this->balance[$accountType] = $accountBalance;
         } else {
             if ($code !== null) {
                 $this->balance[$code] = $account;

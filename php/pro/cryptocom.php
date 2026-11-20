@@ -1501,7 +1501,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'user.balance' => array($this, 'handle_balance'),
             'user.position_balance' => array($this, 'handle_positions'),
         );
-        $result = $this->safe_value_2($message, 'result', 'info');
+        $result = $this->safe_dict_2($message, 'result', 'info', array());
         $channel = $this->safe_string($result, 'channel');
         if (($channel !== null) && mb_strpos($channel, 'user.trade') > -1) {
             // channel might be user.trade.BTC_USDT
