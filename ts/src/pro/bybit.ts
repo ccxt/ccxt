@@ -2433,12 +2433,11 @@ export default class bybit extends bybitRest {
         // is the consistent total, the spot rows fall back to the wallet balance
         account['total'] = this.safeString2 (balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
-            if (this.safeDict (this.balance, accountType) === undefined) {
-                this.balance[accountType] = {};
+            const accountBalance = this.safeDict (this.balance, accountType, {});
+            if (code !== undefined) {
+                accountBalance[code] = account;
             }
-            if ((accountType !== undefined) && (code !== undefined)) {
-                this.balance[accountType][code] = account;
-            }
+            this.balance[accountType] = accountBalance;
         } else {
             if (code !== undefined) {
                 this.balance[code] = account;

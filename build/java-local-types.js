@@ -27102,6 +27102,10 @@ function j3NonNull (printer, node, env, depth) {
         return args.length === 2 && j3BaseOnly (value) && !javaFreshMapMethods ().handWritten.some ((t) => t === undefined || new RegExp (`\\s${name}\\s*\\(`).test (t))
             && j3NonNull (printer, args[1], env, depth + 1);
     }
+    // base safeDict hands back the found dict or its default, so a non-null default makes it non-null
+    if (name === 'safeDict') {
+        return args.length === 3 && j3BaseOnly (value) && j3NonNull (printer, args[2], env, depth + 1);
+    }
     if (J3_STRING_DEFAULT_AT[name] !== undefined) {
         const at = J3_STRING_DEFAULT_AT[name];
         return args.length === at + 1 && j3BaseOnly (value) && j3StringTyped (checker, args[at]) && j3NonNull (printer, args[at], env, depth + 1);
@@ -27243,7 +27247,7 @@ export function installJavaNonNullMapPuts (transpiler) {
         }
         const receiver = node.left.expression;
         const key = javaFreshMapUnwrap (node.left.argumentExpression);
-        if (key === undefined || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key) || j6StringStructureKey (printer, key))) {
+        if (key === undefined || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key) || j6StringStructureKey (printer, key) || j22StringOptionalParam (printer, key))) {
             return printed;
         }
         // a base field declared Map<String, Object> (or the WsOrderBook-valued orderbooks): the helper's Map branch is put for a non-null value
@@ -27254,7 +27258,7 @@ export function installJavaNonNullMapPuts (transpiler) {
             const head = `Helpers.addElementToObject(${field}, ${printed.startsWith (`Helpers.addElementToObject(${field}, ${rawKey}, `) ? rawKey : keyText}, `;
             const valueOk = j6HashMapOnlyField (receiver.name.text) || javaNonNullPutValue (printer, node.right);
             return printed.startsWith (head) && printed.endsWith (')') && valueOk
-                ? `${field}.put(${printer.elementWriteKeyText (key, keyText)}, ${printed.slice (head.length)}` : printed;
+                ? `${field}.put(${j22StringOptionalParam (printer, key) ? keyText : printer.elementWriteKeyText (key, keyText)}, ${printed.slice (head.length)}` : printed;
         }
         if (!ts.isIdentifier (receiver)) {
             return printed;
@@ -27266,6 +27270,17 @@ export function installJavaNonNullMapPuts (transpiler) {
         }
         return javaNonNullPutValue (printer, node.right) ? `${recv}.put(${printed.slice (head.length)}` : printed;
     };
+}
+
+// an unwritten optional parameter the printed signature declares String (`accountType: Str = undefined`)
+function j22StringOptionalParam (printer, key) {
+    try {
+        const declaration = ts.isIdentifier (key) ? printer.javaDeclarationOfIdentifier (key) : undefined;
+        return declaration !== undefined && ts.isParameterDeclaration (declaration) && !printer.javaParameterIsWritten (declaration)
+            && printer.javaOptionalParameterTypeOf (declaration) === 'String';
+    } catch (e) {
+        return false;
+    }
 }
 
 function javaNonNullPutValue (printer, value) {
