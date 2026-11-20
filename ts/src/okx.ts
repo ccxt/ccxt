@@ -6208,27 +6208,44 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseLeverage (data, market);
+        let marketId: Str = undefined;
+        let rowMarginMode: Str = undefined;
+        let longLeverage: Int = undefined;
+        let shortLeverage: Int = undefined;
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict (data, i);
+            rowMarginMode = this.safeStringLower (entry, 'mgnMode');
+            marketId = this.safeString (entry, 'instId');
+            const positionSide = this.safeStringLower (entry, 'posSide');
+            const lever = this.safeInteger (entry, 'lever');
+            if (positionSide !== 'short') {
+                longLeverage = lever;
+            }
+            if (positionSide !== 'long') {
+                shortLeverage = lever;
+            }
+        }
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': rowMarginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        let marketId: Str = undefined;
-        let marginMode: Str = undefined;
+        const marketId = this.safeString (leverage, 'instId');
+        const positionSide = this.safeStringLower (leverage, 'posSide');
+        const lever = this.safeInteger (leverage, 'lever');
+        const marginMode = this.safeStringLower (leverage, 'mgnMode');
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
-        for (let i = 0; i < (leverage as List).length; i++) {
-            const entry = this.safeDict (leverage, i);
-            marginMode = this.safeStringLower (entry, 'mgnMode');
-            marketId = this.safeString (entry, 'instId');
-            const positionSide = this.safeStringLower (entry, 'posSide');
-            if (positionSide === 'long') {
-                longLeverage = this.safeInteger (entry, 'lever');
-            } else if (positionSide === 'short') {
-                shortLeverage = this.safeInteger (entry, 'lever');
-            } else {
-                longLeverage = this.safeInteger (entry, 'lever');
-                shortLeverage = this.safeInteger (entry, 'lever');
-            }
+        if (positionSide !== 'short') {
+            longLeverage = lever;
+        }
+        if (positionSide !== 'long') {
+            shortLeverage = lever;
         }
         return {
             'info': leverage,
