@@ -9500,7 +9500,7 @@ export default class bitget extends Exchange {
         let productType: Str = undefined;
         let uta: Bool = undefined;
         let response = undefined;
-        let result: NullableList = undefined;
+        let result: Dict[] = [];
         let paramsProductType = undefined;
         [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         [ uta, paramsProductType ] = await this.handleUTAAndParams (paramsProductType, 'fetchFundingRateHistory', false);
@@ -9557,7 +9557,7 @@ export default class bitget extends Exchange {
         }
         const rates: List = [];
         for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
+            const entry: any = result[i];
             const marketId = this.safeString (entry, 'symbol');
             const symbolInner = this.safeSymbol (marketId, market);
             const timestamp = this.safeInteger2 (entry, 'fundingTime', 'fundingRateTimestamp');
