@@ -374,7 +374,7 @@ impl Mexc {
         //         "s": "BTCUSDT"
         //     }
         //
-        let rawTicker: Value = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]);
+        let rawTicker: Value = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]).map_or(Value::Null, Value::Dict);
         let marketId: Option<String> = self.safe_string2_opt(&message, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let timestamp: Option<i64> = self.safe_integer2(&message, Value::Str("t".into()), Value::Str("sendTime".into()), &[]).as_i64();
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -740,7 +740,7 @@ impl Mexc {
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let data: crate::value::Dict = self.safe_dict_n(&ticker, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]).into_dict();
+        let data: crate::value::Dict = self.safe_dict_n(&ticker, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]).unwrap_or_default();
         let marketId: Option<String> = self.safe_string2_opt(&ticker, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
@@ -1249,7 +1249,7 @@ impl Mexc {
         //      }
         // }
         //
-        let mut data: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreDepths".into())]), &[]).into_opt_dict();
+        let mut data: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreDepths".into())]), &[]);
         let marketId: Option<String> = self.safe_string2_opt(&message, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
@@ -1443,7 +1443,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let d: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("publicAggreDeals".into())]), &[]).into_opt_dict();
+        let d: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("publicAggreDeals".into())]), &[]);
         let mut trades: Value = self.safe_list2(&d, Value::Str("deals".into()), Value::Str("dealsList".into()), &[Value::from(vec![d.clone().map_or(Value::Null, Value::Dict)])]);
         if (d.is_none()) {
             trades = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
@@ -1558,7 +1558,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // }
         //
         let messageHash: String = "myTrades".to_string();
-        let mut data: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("privateDeals".into())]), &[]).into_opt_dict();
+        let mut data: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("privateDeals".into())]), &[]);
         let futuresMarketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let marketId: Option<String> = self.safe_string2_opt(message, Value::Str("s".into()), Value::Str("symbol".into()), &[&futuresMarketId]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -1808,7 +1808,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //   }
         //
         let messageHash: String = "orders".to_string();
-        let mut data: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("privateOrders".into())]), &[]).into_opt_dict();
+        let mut data: Option<crate::value::Dict> = self.safe_dict_n(&message, Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("privateOrders".into())]), &[]);
         let futuresMarketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let marketId: Option<String> = self.safe_string2_opt(&message, Value::Str("s".into()), Value::Str("symbol".into()), &[&futuresMarketId]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -2076,7 +2076,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             type_var = "spot".to_string();
         }
         let messageHash: String = format!("{}{}", "balance:", type_var);
-        let data: Value = self.safe_dict_n(&message, Value::from(vec![Value::Str("data".into()), Value::Str("privateAccount".into())]), &[]);
+        let data: Value = self.safe_dict_n(&message, Value::from(vec![Value::Str("data".into()), Value::Str("privateAccount".into())]), &[]).map_or(Value::Null, Value::Dict);
         let futuresTimestamp: Option<i64> = self.safe_integer2(message, Value::Str("ts".into()), Value::Str("createTime".into()), &[]).as_i64();
         let timestamp: Option<i64> = self.safe_integer2(&data, Value::Str("time".into()), Value::from(futuresTimestamp), &[]).as_i64();
         if !(self.balance.contains_key(type_var.as_str())) {

@@ -2250,7 +2250,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                     m
                 });
                 if isV3UnifiedMargin || isV3Contract {
-                    add_element_to_object(&mut requestHeaders, &Value::Str("X-BAPI-SIGN-TYPE".into()), Value::Str("2".into()));
+                    if let Value::Dict(__rda) = &mut requestHeaders { std::sync::Arc::make_mut(__rda).insert("X-BAPI-SIGN-TYPE".to_string(), Value::Str("2".into())); }
                 }
                 let query: crate::value::Dict = self.extend_t(Value::Map({
                     let m = indexmap::IndexMap::new();
@@ -2272,7 +2272,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                 }  else {
                     signature = Some(self.hmac(self.encode(authFull), self.encode(&self.secret), "sha256", &[]));
                 }
-                add_element_to_object(&mut requestHeaders, &Value::Str("X-BAPI-SIGN".into()), signature.map(Value::from).unwrap_or(Value::Null));
+                if let Value::Dict(__rda) = &mut requestHeaders { std::sync::Arc::make_mut(__rda).insert("X-BAPI-SIGN".to_string(), signature.map(Value::from).unwrap_or(Value::Null)); }
             }  else {
                 let __ws_arg_88 = self.options.get("recvWindow").cloned().unwrap_or(Value::Null);
                 let query: crate::value::Dict = self.extend_t(params, &[Value::Map({
@@ -2324,7 +2324,7 @@ impl crate::exchange::DerivedExchange for Bybit {
     let m = indexmap::IndexMap::new();
     m
 }) } else { headersBase });
-            add_element_to_object(&mut requestHeaders, &Value::Str("Referer".into()), Value::from(brokerId));
+            if let Value::Dict(__rda) = &mut requestHeaders { std::sync::Arc::make_mut(__rda).insert("Referer".to_string(), Value::from(brokerId)); }
         }
         let bodyResolved: Option<String> = requestBody;
         let headersResolved: Value = requestHeaders;

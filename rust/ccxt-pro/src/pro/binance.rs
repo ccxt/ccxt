@@ -3948,8 +3948,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-        let subscriptions: Value = (client).subscriptions.clone();
-        let subscriptionsKeys: crate::value::List = object_keys(&subscriptions).into_list();
+
+        let subscriptionsKeys: Vec<Value> = client.subscription_keys();
         let accountType: Option<String> = self.get_account_type_from_subscriptions(&subscriptionsKeys);
         if ((accountType.as_deref() == marketType.as_str())) {
             return Value::Null;
@@ -4012,8 +4012,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //   }
         //
         let messageHash: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let subscriptions: Value = __ch.subscriptions.clone();
-        let subscriptionsKeys: crate::value::List = object_keys(&subscriptions).into_list();
+
+        let subscriptionsKeys: Vec<Value> = __ch.subscription_keys();
         let accountType: Option<String> = self.get_account_type_from_subscriptions(&subscriptionsKeys);
         let result: crate::value::Dict = __pro_message.key_dict("result");
         let subscriptionId: Option<i64> = self.safe_integer_k(&result, "subscriptionId", &[]).as_i64();
@@ -4970,9 +4970,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //    }
         //
         let wallet: String = self.safe_string_k(&self.options, "wallet", &[Value::Str("wb".into())]).as_str().unwrap_or("wb").to_string(); // cw for cross wallet
-        // each account is connected to a different endpoint
-        let subscriptions: Value = __ch.subscriptions.clone();
-        let subscriptionsKeys: crate::value::List = object_keys(&subscriptions).into_list();
+
+        let subscriptionsKeys: Vec<Value> = __ch.subscription_keys();
         let accountType: Option<String> = self.get_account_type_from_subscriptions(&subscriptionsKeys);
         let messageHash: String = format!("{}{}", accountType.as_deref().unwrap_or("null"), ":balance");
         if ((if let Some(__k) = accountType.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
@@ -5031,23 +5030,20 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         client.resolve((if let Some(__k) = accountType.as_deref() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
-    pub fn get_account_type_from_subscriptions(&self, subscriptions: impl Into<crate::Value>) -> Option<String> {
-        let mut subscriptions: Value = subscriptions.into();
-        let __subscriptions_empty = Vec::new();
-        let subscriptions = subscriptions.as_array().unwrap_or(&__subscriptions_empty);
-        let mut accountType: Option<String> = Some("".to_string());
+    pub fn get_account_type_from_subscriptions(&self, subscriptions: &[crate::Value]) -> Option<String> {
+        let mut accountType: Value = Value::Str("".into());
         {
                         let mut i: i64 = 0;
             let mut __for_first_77: bool = true;
             while { if !__for_first_77 { i += 1; } __for_first_77 = false; i < (subscriptions.len() as i64) } {
-            let subscription: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if (subscription.as_deref() == Some("spot")) || (subscription.as_deref() == Some("margin")) || (subscription.as_deref() == Some("linear")) || (subscription.as_deref() == Some("inverse")) || (subscription.as_deref() == Some("option")) {
+            let subscription: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
+            if (subscription.as_str() == Some("spot")) || (subscription.as_str() == Some("margin")) || (subscription.as_str() == Some("linear")) || (subscription.as_str() == Some("inverse")) || (subscription.as_str() == Some("option")) {
                 accountType = subscription;
                 break;
             }
         }
         }
-        return accountType;
+        return accountType.as_str().map(str::to_owned);
 }
 
     pub fn resolve_auth_type(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> Value {
@@ -6850,37 +6846,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        //
-        //     {
-        //         e: 'ACCOUNT_UPDATE',
-        //         T: 1667881353112,
-        //         E: 1667881353115,
-        //         a: {
-        //             B: [{
-        //                 a: 'USDT',
-        //                 wb: '1127.95750089',
-        //                 cw: '1040.82091149',
-        //                 bc: '0'
-        //             }],
-        //             P: [{
-        //                 s: 'BTCUSDT',
-        //                 pa: '-0.089',
-        //                 ep: '19700.03933',
-        //                 cr: '-1260.24809979',
-        //                 up: '1.53058860',
-        //                 mt: 'isolated',
-        //                 iw: '87.13658940',
-        //                 ps: 'BOTH',
-        //                 ma: 'USDT'
-        //             }],
-        //             m: 'ORDER'
-        //         }
-        //     }
-        //
-        // each account is connected to a different endpoint
-        // and has exactly one subscriptionhash which is the account type
-        let subscriptions: Value = __ch.subscriptions.clone();
-        let subscriptionsKeys: crate::value::List = object_keys(&subscriptions).into_list();
+
+        let subscriptionsKeys: Vec<Value> = __ch.subscription_keys();
         let accountType: Option<String> = self.get_account_type_from_subscriptions(&subscriptionsKeys);
         if !(self.positionsByType.has(&accountType)) {
             CacheStore::put(&mut self.positionsByType, &accountType, ArrayCacheBySymbolBySide::new(Value::Null));
@@ -7646,8 +7613,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //    }
         //
         let event: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let subscriptions: Value = __ch.subscriptions.clone();
-        let subscriptionsKeys: crate::value::List = object_keys(&subscriptions).into_list();
+
+        let subscriptionsKeys: Vec<Value> = __ch.subscription_keys();
         let accountType: Option<String> = self.get_account_type_from_subscriptions(&subscriptionsKeys);
         if (event.as_deref() == Some("eventStreamTerminated")) {
             __ch.remove_subscription(accountType.as_deref());

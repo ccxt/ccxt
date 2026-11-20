@@ -266,7 +266,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     m
 }), None));
         }
-        let entry: crate::value::Dict = self.safe_dict_n(&order, Value::from(vec![Value::Str("order".into()), Value::Str("resting".into()), Value::Str("filled".into())]), &[order.clone()]).into_dict();
+        let entry: crate::value::Dict = self.safe_dict_n(&order, Value::from(vec![Value::Str("order".into()), Value::Str("resting".into()), Value::Str("filled".into())]), &[order.clone()]).unwrap_or_default();
         let filled: crate::value::Dict = self.safe_dict_k_t(&order, "filled");
         let coin: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
         let mut marketId: Option<String> = None;
@@ -1920,7 +1920,7 @@ impl Hyperliquid {
             let dex: crate::value::Dict = self.safe_dict_t(&fetchDexes, Value::Int(i));
             let secondPart: i64 = (((i * 10000)) - 10000);
             let offset: i64 = (110000 + secondPart);
-            add_element_to_object(&mut perpDexesOffset, &self.safe_string_k(&dex, "name", &[Value::Str("".into())]), Value::from(offset));
+            if let Value::Dict(__rda) = &mut perpDexesOffset { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&self.safe_string_k(&dex, "name", &[Value::Str("".into())])), Value::from(offset)); }
         }
         }
         let mut fetchDexesList: crate::value::List = std::sync::Arc::new(Vec::new());

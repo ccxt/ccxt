@@ -81,7 +81,7 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trades" => self.parse_ws_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
-                "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
+                "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "trade_request" => self.trade_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_subscribe_public" => self.un_subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -428,7 +428,7 @@ impl Hitbtc {
  * @param {string} [symbol] unified CCXT symbol
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-    pub async fn subscribe_private(&mut self, mut name: Value, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_private(&mut self, name: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -439,7 +439,7 @@ impl Hitbtc {
         self.authenticate().await;
         let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
-        let splitName: crate::value::List = crate::value::List::new(if let Some(__s) = name.as_str() { __s.split("_subscribe").map(Value::from).collect() } else { Vec::new() });
+        let splitName: crate::value::List = crate::value::List::new(if let Some(__s) = Some(name) { __s.split("_subscribe").map(Value::from).collect() } else { Vec::new() });
         let messageHashBase: String = self.safe_string(&splitName, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = messageHashBase.clone();
         if (symbol.is_some()) {
@@ -448,7 +448,7 @@ impl Hitbtc {
         let requestId: i64 = self.incrementing_nonce();
         let subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), name);
+                m.insert("method".to_string(), Value::from(name));
                 m.insert("params".to_string(), params);
                 m.insert("id".to_string(), Value::from(requestId));
             m
@@ -1446,15 +1446,15 @@ impl Hitbtc {
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[&params]);
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
-        let name: Value = self.get_supported_mapping(marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("spot_subscribe".into()));
-                m.insert("margin".to_string(), Value::Str("margin_subscribe".into()));
-                m.insert("swap".to_string(), Value::Str("futures_subscribe".into()));
-                m.insert("future".to_string(), Value::Str("futures_subscribe".into()));
-            m
-        })]);
-        let mut orders: Value = self.subscribe_private(name, symbol.as_str(), &[Value::Dict(paramsMarketType)]).await;
+        let name: Option<String> = self.get_supported_mapping(marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("spot_subscribe".into()));
+        m.insert("margin".to_string(), Value::Str("margin_subscribe".into()));
+        m.insert("swap".to_string(), Value::Str("futures_subscribe".into()));
+        m.insert("future".to_string(), Value::Str("futures_subscribe".into()));
+    m
+})]).as_str().map(str::to_owned);
+        let mut orders: Value = self.subscribe_private(name.as_deref().unwrap_or_default(), symbol.as_str(), &[Value::Dict(paramsMarketType)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit);
@@ -1731,13 +1731,13 @@ impl Hitbtc {
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[&params]);
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
-        let name: Value = self.get_supported_mapping(type_var.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("spot_balance_subscribe".into()));
-                m.insert("swap".to_string(), Value::Str("futures_balance_subscribe".into()));
-                m.insert("future".to_string(), Value::Str("futures_balance_subscribe".into()));
-            m
-        })]);
+        let name: Option<String> = self.get_supported_mapping(type_var.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("spot_balance_subscribe".into()));
+        m.insert("swap".to_string(), Value::Str("futures_balance_subscribe".into()));
+        m.insert("future".to_string(), Value::Str("futures_balance_subscribe".into()));
+    m
+})]).as_str().map(str::to_owned);
         let mode: String = self.safe_string_k(&paramsMarketType, "mode", &[Value::Str("batches".into())]).as_str().unwrap_or("batches").to_string();
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarketType, Value::Str("mode".into()), &[]);
         let request: indexmap::IndexMap<String, Value> = ({
@@ -1746,7 +1746,7 @@ impl Hitbtc {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        return self.subscribe_private(name, None, &[__ws_arg_3]).await;
+        return self.subscribe_private(name.as_deref().unwrap_or_default(), None, &[__ws_arg_3]).await;
         Value::Null
         }).await?))
     }

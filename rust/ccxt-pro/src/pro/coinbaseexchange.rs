@@ -1063,11 +1063,11 @@ impl Coinbaseexchange {
                 return;
             }
             let previousOrders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null));
-            let mut previousOrder: Value = self.safe_dict(&previousOrders, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (previousOrder == Value::Null) {
+            let mut previousOrder: Option<crate::value::Dict> = self.safe_dict_o(&previousOrders, orderId.map(Value::from).unwrap_or(Value::Null));
+            if (previousOrder.is_none()) {
                 previousOrder = self.safe_dict_n(&previousOrders, Value::from(vec![makerOrderId.map(Value::from).unwrap_or(Value::Null), takerOrderId.map(Value::from).unwrap_or(Value::Null)]), &[]);
             }
-            if (previousOrder == Value::Null) {
+            if (previousOrder.is_none()) {
                 let parsed: crate::value::Dict = self.parse_ws_order(message.clone(), None);
                 self.orders.append(Value::Dict(parsed));
                 client.resolve(Value::from(&self.orders), messageHash.as_str());
@@ -1083,8 +1083,8 @@ impl Coinbaseexchange {
                         let trade: Value = self.parse_ws_trade(message.clone(), None);
                         let mut previousTrades: crate::value::List = self.safe_list_k_t(&previousOrder, "trades");
                         std::sync::Arc::make_mut(&mut previousTrades).push(trade.clone());
-                        add_element_to_object(&mut previousOrder, &Value::Str("trades".into()), Value::Arr(previousTrades.clone()));
-                        add_element_to_object(&mut previousOrder, &Value::Str("lastTradeTimestamp".into()), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
+                        if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("trades".into(), Value::Arr(previousTrades.clone())); }
+                        if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".into(), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
                         let mut totalCost: String = "0".to_string();
                         let mut totalAmount: String = "0".to_string();
                         {
@@ -1097,23 +1097,23 @@ impl Coinbaseexchange {
                         }
                         }
                         if !(crate::precise::Precise::stringEq(&totalAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
-                            add_element_to_object(&mut previousOrder, &Value::Str("average".into()), self.parse_number(crate::precise::Precise::stringDiv(&totalCost, &totalAmount), &[]));
+                            if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("average".into(), self.parse_number(crate::precise::Precise::stringDiv(&totalCost, &totalAmount), &[])); }
                         }
-                        add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), self.parse_number(Value::from(totalCost), &[]));
+                        if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("cost".into(), self.parse_number(Value::from(totalCost), &[])); }
                         let previousOrderFilled: Option<String> = self.safe_string_k_opt(&previousOrder, "filled", &[]);
                         if (previousOrderFilled.is_some()) {
-                            add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), self.parse_number(crate::precise::Precise::stringAdd(&previousOrderFilled, &self.safe_string_k(&trade, "amount", &[])), &[]));
+                            if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("filled".into(), self.parse_number(crate::precise::Precise::stringAdd(&previousOrderFilled, &self.safe_string_k(&trade, "amount", &[])), &[])); }
                             if (self.safe_string_k(&previousOrder, "amount", &[]) != Value::Null) {
-                                { let __be_tmp = self.parse_number(crate::precise::Precise::stringSub(&self.safe_string_k(&previousOrder, "amount", &[]), &self.safe_string_k(&previousOrder, "filled", &[])), &[]); add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), __be_tmp); }
+                                { let __be_tmp = self.parse_number(crate::precise::Precise::stringSub(&self.safe_string_k(&previousOrder, "amount", &[]), &self.safe_string_k(&previousOrder, "filled", &[])), &[]); if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("remaining".into(), __be_tmp); }; }
                             }
                         }
                         if (self.safe_dict_k(&previousOrder, "fee", &[]) == Value::Null) {
-                            add_element_to_object(&mut previousOrder, &Value::Str("fee".into()), Value::Map({
+                            if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(0));
         m.insert("currency".to_string(), self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("currency".into()), &[]));
     m
-}));
+})); }
                         }
                         let mut previousOrderFee: indexmap::IndexMap<String, Value> = self.safe_dict_k(&previousOrder, "fee", &[Value::Map({
                             let m = indexmap::IndexMap::new();
@@ -1121,10 +1121,10 @@ impl Coinbaseexchange {
                         })]).as_map().cloned().unwrap_or_default();
                         if (self.safe_number_k(&previousOrderFee, "cost", &[]) != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
                             { let __be_tmp = self.parse_number(crate::precise::Precise::stringAdd(&self.safe_string_k(&previousOrderFee, "cost", &[]), &self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[])), &[]); previousOrderFee.insert("cost".into(), __be_tmp); }
-                            add_element_to_object(&mut previousOrder, &Value::Str("fee".into()), Value::Map(previousOrderFee));
+                            if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Map(previousOrderFee)); }
                         }
                         // update the newUpdates count
-                        self.orders.append(previousOrder.clone());
+                        self.orders.append(previousOrder.clone().map_or(Value::Null, Value::Dict));
                         client.resolve(Value::from(&self.orders), messageHash.as_str());
                     }  else if (type_var.as_deref() == Some("received")) || (type_var.as_deref() == Some("done")) {
                         let info: crate::value::Dict = self.extend_t(previousInfo, &[message]);
@@ -1144,7 +1144,7 @@ impl Coinbaseexchange {
                         if (self.orders.is_none()) {
                             return;
                         }
-                        self.orders.append(previousOrder);
+                        self.orders.append(previousOrder.map_or(Value::Null, Value::Dict));
                         client.resolve(Value::from(&self.orders), messageHash.as_str());
                     }
                 }

@@ -543,7 +543,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_dict_n(&self, dictionaryOrList: impl KeyRead, mut keys: Value, optional_args: &[Value]) -> Value {
+    fn safe_dict_n(&self, dictionaryOrList: impl KeyRead, mut keys: Value, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -553,11 +553,9 @@ pub trait ExchangeBase:
          */
         let mut value: Value = self.safe_value_n(&dictionaryOrList, keys, &[defaultValue.clone()]);
         if value.is_map() {
-            return value;
+            return if let Value::Dict(__m) = value { Some(__m) } else { None }
         }
-        return defaultValue;
-
-    Value::Null
+        return if let Value::Dict(__m) = defaultValue { Some(__m) } else { None }
 }
 
     fn safe_dict(&self, dictionaryOrList: impl KeyRead, key: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
@@ -2923,9 +2921,9 @@ pub trait ExchangeBase:
             if (marketsById.as_map().is_some_and(|__m| value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                 let mut marketsByIdArray: Value = marketsById.as_map().and_then(|__m| value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut marketsByIdArray { std::sync::Arc::make_mut(__a).push(value.clone()); };
-                add_element_to_object(&mut marketsById, &value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), marketsByIdArray);
+                if let Value::Dict(__rda) = &mut marketsById { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), marketsByIdArray); }
             }  else {
-                add_element_to_object(&mut marketsById, &value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::from(vec![value.clone()]));
+                if let Value::Dict(__rda) = &mut marketsById { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&value.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::from(vec![value.clone()])); }
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -6065,7 +6063,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut code: Option<String> = currencyId.as_str().map(str::to_owned);
         if (currencyId != Value::Null) {
-            code = self.common_currency_code((if let Some(__s) = currencyId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).as_str().map(str::to_owned);
+            let upperId: String = currencyId.as_str().map(str::to_uppercase).unwrap_or_default();
+            code = self.common_currency_code(Value::from(upperId)).as_str().map(str::to_owned);
         }
         return <crate::types::Currency as crate::types::FromRaw>::from_raw(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6418,7 +6417,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " getSupportedMapping() requires a key argument")));
         }
         if (matches!(key.as_str(), Some(__k) if mapping.contains_key(__k))) {
-            return (if let Some(__k) = key.as_str() { mapping.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            return (match match key.as_str() { Some(__k) => mapping.get(__k).cloned(), None => None } { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => key });
         }  else {
             let mut keys: crate::value::List = crate::value::List::new(mapping.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), key).into()), " does not have a value in mapping").into()), ", must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));

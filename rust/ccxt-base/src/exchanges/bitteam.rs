@@ -2413,9 +2413,14 @@ impl Bitteam {
 }
 
     pub fn parse_value_to_pricision(&self, mut valueObject: Value, valueKey: &str, preciseObject: impl Into<crate::Value>, precisionKey: &str) -> Option<String> {
-        let preciseObject: Value = preciseObject.into();
-        let valueRawString: Option<String> = self.safe_string_opt(valueObject, Value::from(valueKey), &[]);
-        let precisionRawString: Option<String> = self.safe_string_opt(preciseObject, Value::from(precisionKey), &[]);
+        let mut preciseObject: Value = preciseObject.into();
+        let precisionKey: Value = precisionKey.into();
+        let __valueObject_empty = indexmap::IndexMap::new();
+        let valueObject = valueObject.as_map().unwrap_or(&__valueObject_empty);
+        let __preciseObject_empty = indexmap::IndexMap::new();
+        let preciseObject = preciseObject.as_map().unwrap_or(&__preciseObject_empty);
+        let valueRawString: Option<String> = (match match Some(valueKey) { Some(__k) => valueObject.get(__k).cloned(), None => None } { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let precisionRawString: Option<String> = (match match precisionKey.as_str() { Some(__k) => preciseObject.get(__k).cloned(), None => None } { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (valueRawString.is_none()) || (precisionRawString.is_none()) {
             return None;
         }

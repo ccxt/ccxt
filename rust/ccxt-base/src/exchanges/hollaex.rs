@@ -1298,8 +1298,10 @@ impl Hollaex {
             let mut market: Option<crate::value::Dict> = self.safe_dict_o(&pairs, Value::from(key.as_deref()));
             let baseId: Option<String> = self.safe_string_k_opt(&market, "pair_base", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "pair_2", &[]);
-            let baseCode: Option<String> = self.common_currency_code(baseId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            let quoteCode: Option<String> = self.common_currency_code(quoteId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let upperBaseId: Option<String> = baseId.as_deref().map(str::to_uppercase);
+            let upperQuoteId: Option<String> = quoteId.as_deref().map(str::to_uppercase);
+            let baseCode: Option<String> = self.common_currency_code(upperBaseId.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let quoteCode: Option<String> = self.common_currency_code(upperQuoteId.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(&market, "name", &[]));

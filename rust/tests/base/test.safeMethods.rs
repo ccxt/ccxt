@@ -224,11 +224,11 @@ pub fn testSafeDict() {
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_dict2(&inputList, Value::Int(2), Value::Int(1), &[]) == Value::Null))));
     // safeDictN
-    dictObject = exchange.safe_dict_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("dict".into())]), &[]);
+    dictObject = exchange.safe_dict_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("dict".into())]), &[]).map_or(Value::Null, Value::Dict);
     assert!(ccxt::runtime::is_true(&(equals(dictObject, compareDict))));
-    listObject = exchange.safe_dict_n(inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("list".into())]), &[]);
+    listObject = exchange.safe_dict_n(inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("list".into())]), &[]).map_or(Value::Null, Value::Dict);
     assert!(ccxt::runtime::is_true(&(Value::Bool(listObject == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_dict_n(inputList, Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_dict_n(inputList, Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).map_or(Value::Null, Value::Dict) == Value::Null))));
 }
 pub fn testSafeList() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

@@ -2164,12 +2164,12 @@ impl Bitget {
         //
         let marketId: Option<String> = self.safe_string2_opt(&position, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let marginModeId: Option<String> = self.safe_string_k_opt(&position, "marginMode", &[]);
-        let marginMode: Value = self.get_supported_mapping(marginModeId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("crossed".to_string(), Value::Str("cross".into()));
-                m.insert("isolated".to_string(), Value::Str("isolated".into()));
-            m
-        })]);
+        let marginMode: Option<String> = self.get_supported_mapping(marginModeId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("crossed".to_string(), Value::Str("cross".into()));
+        m.insert("isolated".to_string(), Value::Str("isolated".into()));
+    m
+})]).as_str().map(str::to_owned);
         let hedgedId: Option<String> = self.safe_string2_opt(&position, Value::Str("posMode".into()), Value::Str("holdMode".into()), &[]);
         let mut hedged: bool = false;
         if (hedgedId.as_deref() == Some("hedge_mode")) {
@@ -2188,7 +2188,7 @@ impl Bitget {
         m.insert("id".to_string(), self.safe_string_k(&position, "posId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
         m.insert("notional".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("liquidationPrice".to_string(), self.safe_number2(&position, Value::Str("liquidationPrice".into()), Value::Str("liqPrice".into()), &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(&position, Value::Str("openPriceAvg".into()), Value::Str("avgPrice".into()), &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number2(&position, Value::Str("unrealizedPL".into()), Value::Str("unrealisedPnl".into()), &[]));

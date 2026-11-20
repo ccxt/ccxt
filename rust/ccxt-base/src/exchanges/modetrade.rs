@@ -2371,10 +2371,12 @@ impl Modetrade {
 
 
     pub fn parse_token_and_fee_temp(&self, mut item: Value, feeTokenKey: &str, feeAmountKey: &str) -> Value {
-        let feeCost: Option<String> = self.safe_string_opt(&item, Value::from(feeAmountKey), &[]);
+        let __item_empty = indexmap::IndexMap::new();
+        let item = item.as_map().unwrap_or(&__item_empty);
+        let feeCost: Option<String> = (match match Some(feeAmountKey) { Some(__k) => item.get(__k).cloned(), None => None } { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
-            let feeCurrencyId: Option<String> = self.safe_string_opt(item, Value::from(feeTokenKey), &[]);
+            let feeCurrencyId: Option<String> = (match match Some(feeTokenKey) { Some(__k) => item.get(__k).cloned(), None => None } { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrencyId.as_deref(), None);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
