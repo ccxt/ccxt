@@ -1,0 +1,44 @@
+{
+    "exchange": "gemini",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "unWatchTrades": [
+            {
+                "description": "spot trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api.gemini.com/v2/marketdata",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "spot order book unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api.gemini.com/v2/marketdata",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "spot 1m candles unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USD",
+                    "1m"
+                ],
+                "url": "wss://api.gemini.com/v2/marketdata",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ]
+    }
+}
