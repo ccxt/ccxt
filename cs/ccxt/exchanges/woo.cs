@@ -1496,8 +1496,8 @@ public partial class woo : Exchange
     {
         string? currencyId = this.safeString(rawCurrency, "_coin_id");
         string? code = this.safeCurrencyCode(currencyId);
-        Dictionary<string, object> tokensByNetworkId = this.indexBy(getValue(rawCurrency, "_tokens_by_id"), "network");
-        Dictionary<string, object> chainsByNetworkId = this.indexBy(getValue(rawCurrency, "_networks_by_id"), "network");
+        Dictionary<string, object> tokensByNetworkId = this.indexBy(this.safeList(rawCurrency, "_tokens_by_id", new List<object>() {}), "network");
+        Dictionary<string, object> chainsByNetworkId = this.indexBy(this.safeList(rawCurrency, "_networks_by_id", new List<object>() {}), "network");
         List<object> keys = new List<object>(chainsByNetworkId.Keys);
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < keys.Count; j++)

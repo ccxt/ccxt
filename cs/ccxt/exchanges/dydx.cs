@@ -1673,9 +1673,17 @@ public partial class dydx : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsGoodTillBlockTimeInSeconds, new List<object>() {"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"});
         string? walletAddress = this.getWalletAddress();
         Int64? clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
-        Int64? subaccountIdValue = ((subaccountIdOption == null)) ? 0 : subaccountIdOption;
+        Int64? subaccountIdValue = 0;
+        if (!(subaccountIdOption == null))
+        {
+            subaccountIdValue = subaccountIdOption;
+        }
         Int64? clientOrderIdValue = ((clientOrderId == null)) ? 0 : clientOrderId;
-        int? orderFlagValue = ((orderFlag == null)) ? 0 : orderFlag;
+        int? orderFlagValue = 0;
+        if ((orderFlag != null))
+        {
+            orderFlagValue = orderFlag;
+        }
         Int64? clobPairIdValue = ((clobPairId == null)) ? 0 : clobPairId;
         string? orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new List<object>() {orderId, this.extend(signingPayload, paramsOmitted)};

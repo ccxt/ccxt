@@ -2292,14 +2292,12 @@ public partial class foxbit : Exchange
             }
         }
         string? requestBody = null;
+        string bodyToSignature = "";
         if ((method == "POST") || (method == "PUT"))
         {
-            requestBody = this.json(paramsOmitted);
-        }
-        string? bodyToSignature = "";
-        if ((requestBody != null))
-        {
-            bodyToSignature = requestBody;
+            string jsonBody = this.json(paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },

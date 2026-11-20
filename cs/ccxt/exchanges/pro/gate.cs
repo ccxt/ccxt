@@ -2032,28 +2032,29 @@ public partial class gate : ccxt.gate
         IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
-            object parsed = parsedOrders[i];
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)parsedOrders[i]);
             // inject order status
             IDictionary<string, object> info = this.safeDict(parsed, "info");
             string? eventVar = this.safeString(info, "event");
             if (eventVar == "put" || eventVar == "update")
             {
-                ((IDictionary<string,object>)parsed)["status"] = "open";
+                parsed["status"] = "open";
             } else if (eventVar == "finish")
             {
                 string? status = this.safeString(parsed, "status");
                 if ((status == null))
                 {
                     string? left = this.safeString(info, "left");
-                    ((IDictionary<string,object>)parsed)["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
+                    parsed["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
                 }
             }
             stored.append(parsed);
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = this.safeString(parsed, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            if (!((market.ContainsKey("id") ? market["id"] : null) == null))
+            string? marketId = this.safeString(market, "id");
+            if ((marketId != null))
             {
-                marketIds[(string)(market.ContainsKey("id") ? market["id"] : null)] = true;
+                marketIds[(string)marketId] = true;
             }
         }
         List<object> keys = new List<object>(marketIds.Keys);
@@ -2214,11 +2215,7 @@ public partial class gate : ccxt.gate
             string? symbol = this.safeString(liquidation, "symbol");
             if ((symbol != null))
             {
-                List<object> symbolLiquidations = this.safeList(liquidationsBySymbol, symbol);
-                if ((symbolLiquidations == null))
-                {
-                    symbolLiquidations = new List<object>() {};
-                }
+                List<object> symbolLiquidations = this.safeList(liquidationsBySymbol, symbol, new List<object>() {});
                 symbolLiquidations.Add(liquidation);
                 liquidationsBySymbol[(string)symbol] = symbolLiquidations;
             }

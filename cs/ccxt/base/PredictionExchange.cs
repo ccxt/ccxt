@@ -1982,8 +1982,12 @@ public partial class PredictionExchange : BaseExchange
         {
             return ((string?)((object)((this.intToBase16(add(128, byteLength)) + hex))));
         }
-        string? lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
+        string lengthHex = this.intToBase16(byteLength);
+        int lengthHexLength = lengthHex.Length;
+        if (((Int64)lengthHexLength % 2L != 0))
+        {
+            lengthHex = ("0" + lengthHex);
+        }
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
         return ((string?)((object)(((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + hex))));
     }
@@ -2000,8 +2004,12 @@ public partial class PredictionExchange : BaseExchange
         {
             return (this.intToBase16(add(192, byteLength)) + concatenated);
         }
-        string? lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
+        string lengthHex = this.intToBase16(byteLength);
+        int lengthHexLength = lengthHex.Length;
+        if (((Int64)lengthHexLength % 2L != 0))
+        {
+            lengthHex = ("0" + lengthHex);
+        }
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
         return ((this.intToBase16(add(247, lengthOfLength)) + lengthHex) + concatenated);
     }
@@ -2017,8 +2025,12 @@ public partial class PredictionExchange : BaseExchange
         {
             return "";
         }
-        string? hex = this.intToBase16(value);
-        hex = this.padHexToEven(hex);
+        string hex = this.intToBase16(value);
+        int hexLength = hex.Length;
+        if (((Int64)hexLength % 2L != 0))
+        {
+            hex = ("0" + hex);
+        }
         return hex;
     }
 

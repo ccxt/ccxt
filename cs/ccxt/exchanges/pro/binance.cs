@@ -6615,8 +6615,8 @@ public partial class binance : ccxt.binance
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         IDictionary<string, object> balance = this.safeDict(this.balance, accountType, new Dictionary<string, object>() {});
+        balance["info"] = message;
         List<object> B = this.safeList(message, "B", new List<object>() {});
         for (int i = 0; i < B.Count; i++)
         {

@@ -1036,26 +1036,39 @@ public partial class predictfun : PredictionExchange
         string digits = "0123456789";
         List<object> chars = this.stringToCharsArray(text);
         string stripped = "";
-        for (Int64 i = 0; i < (chars?.Count ?? 0); i++)
+        string? prevCh = "";
+        // a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        bool pendingComma = false;
+        for (int i = 0; i < (chars?.Count ?? 0); i++)
         {
-            string? ch = ((string)(chars != null && i < chars.Count ? chars[(int)i] : null));
-            bool keep = true;
-            if (ch == "$")
+            string? ch = ((string)chars[i]);
+            bool isDigit = (digits.IndexOf(ch, StringComparison.Ordinal) >= 0);
+            if (pendingComma && !isDigit)
             {
-                keep = false;
-            } else if (ch == ",")
+                stripped = (stripped + ",");
+            }
+            pendingComma = false;
+            if (ch == ",")
             {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                bool prevIsDigit = (i > 0) && (digits.IndexOf(((string)(chars != null && (i - 1) < chars.Count ? chars[(int)(i - 1)] : null)), StringComparison.Ordinal) >= 0);
-                bool nextIsDigit = ((((i + 1)) < (chars?.Count ?? 0))) && (digits.IndexOf(((string)(chars != null && (i + 1) < chars.Count ? chars[(int)(i + 1)] : null)), StringComparison.Ordinal) >= 0);
-                keep = !(prevIsDigit && nextIsDigit);
-            }
-            if (keep)
+                if ((i > 0) && (digits.IndexOf(prevCh, StringComparison.Ordinal) >= 0))
+                {
+                    pendingComma = true;
+                } else
+                {
+                    stripped = (stripped + ch);
+                }
+            } else if (ch != "$")
             {
                 stripped = (stripped + ch);
             }
+            prevCh = ch;
+        }
+        if (pendingComma)
+        {
+            stripped = (stripped + ",");
         }
         return stripped;
     }
@@ -3278,8 +3291,11 @@ public partial class predictfun : PredictionExchange
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
         }
-        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
-        if ((this.safeString(subscription, "topic") == "walletEvents"))
+        List<object> messageHashes = new List<object>() {};
+        if ((this.safeString(subscription, "topic") != "walletEvents"))
+        {
+            messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        } else
         {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
@@ -3654,7 +3670,7 @@ public partial class predictfun : PredictionExchange
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
-            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3650_32) ? cachedValue3650_32 : null);
+            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3666_32) ? cachedValue3666_32 : null);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             if ((this.safeString(info, "marketId") == marketId))
             {

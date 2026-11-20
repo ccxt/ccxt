@@ -1364,11 +1364,12 @@ public partial class mexc : Exchange
         Int64? updated = null;
         if ((marketType == "spot"))
         {
-            response = await this.spotPublicGetPing(query);
+            Dictionary<string, object> spotResponse = await this.spotPublicGetPing(query);
+            response = spotResponse;
             //
             //     {}
             //
-            List<object> keys = new List<object>(response.Keys);
+            List<object> keys = new List<object>(spotResponse.Keys);
             int length = keys.Count;
             status = (length > 0) ? this.json(response) : "ok";
         } else if ((marketType == "swap"))

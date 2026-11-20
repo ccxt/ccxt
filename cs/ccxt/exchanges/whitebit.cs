@@ -2286,8 +2286,16 @@ public partial class whitebit : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        Int64? cappedLimit = (((limit == null)) || ((limit > 1440))) ? 1440 : limit;
-        Int64? limitResolved = ((since != null)) ? cappedLimit : limit;
+        Int64? cappedLimit = 1440;
+        if (((limit != null)) && ((limit < 1440)))
+        {
+            cappedLimit = limit;
+        }
+        Int64? limitResolved = limit;
+        if ((since != null))
+        {
+            limitResolved = cappedLimit;
+        }
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
         if (((since != null)) || ((until != null)))

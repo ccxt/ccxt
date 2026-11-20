@@ -2882,12 +2882,11 @@ public partial class pacifica : Exchange
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         List<object> sorted = this.sortBy(data, "history_id", true);
         int lastIdx = (sorted?.Count ?? 0);
-        object lastInfo = new Dictionary<string, object>() {};
         if (lastIdx > 0)
         {
-            lastInfo = (sorted != null && 0 < sorted.Count ? sorted[0] : null);
+            return this.parseOrder((sorted != null && 0 < sorted.Count ? sorted[0] : null), market);
         }
-        return this.parseOrder(lastInfo, market);
+        return this.parseOrder(new Dictionary<string, object>() {}, market);
     }
 
     public virtual string? parseOrderStatus(string? status)

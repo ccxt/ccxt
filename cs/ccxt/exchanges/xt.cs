@@ -2992,7 +2992,7 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        List<object> balances = null;
+        List<object> balances = new List<object>() {};
         if (((subType != null)) || isContractWallet)
         {
             balances = this.safeList(response, "result", new List<object>() {});

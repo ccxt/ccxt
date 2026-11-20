@@ -1746,9 +1746,10 @@ public partial class binance : PredictionExchange
     public async virtual Task<Dictionary<string, object>> FetchWallet(string methodName, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.safeDict(this.options, "wallet") != null))
+        IDictionary<string, object> cachedWallet = this.safeDict(this.options, "wallet");
+        if ((cachedWallet != null))
         {
-            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "wallet"));
+            return ccxt.BaseExchange.ToDict(cachedWallet);
         }
         string? walletAddress = this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress).Item1;
         Dictionary<string, object> response = await this.sapiPrivateGetWalletList();

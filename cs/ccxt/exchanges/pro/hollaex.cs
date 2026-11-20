@@ -492,14 +492,10 @@ public partial class hollaex : ccxt.hollaex
             List<object> parts = key.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? currencyId = this.safeString(parts, 0);
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
-            if (((code != null)) && (((code != null) && (this.balance != null && this.balance.ContainsKey(code)))))
-            {
-                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
-            }
+            IDictionary<string, object> account = this.safeDict(this.balance, code, this.account());
             string? second = this.safeString(parts, 1);
             string freeOrTotal = (second == "available") ? "free" : "total";
-            ((IDictionary<string,object>)account)[freeOrTotal] = this.safeString(data, key);
+            account[(string)freeOrTotal] = this.safeString(data, key);
             if ((code != null))
             {
                 this.balance[(string)code] = account;

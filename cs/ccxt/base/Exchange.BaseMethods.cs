@@ -572,10 +572,9 @@ public partial class BaseExchange
          * @method
          * @description store value under key if key is defined (no-op on undefined)
          */
-        object k = key;
-        if (!(k == null))
+        if (!(key == null))
         {
-            ((IDictionary<string,object>)dict)[(string)k] = value;
+            ((IDictionary<string,object>)dict)[(string)key] = value;
         }
     }
 
@@ -696,9 +695,11 @@ public partial class BaseExchange
     public virtual string? urlEncoderForProxyUrl(object targetUrl)
     {
         // to be overriden
-        bool includesQuery = ((string)targetUrl).IndexOf("?", StringComparison.Ordinal) >= 0;
-        object finalUrl = includesQuery ? this.encodeURIComponent(targetUrl) : targetUrl;
-        return ((string?)((object)(finalUrl)));
+        if (((string)targetUrl).IndexOf("?", StringComparison.Ordinal) >= 0)
+        {
+            return this.encodeURIComponent(targetUrl);
+        }
+        return ((string?)((object)(targetUrl)));
     }
 
     public virtual List<object> checkProxySettings(string? url = null, string? method = null, object headers = null, object body = null)
@@ -6503,8 +6504,7 @@ public partial class BaseExchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object entry = (response != null && i < response.Count ? response[i] : null);
-            rates.Add(this.parseFundingRateHistory(entry, market));
+            rates.Add(this.parseFundingRateHistory((response != null && i < response.Count ? response[i] : null), market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
@@ -6527,8 +6527,7 @@ public partial class BaseExchange
         Dictionary<string, object> fundingRates = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object entry = (response != null && i < response.Count ? response[i] : null);
-            Dictionary<string, object> parsed = this.parseFundingRate(entry);
+            Dictionary<string, object> parsed = this.parseFundingRate((response != null && i < response.Count ? response[i] : null));
             if (!((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null) == null))
             {
                 fundingRates[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
@@ -6547,8 +6546,7 @@ public partial class BaseExchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object entry = (response != null && i < response.Count ? response[i] : null);
-            rates.Add(this.parseLongShortRatio(entry, market));
+            rates.Add(this.parseLongShortRatio((response != null && i < response.Count ? response[i] : null), market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
@@ -6749,8 +6747,7 @@ public partial class BaseExchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object entry = (response != null && i < response.Count ? response[i] : null);
-            Dictionary<string, object> parsed = this.parseOpenInterest(entry);
+            Dictionary<string, object> parsed = this.parseOpenInterest((response != null && i < response.Count ? response[i] : null));
             if (!((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null) == null))
             {
                 result[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;

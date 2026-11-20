@@ -801,9 +801,10 @@ public partial class bitfinex : Exchange
     public virtual string? getCurrencyName(string? code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (inOp((this.options != null && this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))
+        string? name = this.safeString((this.options != null && this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code);
+        if ((name != null))
         {
-            return ((string?)((object)(getValue((this.options != null && this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))));
+            return name;
         }
         throw new NotSupported ((((this.id + " ") + code) + " not supported for withdrawal")) ;
     }
@@ -1462,10 +1463,10 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> fullRequest = this.extend(request, parameters);
         List<object> orderbook = await this.publicGetBookSymbolPrecision(fullRequest);
         Int64 timestamp = this.milliseconds();
+        List<object> bids = new List<object>() {};
+        List<object> asks = new List<object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
-            { "bids", new List<object>() {} },
-            { "asks", new List<object>() {} },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
@@ -1478,15 +1479,16 @@ public partial class bitfinex : Exchange
             double? price = this.safeNumber(order, priceIndex);
             string? signedAmount = this.safeString(order, 2);
             string? amount = Precise.stringAbs(signedAmount);
-            string side = "asks";
             if (Precise.stringGt(signedAmount, "0"))
             {
-                side = "bids";
+                bids.Add(new List<object>() {price, this.parseNumber(amount)});
+            } else
+            {
+                asks.Add(new List<object>() {price, this.parseNumber(amount)});
             }
-            ((IList<object>)(side != null && result.ContainsKey(side) ? result[side] : null)).Add(new List<object>() {price, this.parseNumber(amount)});
         }
-        result["bids"] = this.sortBy(result["bids"], 0, true);
-        result["asks"] = this.sortBy(result["asks"], 0);
+        result["bids"] = this.sortBy(bids, 0, true);
+        result["asks"] = this.sortBy(asks, 0);
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 

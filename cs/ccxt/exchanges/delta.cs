@@ -1844,11 +1844,18 @@ public partial class delta : Exchange
             IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "asset_id");
             IDictionary<string, object> currency = this.safeDict(currenciesByNumericId, currencyId);
-            object code = ((currency == null)) ? currencyId : (currency.ContainsKey("code") ? currency["code"] : null);
+            string? code = currencyId;
+            if ((currency != null))
+            {
+                code = this.safeString(currency, "code");
+            }
             Dictionary<string, object> account = this.account();
             account["total"] = this.safeString(balance, "balance");
             account["free"] = this.safeString(balance, "available_balance");
-            result[(string)code] = account;
+            if ((code != null))
+            {
+                result[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }

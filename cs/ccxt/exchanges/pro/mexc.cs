@@ -438,8 +438,13 @@ public partial class mexc : ccxt.mexc
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks required symbols argument")) ;
         }
-        IList<object> markets = ((IList<object>)this.requireValue(this.marketsForSymbols(symbolsNormalized), "watchBidsAsks() markets is required"));
-        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", (markets != null && 0 < markets.Count ? markets[0] : null), parameters);
+        int symbolsLength = (symbolsNormalized?.Count ?? 0);
+        IDictionary<string, object> firstMarket = null;
+        if (symbolsLength > 0)
+        {
+            firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+        }
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         bool isSpot = (marketType == "spot");
@@ -1995,8 +2000,13 @@ public partial class mexc : ccxt.mexc
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks required symbols argument")) ;
         }
-        IList<object> markets = ((IList<object>)this.requireValue(this.marketsForSymbols(symbolsNormalized), "unWatchBidsAsks() markets is required"));
-        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", (markets != null && 0 < markets.Count ? markets[0] : null), parameters);
+        int symbolsLength = (symbolsNormalized?.Count ?? 0);
+        IDictionary<string, object> firstMarket = null;
+        if (symbolsLength > 0)
+        {
+            firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+        }
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         bool isSpot = (marketType == "spot");

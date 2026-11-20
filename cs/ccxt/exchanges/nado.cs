@@ -596,7 +596,8 @@ public partial class nado : Exchange
             }
             string? triggerPriceX18 = this.convertToX18(triggerPrice);
             Dictionary<string, object> priceRequirement = new Dictionary<string, object>() {};
-            priceRequirement[(string)("oracle_price_" + directionSuffix)] = triggerPriceX18;
+            string oracleKey = ("oracle_price_" + directionSuffix);
+            priceRequirement[(string)oracleKey] = triggerPriceX18;
             Dictionary<string, object> trigger = new Dictionary<string, object>() {
                 { "price_trigger", new Dictionary<string, object>() {
                     { "price_requirement", priceRequirement },
@@ -622,7 +623,8 @@ public partial class nado : Exchange
             }
             string? triggerPriceX18 = this.convertToX18(triggerPrice);
             Dictionary<string, object> priceRequirement = new Dictionary<string, object>() {};
-            priceRequirement[(string)("oracle_price_" + oracleSide)] = triggerPriceX18;
+            string oracleKey = ("oracle_price_" + oracleSide);
+            priceRequirement[(string)oracleKey] = triggerPriceX18;
             Dictionary<string, object> trigger = new Dictionary<string, object>() {
                 { "price_trigger", new Dictionary<string, object>() {
                     { "price_requirement", priceRequirement },
@@ -3106,7 +3108,10 @@ public partial class nado : Exchange
             }
             filled = this.parseX18(Precise.stringAbs(archiveFilled));
             string? costString = this.safeString(order, "quote_filled");
-            cost = ((costString == null)) ? null : this.parseX18(Precise.stringAbs(costString));
+            if ((costString != null))
+            {
+                cost = this.parseX18(Precise.stringAbs(costString));
+            }
             if (((filled != null)) && ((cost != null)))
             {
                 average = Precise.stringDiv(this.numberToString(cost), this.numberToString(filled));
@@ -3364,7 +3369,8 @@ public partial class nado : Exchange
             return ((string?)((object)(slice(paddedLeft, start, paddedLeft.Length))));
         }
         string paddedRight = (value + zeros);
-        return ((string?)((object)(slice(paddedRight, 0, length))));
+        Int64? end = this.parseToInt(length);
+        return ((string?)((object)(((paddedRight == null) ? null : paddedRight.Substring(0, ((int)Math.Max(Math.Min(((end ?? 0L) < 0 ? ((Int64)paddedRight.Length) + ((end ?? 0L)) : (end ?? 0L)), ((Int64)paddedRight.Length)), 0L)))))));
     }
 
     public virtual string? signOrder(IDictionary<string, object> order, object productId, object chainId)

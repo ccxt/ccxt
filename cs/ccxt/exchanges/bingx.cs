@@ -1764,10 +1764,10 @@ public partial class bingx : Exchange
         //        ]
         //    }
         //
-        object ohlcvs = this.safeValue(response, "data", new List<object>() {});
-        if (!((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> ohlcvs = this.safeList(response, "data", new List<object>() {});
+        if ((this.safeList(response, "data") == null) && (this.safeDict(response, "data") != null))
         {
-            ohlcvs = new List<object>() {ohlcvs};
+            ohlcvs = new List<object> {this.safeDict(response, "data")};
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
     }
@@ -2901,7 +2901,7 @@ public partial class bingx : Exchange
         {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType));
         }
-        if ((((response != null && response.ContainsKey("data") ? response["data"] : null)) is var hxArr112189 && ((hxArr112189 is IList<object>) || (hxArr112189.GetType().IsGenericType && hxArr112189.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((response != null && response.ContainsKey("data") ? response["data"] : null)) is var hxArr112287 && ((hxArr112287 is IList<object>) || (hxArr112287.GetType().IsGenericType && hxArr112287.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             return this.parseTicker(this.safeDict((response != null && response.ContainsKey("data") ? response["data"] : null), 0, new Dictionary<string, object>() {}), market);
         }
@@ -4636,35 +4636,21 @@ public partial class bingx : Exchange
                 feeCurrencyCode = this.safeString(marketResolved, feeKey);
             }
         }
-        object stopLoss = this.safeValue(orderData, "stopLoss");
-        string? stopLossPrice = null;
-        if (((stopLoss != null)) && (!(stopLoss is "")))
+        // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        string? stopLossString = this.safeString(orderData, "stopLoss");
+        bool stopLossIsDict = (this.safeDict(orderData, "stopLoss") != null);
+        object stopLossPrice = this.omitZero(this.safeString(this.safeDict(orderData, "stopLoss", new Dictionary<string, object>() {}), "stopPrice"));
+        if (!stopLossIsDict && ((stopLossString != null)) && ((stopLossString.IndexOf("{", StringComparison.Ordinal) == 0)))
         {
-            stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopLoss"));
+            stopLossPrice = this.omitZero(this.safeString(this.parseJson(stopLossString), "stopPrice"));
         }
-        if (((stopLoss != null)) && (!(stopLoss is Int64 || stopLoss is int || stopLoss is float || stopLoss is double)) && (!(stopLoss is "")))
+        // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        string? takeProfitString = this.safeString(orderData, "takeProfit");
+        bool takeProfitIsDict = (this.safeDict(orderData, "takeProfit") != null);
+        object takeProfitPrice = this.omitZero(this.safeString(this.safeDict(orderData, "takeProfit", new Dictionary<string, object>() {}), "stopPrice"));
+        if (!takeProfitIsDict && ((takeProfitString != null)) && ((takeProfitString.IndexOf("{", StringComparison.Ordinal) == 0)))
         {
-            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if ((stopLoss is string))
-            {
-                stopLoss = this.parseJson(stopLoss);
-            }
-            stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopPrice"));
-        }
-        object takeProfit = this.safeValue(orderData, "takeProfit");
-        string? takeProfitPrice = null;
-        if ((takeProfit != null) && (!(takeProfit is "")))
-        {
-            takeProfitPrice = this.omitZero(this.safeString(takeProfit, "takeProfit"));
-        }
-        if (((takeProfit != null)) && (!(takeProfit is Int64 || takeProfit is int || takeProfit is float || takeProfit is double)) && (!(takeProfit is "")))
-        {
-            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if ((takeProfit is string))
-            {
-                takeProfit = this.parseJson(takeProfit);
-            }
-            takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
+            takeProfitPrice = this.omitZero(this.safeString(this.parseJson(takeProfitString), "stopPrice"));
         }
         string rawType = this.safeStringLower2(orderData, "type", "o");
         string? stopPrice = ((string)this.omitZero(this.safeString2(orderData, "StopPrice", "stopPrice")));

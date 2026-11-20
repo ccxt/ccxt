@@ -725,9 +725,9 @@ public partial class bitteam : Exchange
         double? fee = null;
         IDictionary<string, object> withdrawCommissionFixed = this.safeDict(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {});
         Dictionary<string, object> feesByNetworkId = new Dictionary<string, object>() {};
-        string? blockChain = this.safeString(currency, "blockChain");
+        string? blockChain = this.safeString(currency, "blockChain", "");
         // if only one blockChain
-        if (((blockChain != null)) && (blockChain != ""))
+        if (blockChain != "")
         {
             fee = this.parseNumber(withdrawCommissionFixed);
             feesByNetworkId[(string)blockChain] = fee;

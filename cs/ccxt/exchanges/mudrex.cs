@@ -477,14 +477,12 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.privateGetFutures(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        rows = this.safeList(response, "data", new List<object>() {});
+        int rowsLength = (rows?.Count ?? 0);
+        if ((rowsLength == 0))
         {
-            rows = this.safeList(response, "data", new List<object>() {});
-        } else
-        {
-            rows = this.safeList(data, "items", new List<object>() {});
+            rows = this.safeList(this.safeDict(response, "data", new Dictionary<string, object>() {}), "items", new List<object>() {});
         }
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)

@@ -459,7 +459,7 @@ public partial class bit2me : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? status = this.safeString(market, "marketEnabled");
-        IDictionary<string, object> fees = this.fees;
+        object tradingFees = this.safeValue(this.fees, "trading");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", (bs == null ? null : bs + "/" + quote) },
@@ -484,8 +484,8 @@ public partial class bit2me : Exchange
             { "expiryDatetime", null },
             { "strike", null },
             { "optionType", null },
-            { "taker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "taker") },
-            { "maker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "maker") },
+            { "taker", this.safeNumber(tradingFees, "taker") },
+            { "maker", this.safeNumber(tradingFees, "maker") },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "amountPrecision"))) },
                 { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },

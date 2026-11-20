@@ -3656,8 +3656,9 @@ public partial class blofin : Exchange
             throw new BadRequest ((this.id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instId", String.Join(",", ((IList<object>)this.marketIds(symbolsNormalized)).ToArray()) },
+            { "instId", String.Join(",", marketIds.ToArray()) },
             { "marginMode", marginMode },
         };
         Dictionary<string, object> response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, query));

@@ -1408,7 +1408,13 @@ public partial class alpaca : Exchange
         string? defaultTIF = defaultTIFparamsTimeInForceVariable.Item1;
         IDictionary<string, object> paramsTimeInForce = (defaultTIFparamsTimeInForceVariable.Item2);
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request["time_in_force"] = ((defaultTIF != null)) ? defaultTIF.ToLower() : defaultTIF;
+        if ((defaultTIF != null))
+        {
+            request["time_in_force"] = defaultTIF.ToLower();
+        } else
+        {
+            request["time_in_force"] = null;
+        }
         Dictionary<string, object> paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
         request["client_order_id"] = this.generateClientOrderId(paramsOmitted);
         Dictionary<string, object> order = await this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new List<object>() {"clientOrderId"})));

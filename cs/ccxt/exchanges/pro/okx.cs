@@ -1305,7 +1305,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54596 && ((hxArr54596 is IList<object>) || (hxArr54596.GetType().IsGenericType && hxArr54596.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54582 && ((hxArr54582 is IList<object>) || (hxArr54582.GetType().IsGenericType && hxArr54582.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1361,7 +1361,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57066 && ((hxArr57066 is IList<object>) || (hxArr57066.GetType().IsGenericType && hxArr57066.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57052 && ((hxArr57052 is IList<object>) || (hxArr57052.GetType().IsGenericType && hxArr57052.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1579,12 +1579,9 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        string? depth = null;
-        object paramsDepth = null;
-        (string?, IDictionary<string, object>) depthparamsDepthVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
-        depth = depthparamsDepthVariable.Item1;
-        paramsDepth = depthparamsDepthVariable.Item2;
-        Int64? limit = this.safeInteger(paramsDepth, "limit");
+        Int64? limit = this.safeInteger(parameters, "limit");
+        string? depthOption = this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books").Item1;
+        string depth = depthOption;
         if ((limit != null))
         {
             if ((limit == 1))
@@ -1607,7 +1604,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            subMessageHashes.Add((depth == null ? null : depth + ":" + symbol));
+            subMessageHashes.Add(((depth + ":") + symbol));
             messageHashes.Add(("unsubscribe:orderbook:" + symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {

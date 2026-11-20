@@ -644,13 +644,13 @@ public partial class bybit : ccxt.bybit
         {
             type = "spot";
         }
-        string? symbol = null;
-        Dictionary<string, object> parsed = null;
-        if ((updateType == "snapshot"))
+        if ((updateType != "snapshot") && (updateType != "delta"))
         {
-            parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
-            symbol = this.safeString(parsed, "symbol");
-        } else if (updateType == "delta")
+            return;
+        }
+        string? symbol = null;
+        IDictionary<string, object> tickerInput = data;
+        if (updateType == "delta")
         {
             List<object> topicParts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
             int topicLength = topicParts.Count;
@@ -660,17 +660,21 @@ public partial class bybit : ccxt.bybit
             // update the info in place
             IDictionary<string, object> ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
             IDictionary<string, object> rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
-            Dictionary<string, object> merged = this.extend(rawTicker, data);
-            parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(merged));
+            tickerInput = this.extend(rawTicker, data);
         }
-        if (((parsed == null)) || ((symbol == null)))
+        ccxt.Ticker parsed = this.parseTicker(tickerInput);
+        if (updateType == "snapshot")
+        {
+            symbol = parsed.symbol;
+        }
+        if ((symbol == null))
         {
             return;
         }
         Int64? timestamp = this.safeInteger(message, "ts");
-        parsed["timestamp"] = timestamp;
-        parsed["datetime"] = this.iso8601(timestamp);
-        this.tickers[(string)symbol] = parsed;
+        parsed.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
+        parsed.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
         string messageHash = ("ticker:" + symbol);
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
@@ -2024,7 +2028,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88212 && ((hxArr88212 is IList<object>) || (hxArr88212.GetType().IsGenericType && hxArr88212.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88232 && ((hxArr88232 is IList<object>) || (hxArr88232.GetType().IsGenericType && hxArr88232.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2615,8 +2619,8 @@ public partial class bybit : ccxt.bybit
             {
                 this.balance[(string)account] = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["info"] = info;
             IDictionary<string, object> balance = this.safeDict(this.balance, account, new Dictionary<string, object>() {});
+            balance["info"] = info;
             Int64? timestamp = this.safeInteger(message, "ts");
             balance["timestamp"] = timestamp;
             balance["datetime"] = this.iso8601(timestamp);

@@ -816,11 +816,17 @@ public partial class backpack : Exchange
         bool? stock = this.safeBool(selection, 0, false);
         IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         string? marketType = this.safeString(query, "marketType");
-        List<object> requestedTypes = this.safeList(query, "marketType", new List<object>() {"SPOT", "PERP", "RFQ"});
+        List<object> defaultTypes = new List<object>() {};
         if ((marketType != null))
         {
-            requestedTypes = new List<object>() {marketType};
+            defaultTypes.Add(marketType);
+        } else
+        {
+            defaultTypes.Add("SPOT");
+            defaultTypes.Add("PERP");
+            defaultTypes.Add("RFQ");
         }
+        List<object> requestedTypes = this.safeList(query, "marketType", defaultTypes);
         Dictionary<string, object> aliases = new Dictionary<string, object>() {
             { "spot", "SPOT" },
             { "swap", "PERP" },
@@ -828,7 +834,7 @@ public partial class backpack : Exchange
         };
         List<object> supportedTypes = new List<object>() {"SPOT", "PERP", "RFQ"};
         List<object> marketTypes = new List<object>() {};
-        for (int i = 0; i < (requestedTypes?.Count ?? 0); i++)
+        for (int i = 0; i < requestedTypes.Count; i++)
         {
             string? requestedType = this.safeString(requestedTypes, i, "");
             string? normalizedType = this.safeString(aliases, requestedType, requestedType);
@@ -3361,7 +3367,7 @@ public partial class backpack : Exchange
             for (int i = 0; i < (rfqResponse?.Count ?? 0); i++)
             {
                 ccxt.Order order = this.parseOrder(this.safeDict(rfqResponse, i, new Dictionary<string, object>() {}), market);
-                if (isEqual((((object)order.id)), id))
+                if ((order.id == id))
                 {
                     return order;
                 }
@@ -3422,7 +3428,7 @@ public partial class backpack : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             ccxt.Order order = this.parseOrder(this.safeDict(response, i, new Dictionary<string, object>() {}), market);
-            if (isEqual((((object)order.id)), id))
+            if ((order.id == id))
             {
                 return order;
             }

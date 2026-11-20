@@ -1340,9 +1340,9 @@ public partial class phemex : Exchange
         List<object> products = this.safeList(v2ProductsData, "products", new List<object>() {});
         List<object> perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new List<object>() {});
         products = this.arrayConcat(products, perpetualProductsV2);
-        List<object> riskLimits = this.safeList(v2ProductsData, "riskLimits", new List<object>() {});
+        List<object> riskLimitsV1 = this.safeList(v2ProductsData, "riskLimits", new List<object>() {});
         List<object> riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new List<object>() {});
-        riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
+        List<object> riskLimits = this.arrayConcat(riskLimitsV1, riskLimitsV2);
         List<object> currencies = this.safeList(v2ProductsData, "currencies", new List<object>() {});
         Dictionary<string, object> riskLimitsById = this.indexBy(riskLimits, "symbol");
         Dictionary<string, object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");

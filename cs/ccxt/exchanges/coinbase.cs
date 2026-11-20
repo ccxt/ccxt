@@ -5866,15 +5866,18 @@ public partial class coinbase : Exchange
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         useEddsa ??= false;
         string? uri = null;
-        if (!(url is ""))
+        if ((!(url is "")) && ((method != null)))
         {
-            uri = ((method + " ") + ((string)url).Replace("https://", (string)""));
-            int quesPos = (uri?.IndexOf("?", StringComparison.Ordinal) ?? -1);
+            string fullUri = ((method + " ") + ((string)url).Replace("https://", (string)""));
+            int quesPos = fullUri.IndexOf("?", StringComparison.Ordinal);
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if (quesPos > 0)
             {
-                uri = ((uri == null) ? null : uri.Substring(0, Math.Max(Math.Min((quesPos < 0 ? uri.Length + (quesPos) : quesPos), uri.Length), 0)));
+                uri = ((fullUri == null) ? null : fullUri.Substring(0, Math.Max(Math.Min((quesPos < 0 ? fullUri.Length + (quesPos) : quesPos), fullUri.Length), 0)));
+            } else
+            {
+                uri = fullUri;
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}

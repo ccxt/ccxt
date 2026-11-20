@@ -4202,15 +4202,15 @@ public partial class kucoin : Exchange
         accountType = accountTypeparamsRequestVariable.Item1;
         paramsRequest = accountTypeparamsRequestVariable.Item2;
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-        accountType = this.safeString(accountsByType, accountType, accountType);
+        string? accountId = this.safeString(accountsByType, accountType, accountType);
         bool? uta = await this.isUTAEnabled();
         (bool?, IDictionary<string, object>) utaparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "fetchDepositAddress", "uta", uta);
         uta = utaparamsRequestVariable.Item1;
         paramsRequest = utaparamsRequestVariable.Item2;
-        if (accountType == "contract")
+        if (accountId == "contract")
         {
             return await this.FetchContractDepositAddress(code, paramsRequest);
-        } else if ((uta == true) || (accountType == "uta") || (accountType == "unified"))
+        } else if ((uta == true) || (accountId == "uta") || (accountId == "unified"))
         {
             return ccxt.BaseExchange.ToDepositAddress(await base.FetchDepositAddress(code, this.extend(paramsRequest, new Dictionary<string, object>() {                 { "uta", true },             })));
         }
@@ -8994,8 +8994,8 @@ public partial class kucoin : Exchange
         accountType = accountTypeparamsRequestVariable.Item1;
         paramsRequest = accountTypeparamsRequestVariable.Item2;
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-        accountType = this.safeString(accountsByType, accountType, accountType);
-        if (accountType == "contract")
+        string? accountId = this.safeString(accountsByType, accountType, accountType);
+        if (accountId == "contract")
         {
             return await this.FetchContractDeposits(code, since, limit, paramsRequest);
         }
@@ -9177,8 +9177,8 @@ public partial class kucoin : Exchange
         accountType = accountTypeparamsRequestVariable.Item1;
         paramsRequest = accountTypeparamsRequestVariable.Item2;
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-        accountType = this.safeString(accountsByType, accountType, accountType);
-        if (accountType == "contract")
+        string? accountId = this.safeString(accountsByType, accountType, accountType);
+        if (accountId == "contract")
         {
             return await this.FetchContractWithdrawals(code, since, limit, paramsRequest);
         }

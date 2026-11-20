@@ -1501,8 +1501,11 @@ public partial class paradex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "results", new List<object>() {});
-        List<object> rows = ((((object)(request["market"])) is "ALL")) ? this.filterLoadedSummaries(data) : data;
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(rows, symbolsNormalized));
+        if ((((object)(request["market"])) is "ALL"))
+        {
+            return ccxt.BaseExchange.ToTickers(this.parseTickers(this.filterLoadedSummaries(data), symbolsNormalized));
+        }
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
     }
 
     /**
@@ -4221,8 +4224,11 @@ public partial class paradex : Exchange
         //
         List<object> results = this.safeList(response, "results", new List<object>() {});
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        List<object> rows = ((((object)(request["market"])) is "ALL")) ? this.filterLoadedSummaries(results, "option") : results;
-        return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(rows, symbolsNormalized));
+        if ((((object)(request["market"])) is "ALL"))
+        {
+            return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(this.filterLoadedSummaries(results, "option"), symbolsNormalized));
+        }
+        return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(results, symbolsNormalized));
     }
 
     public override object parseGreeks(object greeks, IDictionary<string, object> market = null)

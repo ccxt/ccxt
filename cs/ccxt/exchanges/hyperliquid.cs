@@ -665,7 +665,7 @@ public partial class hyperliquid : Exchange
         List<object> markets = new List<object>() {};
         for (int i = 0; i < (promises?.Count ?? 0); i++)
         {
-            object dexName = (fetchDexesList != null && i < fetchDexesList.Count ? fetchDexesList[i] : null);
+            string? dexName = this.safeString(fetchDexesList, i);
             Int64? offset = this.safeInteger(perpDexesOffset, dexName);
             List<object> response = this.safeList(promises, i);
             IDictionary<string, object> meta = this.safeDict(response, 0, new Dictionary<string, object>() {});
@@ -5736,9 +5736,8 @@ public partial class hyperliquid : Exchange
         return response;
     }
 
-    public virtual List<object> extractTypeFromDelta(IList<object>? data = null)
+    public virtual List<object> extractTypeFromDelta(IList<object> data)
     {
-        data ??= new List<object>();
         List<object> records = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {

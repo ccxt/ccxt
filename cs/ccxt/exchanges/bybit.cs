@@ -2464,7 +2464,7 @@ public partial class bybit : Exchange
     public override Dictionary<string, object> createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
-        string? quote = null;
+        string? quote = "USDC";
         List<object> optionParts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? expiry = null;
@@ -2480,17 +2480,13 @@ public partial class bybit : Exchange
                 throw new ExchangeError ((this.id + " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
             }
             List<object> splitQuote = symbolQuoteAndSettle.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
-            string? quoteAndSettle = this.safeString(splitQuote, 0);
-            quote = quoteAndSettle;
+            quote = this.safeString(splitQuote, 0, "");
         } else
         {
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (((string)symbol).EndsWith("-USDT"))
             {
                 quote = "USDT";
-            } else
-            {
-                quote = "USDC";
             }
         }
         string? strike = this.safeString(optionParts, 2);

@@ -1417,8 +1417,8 @@ public partial class poloniex : ccxt.poloniex
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
             Int64? timestamp = this.safeInteger(item, "ts");
-            List<object> asks = this.safeList(item, "asks");
-            List<object> bids = this.safeList(item, "bids");
+            List<object> asks = this.safeList(item, "asks", new List<object>() {});
+            List<object> bids = this.safeList(item, "bids", new List<object>() {});
             if (snapshot || update)
             {
                 ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);

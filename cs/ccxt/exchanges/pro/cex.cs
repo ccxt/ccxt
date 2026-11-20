@@ -820,7 +820,7 @@ public partial class cex : ccxt.cex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         bool isTransaction = (this.safeString(message, "e") == "tx");
         string? orderId = this.safeString2(data, "id", "order");
-        string? remains = this.safeString(data, "remains");
+        string? remainsPrecision = this.safeString(data, "remains");
         string? baseId = this.safeString(data, "symbol");
         string? quoteId = this.safeString(data, "symbol2");
         IDictionary<string, object> pair = this.safeDict(data, "pair");
@@ -837,7 +837,7 @@ public partial class cex : ccxt.cex
         }
         string symbol = ((bs + "/") + quote);
         Dictionary<string, object> market = this.safeMarket(symbol);
-        remains = this.currencyFromPrecision(bs, remains);
+        string? remains = this.currencyFromPrecision(bs, remainsPrecision);
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);

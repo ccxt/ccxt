@@ -142,7 +142,9 @@ public partial class cryptocom : ccxt.cryptocom
         (string?, IDictionary<string, object>) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
         string? bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.Item1;
         IDictionary<string, object> paramsBookSubscriptionType2 = (bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
-        ((IDictionary<string,object>)(paramsBookSubscriptionType2 != null && paramsBookSubscriptionType2.ContainsKey("params") ? paramsBookSubscriptionType2["params"] : null))["bookSubscriptionType"] = bookSubscriptionType2;
+        IDictionary<string, object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new Dictionary<string, object>() {});
+        bookParams["bookSubscriptionType"] = bookSubscriptionType2;
+        paramsBookSubscriptionType2["params"] = bookParams;
         (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
         string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
         IDictionary<string, object> paramsBookUpdateFrequency = (bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
@@ -151,7 +153,9 @@ public partial class cryptocom : ccxt.cryptocom
         IDictionary<string, object> paramsBookUpdateFrequency2 = (bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
         if ((bookUpdateFrequency2 != null))
         {
-            ((IDictionary<string,object>)(paramsBookUpdateFrequency2 != null && paramsBookUpdateFrequency2.ContainsKey("params") ? paramsBookUpdateFrequency2["params"] : null))["bookSubscriptionType"] = bookUpdateFrequency2;
+            IDictionary<string, object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new Dictionary<string, object>() {});
+            frequencyParams["bookSubscriptionType"] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2["params"] = frequencyParams;
         }
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -200,7 +204,9 @@ public partial class cryptocom : ccxt.cryptocom
         (string?, IDictionary<string, object>) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
         string? bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.Item1;
         IDictionary<string, object> paramsBookSubscriptionType2 = (bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
-        ((IDictionary<string,object>)(paramsBookSubscriptionType2 != null && paramsBookSubscriptionType2.ContainsKey("params") ? paramsBookSubscriptionType2["params"] : null))["bookSubscriptionType"] = bookSubscriptionType2;
+        IDictionary<string, object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new Dictionary<string, object>() {});
+        bookParams["bookSubscriptionType"] = bookSubscriptionType2;
+        paramsBookSubscriptionType2["params"] = bookParams;
         (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
         string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
         IDictionary<string, object> paramsBookUpdateFrequency = (bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
@@ -209,7 +215,9 @@ public partial class cryptocom : ccxt.cryptocom
         IDictionary<string, object> paramsBookUpdateFrequency2 = (bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
         if ((bookUpdateFrequency2 != null))
         {
-            ((IDictionary<string,object>)(paramsBookUpdateFrequency2 != null && paramsBookUpdateFrequency2.ContainsKey("params") ? paramsBookUpdateFrequency2["params"] : null))["bookSubscriptionType"] = bookUpdateFrequency2;
+            IDictionary<string, object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new Dictionary<string, object>() {});
+            frequencyParams["bookSubscriptionType"] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2["params"] = frequencyParams;
         }
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {

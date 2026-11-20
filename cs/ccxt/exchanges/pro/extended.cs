@@ -165,7 +165,7 @@ public partial class extended : ccxt.extended
                 } },
             };
             this.extendExchangeOptions(defaultOptions);
-            object originalOptions = (this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null);
+            IDictionary<string, object> originalOptions = this.safeDict((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options");
             IDictionary<string, object> originalHeaders = this.safeDict(originalOptions, "headers", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null))["options"] = this.extend(this.extend(new Dictionary<string, object>() {}, originalOptions), new Dictionary<string, object>() {
                 { "headers", this.extend(this.extend(new Dictionary<string, object>() {
@@ -906,15 +906,12 @@ public partial class extended : ccxt.extended
             return;
         }
         string? symbol = this.safeString(subscription, "symbol");
-        string timeframe = this.safeString(subscription, "timeframe", "");
+        string? timeframe = this.safeString(subscription, "timeframe", "");
         string? candleType = this.safeString(subscription, "candleType", "");
-        string? cacheKey = null;
-        if (candleType == "trades")
+        string? cacheKey = timeframe;
+        if (candleType != "trades")
         {
-            cacheKey = timeframe;
-        } else
-        {
-            cacheKey = ((timeframe + ":") + candleType);
+            cacheKey = (cacheKey == null ? null : cacheKey + ":" + candleType);
         }
         string? messageHash = this.safeString(subscription, "messageHash");
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});

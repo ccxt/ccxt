@@ -131,7 +131,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "feed", name },
         };
         List<object> marketIds = new List<object>() {};
-        object messageHash = name;
+        string messageHash = name;
         IList<object> symbolsValue = symbols;
         for (int i = 0; i < (symbolsValue?.Count ?? 0); i++)
         {
@@ -142,7 +142,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((length == 1))
         {
             Dictionary<string, object> market = this.market((symbolsValue != null && 0 < symbolsValue.Count ? symbolsValue[0] : null));
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)((":" + ((market.ContainsKey("symbol") ? market["symbol"] : null))))));
+            messageHash = messageHash + (":" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         subscribe["product_ids"] = marketIds;
         Dictionary<string, object> request = this.extend(subscribe, parameters);
@@ -1616,8 +1616,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     cashBalance[(string)code] = newAccount;
                 }
             }
-            this.balance["cash"] = cashBalance;
-            this.balance["cash"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null), holdingCodes);
+            this.balance["cash"] = this.pruneStaleBalanceKeys(cashBalance, holdingCodes);
             this.balance["cash"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null));
             updatedBalance = (this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null);
         }
@@ -1649,8 +1648,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 }
                 marginBalance[(string)symbol] = symbolAccounts;
             }
-            this.balance["margin"] = marginBalance;
-            this.balance["margin"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), futuresSymbols);
+            this.balance["margin"] = this.pruneStaleBalanceKeys(marginBalance, futuresSymbols);
             this.balance["margin"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null));
             client.resolve((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), (messageHash + ":futures"));
             if ((updatedBalance == null))
@@ -1683,8 +1681,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     flexBalance[(string)code] = newAccount;
                 }
             }
-            this.balance["flex"] = flexBalance;
-            this.balance["flex"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), flexCodes);
+            this.balance["flex"] = this.pruneStaleBalanceKeys(flexBalance, flexCodes);
             this.balance["flex"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null));
             client.resolve((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), (messageHash + ":flex_futures"));
             if ((updatedBalance == null))
@@ -1710,16 +1707,16 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} seenKeys the currency codes / symbols present in the current message
      * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
      */
-    public virtual object pruneStaleBalanceKeys(object balanceObject, IDictionary<string, object> seenKeys)
+    public virtual object pruneStaleBalanceKeys(IDictionary<string, object> balanceObject, IDictionary<string, object> seenKeys)
     {
         List<object> reserved = new List<object>() {"info", "timestamp", "datetime", "free", "used", "total", "debt"};
-        List<object> keys = new List<object>(((IDictionary<string,object>)balanceObject).Keys);
+        List<object> keys = new List<object>(balanceObject.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
             if (!((seenKeys != null && key != null && seenKeys.ContainsKey(key))) && !this.inArray(key, reserved))
             {
-                ((IDictionary<string,object>)balanceObject).Remove(key);
+                balanceObject.Remove(key);
             }
         }
         return balanceObject;

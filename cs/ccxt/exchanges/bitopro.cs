@@ -1032,7 +1032,7 @@ public partial class bitopro : Exchange
             if (isEqual((candle != null && 0 < candle.Count ? candle[0] : null), timestamp))
             {
                 result.Add(candle);
-                i = this.sum(i, 1);
+                i = (i + 1);
             } else
             {
                 // set open, high, low to close

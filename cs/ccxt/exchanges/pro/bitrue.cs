@@ -426,7 +426,7 @@ public partial class bitrue : ccxt.bitrue
         IDictionary<string, object> market = null;
         if (isFutures)
         {
-            string? wsBaseQuote = this.safeStringLower(parts, 2);
+            string? wsBaseQuote = this.safeStringLower(parts, 2, "");
             market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         } else
         {
@@ -463,9 +463,7 @@ public partial class bitrue : ccxt.bitrue
 
     public virtual IDictionary<string, object> findSwapMarketByWsBaseQuote(string? wsBaseQuote)
     {
-        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
-        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
-        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
+        // callers pass safeStringLower (parts, 2, ''), a plain string in every port
         if ((this.markets == null))
         {
             return null;
@@ -637,8 +635,8 @@ public partial class bitrue : ccxt.bitrue
         {
             throw new NotSupported ((this.id + " unWatchTrades is only supported for swap markets")) ;
         }
-        string? baseIdLower = this.safeStringLower(market, "baseId");
-        string? quoteIdLower = this.safeStringLower(market, "quoteId");
+        string? baseIdLower = this.safeStringLower(market, "baseId", "");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
         string wsId = (("e_" + baseIdLower) + quoteIdLower);
         string channel = (("market_" + wsId) + "_trade_ticker");
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -672,7 +670,7 @@ public partial class bitrue : ccxt.bitrue
         //
         string? channel = this.safeString(message, "channel");
         List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-        string? wsBaseQuote = this.safeStringLower(parts, 2);
+        string? wsBaseQuote = this.safeStringLower(parts, 2, "");
         IDictionary<string, object> market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         string? symbol = this.safeString(market, "symbol");
         if ((symbol == null))
@@ -820,8 +818,8 @@ public partial class bitrue : ccxt.bitrue
         {
             throw new NotSupported ((string)((this.id + " unWatchOHLCV does not support timeframe ") + (timeframeVar))) ;
         }
-        string? baseIdLower = this.safeStringLower(market, "baseId");
-        string? quoteIdLower = this.safeStringLower(market, "quoteId");
+        string? baseIdLower = this.safeStringLower(market, "baseId", "");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
         string wsId = (("e_" + baseIdLower) + quoteIdLower);
         string channel = ((("market_" + wsId) + "_kline_") + interval);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -853,7 +851,7 @@ public partial class bitrue : ccxt.bitrue
         //
         string? channel = this.safeString(message, "channel");
         List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-        string? wsBaseQuote = this.safeStringLower(parts, 2);
+        string? wsBaseQuote = this.safeStringLower(parts, 2, "");
         IDictionary<string, object> market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         string? symbol = this.safeString(market, "symbol");
         if ((symbol == null))
@@ -965,7 +963,7 @@ public partial class bitrue : ccxt.bitrue
         //
         string? channel = this.safeString(message, "channel");
         List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-        string? wsBaseQuote = this.safeStringLower(parts, 2);
+        string? wsBaseQuote = this.safeStringLower(parts, 2, "");
         IDictionary<string, object> market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         string? symbol = this.safeString(market, "symbol");
         if ((symbol == null))

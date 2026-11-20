@@ -3217,7 +3217,8 @@ public partial class btse : Exchange
         {
             string? historyType = this.safeString(typesList, i, "");
             allowed[(string)historyType] = true;
-            allowed[(string)this.capitalize(historyType.ToLower())] = true;
+            string capitalizedType = this.capitalize(historyType.ToLower());
+            allowed[(string)capitalizedType] = true;
         }
         List<object> rows = new List<object>() {};
         for (int i = 0; i < rawRows.Count; i++)

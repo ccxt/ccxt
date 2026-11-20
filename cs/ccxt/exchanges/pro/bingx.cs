@@ -568,7 +568,7 @@ public partial class bingx : ccxt.bingx
         //         }
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> dataList = this.safeList(message, "data", new List<object>() {});
         string? rawHash = this.safeString(message, "dataType", "");
         List<object> hashParts = rawHash.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(hashParts, 0);
@@ -582,12 +582,12 @@ public partial class bingx : ccxt.bingx
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade::" + symbol);
         IList<object> trades = null;
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((this.safeDict(message, "data") == null))
         {
-            trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
+            trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(dataList, market));
         } else
         {
-            trades = new List<object> {ccxt.BaseExchange.FromTrade(this.parseTrade(data, market))};
+            trades = new List<object> {ccxt.BaseExchange.FromTrade(this.parseTrade(this.safeDict(message, "data", new Dictionary<string, object>() {}), market))};
         }
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))

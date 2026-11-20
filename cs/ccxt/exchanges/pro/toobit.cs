@@ -338,16 +338,16 @@ public partial class toobit : ccxt.toobit
         List<object> messageHashes = new List<object>() {};
         IDictionary<string, object> timeframes = this.safeDict((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "timeframes", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>() {};
-        string? selectedTimeframe = null;
+        string? selectedTimeframe = "";
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolStr = this.safeString(data, 0, "");
             Dictionary<string, object> market = this.market(symbolStr);
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
             string? unfiedTimeframe = this.safeString(data, 1, "1m");
             string? rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
-            if ((selectedTimeframe != null) && (selectedTimeframe != rawTimeframe))
+            if (selectedTimeframe != "" && (selectedTimeframe != rawTimeframe))
             {
                 throw new NotSupported ((this.id + " watchOHLCVForSymbols() only supports a single timeframe for all symbols")) ;
             } else

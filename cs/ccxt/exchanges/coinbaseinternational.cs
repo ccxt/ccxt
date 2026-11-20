@@ -3616,11 +3616,14 @@ public partial class coinbaseinternational : Exchange
         string? uri = null;
         if (((url != null)) && ((method != null)))
         {
-            uri = ((method + " ") + url.Replace("https://", (string)""));
-            int quesPos = (uri?.IndexOf("?", StringComparison.Ordinal) ?? -1);
+            string fullUri = ((method + " ") + url.Replace("https://", (string)""));
+            int quesPos = fullUri.IndexOf("?", StringComparison.Ordinal);
             if (quesPos > 0)
             {
-                uri = ((uri == null) ? null : uri.Substring(0, Math.Max(Math.Min((quesPos < 0 ? uri.Length + (quesPos) : quesPos), uri.Length), 0)));
+                uri = ((fullUri == null) ? null : fullUri.Substring(0, Math.Max(Math.Min((quesPos < 0 ? fullUri.Length + (quesPos) : quesPos), fullUri.Length), 0)));
+            } else
+            {
+                uri = fullUri;
             }
         }
         string nonce = this.randomBytes(16);

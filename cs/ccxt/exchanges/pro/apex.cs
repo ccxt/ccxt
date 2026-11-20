@@ -491,8 +491,8 @@ public partial class apex : ccxt.apex
         string? topic = this.safeString(message, "topic", "");
         string? updateType = this.safeString(message, "type", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        string? symbol = null;
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
+        string? symbol = this.safeString(parsed, "symbol");
         if ((updateType == "snapshot"))
         {
             parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
@@ -508,6 +508,9 @@ public partial class apex : ccxt.apex
             IDictionary<string, object> rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
             Dictionary<string, object> merged = this.extend(rawTicker, data);
             parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(merged));
+        } else
+        {
+            symbol = null;
         }
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         parsed["timestamp"] = timestamp;

@@ -1105,7 +1105,7 @@ public partial class krakenfutures : Exchange
         //        "more_candles": true
         //    }
         //
-        List<object> candles = this.safeList(response, "candles");
+        List<object> candles = this.safeList(response, "candles", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limitResolved));
     }
 

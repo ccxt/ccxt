@@ -1425,12 +1425,12 @@ public partial class aster : ccxt.aster
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if ((this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) == null))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe))))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.TryGetValue(timeframe, out var ohlcvsValue1) ? ohlcvsValue1 : null));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.TryGetValue(timeframe, out var ohlcvsValue2) ? ohlcvsValue2 : null));
         List<object> parsed = this.parseWsOHLCV(kline);
         stored.append(parsed);
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
@@ -1704,8 +1704,8 @@ public partial class aster : ccxt.aster
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         IDictionary<string, object> balance = this.safeDict(this.balance, accountType, new Dictionary<string, object>() {});
+        balance["info"] = message;
         IDictionary<string, object> messageValue = this.safeDict(message, "a", message);
         List<object> B = this.safeList(messageValue, "B", new List<object>() {});
         string? wallet = this.safeString(this.options, "wallet", "wb");

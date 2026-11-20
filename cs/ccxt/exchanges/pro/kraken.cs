@@ -1854,8 +1854,8 @@ public partial class kraken : ccxt.kraken
             this.balance = new Dictionary<string, object>() {};
         }
         this.balance[type] = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
         IDictionary<string, object> balance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        balance["info"] = message;
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {

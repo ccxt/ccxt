@@ -532,7 +532,11 @@ public partial class opinion : PredictionExchange
             for (int mi = 0; mi < eventMarketsLength; mi++)
             {
                 object m = (eventMarkets != null && mi < eventMarkets.Count ? eventMarkets[mi] : null);
-                this.markets[(string)getValue(m, "market")] = m;
+                string? marketKey = this.safeString(m, "market");
+                if ((marketKey != null))
+                {
+                    this.markets[(string)marketKey] = m;
+                }
             }
         }
         this.populateOutcomes();

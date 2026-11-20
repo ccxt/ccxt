@@ -1422,15 +1422,12 @@ public partial class apex : Exchange
 
     public virtual string? generateRandomClientIdOmni(object _accountId)
     {
-        object accountId = "";
+        string suffix = ((("-" + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString());
         if (((_accountId != null)) && (!(_accountId is "")))
         {
-            accountId = _accountId;
-        } else
-        {
-            accountId = this.randNumber(12).ToString();
+            return (("apexomni-" + (_accountId)) + suffix);
         }
-        return ((((("apexomni-" + (accountId)) + "-") + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString());
+        return (("apexomni-" + this.randNumber(12).ToString()) + suffix);
     }
 
     public virtual string? addHyphenBeforeUsdt(object symbol)

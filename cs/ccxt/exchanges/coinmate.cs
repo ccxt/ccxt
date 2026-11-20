@@ -713,7 +713,11 @@ public partial class coinmate : Exchange
         {
             Dictionary<string, object> market = this.market(keys[i]);
             ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, keys[i], new Dictionary<string, object>() {}), market);
-            result[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
+            string? symbol = this.safeString(market, "symbol");
+            if ((symbol != null))
+            {
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }

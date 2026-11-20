@@ -279,14 +279,8 @@ public partial class bithumb : ccxt.bithumb
         {
             return;
         }
-        string? symbol = null;
-        if (isGenerationTwo)
-        {
-            symbol = this.safeSymbol(marketId, null, "-");
-        } else
-        {
-            symbol = this.safeSymbol(marketId, null, "_");
-        }
+        string delimiter = isGenerationTwo ? "-" : "_";
+        string? symbol = this.safeSymbol(marketId, null, delimiter);
         if ((symbol == null))
         {
             return;

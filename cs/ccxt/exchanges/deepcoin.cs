@@ -3603,9 +3603,10 @@ public partial class deepcoin : Exchange
             string? requestBody = null;
             if ((method != "GET"))
             {
-                requestBody = this.json(parameters);
+                string body = this.json(parameters);
                 privateHeaders["Content-Type"] = "application/json";
-                payload = payload + requestBody;
+                payload = payload + body;
+                requestBody = body;
             }
             string signature = this.hmac(payload, this.secret, sha256, "base64");
             privateHeaders["DC-ACCESS-SIGN"] = signature;

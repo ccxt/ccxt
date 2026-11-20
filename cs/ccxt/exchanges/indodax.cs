@@ -1095,6 +1095,8 @@ public partial class indodax : Exchange
         {
             paramsOmitted = this.omit(parameters, "cost");
         }
+        string? quoteId = this.safeString(market, "quoteId", "");
+        string? baseId = this.safeString(market, "baseId", "");
         if ((type == "market"))
         {
             if ((side == "buy"))
@@ -1115,7 +1117,7 @@ public partial class indodax : Exchange
                     string? costRequest = Precise.stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
-                request[(string)((string)(market.ContainsKey("quoteId") ? market["quoteId"] : null))] = quoteAmount;
+                request[(string)quoteId] = quoteAmount;
             } else
             {
                 quantityIsRequired = true;
@@ -1126,7 +1128,7 @@ public partial class indodax : Exchange
             quantityIsRequired = true;
             if ((side == "buy"))
             {
-                request[(string)((string)(market.ContainsKey("quoteId") ? market["quoteId"] : null))] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
+                request[(string)quoteId] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
             }
         }
         if (priceIsRequired)
@@ -1139,7 +1141,7 @@ public partial class indodax : Exchange
         }
         if (quantityIsRequired)
         {
-            request[(string)((string)(market.ContainsKey("baseId") ? market["baseId"] : null))] = this.amountToPrecision(symbol, amount);
+            request[(string)baseId] = this.amountToPrecision(symbol, amount);
         }
         Dictionary<string, object> result = await this.privatePostTrade(this.extend(request, paramsOmitted));
         IDictionary<string, object> data = this.safeDict(result, "return", new Dictionary<string, object>() {});

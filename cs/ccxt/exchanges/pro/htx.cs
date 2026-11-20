@@ -1058,7 +1058,7 @@ public partial class htx : ccxt.htx
         string? baseId = null;
         if ((market != null))
         {
-            baseId = ((string)(market != null && market.ContainsKey("baseId") ? market["baseId"] : null));
+            baseId = this.safeString(market, "baseId");
         }
         string? prefix = orderType;
         object messageHash = prefix;
@@ -1117,7 +1117,7 @@ public partial class htx : ccxt.htx
         string? contractCode = null;
         if ((market != null))
         {
-            contractCode = ((string)(market != null && market.ContainsKey("id") ? market["id"] : null));
+            contractCode = this.safeString(market, "id");
         } else
         {
             contractCode = this.safeString(parameters, "contract_code", "*");
@@ -3200,22 +3200,22 @@ public partial class htx : ccxt.htx
         IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
         IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> typeUrlsByApi = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
-        object hostnameURL = null;
-        object url = null;
+        string? hostnameURL = null;
+        string? url = null;
         if ((type is "spot"))
         {
             IDictionary<string, object> spotUrls = this.safeDict(typeUrlsByApi, "spot", new Dictionary<string, object>() {});
             if (isPrivate == true)
             {
-                hostnameURL = (spotUrls != null && spotUrls.ContainsKey("private") ? spotUrls["private"] : null);
+                hostnameURL = this.safeString(spotUrls, "private");
             } else
             {
                 if (isFeed == true)
                 {
-                    hostnameURL = (spotUrls != null && spotUrls.ContainsKey("feed") ? spotUrls["feed"] : null);
+                    hostnameURL = this.safeString(spotUrls, "feed");
                 } else
                 {
-                    hostnameURL = (spotUrls != null && spotUrls.ContainsKey("public") ? spotUrls["public"] : null);
+                    hostnameURL = this.safeString(spotUrls, "public");
                 }
             }
             url = this.implodeParams(hostnameURL, hostname);
@@ -3234,17 +3234,17 @@ public partial class htx : ccxt.htx
             {
                 if (isV5 == true && isTrue(isLinear))
                 {
-                    url = this.safeString(subTypeUrl, "privateV5", (subTypeUrl != null && subTypeUrl.ContainsKey("private") ? subTypeUrl["private"] : null));
+                    url = this.safeString2(subTypeUrl, "privateV5", "private");
                 } else
                 {
-                    url = (subTypeUrl != null && subTypeUrl.ContainsKey("private") ? subTypeUrl["private"] : null);
+                    url = this.safeString(subTypeUrl, "private");
                 }
             } else
             {
-                url = (subTypeUrl != null && subTypeUrl.ContainsKey("public") ? subTypeUrl["public"] : null);
+                url = this.safeString(subTypeUrl, "public");
             }
         }
-        return ((string?)((object)(url)));
+        return url;
     }
 
     public async virtual Task<object> subscribePublic(object url, object symbol, object messageHash, object method = null, object parameters = null)

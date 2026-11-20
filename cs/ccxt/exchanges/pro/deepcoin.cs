@@ -841,7 +841,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         string? type = this.safeString(message, "t");
-        if ((((object)((orderbook != null && orderbook.ContainsKey("timestamp") ? orderbook["timestamp"] : null))) == null))
+        if ((this.safeInteger(orderbook, "timestamp") == null))
         {
             if (type == "f")
             {

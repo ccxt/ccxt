@@ -600,11 +600,11 @@ public partial class grvt : ccxt.grvt
         (Int64?, object) limitOptionparamsLimitOptionVariable = this.handleOptionIntegerAndParams(paramsChannel, "watchOrderBook", "limit", 100);
         Int64? limitOption = limitOptionparamsLimitOptionVariable.Item1;
         IDictionary<string, object> paramsLimitOption = ((IDictionary<string, object>)limitOptionparamsLimitOptionVariable.Item2);
-        Int64? limitResolved = limitOption;
+        string limitString = ((object)limitOption).ToString();
         IDictionary<string, object> paramsLimit = paramsLimitOption;
         if ((limit != null))
         {
-            limitResolved = limit;
+            limitString = ((object)limit).ToString();
             paramsLimit = paramsChannel;
         }
         (Int64?, object) intervalparamsIntervalVariable = this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500);
@@ -614,7 +614,7 @@ public partial class grvt : ccxt.grvt
         string? extraPart = null;
         if (isSnapshot)
         {
-            extraPart = ((((object)interval).ToString() + "-") + ((object)limitResolved).ToString());
+            extraPart = ((((object)interval).ToString() + "-") + limitString);
         } else
         {
             extraPart = ((object)interval).ToString();
@@ -763,7 +763,7 @@ public partial class grvt : ccxt.grvt
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            rawHashes.Add(((subAccountId + "-") + ((market.ContainsKey("id") ? market["id"] : null))));
+            rawHashes.Add(((subAccountId + "-") + this.safeString(market, "id", "")));
             messageHashes.Add(("myTrades::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         } else
         {
@@ -866,7 +866,7 @@ public partial class grvt : ccxt.grvt
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
-                rawHashes.Add(((subAccountId + "-") + ((market.ContainsKey("id") ? market["id"] : null))));
+                rawHashes.Add(((subAccountId + "-") + this.safeString(market, "id", "")));
                 messageHashes.Add(("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             }
         } else
@@ -965,7 +965,7 @@ public partial class grvt : ccxt.grvt
         {
             Dictionary<string, object> market = this.market(symbol);
             messageHashes.Add(("order::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
-            rawHashes.Add(((subAccountId + "-") + ((market.ContainsKey("id") ? market["id"] : null))));
+            rawHashes.Add(((subAccountId + "-") + this.safeString(market, "id", "")));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.order" },

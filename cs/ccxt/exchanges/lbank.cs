@@ -1527,25 +1527,6 @@ public partial class lbank : Exchange
             }
             return this.safeBalance(result);
         }
-        // from spotPrivatePostSupplementUserInfo
-        bool isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        if (isArray)
-        {
-            for (int i = 0; i < data.Count; i++)
-            {
-                IDictionary<string, object> item = this.safeDict(data, i);
-                string? currencyId = this.safeString(item, "coin");
-                string? codeInner = this.safeCurrencyCode(currencyId);
-                Dictionary<string, object> account = this.account();
-                account["free"] = this.safeString(item, "usableAmt");
-                account["used"] = this.safeString(item, "freezeAmt");
-                if ((codeInner != null))
-                {
-                    result[(string)codeInner] = account;
-                }
-            }
-            return this.safeBalance(result);
-        }
         return this.safeBalance(result);
     }
 

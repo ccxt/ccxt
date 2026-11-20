@@ -1143,11 +1143,7 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> response = this.safeDict(results, 0);
         object midsResponse = (results != null && 1 < results.Count ? results[1] : null);
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
-        object allMids = new Dictionary<string, object>() {};
-        if ((!(midsResponse is string)) && !((midsResponse is IList<object>) || (midsResponse.GetType().IsGenericType && midsResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            allMids = midsResponse;
-        }
+        object allMids = this.infoDict(midsResponse);
         IDictionary<string, object> mids = this.safeDict(allMids, "mids", allMids);
         List<object> positions = new List<object>() {};
         for (int i = 0; i < balances.Count; i++)
@@ -1252,9 +1248,9 @@ public partial class hyperliquid : PredictionExchange
     public virtual IDictionary<string, object> findOutcomeInMarket(IDictionary<string, object> market, string? sideHint = null)
     {
         List<object> outcomesList = this.safeList(market, "outcomes", new List<object>() {});
-        string? normalizedHint = ((sideHint != null) && (sideHint != "")) ? sideHint.ToUpper() : null;
-        if ((normalizedHint != null))
+        if ((sideHint != null) && (sideHint != ""))
         {
+            string normalizedHint = sideHint.ToUpper();
             for (int i = 0; i < outcomesList.Count; i++)
             {
                 IDictionary<string, object> oc = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});

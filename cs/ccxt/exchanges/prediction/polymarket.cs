@@ -2822,7 +2822,7 @@ public partial class polymarket : PredictionExchange
             Dictionary<string, object> eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            string eoaSignature = ((("0x" + this.remove0xPrefix((eoaSig != null && eoaSig.ContainsKey("r") ? eoaSig["r"] : null))) + this.remove0xPrefix((eoaSig != null && eoaSig.ContainsKey("s") ? eoaSig["s"] : null))) + this.intToBase16((eoaSig != null && eoaSig.ContainsKey("v") ? eoaSig["v"] : null)));
+            string eoaSignature = ((("0x" + this.remove0xPrefix(this.safeString(eoaSig, "r"))) + this.remove0xPrefix(this.safeString(eoaSig, "s"))) + this.intToBase16((eoaSig != null && eoaSig.ContainsKey("v") ? eoaSig["v"] : null)));
             return eoaSignature.ToLower();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -3347,7 +3347,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr151168 && ((hxArr151168 is IList<object>) || (hxArr151168.GetType().IsGenericType && hxArr151168.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr151204 && ((hxArr151204 is IList<object>) || (hxArr151204.GetType().IsGenericType && hxArr151204.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3541,7 +3541,7 @@ public partial class polymarket : PredictionExchange
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Dictionary<string, object> sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix((sig != null && sig.ContainsKey("r") ? sig["r"] : null))) + this.remove0xPrefix((sig != null && sig.ContainsKey("s") ? sig["s"] : null))) + this.intToBase16((sig != null && sig.ContainsKey("v") ? sig["v"] : null)));
+        return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16((sig != null && sig.ContainsKey("v") ? sig["v"] : null)));
     }
 
     /**
