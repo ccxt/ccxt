@@ -350,6 +350,10 @@ func (e *BaseExchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 			for _, item := range values {
 				outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(item)))
 			}
+		} else if values, ok := value.([]string); ok {
+			for _, item := range values {
+				outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(item)))
+			}
 		} else {
 			outList = append(outList, fmt.Sprintf("%s=%s", rfc3986Escape(key), encodeValue(value)))
 		}

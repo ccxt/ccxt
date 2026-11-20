@@ -1141,7 +1141,7 @@ func (this *BaseExchange) SafeListNStrings(dictionaryOrList any, keys any) []str
 // MarketIdsStrings is MarketIds read as the []string a joined id-list local holds: nil exactly where
 // MarketIds answers nil, else the ids Join joins.
 func (this *BaseExchange) MarketIdsStrings(symbols any) []string {
-	return joinListValue(this.MarketIds(symbols))
+	return this.MarketIds(symbols)
 }
 
 // MarketIdsSlice is MarketIds read as a []any: nil exactly where MarketIds answers nil.

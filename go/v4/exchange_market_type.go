@@ -222,6 +222,22 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) []string {
 	return result
 }
 
+// MarketIds is ts/src/base/Exchange.ts marketIds with its string[] result typed:
+// absent input answers a nil slice, every element is the resolved market id (absent ids skipped).
+func (this *BaseExchange) MarketIds(optionalArgs ...any) []string {
+	symbols := GetArgStringSlice(optionalArgs, 0, nil)
+	if symbols == nil {
+		return nil
+	}
+	result := make([]string, 0, len(symbols))
+	for _, symbol := range symbols {
+		if id, isStr := derefScalar(this.MarketId(symbol)).(string); isStr {
+			result = append(result, id)
+		}
+	}
+	return result
+}
+
 // HandleMaxEntriesPerRequestAndParams: the option wins, then the argument, then 1000; slot 0 is
 // the integer (nil only when CheckOptionInteger answers nil), slot 1 the params left over.
 func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, optionalArgs ...any) (any, map[string]any) {
