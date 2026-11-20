@@ -5865,7 +5865,7 @@ class BaseExchange(object):
     def market_id(self, symbol: Str):
         market = self.market(symbol)
         if market is not None:
-            return market['id']
+            return self.safe_string(market, 'id')
         return symbol
 
     def symbol(self, symbol: Str):
@@ -7283,7 +7283,7 @@ class BaseExchange(object):
             return exchangeValue
         return None
 
-    def convert_type_to_account(self, account: object):
+    def convert_type_to_account(self, account: str):
         """
  @ignore
  Must add accountsByType to self.options to use self method
@@ -7293,12 +7293,12 @@ class BaseExchange(object):
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         lowercaseAccount = account.lower()
         if lowercaseAccount in accountsByType:
-            return accountsByType[lowercaseAccount]
+            return self.safe_string(accountsByType, lowercaseAccount, account)
         markets = self.markets
         marketsById = self.markets_by_id
         if ((markets is not None) and (account in markets)) or ((marketsById is not None) and (account in marketsById)):
             market = self.market(account)
-            return market['id']
+            return self.safe_string(market, 'id', account)
         else:
             return account
 

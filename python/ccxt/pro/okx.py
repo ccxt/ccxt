@@ -383,10 +383,10 @@ class okx(ccxt.async_support.okx):
         url = self.get_url(channel, 'public')
         fundingRate = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            symbol = self.safe_string(fundingRate, 'symbol')
+            fundingSymbol = self.safe_string(fundingRate, 'symbol')
             result = {}
-            if symbol is not None:
-                result[symbol] = fundingRate
+            if fundingSymbol is not None:
+                result[fundingSymbol] = fundingRate
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbolsNormalized)
 

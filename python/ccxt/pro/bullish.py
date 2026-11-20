@@ -631,10 +631,11 @@ class bullish(ccxt.async_support.bullish):
             data = self.safe_list(message, 'data', [])
             parsed = self.parseBalanceList(data)
             parsedKeys = list(parsed.keys())
+            balance = self.safe_dict(self.balance, tradingAccountId, {})
             for i in range(0, len(parsedKeys)):
                 parsedKey = parsedKeys[i]
-                self.balance[tradingAccountId][parsedKey] = parsed[parsedKey]
-            self.balance[tradingAccountId] = self.safe_balance(self.balance[tradingAccountId])
+                balance[parsedKey] = parsed[parsedKey]
+            self.balance[tradingAccountId] = self.safe_balance(balance)
         else:
             data = self.safe_dict(message, 'data', {})
             assetId = self.safe_string(data, 'assetSymbol')

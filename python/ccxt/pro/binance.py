@@ -5268,6 +5268,7 @@ class binance(ccxt.async_support.binance):
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
         self.balance[accountType]['info'] = message
+        balance = self.safe_dict(self.balance, accountType, {})
         B = self.safe_list(message, 'B', [])
         for i in range(0, len(B)):
             entry = self.safe_dict(B, i)
@@ -5276,11 +5277,11 @@ class binance(ccxt.async_support.binance):
             if code is not None:
                 account = self.account()
                 account['total'] = self.safe_string(entry, 'b')
-                self.balance[accountType][code] = account
+                balance[code] = account
         timestamp = self.safe_integer(message, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
+        self.balance[accountType] = self.safe_balance(balance)
         client.resolve(self.balance[accountType], accountType + ':balance')
         # --- positions ---
         if not (accountType in self.positionsByType):

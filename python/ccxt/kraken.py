@@ -3064,12 +3064,12 @@ class kraken(Exchange, ImplicitAPI):
         #        }
         #     }
         #
-        rawWithdrawals = None
+        rawWithdrawals = []
         result = self.safe_value(response, 'result')
         if not isinstance(result, list):
             rawWithdrawals = self.add_pagination_cursor_to_result(result)
         else:
-            rawWithdrawals = result
+            rawWithdrawals = self.safe_list(response, 'result', [])
         return self.parse_transactions_by_type('withdrawal', rawWithdrawals, code, since, limit)
 
     def add_pagination_cursor_to_result(self, result: dict) -> list:

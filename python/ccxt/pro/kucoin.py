@@ -2581,9 +2581,10 @@ class kucoin(ccxt.async_support.kucoin):
             if not (uniformType in self.balance):
                 self.balance[uniformType] = {}
             self.balance[uniformType]['info'] = data
+            balance = self.safe_dict(self.balance, uniformType, {})
             timestamp = self.safe_integer_2(data, 'time', 'timestamp')
-            self.balance[uniformType]['timestamp'] = timestamp
-            self.balance[uniformType]['datetime'] = self.iso8601(timestamp)
+            balance['timestamp'] = timestamp
+            balance['datetime'] = self.iso8601(timestamp)
             code = self.safe_currency_code(currencyId)
             account = self.account()
             used = self.safe_string_2(data, 'hold', 'holdBalance')
@@ -2594,8 +2595,8 @@ class kucoin(ccxt.async_support.kucoin):
             account['used'] = used
             account['total'] = self.safe_string(data, 'total')
             if code is not None:
-                self.balance[uniformType][code] = account
-            self.balance[uniformType] = self.safe_balance(self.balance[uniformType])
+                balance[code] = account
+            self.balance[uniformType] = self.safe_balance(balance)
             client.resolve(self.balance[uniformType], uniformType + ':balance')
 
     def handle_uta_balance(self, client: Client, message: dict):
@@ -2621,16 +2622,17 @@ class kucoin(ccxt.async_support.kucoin):
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data
+        balance = self.safe_dict(self.balance, type, {})
         timestamp = self.safe_integer_product(data, 'U', 0.000001)
-        self.balance[type]['timestamp'] = timestamp
-        self.balance[type]['datetime'] = self.iso8601(timestamp)
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
         account = self.account()
         account['free'] = self.safe_string(data, 'a')
         account['used'] = self.safe_string(data, 'h')
         account['total'] = self.safe_string(data, 'b')
         if code is not None:
-            self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+            balance[code] = account
+        self.balance[type] = self.safe_balance(balance)
         messageHash = type + ':balance'
         client.resolve(self.balance[type], messageHash)
 

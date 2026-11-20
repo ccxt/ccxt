@@ -4677,7 +4677,7 @@ class binance(Exchange, ImplicitAPI):
         if (symbolsNormalized is not None) and (self.is_linear(type, subType) or self.is_inverse(type, subType)):
             symbolsLength = len(symbolsNormalized)
             if symbolsLength == 1:
-                request['symbol'] = self.market_id(symbolsNormalized[0])
+                request['symbol'] = self.market_id(self.safe_string(symbolsNormalized, 0))
         response = None
         if type == 'option':
             response = await self.eapiPublicGetTicker(paramsSubType)

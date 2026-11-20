@@ -1683,8 +1683,9 @@ class bingx(ccxt.async_support.bingx):
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data
-        self.balance[type]['timestamp'] = timestamp
-        self.balance[type]['datetime'] = self.iso8601(timestamp)
+        typeBalance = self.safe_dict(self.balance, type, {})
+        typeBalance['timestamp'] = timestamp
+        typeBalance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
@@ -1694,8 +1695,8 @@ class bingx(ccxt.async_support.bingx):
             account['used'] = self.safe_string(balance, 'lk')
             account['free'] = self.safe_string(balance, 'wb')
             if code is not None:
-                self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+                typeBalance[code] = account
+        self.balance[type] = self.safe_balance(typeBalance)
         client.resolve(self.balance[type], type + ':balance')
 
     def handle_text_message(self, client: Client, message: str):

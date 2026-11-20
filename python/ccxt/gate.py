@@ -4681,7 +4681,9 @@ class gate(Exchange, ImplicitAPI):
     def edit_order_request(self, id: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         marketType, paramsMarketType = self.handle_market_type_and_params('editOrder', market, params)
-        accountParsed = self.convert_type_to_account(marketType)
+        accountParsed = None
+        if marketType is not None:
+            accountParsed = self.convert_type_to_account(marketType)
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(paramsMarketType, 'editOrder', 'unifiedAccount', False)
         account = 'unified' if isUnifiedAccount else accountParsed
         isLimitOrder = (type == 'limit')
