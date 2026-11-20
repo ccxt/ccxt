@@ -450,6 +450,7 @@
         "GetWithdrawNonce": "*float64",
         "GetZKContractSignatureObj": "string",
         "GetZKTransferSignatureObj": "string",
+        "Gmx.FetchExpressOrderStatus": "Order",
         "Grvt.SetLeverage": "Leverage",
         "HandleAccountIndex": "[]any",
         "HandleBuilderFeeApproval": "bool",

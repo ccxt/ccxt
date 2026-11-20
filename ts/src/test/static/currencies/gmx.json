@@ -1,0 +1,40 @@
+{
+    "BTC": {
+        "info": {
+            "name": "Bitcoin",
+            "symbol": "BTC",
+            "address": "0x47904963fc8b2340414262125aF798B9655E58Cd",
+            "isSynthetic": true,
+            "decimals": 8,
+            "categories": [
+                "layer1"
+            ],
+            "imageUrl": "https://assets.coingecko.com/coins/images/1/small/bitcoin.png?1547033579",
+            "isPermitSupported": false,
+            "isPermitDisabled": true
+        },
+        "id": "0x47904963fc8b2340414262125af798b9655e58cd",
+        "numericId": null,
+        "code": "BTC",
+        "precision": "0.00000001",
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USD": null
+}
