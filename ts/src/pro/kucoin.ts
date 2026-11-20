@@ -2823,9 +2823,10 @@ export default class kucoin extends kucoinRest {
                 this.balance[uniformType] = {};
             }
             this.balance[uniformType]['info'] = data;
+            const balance = this.safeDict (this.balance, uniformType, {});
             const timestamp = this.safeInteger2 (data, 'time', 'timestamp');
-            this.balance[uniformType]['timestamp'] = timestamp;
-            this.balance[uniformType]['datetime'] = this.iso8601 (timestamp);
+            balance['timestamp'] = timestamp;
+            balance['datetime'] = this.iso8601 (timestamp);
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             let used = this.safeString2 (data, 'hold', 'holdBalance');
@@ -2837,9 +2838,9 @@ export default class kucoin extends kucoinRest {
             account['used'] = used;
             account['total'] = this.safeString (data, 'total');
             if (code !== undefined) {
-                this.balance[uniformType][code] = account;
+                balance[code] = account;
             }
-            this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
+            this.balance[uniformType] = this.safeBalance (balance);
             client.resolve (this.balance[uniformType], uniformType + ':balance');
         }
     }
@@ -2868,17 +2869,18 @@ export default class kucoin extends kucoinRest {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = data;
+        const balance = this.safeDict (this.balance, type, {});
         const timestamp = this.safeIntegerProduct (data, 'U', 0.000001);
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601 (timestamp);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601 (timestamp);
         const account = this.account ();
         account['free'] = this.safeString (data, 'a');
         account['used'] = this.safeString (data, 'h');
         account['total'] = this.safeString (data, 'b');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance (this.balance[type]);
+        this.balance[type] = this.safeBalance (balance);
         const messageHash = type + ':balance';
         client.resolve (this.balance[type], messageHash);
     }
