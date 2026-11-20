@@ -38,6 +38,7 @@ const debugKeys = {
     '--warnings': false,
     '--info': false,
     '--show-timer': false,
+    '--noskip': false,
 }
 
 const exchangeSpecificFlags = {
@@ -49,7 +50,6 @@ const exchangeSpecificFlags = {
     '--private': false,
     '--privateOnly': false,
     '--loadKeys': false,
-    '--noskip': false,
     '--request': false,
     '--response': false,
     // force the prediction-markets namespace for ids present in both ccxt and ccxt.prediction
@@ -92,7 +92,7 @@ if (maxConcurrency === undefined) {
 }
 
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
-const disableSkip = exchangeSpecificFlags['--noskip'];
+const disableSkip = debugKeys['--noskip'];
 
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
