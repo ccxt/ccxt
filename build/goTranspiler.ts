@@ -7169,6 +7169,8 @@ const GO_UNCALLED_STRING_PARAMS: { [method: string]: number[] } = {
 };
 // base methods whose tuple slot 0 is the Go `*string` (TS declares `string`)
 const GO_STRING_POINTER_TUPLE_CALLS: string[] = [ 'handleMarketTypeAndParams' ];
+// pair producers whose base and every Go override return (*string, map[string]any): slot 0 concatenates natively after a nil guard
+const GO_GUARDED_STRING_TUPLE_CALLS: string[] = [ 'handleSubTypeAndParams', 'handleMarginModeAndParams', 'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'getInstType' ];
 // the order-request builders; a sibling-file call that hands over a unified-string parameter of its method proves them
 const GO_SIBLING_STRING_PASSTHROUGH_PATTERN = '^(create|edit)\\w*OrderRequest$';
 
@@ -13198,6 +13200,7 @@ class NewTranspiler {
                 // ===== end RF-go-6-C =====
                 "uncalledStringParams": GO_UNCALLED_STRING_PARAMS,
                 "stringPointerTupleCalls": GO_STRING_POINTER_TUPLE_CALLS,
+                "guardedStringTupleCalls": GO_GUARDED_STRING_TUPLE_CALLS,
                 "siblingStringPassthroughPattern": GO_SIBLING_STRING_PASSTHROUGH_PATTERN,
                 // ===== RF-go-6-F =====
                 // tuple producers: Go type of each slot; an integer-literal default (arg index) selects the value form
