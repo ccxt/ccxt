@@ -392,7 +392,7 @@ export class BaseExchange {
 
     markets!: Dictionary<any> | undefined;
     has!: Dictionary<boolean | 'emulated' | undefined>;
-    features!: Dictionary<Dictionary<any> | undefined>;
+    features!: Dictionary<NullableDict>;
     status!: {
         status: Str,
         updated: Num,
@@ -4221,7 +4221,7 @@ export class BaseExchange {
         }
     }
 
-    featuresMapper (initialFeatures: Dict, marketType: Str, subType: Str = undefined) {
+    featuresMapper (initialFeatures: Dict, marketType: Str, subType: Str = undefined): NullableDict {
         let featuresObj = this.safeDict (initialFeatures, marketType);
         if (subType !== undefined) {
             featuresObj = this.safeDict (featuresObj, subType);

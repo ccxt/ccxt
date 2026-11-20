@@ -1670,7 +1670,10 @@ export function installJavaOwnerStores (transpiler: any): void {
         // a describe () key the base declares as an object literal reaches the field as a fresh deepExtend map
         const describedLiteral = new RegExp (`^ {12}'${m[1]}': \\{`, 'm').test (tsMethods);
         const fromDescribe = (x: string) => describedLiteral && x === `(Map<String, Object>) this.safeValue(extendedProperties, "${m[1]}")`;
-        if (handAssigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()) || fromDescribe (x[1].trim ()))
+        // a constructor read that defaults to the field itself, when every TS write first reassigns it to `{}`
+        const selfDefault = (x: string) => x === `(Map<String, Object>) this.safeValue(extendedProperties, "${m[1]}", this.${m[1]})`
+            && new RegExp (`\\bthis\\.${m[1]}\\s*=\\s*\\{\\s*\\}`).test (tsMethods);
+        if (handAssigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()) || fromDescribe (x[1].trim ()) || selfDefault (x[1].trim ()))
             && tsAssigns.every ((x) => /^(?:\{\s*\}|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))) {
             caches.add (m[1]);
         }
