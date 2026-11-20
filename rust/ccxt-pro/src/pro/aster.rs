@@ -2609,8 +2609,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             if (orderId.is_some()) && (tradeFee != Value::Null) && (symbol.is_some()) {
                 if (self.orders.is_some()) {
                     let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null));
-                    let mut order: Value = self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
-                    if (order != Value::Null) {
+                    let mut order: Option<crate::value::Dict> = self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null));
+                    if (order.is_some()) {
                         // accumulate order fees
                         let fees: crate::value::List = self.safe_list_k_t(&order, "fees");
                         let mut fee: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "fee");
@@ -2624,33 +2624,35 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                                 if (self.safe_string_k(&orderFee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
                                     let feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&orderFee, "cost")]);
                                     let feeCostString: Option<String> = self.currency_to_precision((tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)).as_str(), feeCost, &[]);
-                                    add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".into())), &Value::Int(i)), &Value::Str("cost".into()), (if (feeCostString.is_none()) { Value::Null } else { (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }) }));
+                                    if let Some(__d) = &mut order { add_element_to_object(get_value_mut(std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert(Value::Null), &Value::Int(i)), &Value::Str("cost".into()),
+                                        (if (feeCostString.is_none()) { Value::Null } else { (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }) })); }
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             }
                             if insertNewFeeCurrency {
-                                crate::runtime::append_to_object_array(&mut order, &Value::Str("fees".into()), tradeFee.clone());
+                                if let Some(__d) = &mut order { if let Value::Arr(__a) = std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(tradeFee.clone()); } }
                             }
                         }  else if (fee.is_some()) {
                             if (self.safe_string_k(&fee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
                                 let feeCost: Value = self.sum(&[crate::value::KeyRead::key_read(&&fee, "cost"), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
                                 let feeCostString: Option<String> = self.currency_to_precision((tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)).as_str(), feeCost, &[]);
-                                add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".into())), &Value::Str("cost".into()), (if (feeCostString.is_none()) { Value::Null } else { (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }) }));
+                                if let Some(__d) = &mut order { add_element_to_object(std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null), &Value::Str("cost".into()),
+                                    (if (feeCostString.is_none()) { Value::Null } else { (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }) })); }
                             }  else if (self.safe_string_k(&fee, "currency", &[]) == Value::Null) {
-                                add_element_to_object(&mut order, &Value::Str("fee".into()), tradeFee.clone());
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), tradeFee.clone()); }
                             }  else {
-                                add_element_to_object(&mut order, &Value::Str("fees".into()), Value::from(vec![fee.map_or(Value::Null, Value::Dict), tradeFee.clone()]));
-                                add_element_to_object(&mut order, &Value::Str("fee".into()), Value::Null);
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fees".into(), Value::from(vec![fee.map_or(Value::Null, Value::Dict), tradeFee.clone()])); }
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Null); }
                             }
                         }  else {
-                            add_element_to_object(&mut order, &Value::Str("fee".into()), tradeFee);
+                            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), tradeFee); }
                         }
                         // save this trade in the order
                         let mut orderTrades: crate::value::List = self.safe_list_k_t(&order, "trades");
                         std::sync::Arc::make_mut(&mut orderTrades).push(Value::from(&trade));
-                        add_element_to_object(&mut order, &Value::Str("trades".into()), Value::Arr(orderTrades));
+                        if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("trades".into(), Value::Arr(orderTrades)); }
                     }
                 }
             }

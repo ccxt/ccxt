@@ -608,7 +608,7 @@ impl crate::exchange::DerivedExchange for Extended {
 
     None
 }
-    fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
         let currency: Value = currency.into();
         //
         //     {

@@ -369,7 +369,7 @@ impl Blockchaincom {
             let request: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
             let timeframeId: Option<String> = self.safe_string_k_opt(&request, "granularity", &[]);
             let timeframe: Option<String> = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
-            let ohlcv: Value = (match __pro_message.get("price").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+            let ohlcv: crate::value::List = __pro_message.key_list("price");
             CacheShelves::ensure(&mut self.ohlcvs, &symbol);
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
             if (stored.is_none()) {
@@ -377,7 +377,7 @@ impl Blockchaincom {
                 stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
-            stored.append(ohlcv);
+            stored.append(Value::Arr(ohlcv));
             client.resolve(Value::from(&stored), messageHash.as_str());
         }  else if (event.as_deref() != Some("subscribed")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message))));

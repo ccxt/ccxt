@@ -640,7 +640,7 @@ impl crate::exchange::DerivedExchange for Grvt {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         //
         //            {
@@ -4687,10 +4687,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 let mut m = indexmap::IndexMap::new();
                     m.insert("mainAccountID".to_string(), request.get("main_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("builderAccountID".to_string(), request.get("builder_account_id").cloned().unwrap_or(Value::Null));
-                    m.insert("maxFutureFeeRate".to_string(), Value::from(self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(&*request, Value::Str("max_futures_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
-                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
-                    m.insert("maxSpotFeeRate".to_string(), Value::from(self.parse_to_int((match (&(crate::runtime::parse_float(&self.safe_string(&*request, Value::Str("max_spot_fee_rate".into()), &[]))), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
-                        (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
+                    m.insert("maxFutureFeeRate".to_string(), Value::from(self.parse_to_int((match (&(self.safe_string(&*request, Value::Str("max_futures_fee_rate".into()), &[]).as_str().and_then(|__s| __s.trim().parse::<f64>().ok()).map(Value::Float).unwrap_or(Value::Null)), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
+                        (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
+                    m.insert("maxSpotFeeRate".to_string(), Value::from(self.parse_to_int((match (&(self.safe_string(&*request, Value::Str("max_spot_fee_rate".into()), &[]).as_str().and_then(|__s| __s.trim().parse::<f64>().ok()).map(Value::Float).unwrap_or(Value::Null)), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
+                        (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m

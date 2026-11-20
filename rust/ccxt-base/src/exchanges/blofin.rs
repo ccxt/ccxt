@@ -816,7 +816,7 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     None
 }
-    fn parse_currency(&self, chains: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, chains: impl Into<crate::Value>) -> Value {
         let chains: Value = chains.into();
         let firstChain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(0));
         let currencyId: Option<String> = self.safe_string_k_opt(&firstChain, "currency", &[]);

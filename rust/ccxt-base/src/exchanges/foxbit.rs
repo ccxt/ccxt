@@ -367,7 +367,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "symbol", &[]);
         let name: Option<String> = self.safe_string_k_opt(&rawCurrency, "name", &[]);

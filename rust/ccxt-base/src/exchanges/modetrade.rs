@@ -621,7 +621,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "token", &[]);
         let networks: crate::value::List = self.safe_list_k_t(&rawCurrency, "chain_details");

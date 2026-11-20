@@ -1152,7 +1152,12 @@ impl Cex {
         let timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
         add_element_to_object(&mut order, &Value::Str("timestamp".into()), Value::from(timestamp));
         add_element_to_object(&mut order, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        order = Value::Dict(self.safe_order(order, None));
+        // a fresh map copy: the cached entry is untyped
+        let __ws_arg_0 = self.extend(order, &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]);
+        order = Value::Dict(self.safe_order(__ws_arg_0, None));
         self.orders.append(order);
         let messageHash: String = format!("{}{}", "orders:", symbol);
         client.resolve(Value::from(&self.orders), messageHash.as_str());
@@ -1284,9 +1289,9 @@ impl Cex {
             return None;
         }
         let mut precise = Precise::new(amount);
-        { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), self.safe_integer(Value::from(vec![scale]), Value::Int(0), &[Value::Int(0)])]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+        (precise).decimals += (self.safe_integer(Value::from(vec![scale]), Value::Int(0), &[Value::Int(0)]).as_i64().unwrap_or(0));
         precise.reduce();
-        return to_string_val(&precise).as_str().map(str::to_owned);
+        return Value::from(precise.to_string()).as_str().map(str::to_owned);
 }
 
     pub fn currency_from_precision(&self, mut currency: Value, amount: impl Into<crate::Value>) -> Option<String> {
@@ -1566,8 +1571,8 @@ impl Cex {
                 m.insert("rooms".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "pair-", baseId).into()), "-").into()), quoteId).into())]));
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], __ws_arg_0, &messageHash[..], Value::Null).await;
+        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
+        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit);
@@ -2187,8 +2192,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 }));
                 m
             });
-            let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            self.watch(url.as_str(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await;
+            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+            self.watch(url.as_str(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

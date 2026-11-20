@@ -336,7 +336,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
 
     Value::Null
 }
-    fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
         let currency: Value = currency.into();
         let id: String = self.safe_string2(&currency, Value::Str("id".into()), Value::Str("symbol".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let code: Option<String> = self.safe_currency_code(Some(id.as_str()), None);

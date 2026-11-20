@@ -824,17 +824,17 @@ impl crate::exchange::DerivedExchange for Bitget {
             let sizeMultiplier: Option<String> = self.safe_string_k_opt(&market, "sizeMultiplier", &[]);
             let mut precise = Precise::new(priceEndStep.map(Value::from).unwrap_or(Value::Null));
             if (pricePlaces.is_some()) {
-                { let __sv_tmp = crate::runtime::Math::max(&get_value(&precise, &Value::Str("decimals".into())), &Value::from(pricePlaces)); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+                (precise).decimals = i64::max((precise).decimals, pricePlaces.unwrap_or(i64::MIN));
             }
             precise.reduce();
-            let priceString: Value = to_string_val(&precise);
+            let priceString: Value = Value::from(precise.to_string());
             pricePrecision = self.parse_number(priceString, &[]);
             let mut preciseAmount = Precise::new(sizeMultiplier.map(Value::from).unwrap_or(Value::Null));
             if (volumePlaces.is_some()) {
-                { let __sv_tmp = crate::runtime::Math::max(&get_value(&preciseAmount, &Value::Str("decimals".into())), &Value::from(volumePlaces)); crate::set_value(&mut preciseAmount, &Value::Str("decimals".into()), __sv_tmp); }
+                (preciseAmount).decimals = i64::max((preciseAmount).decimals, volumePlaces.unwrap_or(i64::MIN));
             }
             preciseAmount.reduce();
-            let amountString: Value = to_string_val(&preciseAmount);
+            let amountString: Value = Value::from(preciseAmount.to_string());
             amountPrecision = self.parse_number(amountString, &[]);
             marginModes = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -1463,7 +1463,7 @@ impl crate::exchange::DerivedExchange for Bitget {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("fiatCurrencies".into()), &[Value::from(vec![])]);
         let entry: Value = rawCurrency;

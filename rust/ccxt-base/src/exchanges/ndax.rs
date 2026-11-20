@@ -660,7 +660,7 @@ impl crate::exchange::DerivedExchange for Ndax {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "ProductId", &[]);
         let code: Option<String> = self.safe_currency_code(self.safe_string_k(&rawCurrency, "Product", &[]).as_str(), None);

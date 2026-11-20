@@ -371,7 +371,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("fiatCurrencies".into()), &[Value::from(vec![])]);
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "currency", &[]);

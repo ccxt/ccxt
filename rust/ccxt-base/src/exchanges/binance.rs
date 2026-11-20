@@ -1907,7 +1907,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         //
         //    {
@@ -10065,7 +10065,7 @@ impl Binance {
         }).await?))
     }
 
-    pub fn parse_currencies_custom(&self, responseCurrencies: impl Into<crate::Value>, marginablesById: impl Into<crate::Value>) -> Value {
+    pub fn parse_currencies_custom(&mut self, responseCurrencies: impl Into<crate::Value>, marginablesById: impl Into<crate::Value>) -> Value {
         let mut responseCurrencies: Value = responseCurrencies.into();
         let marginablesById: Value = marginablesById.into();
         let __responseCurrencies_empty = Vec::new();
@@ -16527,7 +16527,7 @@ impl Binance {
             let pricePrecisionPlusOneString: String = format!("{}", pricePrecisionPlusOne);
             // round half up
             let rounder = Precise::new(Value::Str(format!("{}{}", "5e-", pricePrecisionPlusOneString).into()));
-            let rounderString: Value = to_string_val(&rounder);
+            let rounderString: Value = Value::from(rounder.to_string());
             let liquidationPriceRoundedString: Option<String> = crate::precise::Precise::stringAdd(&rounderString, &liquidationPriceStringRaw).as_str().map(str::to_owned);
             let mut truncatedLiquidationPrice: Option<String> = crate::precise::Precise::stringDivPrec(&liquidationPriceRoundedString, &Value::Str("1".into()), &Value::from(pricePrecision)).as_str().map(str::to_owned);
             if (truncatedLiquidationPrice.is_some()) && (self.safe_value(truncatedLiquidationPrice.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(0), &[]).as_str() == Some("-")) {

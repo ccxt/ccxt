@@ -2376,7 +2376,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn handle_fetch_currencies(&self, client: &Value, message: &Value) {
+    pub fn handle_fetch_currencies(&mut self, client: &Value, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -2539,26 +2539,18 @@ impl Bitvavo {
         client.resolve(Value::Arr(markets), messageHash.as_deref());
 }
 
-    pub fn build_message_hash(&mut self, action: Option<&str>, optional_args: &[&Value]) -> Option<String> {
+    pub fn build_message_hash(&self, action: Option<&str>, optional_args: &[&Value]) -> Option<String> {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let methods: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("privateCreateOrder".to_string(), Value::Str("action_and_market_message_hash".into()));
-                m.insert("privateUpdateOrder".to_string(), Value::Str("action_and_order_id_message_hash".into()));
-                m.insert("privateCancelOrder".to_string(), Value::Str("action_and_order_id_message_hash".into()));
-                m.insert("privateGetOrder".to_string(), Value::Str("action_and_order_id_message_hash".into()));
-                m.insert("privateGetTrades".to_string(), Value::Str("action_and_market_message_hash".into()));
-            m
-        });
-        let method: Option<String> = self.safe_value(&methods, Value::from(action), &[]).as_str().map(str::to_owned);
-        let mut messageHash: Value = Value::from(action);
-        if (method.is_some()) {
-            messageHash = self.dispatch_ws_handler(&method, &[&Value::from(action), &params]);
+        let mut messageHash: Option<String> = action.map(str::to_owned);
+        if (action == Some("privateCreateOrder")) || (action == Some("privateGetTrades")) {
+            messageHash = self.action_and_market_message_hash(Value::from(action), &[&params]);
+        }  else if (action == Some("privateUpdateOrder")) || (action == Some("privateCancelOrder")) || (action == Some("privateGetOrder")) {
+            messageHash = self.action_and_order_id_message_hash(Value::from(action), &[&params]);
         }
-        return messageHash.as_str().map(str::to_owned);
+        return messageHash;
 }
 
     pub fn action_and_market_message_hash(&self, mut action: Value, optional_args: &[&Value]) -> Option<String> {

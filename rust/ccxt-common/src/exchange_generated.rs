@@ -1501,7 +1501,7 @@ pub trait ExchangeBase:
     Value::Null
 } }
 
-    fn parse_currency(&self, mut rawCurrency: Value) -> Value {
+    fn parse_currency(&mut self, mut rawCurrency: Value) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_currency(self, ...))
         { let __v = crate::exchange::DerivedExchange::parse_currency(self, rawCurrency); if !matches!(__v, crate::Value::Null) { return __v; } }
 
@@ -1510,7 +1510,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn parse_currencies(&self, rawCurrencies: impl Into<crate::Value>) -> Value {
+    fn parse_currencies(&mut self, rawCurrencies: impl Into<crate::Value>) -> Value {
         let rawCurrencies: Value = rawCurrencies.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -9535,8 +9535,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_168: bool = true;
             while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (input.len() as i64) } {
             let entry: crate::value::Dict = input.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut id: Option<String> = self.safe_string_k_opt(&entry, "id", &[]);
-            if (id.is_none()) {
+            // safeString treats an empty id as missing, so '' marks an absent id
+            let mut id: String = self.safe_string_k(&entry, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (id == "") {
                 let price: String = self.safe_string_k(&entry, "price", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let amount: String = self.safe_string_k(&entry, "amount", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let timestamp: Option<String> = self.safe_string_k_opt(&entry, "timestamp", &[]);
@@ -9546,11 +9547,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " removeRepeatedTradesFromArray() missing timestamp")));
                 }
                 // optional parts are empty when absent, separators keep positions distinct
-                id = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("t_".into()), Value::Str(format!("{}", timestamp.map(Value::from).unwrap_or(Value::Null)).into())).into()), "_").into()), side).into()), "_"));
-                id = Some(format!("{}{}", id.as_deref().unwrap_or("null"), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", price, "_").into()), amount).into()))));
+                id = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("t_".into()), Value::Str(format!("{}", timestamp.map(Value::from).unwrap_or(Value::Null)).into())).into()), "_").into()), side).into()), "_");
+                id = format!("{}{}", id, (Value::Str(format!("{}{}", Value::Str(format!("{}{}", price, "_").into()), amount).into())));
             }
-            if (id.is_some()) && !(matches!(id.as_deref(), Some(__k) if uniqueResult.contains_key(__k))) {
-                uniqueResult.insert(id.as_deref().unwrap_or("null").to_string(), Value::Dict(entry));
+            if !(uniqueResult.contains_key(id.as_str())) {
+                uniqueResult.insert(id, Value::Dict(entry));
             }
         }
         }

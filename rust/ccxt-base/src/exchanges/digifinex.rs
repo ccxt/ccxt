@@ -740,7 +740,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let networkEntries: crate::value::List = self.to_array_t(rawCurrency);
         let id: Option<String> = self.safe_string_k_opt(self.safe_dict(&networkEntries, Value::Int(0), &[Value::Map({

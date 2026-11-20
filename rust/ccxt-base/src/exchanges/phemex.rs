@@ -795,7 +795,7 @@ impl crate::exchange::DerivedExchange for Phemex {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
@@ -3439,16 +3439,14 @@ impl Phemex {
     }
 
     pub fn to_en(&self, mut n: Value, scale: Option<i64>) -> Value {
-        let scale: Value = scale.into();
-        if (n == Value::Null) || (scale == Value::Null) {
+        if (n == Value::Null) || (scale.is_none()) {
             return Value::Null;
         }
         let stringN: Value = Value::from(self.number_to_string(n));
         let mut precise = Precise::new(stringN);
-        { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), Value::from(self.parse_to_int((match (&(scale), &(Value::Int(-1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+        (precise).decimals += self.parse_to_int((match (&(Value::from(scale)), &(Value::Int(-1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })).unwrap_or(0);
         precise.reduce();
-        let preciseString: Value = to_string_val(&precise);
+        let preciseString: Value = Value::from(precise.to_string());
         return self.parse_to_numeric(preciseString);
 
     Value::Null
@@ -3480,9 +3478,9 @@ impl Phemex {
             return None;
         }
         let mut precise = Precise::new(Value::from(en));
-        { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), Value::from(self.parse_to_int(Value::from(scale)))]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+        (precise).decimals += self.parse_to_int(Value::from(scale)).unwrap_or(0);
         precise.reduce();
-        return to_string_val(&precise).as_str().map(str::to_owned);
+        return Value::from(precise.to_string()).as_str().map(str::to_owned);
 }
 
     pub fn from_ep(&self, ep: Option<&str>, optional_args: &[&Value]) -> Option<String> {

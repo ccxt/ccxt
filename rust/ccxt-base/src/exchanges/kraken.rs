@@ -756,7 +756,7 @@ impl crate::exchange::DerivedExchange for Kraken {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         // todo: will need to rethink the fees
         // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
@@ -788,7 +788,7 @@ impl crate::exchange::DerivedExchange for Kraken {
                 code = self.safe_currency_code(altName.as_deref(), None);
                 // also, add map in commonCurrencies:
                 if (id.is_some()) && (code.is_some()) {
-                    if let Value::Dict(__d) = &mut self.commonCurrencies.clone() { std::sync::Arc::make_mut(__d).insert(id.as_deref().unwrap_or("null").to_string(), Value::from(code.as_deref())); }
+                    if let Value::Dict(__d) = &mut self.commonCurrencies { std::sync::Arc::make_mut(__d).insert(id.as_deref().unwrap_or("null").to_string(), Value::from(code.as_deref())); }
                 }
             }  else {
                 code = self.safe_currency_code(id.as_deref(), None);

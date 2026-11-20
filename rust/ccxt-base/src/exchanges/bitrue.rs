@@ -627,7 +627,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "coin", &[]);
         let name: Option<String> = self.safe_string_k_opt(&rawCurrency, "coinFulName", &[]);

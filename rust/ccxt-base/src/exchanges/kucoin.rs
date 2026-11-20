@@ -641,7 +641,7 @@ if _try_result.is_err() {
 
     None
 }
-    fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
         let currency: Value = currency.into();
         let entry: Value = currency;
         let id: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);

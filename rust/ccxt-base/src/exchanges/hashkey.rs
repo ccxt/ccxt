@@ -947,7 +947,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "coinId", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -4287,7 +4287,7 @@ impl Hashkey {
         let mut response: Value = Value::Null;
         if (market).spot {
             let __ws_arg_22 = self.extend(&request, &[&params]);
-            response = self.call_method(Value::Str("private_delete_api_v1_spot_open_orders".into()), &[&__ws_arg_22]).await;
+            response = self.private_delete_api_v1_spot_open_orders(&[&__ws_arg_22]).await;
         }  else if (market).swap {
             let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
             response = self.private_delete_api_v1_futures_batch_orders(&[&__ws_arg_23]).await;

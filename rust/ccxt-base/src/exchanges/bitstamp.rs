@@ -3021,7 +3021,7 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn parse_currencies(&self, rawCurrencies: impl Into<crate::Value>) -> Value {
+    pub fn parse_currencies(&mut self, rawCurrencies: impl Into<crate::Value>) -> Value {
         let rawCurrencies: Value = rawCurrencies.into();
         // each market row yields two currencies so the accumulation happens
         // in a local dictionary here instead of a temp key inside this.options

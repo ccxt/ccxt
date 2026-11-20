@@ -593,7 +593,7 @@ impl crate::exchange::DerivedExchange for Nado {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let canDeposit: bool = self.safe_bool_k_opt(&rawCurrency, "can_deposit", &[Value::Bool(false)]).unwrap_or(false);
         let canWithdraw: bool = self.safe_bool_k_opt(&rawCurrency, "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);

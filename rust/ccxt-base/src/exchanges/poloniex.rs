@@ -642,7 +642,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
 
     None
 }
-    fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
         let currency: Value = currency.into();
         let id: Option<String> = self.safe_string_k_opt(&currency, "coin", &[]);
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);

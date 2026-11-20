@@ -831,7 +831,7 @@ impl crate::exchange::DerivedExchange for Backpack {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "symbol", &[]);
         let symbol: String = self.safe_string_k(&rawCurrency, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

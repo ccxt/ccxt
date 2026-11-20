@@ -409,7 +409,7 @@ impl crate::exchange::DerivedExchange for Luno {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let id: Option<String> = self.safe_string_k_opt(self.safe_dict(&rawCurrency, Value::Int(0), &[]), "native_currency", &[]); // first item is guaranteed
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);

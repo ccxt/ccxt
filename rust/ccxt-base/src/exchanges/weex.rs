@@ -925,7 +925,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&rawCurrency, "coin", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);

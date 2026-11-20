@@ -202,9 +202,9 @@ impl Phemex {
             return None;
         }
         let mut precise = Precise::new(en);
-        { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), self.safe_integer(Value::from(vec![scale]), Value::Int(0), &[Value::Int(0)])]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+        (precise).decimals += (self.safe_integer(Value::from(vec![scale]), Value::Int(0), &[Value::Int(0)]).as_i64().unwrap_or(0));
         precise.reduce();
-        return to_string_val(&precise).as_str().map(str::to_owned);
+        return Value::from(precise.to_string()).as_str().map(str::to_owned);
 }
 
     pub fn from_ep(&self, mut ep: Value, optional_args: &[&Value]) -> Option<String> {

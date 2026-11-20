@@ -1432,8 +1432,8 @@ impl Derive {
                                 let mut i: i64 = 0;
                 let mut __for_first_308: bool = true;
                 while { if !__for_first_308 { i += 1; } __for_first_308 = false; i < (positionsSnapshot.len() as i64) } {
-                let snapshotPosition: Value = (match positionsSnapshot.get(i as usize) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
-                cache.append(snapshotPosition);
+                let mut snapshotPosition: Option<crate::value::Dict> = (match positionsSnapshot.get(i as usize) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
+                cache.append(snapshotPosition.map_or(Value::Null, Value::Dict));
             }
             }
             std::sync::Arc::make_mut(&mut loadedSnapshots).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), Value::Bool(true));

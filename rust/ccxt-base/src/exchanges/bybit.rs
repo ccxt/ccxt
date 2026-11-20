@@ -1368,7 +1368,7 @@ impl crate::exchange::DerivedExchange for Bybit {
 
     None
 }
-    fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
         let currency: Value = currency.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&currency, "coin", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);

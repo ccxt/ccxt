@@ -379,7 +379,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "id", &[]);
         let name: Option<String> = self.safe_string_k_opt(&rawCurrency, "name", &[]);

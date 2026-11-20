@@ -323,8 +323,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1SpotOpenOrders` implicit endpoint.
-    pub async fn private_delete_api_v1_spot_open_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
-        self.call_method_as("private_delete_api_v1_spot_open_orders", optional_args).await
+    pub async fn private_delete_api_v1_spot_open_orders(&mut self, optional_args: &[&Value]) -> Value {
+        self.call_method(Value::Str("private_delete_api_v1_spot_open_orders".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV1SpotCancelOrderByIds` implicit endpoint.

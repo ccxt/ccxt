@@ -1279,7 +1279,7 @@ impl crate::exchange::DerivedExchange for Okx {
 
     None
 }
-    fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
         let currency: Value = currency.into();
         // currencies are grouped by chain entries, so there is at least one entry
         let firstChain: crate::value::Dict = self.safe_dict_t(&currency, Value::Int(0));

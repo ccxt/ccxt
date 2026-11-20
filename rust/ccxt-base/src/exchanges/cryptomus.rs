@@ -339,7 +339,7 @@ impl crate::exchange::DerivedExchange for Cryptomus {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         // currency here is array of networks
         let mut id: Option<String> = None; // all entries have same id, as they were grouped by

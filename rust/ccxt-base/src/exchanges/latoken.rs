@@ -384,7 +384,7 @@ impl crate::exchange::DerivedExchange for Latoken {
 
     None
 }
-    fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, currency: impl Into<crate::Value>) -> Value {
         let mut currency: Value = currency.into();
         let id: Option<String> = self.safe_string_k_opt(&currency, "id", &[]);
         let tag: Option<String> = self.safe_string_k_opt(&currency, "tag", &[]);

@@ -1026,16 +1026,16 @@ impl crate::exchange::DerivedExchange for Htx {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         if !(self.options.contains_key("networkNamesByChainIds")) {
-            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".into(), Value::Map({
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".into(), Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })); }
         }
         if !(self.options.contains_key("networkChainIdsByNames")) {
-            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map({
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })); }
@@ -1056,7 +1056,7 @@ impl crate::exchange::DerivedExchange for Htx {
     let m = indexmap::IndexMap::new();
     m
 }));
-            { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map(chainIdsByNames)); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map(chainIdsByNames)); }
         }
         let chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "chains");
         let mut networks: indexmap::IndexMap<String, Value> = ({
@@ -1081,7 +1081,7 @@ impl crate::exchange::DerivedExchange for Htx {
 })]).as_map().cloned().unwrap_or_default();
                 chainIdsByTitle.insert(title.as_deref().unwrap_or("null").to_string(), Value::from(uniqueChainId.as_deref()));
                 chainIdsByNamesDict.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(chainIdsByTitle));
-                { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map(chainIdsByNamesDict)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("networkChainIdsByNames".into(), Value::Map(chainIdsByNamesDict)); }
             }
             if (uniqueChainId.is_some()) {
                 let mut networkNamesByChainIdsDict3: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "networkNamesByChainIds", &[Value::Map({
@@ -1089,7 +1089,7 @@ impl crate::exchange::DerivedExchange for Htx {
     m
 })]).as_map().cloned().unwrap_or_default();
                 networkNamesByChainIdsDict3.insert(uniqueChainId.as_deref().unwrap_or("null").to_string(), title.map(Value::from).unwrap_or(Value::Null));
-                { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".into(), Value::Map(networkNamesByChainIdsDict3)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("networkNamesByChainIds".into(), Value::Map(networkNamesByChainIdsDict3)); }
             }
             let networkCode: Option<String> = self.network_id_to_code(uniqueChainId.as_deref(), code.as_deref());
             if (networkCode.is_some()) {

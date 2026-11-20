@@ -704,7 +704,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "_coin_id", &[]);

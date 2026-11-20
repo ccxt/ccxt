@@ -695,7 +695,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let rawCurrency: Value = rawCurrency.into();
         // const id = i;
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "index", &[]);
@@ -706,7 +706,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     m
 })]).as_map().cloned().unwrap_or_default();
         cachedCurrenciesByIdDict1.insert(id.as_deref().unwrap_or("null").to_string(), Value::from(name.as_deref()));
-        { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("cachedCurrenciesById".into(), Value::Map(cachedCurrenciesByIdDict1)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("cachedCurrenciesById".into(), Value::Map(cachedCurrenciesByIdDict1)); }
         let result: Value = self.safe_currency_structure(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -759,7 +759,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     m
 })]).as_map().cloned().unwrap_or_default();
                     spotCurrencyMappingDict2.insert(code.as_deref().unwrap_or("null").to_string(), baseCode.map(Value::from).unwrap_or(Value::Null));
-                    { let __d = unsafe { crate::runtime::coerce_value_to_mut(&self.options) }; std::sync::Arc::make_mut(__d).insert("spotCurrencyMapping".into(), Value::Map(spotCurrencyMappingDict2)); }
+                    { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("spotCurrencyMapping".into(), Value::Map(spotCurrencyMappingDict2)); }
                 }
             }
         }

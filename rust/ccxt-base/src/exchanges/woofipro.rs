@@ -585,7 +585,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     Value::Null
 }
-    fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
+    fn parse_currency(&mut self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
         let __rawCurrency_empty = indexmap::IndexMap::new();
         let rawCurrency = rawCurrency.as_map().unwrap_or(&__rawCurrency_empty);
