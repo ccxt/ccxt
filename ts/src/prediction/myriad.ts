@@ -1088,8 +1088,10 @@ export default class myriad extends Exchange {
             await this.ensureErc20Allowance (rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
         const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', hasPreBroadcastTxHash);
-        let txHash = txHashParam;
-        if (txHash === undefined) {
+        let txHash: Str = undefined;
+        if (txHashParam !== undefined) {
+            txHash = txHashParam;
+        } else {
             txHash = await this.sendEvmTransaction (rpcUrl, this.parseToInt (networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
         }
         if (!skipWaitForReceipt) {
@@ -1443,7 +1445,12 @@ export default class myriad extends Exchange {
             return [];
         }
         const traderParam = this.safeString2 (params, 'trader', 'address');
-        const trader = (traderParam !== undefined) ? traderParam : this.walletAddressOrUndefined ();
+        let trader: Str = undefined;
+        if (traderParam !== undefined) {
+            trader = traderParam;
+        } else {
+            trader = this.walletAddressOrUndefined ();
+        }
         if (trader === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
