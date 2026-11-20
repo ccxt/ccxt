@@ -7313,6 +7313,7 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     // base List params every ts/src caller hands a `[]any` local; ParseDepositAddresses' interface line matches
     'parseDepositAddresses': { 0: '[]any' }, 'parseBorrowInterests': { 0: '[]any' },
     'parseLiquidations': { 0: '[]any' }, 'parseOpenInterests': { 0: '[]any' },
+    'parseMarginModifications': { 0: '[]any' },
     // PredictionExchange params (no override) every venue caller hands a `[]any` local or literal
     'applyEventFetchParams': { 0: '[]any' }, 'rlpEncodeList': { 0: '[]any' },
     // cancelOrdersWs (ids: string[]) on the base and every ws override; the typed wrapper already takes []string

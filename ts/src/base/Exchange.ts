@@ -9118,8 +9118,7 @@ export class BaseExchange {
          */
         const result: Liquidation[] = [];
         for (let i = 0; i < liquidations.length; i++) {
-            const entry = liquidations[i];
-            const parsed = this.parseLiquidation (entry, market);
+            const parsed = this.parseLiquidation (liquidations[i], market);
             result.push (parsed);
         }
         const sorted = this.sortBy (result, 'timestamp');
@@ -9155,15 +9154,14 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseOption () is not supported yet');
     }
 
-    parseOptionChain (response: object[], currencyKey: Str = undefined, symbolKey: Str = undefined): OptionChain {
+    parseOptionChain (response: Dict[], currencyKey: Str = undefined, symbolKey: Str = undefined): OptionChain {
         const optionStructures: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const info = response[i];
-            const currencyId = (currencyKey === undefined) ? undefined : this.safeString (info, currencyKey);
+            const currencyId = (currencyKey === undefined) ? undefined : this.safeString (response[i], currencyKey);
             const currency = this.safeCurrency (currencyId);
-            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (response[i], symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, 'option');
-            optionStructures[market['symbol']] = this.parseOption (info, currency, market);
+            optionStructures[market['symbol']] = this.parseOption (response[i], currency, market);
         }
         return optionStructures;
     }
@@ -9345,17 +9343,16 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
     }
 
-    parseMarginModifications (response: object[] | undefined, symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): MarginModification[] {
+    parseMarginModifications (response: Dict[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): MarginModification[] {
         const marginModifications: MarginModification[] = [];
         if (response === undefined) {
             return marginModifications;
         }
         for (let i = 0; i < response.length; i++) {
-            const info = response[i];
-            const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
+            const marketId = (symbolKey === undefined) ? undefined : this.safeString (response[i], symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
-                marginModifications.push (this.parseMarginModification (info, market));
+                marginModifications.push (this.parseMarginModification (response[i], market));
             }
         }
         return marginModifications;
