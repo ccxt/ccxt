@@ -969,6 +969,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.balance.put(type, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", message);
+        Map<String, Object> balance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(balanceUpdate, "a");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
         Map<String, Object> account = this.account();
@@ -976,9 +977,9 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         account.put("used", this.safeString(balanceUpdate, "l"));
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
+            balance.put(code, account);
         }
-        this.balance.put(type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
+        this.balance.put(type, this.safeBalance(balance));
         String messageHash = ("balance:" + type);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
     }

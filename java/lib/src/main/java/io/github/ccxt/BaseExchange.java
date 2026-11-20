@@ -6038,8 +6038,8 @@ public Map<String, Object> describe()
         for (var i = 0; i < targets.size(); i++)
         {
             String target = (targets == null || i < 0 || i >= targets.size() ? null : targets.get(i));
-            Object source = (fallbacks == null || target == null ? null : fallbacks.get(target));
-            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals((this.has == null || source == null ? null : this.has.get(source)), null));
+            String source = this.safeString(fallbacks, target, "");
+            Boolean sourceDefined = (((Map<?, ?>)this.has).containsKey(source)) && (!java.util.Objects.equals((this.has == null || source == null ? null : this.has.get(source)), null));
             Boolean targetDefined = (((Map<?, ?>)this.has).containsKey(target)) && (!java.util.Objects.equals((this.has == null || target == null ? null : this.has.get(target)), null));
             if (Boolean.TRUE.equals(sourceDefined) && !Boolean.TRUE.equals(targetDefined))
             {

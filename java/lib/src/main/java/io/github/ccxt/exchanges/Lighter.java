@@ -3693,7 +3693,7 @@ public class Lighter extends LighterApi
             List<Object> data = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < data.size(); i++)
             {
-                Helpers.addElementToObject((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "account_index", accountIndex);
+                ((Map<String, Object>)(data == null || i < 0 || i >= data.size() ? null : data.get(i))).put("account_index", accountIndex);
             }
             String nextCursor = this.safeString(response, "next_cursor");
             Map<String, Object> first = this.safeDict(data, 0, null);

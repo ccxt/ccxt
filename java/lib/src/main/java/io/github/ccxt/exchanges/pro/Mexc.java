@@ -1875,8 +1875,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.balance.put(type, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "timestamp", timestamp);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "datetime", this.iso8601(timestamp));
+        Map<String, Object> balance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
+        balance.put("timestamp", timestamp);
+        balance.put("datetime", this.iso8601(timestamp));
         String currencyId = this.safeString2(data, "currency", "vcoinName");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
         Map<String, Object> account = this.account();
@@ -1884,9 +1885,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         account.put("used", this.safeString2(data, "frozenBalance", "frozenAmount"));
         if (!java.util.Objects.equals(code, null))
         {
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
+            balance.put(code, account);
         }
-        this.balance.put(type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
+        this.balance.put(type, this.safeBalance(balance));
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
     }
 

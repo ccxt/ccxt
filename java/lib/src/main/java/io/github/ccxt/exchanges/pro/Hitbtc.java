@@ -1846,7 +1846,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptionHashes.size(); i++)
         {
-            Object subscription = Helpers.GetValue(client.subscriptions, (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i)));
+            Object subscription = (client.subscriptions == null || (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i)) == null ? null : client.subscriptions.get((subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i))));
             Boolean isUnSubscription = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             String subscriptionId = this.safeString(subscription, "id");
             if (Boolean.TRUE.equals(isUnSubscription) && (!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))

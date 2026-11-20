@@ -2082,11 +2082,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             accountType = "swap";
         }
         String messageHash = (accountType + ":balance");
-        if (!(((Map<?, ?>)this.balance).containsKey(accountType)))
-        {
-            this.balance.put(accountType, new HashMap<String, Object>() {{}});
-        }
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
+        Map<String, Object> balance = this.safeDict(this.balance, accountType, new HashMap<String, Object>() {{}});
+        balance.put("info", message);
         List<Object> balanceUpdates = this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < balanceUpdates.size(); i++)
         {
@@ -2099,13 +2096,13 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             account.put("total", this.safeString2(entry, "equity", "legacyAmount"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), code, account);
+                balance.put(code, account);
             }
         }
         Long timestamp = this.safeInteger(message, "E");
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "timestamp", timestamp);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "datetime", this.iso8601(timestamp));
-        this.balance.put(accountType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType))));
+        balance.put("timestamp", timestamp);
+        balance.put("datetime", this.iso8601(timestamp));
+        this.balance.put(accountType, this.safeBalance(balance));
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), messageHash);
     }
 
