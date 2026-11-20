@@ -4929,7 +4929,7 @@ export default class bitget extends Exchange {
         if (since !== undefined) {
             calculatedStartTime = since;
             request['startTime'] = since;
-            if (until === undefined) {
+            if ((until === undefined) || limitDefined) {
                 calculatedEndTime = this.sum (since, recentDuration);
                 if (since > now - recentDuration) {
                     calculatedEndTime = now;
@@ -4942,8 +4942,10 @@ export default class bitget extends Exchange {
         }
         if (until !== undefined) {
             const untilEndTime: int = (until > now) ? now : until;
-            calculatedEndTime = untilEndTime;
-            request['endTime'] = untilEndTime;
+            if ((calculatedEndTime === undefined) || (untilEndTime < calculatedEndTime)) {
+                calculatedEndTime = untilEndTime;
+                request['endTime'] = untilEndTime;
+            }
             if (since === undefined) {
                 const untilStartTime: int = untilEndTime - recentDuration;
                 calculatedStartTime = untilStartTime;
