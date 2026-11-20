@@ -178,6 +178,121 @@
                     ]
                 ]
             }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "spot trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream.toobit.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "spot trades unsubscribe for two symbols with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ],
+                "url": "wss://stream.toobit.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "spot 1m kline unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://stream.toobit.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCVForSymbols": [
+            {
+                "description": "spot and swap 1m kline unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    [
+                        [
+                            "BTC/USDT",
+                            "1m"
+                        ],
+                        [
+                            "BTC/USDT:USDT",
+                            "1m"
+                        ]
+                    ]
+                ],
+                "url": "wss://stream.toobit.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTicker": [
+            {
+                "description": "spot ticker unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream.toobit.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTickers": [
+            {
+                "description": "spot and swap tickers unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://stream.toobit.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "spot order book unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream.toobit.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBookForSymbols": [
+            {
+                "description": "spot and swap order book unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://stream.toobit.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
         ]
     }
 }
