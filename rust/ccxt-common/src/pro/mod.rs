@@ -12,7 +12,7 @@ pub mod ws_client;
 
 pub use cache::{
     ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide,
-    ArrayCacheByOutcomeById,
+    ArrayCacheByOutcomeById, OhlcvTick,
     KIND_ARRAY_CACHE, KIND_ARRAY_CACHE_BY_TIMESTAMP,
     KIND_ARRAY_CACHE_BY_SYMBOL_ID, KIND_ARRAY_CACHE_BY_SYMBOL_SIDE,
 };

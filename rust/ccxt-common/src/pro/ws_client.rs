@@ -29,6 +29,7 @@ use tokio::sync::{mpsc, watch};
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::Value;
+use crate::pro::cache::OhlcvTick;
 
 /// Handle to one per-connection state. The state itself lives on the client
 /// store's owner thread; a handle carries only the key (`url`) and the wakeup
@@ -56,6 +57,8 @@ struct ClientCore {
     incoming: VecDeque<Value>,
     /// messageHash → resolved value (set by `handle_message` via `resolve`).
     resolved: HashMap<String, Value>,
+    /// messageHash → typed OHLCV value (set via `resolve_ohlcv`).
+    resolved_ohlcv: HashMap<String, OhlcvTick>,
     /// messageHash → error (set by `reject`; delivered before/instead of value).
     rejections: HashMap<String, Value>,
     /// subscribeHash → subscription object (TS `client.subscriptions[hash]`).
@@ -84,6 +87,17 @@ struct ClientCore {
     /// Wakeup channel for this client's waiters (`next_message`,
     /// `ws_await_flight`, `ensure_client` joiners).
     gen_tx: watch::Sender<u64>,
+}
+
+/// A watch result type: picks which resolved store a drive loop reads.
+pub trait Settled: Default + Send + 'static {
+    fn take_from(values: &mut HashMap<String, Value>, ohlcv: &mut HashMap<String, OhlcvTick>, hash: &str) -> Option<Self>;
+}
+impl Settled for Value {
+    fn take_from(values: &mut HashMap<String, Value>, _: &mut HashMap<String, OhlcvTick>, hash: &str) -> Option<Value> { values.remove(hash) }
+}
+impl Settled for OhlcvTick {
+    fn take_from(_: &mut HashMap<String, Value>, ohlcv: &mut HashMap<String, OhlcvTick>, hash: &str) -> Option<OhlcvTick> { ohlcv.remove(hash) }
 }
 
 /// One single-flight slot. `settled` stays populated after the flight closes so
@@ -349,9 +363,20 @@ impl ClientState {
         });
     }
 
+    /// Store a typed OHLCV value for `hash`; the waiter takes it with `take_settled_as::<OhlcvTick>`.
+    pub fn resolve_ohlcv(&self, hash: &str, tick: OhlcvTick) {
+        let h = hash.to_string();
+        self.with_mut(move |c| { c.resolved_ohlcv.insert(h, tick); });
+    }
+
     /// If any of `hashes` has a resolved value or rejection, remove and return
     /// it (`Ok` for value, `Err` for rejection). Rejections take priority.
     pub fn take_settled(&self, hashes: &[String]) -> Option<Result<Value, Value>> {
+        self.take_settled_as::<Value>(hashes)
+    }
+
+    /// `take_settled` reading the store of result type `T` (rejections are shared by both).
+    pub fn take_settled_as<T: Settled>(&self, hashes: &[String]) -> Option<Result<T, Value>> {
         let hs = hashes.to_vec();
         self.with(move |c| {
             for h in &hs {
@@ -360,7 +385,7 @@ impl ClientState {
                 }
             }
             for h in &hs {
-                if let Some(v) = c.resolved.remove(h) {
+                if let Some(v) = T::take_from(&mut c.resolved, &mut c.resolved_ohlcv, h) {
                     return Some(Ok(v));
                 }
             }
@@ -541,6 +566,7 @@ impl ClientState {
     pub fn reset(&self) {
         self.with(|c| {
             c.resolved.clear();
+            c.resolved_ohlcv.clear();
             c.rejections.clear();
             c.subscriptions.clear();
             c.futures.clear();
@@ -560,7 +586,7 @@ impl ClientState {
         self.with_mut(move |c| {
             let hashes: Vec<String> = c.futures.iter().cloned().collect();
             for h in &hashes {
-                if c.resolved.contains_key(h) {
+                if c.resolved.contains_key(h) || c.resolved_ohlcv.contains_key(h) {
                     continue;
                 }
                 core_flight_settle(c, h, Err(error.clone()));
@@ -888,6 +914,7 @@ fn ensure_slot(url: &str) -> Arc<ClientState> {
             connecting: false,
             incoming: VecDeque::new(),
             resolved: HashMap::new(),
+            resolved_ohlcv: HashMap::new(),
             rejections: HashMap::new(),
             subscriptions: HashMap::new(),
             futures: HashSet::new(),
@@ -933,6 +960,7 @@ pub fn mock_setup(url: &str) {
     let c = ensure_slot(url);
     c.with_mut(|core| {
         core.resolved.clear();
+        core.resolved_ohlcv.clear();
         core.rejections.clear();
         core.subscriptions.clear();
         core.futures.clear();
@@ -1030,6 +1058,7 @@ impl ClientHandle {
 
     pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_resolve(&self.value, value.into(), hash.into()) }
     pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_reject(&self.value, err.into(), hash.into()) }
+    pub fn resolve_ohlcv<'k>(&self, tick: OhlcvTick, hash: impl Into<Option<&'k str>>) { value_resolve_ohlcv(&self.value, tick, hash.into()) }
     pub fn send(&self, args: &[Value]) -> Value { value_send(&self.value, args) }
     pub fn reset(&self, error: Value) -> Value { value_reset(&self.value, error) }
     pub fn on_pong(&self) -> Value { value_on_pong(&self.value) }
@@ -1268,6 +1297,15 @@ fn handle_get(map: &Value, key: Option<&str>) -> Value {
     }
 }
 
+/// `client.resolve_ohlcv(tick, messageHash)` routed by URL (no-op without a url or hash).
+pub fn value_resolve_ohlcv(client: &Value, tick: OhlcvTick, hash: Option<&str>) {
+    if let (Some(url), Some(hash)) = (url_of(client), hash) {
+        if let Some(c) = get_client(&url) {
+            c.resolve_ohlcv(hash, tick);
+        }
+    }
+}
+
 /// `client.resolve(value, messageHash)` routed by URL. Returns `value`.
 pub fn value_resolve(client: &Value, value: Value, hash: Option<&str>) -> Value {
     // `client.futures[hash].resolve(value)` — the future handle carries its own
@@ -1440,6 +1478,96 @@ mod tests {
         assert_eq!(client.take_settled(&["pending2".to_string()]), None);
         assert!(!client.has_pending_futures());
 
+        drop_client(url);
+    }
+
+    fn ohlcv_tick(symbol: &str) -> OhlcvTick {
+        let mut stored = crate::pro::cache::ArrayCacheByTimestamp::new(Value::Int(10));
+        stored.append(Value::List(vec![Value::Int(1), Value::Float(2.5)]));
+        OhlcvTick { symbol: Some(symbol.into()), timeframe: Some("1m".into()), stored: Some(stored) }
+    }
+
+    // A typed OHLCV resolve reaches only a typed waiter, intact, and is consumed once.
+    #[test]
+    fn resolve_ohlcv_settles_typed_waiter_only() {
+        let url = "ws://ohlcv-resolve.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let hashes = vec!["ohlcv::BTC/USDT::1m".to_string()];
+        client.note_futures(&hashes);
+        ClientHandle::from_value(&client_value(url)).resolve_ohlcv(ohlcv_tick("BTC/USDT"), hashes[0].as_str());
+        assert_eq!(client.take_settled(&hashes), None);
+        let t = client.take_settled_as::<OhlcvTick>(&hashes).expect("settled").expect("resolved");
+        assert_eq!((t.symbol.as_deref(), t.timeframe.as_deref()), (Some("BTC/USDT"), Some("1m")));
+        assert_eq!(t.stored.map(|c| c.size()), Some(1));
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&hashes), None);
+        // and a Value resolve on the same hash is not seen by a typed waiter
+        client.resolve(&hashes[0], Value::Int(7));
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&hashes), None);
+        assert_eq!(client.take_settled(&hashes), Some(Ok(Value::Int(7))));
+        drop_client(url);
+    }
+
+    // Rejections are shared: reject, reject-all and reset(error) wake a typed waiter with the error.
+    #[test]
+    fn ohlcv_waiter_observes_rejections() {
+        let url = "ws://ohlcv-reject.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let h = vec!["ohlcv::a".to_string()];
+        client.note_futures(&h);
+        let err = || Value::Str("[ExchangeError] boom".into());
+        client.resolve_ohlcv(&h[0], ohlcv_tick("A"));
+        client.reject(&h[0], err());
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), Some(Err(err())));
+        // as with `resolve`, the value under the rejection is still delivered next
+        let t = client.take_settled_as::<OhlcvTick>(&h).expect("kept").expect("value");
+        assert_eq!(t.symbol.as_deref(), Some("A"));
+        client.note_futures(&h);
+        client.reject_pending_futures(err());
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), Some(Err(err())));
+        client.note_futures(&h);
+        value_reset(&client_value(url), err());
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), Some(Err(err())));
+        drop_client(url);
+    }
+
+    // reset(error) keeps a delivered-but-not-taken typed value; reset() and mock_setup drop it.
+    #[test]
+    fn ohlcv_store_cleared_with_resolved() {
+        let url = "ws://ohlcv-reset.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let h = vec!["ohlcv::late".to_string()];
+        client.note_futures(&h);
+        client.resolve_ohlcv(&h[0], ohlcv_tick("LATE"));
+        client.reset_with_error(Value::Str("[NetworkError] gap".into()));
+        let t = client.take_settled_as::<OhlcvTick>(&h).expect("kept").expect("value");
+        assert_eq!(t.symbol.as_deref(), Some("LATE"));
+        client.resolve_ohlcv(&h[0], ohlcv_tick("X"));
+        client.reset();
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), None);
+        client.resolve_ohlcv(&h[0], ohlcv_tick("Y"));
+        mock_setup(url);
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), None);
+        drop_client(url);
+    }
+
+    // A late await (resolve before the waiter polls) still gets the value; a handle without a hash is a no-op.
+    #[test]
+    fn ohlcv_late_await_and_missing_hash() {
+        let url = "ws://ohlcv-late.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let h = vec!["ohlcv::x".to_string(), "ohlcv::y".to_string()];
+        client_value(url).resolve_ohlcv(ohlcv_tick("Y"), "ohlcv::y");
+        client_value(url).resolve_ohlcv(ohlcv_tick("Z"), None::<&str>);
+        Value::Null.resolve_ohlcv(ohlcv_tick("N"), "ohlcv::x");
+        client.note_futures(&h);
+        let t = client.take_settled_as::<OhlcvTick>(&h).expect("late").expect("value");
+        assert_eq!(t.symbol.as_deref(), Some("Y"));
+        assert_eq!(client.take_settled_as::<OhlcvTick>(&h), None);
+        assert_eq!(OhlcvTick::default(), OhlcvTick { symbol: None, timeframe: None, stored: None });
         drop_client(url);
     }
 

@@ -325,6 +325,10 @@ impl Value {
     pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
         crate::pro::ws_client::value_resolve(self, value.into(), hash.into())
     }
+    /// `client.resolve_ohlcv(tick, messageHash)`: the typed OHLCV resolve, routed like `resolve`.
+    pub fn resolve_ohlcv<'k>(&self, tick: crate::pro::cache::OhlcvTick, hash: impl Into<Option<&'k str>>) {
+        crate::pro::ws_client::value_resolve_ohlcv(self, tick, hash.into())
+    }
     /// `client.future(messageHash)` — TS's atomic check-and-insert: opens a
     /// single-flight for the hash (or joins the open one) and hands back a
     /// handle. Registering is the whole point — it is what makes a concurrent

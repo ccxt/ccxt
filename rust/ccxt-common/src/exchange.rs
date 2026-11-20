@@ -1447,14 +1447,14 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     // pulls from the shared frame queue.)
 
     /// Shared drive loop for `watch` / `watch_multiple`.
-    fn ws_run(
+    fn ws_run<T: crate::pro::ws_client::Settled>(
         &mut self,
         url: String,
         hashes: Vec<String>,
         message: Value,
         subscribe_hashes: Vec<String>,
         subscription: Value,
-    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    ) -> impl ::std::future::Future<Output = T> + Send { async move {
         let __ws_proxy = [&self.wsProxy, &self.ws_proxy, &self.wssProxy]
             .iter()
             .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.to_string()), _ => None });
@@ -1512,9 +1512,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .try_with(|v| v.iter().any(|u| u == &url))
             .unwrap_or(false);
         if driving {
-            return match client.take_settled(&hashes) {
+            return match client.take_settled_as::<T>(&hashes) {
                 Some(Ok(v)) => v,
-                _ => Value::Null,
+                _ => T::default(),
             };
         }
         // Mark `url` for the duration of this drive so a nested watch on the same
@@ -1553,12 +1553,12 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     /// Read → dispatch → drain loop, split out so `ws_run` can wrap it in the
     /// `WS_DRIVEN_URLS` task-local scope.
-    fn ws_drive_loop(
+    fn ws_drive_loop<T: crate::pro::ws_client::Settled>(
         &mut self,
         client: std::sync::Arc<crate::pro::ws_client::ClientState>,
         hashes: Vec<String>,
         url: String,
-    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    ) -> impl ::std::future::Future<Output = T> + Send { async move {
         loop {
             // Run coroutines scheduled via spawn/delay, inline (they need
             // &mut self). Drain repeatedly: a coroutine may schedule another
@@ -1579,7 +1579,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                     }
                 }
             }
-            if let Some(settled) = client.take_settled(&hashes) {
+            if let Some(settled) = client.take_settled_as::<T>(&hashes) {
                 match settled {
                     Ok(v) => return v,
                     Err(e) => panic!(
@@ -1681,7 +1681,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let hash_s = message_hash.into().unwrap_or("null").to_string();
         let (url_s, message, subscription) = (url.into().unwrap_or("null").to_string(), message.into(), subscription.into());
         let sub_hash_s = match subscribe_hash.into() { Some(s) => s.to_string(), None => hash_s.to_string() };
-        async move { self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await }
+        async move { self.ws_run::<Value>(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await }
     }
 
     fn watch_multiple<'a>(
@@ -1694,7 +1694,21 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     ) -> impl ::std::future::Future<Output = Value> + Send {
         let (url_s, hashes, message) = (url.into().unwrap_or("null").to_string(), message_hashes.ws_hashes(), message.into());
         let (sub_hashes, subscription) = (subscribe_hashes.ws_hashes(), subscription.into());
-        async move { self.ws_run(url_s, hashes, message, sub_hashes, subscription).await }
+        async move { self.ws_run::<Value>(url_s, hashes, message, sub_hashes, subscription).await }
+    }
+
+    /// `watch_multiple` for a watcher whose handler resolves with `client.resolve_ohlcv`.
+    fn watch_multiple_ohlcv<'a>(
+        &mut self,
+        url: impl Into<Option<&'a str>>,
+        message_hashes: impl WsHashList,
+        message: impl Into<Value>,
+        subscribe_hashes: impl WsHashList,
+        subscription: impl Into<Value>,
+    ) -> impl ::std::future::Future<Output = crate::pro::cache::OhlcvTick> + Send {
+        let (url_s, hashes, message) = (url.into().unwrap_or("null").to_string(), message_hashes.ws_hashes(), message.into());
+        let (sub_hashes, subscription) = (subscribe_hashes.ws_hashes(), subscription.into());
+        async move { self.ws_run::<crate::pro::cache::OhlcvTick>(url_s, hashes, message, sub_hashes, subscription).await }
     }
 
     fn fetch_typed(

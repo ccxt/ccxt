@@ -84,6 +84,14 @@ impl From<Value> for Option<Cache> {
 }
 impl From<&Option<Cache>> for Value { fn from(c: &Option<Cache>) -> Value { c.as_ref().map_or(Value::Null, Value::from) } }
 
+/// What an OHLCV handler resolves: `[symbol, timeframe, stored]`, typed.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct OhlcvTick {
+    pub symbol: Option<String>,
+    pub timeframe: Option<String>,
+    pub stored: Option<Cache>,
+}
+
 impl crate::value::Rows for &Cache {
     fn rows(self) -> Value { Value::from(self) }
     fn absent(&self) -> bool { false }
