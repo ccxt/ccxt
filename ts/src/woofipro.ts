@@ -3517,9 +3517,14 @@ export default class woofipro extends Exchange {
                 if (!isSandboxMode) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
-                        const ordersList = this.safeList (requestParams, 'orders', []);
+                        const ordersList: Dict[] = this.safeList (requestParams, 'orders', []);
+                        const taggedOrders: Dict[] = [];
                         for (let i = 0; i < ordersList.length; i++) {
-                            requestParams['orders'][i]['order_tag'] = brokerId;
+                            const orderRow = this.extend (ordersList[i], { 'order_tag': brokerId });
+                            taggedOrders.push (orderRow);
+                        }
+                        if (taggedOrders.length > 0) {
+                            requestParams['orders'] = taggedOrders;
                         }
                     } else {
                         requestParams['order_tag'] = brokerId;
