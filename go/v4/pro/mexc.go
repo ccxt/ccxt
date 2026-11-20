@@ -1040,7 +1040,7 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 		}
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.Fields().Nonce = nil
 	orderbook.SetCache([]any{})
 }
 func (this *Mexc) GetCacheIndex(orderbook any, cache []any) any {
@@ -2030,19 +2030,16 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = data
 	}
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		if timestamp != nil {
-			entry["timestamp"] = *timestamp
-		} else {
-			entry["timestamp"] = nil
-		}
+	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	if timestamp != nil {
+		balance["timestamp"] = *timestamp
+	} else {
+		balance["timestamp"] = nil
 	}
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-			entry["datetime"] = *ptrValue
-		} else {
-			entry["datetime"] = nil
-		}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		balance["datetime"] = *ptrValue
+	} else {
+		balance["datetime"] = nil
 	}
 	var currencyId *string = this.SafeString2(data, "currency", "vcoinName")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -2050,11 +2047,9 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	account["free"] = this.SafeString2(data, "balanceAmount", "availableBalance")
 	account["used"] = this.SafeString2(data, "frozenBalance", "frozenAmount")
 	if code != nil {
-		if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-			entry[*code] = account
-		}
+		balance[*code] = account
 	}
-	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	this.Balance[typeVar] = this.SafeBalance(balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 }
 

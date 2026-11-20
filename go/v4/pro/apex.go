@@ -843,7 +843,7 @@ func (this *Apex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -851,10 +851,11 @@ func (this *Apex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add("myTrades"+":", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = "myTrades" + ":" + *symbolResolved
 	}
 	var url any = this.GetWsPrivateUrl()
 
@@ -1003,11 +1004,12 @@ func (this *Apex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 			panic(r.Err)
 		}
 	}
-	var messageHash any = "orders"
-	var symbolResolved any = nil
+	var messageHash string = "orders"
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add("orders"+":", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = "orders" + ":" + *symbolResolved
 	}
 	var url any = this.GetWsPrivateUrl()
 

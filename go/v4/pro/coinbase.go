@@ -1513,12 +1513,10 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]an
 		var subMessageHashes []any = ccxt.SafeListTyped(unSubObject, "subMessageHashes")
 		for i := 0; i < len(messageHashes); i++ {
 			var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-			var subHash *string = ccxt.SafeStringPtr(func() any {
-				if i >= 0 && i < len(subMessageHashes) {
-					return subMessageHashes[i]
-				}
-				return nil
-			}())
+			var subHash *string = nil
+			if i >= 0 && i < len(subMessageHashes) {
+				subHash = ccxt.SafeStringPtr(subMessageHashes[i])
+			}
 			this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 		}
 		this.CleanCache(unSubObject)

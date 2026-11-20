@@ -4798,7 +4798,7 @@ func (this *Extended) GetExtendedEncodeI64(value any) any {
 }
 func (this *Extended) GetExtendedDecimalToBase16(value string) string {
 	var decimalString any = value
-	var hexChars []any = []any{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
+	var hexChars []string = []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
 	var result string = ""
 	for Precise.StringGt(decimalString, "0") {
 		var remainder int64 = this.ParseToInt(Precise.StringMod(decimalString, "16"))

@@ -1213,12 +1213,12 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 	if until != nil {
 		request["end_timestamp"] = until
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, "until")
-		}
-		return paramsPaginate
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsPaginate, "until")
+	} else {
+		paramsOmitted = paramsPaginate
+	}
 
 	r2 := <-this.PublicGetGetTradingviewChartData(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {
@@ -2119,12 +2119,12 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan AsyncResult[[]Tran
 	if until != nil {
 		request["end_timestamp"] = until
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsResolved, "until")
-		}
-		return paramsResolved
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsResolved, "until")
+	} else {
+		paramsOmitted = paramsResolved
+	}
 
 	r1 := <-this.AuthenticateV2Async()
 	if r1.Err != nil {
@@ -2543,12 +2543,12 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	if limit != nil {
 		request["count"] = *limit
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsResolved, "until")
-		}
-		return paramsResolved
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsResolved, "until")
+	} else {
+		paramsOmitted = paramsResolved
+	}
 
 	r1 := <-this.AuthenticateV2Async()
 	if r1.Err != nil {

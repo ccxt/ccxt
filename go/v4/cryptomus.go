@@ -943,12 +943,12 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 		"tag":       "ccxt",
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, "clientOrderId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, "clientOrderId")
+	} else {
+		paramsOmitted = params
+	}
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}

@@ -196,7 +196,7 @@ func (this *Binance) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []string = this.ParseSearchQueries(params)
 	var queriesLength int = len(queries)
 	if queriesLength > 0 {
 		var eventParams map[string]any = this.OmitDict(params, []any{"limit"})
@@ -463,7 +463,7 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	if !(allowUnscopedFetchEvents != nil && *allowUnscopedFetchEvents) {
 		this.RequireEventQuery(params)
 	}
-	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
+	var queries []string = this.ParseSearchQueries(params)
 	// binance has no tag taxonomy — resolve requested tags through the semantic search too
 	var tags []any = ccxt.SafeListTyped(params, "tags")
 	var tagsLength int = len(tags)

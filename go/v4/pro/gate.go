@@ -860,7 +860,7 @@ func (this *Gate) HandleOrderBookSubscription(client any, message map[string]any
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		orderbook.Fields().Nonce = nil
 		orderbook.SetCache([]any{})
 	}
 }
@@ -3017,12 +3017,10 @@ func (this *Gate) HandleUnSubscribe(client any, message map[string]any) {
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 			for j := 0; j < len(messageHashes); j++ {
 				var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
-				var subHash *string = ccxt.SafeStringPtr(func() any {
-					if j >= 0 && j < len(subMessageHashes) {
-						return subMessageHashes[j]
-					}
-					return nil
-				}())
+				var subHash *string = nil
+				if j >= 0 && j < len(subMessageHashes) {
+					subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+				}
 				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 			}
 			this.CleanCache(subscription)

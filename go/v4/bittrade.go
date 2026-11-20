@@ -2975,12 +2975,12 @@ func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string
 			request["chain"] = *network + currency["id"].(string)
 		}
 	}
-	var paramsNetwork map[string]any = func() map[string]any {
-		if network != nil {
-			return this.OmitDict(paramsWithdrawTag, "network")
-		}
-		return paramsWithdrawTag
-	}()
+	var paramsNetwork map[string]any
+	if network != nil {
+		paramsNetwork = this.OmitDict(paramsWithdrawTag, "network")
+	} else {
+		paramsNetwork = paramsWithdrawTag
+	}
 
 	r1 := <-this.PrivatePostDwWithdrawApiCreate(this.Extend(request, paramsNetwork))
 	if r1.Err != nil {

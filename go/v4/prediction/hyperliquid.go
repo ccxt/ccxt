@@ -2451,7 +2451,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.RequireEventQuery(params)
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []string = this.ParseSearchQueries(params)
 	// hyperliquid has no dedicated events endpoint - events are grouped from the outcome
 	// markets. use the cached load so the handles advertised here always match the
 	// outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
@@ -2470,7 +2470,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	}
 	var lowerQueries []any = []any{}
 	for i := 0; i < len(queries); i++ {
-		var queryString *string = ccxt.SafeStringPtr(queries[i])
+		var queryString *string = &queries[i]
 		lowerQueries = append(lowerQueries, strings.ToLower(*queryString))
 	}
 	var lowerQueriesLength int = len(lowerQueries)

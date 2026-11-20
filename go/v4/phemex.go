@@ -3284,12 +3284,12 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	} else {
 		request["clOrdID"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, []any{"clOrdID", "clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clOrdID", "clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 	var triggerPrice *string = this.SafeStringN(paramsOmitted, []any{"stopPx", "stopPrice", "triggerPrice"})
 	if triggerPrice != nil {
 		if isStableSettled {

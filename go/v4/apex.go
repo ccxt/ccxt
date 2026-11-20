@@ -2333,12 +2333,12 @@ func (this *Apex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	if endTimeExclusive != nil {
 		request["endTimeExclusive"] = endTimeExclusive
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if endTimeExclusive != nil {
-			return this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if endTimeExclusive != nil {
+		paramsOmitted = this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivateGetV3HistoryOrders(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -2462,12 +2462,12 @@ func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	if endTimeExclusive != nil {
 		request["endTimeExclusive"] = endTimeExclusive
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if endTimeExclusive != nil {
-			return this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if endTimeExclusive != nil {
+		paramsOmitted = this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivateGetV3Fills(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -2534,12 +2534,12 @@ func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	if endTimeExclusive != nil {
 		request["endTimeExclusive"] = endTimeExclusive
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if endTimeExclusive != nil {
-			return this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if endTimeExclusive != nil {
+		paramsOmitted = this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivateGetV3Funding(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {

@@ -2742,12 +2742,12 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	if since != nil {
 		request["startTime"] = *since
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if endTime != nil {
-			return this.OmitDict(params, []any{"endTime", "until"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if endTime != nil {
+		paramsOmitted = this.OmitDict(params, []any{"endTime", "until"})
+	} else {
+		paramsOmitted = params
+	}
 	if endTime != nil {
 		request["endTime"] = endTime
 	}
@@ -2825,12 +2825,12 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network") // this line allows the user to specify either ERC20 or ETH
 	network = this.SafeString(networks, network, network)         // handle ERC20>ETH alias
-	var paramsOmitted map[string]any = func() map[string]any {
-		if network != nil {
-			return this.OmitDict(params, "network")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if network != nil {
+		paramsOmitted = this.OmitDict(params, "network")
+	} else {
+		paramsOmitted = params
+	}
 	if network != nil {
 		request["network"] = network
 	}

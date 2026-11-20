@@ -2405,12 +2405,8 @@ func (this *Weex) HandleBalance(client any, message map[string]any) {
 		accountType = "swap"
 	}
 	var messageHash string = accountType + ":balance"
-	if _, ok := this.Balance[accountType]; !ok {
-		this.Balance[accountType] = map[string]any{}
-	}
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		entry["info"] = message
-	}
+	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+	balance["info"] = message
 	var balanceUpdates []any = ccxt.SafeListTyped(message, "d")
 	for i := 0; i < len(balanceUpdates); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(balanceUpdates, i)
@@ -2421,27 +2417,21 @@ func (this *Weex) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(entry, "frozen")
 		account["total"] = this.SafeString2(entry, "equity", "legacyAmount")
 		if code != nil {
-			if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
+			balance[*code] = account
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		if timestamp != nil {
-			entry["timestamp"] = *timestamp
-		} else {
-			entry["timestamp"] = nil
-		}
+	if timestamp != nil {
+		balance["timestamp"] = *timestamp
+	} else {
+		balance["timestamp"] = nil
 	}
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-			entry["datetime"] = *ptrValue
-		} else {
-			entry["datetime"] = nil
-		}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		balance["datetime"] = *ptrValue
+	} else {
+		balance["datetime"] = nil
 	}
-	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
+	this.Balance[accountType] = this.SafeBalance(balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
 }
 

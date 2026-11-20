@@ -2993,12 +2993,12 @@ func (this *Btse) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, opti
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, "clientOrderId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, "clientOrderId")
+	} else {
+		paramsOmitted = params
+	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3080,12 +3080,12 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, "clientOrderId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, "clientOrderId")
+	} else {
+		paramsOmitted = params
+	}
 	var triggerPrice *string = this.SafeString(paramsOmitted, "triggerPrice")
 	if triggerPrice != nil {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -3186,12 +3186,12 @@ func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, "clientOrderId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, "clientOrderId")
+	} else {
+		paramsOmitted = params
+	}
 	var response []any = nil
 	if *this.SafeBool(market, "spot", false) {
 		request["symbol"] = market["id"]
@@ -4709,12 +4709,12 @@ func (this *Btse) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 		}
 		request["orderPrice"] = this.PriceToPrecision(symbol, price)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if typeUpper == "LIMIT" {
-			return this.OmitDict(paramsOrderType, "price")
-		}
-		return paramsOrderType
-	}()
+	var paramsOmitted map[string]any
+	if typeUpper == "LIMIT" {
+		paramsOmitted = this.OmitDict(paramsOrderType, "price")
+	} else {
+		paramsOmitted = paramsOrderType
+	}
 
 	r1 := <-this.PrivateDeleteFuturesApiV3TradePositions(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {

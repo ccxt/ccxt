@@ -10089,12 +10089,12 @@ func (this *Bitget) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, []any{"clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 	var response any = nil
 	argStr := "fetchOrder"
 	r1 := <-this.HandleUTAAndParamsAsync(paramsOmitted, &argStr, false)

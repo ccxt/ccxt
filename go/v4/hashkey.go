@@ -3366,12 +3366,12 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol *string, typeVar string, side
 		request["clientOrderId"] = this.Uuid()
 	}
 	var triggerPrice *string = this.SafeString(paramsPostOnly, "triggerPrice")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if triggerPrice != nil {
-			return this.OmitDict(paramsPostOnly, "triggerPrice")
-		}
-		return paramsPostOnly
-	}()
+	var paramsOmitted map[string]any
+	if triggerPrice != nil {
+		paramsOmitted = this.OmitDict(paramsPostOnly, "triggerPrice")
+	} else {
+		paramsOmitted = paramsPostOnly
+	}
 	if triggerPrice != nil {
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["type"] = "STOP"

@@ -1127,17 +1127,16 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = message
 	}
+	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(balanceUpdate, "f")
 	account["used"] = this.SafeString(balanceUpdate, "l")
 	if code != nil {
-		if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-			entry[*code] = account
-		}
+		balance[*code] = account
 	}
-	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	this.Balance[typeVar] = this.SafeBalance(balance)
 	var messageHash string = "balance:" + typeVar
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 }

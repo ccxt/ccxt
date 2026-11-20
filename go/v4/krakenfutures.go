@@ -3154,9 +3154,10 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optio
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
 	}
 	// todo: lastFillTime: this.iso8601(end)
 
@@ -3249,12 +3250,12 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], o
 	if until != nil {
 		request["before"] = until
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.HistoryGetAccountLog(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -3358,12 +3359,12 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan AsyncResult[[]Funding
 	if until != nil {
 		request["before"] = until
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.HistoryGetAccountLog(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -4154,12 +4155,12 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]Posit
 	if until != nil {
 		request["before"] = until
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.HistoryGetPositions(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {

@@ -2491,12 +2491,12 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	if reduceOnly != nil && *reduceOnly == true {
 		request["reduce_only"] = reduceOnly
 	}
-	var paramsOmitted2 map[string]any = func() map[string]any {
-		if reduceOnly != nil && *reduceOnly == true {
-			return this.OmitDict(paramsOmitted, "reduceOnly")
-		}
-		return paramsOmitted
-	}()
+	var paramsOmitted2 map[string]any
+	if reduceOnly != nil && *reduceOnly == true {
+		paramsOmitted2 = this.OmitDict(paramsOmitted, "reduceOnly")
+	} else {
+		paramsOmitted2 = paramsOmitted
+	}
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))
 	if r1.Err != nil {
@@ -3275,12 +3275,12 @@ func (this *Delta) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	if networkCode != nil {
 		request["network"] = this.NetworkCodeToId(networkCode, code)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if networkCode != nil {
-			return this.OmitDict(params, "network")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if networkCode != nil {
+		paramsOmitted = this.OmitDict(params, "network")
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivateGetDepositsAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {

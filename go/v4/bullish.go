@@ -2173,12 +2173,12 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 		until = untilParam
 	}
 	var sinceFromUntil bool = (since == nil) && (untilParam != nil)
-	var paramsResult map[string]any = func() map[string]any {
-		if sinceFromUntil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsResult map[string]any
+	if sinceFromUntil {
+		paramsResult = this.OmitDict(params, "until")
+	} else {
+		paramsResult = params
+	}
 	if (since != nil) || (untilParam != nil) {
 		var timeDelta int64 = (7 * 24) * 60 * 60 * 1000 // 7 days
 		var sinceResolved any = since
@@ -2562,12 +2562,12 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		orderType = "STOP_LIMIT"
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if triggerPrice != nil {
-			return this.OmitDict(paramsTimeInForce, "triggerPrice")
-		}
-		return paramsTimeInForce
-	}()
+	var paramsOmitted map[string]any
+	if triggerPrice != nil {
+		paramsOmitted = this.OmitDict(paramsTimeInForce, "triggerPrice")
+	} else {
+		paramsOmitted = paramsTimeInForce
+	}
 	request["type"] = strings.ToUpper(orderType)
 
 	r2 := <-this.PrivatePostV2Orders(this.Extend(request, paramsOmitted))
@@ -2653,12 +2653,12 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if postOnly != nil && *postOnly {
-			return this.OmitDict(params, "postOnly")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if postOnly != nil && *postOnly {
+		paramsOmitted = this.OmitDict(params, "postOnly")
+	} else {
+		paramsOmitted = params
+	}
 
 	r2 := <-this.PrivatePostV2Command(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {

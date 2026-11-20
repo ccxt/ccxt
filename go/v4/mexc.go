@@ -3102,12 +3102,12 @@ func (this *Mexc) CreateSpotOrderRequest(market map[string]any, typeVar *string,
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	var paramsWithoutCost map[string]any = func() map[string]any {
-		if typeVar != nil && *typeVar == "market" {
-			return this.OmitDict(params, "cost")
-		}
-		return params
-	}()
+	var paramsWithoutCost map[string]any
+	if typeVar != nil && *typeVar == "market" {
+		paramsWithoutCost = this.OmitDict(params, "cost")
+	} else {
+		paramsWithoutCost = params
+	}
 	var clientOrderId *string = this.SafeString(paramsWithoutCost, "clientOrderId")
 	if clientOrderId != nil {
 		request["newClientOrderId"] = clientOrderId
@@ -3130,12 +3130,12 @@ func (this *Mexc) CreateSpotOrderRequest(market map[string]any, typeVar *string,
 		request["type"] = "LIMIT_MAKER"
 	}
 	var tif *string = this.SafeString(paramsPostOnly, "timeInForce")
-	var paramsWithoutTif map[string]any = func() map[string]any {
-		if tif != nil {
-			return this.OmitDict(paramsPostOnly, "timeInForce")
-		}
-		return paramsPostOnly
-	}()
+	var paramsWithoutTif map[string]any
+	if tif != nil {
+		paramsWithoutTif = this.OmitDict(paramsPostOnly, "timeInForce")
+	} else {
+		paramsWithoutTif = paramsPostOnly
+	}
 	if tif != nil {
 		if tif != nil && *tif == "IOC" {
 			request["type"] = "IMMEDIATE_OR_CANCEL"
@@ -3372,12 +3372,12 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 		}
 	}
 	request["side"] = sideInteger
-	var paramsReduceOnly map[string]any = func() map[string]any {
-		if reduceOnly != nil && *reduceOnly {
-			return this.OmitDict(paramsPostOnly, "reduceOnly")
-		}
-		return paramsPostOnly
-	}() // hedged mode does not accept this parameter
+	var paramsReduceOnly map[string]any
+	if reduceOnly != nil && *reduceOnly {
+		paramsReduceOnly = this.OmitDict(paramsPostOnly, "reduceOnly")
+	} else {
+		paramsReduceOnly = paramsPostOnly
+	} // hedged mode does not accept this parameter
 	var clientOrderId *string = this.SafeString2(paramsReduceOnly, "clientOrderId", "externalOid")
 	if clientOrderId != nil {
 		request["externalOid"] = clientOrderId
@@ -3575,12 +3575,12 @@ func (this *Mexc) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 		} else {
 			request["orderId"] = id
 		}
-		var paramsOmitted map[string]any = func() map[string]any {
-			if clientOrderId != nil {
-				return this.OmitDict(params, "clientOrderId")
-			}
-			return params
-		}()
+		var paramsOmitted map[string]any
+		if clientOrderId != nil {
+			paramsOmitted = this.OmitDict(params, "clientOrderId")
+		} else {
+			paramsOmitted = params
+		}
 		marginMode, query := this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
 		if marginMode != nil {
 			if marginMode == nil || *marginMode != "isolated" {
@@ -5396,12 +5396,12 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if until != nil {
 			request["endTime"] = until
 		}
-		var paramsUntil map[string]any = func() map[string]any {
-			if until != nil {
-				return this.OmitDict(paramsMarketType, "until")
-			}
-			return paramsMarketType
-		}()
+		var paramsUntil map[string]any
+		if until != nil {
+			paramsUntil = this.OmitDict(paramsMarketType, "until")
+		} else {
+			paramsUntil = paramsMarketType
+		}
 
 		r1 := <-this.SpotPrivateGetMyTrades(this.Extend(request, paramsUntil))
 		if r1.Err != nil {
@@ -6513,12 +6513,12 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		}
 		request["limit"] = *limit
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if rawNetwork != nil {
-			return this.OmitDict(params, "network")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if rawNetwork != nil {
+		paramsOmitted = this.OmitDict(params, "network")
+	} else {
+		paramsOmitted = params
+	}
 
 	responseRecv := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
 	if responseRecv.Err != nil {
@@ -7525,12 +7525,12 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	if network != nil {
 		request["netWork"] = network
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if network != nil {
-			return this.OmitDict(paramsWithdrawTag, []any{"network", "netWork"})
-		}
-		return paramsWithdrawTag
-	}()
+	var paramsOmitted map[string]any
+	if network != nil {
+		paramsOmitted = this.OmitDict(paramsWithdrawTag, []any{"network", "netWork"})
+	} else {
+		paramsOmitted = paramsWithdrawTag
+	}
 
 	r2 := <-this.SpotPrivatePostCapitalWithdraw(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {
@@ -8206,7 +8206,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var section string = api[0]
 	var access string = api[1]

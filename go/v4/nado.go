@@ -998,7 +998,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, DerefScalar(cancelledOrders[i])), market)))
+		}, cancelledOrders[i]), market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(result)}
@@ -1138,7 +1138,7 @@ func (this *Nado) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, DerefScalar(cancelledOrders[i])), market)))
+		}, cancelledOrders[i]), market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(result)}

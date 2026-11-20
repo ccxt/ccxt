@@ -666,12 +666,10 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 	//     type: 'update'
 	// }
 	//
-	var firstBidAsk map[string]any = ccxt.MapTyped(func() any {
-		if 0 >= 0 && 0 < len(rawBidAskChanges) {
-			return ccxt.DerefScalar(rawBidAskChanges[0])
-		}
-		return nil
-	}())
+	var firstBidAsk map[string]any = nil
+	if 0 >= 0 && 0 < len(rawBidAskChanges) {
+		firstBidAsk = ccxt.MapTyped(rawBidAskChanges[0])
+	}
 	var marketId string = strings.ToLower(*this.SafeString(firstBidAsk, "symbol", ""))
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -786,12 +784,10 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	//   },
 	//   ...
 	//
-	var firstChange map[string]any = ccxt.MapTyped(func() any {
-		if 0 >= 0 && 0 < len(rawOrderBookChanges) {
-			return ccxt.DerefScalar(rawOrderBookChanges[0])
-		}
-		return nil
-	}())
+	var firstChange map[string]any = nil
+	if 0 >= 0 && 0 < len(rawOrderBookChanges) {
+		firstChange = ccxt.MapTyped(rawOrderBookChanges[0])
+	}
 	var marketId string = strings.ToLower(*this.SafeString(firstChange, "symbol", ""))
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")

@@ -1528,7 +1528,7 @@ func (this *Binance) HandleOrderBookSubscription(client any, message any, subscr
 			}
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol.(string)]
-		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		orderbook.Fields().Nonce = nil
 		orderbook.SetCache([]any{})
 		var symbolSubscription map[string]any = this.Extend(subscription, map[string]any{
 			"symbol": symbol,
@@ -1562,12 +1562,10 @@ func (this *Binance) HandleUnSubscription(client any, subscription map[string]an
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for j := 0; j < len(messageHashes); j++ {
 		var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
-		var subHash *string = ccxt.SafeStringPtr(func() any {
-			if j >= 0 && j < len(subMessageHashes) {
-				return subMessageHashes[j]
-			}
-			return nil
-		}())
+		var subHash *string = nil
+		if j >= 0 && j < len(subMessageHashes) {
+			subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+		}
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
@@ -1663,7 +1661,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 			var market map[string]any = this.Market(symbol)
 			messageHashes = append(messageHashes, "trade::"+symbol)
 			subscribeHashes = append(subscribeHashes, "trade::"+symbol)
-			var rawHash *string = ccxt.SafeStringPtr(ccxt.Add(*this.SafeString(market, "lowercaseId", "")+"@", name))
+			var rawHash string = *this.SafeString(market, "lowercaseId", "") + "@" + *name
 			subParams = append(subParams, rawHash)
 		}
 	}
@@ -1780,7 +1778,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 			var market map[string]any = this.Market(symbol)
 			subMessageHashes = append(subMessageHashes, "trade::"+symbol)
 			messageHashes = append(messageHashes, "unsubscribe:trade:"+symbol)
-			var rawHash *string = ccxt.SafeStringPtr(ccxt.Add(*this.SafeString(market, "lowercaseId", "")+"@", name))
+			var rawHash string = *this.SafeString(market, "lowercaseId", "") + "@" + *name
 			subParams = append(subParams, rawHash)
 		}
 	}

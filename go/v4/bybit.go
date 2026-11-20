@@ -6505,12 +6505,12 @@ func (this *Bybit) CancelOrderRequest(id *string, optionalArgs ...any) map[strin
 	if id != nil {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if *this.SafeBool(market, "spot", false) {
-			return this.OmitDict(params, []any{"stop", "trigger"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if *this.SafeBool(market, "spot", false) {
+		paramsOmitted = this.OmitDict(params, []any{"stop", "trigger"})
+	} else {
+		paramsOmitted = params
+	}
 	category, paramsCategory := this.GetBybitType("cancelOrderRequest", market, paramsOmitted)
 	request["category"] = category
 	return this.Extend(request, paramsCategory)

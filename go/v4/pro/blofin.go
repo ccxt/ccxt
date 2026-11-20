@@ -1366,7 +1366,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 		return nil
 	}()
 	var isOHLCV bool = (channelName == "candle")
-	var symbols any = []any{}
+	var symbols []string = []string{}
 	if isOHLCV {
 		symbols = this.MarketSymbols(this.GetListFromObjectValues(symbolsArray, 0), nil, false, true)
 	} else {
@@ -1379,7 +1379,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	}
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+	for i := 0; i < len(symbols); i++ {
 		var market map[string]any = this.Market(this.SafeString(symbols, i))
 		var channel any = channelName
 		if isOHLCV {

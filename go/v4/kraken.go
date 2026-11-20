@@ -1659,12 +1659,12 @@ func (this *Kraken) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until", "till"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, []any{"until", "till"})
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		var untilDivided *string = Precise.StringDiv(until, "1000")
 		request["end"] = this.ParseToInt(Precise.StringAdd(untilDivided, "1"))
@@ -3333,12 +3333,12 @@ func (this *Kraken) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until", "till"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, []any{"until", "till"})
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		var untilDivided *string = Precise.StringDiv(until, "1000")
 		request["end"] = this.ParseToInt(Precise.StringAdd(untilDivided, "1"))
@@ -3437,12 +3437,12 @@ func (this *Kraken) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		"txid": requestId,
 	}
 	var clientOrderId *string = this.SafeString2(paramsUserref, "clientOrderId", "cl_ord_id")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(paramsUserref, []any{"clientOrderId", "cl_ord_id"})
-		}
-		return paramsUserref
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(paramsUserref, []any{"clientOrderId", "cl_ord_id"})
+	} else {
+		paramsOmitted = paramsUserref
+	}
 	if clientOrderId != nil {
 		request["cl_ord_id"] = *clientOrderId
 		request = this.OmitDict(request, "txid")
@@ -3685,19 +3685,19 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
-	var paramsOmitted any = func() any {
-		if userref != nil {
-			return this.Omit(params, "userref")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if userref != nil {
+		paramsOmitted = this.OmitDict(params, "userref")
+	} else {
+		paramsOmitted = params
+	}
 	if userref != nil {
 		request["userref"] = userref
 	}
 	var clientOrderId *string = this.SafeString(paramsOmitted, "clientOrderId")
 	if clientOrderId != nil {
 		request["cl_ord_id"] = clientOrderId
-		paramsOmitted = this.Omit(paramsOmitted, "clientOrderId")
+		paramsOmitted = this.OmitDict(paramsOmitted, "clientOrderId")
 	}
 
 	r1 := <-this.PrivatePostOpenOrders(this.Extend(request, paramsOmitted))
@@ -4088,12 +4088,12 @@ func (this *Kraken) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until", "till"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, []any{"until", "till"})
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		var untilDivided *string = Precise.StringDiv(until, "1000")
 		request["end"] = Precise.StringAdd(untilDivided, "1")
@@ -4228,12 +4228,12 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
 	var until *string = this.SafeString2(paramsPaginate, "until", "till")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until", "till"})
-		}
-		return paramsPaginate
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsPaginate, []any{"until", "till"})
+	} else {
+		paramsOmitted = paramsPaginate
+	}
 	if until != nil {
 		var untilDivided *string = Precise.StringDiv(until, "1000")
 		request["end"] = Precise.StringAdd(untilDivided, "1")

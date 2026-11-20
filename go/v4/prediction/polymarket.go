@@ -599,7 +599,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []string = this.ParseSearchQueries(params)
 	var rest map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	var queriesLength int = len(queries)
 	var rawEvents any = []any{}
@@ -658,12 +658,12 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
  * @param {int} [params.limit] page size per search query, defaults to 50
  * @returns {object[]} an array of raw gamma event objects
  */
-func (this *Polymarket) FetchRawEventsBySearchAsync(queries any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Polymarket) FetchRawEventsBySearchAsync(queries []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchRawEventsBySearchBody(ch, queries, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, optionalArgs ...any) any {
+func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]map[string]any], queries []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -692,8 +692,8 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 	var rest map[string]any = this.OmitDict(params, []any{"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"})
 	var seen map[string]any = map[string]any{}
 	var rawEvents []any = []any{}
-	for qi := 0; qi < ccxt.GetArrayLength(queries); qi++ {
-		var q *string = ccxt.SafeStringPtr(ccxt.GetValue(queries, qi))
+	for qi := 0; qi < len(queries); qi++ {
+		var q string = queries[qi]
 		var baseRequest map[string]any = map[string]any{
 			"q":              q,
 			"limit_per_type": pageSize,
@@ -2993,7 +2993,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			var rawItem any = ccxt.GetValue(response, i)
 			var enriched map[string]any = this.Extend(func() any {
 				if i >= 0 && i < len(requests) {
-					return ccxt.DerefScalar(requests[i])
+					return requests[i]
 				}
 				return nil
 			}(), rawItem)
@@ -3619,7 +3619,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	this.RequireEventQuery(params)
 	var requestedEventId *string = this.SafeString(params, "eventId")
 	var requestedSlug *string = this.SafeString(params, "slug")
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []string = this.ParseSearchQueries(params)
 	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "eventId", "slug"})
 	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
@@ -3687,7 +3687,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 			// search results may omit the nested markets, fall back to the detail endpoint
 			var eventId *string = this.SafeString(rawEvent, "id")
 			var rawEventSlug *string = this.SafeString(rawEvent, "slug")
-			var detailedEvent any = nil
+			var detailedEvent map[string]any = nil
 			if eventId != nil {
 
 				r3 := <-this.GammaPublicGetEventsId(map[string]any{
@@ -3696,7 +3696,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 				if r3.Err != nil {
 					panic(r3.Err)
 				}
-				detailedEvent = r3.Raw
+				detailedEvent = r3.Value
 			} else if rawEventSlug != nil {
 
 				r4 := <-this.GammaPublicGetEventsSlugSlug(map[string]any{
@@ -3705,9 +3705,9 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 				if r4.Err != nil {
 					panic(r4.Err)
 				}
-				detailedEvent = r4.Raw
+				detailedEvent = r4.Value
 			}
-			if !ccxt.IsEqual(detailedEvent, nil) {
+			if detailedEvent != nil {
 				eventForParsing = this.SafeDict(detailedEvent, "event", detailedEvent)
 				ccxtMarkets = this.ParseEventToMarkets(eventForParsing)
 			}

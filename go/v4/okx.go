@@ -4056,12 +4056,12 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			request["after"] = until
 		}
 	}
-	var paramsUntil map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPrice, "until")
-		}
-		return paramsPrice
-	}()
+	var paramsUntil map[string]any
+	if until != nil {
+		paramsUntil = this.OmitDict(paramsPrice, "until")
+	} else {
+		paramsUntil = paramsPrice
+	}
 	defaultType = DerefScalar(this.SafeString(options, "type", defaultType)) // Candles or HistoryCandles
 	var typeVar *string = this.SafeString(paramsUntil, "type", defaultType)
 	var paramsType map[string]any = this.OmitDict(paramsUntil, "type")
@@ -4207,12 +4207,12 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	if until != nil {
 		request["after"] = until
 	}
-	var paramsUntil map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, "until")
-		}
-		return paramsPaginate
-	}()
+	var paramsUntil map[string]any
+	if until != nil {
+		paramsUntil = this.OmitDict(paramsPaginate, "until")
+	} else {
+		paramsUntil = paramsPaginate
+	}
 
 	r2 := <-this.PublicGetPublicFundingRateHistory(this.Extend(request, paramsUntil))
 	if r2.Err != nil {
@@ -11111,12 +11111,12 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 		if until != nil {
 			request["end"] = until
 		}
-		var paramsOmitted map[string]any = func() map[string]any {
-			if until != nil {
-				return this.OmitDict(paramsMarketType, []any{"until"})
-			}
-			return paramsMarketType
-		}()
+		var paramsOmitted map[string]any
+		if until != nil {
+			paramsOmitted = this.OmitDict(paramsMarketType, []any{"until"})
+		} else {
+			paramsOmitted = paramsMarketType
+		}
 
 		r3 := <-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, paramsOmitted))
 		if r3.Err != nil {

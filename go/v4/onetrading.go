@@ -2121,12 +2121,12 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 		request["from"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		request["to"] = this.Iso8601(until)
 	}
@@ -2401,12 +2401,12 @@ func (this *Onetrading) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 		request["from"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		request["to"] = this.Iso8601(until)
 	}

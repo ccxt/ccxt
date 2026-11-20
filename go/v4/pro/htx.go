@@ -1101,7 +1101,7 @@ func (this *Htx) HandleOrderBookSubscription(client any, message map[string]any,
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		orderbook.Fields().Nonce = nil
 		orderbook.SetCache([]any{})
 	}
 	if *this.SafeBool(market, "spot", false) {
@@ -1870,7 +1870,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	}
 	var avgPrice *string = this.SafeString(order, "trade_avg_price")
 	var rawTrades []any = ccxt.SafeListTyped(order, "trade")
-	var typeSideParts any = []any{}
+	var typeSideParts []string = []string{}
 	var typeVar *string = nil
 	if typeSide != nil {
 		if strings.Index(*typeSide, "-") >= 0 {
@@ -2308,12 +2308,12 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType, "linear")
 	var isUnifiedAccount *bool = this.SafeBool2(paramsSubType, "isUnifiedAccount", "unified", false)
 	var paramsOmitted map[string]any = this.OmitDict(paramsSubType, []any{"isUnifiedAccount", "unified"})
-	var paramsRequest map[string]any = func() map[string]any {
-		if typeVar == nil || *typeVar != "spot" {
-			return this.OmitDict(paramsOmitted, []any{"currency", "symbol", "margin"})
-		}
-		return paramsOmitted
-	}()
+	var paramsRequest map[string]any
+	if typeVar == nil || *typeVar != "spot" {
+		paramsRequest = this.OmitDict(paramsOmitted, []any{"currency", "symbol", "margin"})
+	} else {
+		paramsRequest = paramsOmitted
+	}
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2729,12 +2729,10 @@ func (this *Htx) HandleUnSubscription(client any, subscription any) {
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for i := 0; i < len(messageHashes); i++ {
 		var unsubHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var subHash *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(subMessageHashes) {
-				return subMessageHashes[i]
-			}
-			return nil
-		}())
+		var subHash *string = nil
+		if i >= 0 && i < len(subMessageHashes) {
+			subHash = ccxt.SafeStringPtr(subMessageHashes[i])
+		}
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
@@ -3563,12 +3561,12 @@ func (this *Htx) unsubscribePublicBody(ch chan ccxt.AsyncResult[bool], market ma
 		"topic":            topic,
 	}
 	var symbolsAndTimeframes any = this.SafeList(params, "symbolsAndTimeframes")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if symbolsAndTimeframes != nil {
-			return this.OmitDict(params, "symbolsAndTimeframes")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if symbolsAndTimeframes != nil {
+		paramsOmitted = this.OmitDict(params, "symbolsAndTimeframes")
+	} else {
+		paramsOmitted = params
+	}
 	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
 	}

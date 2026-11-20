@@ -813,7 +813,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	group, paramsGroup := this.HandleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none")
 	var descriptor any = interval
 	if useDepthEndpoint {
-		descriptor = ccxt.Add(*group+"."+*depth+".", interval)
+		descriptor = *group + "." + *depth + "." + *interval
 	}
 	var paramsResolved any = paramsUseDepthEndpoint
 	if useDepthEndpoint {

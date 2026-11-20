@@ -5260,12 +5260,12 @@ func (this *Htx) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalA
 		var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss) || (takeProfit != nil && *takeProfit) || (stopLossTakeProfit != nil && *stopLossTakeProfit) || (trailing != nil && *trailing))
 		var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 		var clientOrderId *string = this.SafeStringN(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
-		var paramsClientOrderId map[string]any = func() map[string]any {
-			if clientOrderId != nil {
-				return this.OmitDict(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
-			}
-			return paramsOmitted
-		}()
+		var paramsClientOrderId map[string]any
+		if clientOrderId != nil {
+			paramsClientOrderId = this.OmitDict(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
+		} else {
+			paramsClientOrderId = paramsOmitted
+		}
 		if clientOrderId == nil {
 			if isAlgo {
 				request["algo_id"] = id
@@ -9521,12 +9521,12 @@ func (this *Htx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 		request["start_time"] = *since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		request["end_time"] = until
 	}
@@ -12605,12 +12605,12 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 	var request map[string]any = map[string]any{
 		"contract_code": market["id"],
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, "clientOrderId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, "clientOrderId")
+	} else {
+		paramsOmitted = params
+	}
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}

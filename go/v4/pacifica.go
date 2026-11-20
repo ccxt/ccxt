@@ -2253,12 +2253,12 @@ func (this *Pacifica) CreateOrderRequest(symbol *string, typeVar string, side *s
 	if !IsEqual(amount, nil) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
 		sigPayload["amount"] = this.AmountToPrecision(symbol, amount)
 	}
-	var paramsClientOrderId map[string]any = func() map[string]any {
-		if operationType == "create_stop_order" {
-			return this.OmitDict(params, []any{"clientOrderId"})
-		}
-		return params
-	}()
+	var paramsClientOrderId map[string]any
+	if operationType == "create_stop_order" {
+		paramsClientOrderId = this.OmitDict(params, []any{"clientOrderId"})
+	} else {
+		paramsClientOrderId = params
+	}
 	var clientOrderId *string = this.SafeString(paramsClientOrderId, "clientOrderId")
 	if clientOrderId != nil {
 		sigPayload["client_order_id"] = clientOrderId

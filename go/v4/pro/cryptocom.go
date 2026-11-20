@@ -657,14 +657,10 @@ func (this *Cryptocom) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 		}
 	}
 	var market map[string]any = nil
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 	}
 	var messageHash string = "user.trade"
 	if market != nil {
@@ -1231,14 +1227,10 @@ func (this *Cryptocom) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 		}
 	}
 	var market map[string]any = nil
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 	}
 	var messageHash string = "user.order"
 	if market != nil {
@@ -2203,12 +2195,10 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 			for j := 0; j < len(messageHashes); j++ {
 				var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
-				var subHash *string = ccxt.SafeStringPtr(func() any {
-					if j >= 0 && j < len(subMessageHashes) {
-						return subMessageHashes[j]
-					}
-					return nil
-				}())
+				var subHash *string = nil
+				if j >= 0 && j < len(subMessageHashes) {
+					subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+				}
 				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 			}
 			this.CleanCache(subscription)

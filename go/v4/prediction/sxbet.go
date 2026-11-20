@@ -533,7 +533,7 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 	var eventId *string = this.SafeString2(params, "eventId", "slug")
 	var leagueId *string = this.SafeString(params, "leagueId")
 	var sportId *string = this.SafeString(params, "sportId")
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
 	var tags []any = ccxt.SafeListTyped(params, "tags")
 	var tagsLength int = len(tags)
 	for i := 0; i < tagsLength; i++ {

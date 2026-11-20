@@ -375,7 +375,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
+	var queries []string = this.ParseSearchQueries(params)
 	var queriesLength int = len(queries)
 	// kalshi's public markets endpoint has no free-text search, so a query would otherwise
 	// force a client-side scan of every open market (thousands, paged 1000 at a time, which
@@ -3062,7 +3062,7 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []string = this.ParseSearchQueries(params)
 	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
@@ -3177,12 +3177,12 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-func (this *Kalshi) FetchEventsByQueryAsync(queries any, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Kalshi) FetchEventsByQueryAsync(queries []string, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchEventsByQueryBody(ch, queries, limit, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, limit *int64, optionalArgs ...any) any {
+func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string]any], queries []string, limit *int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3196,11 +3196,11 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string
 	// free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
 	var seen map[string]any = map[string]any{}
 	var eventTickers []any = []any{}
-	var queriesLength int = ccxt.GetArrayLength(queries)
+	var queriesLength int = len(queries)
 	for qi := 0; qi < queriesLength; qi++ {
 
 		r := <-this.ElectionsPublicGetSearchSeries(map[string]any{
-			"query":     ccxt.GetValue(queries, qi),
+			"query":     queries[qi],
 			"order_by":  "querymatch",
 			"page_size": pageSize,
 		})

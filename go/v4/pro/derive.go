@@ -798,12 +798,12 @@ func (this *Derive) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Derive) WatchPrivateAsync(messageHash any, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[any] {
+func (this *Derive) WatchPrivateAsync(messageHash string, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, messageHash, message, subscription)
 	return ch
 }
-func (this *Derive) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, message map[string]any, subscription map[string]any) any {
+func (this *Derive) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash string, message map[string]any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -869,11 +869,12 @@ func (this *Derive) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".orders"
-	var messageHash any = topic
-	var symbolResolved any = nil
+	var messageHash string = topic
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash += ":" + *symbolResolved
 	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -1087,11 +1088,12 @@ func (this *Derive) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".trades"
-	var messageHash any = topic
-	var symbolResolved any = nil
+	var messageHash string = topic
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash += ":" + *symbolResolved
 	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",

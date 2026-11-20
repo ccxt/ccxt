@@ -2098,7 +2098,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		panic(NotSupported(this.Id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter."))
 	}
 	var goodTillBlockOption *int64 = this.SafeInteger(paramsOmitted, "goodTillBlock")
-	var goodTillBlock any = goodTillBlockOption
+	var goodTillBlock *int64 = goodTillBlockOption
 	var goodTillBlockTimeInSeconds int = 2592000
 	// default is 30 days
 	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
@@ -2135,14 +2135,15 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		}
 		goodTillBlockTime = this.Seconds() + *goodTillBlockTimeInSecondsOption
 	} else {
-		if IsEqual(goodTillBlock, nil) {
+		if goodTillBlock == nil {
 
 			r1 := <-this.FetchLatestBlockHeightAsync()
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
 			var latestBlockHeight *int64 = r1.Value
-			goodTillBlock = Add(latestBlockHeight, 20)
+			goodTillBlockValue := *latestBlockHeight + 20
+			goodTillBlock = &goodTillBlockValue
 		}
 	}
 	var credentials any = this.RetrieveCredentials()
@@ -2250,7 +2251,7 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		return nil
 	}()
 	paramsSubAccountId := subAccountIdOptionparamsSubAccountIdVariable[1]
-	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsSubAccountId, "goodTillBlock"))
+	var goodTillBlock *int64 = this.SafeInteger(paramsSubAccountId, "goodTillBlock")
 	if goodTillBlock == nil {
 
 		r1 := <-this.FetchLatestBlockHeightAsync()
@@ -2258,7 +2259,8 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 			panic(r1.Err)
 		}
 		var latestBlockHeight *int64 = r1.Value
-		goodTillBlock = Add(latestBlockHeight, 20)
+		goodTillBlockValue := *latestBlockHeight + 20
+		goodTillBlock = &goodTillBlockValue
 	}
 	var credentials any = this.RetrieveCredentials()
 

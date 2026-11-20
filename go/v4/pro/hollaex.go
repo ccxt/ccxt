@@ -276,14 +276,10 @@ func (this *Hollaex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		}
 	}
 	var messageHash string = "usertrade"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		var marketId string = *this.SafeString(market, "id", "")
 		messageHash = messageHash + ":" + marketId
 	}
@@ -404,14 +400,10 @@ func (this *Hollaex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		}
 	}
 	var messageHash string = "order"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		var marketId string = *this.SafeString(market, "id", "")
 		messageHash = messageHash + ":" + marketId
 	}

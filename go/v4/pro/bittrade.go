@@ -674,7 +674,7 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.Fields().Nonce = nil
 	orderbook.SetCache([]any{})
 	// watch the snapshot in a separate async call
 	this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)

@@ -9678,7 +9678,7 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	var uta bool = false
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchTrades", "uta", uta)
 	var response map[string]any = nil
-	var trades any = nil
+	var trades []any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTrades", market, paramsUta)
 	if utaOption != nil && *utaOption {
 		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
@@ -9711,7 +9711,7 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//     }
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
-		trades = this.SafeList(data, "list", []any{})
+		trades = this.SafeListSlice(data, "list", []any{})
 	} else if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 
 		r2 := <-this.PublicGetMarketHistories(this.Extend(request, paramsMarketType))
@@ -9733,7 +9733,7 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//         ]
 		//     }
 		//
-		trades = this.SafeList(response, "data", []any{})
+		trades = this.SafeListSlice(response, "data", []any{})
 	} else {
 
 		r3 := <-this.FuturesPublicGetTradeHistory(this.Extend(request, paramsMarketType))
@@ -9758,11 +9758,11 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//          ]
 		//      }
 		//
-		trades = this.SafeList(response, "data", []any{})
+		trades = this.SafeListSlice(response, "data", []any{})
 	}
 	var tradesList []any = []any{}
 	if trades != nil {
-		tradesList = ArrayTyped(trades)
+		tradesList = trades
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, since, limit))}

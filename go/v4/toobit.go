@@ -1595,12 +1595,12 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	endpoint, paramsPrice := this.HandleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price")
 	var isPriceKlines bool = (endpoint != nil && *endpoint == "index") || (endpoint != nil && *endpoint == "mark")
 	var startKey string = "startTime"

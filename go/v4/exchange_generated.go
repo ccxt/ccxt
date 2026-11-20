@@ -1917,12 +1917,13 @@ func (this *BaseExchange) HasAutocorrect() {
 	}
 	for i := 0; i < len(targets); i++ {
 		var target string = targets[i]
-		var source any = fallbacks[target]
-		var sourceDefined bool = (InOp(this.Has, source)) && (!IsEqual(GetValue(this.Has, source), nil))
+		var source string = *this.SafeString(fallbacks, target, "")
+		_, has1 := this.Has[source]
+		var sourceDefined bool = has1 && (!IsEqual(this.Has[source], nil))
 		_, has2 := this.Has[target]
 		var targetDefined bool = has2 && (!IsEqual(this.Has[target], nil))
 		if sourceDefined && !targetDefined {
-			this.Has[target] = GetValue(this.Has, source)
+			this.Has[target] = this.Has[source]
 		}
 	}
 }
@@ -5048,7 +5049,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 	paramsMaxRetriesOnFailureDelay := retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable[1]
 	var fetchDataCacheEnabled bool = (this.FetchHistoryCacheSize > 0)
 	for i := 0; retriesMaxRetriesOnFailure.(*int64) != nil && int64(i) <= *retriesMaxRetriesOnFailure.(*int64); i++ {
-		var fetchData any = nil
+		var fetchData map[string]any = nil
 		if fetchDataCacheEnabled {
 			fetchData = map[string]any{
 				"request": nil,
@@ -5097,7 +5098,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 
 				var request map[string]any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay)
 				if fetchData != nil {
-					AddElementToObject(fetchData, "request", request)
+					fetchData["request"] = request
 				}
 				this.SetLastRequest(request)
 
@@ -5110,7 +5111,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 					var responseData map[string]any = map[string]any{
 						"body": response,
 					}
-					AddElementToObject(fetchData, "response", responseData)
+					fetchData["response"] = responseData
 					this.AddFetchCache(fetchData)
 				}
 
@@ -8234,7 +8235,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	cursorReceived := GetArg(optionalArgs, 4, nil)
+	var cursorReceived *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = cursorReceived
 	cursorSent := GetArg(optionalArgs, 5, nil)
 	_ = cursorSent

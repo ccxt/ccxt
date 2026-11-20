@@ -1043,7 +1043,7 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message map[string
 		}
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.Fields().Nonce = nil
 	orderbook.SetCache([]any{})
 }
 func (this *Bitstamp) HandleSubscriptionStatus(client any, message map[string]any) {
@@ -1080,7 +1080,7 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message map[string]
 		return
 	}
 	var unsubHash string = "unsubscribe:" + *channel
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash)
+	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash)
 	if subscription == nil {
 		return
 	}

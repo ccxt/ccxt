@@ -4932,12 +4932,12 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until"})
-		}
-		return paramsPaginate
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsPaginate, []any{"until"})
+	} else {
+		paramsOmitted = paramsPaginate
+	}
 
 	r2 := <-this.V3PrivateGetBrokerageOrdersHistoricalBatch(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {
@@ -5044,12 +5044,12 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], stat
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, []any{"until"})
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.V3PrivateGetBrokerageOrdersHistoricalBatch(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -5585,12 +5585,12 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	if until != nil {
 		request["end_sequence_timestamp"] = this.Iso8601(until)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until"})
-		}
-		return paramsPaginate
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsPaginate, []any{"until"})
+	} else {
+		paramsOmitted = paramsPaginate
+	}
 
 	r2 := <-this.V3PrivateGetBrokerageOrdersHistoricalFills(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {

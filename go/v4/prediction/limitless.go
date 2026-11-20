@@ -324,7 +324,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
+	var queries []string = this.ParseSearchQueries(params)
 	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit"})
 	// scope the listing: without a search query loadMarkets would otherwise page through
 	// every active limitless market. Cap the total number of markets collected.
@@ -342,7 +342,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 		var searchRest map[string]any = this.OmitDict(rest, []any{"limit"})
 		var seen map[string]any = map[string]any{}
 		for i := 0; i < len(queries); i++ {
-			var q *string = ccxt.SafeStringPtr(queries[i])
+			var q string = queries[i]
 
 			r := <-this.LimitlessPublicGetMarketsSearch(this.Extend(map[string]any{
 				"query": q,
@@ -3653,7 +3653,7 @@ func (this *Limitless) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	//
 	var clob []any = ccxt.SafeListTyped(response, "clob")
 	var result []any = []any{}
-	var labels []any = []any{"yes", "no"}
+	var labels []string = []string{"yes", "no"}
 	for i := 0; i < len(clob); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(clob, i)
 		for j := 0; j < len(labels); j++ {
@@ -3779,7 +3779,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.RequireEventQuery(params)
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []string = this.ParseSearchQueries(params)
 	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
@@ -3801,7 +3801,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			if queries == nil {
 				panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 			}
-			var q *string = ccxt.SafeStringPtr(queries[i])
+			var q string = queries[i]
 
 			r := <-this.LimitlessPublicGetMarketsSearch(this.Extend(map[string]any{
 				"query": q,

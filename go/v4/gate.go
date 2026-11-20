@@ -7428,12 +7428,12 @@ func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) (map[string]
 			orderId = clientOrderIdRaw
 		}
 	}
-	var paramsOrder map[string]any = func() map[string]any {
-		if clientOrderIdRaw != nil {
-			return this.OmitDict(paramsOmitted, []any{"text", "clientOrderId"})
-		}
-		return paramsOmitted
-	}()
+	var paramsOrder map[string]any
+	if clientOrderIdRaw != nil {
+		paramsOrder = this.OmitDict(paramsOmitted, []any{"text", "clientOrderId"})
+	} else {
+		paramsOrder = paramsOmitted
+	}
 	typeVar, query := this.HandleMarketTypeAndParams("fetchOrder", market, paramsOrder)
 	var contract bool = (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "option")
 	var request, requestParams map[string]any
@@ -9130,28 +9130,28 @@ func (this *Gate) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 			}
 		}
 	}
-	var response any = nil
+	var response []any = nil
 	if typeVar != nil && *typeVar == "swap" {
 
-		r1 := <-this.PrivateFuturesGetSettlePositions(this.Extend(request, query))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateFuturesGetSettlePositions(this.Extend(request, query))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else if typeVar != nil && *typeVar == "future" {
 
-		r2 := <-this.PrivateDeliveryGetSettlePositions(this.Extend(request, query))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateDeliveryGetSettlePositions(this.Extend(request, query))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else if typeVar != nil && *typeVar == "option" {
 
-		r3 := <-this.PrivateOptionsGetPositions(this.Extend(request, query))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateOptionsGetPositions(this.Extend(request, query))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	}
 	//
 	// swap and future

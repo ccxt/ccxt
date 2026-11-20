@@ -270,7 +270,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	var symbol string = *base + "/" + *quote
 	var orderBook map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
 	var messageHash string = "orderbook:" + symbol + ":" + depth
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
+	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
 	var timestamp *int64 = this.SafeInteger(message, "Time")
 	// let orderbook = this.safeValue (this.orderbooks, symbol)

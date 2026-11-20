@@ -2899,12 +2899,12 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	} else {
 		request["clientOrderId"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(paramsCost, []any{"clientOrderId"})
-		}
-		return paramsCost
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(paramsCost, []any{"clientOrderId"})
+	} else {
+		paramsOmitted = paramsCost
+	}
 	var marketType *string = this.SafeString(market, "type")
 	var isLimitOrder bool = (typeVar == "limit")
 	var isMarketOrder bool = (typeVar == "market")

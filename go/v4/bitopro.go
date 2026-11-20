@@ -1441,12 +1441,12 @@ func (this *Bitopro) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			request["condition"] = condition
 		}
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if orderType == "STOP_LIMIT" {
-			return this.OmitDict(params, []any{"triggerPrice", "stopPrice"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if orderType == "STOP_LIMIT" {
+		paramsOmitted = this.OmitDict(params, []any{"triggerPrice", "stopPrice"})
+	} else {
+		paramsOmitted = params
+	}
 	var postOnly bool = this.IsPostOnly((orderType == "MARKET"), nil, paramsOmitted)
 	if postOnly {
 		request["timeInForce"] = "POST_ONLY"

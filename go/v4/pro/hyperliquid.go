@@ -691,12 +691,12 @@ func (this *Hyperliquid) watchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 			defaultDex = dexName
 		}
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if defaultDex != nil {
-			return this.OmitDict(params, "dex")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if defaultDex != nil {
+		paramsOmitted = this.OmitDict(params, "dex")
+	} else {
+		paramsOmitted = params
+	}
 	if defaultDex != nil {
 		messageHash = "tickers:" + *defaultDex
 		subscription["type"] = "allMids"
@@ -2005,7 +2005,7 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 	//         "time": 1776000003409
 	//     }
 	//
-	accountType := ccxt.GetArg(optionalArgs, 0, nil)
+	var accountType *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = accountType
 	var account map[string]any = this.Account()
 	var currencyId *string = this.SafeString(balance, "coin")
@@ -2024,10 +2024,14 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 	}
 	if accountType != nil {
 		if ccxt.IsEqual(this.SafeValue(this.Balance, accountType), nil) {
-			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
+			this.Balance[*accountType] = map[string]any{}
 		}
 		if (accountType != nil) && (code != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+			if code != nil {
+				if entry, ok := this.Balance[*accountType].(map[string]any); ok && (entry != nil) {
+					entry[*code] = account
+				}
+			}
 		}
 	} else {
 		if code != nil {

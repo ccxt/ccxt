@@ -552,7 +552,7 @@ func (this *Paradex) ExpirePendingUnsubscribeAsync(client any, unsubHash string,
 func (this *Paradex) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client any, unsubHash string, requestId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var unsubscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{})
+	var unsubscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{})
 	if ccxt.IsEqual(this.SafeString(unsubscription, "id"), requestId) {
 		error := ccxt.RequestTimeout(this.Id + " " + unsubHash + " was not acknowledged")
 		client.(ccxt.ClientInterface).Reject(error, unsubHash)
@@ -687,13 +687,13 @@ func (this *Paradex) HandleUnsubscribeReply(client any, requestId string) {
 		if strings.Index(unsubHash, "unsubscribe:") != 0 {
 			continue
 		}
-		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{})
+		var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{})
 		if this.SafeString(subscription, "id") != nil && *this.SafeString(subscription, "id") == requestId {
 			this.CleanUnsubscribed(client, unsubHash, subscription)
 		}
 	}
 }
-func (this *Paradex) CleanUnsubscribed(client any, unsubHash string, subscription any) {
+func (this *Paradex) CleanUnsubscribed(client any, unsubHash string, subscription map[string]any) {
 	var subscribeHashes []any = ccxt.SafeListTyped(subscription, "subscribeHashes")
 	for j := 0; j < len(subscribeHashes); j++ {
 		var subscribeHash any = subscribeHashes[j]

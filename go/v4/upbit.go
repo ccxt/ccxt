@@ -1761,12 +1761,12 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	} else {
 		panic(InvalidOrder(this.Id + " createOrder() supports only limit or market types in the type argument."))
 	}
-	var paramsOrdType map[string]any = func() map[string]any {
-		if customType != nil && *customType == "best" {
-			return this.OmitDict(params, []any{"ordType", "ord_type"})
-		}
-		return params
-	}()
+	var paramsOrdType map[string]any
+	if customType != nil && *customType == "best" {
+		paramsOrdType = this.OmitDict(params, []any{"ordType", "ord_type"})
+	} else {
+		paramsOrdType = params
+	}
 	if customType != nil && *customType == "best" {
 		request["ord_type"] = "best"
 		if side == "buy" {
@@ -1983,12 +1983,12 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol s
 	} else {
 		panic(InvalidOrder(this.Id + " editOrder() supports only limit or market types in the type argument."))
 	}
-	var paramsOrdType map[string]any = func() map[string]any {
-		if customType != nil && *customType == "best" {
-			return this.OmitDict(paramsOmitted, []any{"newOrdType", "new_ord_type"})
-		}
-		return paramsOmitted
-	}()
+	var paramsOrdType map[string]any
+	if customType != nil && *customType == "best" {
+		paramsOrdType = this.OmitDict(paramsOmitted, []any{"newOrdType", "new_ord_type"})
+	} else {
+		paramsOrdType = paramsOmitted
+	}
 	if customType != nil && *customType == "best" {
 		request["new_ord_type"] = "best"
 		if side == "buy" {

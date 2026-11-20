@@ -870,7 +870,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		"loc":     loc,
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"loc", "method"})
-	var symbolTrades any = nil
+	var symbolTrades []any = nil
 	if method == "marketPublicGetV1beta3CryptoLocTrades" {
 		if since != nil {
 			request["start"] = this.Iso8601(since)
@@ -901,7 +901,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//    }
 		//
 		var trades map[string]any = SafeMapTyped(response, "trades")
-		symbolTrades = this.SafeList(trades, marketId, []any{})
+		symbolTrades = this.SafeListSlice(trades, marketId, []any{})
 	} else if method == "marketPublicGetV1beta3CryptoLocLatestTrades" {
 
 		r2 := <-this.MarketPublicGetV1beta3CryptoLocLatestTrades(this.Extend(request, paramsOmitted))
@@ -930,7 +930,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	}
 	var symbolTradesList []any = []any{}
 	if symbolTrades != nil {
-		symbolTradesList = ArrayTyped(symbolTrades)
+		symbolTradesList = symbolTrades
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(symbolTradesList, market, since, limit))}
@@ -1589,12 +1589,12 @@ func (this *Alpaca) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	} else {
 		request["qty"] = this.AmountToPrecision(symbol, amount)
 	}
-	var paramsCost map[string]any = func() map[string]any {
-		if cost != nil {
-			return this.OmitDict(params, "cost")
-		}
-		return params
-	}()
+	var paramsCost map[string]any
+	if cost != nil {
+		paramsCost = this.OmitDict(params, "cost")
+	} else {
+		paramsCost = params
+	}
 	defaultTIF, paramsTimeInForce := this.HandleOptionStringAndParams(paramsCost, "createOrder", "timeInForce")
 	// the venue only accepts lowercase values, normalize the unified uppercase spellings
 	request["time_in_force"] = func() any {
@@ -1834,12 +1834,12 @@ func (this *Alpaca) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if until != nil {
 		request["until"] = this.Iso8601(until)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	if since != nil {
 		request["after"] = this.Iso8601(since)
 		var direction *string = this.SafeString(paramsOmitted, "direction")
@@ -2046,12 +2046,12 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	var paramsTrigger map[string]any = func() map[string]any {
-		if triggerPrice != nil {
-			return this.OmitDict(params, "triggerPrice")
-		}
-		return params
-	}()
+	var paramsTrigger map[string]any
+	if triggerPrice != nil {
+		paramsTrigger = this.OmitDict(params, "triggerPrice")
+	} else {
+		paramsTrigger = params
+	}
 	if price != nil {
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
@@ -2239,12 +2239,12 @@ func (this *Alpaca) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	if until != nil {
 		request["until"] = this.Iso8601(until)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	if since != nil {
 		request["after"] = this.Iso8601(since)
 	}

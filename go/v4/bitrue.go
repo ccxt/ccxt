@@ -1689,12 +1689,12 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if until != nil {
 			request["fromIdx"] = until
 		}
-		var paramsOmitted map[string]any = func() map[string]any {
-			if until != nil {
-				return this.OmitDict(params, "until")
-			}
-			return params
-		}()
+		var paramsOmitted map[string]any
+		if until != nil {
+			paramsOmitted = this.OmitDict(params, "until")
+		} else {
+			paramsOmitted = params
+		}
 
 		r3 := <-this.SpotV1PublicGetMarketKline(this.Extend(request, paramsOmitted))
 		if r3.Err != nil {
@@ -2481,12 +2481,12 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		if clientOrderId != nil {
 			request["newClientOrderId"] = clientOrderId
 		}
-		var paramsNoClientOrderId map[string]any = func() map[string]any {
-			if clientOrderId != nil {
-				return this.OmitDict(params, []any{"newClientOrderId", "clientOrderId"})
-			}
-			return params
-		}()
+		var paramsNoClientOrderId map[string]any
+		if clientOrderId != nil {
+			paramsNoClientOrderId = this.OmitDict(params, []any{"newClientOrderId", "clientOrderId"})
+		} else {
+			paramsNoClientOrderId = params
+		}
 		var triggerPrice *float64 = this.SafeNumber2(paramsNoClientOrderId, "triggerPrice", "stopPrice")
 		if triggerPrice != nil {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -3772,12 +3772,12 @@ func (this *Bitrue) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	if until != nil {
 		request["endTime"] = until
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.FapiV2PrivateGetFuturesTransferHistory(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {

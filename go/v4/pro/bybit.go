@@ -1081,12 +1081,10 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 			return nil
 		}())
 		var symbolString *string = ccxt.SafeStringPtr(market["symbol"])
-		var unfiedTimeframe *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(data) {
-				return data[1]
-			}
-			return nil
-		}())
+		var unfiedTimeframe *string = nil
+		if 1 >= 0 && 1 < len(data) {
+			unfiedTimeframe = ccxt.SafeStringPtr(data[1])
+		}
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		var marketId string = *this.SafeString(market, "id", "")
 		rawHashes = append(rawHashes, "kline."+*timeframeId+"."+marketId)
@@ -1158,12 +1156,10 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 			return nil
 		}())
 		var symbolString *string = ccxt.SafeStringPtr(market["symbol"])
-		var unfiedTimeframe *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(data) {
-				return data[1]
-			}
-			return nil
-		}())
+		var unfiedTimeframe *string = nil
+		if 1 >= 0 && 1 < len(data) {
+			unfiedTimeframe = ccxt.SafeStringPtr(data[1])
+		}
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		var marketId string = *this.SafeString(market, "id", "")
 		rawHashes = append(rawHashes, "kline."+*timeframeId+"."+marketId)
@@ -1460,12 +1456,12 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var channel string = "orderbook."
 	var limitParam *int64 = this.SafeInteger(params, "limit")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if limitParam != nil {
-			return this.OmitDict(params, "limit")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if limitParam != nil {
+		paramsOmitted = this.OmitDict(params, "limit")
+	} else {
+		paramsOmitted = params
+	}
 	var defaultLimit int = 500
 	if limitParam == nil {
 		var firstMarket map[string]any = this.Market(symbolsNormalized[0])
@@ -3333,7 +3329,7 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 	//         "bonus": "0"
 	//     }
 	//
-	accountType := ccxt.GetArg(optionalArgs, 0, nil)
+	var accountType *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = accountType
 	var account map[string]any = this.Account()
 	var currencyId *string = this.SafeString2(balance, "a", "coin")
@@ -3356,10 +3352,12 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 	account["total"] = this.SafeString2(balance, "equity", "walletBalance")
 	if accountType != nil {
 		if this.SafeDictMap(this.Balance, accountType) == nil {
-			ccxt.AddElementToObject(this.Balance, accountType, map[string]any{})
+			this.Balance[*accountType] = map[string]any{}
 		}
 		if (accountType != nil) && (code != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
+			if entry, ok := this.Balance[*accountType].(map[string]any); ok && (entry != nil) {
+				entry[*code] = account
+			}
 		}
 	} else {
 		if code != nil {

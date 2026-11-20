@@ -2375,12 +2375,12 @@ func (this *Cryptocom) EditOrderRequest(id *string, symbol string, optionalArgs 
 			request["orig_client_oid"] = originalClientOrderId
 		}
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if id == nil {
-			return this.OmitDict(params, []any{"orig_client_oid", "clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if id == nil {
+		paramsOmitted = this.OmitDict(params, []any{"orig_client_oid", "clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 	if (amount == nil) || (price == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values"))
 	}

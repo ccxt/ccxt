@@ -984,14 +984,10 @@ func (this *Modetrade) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var messageHash string = topic
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		messageHash = topic + ":" + *this.SafeString(market, "symbol", "")
 	}
 	var request map[string]any = map[string]any{
@@ -1057,14 +1053,10 @@ func (this *Modetrade) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "stop")
 	var messageHash string = "myTrades"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		messageHash = "myTrades" + ":" + *this.SafeString(market, "symbol", "")
 	}
 	var request map[string]any = map[string]any{

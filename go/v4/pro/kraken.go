@@ -1753,11 +1753,12 @@ func (this *Kraken) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], name strin
 	}
 	var token *string = r1.Value
 	var subscriptionHash string = "executions"
-	var messageHash any = name
-	var symbolResolved any = nil
+	var messageHash string = name
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add(name+":", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = name + ":" + *symbolResolved
 	}
 	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()

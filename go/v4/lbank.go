@@ -3090,12 +3090,12 @@ func (this *Lbank) fetchDepositAddressDefaultBody(ch chan AsyncResult[DepositAdd
 		"assetCode": currency["id"],
 	}
 	var network *string = this.GetNetworkCodeForCurrency(code, params)
-	var paramsOmitted map[string]any = func() map[string]any {
-		if network != nil {
-			return this.OmitDict(params, "network")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if network != nil {
+		paramsOmitted = this.OmitDict(params, "network")
+	} else {
+		paramsOmitted = params
+	}
 	if network != nil {
 		request["netWork"] = network // ... yes, really lol
 	}
@@ -3159,12 +3159,12 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan AsyncResult[Deposit
 		network = this.SafeString(this.NetworkAliases, network, network)
 	}
 	network = this.SafeString(networks, network, network)
-	var paramsOmitted map[string]any = func() map[string]any {
-		if network != nil {
-			return this.OmitDict(params, "network")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if network != nil {
+		paramsOmitted = this.OmitDict(params, "network")
+	} else {
+		paramsOmitted = params
+	}
 	if network != nil {
 		request["networkName"] = network
 	}

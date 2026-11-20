@@ -2679,12 +2679,12 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 			"id": this.ParseToInt(id),
 		}
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if cid != nil {
-			return this.OmitDict(params, []any{"cid", "clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if cid != nil {
+		paramsOmitted = this.OmitDict(params, []any{"cid", "clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 
 	responseRecv := <-this.PrivatePostAuthWOrderCancel(this.Extend(request, paramsOmitted))
 	if responseRecv.Err != nil {

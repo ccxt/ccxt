@@ -76,15 +76,15 @@ func (this *PredictionExchange) Describe() map[string]any {
 func (this *PredictionExchange) IsPrediction() any {
 	return this.SafeBool(this.Has, "prediction", false)
 }
-func (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) []any {
+func (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) []string {
 	// accepts either `query` (a single search string) or `queries` (a list of strings)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var singleQuery *string = this.SafeString(params, "query")
 	if singleQuery != nil {
-		return []any{singleQuery}
+		return StringSliceFromList([]any{singleQuery})
 	}
-	return this.SafeListSlice(params, "queries", []any{})
+	return StringSliceFromList(this.SafeList(params, "queries", []any{}))
 }
 func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 	// fetchEvents must be scoped by at least one selector — an unfiltered call would page the
@@ -669,7 +669,7 @@ func (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) any
 	var marketsList []any = this.ToArray(markets)
 	var aliased []any = []any{}
 	for i := 0; i < len(marketsList); i++ {
-		var row any = DerefScalar(marketsList[i])
+		var row any = marketsList[i]
 		var copy map[string]any = this.Extend(map[string]any{}, row)
 		copy["symbol"] = this.SafeString2(row, "market", "symbol")
 		aliased = append(aliased, copy)
@@ -2333,10 +2333,10 @@ func (this *PredictionExchange) HexToRlpBytes(hexValue any) any {
 	var h string = this.Remove0xPrefix(hexValue)
 	var total int = len(h)
 	for i := 0; i < total; i++ {
-		if Slice(h, i, i+1) == "0" {
+		if h[i : i+1] == "0" {
 			continue
 		}
-		return this.PadHexToEven(Slice(h, i, nil))
+		return this.PadHexToEven(h[i:])
 	}
 	return ""
 }

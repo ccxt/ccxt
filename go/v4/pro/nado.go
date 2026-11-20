@@ -1028,7 +1028,7 @@ func (this *Nado) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	var market map[string]any = nil
 	var messageHash string = "orders"
 	var productId any = nil
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		var marketSymbol *string = this.SafeString(market, "symbol")
@@ -1167,7 +1167,7 @@ func (this *Nado) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	var market map[string]any = nil
 	var messageHash string = "myTrades"
 	var productId any = nil
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		var marketSymbol *string = this.SafeString(market, "symbol")
@@ -1699,7 +1699,7 @@ func (this *Nado) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids
 	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, ccxt.DerefScalar(cancelledOrders[i])), market)))
+		}, cancelledOrders[i]), market)))
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(result)}
@@ -1772,7 +1772,7 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, ccxt.DerefScalar(cancelledOrders[i])), market)))
+		}, cancelledOrders[i]), market)))
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(result)}

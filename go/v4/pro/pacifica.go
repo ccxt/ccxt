@@ -989,11 +989,12 @@ func (this *Pacifica) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 			panic(r.Err)
 		}
 	}
-	var messageHash any = "myTrades"
-	var symbolResolved any = nil
+	var messageHash string = "myTrades"
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add("myTrades:", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = "myTrades:" + *symbolResolved
 	}
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"

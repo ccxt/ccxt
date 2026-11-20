@@ -396,7 +396,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if !(allowUnscopedFetchEvents != nil && *allowUnscopedFetchEvents) {
 		this.RequireEventQuery(params)
 	}
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
 	var queriesLength int = len(queries)
 	var paramsValue map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	// keys dropped before the client-side pass; the categories listing also drops its limit

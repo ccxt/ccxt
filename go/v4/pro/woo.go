@@ -153,12 +153,12 @@ func (this *Woo) unwatchPublicBody(ch chan ccxt.AsyncResult[bool], subHash strin
 		"unsubMessageHashes": []any{unsubHash},
 	}
 	var symbolsAndTimeframes any = this.SafeList(params, "symbolsAndTimeframes")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if symbolsAndTimeframes != nil {
-			return this.OmitDict(params, "symbolsAndTimeframes")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if symbolsAndTimeframes != nil {
+		paramsOmitted = this.OmitDict(params, "symbolsAndTimeframes")
+	} else {
+		paramsOmitted = params
+	}
 	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
 	}
@@ -395,8 +395,8 @@ func (this *Woo) HandleOrderBookSubscription(client any, message map[string]any,
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	// handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
-	ccxt.AddElementToObject(orderbook, "timestamp", nil)
-	ccxt.AddElementToObject(orderbook, "datetime", nil)
+	orderbook.Fields().Timestamp = nil
+	orderbook.Fields().Datetime = nil
 	orderbook.SetCache([]any{})
 	this.Spawn(this.FetchOrderBookSnapshotAsync, client, message, subscription)
 }
@@ -914,7 +914,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Woo) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
+func (this *Woo) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
@@ -1364,12 +1364,12 @@ func (this *Woo) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Woo) WatchPrivateAsync(messageHash any, message map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Woo) WatchPrivateAsync(messageHash string, message map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, messageHash, message, optionalArgs...)
 	return ch
 }
-func (this *Woo) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, message map[string]any, optionalArgs ...any) any {
+func (this *Woo) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash string, message map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1467,11 +1467,12 @@ func (this *Woo) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		topic = "algoexecutionreportv2"
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
-	var messageHash any = topic
-	var symbolResolved any = nil
+	var messageHash string = topic
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add(topic+":", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = topic + ":" + *symbolResolved
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -1535,11 +1536,12 @@ func (this *Woo) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		topic = "algoexecutionreportv2"
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
-	var messageHash any = "myTrades"
-	var symbolResolved any = nil
+	var messageHash string = "myTrades"
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add("myTrades"+":", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = "myTrades" + ":" + *symbolResolved
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -2221,17 +2223,15 @@ func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	//
 	var subscribeHash string = *this.SafeString(message, "data", "")
 	var unsubscribeHash string = "unsubscribe::" + subscribeHash
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubscribeHash, map[string]any{})
+	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubscribeHash, map[string]any{})
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var unsubMessageHashes []any = ccxt.SafeListTyped(subscription, "unsubMessageHashes")
 	for i := 0; i < len(subMessageHashes); i++ {
 		var subHash *string = ccxt.SafeStringPtr(subMessageHashes[i])
-		var unsubHash *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(unsubMessageHashes) {
-				return unsubMessageHashes[i]
-			}
-			return nil
-		}())
+		var unsubHash *string = nil
+		if i >= 0 && i < len(unsubMessageHashes) {
+			unsubHash = ccxt.SafeStringPtr(unsubMessageHashes[i])
+		}
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)

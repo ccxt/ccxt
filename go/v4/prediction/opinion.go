@@ -498,7 +498,7 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.RequireEventQuery(params)
-	var queries []any = this.ParseSearchQueries(params)
+	var queries []string = this.ParseSearchQueries(params)
 	var eventId *string = this.SafeString(params, "eventId")
 	var slug *string = this.SafeString(params, "slug")
 	if (eventId != nil) || (slug != nil) {
@@ -2701,8 +2701,8 @@ func (this *Opinion) HandleOrderBook(client any, message map[string]any) {
 	var price *float64 = this.SafeNumber(message, "price")
 	var size *float64 = this.SafeNumber(message, "size")
 	bookSide.(ccxt.IOrderBookSide).StoreArray([]any{price, size})
-	ccxt.AddElementToObject(orderbook, "timestamp", nil)
-	ccxt.AddElementToObject(orderbook, "datetime", nil)
+	orderbook.Fields().Timestamp = nil
+	orderbook.Fields().Datetime = nil
 	client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+*sym)
 }
 

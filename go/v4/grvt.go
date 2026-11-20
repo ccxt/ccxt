@@ -3917,12 +3917,12 @@ func (this *Grvt) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 	} else {
 		request["order_id"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, "clientOrderId", "client_order_id")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, "clientOrderId", "client_order_id")
+	} else {
+		paramsOmitted = params
+	}
 
 	r2 := <-this.PrivateTradingPostFullV1Order(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {
@@ -4265,12 +4265,12 @@ func (this *Grvt) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	} else {
 		request["order_id"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, "clientOrderId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, "clientOrderId")
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivateTradingPostFullV1CancelOrder(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {

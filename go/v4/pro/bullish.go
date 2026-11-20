@@ -124,12 +124,12 @@ func (this *Bullish) watchPublicBody(ch chan ccxt.AsyncResult[any], url string, 
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Bullish) WatchPrivateAsync(messageHash any, subscribeHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bullish) WatchPrivateAsync(messageHash string, subscribeHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, messageHash, subscribeHash, optionalArgs...)
 	return ch
 }
-func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, subscribeHash string, optionalArgs ...any) any {
+func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash string, subscribeHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var request map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -523,22 +523,23 @@ func (this *Bullish) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		}
 	}
 	var subscribeHash string = "orders"
-	var messageHash any = subscribeHash
-	var symbolResolved any = nil
+	var messageHash string = subscribeHash
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add(subscribeHash+"::", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = subscribeHash + "::" + *symbolResolved
 	}
 	var request map[string]any = map[string]any{
 		"topic": "orders",
 	}
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if tradingAccountId != nil {
-			return this.OmitDict(params, "tradingAccountId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if tradingAccountId != nil {
+		paramsOmitted = this.OmitDict(params, "tradingAccountId")
+	} else {
+		paramsOmitted = params
+	}
 	if tradingAccountId != nil {
 		request["tradingAccountId"] = tradingAccountId
 	}
@@ -678,22 +679,23 @@ func (this *Bullish) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		}
 	}
 	var subscribeHash string = "myTrades"
-	var messageHash any = subscribeHash
-	var symbolResolved any = nil
+	var messageHash string = subscribeHash
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add(subscribeHash+"::", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = subscribeHash + "::" + *symbolResolved
 	}
 	var request map[string]any = map[string]any{
 		"topic": "trades",
 	}
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if tradingAccountId != nil {
-			return this.OmitDict(params, "tradingAccountId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if tradingAccountId != nil {
+		paramsOmitted = this.OmitDict(params, "tradingAccountId")
+	} else {
+		paramsOmitted = params
+	}
 	if tradingAccountId != nil {
 		request["tradingAccountId"] = tradingAccountId
 	}
@@ -821,12 +823,12 @@ func (this *Bullish) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	}
 	var messageHash string = "balance"
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if tradingAccountId != nil {
-			return this.OmitDict(params, "tradingAccountId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if tradingAccountId != nil {
+		paramsOmitted = this.OmitDict(params, "tradingAccountId")
+	} else {
+		paramsOmitted = params
+	}
 	if tradingAccountId != nil {
 		request["tradingAccountId"] = tradingAccountId
 		messageHash += "::" + *tradingAccountId

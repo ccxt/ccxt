@@ -1208,9 +1208,10 @@ func (this *Deepcoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
 		messageHash = "myTrades" + "::" + *this.SafeString(this.Market(symbol), "symbol", "")
 	}
 
@@ -1320,9 +1321,10 @@ func (this *Deepcoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
 		messageHash = "orders" + "::" + *this.SafeString(this.Market(symbol), "symbol", "")
 	}
 
@@ -1711,11 +1713,11 @@ func (this *Deepcoin) HandleSubscriptionStatus(client any, message map[string]an
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, subId) // original watch subscription
 		var subHash string = *this.SafeString(subscription, "subHash", "")
 		var unsubHash string = "unsubscribe::" + subHash
-		var unsubsciption any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{}) // unWatch subscription
+		var unsubsciption map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{}) // unWatch subscription
 		this.HandleUnSubscription(client, unsubsciption)
 	}
 }
-func (this *Deepcoin) HandleUnSubscription(client any, subscription any) {
+func (this *Deepcoin) HandleUnSubscription(client any, subscription map[string]any) {
 	var subHash *string = this.SafeString(subscription, "subHash")
 	var unsubHash *string = this.SafeString(subscription, "unsubHash")
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)

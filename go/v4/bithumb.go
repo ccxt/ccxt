@@ -2079,12 +2079,12 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	} else {
 		timeInForce = *timeInForceRaw
 	}
-	var paramsTimeInForce map[string]any = func() map[string]any {
-		if timeInForceRaw == nil {
-			return params
-		}
-		return this.OmitDict(params, "timeInForce")
-	}()
+	var paramsTimeInForce map[string]any
+	if timeInForceRaw == nil {
+		paramsTimeInForce = params
+	} else {
+		paramsTimeInForce = this.OmitDict(params, "timeInForce")
+	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsTimeInForce)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
@@ -2136,12 +2136,12 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	var paramsRequest map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(paramsOrder, "clientOrderId")
-		}
-		return paramsOrder
-	}()
+	var paramsRequest map[string]any
+	if clientOrderId != nil {
+		paramsRequest = this.OmitDict(paramsOrder, "clientOrderId")
+	} else {
+		paramsRequest = paramsOrder
+	}
 	return this.Extend(request, paramsRequest)
 }
 
@@ -2396,7 +2396,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOrder", "generation", 2)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -2407,7 +2407,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	var data any = nil
 	if generation == 2 {
 		if twap != nil && *twap {
-			if !IsEqual(market, nil) {
+			if market != nil {
 				request["market"] = this.GetGen2MarketId(market)
 			}
 			request["uuids"] = []any{id}
@@ -2445,12 +2445,12 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 			data = this.SafeDict(orders, 0, map[string]any{})
 		} else {
 			var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "client_order_id")
-			var paramsClientOrderId map[string]any = func() map[string]any {
-				if clientOrderId != nil {
-					return this.OmitDict(paramsOmitted, []any{"clientOrderId"})
-				}
-				return paramsOmitted
-			}()
+			var paramsClientOrderId map[string]any
+			if clientOrderId != nil {
+				paramsClientOrderId = this.OmitDict(paramsOmitted, []any{"clientOrderId"})
+			} else {
+				paramsClientOrderId = paramsOmitted
+			}
 			if clientOrderId != nil {
 				request["client_order_id"] = clientOrderId
 			} else {
@@ -2939,12 +2939,12 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	} else {
 		clientOrderIds = this.SafeList2(paramsOmitted, "client_order_ids", "clientOrderIds")
 	}
-	var paramsRequest map[string]any = func() map[string]any {
-		if clientOrderIds != nil {
-			return this.OmitDict(paramsOmitted, []any{"clientOrderIds"})
-		}
-		return paramsOmitted
-	}()
+	var paramsRequest map[string]any
+	if clientOrderIds != nil {
+		paramsRequest = this.OmitDict(paramsOmitted, []any{"clientOrderIds"})
+	} else {
+		paramsRequest = paramsOmitted
+	}
 	if clientOrderIds != nil {
 		request["client_order_ids"] = clientOrderIds
 	}
@@ -3266,12 +3266,12 @@ func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderIds any = this.SafeList2(paramsGeneration, "client_order_ids", "clientOrderIds")
-	var paramsRequest any = func() any {
-		if clientOrderIds != nil {
-			return this.Omit(paramsGeneration, []any{"clientOrderIds"})
-		}
-		return paramsGeneration
-	}()
+	var paramsRequest map[string]any
+	if clientOrderIds != nil {
+		paramsRequest = this.OmitDict(paramsGeneration, []any{"clientOrderIds"})
+	} else {
+		paramsRequest = paramsGeneration
+	}
 	if clientOrderIds != nil {
 		request["client_order_ids"] = clientOrderIds
 	} else {

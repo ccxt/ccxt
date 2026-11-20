@@ -2583,7 +2583,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan AsyncResult[[]Position], opti
 	var positions []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		// the wrapper timestamp flows into the parser through the merged input
-		var extended map[string]any = this.Extend(DerefScalar(rows[i]), map[string]any{
+		var extended map[string]any = this.Extend(rows[i], map[string]any{
 			"timestamp": timestamp,
 		})
 		positions = append(positions, PositionToMap(this.ParsePosition(extended)))

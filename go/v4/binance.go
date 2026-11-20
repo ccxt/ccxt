@@ -9533,9 +9533,9 @@ func (this *Binance) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 func (this *Binance) GenerateClientOrderId(optionalArgs ...any) string {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	api := GetArg(optionalArgs, 1, nil)
+	var api *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = api
-	path := GetArg(optionalArgs, 2, nil)
+	var path *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = path
 	var idMarketType *string = nil
 	if market != nil {
@@ -9559,29 +9559,29 @@ func (this *Binance) GenerateClientOrderId(optionalArgs ...any) string {
 		}
 	}
 	if (idMarketType == nil) && (path != nil) {
-		if GetIndexOf(path, "um/") == 0 {
+		if strings.Index(*path, "um/") == 0 {
 			idMarketTypeStr5 := "swap"
 			idMarketType = &idMarketTypeStr5
-		} else if GetIndexOf(path, "cm/") == 0 {
+		} else if strings.Index(*path, "cm/") == 0 {
 			idMarketTypeStr6 := "inverse"
 			idMarketType = &idMarketTypeStr6
-		} else if GetIndexOf(path, "margin/") == 0 {
+		} else if strings.Index(*path, "margin/") == 0 {
 			idMarketTypeStr7 := "margin"
 			idMarketType = &idMarketTypeStr7
-		} else if GetIndexOf(path, "equity/") == 0 {
+		} else if strings.Index(*path, "equity/") == 0 {
 			idMarketTypeStr8 := "spot"
 			idMarketType = &idMarketTypeStr8
 		}
 	}
 	if (idMarketType == nil) && (api != nil) {
-		var isSpotOrMargin bool = ((GetIndexOf(api, "sapi") > -1) || (api == "private"))
+		var isSpotOrMargin bool = ((strings.Index(*api, "sapi") > -1) || (api != nil && *api == "private"))
 		if isSpotOrMargin {
 			idMarketTypeStr9 := "spot"
 			idMarketType = &idMarketTypeStr9
-		} else if GetIndexOf(api, "dapi") > -1 {
+		} else if strings.Index(*api, "dapi") > -1 {
 			idMarketTypeStr10 := "inverse"
 			idMarketType = &idMarketTypeStr10
-		} else if GetIndexOf(api, "eapi") > -1 {
+		} else if strings.Index(*api, "eapi") > -1 {
 			idMarketTypeStr11 := "option"
 			idMarketType = &idMarketTypeStr11
 		} else {
@@ -12049,12 +12049,12 @@ func (this *Binance) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 		"symbol": market["id"],
 	}
 	var origClientOrderIdList any = this.SafeList2(params, "origClientOrderIdList", "clientOrderIds")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if origClientOrderIdList != nil {
-			return this.OmitDict(params, []any{"clientOrderIds"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if origClientOrderIdList != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOrderIds"})
+	} else {
+		paramsOmitted = params
+	}
 	if origClientOrderIdList != nil {
 		request["origClientOrderIdList"] = origClientOrderIdList
 	} else {
@@ -12791,7 +12791,7 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		return nil
 	}
 	var currency map[string]any = nil
-	var response any = nil
+	var response []any = nil
 	var request map[string]any = map[string]any{}
 	var legalMoney map[string]any = SafeMapTyped(this.Options, "legalMoney")
 	var fiatOnly *bool = this.SafeBool(paramsPaginate, "fiat", false)
@@ -12819,7 +12819,7 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 			panic(r2.Err)
 		}
 		var raw map[string]any = r2.Value
-		response = this.SafeList(raw, "data", []any{})
+		response = this.SafeListSlice(raw, "data", []any{})
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
@@ -12838,11 +12838,11 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 			request["limit"] = *limit
 		}
 
-		r3 := <-this.SapiGetCapitalDepositHisrec(this.Extend(request, paramsOmitted2))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.SapiGetCapitalDepositHisrec(this.Extend(request, paramsOmitted2))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " method() returned empty response"))
@@ -14196,28 +14196,28 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var isSpotOrMargin bool = (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")
 	var isLinear bool = this.IsLinear(typeVar, subType)
 	var isInverse bool = this.IsInverse(typeVar, subType)
-	var response any = nil
+	var response map[string]any = nil
 	if isSpotOrMargin {
 
 		r1 := <-this.SapiGetAssetTradeFee(paramsSubType)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if isLinear {
 
 		r2 := <-this.FapiPrivateGetAccountConfig(paramsSubType)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	} else if isInverse {
 
 		r3 := <-this.DapiPrivateGetAccount(paramsSubType)
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response = r3.Raw
+		response = r3.Value
 	}
 	//
 	// sapi / spot

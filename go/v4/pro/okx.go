@@ -1717,18 +1717,14 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]ma
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
-		var sym *string = ccxt.SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
-				return symbolAndTimeframe[0]
-			}
-			return nil
-		}())
-		var tf *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
-				return symbolAndTimeframe[1]
-			}
-			return nil
-		}())
+		var sym *string = nil
+		if 0 >= 0 && 0 < len(symbolAndTimeframe) {
+			sym = ccxt.SafeStringPtr(symbolAndTimeframe[0])
+		}
+		var tf *string = nil
+		if 1 >= 0 && 1 < len(symbolAndTimeframe) {
+			tf = ccxt.SafeStringPtr(symbolAndTimeframe[1])
+		}
 		var marketId any = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
@@ -1796,18 +1792,14 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symb
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
-		var sym *string = ccxt.SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(symbolAndTimeframe) {
-				return symbolAndTimeframe[0]
-			}
-			return nil
-		}())
-		var tf *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(symbolAndTimeframe) {
-				return symbolAndTimeframe[1]
-			}
-			return nil
-		}())
+		var sym *string = nil
+		if 0 >= 0 && 0 < len(symbolAndTimeframe) {
+			sym = ccxt.SafeStringPtr(symbolAndTimeframe[0])
+		}
+		var tf *string = nil
+		if 1 >= 0 && 1 < len(symbolAndTimeframe) {
+			tf = ccxt.SafeStringPtr(symbolAndTimeframe[1])
+		}
 		var marketId any = this.MarketId(sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval

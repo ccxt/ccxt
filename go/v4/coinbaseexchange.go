@@ -1517,12 +1517,12 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan AsyncResult[[]Trade], op
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsUntil map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until"})
-		}
-		return paramsPaginate
-	}()
+	var paramsUntil map[string]any
+	if until != nil {
+		paramsUntil = this.OmitDict(paramsPaginate, []any{"until"})
+	} else {
+		paramsUntil = paramsPaginate
+	}
 
 	responseRecv := <-this.PrivateGetFills(this.Extend(request, paramsUntil))
 	if responseRecv.Err != nil {
@@ -2119,12 +2119,12 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsUntil map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until"})
-		}
-		return paramsPaginate
-	}()
+	var paramsUntil map[string]any
+	if until != nil {
+		paramsUntil = this.OmitDict(paramsPaginate, []any{"until"})
+	} else {
+		paramsUntil = paramsPaginate
+	}
 
 	responseRecv := <-this.PrivateGetOrders(this.Extend(request, paramsUntil))
 	if responseRecv.Err != nil {
@@ -2320,12 +2320,12 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan AsyncResult[Order], id str
 	} else {
 		request["client_oid"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, []any{"clientOrderId", "client_oid"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOrderId", "client_oid"})
+	} else {
+		paramsOmitted = params
+	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2638,12 +2638,12 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsUntil map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until"})
-		}
-		return params
-	}()
+	var paramsUntil map[string]any
+	if until != nil {
+		paramsUntil = this.OmitDict(params, []any{"until"})
+	} else {
+		paramsUntil = params
+	}
 
 	responseRecv := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
 	if responseRecv.Err != nil {

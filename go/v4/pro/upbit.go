@@ -101,7 +101,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 	}
 	for i := 0; i < len(channelKeys); i++ {
 		var key string = channelKeys[i]
-		finalMessage = append(finalMessage, ccxt.GetValue(subscriptions, key))
+		finalMessage = append(finalMessage, subscriptions[key])
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, finalMessage, messageHashes)
@@ -574,7 +574,7 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol *strin
 		}
 	}
 	for i := 0; i < len(channelKeys); i++ {
-		message = append(message, ccxt.GetValue(subscriptions, channelKeys[i]))
+		message = append(message, subscriptions[channelKeys[i]])
 	}
 
 	r1 := <-this.Watch(url, messageHashResolved, message, messageHashResolved)

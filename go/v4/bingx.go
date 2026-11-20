@@ -1801,12 +1801,12 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		request["limit"] = requestLimit
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "endTime")
-	var paramsUntil map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until"})
-		}
-		return paramsPaginate
-	}()
+	var paramsUntil map[string]any
+	if until != nil {
+		paramsUntil = this.OmitDict(paramsPaginate, []any{"until"})
+	} else {
+		paramsUntil = paramsPaginate
+	}
 	if until != nil {
 		var endTime any = until
 		if since != nil {
@@ -2791,12 +2791,12 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		request["limit"] = *limit
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "endTime")
-	var paramsUntil map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until"})
-		}
-		return paramsPaginate
-	}()
+	var paramsUntil map[string]any
+	if until != nil {
+		paramsUntil = this.OmitDict(paramsPaginate, []any{"until"})
+	} else {
+		paramsUntil = paramsPaginate
+	}
 	if until != nil {
 		request["endTime"] = until
 	}

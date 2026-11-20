@@ -1690,12 +1690,12 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	if network != nil {
 		network = this.SafeString(this.NetworkAliases, network, network)
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if network != nil {
-			return this.OmitDict(params, "network")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if network != nil {
+		paramsOmitted = this.OmitDict(params, "network")
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.FetchDepositAddressesAsync([]any{code}, paramsOmitted)
 	if r1.Err != nil {
@@ -3111,12 +3111,12 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	} else {
 		encodedMarginMode = 1
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if marginMode != nil {
-			return this.OmitDict(params, "marginMode")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if marginMode != nil {
+		paramsOmitted = this.OmitDict(params, "marginMode")
+	} else {
+		paramsOmitted = params
+	}
 	merged, paramsMerged := this.HandleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true)
 	var isMergedMode int
 	if merged {
@@ -4062,12 +4062,12 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	if until != nil {
 		request["end"] = until
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsMarketType, "until")
-		}
-		return paramsMarketType
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsMarketType, "until")
+	} else {
+		paramsOmitted = paramsMarketType
+	}
 
 	r2 := <-this.PrivateGetDeepcoinTradeFills(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {
@@ -4214,12 +4214,12 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[Order], symbol strin
 		if positionId != nil {
 			request["positionIds"] = []any{positionId}
 		}
-		var paramsOmitted map[string]any = func() map[string]any {
-			if positionId != nil {
-				return this.OmitDict(params, "positionId")
-			}
-			return params
-		}()
+		var paramsOmitted map[string]any
+		if positionId != nil {
+			paramsOmitted = this.OmitDict(params, "positionId")
+		} else {
+			paramsOmitted = params
+		}
 
 		r2 := <-this.PrivatePostDeepcoinTradeClosePositionByIds(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {

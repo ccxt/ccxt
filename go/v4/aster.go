@@ -2309,18 +2309,18 @@ func (this *Aster) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice]
 	var response []any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		r1 := <-this.FapiPublicGetV3TickerPrice(paramsMarketType)
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.FapiPublicGetV3TickerPrice(paramsMarketType)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Value
+		response = responseRecv.Value
 	} else if marketType != nil && *marketType == "spot" {
 
-		r2 := <-this.SapiPublicGetV3TickerPrice(paramsMarketType)
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.SapiPublicGetV3TickerPrice(paramsMarketType)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Value
+		response = responseRecv.Value
 	}
 	//
 	// both SPOT & SWAP has same format
@@ -4769,12 +4769,12 @@ func (this *Aster) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 		request["limit"] = min(*limit, 1000) // max 1000
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, "until")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, "until")
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		request["endTime"] = until
 	}

@@ -1392,12 +1392,10 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var subHash *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(subMessageHashes) {
-				return subMessageHashes[i]
-			}
-			return nil
-		}())
+		var subHash *string = nil
+		if i >= 0 && i < len(subMessageHashes) {
+			subHash = ccxt.SafeStringPtr(subMessageHashes[i])
+		}
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 	}
 	this.CleanCache(subscription)
@@ -1769,7 +1767,7 @@ func (this *Bitfinex) HandleListMessage(client any, message any) {
 	if heartbeat != nil && *heartbeat == "hb" {
 		return // skip heartbeats within subscription channels for now
 	}
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channelId, map[string]any{})
+	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channelId, map[string]any{})
 	var channel *string = this.SafeString(subscription, "channel")
 	var name *string = this.SafeString(message, 1)
 	var publicMethods map[string]any = map[string]any{

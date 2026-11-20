@@ -2069,12 +2069,12 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, "until")
-		}
-		return paramsPaginate
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsPaginate, "until")
+	} else {
+		paramsOmitted = paramsPaginate
+	}
 	if until != nil {
 		request["end_timestamp"] = until
 	}
@@ -2253,12 +2253,12 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		request["count"] = min(*limit, 1000) // default 10
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, []any{"until"})
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		request["end_timestamp"] = until
 	}
@@ -3870,12 +3870,12 @@ func (this *Deribit) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	}
 	var code *string = this.SafeString(params, "currency")
 	var request map[string]any = map[string]any{}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if code != nil {
-			return this.OmitDict(params, "currency")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if code != nil {
+		paramsOmitted = this.OmitDict(params, "currency")
+	} else {
+		paramsOmitted = params
+	}
 	if code != nil {
 		var currency map[string]any = this.Currency(code)
 		request["currency"] = currency["id"]
@@ -4502,12 +4502,12 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		"start_timestamp": sinceResolved - 1,
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_timestamp")
-	var paramsUntil map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until"})
-		}
-		return paramsPaginate
-	}()
+	var paramsUntil map[string]any
+	if until != nil {
+		paramsUntil = this.OmitDict(paramsPaginate, []any{"until"})
+	} else {
+		paramsUntil = paramsPaginate
+	}
 	var endTimestamp int64 = time
 	if until != nil {
 		endTimestamp = this.ParseToInt(until)

@@ -2548,12 +2548,12 @@ func (this *Bitstamp) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, []any{"clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 	var response map[string]any = nil
 	var capitalizedSide string = this.Capitalize(side)
 	if typeVar == "market" {
@@ -2668,12 +2668,12 @@ func (this *Bitstamp) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	} else {
 		request["id"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, []any{"clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivatePostReplaceOrder(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -2844,12 +2844,12 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 	} else {
 		request["id"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, []any{"client_order_id", "clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"client_order_id", "clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivatePostOrderStatus(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -2901,12 +2901,12 @@ func (this *Bitstamp) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	} else {
 		request["id"] = id
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(params, []any{"client_order_id", "clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"client_order_id", "clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 
 	r1 := <-this.PrivatePostOrderStatus(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
