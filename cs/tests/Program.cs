@@ -205,6 +205,7 @@ public class Tests
     static void WsCacheRegressionTests()
     {
         baseTestInstance.testWsCacheRegressions();
+        baseTestInstance.testWsCacheSnapshotReads();
         Helper.Green(" [C#] ArrayCache regression tests passed");
     }
 

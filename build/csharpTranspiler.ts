@@ -4474,6 +4474,8 @@ class NewTranspiler {
             for (let j = bounds[0] + 1; j < bounds[1]; j++) {
                 lines[j] = lines[j]
                     .replace (/^(\s*)IList<object> (parsedArray|result) = /, '$1IList<T> $2 = ')
+                    // a ws cache is read through its published snapshot, as toArray and arraySlice<T> do
+                    .replace (/^(\s*)IList<T> parsedArray = array;$/, '$1IList<T> parsedArray = (array is ccxt.pro.SlimConcurrentList<T> live) ? live.ToArray() : array;')
                     .replace (/^(\s*)(return |result = )new List<object>\(\) \{\};$/, '$1$2new List<T>() {};')
                     .replace (/^(\s*)object entry = parsedArray\[i\];$/, '$1T entry = parsedArray[i];')
                     .replace (/^(\s*)return array;$/, '$1return (array == null) ? null : (array as List<T> ?? new List<T>(array));')
