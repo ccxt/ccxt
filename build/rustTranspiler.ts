@@ -6784,7 +6784,18 @@ const RUST_PARSE_LIST_FNS = [
     'parse_sxbet_cancel_response',
     'filter_raw_markets_by_fixture',
     'fetch_raw_markets_paged',
+    'get_asset_history_rows',
+    'fetch_transactions_helper',
+    'fetch_transactions_with_method',
+    'get_markets_paginated',
+    'internal_fetch_transfers',
+    'fetch_markets_from_cache',
+    'fetch_orders_by_status',
+    'fetch_spot_markets',
+    'fetch_swap_markets',
 ];
+// venue-declared members of the list above: typed only in a file whose own declaration passes the proof
+const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
 function typeParseListReturns(content: string): string {
     const typed = new Set<string>();
     const failed = new Set<string>();
@@ -6795,14 +6806,20 @@ function typeParseListReturns(content: string): string {
         // a local declared once as `Vec<Value>` (never redeclared) is a built list
         const vecs = [...body.matchAll(/\n\s*let mut (\w+): Vec<Value> = (?:Vec::new\(\)|vec!\[(?:Value::[^\n]*)?\]);/g)].map((v) => v[1])
             .filter((v) => (body.match(new RegExp(String.raw`\blet mut ${v}\b`, 'g')) ?? []).length === 1);
+        // a local declared once as `crate::value::List` is a list whatever it is reassigned from
+        const listLocalRet = (l: string) => { const r = /^\s*return Value::Arr\((\w+)\);$/.exec(l); return r !== null
+            && (body.match(new RegExp(String.raw`\blet (?:mut )?${r[1]}: crate::value::List = `, 'g')) ?? []).length === 1
+            && (body.match(new RegExp(String.raw`\blet (?:mut )?${r[1]}\b`, 'g')) ?? []).length === 1; };
         const vecRet = (l: string) => vecs.some((v) => new RegExp(String.raw`^\s*return Value::from\(${v}\);$`).test(l));
         const ok = lines.length > 0 && lines.every((l) => /^\s*return Value::Arr\(self\.filter_by_\w+\(.*\)\);$/.test(l)
             || /^\s*return Value::from\(vec!\[(?:Value::.*)?\]\);$/.test(l) || vecRet(l)
             || new RegExp(String.raw`^\s*return ${self}.*\);$`).test(l)
-            || (name === 'parse_positions' && /^\s*return self\.filter_by_array_positions\(.*\);$/.test(l)));
+            || (name === 'parse_positions' && /^\s*return self\.filter_by_array_positions\(.*\);$/.test(l))
+            || listLocalRet(l) || new RegExp(String.raw`^\s*return Value::Arr\(${self}.*\)\);$`).test(l));
         if (!ok) { failed.add(name); return whole; }
         typed.add(name);
         const b = body.replace(/^(\s*return )Value::Arr\((self\.filter_by_\w+\(.*\))\);$/gm, '$1$2;')
+            .replace(/^(\s*return )Value::Arr\((\w+|self(?:\.parent)?\.\w+\(.*\))\);$/gm, '$1$2;')
             .replace(/^(\s*return )Value::from\(vec!\[\]\);$/gm, '$1Default::default();')
             .replace(/^(\s*return )Value::from\((vec!\[Value::.*\])\);$/gm, '$1std::sync::Arc::new($2);')
             .replace(new RegExp(String.raw`^(\s*return )Value::from\((${vecs.join('|') || '(?!)'})\);$`, 'gm'), '$1std::sync::Arc::new($2);')
@@ -6810,12 +6827,14 @@ function typeParseListReturns(content: string): string {
         return `${sig}crate::value::List${open}${b}\n}`;
     });
     // the base set is declared in exchange_generated.rs; parse_settlements exists only where a venue declares it
-    const names = RUST_PARSE_LIST_FNS.filter((n) => !failed.has(n) && (typed.has(n) || n !== 'parse_settlements'));
+    const names = RUST_PARSE_LIST_FNS.filter((n) => !failed.has(n) && (typed.has(n) || (n !== 'parse_settlements' && !RUST_VENUE_LIST_FNS.has(n))));
     if (names.length === 0) return content;
     const head = new RegExp(String.raw`\bself(?:\.parent)?\.(?:${names.join('|')})\(`, 'g');
     const typedBody = new RegExp(String.raw`\n {4}(?:pub )?(?:async )?fn (?:${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> crate::value::List \{`, 'g');
     const spans: Array<[number, number]> = [];
-    for (const d of content.matchAll(typedBody)) spans.push([d.index!, balancedCloseIndex(content, d.index! + d[0].length)]);
+    // sample JSON in comment lines has unbalanced brackets: blank them before finding the body's close
+    const masked = content.replace(/^[ \t]*\/\/.*$/gm, (c) => ' '.repeat(c.length));
+    for (const d of content.matchAll(typedBody)) spans.push([d.index!, balancedCloseIndex(masked, d.index! + d[0].length)]);
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec(content)) !== null) {
         const lineStart = content.lastIndexOf('\n', m.index) + 1;
