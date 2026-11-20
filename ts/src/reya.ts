@@ -1,0 +1,1848 @@
+//  ---------------------------------------------------------------------------
+
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import Exchange from './abstract/reya.js';
+import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { ecdsa } from './base/functions/crypto.js';
+import type { int, Account, Balances, Currencies, Currency, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, Market, MarketInterface, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry } from './base/types.js';
+
+/**
+ * @class reya
+ * @augments Exchange
+ */
+export default class reya extends Exchange {
+    override describe (): Dict {
+        return this.deepExtend (super.describe (), {
+            'id': 'reya',
+            'name': 'Reya',
+            'version': 'v2',
+            'rateLimit': 200,
+            'certified': false,
+            'pro': true,
+            'dex': true,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
+                'cancelOrder': true,
+                'createMarketOrder': true,
+                'createOrder': true,
+                'createStopOrder': false,
+                'editOrder': true,
+                'editOrderWithClientOrderId': true,
+                'fetchAccounts': true,
+                'fetchBalance': true,
+                'fetchCurrencies': true,
+                'fetchDeposits': true,
+                'fetchFundingHistory': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterests': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchPositions': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTradingFees': true,
+                'fetchTransfers': true,
+                'fetchWithdrawals': true,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'transfer': false,
+                'withdraw': false,
+            },
+            'urls': {
+                'logo': undefined,
+                'api': { 'public': 'https://api.reya.xyz', 'private': 'https://api.reya.xyz' },
+                'test': { 'public': 'https://api-devnet.reya-cronos.network', 'private': 'https://api-devnet.reya-cronos.network' },
+                'www': 'https://reya.xyz',
+                'doc': [ 'https://docs.reya.xyz/developers', 'https://github.com/Reya-Labs/reya-api-specs' ],
+                'fees': 'https://docs.reya.xyz',
+            },
+            'fees': {
+                // tier 0, where every account starts; fetchTradingFees returns the account's own tier
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.0003'),
+                    'maker': this.parseNumber ('0'),
+                },
+            },
+            'requiredCredentials': { 'apiKey': false, 'secret': false, 'walletAddress': true, 'privateKey': true },
+            'precisionMode': TICK_SIZE,
+            'timeframes': { '1m': '1m', '5m': '5m', '15m': '15m', '30m': '30m', '1h': '1h', '4h': '4h', '1d': '1d' },
+            'api': {
+                'public': {
+                    'get': {
+                        'perpMarketDefinitions': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'perpMarkets/summary': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'perpMarket/{symbol}/summary': 1,
+                        'spotMarketDefinitions': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'spotMarkets/summary': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'spotMarket/{symbol}/summary': 1,
+                        'market/{symbol}/depth': 1,
+                        'market/{symbol}/perpExecutions': 1,
+                        'market/{symbol}/spotExecutions': 1,
+                        'candleHistory/{symbol}/{resolution}': 1,
+                        'fundingRateHistory/{symbol}/{resolution}': 1,
+                        'assetDefinitions': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'assetOraclePrices': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'feeTiers': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'globalFeeParameters': 1,
+                    },
+                },
+                'private': {
+                    'get': {
+                        'wallet/{address}/accounts': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/accountBalances': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/accountSummaries': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/positions': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/positionRisk': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/fundingPayments': 1,
+                        'wallet/{address}/configuration': 1,
+                        'wallet/{address}/openOrders': { 'cost': 1 } as Endpoint<Dict[]>,
+                        'wallet/{address}/orderHistory': 1,
+                        'wallet/{address}/perpExecutions': 1,
+                        'wallet/{address}/spotExecutions': 1,
+                        'wallet/{address}/transfers': 1,
+                    },
+                    'post': { 'createOrder': 1, 'modifyOrder': 1, 'cancelOrder': 1, 'cancelAll': 1, 'cancelAllAfter': { 'cost': 1 } as Endpoint<Dict> },
+                },
+            },
+            'options': {
+                'defaultType': 'swap',
+                'accountId': undefined, // the perpetual (MAINPERP or SUBPERP) account
+                'spotAccountId': undefined, // the SPOT account, for spot orders, balances and trades
+                'fetchMarkets': { 'types': [ 'swap', 'spot' ] },
+                'lastNonce': 0,
+                'slippage': 0.005,
+                'deadlineSeconds': 30,
+                'fetchBalance': { 'method': 'accountSummaries' }, // or accountBalances, the realized balance of each collateral asset
+                'fetchPositions': { 'method': 'positionRisk' }, // or positions, which omits valuation and never fails on stale prices
+                'fetchOHLCV': { 'priceSource': 'trade' }, // merged (the Reya app's candles) or trade
+                'mainnet': { 'chainId': 1729, 'exchangeId': 2, 'ordersGateway': '0xfc8c96be87da63cecddbf54abfa7b13ee8044739' },
+                'sandbox': { 'chainId': 89346162, 'exchangeId': 1, 'ordersGateway': '0x7Ec89E555c771D2B5939aBE5C4E4291852633D4D' },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': false,
+                            'PO': false, // use params.postOnly with GTC or venue-specific GTT
+                            'GTD': false, // venue-specific GTT uses params.expiresAfter
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': { 'limit': 200 },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'INPUT_VALIDATION_ERROR': BadRequest,
+                    'NUMERIC_OVERFLOW_ERROR': BadRequest,
+                    'SYMBOL_NOT_FOUND_ERROR': BadSymbol,
+                    'NO_ACCOUNTS_FOUND_ERROR': AuthenticationError,
+                    'UNAUTHORIZED_SIGNATURE_ERROR': AuthenticationError,
+                    'UNAUTHORIZED_ACCOUNT_ERROR': PermissionDenied,
+                    'NOT_WHITELISTED_ERROR': PermissionDenied,
+                    'ACCOUNT_SUSPENDED_ERROR': AccountSuspended,
+                    'INVALID_NONCE_ERROR': InvalidNonce,
+                    'ORDER_NOT_FOUND_ERROR': OrderNotFound,
+                    'DUPLICATE_CLIENT_ORDER_ID_ERROR': DuplicateOrderId,
+                    'POST_ONLY_WOULD_CROSS_ERROR': OrderImmediatelyFillable,
+                    'ORDER_DEADLINE_PASSED_ERROR': InvalidOrder,
+                    'ORDER_DEADLINE_TOO_HIGH_ERROR': InvalidOrder,
+                    'ORDER_EXPIRES_TOO_SOON_ERROR': InvalidOrder,
+                    'PRICE_QTY_BOUNDS_ERROR': InvalidOrder,
+                    'MODIFY_QTY_BELOW_FILLED_ERROR': InvalidOrder,
+                    'MODIFY_ALREADY_HELD_ERROR': OperationRejected,
+                    'EMPTY_MODIFY_ERROR': InvalidOrder,
+                    'REDUCE_ONLY_CONDITION_NOT_MET_ERROR': InvalidOrder,
+                    'OPEN_INTEREST_CAP_ERROR': InvalidOrder,
+                    'OPEN_INTEREST_BUDGET_ERROR': InvalidOrder,
+                    'OPEN_ORDER_COUNT_EXCEEDED_ERROR': InvalidOrder,
+                    'OPEN_ORDER_NOTIONAL_EXCEEDED_ERROR': InvalidOrder,
+                    'TRIGGER_IOC_MUST_NOT_EXPIRE_ERROR': InvalidOrder,
+                    'TRIGGER_LIMIT_OUTSIDE_BAND_ERROR': InvalidOrder,
+                    'TRIGGER_ALREADY_EXISTS_ERROR': InvalidOrder,
+                    'INSUFFICIENT_BALANCE_ERROR': InsufficientFunds,
+                    'ACCOUNT_BELOW_INITIAL_MARGIN_ERROR': InsufficientFunds,
+                    'ACCOUNT_BELOW_LIQUIDATION_MARGIN_ERROR': InsufficientFunds,
+                    'TRADING_HALTED_ERROR': MarketClosed,
+                    'RATE_LIMITED_ERROR': RateLimitExceeded,
+                    'CAPACITY_LIMITED_ERROR': ExchangeNotAvailable,
+                    'SERVICE_UNAVAILABLE_ERROR': ExchangeNotAvailable,
+                    'SERVICE_DISABLED_ERROR': ExchangeNotAvailable,
+                    'CROSSING_ORDERS_TEMPORARILY_UNAVAILABLE_ERROR': ExchangeNotAvailable,
+                    'ORDER_OUTCOME_UNKNOWN_ERROR': RequestTimeout,
+                    'CREATE_ORDER_OTHER_ERROR': ExchangeError,
+                    'CANCEL_ORDER_OTHER_ERROR': ExchangeError,
+                    'MODIFY_ORDER_OTHER_ERROR': ExchangeError,
+                    'CANCEL_ALL_AFTER_OTHER_ERROR': ExchangeError,
+                    'INTERNAL_SERVER_ERROR': ExchangeError,
+                },
+                'broad': {},
+            },
+        });
+    }
+
+    /** @ignore */
+    reyaAccountId (params: Dict = {}, marketType: Str = undefined): number {
+        // spot trades from the SPOT account in options.spotAccountId, perpetuals from options.accountId
+        const optionKey = (marketType === 'spot') ? 'spotAccountId' : 'accountId';
+        const raw = this.safeString (params, 'accountId', this.safeString (this.options, optionKey));
+        const accountId = this.safeInteger (params, 'accountId', this.safeInteger (this.options, optionKey));
+        if (accountId === undefined || accountId <= 0 || accountId > 9007199254740991 || !Precise.stringEq (raw, this.numberToString (accountId))) {
+            throw new ArgumentsRequired (this.id + ' requires a positive safe-integer options.' + optionKey + ' or params.accountId');
+        }
+        return accountId;
+    }
+
+    /** @ignore */
+    reyaAccountAndParams (methodName: string, market: Market = undefined, params: Dict = {}): any[] {
+        // the account of the market's type, or of params.type or options.defaultType without a market
+        const [ marketType, query ] = this.handleMarketTypeAndParams (methodName, market, params);
+        return [ this.reyaAccountId (query, marketType), query ];
+    }
+
+    /** @ignore */
+    reyaCheckPerpMarket (market: MarketInterface, methodName: string) {
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' ' + methodName + ' supports perpetual markets only; ' + market['symbol'] + ' is a spot market');
+        }
+    }
+
+    /** @ignore */
+    reyaWalletAddress (): string {
+        if (this.walletAddress === undefined || this.walletAddress.length === 0) {
+            throw new ArgumentsRequired (this.id + ' requires walletAddress (the owner, not the delegated signer)');
+        }
+        return this.walletAddress;
+    }
+
+    /** @ignore */
+    reyaNetwork (): Dict {
+        const network = (this.isSandboxModeEnabled) ? 'sandbox' : 'mainnet';
+        return this.safeDict (this.options, network, {});
+    }
+
+    /**
+     * @method
+     * @name reya#fetchMarkets
+     * @description fetch perpetual and spot market definitions and trading increments
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of market structures
+     */
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets', {});
+        const types = this.safeList (fetchMarketsOptions, 'types', [ 'swap', 'spot' ]);
+        const result = [];
+        if (this.inArray ('swap', types)) {
+            const perps = await this.publicGetPerpMarketDefinitions (params);
+            const perpsLength = perps.length;
+            for (let i = 0; i < perpsLength; i++) {
+                const market = perps[i];
+                // a definition outside the BASERUSDPERP naming has no unified symbol; skip it rather than fail loadMarkets
+                const marketId = this.safeString (market, 'symbol', '');
+                if (marketId.endsWith ('RUSDPERP')) {
+                    result.push (this.parseMarket (market));
+                }
+            }
+        }
+        if (this.inArray ('spot', types)) {
+            const spots = await this.publicGetSpotMarketDefinitions (params);
+            const spotsLength = spots.length;
+            for (let i = 0; i < spotsLength; i++) {
+                result.push (this.parseMarket (spots[i]));
+            }
+        }
+        return result;
+    }
+
+    /** @ignore */
+    override parseMarket (market: Dict): Market {
+        if (this.safeString (market, 'baseAsset') !== undefined) {
+            return this.parseSpotMarket (market);
+        }
+        const marketId = this.safeString (market, 'symbol', '');
+        const baseId = marketId.slice (0, -8);
+        const base = this.safeCurrencyCode (baseId);
+        return this.safeMarketStructure ({
+            'id': marketId, 'symbol': base + '/RUSD:RUSD', 'base': base, 'quote': 'RUSD', 'settle': 'RUSD',
+            'baseId': baseId, 'quoteId': 'RUSD', 'settleId': 'RUSD',
+            'type': 'swap', 'spot': false, 'margin': false, 'swap': true, 'future': false, 'option': false,
+            'active': this.safeString (market, 'status') === 'TRADING',
+            'contract': true, 'linear': true, 'inverse': false, 'contractSize': 1,
+            'expiry': undefined, 'expiryDatetime': undefined, 'strike': undefined, 'optionType': undefined,
+            'precision': { 'amount': this.safeNumber (market, 'qtyStepSize'), 'price': this.safeNumber (market, 'tickSize') },
+            'limits': {
+                'amount': { 'min': this.safeNumber (market, 'minOrderQty'), 'max': undefined },
+                'price': { 'min': this.safeNumber (market, 'tickSize'), 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+                'leverage': { 'min': 1, 'max': this.safeNumber (market, 'maxLeverage') },
+            },
+            'marginModes': { 'cross': true, 'isolated': false },
+            'info': market,
+        });
+    }
+
+    /** @ignore */
+    parseSpotMarket (market: Dict): Market {
+        // a spot market trades a collateral asset against rUSD from a SPOT account; its market id is the core id + 1e10
+        const marketId = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return this.safeMarketStructure ({
+            'id': marketId, 'symbol': base + '/' + quote, 'base': base, 'quote': quote, 'settle': undefined,
+            'baseId': baseId, 'quoteId': quoteId, 'settleId': undefined,
+            'type': 'spot', 'spot': true, 'margin': false, 'swap': false, 'future': false, 'option': false,
+            // spot definitions carry no status: the listed markets are the tradable ones
+            'active': true,
+            'contract': false, 'linear': undefined, 'inverse': undefined, 'contractSize': undefined,
+            'expiry': undefined, 'expiryDatetime': undefined, 'strike': undefined, 'optionType': undefined,
+            'precision': { 'amount': this.safeNumber (market, 'qtyStepSize'), 'price': this.safeNumber (market, 'tickSize') },
+            'limits': {
+                'amount': { 'min': this.safeNumber (market, 'minOrderQty'), 'max': undefined },
+                'price': { 'min': this.safeNumber (market, 'tickSize'), 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+                'leverage': { 'min': undefined, 'max': undefined },
+            },
+            'info': market,
+        });
+    }
+
+    /**
+     * @method
+     * @name reya#fetchCurrencies
+     * @description fetch the assets Reya accepts as collateral
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
+        const assets = await this.publicGetAssetDefinitions (params);
+        const result: Dict = this.parseCurrencies (assets);
+        // a perpetual's base is not a collateral asset, but every market's base needs a currency entry
+        const definitions = await this.publicGetPerpMarketDefinitions ();
+        const definitionsLength = definitions.length;
+        for (let i = 0; i < definitionsLength; i++) {
+            const definition = definitions[i];
+            const marketId = this.safeString (definition, 'symbol', '');
+            if (marketId.endsWith ('RUSDPERP')) {
+                const baseId = marketId.slice (0, -8);
+                const code = this.safeCurrencyCode (baseId) as string;
+                if (this.safeDict (result, code) === undefined) {
+                    const categories = this.safeList (definition, 'categories', []);
+                    result[code] = this.safeCurrencyStructure ({
+                        'info': definition, 'id': baseId, 'code': code, 'name': undefined,
+                        'type': (this.inArray ('CRYPTO', categories)) ? 'crypto' : 'other',
+                        'active': undefined, 'deposit': false, 'withdraw': false, 'fee': undefined,
+                        'precision': this.safeNumber (definition, 'qtyStepSize'),
+                        'limits': {
+                            'amount': { 'min': undefined, 'max': undefined },
+                            'deposit': { 'min': undefined, 'max': undefined },
+                            'withdraw': { 'min': undefined, 'max': undefined },
+                        },
+                        'networks': {},
+                    });
+                }
+            }
+        }
+        return result as Currencies;
+    }
+
+    /** @ignore */
+    override parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'asset');
+        // ENABLED allows deposits and withdrawals, WITHDRAWAL_ONLY only withdrawals
+        const status = this.safeString (rawCurrency, 'status');
+        const canDeposit = (status === 'ENABLED');
+        const canWithdraw = canDeposit || (status === 'WITHDRAWAL_ONLY');
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency, 'id': currencyId, 'code': this.safeCurrencyCode (currencyId), 'name': undefined, 'type': 'crypto',
+            'active': canWithdraw, 'deposit': canDeposit, 'withdraw': canWithdraw, 'fee': undefined,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'decimals'))),
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'deposit': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+        });
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOrderBook
+     * @description fetch a bounded L2 order book snapshot
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] maximum levels per side, up to 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an order book structure
+     */
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = { 'symbol': market['id'] };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.publicGetMarketSymbolDepth (this.extend (request, params));
+        return this.parseOrderBook (response, symbol, this.safeInteger (response, 'updatedAt'), 'bids', 'asks', 'px', 'qty');
+    }
+
+    /** @ignore */
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const timestamp = this.safeInteger (ticker, 'updatedAt');
+        // the summary has no last trade price: close is the book mid, or on an empty or one-sided book the mark
+        // (Reya's chart falls back to the mark the same way), or for spot the oracle price; open follows from close and the 24h change
+        const close = this.safeStringN (ticker, [ 'throttledMidPrice', 'markPrice', 'oraclePrice' ]);
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (this.safeString (ticker, 'symbol'), market),
+            'timestamp': timestamp, 'datetime': this.iso8601 (timestamp),
+            'high': undefined, 'low': undefined, 'bid': undefined, 'bidVolume': undefined,
+            'ask': undefined, 'askVolume': undefined, 'vwap': undefined, 'open': undefined,
+            'close': close, 'last': close, 'previousClose': undefined,
+            'change': this.safeString (ticker, 'pxChange24h'), 'percentage': undefined, 'average': undefined,
+            'baseVolume': undefined, 'quoteVolume': this.safeString (ticker, 'volume24h'),
+            'markPrice': this.safeNumber (ticker, 'markPrice'), 'indexPrice': this.safeNumber (ticker, 'oraclePrice'),
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchTicker
+     * @description fetch a market summary; last and close are the order book mid price, or on a one-sided book the mark price (the oracle price for spot), as the summary has no last trade price
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a ticker structure
+     */
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = { 'symbol': market['id'] };
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetSpotMarketSymbolSummary (this.extend (request, params));
+        } else {
+            response = await this.publicGetPerpMarketSymbolSummary (this.extend (request, params));
+        }
+        return this.parseTicker (response, market);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchTickers
+     * @description fetch market summaries: of every loaded market, of the markets of the given symbols, or of every market of params.type
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] swap or spot: only the markets of that type
+     * @returns {object} ticker structures indexed by symbol
+     */
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const symbolsNormalized = this.marketSymbols (symbols);
+        const requestedType = this.safeString (params, 'type');
+        const query = this.omit (params, 'type');
+        let fetchSwap = (requestedType === 'swap');
+        let fetchSpot = (requestedType === 'spot');
+        if (requestedType === undefined) {
+            if (symbolsNormalized === undefined) {
+                // every loaded market type
+                const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets', {});
+                const types = this.safeList (fetchMarketsOptions, 'types', [ 'swap', 'spot' ]);
+                fetchSwap = this.inArray ('swap', types);
+                fetchSpot = this.inArray ('spot', types);
+            } else {
+                const symbolsLength = symbolsNormalized.length;
+                for (let i = 0; i < symbolsLength; i++) {
+                    const market = this.market (symbolsNormalized[i]);
+                    if (market['spot']) {
+                        fetchSpot = true;
+                    } else {
+                        fetchSwap = true;
+                    }
+                }
+            }
+        }
+        let rows: Dict[] = [];
+        if (fetchSwap) {
+            const perpSummaries = await this.publicGetPerpMarketsSummary (query);
+            rows = this.arrayConcat (rows, perpSummaries);
+        }
+        if (fetchSpot) {
+            const spotSummaries = await this.publicGetSpotMarketsSummary (query);
+            rows = this.arrayConcat (rows, spotSummaries);
+        }
+        const results = [];
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            // summaries can list markets without a definition, such as an unlisted spot pair; those have no unified symbol
+            const marketId = this.safeString (rows[i], 'symbol');
+            if (this.safeList (this.markets_by_id, marketId) !== undefined) {
+                results.push (this.parseTicker (rows[i]));
+            }
+        }
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
+    }
+
+    /** @ignore */
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
+        const timestamp = this.safeInteger (contract, 'updatedAt');
+        return {
+            'info': contract, 'symbol': this.safeSymbol (this.safeString (contract, 'symbol'), market),
+            'timestamp': timestamp, 'datetime': this.iso8601 (timestamp),
+            'markPrice': this.safeNumber (contract, 'markPrice'), 'indexPrice': this.safeNumber (contract, 'oraclePrice'),
+            'interestRate': undefined, 'estimatedSettlePrice': undefined,
+            'fundingRate': this.parseNumber (Precise.stringDiv (this.safeString (contract, 'fundingRate'), '100')), 'interval': '1h',
+            'fundingTimestamp': undefined, 'fundingDatetime': undefined,
+            'nextFundingRate': undefined, 'nextFundingTimestamp': undefined, 'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined, 'previousFundingTimestamp': undefined, 'previousFundingDatetime': undefined,
+        };
+    }
+
+    /**
+     * @method
+     * @name reya#fetchFundingRate
+     * @description fetch the current hourly funding rate; funding accrues continuously
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a funding rate structure
+     */
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        this.reyaCheckPerpMarket (market, 'fetchFundingRate');
+        const response = await this.publicGetPerpMarketSymbolSummary (this.extend ({ 'symbol': market['id'] }, params));
+        return this.parseFundingRate (response, market);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchFundingRates
+     * @description fetch current hourly funding rates
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} funding rate structures indexed by symbol
+     */
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        const response = await this.publicGetPerpMarketsSummary (params);
+        return this.parseFundingRates (response, symbols);
+    }
+
+    /** @ignore */
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
+        const marketId = this.safeString (interest, 'symbol');
+        const resolved = this.safeMarket (marketId, market);
+        const amount = this.safeString (interest, 'oiQty');
+        const markPrice = this.safeString (interest, 'markPrice');
+        const notional = ((amount !== undefined) && (markPrice !== undefined)) ? Precise.stringMul (amount, markPrice) : undefined;
+        const timestamp = this.safeInteger (interest, 'updatedAt');
+        return this.safeOpenInterest ({
+            'symbol': resolved['symbol'],
+            'openInterestAmount': this.parseNumber (amount),
+            'openInterestValue': this.parseNumber (notional),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, resolved);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOpenInterest
+     * @description retrieves the open interest of a perpetual market, in base units and valued at the mark price
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+     */
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        this.reyaCheckPerpMarket (market, 'fetchOpenInterest');
+        const response = await this.publicGetPerpMarketSymbolSummary (this.extend ({ 'symbol': market['id'] }, params));
+        return this.parseOpenInterest (response, market);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOpenInterests
+     * @description retrieves the open interest of every perpetual market, or of the given ones
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} open interest structures indexed by symbol
+     */
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
+        await this.loadMarkets ();
+        const response = await this.publicGetPerpMarketsSummary (params);
+        return this.parseOpenInterests (response, this.marketSymbols (symbols));
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOHLCV
+     * @description fetch up to 200 candles with the base volume of their match fills; trade candles by default
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} symbol unified market symbol
+     * @param {string} [timeframe] candle interval
+     * @param {int} [since] earliest candle timestamp in milliseconds
+     * @param {int} [limit] maximum candles, up to 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] latest candle timestamp in milliseconds
+     * @param {string} [params.price] "mark" for mark-price candles
+     * @param {string} [params.priceSource] trade (default: fill prices, flat at the last fill without fills), merged (fill prices, else the mark price, as charted in the Reya app) or mark
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        const candleLimit = (limit === undefined) ? 200 : Math.min (limit, 200);
+        let endTime = this.milliseconds ();
+        if (since !== undefined) {
+            // a page ends with the candle containing endTime, so this reads candleLimit candles from since
+            endTime = Math.min (endTime, this.sum (since, duration * candleLimit) - 1);
+        }
+        const until = this.safeInteger (params, 'until', endTime);
+        const [ configuredSource, query ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'priceSource', 'trade');
+        const priceSource = (this.safeString (query, 'price') === 'mark') ? 'mark' : configuredSource;
+        const request: Dict = { 'symbol': market['id'], 'resolution': this.safeString (this.timeframes, timeframe, timeframe), 'endTime': until, 'priceSource': priceSource };
+        const response = await this.publicGetCandleHistorySymbolResolution (this.extend (request, this.omit (query, [ 'until', 'price' ])));
+        const timestamps = this.safeList (response, 't', []);
+        const opens = this.safeList (response, 'o', []);
+        const highs = this.safeList (response, 'h', []);
+        const lows = this.safeList (response, 'l', []);
+        const closes = this.safeList (response, 'c', []);
+        const volumes = this.safeList (response, 'v', []);
+        const result = [];
+        for (let i = 0; i < timestamps.length; i++) {
+            result.push ([ this.safeTimestamp (timestamps, i), this.safeNumber (opens, i), this.safeNumber (highs, i), this.safeNumber (lows, i), this.safeNumber (closes, i), this.safeNumber (volumes, i) ]);
+        }
+        return this.filterBySinceLimit (this.sortBy (result, 0), since, candleLimit, 0, since === undefined) as OHLCV[];
+    }
+
+    /**
+     * @method
+     * @name reya#fetchFundingRateHistory
+     * @description fetch the hourly funding rate last sampled in each interval; funding accrues continuously, so entries are samples, not settlements
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] earliest interval start in milliseconds
+     * @param {int} [limit] maximum entries, up to 1000, defaults to 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] latest interval start in milliseconds
+     * @param {string} [params.resolution] interval length: 1m, 5m, 15m, 30m, 1h, 4h or 1d, defaults to 1h
+     * @returns {object[]} a list of [funding rate history structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+     */
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        this.reyaCheckPerpMarket (market, 'fetchFundingRateHistory');
+        const resolution = this.safeString (params, 'resolution', '1h');
+        const entryLimit = (limit === undefined) ? 200 : Math.min (limit, 1000);
+        const request: Dict = { 'symbol': market['id'], 'resolution': resolution, 'limit': entryLimit };
+        if (since !== undefined) {
+            // pages are newest first, so bound the end to read forward from since
+            request['startTime'] = since;
+            request['endTime'] = this.sum (since, this.parseTimeframe (resolution) * 1000 * entryLimit) - 1;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetFundingRateHistorySymbolResolution (this.extend (request, this.omit (params, [ 'until', 'resolution' ])));
+        const rows = this.safeList (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < rows.length; i++) {
+            const entry = rows[i];
+            const timestamp = this.safeInteger (entry, 'timestamp');
+            rates.push ({
+                'info': entry,
+                'symbol': market['symbol'],
+                // hourly rate in percentage points
+                'fundingRate': this.parseNumber (Precise.stringDiv (this.safeString (entry, 'fundingRate'), '100')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+    }
+
+    /** @ignore */
+    reyaHistoryRequest (since: Int, limit: Int, params: Dict): Dict {
+        let request: Dict = {};
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 100);
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        request = this.extend (request, this.omit (params, [ 'until', 'accountId' ]));
+        return request;
+    }
+
+    /** @ignore */
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        return this.safeTrade (this.parseReyaTrade (trade, market), market);
+    }
+
+    /** @ignore */
+    parseReyaTrade (trade: Dict, market: Market = undefined, accountId: Str = undefined): Trade {
+        const resolvedMarket = this.safeMarket (this.safeString (trade, 'symbol'), market);
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        const isMaker = accountId !== undefined && this.safeString (trade, 'makerAccountId') === accountId;
+        const isTaker = accountId !== undefined && this.safeString (trade, 'takerAccountId') === accountId;
+        let side = (this.safeString (trade, 'side') === 'B') ? 'buy' : 'sell';
+        if (isMaker) {
+            side = (side === 'buy') ? 'sell' : 'buy';
+        }
+        let fee = undefined;
+        let orderId = undefined;
+        let takerOrMaker = undefined;
+        if (isMaker || isTaker) {
+            orderId = (isMaker) ? this.safeString (trade, 'makerOrderId') : this.safeString (trade, 'takerOrderId');
+            takerOrMaker = (isMaker) ? 'maker' : 'taker';
+            const feeCost = (isMaker) ? this.safeString (trade, 'makerFee', '0') : this.safeString (trade, 'takerFee');
+            fee = { 'currency': 'RUSD', 'cost': feeCost };
+        }
+        return this.safeTrade ({
+            'info': trade, 'id': this.safeString (trade, 'sequenceNumber'), 'order': orderId,
+            'timestamp': timestamp, 'datetime': this.iso8601 (timestamp),
+            'symbol': resolvedMarket['symbol'],
+            'type': undefined, 'side': side, 'takerOrMaker': takerOrMaker,
+            'price': this.safeString (trade, 'price'), 'amount': this.safeString (trade, 'qty'), 'cost': undefined,
+            'fee': fee,
+        }, resolvedMarket);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchTrades
+     * @description fetch settled public executions of a perpetual or spot market
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum entries, up to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.cursor] opaque pagination cursor
+     * @param {int} [params.until] latest timestamp in milliseconds
+     * @returns {object[]} trade structures
+     */
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.extend ({ 'symbol': market['id'] }, this.reyaHistoryRequest (since, limit, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetMarketSymbolSpotExecutions (request);
+        } else {
+            response = await this.publicGetMarketSymbolPerpExecutions (request);
+        }
+        return this.parseTrades (this.safeList (response, 'data', []), market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchAccounts
+     * @description fetch accounts owned by walletAddress
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} account structures
+     */
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
+        const response = await this.privateGetWalletAddressAccounts (this.extend ({ 'address': this.reyaWalletAddress () }, params));
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const account = response[i];
+            result.push ({ 'id': this.safeString (account, 'accountId'), 'type': this.safeString (account, 'type'), 'code': 'RUSD', 'info': account });
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name reya#fetchBalance
+     * @description fetch the rUSD margin of one cross-margined account: total is the margin balance, free the free collateral and used the rest, the initial margin of its positions (all of the margin balance while it is below the initial margin); collateral held in other assets counts at its haircut value
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] swap (default) or spot: the balances of the SPOT account in options.spotAccountId, each all free, since resting spot orders reserve nothing (Reya checks the balance when an order matches)
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId, or options.spotAccountId for spot
+     * @param {string} [params.method] accountSummaries (default) or accountBalances, the realized balance of each collateral asset as total only
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        const [ marketType, typeParams ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const accountId = this.reyaAccountId (typeParams, marketType);
+        const [ method, methodParams ] = this.handleOptionAndParams (typeParams, 'fetchBalance', 'method', 'accountSummaries');
+        const request: Dict = { 'address': this.reyaWalletAddress () };
+        const query = this.omit (methodParams, 'accountId');
+        const account = this.numberToString (accountId);
+        if (marketType === 'spot') {
+            const spotBalances = await this.privateGetWalletAddressAccountBalances (this.extend (request, query));
+            const spotResult: Dict = { 'info': spotBalances };
+            const spotBalancesLength = spotBalances.length;
+            for (let i = 0; i < spotBalancesLength; i++) {
+                const entry = spotBalances[i];
+                if (this.safeString (entry, 'accountId') === account) {
+                    const code = this.safeCurrencyCode (this.safeString (entry, 'asset'));
+                    const realBalance = this.safeString (entry, 'realBalance');
+                    const spotBalance = this.account ();
+                    spotBalance['total'] = realBalance;
+                    spotBalance['free'] = realBalance;
+                    spotBalance['used'] = '0';
+                    if (code !== undefined) {
+                        spotResult[code] = spotBalance;
+                    }
+                }
+            }
+            return this.safeBalance (spotResult);
+        }
+        if (method === 'accountBalances') {
+            const balances = await this.privateGetWalletAddressAccountBalances (this.extend (request, query));
+            const assetResult: Dict = { 'info': balances };
+            for (let i = 0; i < balances.length; i++) {
+                const entry = balances[i];
+                if (this.safeString (entry, 'accountId') === account) {
+                    const code = this.safeCurrencyCode (this.safeString (entry, 'asset'));
+                    const assetBalance = this.account ();
+                    assetBalance['total'] = this.safeString (entry, 'realBalance');
+                    if (code !== undefined) {
+                        assetResult[code] = assetBalance;
+                    }
+                }
+            }
+            return this.safeBalance (assetResult);
+        }
+        request['accountId'] = accountId;
+        const response = await this.privateGetWalletAddressAccountSummaries (this.extend (request, query));
+        const result: Dict = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const summary = response[i];
+            if (this.safeString (summary, 'accountId') === account) {
+                const timestamp = this.safeInteger (summary, 'updatedAt');
+                result['RUSD'] = this.parseReyaMargin (summary);
+                result['timestamp'] = timestamp;
+                result['datetime'] = this.iso8601 (timestamp);
+            }
+        }
+        return this.safeBalance (result);
+    }
+
+    /** @ignore */
+    parseReyaMargin (summary: Dict): Dict {
+        // the account's rUSD margin: free + used = the margin balance
+        const total = this.safeString (summary, 'marginBalance');
+        let free = this.safeString (summary, 'freeCollateral');
+        if (Precise.stringLt (free, '0')) {
+            free = '0'; // an initial margin deficit leaves nothing free
+        }
+        const balance = this.account ();
+        balance['total'] = total;
+        balance['free'] = free;
+        balance['used'] = Precise.stringSub (total, free);
+        return balance;
+    }
+
+    /** @ignore */
+    async reyaTransferHistory (movementType: string, code: Str, since: Int, limit: Int, params: Dict): Promise<Dict[]> {
+        const [ accountIdValue, typeParams ] = this.reyaAccountAndParams ('fetchTransfers', undefined, params);
+        const accountId = this.numberToString (accountIdValue);
+        const maxPages = this.safeInteger (typeParams, 'paginationCalls', 10);
+        const maxResults = (limit === undefined) ? 100 : this.parseToInt (limit);
+        if (maxResults < 1 || maxPages < 1) {
+            throw new BadRequest (this.id + ' limit and paginationCalls must be positive integers');
+        }
+        const query = this.omit (typeParams, [ 'paginationCalls', 'limit', 'address', 'type' ]);
+        const request: Dict = this.extend ({ 'address': this.reyaWalletAddress (), 'type': movementType }, this.reyaHistoryRequest (since, undefined, query));
+        const currencyCode = this.safeCurrencyCode (code);
+        const result = [];
+        let collected = 0;
+        const seenEntries: Dict = {};
+        const seenCursors: Dict = {};
+        const initialCursor = this.safeString (request, 'cursor');
+        if (initialCursor !== undefined) {
+            seenCursors[initialCursor] = true;
+        }
+        for (let page = 0; page < maxPages; page++) {
+            request['limit'] = 100;
+            const response = await this.privateGetWalletAddressTransfers (request);
+            const rows = this.safeList (response, 'data', []);
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const rowCode = this.safeCurrencyCode (this.safeString (row, 'asset'));
+                if (this.safeString (row, 'accountId') !== accountId || this.safeString (row, 'type') !== movementType || (currencyCode !== undefined && rowCode !== currencyCode)) {
+                    continue;
+                }
+                const timestamp = this.safeInteger (row, 'timestamp');
+                if (since !== undefined && timestamp !== undefined && timestamp < since) {
+                    continue;
+                }
+                const entryId = this.safeString (row, 'sequenceNumber');
+                if (entryId !== undefined && this.safeBool (seenEntries, entryId, false)) {
+                    continue;
+                }
+                if (entryId !== undefined) {
+                    seenEntries[entryId] = true;
+                }
+                result.push (row);
+                collected += 1;
+                if (collected >= maxResults) {
+                    break;
+                }
+            }
+            if (collected >= maxResults) {
+                break;
+            }
+            const meta = this.safeDict (response, 'meta', {});
+            const cursor = this.safeString (meta, 'nextCursor');
+            if (cursor === undefined) {
+                break;
+            }
+            if (this.safeBool (seenCursors, cursor, false)) {
+                throw new ExchangeError (this.id + ' transfers history cursor did not advance');
+            }
+            seenCursors[cursor] = true;
+            request['cursor'] = cursor;
+        }
+        return result;
+    }
+
+    /** @ignore */
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const transactionType = this.safeStringLower (transaction, 'type');
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'sequenceNumber'),
+            'txid': this.safeString (transaction, 'transactionHash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': transactionType,
+            'amount': this.parseNumber (Precise.stringAbs (this.safeString (transaction, 'amount'))),
+            'currency': this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency),
+            // A settled Reya debit does not establish destination-chain arrival or pending status.
+            'status': (transactionType === 'deposit') ? 'ok' : undefined,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
+    }
+
+    /** @ignore */
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const amount = this.safeString (transfer, 'amount');
+        const outgoing = Precise.stringLt (amount, '0');
+        const accountId = this.safeString (transfer, 'accountId');
+        const counterparty = this.safeString (transfer, 'counterpartyAccountId');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'sequenceNumber'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (this.safeString (transfer, 'asset'), currency),
+            'amount': this.parseNumber (Precise.stringAbs (amount)),
+            'fromAccount': (outgoing) ? accountId : counterparty,
+            'toAccount': (outgoing) ? counterparty : accountId,
+            'status': 'ok',
+        };
+    }
+
+    /**
+     * @method
+     * @name reya#fetchDeposits
+     * @description fetch settled deposits credited to one Reya account; IDs and transaction hashes identify Reya ledger settlement, with no source network or address metadata
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} [code] unified currency code
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum entries to return, defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] account id, defaults to options.accountId, or options.spotAccountId with params.type spot
+     * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
+     * @param {int} [params.until] latest timestamp in milliseconds
+     * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; pages containing only other accounts or assets are skipped
+     * @returns {object[]} a list of transaction structures
+     */
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const rows = await this.reyaTransferHistory ('DEPOSIT', code, since, limit, params);
+        return this.parseTransactions (rows, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchWithdrawals
+     * @description fetch settled Reya-side withdrawal debits for one account; status is unknown because destination-chain arrival is not reported
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} [code] unified currency code
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum entries to return, defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] account id, defaults to options.accountId, or options.spotAccountId with params.type spot
+     * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
+     * @param {int} [params.until] latest timestamp in milliseconds
+     * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; pending and destination-completed bridge transactions are not distinguished
+     * @returns {object[]} a list of transaction structures with unknown destination status, network, addresses and fee
+     */
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const rows = await this.reyaTransferHistory ('WITHDRAWAL', code, since, limit, params);
+        return this.parseTransactions (rows, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchTransfers
+     * @description fetch settled internal transfers for one account; each id identifies that account's ledger leg and local account filtering avoids counting both sides of a same-wallet transfer
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} [code] unified currency code
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum entries to return, defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] account id, defaults to options.accountId, or options.spotAccountId with params.type spot
+     * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
+     * @param {int} [params.until] latest timestamp in milliseconds
+     * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; identical movements sharing a transaction hash remain distinct
+     * @returns {object[]} a list of transfer structures with positive amounts and source/destination account IDs
+     */
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        const rows = await this.reyaTransferHistory ('TRANSFER', code, since, limit, params);
+        return this.parseTransfers (rows, undefined, since, limit);
+    }
+
+    /** @ignore */
+    override parsePosition (position: Dict, market: Market = undefined): Position {
+        // valuation fields come from positionRisk and are undefined for a plain position record
+        const side = this.safeString (position, 'side');
+        const timestamp = this.safeInteger (position, 'updatedAt');
+        return this.safePosition ({
+            'info': position, 'id': undefined, 'symbol': this.safeSymbol (this.safeString (position, 'symbol'), market),
+            'timestamp': timestamp, 'datetime': this.iso8601 (timestamp), 'lastUpdateTimestamp': undefined,
+            'hedged': false, 'side': (side === 'B') ? 'long' : 'short',
+            'contracts': this.safeNumber (position, 'qty'), 'contractSize': 1,
+            'entryPrice': this.safeNumber (position, 'avgEntryPrice'), 'markPrice': this.safeNumber (position, 'markPrice'),
+            'notional': this.safeNumber (position, 'notional'), 'leverage': undefined, 'collateral': undefined,
+            'initialMargin': undefined, 'initialMarginPercentage': undefined,
+            'maintenanceMargin': this.safeNumber (position, 'liquidationMarginRequirement'), 'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'), 'liquidationPrice': this.safeNumber (position, 'liquidationPrice'), 'marginRatio': undefined,
+            'marginMode': 'cross', 'percentage': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name reya#fetchPositions
+     * @description fetch the open positions of one account with mark price, notional, unrealized PnL, liquidation margin and an estimated cross-margin liquidation price
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId
+     * @param {string} [params.method] positionRisk (default), which fails while a required price is stale, or positions, the position records without valuation
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const accountId = this.reyaAccountId (params);
+        const [ method, methodParams ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'positionRisk');
+        const request: Dict = { 'address': this.reyaWalletAddress () };
+        const query = this.omit (methodParams, 'accountId');
+        let response = undefined;
+        if (method === 'positions') {
+            response = await this.privateGetWalletAddressPositions (this.extend (request, query));
+        } else {
+            request['accountId'] = accountId;
+            response = await this.privateGetWalletAddressPositionRisk (this.extend (request, query));
+        }
+        const account = this.numberToString (accountId);
+        const positions = [];
+        for (let i = 0; i < response.length; i++) {
+            if (this.safeString (response[i], 'accountId') === account) {
+                positions.push (this.parsePosition (response[i]));
+            }
+        }
+        return this.filterByArrayPositions (positions, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchFundingHistory
+     * @description fetch the funding one account's positions paid or received, one entry per market and UTC hour starting at its timestamp; the funding is already in the balance; Reya pages newest first, so with since and limit this returns the newest entries at or after since
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] earliest hour start in milliseconds
+     * @param {int} [limit] maximum entries, up to 1000, defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId
+     * @param {int} [params.until] latest hour start in milliseconds
+     * @param {string} [params.cursor] opaque cursor from the raw response meta.nextCursor
+     * @returns {object[]} a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+     */
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
+        await this.loadMarkets ();
+        const request: Dict = this.extend ({ 'address': this.reyaWalletAddress (), 'accountId': this.reyaAccountId (params) }, this.reyaHistoryRequest (since, undefined, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            this.reyaCheckPerpMarket (market, 'fetchFundingHistory');
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 1000);
+        }
+        const response = await this.privateGetWalletAddressFundingPayments (request);
+        return this.parseIncomes (this.safeList (response, 'data', []), market, since, limit);
+    }
+
+    /** @ignore */
+    override parseIncome (income: Dict, market: Market = undefined): object {
+        const timestamp = this.safeInteger (income, 'timestamp');
+        return {
+            'info': income,
+            'symbol': this.safeSymbol (this.safeString (income, 'symbol'), market),
+            'code': 'RUSD',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.safeNumber (income, 'payment'),
+        };
+    }
+
+    /**
+     * @method
+     * @name reya#fetchTradingFees
+     * @description fetch the maker and taker rates of the wallet's fee tier, which apply to every market, before any referral or OG discounts
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+     */
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const configuration = await this.privateGetWalletAddressConfiguration (this.extend ({ 'address': this.reyaWalletAddress () }, params));
+        const tierId = this.safeString (configuration, 'feeTierId');
+        const tiers = await this.publicGetFeeTiers ();
+        let tier = undefined;
+        for (let i = 0; i < tiers.length; i++) {
+            if (this.safeString (tiers[i], 'tierId') === tierId) {
+                tier = tiers[i];
+            }
+        }
+        if (tier === undefined) {
+            throw new ExchangeError (this.id + ' fee tier ' + tierId + ' is not listed');
+        }
+        const result: Dict = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': tier,
+                'symbol': symbol,
+                'maker': this.safeNumber (tier, 'makerFee'),
+                'taker': this.safeNumber (tier, 'takerFee'),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result as TradingFees;
+    }
+
+    /** @ignore */
+    override parseOrder (order: Dict, market: Market = undefined): Order {
+        const timestamp = this.safeInteger (order, 'createdAt');
+        const statuses: Dict = { 'OPEN': 'open', 'FILLED': 'closed', 'CANCELLED': 'canceled' };
+        const status = this.safeString (statuses, this.safeString (order, 'status'));
+        const orderType = this.safeString (order, 'orderType');
+        const sides: Dict = { 'B': 'buy', 'A': 'sell' };
+        const trigger = orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT';
+        return this.safeOrder ({
+            'info': order, 'id': this.safeString (order, 'orderId'), 'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp, 'datetime': this.iso8601 (timestamp), 'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'lastUpdateAt'),
+            'symbol': this.safeSymbol (this.safeString (order, 'symbol'), market),
+            'type': (orderType === undefined) ? undefined : 'limit', 'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': this.safeBool (order, 'postOnly'), 'reduceOnly': trigger || this.safeBool (order, 'reduceOnly', false),
+            'side': this.safeString (sides, this.safeString (order, 'side')), 'price': this.safeString (order, 'limitPx'),
+            'triggerPrice': this.safeString (order, 'triggerPx'), 'amount': this.safeString (order, 'qty'),
+            'filled': this.safeString (order, 'cumQty'), 'remaining': undefined, 'average': this.safeString (order, 'avgFillPx'),
+            'cost': undefined, 'status': status, 'fee': undefined, 'trades': undefined,
+        }, market);
+    }
+
+    /** @ignore */
+    reyaFilterOrders (orders: Dict[], accountId: number): Dict[] {
+        const result: Dict = {};
+        const account = this.numberToString (accountId);
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const orderId = this.safeString (order, 'orderId');
+            if (this.safeString (order, 'accountId') === account) {
+                const previous = this.safeDict (result, orderId, {});
+                if (this.safeInteger (order, 'sequenceNumber', 0) >= this.safeInteger (previous, 'sequenceNumber', 0)) {
+                    if (orderId !== undefined) {
+                        result[orderId] = order;
+                    }
+                }
+            }
+        }
+        return this.toArray (result);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOpenOrders
+     * @description fetch current open orders for one account
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] earliest order creation timestamp in milliseconds
+     * @param {int} [limit] maximum entries
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
+     * @returns {object[]} order structures
+     */
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ accountId, query ] = this.reyaAccountAndParams ('fetchOpenOrders', market, params);
+        const response = await this.privateGetWalletAddressOpenOrders (this.extend ({ 'address': this.reyaWalletAddress () }, this.omit (query, 'accountId')));
+        return this.parseOrders (this.reyaFilterOrders (response, accountId), market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOrders
+     * @description fetch one page of order history, keeping the newest event per order within that page
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] earliest event timestamp in milliseconds
+     * @param {int} [limit] maximum events per page, up to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
+     * @param {string} [params.cursor] opaque pagination cursor
+     * @param {int} [params.until] latest event timestamp in milliseconds
+     * @returns {object[]} order structures
+     */
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ accountId, query ] = this.reyaAccountAndParams ('fetchOrders', market, params);
+        const request = this.extend ({ 'address': this.reyaWalletAddress () }, this.reyaHistoryRequest (since, limit, query));
+        const response = await this.privateGetWalletAddressOrderHistory (request);
+        return this.parseOrders (this.reyaFilterOrders (this.safeList (response, 'data', []), accountId), market, undefined, limit);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchOrder
+     * @description look up an order in open orders and paginated event history
+     * @param {string} id exchange order id
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
+     * @param {int} [params.maxPages] maximum history pages to search, defaults to 20
+     * @returns {object} an order structure
+     */
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ accountId, typeParams ] = this.reyaAccountAndParams ('fetchOrder', market, params);
+        const maxPages = this.safeInteger (typeParams, 'maxPages', 20);
+        const query = this.extend (this.omit (typeParams, 'maxPages'), { 'accountId': accountId });
+        const openOrders = await this.fetchOpenOrders (symbol, undefined, undefined, query);
+        for (let i = 0; i < openOrders.length; i++) {
+            const openOrder = this.safeDict (openOrders, i);
+            if (this.safeString (openOrder, 'id') === id) {
+                return openOrder as Order;
+            }
+        }
+        const request: Dict = this.extend ({ 'address': this.reyaWalletAddress () }, this.omit (query, 'accountId'));
+        for (let page = 0; page < maxPages; page++) {
+            const response = await this.privateGetWalletAddressOrderHistory (request);
+            const orders = this.reyaFilterOrders (this.safeList (response, 'data', []), accountId);
+            for (let i = 0; i < orders.length; i++) {
+                if (this.safeString (orders[i], 'orderId') === id) {
+                    return this.parseOrder (orders[i]);
+                }
+            }
+            const meta = this.safeDict (response, 'meta', {});
+            const cursor = this.safeString (meta, 'nextCursor');
+            if (cursor === undefined) {
+                throw new OrderNotFound (this.id + ' order ' + id + ' not found; history may lag recent order entry');
+            }
+            request['cursor'] = cursor;
+        }
+        throw new ExchangeError (this.id + ' fetchOrder history search limit reached; increase params.maxPages');
+    }
+
+    /**
+     * @method
+     * @name reya#fetchMyTrades
+     * @description fetch settled executions for one account
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum entries per page, up to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
+     * @param {string} [params.cursor] opaque pagination cursor
+     * @param {int} [params.until] latest timestamp in milliseconds
+     * @returns {object[]} trade structures
+     */
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ marketType, typeParams ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const accountId = this.numberToString (this.reyaAccountId (typeParams, marketType));
+        const request = this.extend ({ 'address': this.reyaWalletAddress () }, this.reyaHistoryRequest (since, limit, typeParams));
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateGetWalletAddressSpotExecutions (request);
+        } else {
+            response = await this.privateGetWalletAddressPerpExecutions (request);
+        }
+        const rows = this.safeList (response, 'data', []);
+        const trades = [];
+        for (let i = 0; i < rows.length; i++) {
+            if (this.safeString (rows[i], 'makerAccountId') === accountId || this.safeString (rows[i], 'takerAccountId') === accountId) {
+                trades.push (this.parseReyaTrade (rows[i], market, accountId));
+            }
+        }
+        return this.filterBySymbolSinceLimit (this.sortBy (trades, 'timestamp'), symbol, since, limit) as Trade[];
+    }
+
+    /** @ignore */
+    async reyaCreateOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Dict> {
+        const market = this.market (symbol);
+        if (type !== 'limit' && type !== 'market') {
+            throw new NotSupported (this.id + ' supports limit and market (IOC limit) orders');
+        }
+        if (this.safeValue (params, 'stopLossPrice') !== undefined || this.safeValue (params, 'takeProfitPrice') !== undefined || this.safeValue (params, 'triggerPrice') !== undefined) {
+            throw new NotSupported (this.id + ' protective stops close the entire position and are not supported by createOrder');
+        }
+        const timeInForce = this.safeStringUpper (params, 'timeInForce', (type === 'market') ? 'IOC' : 'GTC');
+        const postOnly = this.safeBool (params, 'postOnly', false);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        if ((type === 'market' && timeInForce !== 'IOC') || (timeInForce !== 'GTC' && timeInForce !== 'IOC' && timeInForce !== 'GTT')) {
+            throw new InvalidOrder (this.id + ' invalid timeInForce');
+        }
+        if (reduceOnly && market['spot']) {
+            throw new NotSupported (this.id + ' reduceOnly is not supported on spot markets');
+        }
+        if (reduceOnly && timeInForce !== 'IOC') {
+            throw new NotSupported (this.id + ' reduceOnly requires IOC');
+        }
+        if (postOnly && timeInForce === 'IOC') {
+            throw new InvalidOrder (this.id + ' postOnly cannot be combined with IOC');
+        }
+        const request: Dict = {
+            'accountId': this.reyaAccountId (params, market['type']), 'symbol': market['id'], 'isBuy': side === 'buy',
+            'orderType': 'LIMIT', 'timeInForce': timeInForce,
+            'qty': this.amountToPrecision (symbol, amount),
+            'exchangeId': this.safeInteger (this.reyaNetwork (), 'exchangeId'),
+        };
+        let orderPrice = price;
+        if (type === 'market' && price === undefined) {
+            const book = await this.fetchOrderBook (symbol, 1);
+            const levels = this.safeList (book, (side === 'buy') ? 'asks' : 'bids', []);
+            const level = this.safeList (levels, 0, []);
+            const best = this.safeString (level, 0);
+            const slippage = this.safeString (params, 'slippage', this.safeString (this.options, 'slippage', '0.005'));
+            if (best === undefined || Precise.stringLt (slippage, '0') || Precise.stringGt (slippage, '1')) {
+                throw new InvalidOrder (this.id + ' market order needs a non-empty book and slippage between 0 and 1');
+            }
+            const factor = (side === 'buy') ? Precise.stringAdd ('1', slippage) : Precise.stringSub ('1', slippage);
+            orderPrice = this.parseNumber (Precise.stringMul (best, factor));
+        }
+        if (orderPrice === undefined || orderPrice <= 0 || amount <= 0) {
+            throw new InvalidOrder (this.id + ' requires a positive amount and price');
+        }
+        request['limitPx'] = this.priceToPrecision (symbol, orderPrice);
+        if (timeInForce === 'IOC') {
+            // Reya takes reduceOnly on perpetual IOC orders only and rejects the field, even false, on spot
+            if (!market['spot']) {
+                request['reduceOnly'] = reduceOnly;
+            }
+        } else {
+            request['postOnly'] = postOnly;
+        }
+        if (timeInForce === 'GTT') {
+            const expiresAfter = this.safeInteger (params, 'expiresAfter');
+            if (expiresAfter === undefined || expiresAfter <= this.seconds () + 60) {
+                throw new InvalidOrder (this.id + ' GTT requires expiresAfter more than 60 seconds in the future');
+            }
+            request['expiresAfter'] = expiresAfter;
+        }
+        const clientOrderId = this.reyaClientOrderId (this.safeString (params, 'clientOrderId'));
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        const omitted = this.omit (params, [ 'accountId', 'clientOrderId', 'timeInForce', 'postOnly', 'reduceOnly', 'slippage', 'expiresAfter' ]);
+        return this.extend (omitted, request);
+    }
+
+    /** @ignore */
+    reyaMergeOrderResponse (request: Dict, response: Dict, resting: Dict = {}): Dict {
+        // order responses carry the outcome only; the request and the resting order supply the rest
+        const sideId = (this.safeBool (request, 'isBuy')) ? 'B' : 'A';
+        return this.extend (this.extend (resting, request), this.extend ({ 'side': sideId }, response));
+    }
+
+    /**
+     * @method
+     * @name reya#createOrder
+     * @description create a perpetual or spot order; market orders use an IOC limit with a slippage cap
+     * @param {string} symbol unified market symbol
+     * @param {string} type limit or market
+     * @param {string} side buy or sell
+     * @param {float} amount quantity in base units
+     * @param {float} [price] limit price, or worst execution price for a market order
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId, or options.spotAccountId for a spot market
+     * @param {string} [params.clientOrderId] non-zero uint64 decimal client id
+     * @param {string} [params.timeInForce] GTC, IOC or GTT
+     * @param {bool} [params.postOnly] maker-only GTC/GTT order
+     * @param {bool} [params.reduceOnly] only supported for perpetual IOC orders
+     * @param {int} [params.expiresAfter] GTT expiry in Unix seconds
+     * @param {float} [params.slippage] market order slippage fraction, defaults to 0.005
+     * @returns {object} an order structure
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const market = this.market (symbol);
+        const request = await this.reyaCreateOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostCreateOrder (request);
+        const parsed = this.parseOrder (this.reyaMergeOrderResponse (request, response), market);
+        parsed['type'] = type;
+        return parsed;
+    }
+
+    /** @ignore */
+    reyaCancelOrderRequest (id: string, symbol: string, params: Dict = {}): Dict {
+        const market = this.market (symbol);
+        const request: Dict = { 'orderId': id, 'symbol': market['id'], 'accountId': this.reyaAccountId (params, market['type']) };
+        return this.extend (this.omit (params, 'accountId'), request);
+    }
+
+    /**
+     * @method
+     * @name reya#cancelOrder
+     * @description cancel an order using its exchange id
+     * @param {string} id exchange order id
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @returns {object} an order structure
+     */
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires symbol');
+        }
+        const market = this.market (symbol);
+        const request = this.reyaCancelOrderRequest (id, symbol, params);
+        const response = await this.privatePostCancelOrder (request);
+        return this.parseOrder (response, market);
+    }
+
+    /** @ignore */
+    reyaCancelAllOrdersRequest (symbol: Str = undefined, params: Dict = {}): Dict {
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ accountId, query ] = this.reyaAccountAndParams ('cancelAllOrders', market, params);
+        const request: Dict = { 'accountId': accountId };
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        return this.extend (this.omit (query, 'accountId'), request);
+    }
+
+    /**
+     * @method
+     * @name reya#cancelAllOrders
+     * @description cancel all orders for one account, optionally restricted to a market
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.type] swap or spot without a symbol, defaults to options.defaultType
+     * @returns {object[]} an order structure containing the raw cancellation count
+     */
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const request = this.reyaCancelAllOrdersRequest (symbol, params);
+        const response = await this.privatePostCancelAll (request);
+        return [ this.parseOrder (response, market) ];
+    }
+
+    /** @ignore */
+    async reyaRestingOrder (orderId: Str, clientOrderId: Str, accountId: number, marketId: Str): Promise<Dict> {
+        const hasId = (orderId !== undefined) && (orderId !== '');
+        if (!hasId && (clientOrderId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires an order id or params.clientOrderId');
+        }
+        const response = await this.privateGetWalletAddressOpenOrders ({ 'address': this.reyaWalletAddress () });
+        const orders = this.reyaFilterOrders (response, accountId);
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
+            const order = orders[i];
+            // Reya keeps client order ids per market, so a client id lookup also matches the market
+            const matches = (hasId) ? (this.safeString (order, 'orderId') === orderId) : ((this.safeString (order, 'clientOrderId') === clientOrderId) && (this.safeString (order, 'symbol') === marketId));
+            if (matches) {
+                return order;
+            }
+        }
+        const target = (hasId) ? orderId : clientOrderId;
+        throw new OrderNotFound (this.id + ' editOrder found no open order ' + target);
+    }
+
+    /** @ignore */
+    async reyaEditOrderRequest (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Dict> {
+        const market = this.market (symbol);
+        if (type !== 'limit') {
+            throw new NotSupported (this.id + ' editOrder modifies resting limit orders only');
+        }
+        const accountId = this.reyaAccountId (params, market['type']);
+        const isBuy = (side === 'buy');
+        let orderId: Str = id;
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let clientOrderId = this.reyaClientOrderId (this.safeString (params, 'clientOrderId'));
+        let qty: Str = (amount === undefined) ? undefined : this.amountToPrecision (symbol, amount);
+        let limitPx: Str = (price === undefined) ? undefined : this.priceToPrecision (symbol, price);
+        let postOnly = this.safeBool (params, 'postOnly');
+        let expiresAfter = this.safeInteger (params, 'expiresAfter');
+        let exchangeId = this.safeInteger (this.reyaNetwork (), 'exchangeId');
+        let resting: Dict = {};
+        if (timeInForce === undefined) {
+            // the modify restates the immutable fields of the resting order, so read them first
+            resting = await this.reyaRestingOrder (id, clientOrderId, accountId, market['id']);
+            if (this.safeString (resting, 'symbol') !== market['id']) {
+                throw new InvalidOrder (this.id + ' editOrder found the order in another market than ' + symbol);
+            }
+            if (this.safeString (resting, 'orderType') !== 'LIMIT') {
+                throw new NotSupported (this.id + ' editOrder cannot modify protective stops');
+            }
+            if ((this.safeString (resting, 'side') === 'B') !== isBuy) {
+                throw new InvalidOrder (this.id + ' editOrder cannot change the side of an order');
+            }
+            orderId = this.safeString (resting, 'orderId');
+            timeInForce = this.safeString (resting, 'timeInForce');
+            clientOrderId = this.safeString (resting, 'clientOrderId');
+            exchangeId = this.safeInteger (resting, 'exchangeId');
+            if (qty === undefined) {
+                qty = this.safeString (resting, 'qty');
+            }
+            if (limitPx === undefined) {
+                limitPx = this.safeString (resting, 'limitPx');
+            }
+            if (postOnly === undefined) {
+                postOnly = this.safeBool (resting, 'postOnly', false);
+            }
+            if (expiresAfter === undefined) {
+                expiresAfter = this.safeInteger (resting, 'expiresAfter');
+            }
+        } else if ((qty === undefined) || (limitPx === undefined) || (postOnly === undefined)) {
+            // without the lookup nothing is restated for the caller, and an omitted postOnly would clear the flag
+            throw new ArgumentsRequired (this.id + ' editOrder requires amount, price and params.postOnly when params.timeInForce is given');
+        } else if (((orderId === undefined) || (orderId === '')) && (clientOrderId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires an order id or params.clientOrderId');
+        }
+        if ((timeInForce !== 'GTC') && (timeInForce !== 'GTT')) {
+            throw new InvalidOrder (this.id + ' editOrder modifies resting GTC or GTT orders only');
+        }
+        const request: Dict = {
+            'accountId': accountId, 'symbol': market['id'], 'exchangeId': exchangeId, 'isBuy': isBuy,
+            'orderType': 'LIMIT', 'timeInForce': timeInForce, 'qty': qty, 'limitPx': limitPx,
+            'reduceOnly': false, 'postOnly': (postOnly === true),
+        };
+        if ((orderId !== undefined) && (orderId !== '')) {
+            request['orderId'] = orderId;
+        }
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        if (timeInForce === 'GTT') {
+            if (expiresAfter === undefined) {
+                throw new ArgumentsRequired (this.id + ' editOrder requires params.expiresAfter for a GTT order');
+            }
+            request['expiresAfter'] = expiresAfter;
+        }
+        const omitted = this.omit (params, [ 'accountId', 'clientOrderId', 'timeInForce', 'postOnly', 'expiresAfter' ]);
+        return { 'request': this.extend (omitted, request), 'resting': resting };
+    }
+
+    /**
+     * @method
+     * @name reya#editOrder
+     * @description modify a resting limit order in place, keeping its order id and client order id
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} id exchange order id, or an empty string to target params.clientOrderId
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'limit'; protective stops cannot be modified through editOrder
+     * @param {string} side 'buy' or 'sell'; it must match the resting order
+     * @param {float} [amount] new total quantity, including any part already filled; defaults to the resting quantity
+     * @param {float} [price] new limit price; defaults to the resting price
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to the account of the market's type
+     * @param {string} [params.clientOrderId] the resting order's client id: the target when id is empty, and required with params.timeInForce when the order has one
+     * @param {string} [params.timeInForce] the resting order's GTC or GTT; given with amount, price and params.postOnly, it skips the open-order lookup
+     * @param {bool} [params.postOnly] maker-only flag after the modification; defaults to the resting order's flag, and is required with params.timeInForce
+     * @param {int} [params.expiresAfter] GTT expiry in Unix seconds; defaults to the resting order's expiry
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const market = this.market (symbol);
+        const built = await this.reyaEditOrderRequest (id, symbol, type, side, amount, price, params);
+        const request: Dict = built['request'];
+        const resting: Dict = built['resting'];
+        const response = await this.privatePostModifyOrder (request);
+        return this.parseOrder (this.reyaMergeOrderResponse (request, response, resting), market);
+    }
+
+    /**
+     * @method
+     * @name reya#cancelAllOrdersAfter
+     * @description arm, refresh or disarm a countdown that cancels the account's open orders, except protective stops, when it expires
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {number} timeout countdown in milliseconds, from 5000 to 60000, or 0 to disarm
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] trading account id, defaults to options.accountId, or options.spotAccountId with params.type spot
+     * @param {string} [params.type] swap or spot, defaults to options.defaultType
+     * @returns {object} the raw response: accountId, timeoutMs and, while armed, the advisory triggerAt in milliseconds
+     */
+    override async cancelAllOrdersAfter (timeout: Int, params: Dict = {}): Promise<Dict> {
+        this.checkRequiredCredentials ();
+        if ((timeout === undefined) || ((timeout !== 0) && ((timeout < 5000) || (timeout > 60000)))) {
+            throw new BadRequest (this.id + ' cancelAllOrdersAfter timeout must be 0 to disarm, or from 5000 to 60000 milliseconds');
+        }
+        const [ accountId, query ] = this.reyaAccountAndParams ('cancelAllOrdersAfter', undefined, params);
+        const request: Dict = { 'accountId': accountId, 'timeoutMs': timeout };
+        const response = await this.privatePostCancelAllAfter (this.extend (this.omit (query, 'accountId'), request));
+        return response;
+    }
+
+    /** @ignore */
+    reyaClientOrderId (clientOrderId: Str): Str {
+        if (clientOrderId === undefined) {
+            return undefined;
+        }
+        const normalized = Precise.stringAdd (clientOrderId, '0');
+        if (normalized === undefined || normalized.indexOf ('.') >= 0 || Precise.stringLe (normalized, '0') || Precise.stringGt (normalized, '18446744073709551615')) {
+            throw new InvalidOrder (this.id + ' clientOrderId must be a non-zero uint64 decimal string');
+        }
+        return normalized;
+    }
+
+    /** @ignore */
+    override nonce (): int {
+        // microseconds; incrementingNonce () bumps past the previous value when two signed requests share one
+        return this.milliseconds () * 1000;
+    }
+
+    /** @ignore */
+    reyaSignPayload (path: string, request: Dict): Dict {
+        this.checkRequiredCredentials ();
+        const network = this.reyaNetwork ();
+        const domain = { 'name': 'Reya', 'version': '1', 'verifyingContract': this.safeString (network, 'ordersGateway') };
+        let nonce = this.safeString (request, 'nonce');
+        if (nonce === undefined) {
+            const nextNonce = this.incrementingNonce ();
+            nonce = this.numberToString (nextNonce);
+        }
+        const deadline = this.safeInteger (request, 'deadline', this.sum (this.seconds (), this.safeInteger (this.options, 'deadlineSeconds', 30)));
+        const accountId = this.safeInteger (request, 'accountId');
+        const symbol = this.safeString (request, 'symbol');
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const marketId = (market === undefined) ? 0 : this.safeInteger (market['info'], 'marketId');
+        let types: Dict = {};
+        const message: Dict = { 'verifyingChainId': this.safeInteger (network, 'chainId'), 'deadline': deadline };
+        if ((path === 'createOrder') || (path === 'modifyOrder')) {
+            // a modify signs the same envelope over the complete post-modify order
+            if (this.safeString (request, 'orderType') !== 'LIMIT') {
+                throw new NotSupported (this.id + ' signing supports LIMIT orders only');
+            }
+            const signer = this.ethGetAddressFromPrivateKey (this.privateKey);
+            const signedQty = (this.safeBool (request, 'isBuy')) ? this.safeString (request, 'qty') : Precise.stringNeg (this.safeString (request, 'qty'));
+            const timeInForceValues: Dict = { 'GTC': 0, 'IOC': 1, 'GTT': 2 };
+            types = {
+                'Order': [ { 'name': 'verifyingChainId', 'type': 'uint256' }, { 'name': 'deadline', 'type': 'uint256' }, { 'name': 'order', 'type': 'OrderDetails' } ],
+                'OrderDetails': [
+                    { 'name': 'accountId', 'type': 'uint128' }, { 'name': 'marketId', 'type': 'uint128' },
+                    { 'name': 'exchangeId', 'type': 'uint128' }, { 'name': 'orderType', 'type': 'uint8' },
+                    { 'name': 'quantity', 'type': 'int256' }, { 'name': 'limitPrice', 'type': 'uint256' },
+                    { 'name': 'triggerPrice', 'type': 'uint256' }, { 'name': 'timeInForce', 'type': 'uint8' },
+                    { 'name': 'clientOrderId', 'type': 'uint64' }, { 'name': 'reduceOnly', 'type': 'bool' },
+                    { 'name': 'postOnly', 'type': 'bool' }, { 'name': 'expiresAfter', 'type': 'uint256' },
+                    { 'name': 'signer', 'type': 'address' }, { 'name': 'nonce', 'type': 'uint256' },
+                ],
+            };
+            message['order'] = {
+                'accountId': accountId, 'marketId': marketId, 'exchangeId': this.safeInteger (request, 'exchangeId'),
+                'orderType': 0, 'quantity': Precise.stringMul (signedQty, '1000000000000000000'),
+                'limitPrice': Precise.stringMul (this.safeString (request, 'limitPx'), '1000000000000000000'),
+                'triggerPrice': '0', 'timeInForce': this.safeInteger (timeInForceValues, this.safeString (request, 'timeInForce')),
+                'clientOrderId': this.safeString (request, 'clientOrderId', '0'),
+                'reduceOnly': this.safeBool (request, 'reduceOnly', false), 'postOnly': this.safeBool (request, 'postOnly', false),
+                'expiresAfter': this.safeInteger (request, 'expiresAfter', 0), 'signer': signer, 'nonce': nonce,
+            };
+            request['signerWallet'] = signer;
+        } else if (path === 'cancelOrder') {
+            types = {
+                'OrderCancel': [ { 'name': 'verifyingChainId', 'type': 'uint64' }, { 'name': 'deadline', 'type': 'uint64' }, { 'name': 'cancel', 'type': 'OrderCancelDetails' } ],
+                'OrderCancelDetails': [
+                    { 'name': 'accountId', 'type': 'uint64' }, { 'name': 'marketId', 'type': 'uint64' },
+                    { 'name': 'orderId', 'type': 'uint64' }, { 'name': 'clOrdId', 'type': 'uint64' }, { 'name': 'nonce', 'type': 'uint64' },
+                ],
+            };
+            message['cancel'] = { 'accountId': accountId, 'marketId': marketId, 'orderId': this.safeString (request, 'orderId', '0'), 'clOrdId': this.safeString (request, 'clientOrderId', '0'), 'nonce': nonce };
+        } else if (path === 'cancelAllAfter') {
+            types = {
+                'CancelAllAfter': [ { 'name': 'verifyingChainId', 'type': 'uint64' }, { 'name': 'deadline', 'type': 'uint64' }, { 'name': 'cancelAllAfter', 'type': 'CancelAllAfterDetails' } ],
+                'CancelAllAfterDetails': [ { 'name': 'accountId', 'type': 'uint64' }, { 'name': 'timeoutMs', 'type': 'uint64' }, { 'name': 'nonce', 'type': 'uint64' } ],
+            };
+            message['cancelAllAfter'] = { 'accountId': accountId, 'timeoutMs': this.safeInteger (request, 'timeoutMs'), 'nonce': nonce };
+            request['signerWallet'] = this.ethGetAddressFromPrivateKey (this.privateKey);
+        } else {
+            types = {
+                'MassCancel': [ { 'name': 'verifyingChainId', 'type': 'uint64' }, { 'name': 'deadline', 'type': 'uint64' }, { 'name': 'massCancel', 'type': 'MassCancelDetails' } ],
+                'MassCancelDetails': [ { 'name': 'accountId', 'type': 'uint64' }, { 'name': 'marketId', 'type': 'uint64' }, { 'name': 'nonce', 'type': 'uint64' } ],
+            };
+            message['massCancel'] = { 'accountId': accountId, 'marketId': marketId, 'nonce': nonce };
+        }
+        const encoded = this.ethEncodeStructuredData (domain, types, message);
+        const digest = this.hash (encoded, keccak, 'hex');
+        const signature = ecdsa (digest, this.remove0xPrefix (this.privateKey), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
+        request['signature'] = '0x' + r.padStart (64, '0') + s.padStart (64, '0') + this.intToBase16 (this.sum (27, signature['v'])).toLowerCase ();
+        request['nonce'] = nonce;
+        request['deadline'] = deadline;
+        return request;
+    }
+
+    /** @ignore */
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        let headers: NullableDict = undefined;
+        let body: Str = undefined;
+        let url = this.urls['api'][api[0]] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (method === 'POST') {
+            query = this.reyaSignPayload (path, query);
+            body = this.json (query);
+            headers = { 'Content-Type': 'application/json' };
+        } else if (!this.isEmpty (query)) {
+            url += '?' + this.urlencode (query);
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    /** @ignore */
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+        if (response === undefined) {
+            return undefined;
+        }
+        const errorCode = this.safeString (response, 'error');
+        if (errorCode !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], this.safeString (response, 'message'), feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
+    }
+}
