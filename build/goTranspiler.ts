@@ -7219,6 +7219,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'getCurrencyName': [ 0 ], 'withdraw': [ 0, 2 ],
     // prediction `method: string` / `eventIdOrSlug: string`: callers pass literals only (none for getEvent)
     'ethRpc': [ 1 ], 'getEvent': [ 0 ],
+    // account names: every caller passes a typed-wrapper string or a nil-guarded market type
+    'convertTypeToAccount': [ 0 ],
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go
@@ -14166,7 +14168,9 @@ ${constStatements.join('\n')}
                 // never nil: a nil symbol panics first, and the SafeString default is that symbol
                 'Symbol': [ 'return *this.SafeString(market, "symbol", symbol)' ],
                 // never nil: a nil key panics first, and the SafeString default is that key
-                'GetSupportedMapping': [ 'return *this.SafeString(mapping, key, key)' ] };
+                'GetSupportedMapping': [ 'return *this.SafeString(mapping, key, key)' ],
+                // never nil: both SafeString defaults are the string account parameter
+                'ConvertTypeToAccount': [ 'return *this.SafeString(accountsByType, lowercaseAccount, account)', 'return *this.SafeString(market, "id", account)', 'return account' ] };
             this.writeGeneratedOnce (BASE_METHODS_FILE, goRetypeStringReturns (this.declareBaseFileStdlibImports (goBaseNativePasses (file), baseFile.stdlibImports), 'BaseExchange', baseStringReturns));
         }
     }

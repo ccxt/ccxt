@@ -4963,7 +4963,10 @@ export default class gate extends Exchange {
     editOrderRequest (id: string, symbol: Str, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('editOrder', market, params);
-        const accountParsed = this.convertTypeToAccount (marketType);
+        let accountParsed: Str = undefined;
+        if (marketType !== undefined) {
+            accountParsed = this.convertTypeToAccount (marketType);
+        }
         const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionBoolAndParams (paramsMarketType, 'editOrder', 'unifiedAccount', false);
         const account: Str = isUnifiedAccount ? 'unified' : accountParsed;
         const isLimitOrder = (type === 'limit');

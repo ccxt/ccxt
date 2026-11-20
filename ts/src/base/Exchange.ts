@@ -8433,7 +8433,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    convertTypeToAccount (account: any) {
+    convertTypeToAccount (account: string): string {
         /**
          * @ignore
          * @method
@@ -8444,13 +8444,13 @@ export class BaseExchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
-            return accountsByType[lowercaseAccount];
+            return this.safeString (accountsByType, lowercaseAccount, account);
         }
         const markets = this.markets;
         const marketsById = this.markets_by_id;
         if (((markets !== undefined) && (account in markets)) || ((marketsById !== undefined) && (account in marketsById))) {
             const market = this.market (account);
-            return market['id'];
+            return this.safeString (market, 'id', account);
         } else {
             return account;
         }
