@@ -407,7 +407,7 @@ public partial class cex : Exchange
         IDictionary<string, object> dataNetworks = this.safeDict((responses != null && 1 < responses.Count ? responses[1] : null), "data", new Dictionary<string, object>() {});
         Dictionary<string, object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
         Dictionary<string, object> data = this.deepExtend(currenciesIndexed, dataNetworks);
-        return this.parseCurrencies(this.toArray(data));
+        return this.parseCurrencies((data == null ? null : new List<object>(data.Values)));
     }
 
     public override Dictionary<string, object> parseCurrency(object rawCurrency)
@@ -1040,7 +1040,7 @@ public partial class cex : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> balances = this.safeDict(data, "balancesPerAccounts", new Dictionary<string, object>() {});
-        IList<object> arrays = this.toArray(balances);
+        IList<object> arrays = (balances == null ? null : new List<object>(balances.Values));
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(arrays, parameters));
     }
 

@@ -2046,7 +2046,7 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        IList<object> tickers = this.toArray(response);
+        IList<object> tickers = (response == null ? null : new List<object>(response.Values));
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 

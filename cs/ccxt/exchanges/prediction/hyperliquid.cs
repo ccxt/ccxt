@@ -2145,7 +2145,7 @@ public partial class hyperliquid : PredictionExchange
         // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
         // disagree with a previously warmed cache within the same session)
         IDictionary<string, object> marketsDict = await this.loadMarkets();
-        IList<object> marketValues = this.toArray(marketsDict);
+        IList<object> marketValues = (marketsDict == null ? null : new List<object>(marketsDict.Values));
         // Group markets by parentSymbol
         Dictionary<string, object> groupMap = new Dictionary<string, object>() {};
         if ((queries == null))

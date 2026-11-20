@@ -248,7 +248,7 @@ public partial class binance : PredictionExchange
             pageLimit = this.parseToInt(pageLimitOption);
         }
         List<object> collected = new List<object>() {};
-        object offset = 0;
+        Int64 offset = 0;
         while (true)
         {
             int collectedLength = (collected?.Count ?? 0);

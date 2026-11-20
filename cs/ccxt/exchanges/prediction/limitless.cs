@@ -3501,7 +3501,7 @@ public partial class limitless : PredictionExchange
         Int64? pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags"});
         List<object> allRaw = new List<object>() {};
-        object page = 1;
+        Int64 page = 1;
         while (true)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {

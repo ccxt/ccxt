@@ -3132,8 +3132,8 @@ public partial class kucoin : ccxt.kucoin
             {
                 this.balance[uniformType] = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)(this.balance != null && uniformType != null && this.balance.ContainsKey(uniformType) ? this.balance[uniformType] : null))["info"] = data;
             IDictionary<string, object> balance = this.safeDict(this.balance, uniformType, new Dictionary<string, object>() {});
+            balance["info"] = data;
             Int64? timestamp = this.safeInteger2(data, "time", "timestamp");
             balance["timestamp"] = timestamp;
             balance["datetime"] = this.iso8601(timestamp);
@@ -3182,8 +3182,8 @@ public partial class kucoin : ccxt.kucoin
         {
             this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
         IDictionary<string, object> balance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        balance["info"] = data;
         Int64? timestamp = this.safeIntegerProduct(data, "U", 0.000001);
         balance["timestamp"] = timestamp;
         balance["datetime"] = this.iso8601(timestamp);

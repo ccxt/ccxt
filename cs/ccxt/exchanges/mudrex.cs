@@ -546,7 +546,7 @@ public partial class mudrex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> aggregated = new List<object>() {};
-        object offset = 0;
+        Int64 offset = 0;
         int pageLimit = 100;
         bool paging = true;
         while (paging)

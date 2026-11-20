@@ -2974,7 +2974,7 @@ public partial class kraken : Exchange
         {
             market = this.market(symbol);
         }
-        IList<object> tradesList = this.toArray(trades);
+        IList<object> tradesList = (trades == null ? null : new List<object>(trades.Values));
         return this.parseTrades(tradesList, market, since, limit);
     }
 

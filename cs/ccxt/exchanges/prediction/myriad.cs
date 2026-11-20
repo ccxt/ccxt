@@ -376,7 +376,7 @@ public partial class myriad : PredictionExchange
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
         int collected = 0;
-        object page = 1;
+        Int64 page = 1;
         while (true)
         {
             Dictionary<string, object> response = await this.myriadPublicGetMarkets(this.extend(new Dictionary<string, object>() {
@@ -570,7 +570,7 @@ public partial class myriad : PredictionExchange
         List<object> allRawQuestions = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         int collected = 0;
-        object page = 1;
+        Int64 page = 1;
         while (true)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {

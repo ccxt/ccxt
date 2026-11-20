@@ -3929,19 +3929,17 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        List<object> rawBalance = null;
-        if (((getValue(message, "result")) is var hxArr189420 && ((hxArr189420 is IList<object>) || (hxArr189420.GetType().IsGenericType && hxArr189420.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr189356 && ((hxArr189356 is IList<object>) || (hxArr189356.GetType().IsGenericType && hxArr189356.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
-            rawBalance = this.safeList(message, "result", new List<object>() {});
-        } else
-        {
-            // account.status
-            IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-            rawBalance = this.safeList(result, "assets", new List<object>() {});
+            List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
+            client.resolve(this.parseBalanceList(rawBalance), messageHash);
+            return;
         }
-        IDictionary<string, object> parsedBalances = ((IDictionary<string, object>)this.parseBalanceCustom(rawBalance));
-        client.resolve(parsedBalances, messageHash);
+        // account.status
+        IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        List<object> assets = this.safeList(result, "assets", new List<object>() {});
+        client.resolve(this.parseBalanceList(assets), messageHash);
     }
 
     public virtual void handleAccountStatusWs(WebSocketClient client, object message)

@@ -4086,9 +4086,19 @@ public partial class woofipro : Exchange
                     if ((path == "batch-order"))
                     {
                         List<object> ordersList = this.safeList(requestParams, "orders", new List<object>() {});
+                        List<object> taggedOrders = new List<object>() {};
+                        bool hasOrders = false;
                         for (int i = 0; i < ordersList.Count; i++)
                         {
-                            ((IDictionary<string,object>)getValue((requestParams != null && requestParams.ContainsKey("orders") ? requestParams["orders"] : null), i))["order_tag"] = brokerId;
+                            Dictionary<string, object> orderRow = this.extend(ordersList[i], new Dictionary<string, object>() {
+                                { "order_tag", brokerId },
+                            });
+                            taggedOrders.Add(orderRow);
+                            hasOrders = true;
+                        }
+                        if (hasOrders)
+                        {
+                            requestParams["orders"] = taggedOrders;
                         }
                     } else
                     {

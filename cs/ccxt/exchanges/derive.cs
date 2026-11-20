@@ -1521,9 +1521,9 @@ public partial class derive : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> expiries = this.safeList(result, "expiries", new List<object>() {});
-        List<object> settlements = this.parseSettlements(expiries, null);
-        List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySinceLimit(sorted, since, limit));
+        List<Dictionary<string, object>> settlements = this.parseSettlements(expiries, null);
+        List<Dictionary<string, object>> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySinceLimit(sorted, since, limit);
     }
 
     /**
@@ -1578,10 +1578,10 @@ public partial class derive : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> settlements = this.safeList(result, "settlements", new List<object>() {});
-        List<object> parsed = this.parseSettlements(settlements, market);
-        List<object> sorted = this.sortBy(parsed, "timestamp");
+        List<Dictionary<string, object>> parsed = this.parseSettlements(settlements, market);
+        List<Dictionary<string, object>> sorted = this.sortBy(parsed, "timestamp");
         object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
 
     public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
@@ -1624,9 +1624,9 @@ public partial class derive : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
+    public virtual List<Dictionary<string, object>> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
     {
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
             result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));

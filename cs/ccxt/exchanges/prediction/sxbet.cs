@@ -2152,7 +2152,7 @@ public partial class sxbet : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list")) ;
         }
-        IList<object> outcomesList = outcomes;
+        IList<object> outcomesList = ((outcomes == null)) ? new List<object>() {} : outcomes;
         int outcomesLength = (outcomesList?.Count ?? 0);
         List<object> hashesOrder = new List<object>() {};
         Dictionary<string, object> seenHashes = new Dictionary<string, object>() {};

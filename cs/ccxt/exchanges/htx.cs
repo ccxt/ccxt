@@ -7320,13 +7320,7 @@ public partial class htx : Exchange
             clientOrderIds = this.safeValue2(query, "client-order-ids", "clientOrderIds", clientOrderIds);
             if ((clientOrderIds == null))
             {
-                if ((clientOrderIds is string))
-                {
-                    request["order-ids"] = new List<object>() {ids};
-                } else
-                {
-                    request["order-ids"] = ids;
-                }
+                request["order-ids"] = ids;
             } else
             {
                 if ((clientOrderIds is string))

@@ -5583,53 +5583,15 @@ public partial class binance : Exchange
         return account;
     }
 
-    public virtual object parseBalanceCustom(object response, object type = null, object marginMode = null, bool? isPortfolioMargin = null)
+    public virtual object parseBalanceCustom(object response, object type = null, object marginMode = null)
     {
-        isPortfolioMargin ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         Int64? timestamp = null;
         bool isolated = (marginMode is "isolated");
         bool cross = ((type is "margin")) || ((marginMode is "cross"));
-        if (isPortfolioMargin == true)
-        {
-            for (int i = 0; i < getArrayLength(response); i++)
-            {
-                IDictionary<string, object> entry = this.safeDict(response, i);
-                Dictionary<string, object> accountPapi = this.account();
-                string? currencyId = this.safeString(entry, "asset");
-                string? code = this.safeCurrencyCode(currencyId);
-                if ((type is "linear"))
-                {
-                    accountPapi["free"] = this.safeString(entry, "umWalletBalance");
-                    accountPapi["used"] = this.safeString(entry, "umUnrealizedPNL");
-                } else if ((type is "inverse"))
-                {
-                    accountPapi["free"] = this.safeString(entry, "cmWalletBalance");
-                    accountPapi["used"] = this.safeString(entry, "cmUnrealizedPNL");
-                } else if (cross)
-                {
-                    string? borrowed = this.safeString(entry, "crossMarginBorrowed");
-                    string? interest = this.safeString(entry, "crossMarginInterest");
-                    accountPapi["debt"] = Precise.stringAdd(borrowed, interest);
-                    accountPapi["free"] = this.safeString(entry, "crossMarginFree");
-                    accountPapi["used"] = this.safeString(entry, "crossMarginLocked");
-                    accountPapi["total"] = this.safeString(entry, "crossMarginAsset");
-                } else
-                {
-                    string? usedLinear = this.safeString(entry, "umUnrealizedPNL");
-                    string? usedInverse = this.safeString(entry, "cmUnrealizedPNL");
-                    string? totalUsed = Precise.stringAdd(usedLinear, usedInverse);
-                    string? totalWalletBalance = this.safeString(entry, "totalWalletBalance");
-                    accountPapi["total"] = Precise.stringAdd(totalUsed, totalWalletBalance);
-                }
-                if ((code != null))
-                {
-                    result[(string)code] = accountPapi;
-                }
-            }
-        } else if (!isolated && (((type is "spot")) || cross))
+        if (!isolated && (((type is "spot")) || cross))
         {
             timestamp = this.safeInteger(response, "updateTime");
             List<object> balances = this.safeList2(response, "balances", "userAssets", new List<object>() {});
@@ -5688,9 +5650,67 @@ public partial class binance : Exchange
                     result[(string)code] = accountSavings;
                 }
             }
+        } else
+        {
+            List<object> assets = this.safeList(response, "assets", new List<object>() {});
+            return this.parseBalanceList(assets, type, marginMode, false, response);
+        }
+        result["timestamp"] = timestamp;
+        result["datetime"] = this.iso8601(timestamp);
+        return this.safeBalance(result);
+    }
+
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response, object type = null, object marginMode = null, bool? isPortfolioMargin = null, object info = null)
+    {
+        isPortfolioMargin ??= false;
+        Dictionary<string, object> result = new Dictionary<string, object>() {
+            { "info", response },
+        };
+        if ((info != null))
+        {
+            result["info"] = info;
+        }
+        bool cross = ((type is "margin")) || ((marginMode is "cross"));
+        if (isPortfolioMargin == true)
+        {
+            for (int i = 0; i < (response?.Count ?? 0); i++)
+            {
+                IDictionary<string, object> entry = this.safeDict(response, i);
+                Dictionary<string, object> accountPapi = this.account();
+                string? currencyId = this.safeString(entry, "asset");
+                string? code = this.safeCurrencyCode(currencyId);
+                if ((type is "linear"))
+                {
+                    accountPapi["free"] = this.safeString(entry, "umWalletBalance");
+                    accountPapi["used"] = this.safeString(entry, "umUnrealizedPNL");
+                } else if ((type is "inverse"))
+                {
+                    accountPapi["free"] = this.safeString(entry, "cmWalletBalance");
+                    accountPapi["used"] = this.safeString(entry, "cmUnrealizedPNL");
+                } else if (cross)
+                {
+                    string? borrowed = this.safeString(entry, "crossMarginBorrowed");
+                    string? interest = this.safeString(entry, "crossMarginInterest");
+                    accountPapi["debt"] = Precise.stringAdd(borrowed, interest);
+                    accountPapi["free"] = this.safeString(entry, "crossMarginFree");
+                    accountPapi["used"] = this.safeString(entry, "crossMarginLocked");
+                    accountPapi["total"] = this.safeString(entry, "crossMarginAsset");
+                } else
+                {
+                    string? usedLinear = this.safeString(entry, "umUnrealizedPNL");
+                    string? usedInverse = this.safeString(entry, "cmUnrealizedPNL");
+                    string? totalUsed = Precise.stringAdd(usedLinear, usedInverse);
+                    string? totalWalletBalance = this.safeString(entry, "totalWalletBalance");
+                    accountPapi["total"] = Precise.stringAdd(totalUsed, totalWalletBalance);
+                }
+                if ((code != null))
+                {
+                    result[(string)code] = accountPapi;
+                }
+            }
         } else if ((type is "funding"))
         {
-            for (int i = 0; i < getArrayLength(response); i++)
+            for (int i = 0; i < (response?.Count ?? 0); i++)
             {
                 IDictionary<string, object> entry = this.safeDict(response, i);
                 Dictionary<string, object> accountFunding = this.account();
@@ -5708,12 +5728,8 @@ public partial class binance : Exchange
             }
         } else
         {
-            object balances = response;
-            if (!((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-            {
-                balances = this.safeList(response, "assets", new List<object>() {});
-            }
-            for (int i = 0; i < getArrayLength(balances); i++)
+            IList<object> balances = response;
+            for (int i = 0; i < (balances?.Count ?? 0); i++)
             {
                 IDictionary<string, object> balance = this.safeDict(balances, i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -5734,8 +5750,8 @@ public partial class binance : Exchange
                 }
             }
         }
-        result["timestamp"] = timestamp;
-        result["datetime"] = this.iso8601(timestamp);
+        result["timestamp"] = null;
+        result["datetime"] = null;
         return this.safeBalance(result);
     }
 
@@ -5783,7 +5799,7 @@ public partial class binance : Exchange
         marginMode = marginModequeryVariable.Item1;
         query = marginModequeryVariable.Item2;
         query = this.omit(query, "type");
-        object response = null;
+        Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((isPortfolioMargin == true) || (type == "papi"))
         {
@@ -5794,8 +5810,8 @@ public partial class binance : Exchange
             {
                 type = "inverse";
             }
-            isPortfolioMargin = true;
-            response = await this.papiGetBalance(this.extend(request, query));
+            List<object> papiResponse = await this.papiGetBalance(this.extend(request, query));
+            return ccxt.BaseExchange.ToBalances(this.parseBalanceList(papiResponse, type, marginMode, true));
         } else if (this.isLinear(type, subType))
         {
             type = "linear";
@@ -5852,7 +5868,8 @@ public partial class binance : Exchange
             response = await this.sapiGetLendingUnionAccount(this.extend(request, query));
         } else if (type == "funding")
         {
-            response = await this.sapiPostAssetGetFundingAsset(this.extend(request, query));
+            List<object> fundingResponse = await this.sapiPostAssetGetFundingAsset(this.extend(request, query));
+            return ccxt.BaseExchange.ToBalances(this.parseBalanceList(fundingResponse, type, marginMode));
         } else
         {
             response = await this.privateGetAccount(this.extend(request, query));
@@ -6037,7 +6054,7 @@ public partial class binance : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalanceCustom(response, type, marginMode, isPortfolioMargin));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceCustom(response, type, marginMode));
     }
 
     /**
@@ -13270,7 +13287,7 @@ public partial class binance : Exchange
             {
                 throw new NullResponse ((this.id + " method() returned empty response")) ;
             }
-            IList<object> fees = this.toArray(response);
+            IList<object> fees = (response == null ? null : new List<object>(response.Values));
             for (int i = 0; i < (fees?.Count ?? 0); i++)
             {
                 Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
@@ -15440,9 +15457,9 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        List<object> settlements = this.parseSettlements(response, market);
-        List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
+        List<Dictionary<string, object>> settlements = this.parseSettlements(response, market);
+        List<Dictionary<string, object>> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
 
     /**
@@ -15506,9 +15523,9 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        List<object> settlements = this.parseSettlements(response, market);
-        List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
+        List<Dictionary<string, object>> settlements = this.parseSettlements(response, market);
+        List<Dictionary<string, object>> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
 
     public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market)
@@ -15554,7 +15571,7 @@ public partial class binance : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
+    public virtual List<Dictionary<string, object>> parseSettlements(IList<object> settlements, IDictionary<string, object> market)
     {
         //
         // fetchSettlementHistory
@@ -15590,7 +15607,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
             result.Add(this.parseSettlement(this.safeValue(settlements, i), market));

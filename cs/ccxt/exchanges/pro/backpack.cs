@@ -268,7 +268,7 @@ public partial class backpack : ccxt.backpack
         return this.filterByArray(this.tickers, "symbol", symbolsResolved);
     }
 
-    public async virtual Task<object> watchPublic(object topics, object messageHashes, object parameters = null, bool? unwatch = null)
+    public async virtual Task<object> watchPublic(object topics, IList<object> messageHashes, object parameters = null, bool? unwatch = null)
     {
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
@@ -297,7 +297,7 @@ public partial class backpack : ccxt.backpack
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> watchPrivate(object topics, object messageHashes, object parameters = null, bool? unwatch = null)
+    public async virtual Task<object> watchPrivate(object topics, IList<object> messageHashes, object parameters = null, bool? unwatch = null)
     {
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
@@ -331,11 +331,11 @@ public partial class backpack : ccxt.backpack
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public virtual void handleUnsubscriptions(object url, object messageHashes, object message)
+    public virtual void handleUnsubscriptions(object url, IList<object> messageHashes, object message)
     {
         var client = this.client(url);
         this.watchMultiple(url, messageHashes, message, messageHashes);
-        for (int i = 0; i < getArrayLength(messageHashes); i++)
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = this.safeString(messageHashes, i, "");
             string subMessageHash = messageHash.Replace("unsubscribe:", (string)"");
