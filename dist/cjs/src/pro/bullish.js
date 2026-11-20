@@ -682,11 +682,12 @@ class bullish extends bullish$1["default"] {
             account['total'] = this.safeString(data, 'availableQuantity');
             account['used'] = this.safeString(data, 'lockedQuantity');
             const code = this.safeCurrencyCode(assetId);
-            if ((tradingAccountId !== undefined) && (code !== undefined)) {
-                this.balance[tradingAccountId][code] = account;
-            }
             this.balance[tradingAccountId]['info'] = message;
-            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
+            const deltaBalance = this.safeDict(this.balance, tradingAccountId, {});
+            if ((tradingAccountId !== undefined) && (code !== undefined)) {
+                deltaBalance[code] = account;
+            }
+            this.balance[tradingAccountId] = this.safeBalance(deltaBalance);
         }
         const messageHash = 'balance';
         const tradingAccountIdHash = '::' + tradingAccountId;

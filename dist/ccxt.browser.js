@@ -553377,11 +553377,12 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
             account['total'] = this.safeString(data, 'availableQuantity');
             account['used'] = this.safeString(data, 'lockedQuantity');
             const code = this.safeCurrencyCode(assetId);
-            if (tradingAccountId !== undefined && code !== undefined) {
-                this.balance[tradingAccountId][code] = account;
-            }
             this.balance[tradingAccountId]['info'] = message;
-            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
+            const deltaBalance = this.safeDict(this.balance, tradingAccountId, {});
+            if (tradingAccountId !== undefined && code !== undefined) {
+                deltaBalance[code] = account;
+            }
+            this.balance[tradingAccountId] = this.safeBalance(deltaBalance);
         }
         const messageHash = 'balance';
         const tradingAccountIdHash = '::' + tradingAccountId;
@@ -554474,8 +554475,6 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         const url = await this.getUrlByMarketType(symbolsNormalized[0], false, 'watchOrderBook', params);
         const paramsValue = this.cleanParams(params);
         const market = this.market(symbolsNormalized[0]);
-        const defaultLimit = this.safeBool(market, 'option', false) ? 100 : 50;
-        const limitResolved = limit === undefined ? defaultLimit : limit;
         if (limit !== undefined) {
             const limits = {
                 'spot': [
@@ -554500,12 +554499,18 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + this.safeString(market, 'type', '') + ' markets limit can be one of: ' + this.json(selectedLimits));
             }
         }
+        const limitParam = this.safeInteger({
+            'limit': limit
+        }, 'limit');
+        const limitDefault = this.safeBool(market, 'option', false) ? 100 : 50;
+        const limitValue = limitParam === undefined ? limitDefault : limitParam;
+        const topicPrefix = 'orderbook.' + limitValue.toString() + '.';
         const topics = [];
         const messageHashes = [];
         for(let i = 0; i < symbolsNormalized.length; i++){
             const symbol = symbolsNormalized[i];
-            const marketId = this.marketId(symbol);
-            const topic = 'orderbook.' + this.numberToString(limitResolved) + '.' + marketId;
+            const marketId = this.safeString(this.market(symbol), 'id', '');
+            const topic = topicPrefix + marketId;
             topics.push(topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push(messageHash);
@@ -554904,12 +554909,13 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
         await this.authenticate(url);
-        const topicByMarket = {
-            'spot': 'ticketInfo',
-            'unified': 'execution',
-            'usdc': 'user.openapi.perp.trade'
-        };
-        let topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        const privateType = this.getPrivateType(url);
+        let topic = 'execution';
+        if (privateType === 'spot') {
+            topic = 'ticketInfo';
+        } else if (privateType === 'usdc') {
+            topic = 'user.openapi.perp.trade';
+        }
         const [executionFast, paramsExecutionFast] = this.handleOptionBoolAndParams(params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
@@ -554948,12 +554954,13 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
-        const topicByMarket = {
-            'spot': 'ticketInfo',
-            'unified': 'execution',
-            'usdc': 'user.openapi.perp.trade'
-        };
-        let topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        const privateType = this.getPrivateType(url);
+        let topic = 'execution';
+        if (privateType === 'spot') {
+            topic = 'ticketInfo';
+        } else if (privateType === 'usdc') {
+            topic = 'user.openapi.perp.trade';
+        }
         const [executionFast, paramsExecutionFast] = this.handleOptionBoolAndParams(params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
@@ -555478,19 +555485,16 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
         await this.authenticate(url);
-        const topicsByMarket = {
-            'spot': [
-                'order',
-                'stopOrder'
-            ],
-            'unified': [
-                'order'
-            ],
-            'usdc': [
-                'user.openapi.perp.order'
-            ]
-        };
-        const topics = this.safeList(topicsByMarket, this.getPrivateType(url), []);
+        const privateType = this.getPrivateType(url);
+        const topics = [];
+        if (privateType === 'usdc') {
+            topics.push('user.openapi.perp.order');
+        } else {
+            topics.push('order');
+            if (privateType === 'spot') {
+                topics.push('stopOrder');
+            }
+        }
         const orders = await this.watchTopics(url, [
             messageHash
         ], topics, params);
@@ -555521,19 +555525,16 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
-        const topicsByMarket = {
-            'spot': [
-                'order',
-                'stopOrder'
-            ],
-            'unified': [
-                'order'
-            ],
-            'usdc': [
-                'user.openapi.perp.order'
-            ]
-        };
-        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        const privateType = this.getPrivateType(url);
+        const topics = [];
+        if (privateType === 'usdc') {
+            topics.push('user.openapi.perp.order');
+        } else {
+            topics.push('order');
+            if (privateType === 'spot') {
+                topics.push('stopOrder');
+            }
+        }
         return await this.unWatchTopics(url, 'orders', [], [
             messageHash
         ], [
@@ -555699,10 +555700,6 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         const isUnifiedAccount = this.safeBool(unified, 1, false);
         const url = await this.getUrlByMarketType(undefined, true, method, paramsSubType);
         await this.authenticate(url);
-        const topicByMarket = {
-            'spot': 'outboundAccountInfo',
-            'unified': 'wallet'
-        };
         if (isUnifiedAccount) {
             // unified account
             if (subType === 'inverse') {
@@ -555731,8 +555728,16 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
+        const privateType = this.getPrivateType(url);
+        if (privateType === 'usdc') {
+            throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' watchBalance() is not supported on the usdc private stream');
+        }
+        let topic = 'wallet';
+        if (privateType === 'spot') {
+            topic = 'outboundAccountInfo';
+        }
         const topics = [
-            this.safeString(topicByMarket, this.getPrivateType(url))
+            topic
         ];
         return await this.watchTopics(url, [
             messageHash
@@ -584601,7 +584606,7 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
         }
         const length = symbolsValue.length;
         if (length === 1) {
-            const market = this.market(marketIds[0]);
+            const market = this.market(symbolsValue[0]);
             messageHash += ':' + market['symbol'];
         }
         subscribe['product_ids'] = marketIds;

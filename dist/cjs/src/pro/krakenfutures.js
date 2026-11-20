@@ -130,7 +130,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const length = symbolsValue.length;
         if (length === 1) {
-            const market = this.market(marketIds[0]);
+            const market = this.market(symbolsValue[0]);
             messageHash += ':' + market['symbol'];
         }
         subscribe['product_ids'] = marketIds;
