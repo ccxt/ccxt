@@ -2565,12 +2565,11 @@ class bybit extends \ccxt\async\bybit {
         // is the consistent total, the spot rows fall back to the wallet balance
         $account['total'] = $this->safe_string_2($balance, 'equity', 'walletBalance');
         if ($accountType !== null) {
-            if ($this->safe_dict($this->balance, $accountType) === null) {
-                $this->balance[$accountType] = array();
+            $accountBalance = $this->safe_dict($this->balance, $accountType, array());
+            if ($code !== null) {
+                $accountBalance[$code] = $account;
             }
-            if (($accountType !== null) && ($code !== null)) {
-                $this->balance[$accountType][$code] = $account;
-            }
+            $this->balance[$accountType] = $accountBalance;
         } else {
             if ($code !== null) {
                 $this->balance[$code] = $account;

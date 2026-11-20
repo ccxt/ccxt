@@ -1949,7 +1949,7 @@ class htx extends \ccxt\async\htx {
                     if ($marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
                         if (($symbol !== null) && ($market !== null)) {
-                            $messageHash .= '.' . $this->safe_string($market, 'id', '');
+                            $messageHash = $prefix . '.' . $this->safe_string($market, 'id', '');
                             $channel = $messageHash;
                         } else {
                             // subscribe to all
@@ -1969,7 +1969,7 @@ class htx extends \ccxt\async\htx {
             } elseif ($type === 'future') {
                 // inverse futures account
                 if ($currencyCode !== null) {
-                    $messageHash .= '.' . $this->safe_string($currencyCode, 'id', '');
+                    $messageHash = $prefix . '.' . $this->safe_string($currencyCode, 'id', '');
                     $channel = $messageHash;
                 } else {
                     // subscribe to all
@@ -1978,7 +1978,7 @@ class htx extends \ccxt\async\htx {
             } else {
                 // inverse swaps account
                 if ($market !== null) {
-                    $messageHash .= '.' . $this->safe_string($market, 'id', '');
+                    $messageHash = $prefix . '.' . $this->safe_string($market, 'id', '');
                     $channel = $messageHash;
                 } else {
                     // subscribe to all

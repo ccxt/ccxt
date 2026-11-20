@@ -459,6 +459,7 @@ class sxbet extends Exchange {
             $queries[] = $tags[$i];
         }
         $rest = $this->omit($params, array( 'eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ));
+        $rawMarkets = array();
         if ($eventId !== null) {
             $rawMarkets = Async\await($this->fetch_raw_markets_paged($this->extend(array( 'sportXeventId' => $eventId ), $rest), null));
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live

@@ -5500,7 +5500,6 @@ class BaseExchange {
 
     public function create_ccxt_trade_id(?int $timestamp = null, ?string $side = null, ?string $amount = null, ?string $price = null, ?string $takerOrMaker = null) {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        $id = null;
         if ($timestamp !== null) {
             $id = $this->number_to_string($timestamp);
             if ($side !== null) {
@@ -5515,8 +5514,9 @@ class BaseExchange {
             if ($takerOrMaker !== null) {
                 $id .= '-' . $takerOrMaker;
             }
+            return $id;
         }
-        return $id;
+        return null;
     }
 
     public function parsed_fee_and_fees(mixed $container) {

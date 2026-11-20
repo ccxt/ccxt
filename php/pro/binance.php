@@ -3913,6 +3913,7 @@ class binance extends \ccxt\async\binance {
             $this->balance[$accountType] = array();
         }
         $this->balance[$accountType]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $accountType, array());
         $event = $this->safe_string($message, 'e');
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         $balanceMessage = $this->safe_dict($message, 'a', $message);
@@ -3921,8 +3922,8 @@ class binance extends \ccxt\async\binance {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $delta = $this->safe_string($message, 'd');
-            if (($code !== null) && (is_array($this->balance[$accountType]) && array_key_exists($code ?? '', $this->balance[$accountType]))) {
-                $previousValue = $this->safe_value($this->balance[$accountType][$code], 'free');
+            if (($code !== null) && (is_array($balance) && array_key_exists($code ?? '', $balance))) {
+                $previousValue = $this->safe_value($balance[$code], 'free');
                 if (gettype($previousValue) !== 'string') {
                     $previousValue = $this->number_to_string($previousValue);
                 }
@@ -3931,7 +3932,7 @@ class binance extends \ccxt\async\binance {
                 $account['free'] = $delta;
             }
             if ($code !== null) {
-                $this->balance[$accountType][$code] = $account;
+                $balance[$code] = $account;
             }
         } else {
             $B = $this->safe_list($balanceMessage, 'B');
@@ -3947,14 +3948,14 @@ class binance extends \ccxt\async\binance {
                 $account['used'] = $this->safe_string($entry, 'l');
                 $account['total'] = $this->safe_string($entry, $wallet);
                 if ($code !== null) {
-                    $this->balance[$accountType][$code] = $account;
+                    $balance[$code] = $account;
                 }
             }
         }
         $timestamp = $this->safe_integer($balanceMessage, 'E');
-        $this->balance[$accountType]['timestamp'] = $timestamp;
-        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($balance);
         $client->resolve($this->balance[$accountType], $messageHash);
     }
 
