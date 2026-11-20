@@ -1724,7 +1724,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         if outcomes is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list')
-        outcomesList = outcomes
+        outcomesList = [] if (outcomes is None) else outcomes
         outcomesLength = len(outcomesList)
         hashesOrder = []
         seenHashes = {}

@@ -1682,8 +1682,8 @@ class bingx(ccxt.async_support.bingx):
             type = 'spot'
         if not (type in self.balance):
             self.balance[type] = {}
-        self.balance[type]['info'] = data
         typeBalance = self.safe_dict(self.balance, type, {})
+        typeBalance['info'] = data
         typeBalance['timestamp'] = timestamp
         typeBalance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(data)):

@@ -4459,40 +4459,36 @@ class BaseExchange(object):
         trades = []
         isTriggerOrSLTpOrder = ((self.safe_string(orderDict, 'triggerPrice') is not None or (self.safe_string(orderDict, 'stopLossPrice') is not None)) or (self.safe_string(orderDict, 'takeProfitPrice') is not None))
         if parseFilled or parseCost or shouldParseFees:
-            rawTrades = self.safe_value(orderDict, 'trades', trades)
             # const oldNumber = this.number;
             # we parse trades as strings here!
             # i don't think this is needed anymore
             # (this as any).number = String;
-            firstTrade = self.safe_dict(rawTrades, 0)
+            firstTrade = self.safe_dict(self.safe_value(orderDict, 'trades'), 0)
             # parse trades if they haven't already been parsed
             tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
             if not tradesAreParsed:
-                trades = self.parse_trades(rawTrades, market)
+                trades = self.parse_trades(self.safe_value(orderDict, 'trades', []), market)
             else:
-                trades = rawTrades
+                trades = self.safe_list(orderDict, 'trades', [])
             # this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
-            tradesLength = 0
-            isArray = isinstance(trades, list)
-            if isArray:
-                tradesLength = len(trades)
-            if isArray and (tradesLength > 0):
-                headTrade = trades[0]
-                # move properties that are defined in trades up into the order
-                if parseSymbol:
-                    orderDict['symbol'] = headTrade['symbol']
-                if parseSide:
-                    orderDict['side'] = headTrade['side']
-                if self.safe_string(orderDict, 'type') is None:
-                    orderDict['type'] = headTrade['type']
-                if self.safe_string(orderDict, 'id') is None:
-                    orderDict['id'] = headTrade['order']
+            tradesLength = len(trades)
+            if tradesLength > 0:
                 if parseFilled:
                     filled = '0'
                 if parseCost:
                     cost = '0'
                 for i in range(0, len(trades)):
                     trade = trades[i]
+                    if i == 0:
+                        # move properties that are defined in trades up into the order
+                        if parseSymbol:
+                            orderDict['symbol'] = trade['symbol']
+                        if parseSide:
+                            orderDict['side'] = trade['side']
+                        if self.safe_string(orderDict, 'type') is None:
+                            orderDict['type'] = trade['type']
+                        if self.safe_string(orderDict, 'id') is None:
+                            orderDict['id'] = trade['order']
                     tradeAmount = self.safe_string(trade, 'amount')
                     if parseFilled and (tradeAmount is not None):
                         filled = Precise.string_add(filled, tradeAmount)
@@ -5335,13 +5331,9 @@ class BaseExchange(object):
             if (aliases[alias] == unifiedCode) and (alias in networkIdsByCodes):
                 return networkIdsByCodes[alias]
         # fall back to scanning loaded currencies
-        currenciesToCheck = []
-        if currencyCode is None:
-            currenciesToCheck = list(self.currencies.keys())
-        else:
-            currenciesToCheck = [self.safe_dict(self.currencies, currencyCode)]
-        for i in range(0, len(currenciesToCheck)):
-            networks = self.safe_dict(currenciesToCheck[i], 'networks', {})
+        if currencyCode is not None:
+            currencies = [self.safe_dict(self.currencies, currencyCode)]
+            networks = self.safe_dict(currencies[0], 'networks', {})
             if unifiedCode in networks:
                 return self.safe_string(networks[unifiedCode], 'id')
         return networkCode
@@ -6988,9 +6980,7 @@ class BaseExchange(object):
     def parse_borrow_rate_history(self, response: object, code: Str, since: Int, limit: Int):
         result = []
         for i in range(0, len(response)):
-            item = self.safe_dict(response, i)
-            borrowRate = self.parse_borrow_rate(item)
-            result.append(borrowRate)
+            result.append(self.parse_borrow_rate(self.safe_dict(response, i)))
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
@@ -7171,9 +7161,7 @@ class BaseExchange(object):
     def parse_open_interests_history(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
         interests = []
         for i in range(0, len(response)):
-            entry = response[i]
-            interest = self.parse_open_interest(entry, market)
-            interests.append(interest)
+            interests.append(self.parse_open_interest(response[i], market))
         sorted = self.sort_by(interests, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7336,15 +7324,27 @@ class BaseExchange(object):
         """
         depositWithdrawFees = {}
         isArray = isinstance(response, list)
-        responseKeys = response
+        dictResponse = {}
+        numEntries = 0
+        if isArray:
+            responseLength = len(response)
+            numEntries = responseLength
+        else:
+            dictResponse = response
+        keys = list(dictResponse.keys())
         if not isArray:
-            responseKeys = list(response.keys())
-        for i in range(0, len(responseKeys)):
-            entry = responseKeys[i]
-            dictionary = entry if isArray else response[entry]
-            currencyId = entry
+            keysLength = len(keys)
+            numEntries = keysLength
+        for i in range(0, numEntries):
+            dictionary = None
+            currencyId = None
             if isArray:
-                currencyId = None if (currencyIdKey is None) else self.safe_string(dictionary, currencyIdKey)
+                dictionary = response[i]
+                if currencyIdKey is not None:
+                    currencyId = self.safe_string(dictionary, currencyIdKey)
+            else:
+                currencyId = keys[i]
+                dictionary = response[currencyId]
             currency = self.safe_currency(currencyId)
             code = self.safe_string(currency, 'code')
             if (codes is None) or (self.in_array(code, codes)):
@@ -7407,9 +7407,7 @@ class BaseExchange(object):
         """
         result = []
         for i in range(0, len(incomes)):
-            entry = incomes[i]
-            parsed = self.parse_income(entry, market)
-            result.append(parsed)
+            result.append(self.parse_income(incomes[i], market))
         sorted = self.sort_by(result, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7830,8 +7828,7 @@ class BaseExchange(object):
         """
         result = []
         for i in range(0, len(liquidations)):
-            entry = liquidations[i]
-            parsed = self.parse_liquidation(entry, market)
+            parsed = self.parse_liquidation(liquidations[i], market)
             result.append(parsed)
         sorted = self.sort_by(result, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
@@ -7859,15 +7856,14 @@ class BaseExchange(object):
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption () is not supported yet')
 
-    def parse_option_chain(self, response: list[object], currencyKey: Str = None, symbolKey: Str = None):
+    def parse_option_chain(self, response: list[dict], currencyKey: Str = None, symbolKey: Str = None):
         optionStructures = {}
         for i in range(0, len(response)):
-            info = response[i]
-            currencyId = None if (currencyKey is None) else self.safe_string(info, currencyKey)
+            currencyId = None if (currencyKey is None) else self.safe_string(response[i], currencyKey)
             currency = self.safe_currency(currencyId)
-            marketId = None if (symbolKey is None) else self.safe_string(info, symbolKey)
+            marketId = None if (symbolKey is None) else self.safe_string(response[i], symbolKey)
             market = self.safe_market(marketId, None, None, 'option')
-            optionStructures[market['symbol']] = self.parse_option(info, currency, market)
+            optionStructures[market['symbol']] = self.parse_option(response[i], currency, market)
         return optionStructures
 
     def parse_margin_modes(self, response: list[object], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):
@@ -8018,16 +8014,15 @@ class BaseExchange(object):
             raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
 
-    def parse_margin_modifications(self, response: list[object] | None, symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):
+    def parse_margin_modifications(self, response: list[dict], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):
         marginModifications = []
         if response is None:
             return marginModifications
         for i in range(0, len(response)):
-            info = response[i]
-            marketId = None if (symbolKey is None) else self.safe_string(info, symbolKey)
+            marketId = None if (symbolKey is None) else self.safe_string(response[i], symbolKey)
             market = self.safe_market(marketId, None, None, marketType)
             if (symbols is None) or self.in_array(market['symbol'], symbols):
-                marginModifications.append(self.parse_margin_modification(info, market))
+                marginModifications.append(self.parse_margin_modification(response[i], market))
         return marginModifications
 
     def fetch_transfer(self, id: str, code: Str = None, params: dict = {}):

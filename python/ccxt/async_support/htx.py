@@ -5635,10 +5635,7 @@ class htx(Exchange, ImplicitAPI):
             clientOrderIds = self.safe_value_2(query, 'client-order-id', 'clientOrderId')
             clientOrderIds = self.safe_value_2(query, 'client-order-ids', 'clientOrderIds', clientOrderIds)
             if clientOrderIds is None:
-                if isinstance(clientOrderIds, str):
-                    request['order-ids'] = [ids]
-                else:
-                    request['order-ids'] = ids
+                request['order-ids'] = ids
             else:
                 if isinstance(clientOrderIds, str):
                     request['client-order-ids'] = [clientOrderIds]

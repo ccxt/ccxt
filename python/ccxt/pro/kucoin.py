@@ -2580,8 +2580,8 @@ class kucoin(ccxt.async_support.kucoin):
         if uniformType is not None:
             if not (uniformType in self.balance):
                 self.balance[uniformType] = {}
-            self.balance[uniformType]['info'] = data
             balance = self.safe_dict(self.balance, uniformType, {})
+            balance['info'] = data
             timestamp = self.safe_integer_2(data, 'time', 'timestamp')
             balance['timestamp'] = timestamp
             balance['datetime'] = self.iso8601(timestamp)
@@ -2621,8 +2621,8 @@ class kucoin(ccxt.async_support.kucoin):
         code = self.safe_currency_code(currencyId)
         if not (type in self.balance):
             self.balance[type] = {}
-        self.balance[type]['info'] = data
         balance = self.safe_dict(self.balance, type, {})
+        balance['info'] = data
         timestamp = self.safe_integer_product(data, 'U', 0.000001)
         balance['timestamp'] = timestamp
         balance['datetime'] = self.iso8601(timestamp)

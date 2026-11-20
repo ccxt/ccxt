@@ -3925,41 +3925,14 @@ class binance(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def parse_balance_custom(self, response: object, type: Str = None, marginMode: Str = None, isPortfolioMargin: bool = False) -> Balances:
+    def parse_balance_custom(self, response: dict, type: Str = None, marginMode: Str = None) -> Balances:
         result = {
             'info': response,
         }
         timestamp = None
         isolated = marginMode == 'isolated'
         cross = (type == 'margin') or (marginMode == 'cross')
-        if isPortfolioMargin:
-            for i in range(0, len(response)):
-                entry = self.safe_dict(response, i)
-                accountPapi = self.account()
-                currencyId = self.safe_string(entry, 'asset')
-                code = self.safe_currency_code(currencyId)
-                if type == 'linear':
-                    accountPapi['free'] = self.safe_string(entry, 'umWalletBalance')
-                    accountPapi['used'] = self.safe_string(entry, 'umUnrealizedPNL')
-                elif type == 'inverse':
-                    accountPapi['free'] = self.safe_string(entry, 'cmWalletBalance')
-                    accountPapi['used'] = self.safe_string(entry, 'cmUnrealizedPNL')
-                elif cross:
-                    borrowed = self.safe_string(entry, 'crossMarginBorrowed')
-                    interest = self.safe_string(entry, 'crossMarginInterest')
-                    accountPapi['debt'] = Precise.string_add(borrowed, interest)
-                    accountPapi['free'] = self.safe_string(entry, 'crossMarginFree')
-                    accountPapi['used'] = self.safe_string(entry, 'crossMarginLocked')
-                    accountPapi['total'] = self.safe_string(entry, 'crossMarginAsset')
-                else:
-                    usedLinear = self.safe_string(entry, 'umUnrealizedPNL')
-                    usedInverse = self.safe_string(entry, 'cmUnrealizedPNL')
-                    totalUsed = Precise.string_add(usedLinear, usedInverse)
-                    totalWalletBalance = self.safe_string(entry, 'totalWalletBalance')
-                    accountPapi['total'] = Precise.string_add(totalUsed, totalWalletBalance)
-                if code is not None:
-                    result[code] = accountPapi
-        elif not isolated and ((type == 'spot') or cross):
+        if not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
             balances = self.safe_list_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
@@ -3999,6 +3972,47 @@ class binance(Exchange, ImplicitAPI):
                 accountSavings['used'] = usedAndTotal
                 if code is not None:
                     result[code] = accountSavings
+        else:
+            assets = self.safe_list(response, 'assets', [])
+            return self.parse_balance_list(assets, type, marginMode, False, response)
+        result['timestamp'] = timestamp
+        result['datetime'] = self.iso8601(timestamp)
+        return self.safe_balance(result)
+
+    def parse_balance_list(self, response: list[dict], type: Str = None, marginMode: Str = None, isPortfolioMargin: bool = False, info: object = None) -> Balances:
+        result = {
+            'info': response,
+        }
+        if info is not None:
+            result['info'] = info
+        cross = (type == 'margin') or (marginMode == 'cross')
+        if isPortfolioMargin:
+            for i in range(0, len(response)):
+                entry = self.safe_dict(response, i)
+                accountPapi = self.account()
+                currencyId = self.safe_string(entry, 'asset')
+                code = self.safe_currency_code(currencyId)
+                if type == 'linear':
+                    accountPapi['free'] = self.safe_string(entry, 'umWalletBalance')
+                    accountPapi['used'] = self.safe_string(entry, 'umUnrealizedPNL')
+                elif type == 'inverse':
+                    accountPapi['free'] = self.safe_string(entry, 'cmWalletBalance')
+                    accountPapi['used'] = self.safe_string(entry, 'cmUnrealizedPNL')
+                elif cross:
+                    borrowed = self.safe_string(entry, 'crossMarginBorrowed')
+                    interest = self.safe_string(entry, 'crossMarginInterest')
+                    accountPapi['debt'] = Precise.string_add(borrowed, interest)
+                    accountPapi['free'] = self.safe_string(entry, 'crossMarginFree')
+                    accountPapi['used'] = self.safe_string(entry, 'crossMarginLocked')
+                    accountPapi['total'] = self.safe_string(entry, 'crossMarginAsset')
+                else:
+                    usedLinear = self.safe_string(entry, 'umUnrealizedPNL')
+                    usedInverse = self.safe_string(entry, 'cmUnrealizedPNL')
+                    totalUsed = Precise.string_add(usedLinear, usedInverse)
+                    totalWalletBalance = self.safe_string(entry, 'totalWalletBalance')
+                    accountPapi['total'] = Precise.string_add(totalUsed, totalWalletBalance)
+                if code is not None:
+                    result[code] = accountPapi
         elif type == 'funding':
             for i in range(0, len(response)):
                 entry = self.safe_dict(response, i)
@@ -4014,8 +4028,6 @@ class binance(Exchange, ImplicitAPI):
                     result[code] = accountFunding
         else:
             balances = response
-            if not isinstance(response, list):
-                balances = self.safe_list(response, 'assets', [])
             for i in range(0, len(balances)):
                 balance = self.safe_dict(balances, i)
                 # skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
@@ -4030,8 +4042,8 @@ class binance(Exchange, ImplicitAPI):
                 accountFutures['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
                 if code is not None:
                     result[code] = accountFutures
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
+        result['timestamp'] = None
+        result['datetime'] = None
         return self.safe_balance(result)
 
     async def fetch_balance(self, params: dict = {}) -> Balances:
@@ -4075,8 +4087,8 @@ class binance(Exchange, ImplicitAPI):
                 type = 'linear'
             elif self.is_inverse(type, subType):
                 type = 'inverse'
-            isPortfolioMargin = True
-            response = await self.papiGetBalance(self.extend(request, query))
+            papiResponse = await self.papiGetBalance(self.extend(request, query))
+            return self.parse_balance_list(papiResponse, type, marginMode, True)
         elif self.is_linear(type, subType):
             type = 'linear'
             useV2 = None
@@ -4111,7 +4123,8 @@ class binance(Exchange, ImplicitAPI):
         elif type == 'savings':
             response = await self.sapiGetLendingUnionAccount(self.extend(request, query))
         elif type == 'funding':
-            response = await self.sapiPostAssetGetFundingAsset(self.extend(request, query))
+            fundingResponse = await self.sapiPostAssetGetFundingAsset(self.extend(request, query))
+            return self.parse_balance_list(fundingResponse, type, marginMode)
         else:
             response = await self.privateGetAccount(self.extend(request, query))
         #
@@ -4294,7 +4307,7 @@ class binance(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_balance_custom(response, type, marginMode, isPortfolioMargin)
+        return self.parse_balance_custom(response, type, marginMode)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

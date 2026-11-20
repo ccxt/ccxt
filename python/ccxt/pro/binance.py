@@ -3106,16 +3106,15 @@ class binance(ccxt.async_support.binance):
         #
         #
         messageHash = self.safe_string(message, 'id')
-        rawBalance = None
         if isinstance(message['result'], list):
             # account.balance
             rawBalance = self.safe_list(message, 'result', [])
-        else:
-            # account.status
-            result = self.safe_dict(message, 'result', {})
-            rawBalance = self.safe_list(result, 'assets', [])
-        parsedBalances = self.parseBalanceCustom(rawBalance)
-        client.resolve(parsedBalances, messageHash)
+            client.resolve(self.parseBalanceList(rawBalance), messageHash)
+            return
+        # account.status
+        result = self.safe_dict(message, 'result', {})
+        assets = self.safe_list(result, 'assets', [])
+        client.resolve(self.parseBalanceList(assets), messageHash)
 
     def handle_account_status_ws(self, client: Client, message: dict):
         #
