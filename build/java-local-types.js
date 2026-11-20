@@ -18001,6 +18001,10 @@ function javaListLocalValue (printer, node, declaration, depth = 0) {
     if (value === undefined || depth > 3 || ts.isTypeAssertion (value)) {
         return undefined;
     }
+    // `await this.m (..)` of a venue method whose async table says List<Object> prints `.join()` of that List
+    if (ts.isAwaitExpression (value)) {
+        return awaitedVenueCallType (printer, value) === JAVA_ARRAY_TYPE ? { cast: false } : undefined;
+    }
     if (isNullishInitializer (value)) {
         return { cast: false };
     }
@@ -18067,6 +18071,8 @@ function javaListLocal (printer, declaration) {
         return undefined;
     }
     let listWrites = 0;
+    let awaitWrites = 0;
+    let castWrites = 0;
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
     const ok = isSafeToNarrow (printer, declaration, name, JAVA_LIST_LOCAL_TYPE, isProFile, {
         noCastAssertions: true,
@@ -18076,9 +18082,15 @@ function javaListLocal (printer, declaration) {
             if (info !== undefined && !isNullishInitializer (unwrapParens (right))) {
                 listWrites++;
             }
+            awaitWrites += (info !== undefined && ts.isAwaitExpression (unwrapParens (right))) ? 1 : 0;
+            castWrites += (info?.cast === true) ? 1 : 0;
             return info !== undefined;
         },
     });
+    // an awaited write only narrows a local whose other writes need no checkcast
+    if (awaitWrites > 0 && (castWrites > 0 || init.cast)) {
+        return undefined;
+    }
     // a nullish start needs at least one List write to say anything
     return ok && (listWrites > 0 || !isNullishInitializer (unwrapParens (declaration.initializer))) ? { cast: init.cast } : undefined;
 }

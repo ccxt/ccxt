@@ -6778,11 +6778,13 @@ const RUST_PARSE_LIST_FNS = [
     'filter_transactions_by_kind',
     'wallet_event_message_hashes',
     'parse_sxbet_cancel_response',
+    'filter_raw_markets_by_fixture',
+    'fetch_raw_markets_paged',
 ];
 function typeParseListReturns(content: string): string {
     const typed = new Set<string>();
     const failed = new Set<string>();
-    const decl = new RegExp(String.raw`(\n {4}(?:pub )?fn (${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g');
+    const decl = new RegExp(String.raw`(\n {4}(?:pub )?(?:async )?fn (${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g');
     const self = String.raw`self(?:\.parent)?\.(?:${RUST_PARSE_LIST_FNS.join('|')})\(`;
     content = content.replace(decl, (whole, sig, name, open, body: string) => {
         const lines = body.split('\n').filter((l) => /^\s*return\b/.test(l));
@@ -6807,7 +6809,7 @@ function typeParseListReturns(content: string): string {
     const names = RUST_PARSE_LIST_FNS.filter((n) => !failed.has(n) && (typed.has(n) || n !== 'parse_settlements'));
     if (names.length === 0) return content;
     const head = new RegExp(String.raw`\bself(?:\.parent)?\.(?:${names.join('|')})\(`, 'g');
-    const typedBody = new RegExp(String.raw`\n {4}(?:pub )?fn (?:${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> crate::value::List \{`, 'g');
+    const typedBody = new RegExp(String.raw`\n {4}(?:pub )?(?:async )?fn (?:${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> crate::value::List \{`, 'g');
     const spans: Array<[number, number]> = [];
     for (const d of content.matchAll(typedBody)) spans.push([d.index!, balancedCloseIndex(content, d.index! + d[0].length)]);
     let out = '', last = 0, m: RegExpExecArray | null;
@@ -6816,12 +6818,14 @@ function typeParseListReturns(content: string): string {
         if (/^\s*(?:\/\/|\*)/.test(content.slice(lineStart, m.index))) continue;
         const close = balancedCloseIndex(content, m.index + m[0].length);
         const call = content.slice(m.index, close + 1);
-        const conv = content.slice(close + 1).match(/^\.into_(opt_)?list\(\)/);
+        // an async member's `.await` belongs to the call
+        const aw = content.startsWith('.await', close + 1) ? '.await' : '';
+        const conv = content.slice(close + 1 + aw.length).match(/^\.into_(opt_)?list\(\)/);
         const inTyped = spans.some(([a, b]) => m!.index > a && m!.index < b) && /return $/.test(content.slice(m.index - 7, m.index));
-        let rep = inTyped ? call : `Value::Arr(${call})`;
-        if (conv !== null) rep = conv[1] ? `Some(${call})` : call;
+        let rep = inTyped ? call + aw : `Value::Arr(${call}${aw})`;
+        if (conv !== null) rep = conv[1] ? `Some(${call}${aw})` : call + aw;
         out += content.slice(last, m.index) + rep;
-        last = close + 1 + (conv?.[0].length ?? 0);
+        last = close + 1 + aw.length + (conv?.[0].length ?? 0);
         head.lastIndex = last;
     }
     return out + content.slice(last);
