@@ -113,17 +113,21 @@ export default class grvt extends grvtRest {
     }
 
     async subscribeMultiple (messageHashes: string[], request: Dict, rawHashes: string[], publicOrPrivate = true): Promise<any> {
+        const requestId = this.requestId ();
         const payload: Dict = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
             'params': request,
-            'id': this.requestId (),
+            'id': requestId,
         };
         let apiPart: Str = 'privateTrading';
         if (publicOrPrivate) {
             apiPart = 'publicMarket';
         }
-        return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
+        // the request id and the message hashes are recorded on the subscription so
+        // handleErrorMessage can route an error frame back to the exact subscription
+        // that caused it and reject the futures the watchers are actually awaiting
+        return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes, { 'id': requestId, 'messageHashes': messageHashes });
     }
 
     override requestId (): int {
@@ -980,10 +984,48 @@ export default class grvt extends grvtRest {
             const body = this.json (response);
             const feedback = this.id + ' ' + body;
             const message = this.safeString (error, 'message');
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (this.id + ' ' + body);
+            try {
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                // the ws client calls this from its read loop, which has no recover in the
+                // Go port, so an escaping throw (transpiled to panic) kills the process;
+                // reject the pending future instead, as the other ws venues do
+                throw new ExchangeError (feedback);
+            } catch (e) {
+                const id = this.safeString (response, 'id');
+                let handled = false;
+                if (id !== undefined) {
+                    // error frames echo the subscribe request id, so reject only the
+                    // subscription that caused it instead of every pending future
+                    const subscriptionKeys = Object.keys (client.subscriptions);
+                    for (let i = 0; i < subscriptionKeys.length; i++) {
+                        const subscriptionHash = subscriptionKeys[i];
+                        const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                        if (id === subscriptionId) {
+                            if (!handled) {
+                                // the subscription key is the venue's raw selector, while the
+                                // watchers await the message hashes recorded at subscribe time;
+                                // a multi-symbol subscribe shares one id across its raw hashes,
+                                // so reject the shared message hashes once
+                                const messageHashes = this.safeList (client.subscriptions[subscriptionHash], 'messageHashes', []);
+                                for (let j = 0; j < messageHashes.length; j++) {
+                                    client.reject (e, messageHashes[j]);
+                                }
+                                handled = true;
+                            }
+                            // the subscription is dead: dropping it lets a retry re-send it
+                            delete client.subscriptions[subscriptionHash];
+                        }
+                    }
+                }
+                if (!handled && id === undefined) {
+                    // no request id to route on: fall back to the connection's pending
+                    // futures, as the other ws venues do
+                    client.reject (e);
+                }
+            }
+            return true;
         }
         return false;
     }
