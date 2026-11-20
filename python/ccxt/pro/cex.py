@@ -740,8 +740,9 @@ class cex(ccxt.async_support.cex):
             self.orders = ArrayCacheBySymbolById(limit)
         storedOrders = self.orders
         ordersBySymbol = self.safe_dict(storedOrders.hashmap, symbol, {})
-        order = self.safe_value(ordersBySymbol, orderId)
+        order = self.safe_dict(ordersBySymbol, orderId)
         if order is None:
+            # market comes from safeMarket, so the parser never takes its undefined returns here
             order = self.parse_ws_order_update(data, market)
         order['remaining'] = remains
         canceled = self.safe_bool(data, 'cancel', False)
@@ -760,12 +761,12 @@ class cex(ccxt.async_support.cex):
         order['timestamp'] = timestamp
         order['datetime'] = self.iso8601(timestamp)
         # a fresh map copy: the cached entry is untyped
-        order = self.safe_order(self.extend(order, {}))
-        storedOrders.append(order)
+        parsedOrder = self.safe_order(self.extend(order, {}))
+        storedOrders.append(parsedOrder)
         messageHash = 'orders:' + symbol
         client.resolve(storedOrders, messageHash)
 
-    def parse_ws_order_update(self, order: dict, market: Market = None):
+    def parse_ws_order_update(self, order: dict, market: Market = None) -> dict:
         #
         #      {
         #          "id": "150714937",

@@ -2181,10 +2181,11 @@ class bybit(ccxt.async_support.bybit):
             if self.safe_dict(self.balance, account) is None:
                 self.balance[account] = {}
             self.balance[account]['info'] = info
+            balance = self.safe_dict(self.balance, account, {})
             timestamp = self.safe_integer(message, 'ts')
-            self.balance[account]['timestamp'] = timestamp
-            self.balance[account]['datetime'] = self.iso8601(timestamp)
-            self.balance[account] = self.safe_balance(self.balance[account])
+            balance['timestamp'] = timestamp
+            balance['datetime'] = self.iso8601(timestamp)
+            self.balance[account] = self.safe_balance(balance)
             messageHash = 'balances:' + account
             client.resolve(self.balance[account], messageHash)
         else:

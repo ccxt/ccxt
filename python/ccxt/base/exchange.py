@@ -6444,13 +6444,13 @@ class BaseExchange(object):
         if broadKey is not None:
             raise broad[broadKey](message)
 
-    def find_broadly_matched_key(self, broad: dict, string: Str):
+    def find_broadly_matched_key(self, broad: dict, errorString: Str):
         # a helper for matching error strings exactly vs broadly
         keys = list(broad.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if string is not None:  # #issues/12698
-                if string.find(key) >= 0:
+            if errorString is not None:  # #issues/12698
+                if errorString.find(key) >= 0:
                     return key
         return None
 
