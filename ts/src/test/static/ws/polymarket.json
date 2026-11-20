@@ -1679,6 +1679,140 @@
                         "PUSD": 100
                     }
                 }
+            },
+            {
+                "description": "rest snapshot hydrates the first watch, then a portfolio frame arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as kraken issue 26773; frames and rest response reproduce the documented examples - no live keys for this venue)",
+                "disabledJava": "the java static-ws harness never runs the spawned loadBalanceSnapshot against the mocked rest response, so the snapshot future that hydrates the first watch never resolves - rest seeding is covered by the other lanes",
+                "disabledRS": "the rust static-ws harness does not route the mocked rest response into the spawned loadBalanceSnapshot task, so the snapshot future that hydrates the first watch never resolves - rest seeding is covered by the other lanes",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "method": "watchBalance",
+                "options": {
+                    "watchBalance": {
+                        "fetchBalanceSnapshot": true,
+                        "awaitBalanceSnapshot": true
+                    }
+                },
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "httpResponse": {
+                    "positions": [],
+                    "margin": {
+                        "total_account_value": "100.00",
+                        "available_order_margin": "90.00",
+                        "total_initial_margin": "10.00",
+                        "total_maintenance_margin": "5.00",
+                        "total_position_value": "50.00"
+                    },
+                    "withdrawable": "90.00",
+                    "in_liquidation": false,
+                    "timestamp": 1788546565789
+                },
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "ch": "portfolio",
+                        "ts": 1788546565789,
+                        "sq": 35879860000,
+                        "data": {
+                            "positions": [
+                                {
+                                    "instrument_id": 6,
+                                    "symbol": "BTC-USD",
+                                    "size": "0.001",
+                                    "entry_price": "79650.0",
+                                    "leverage": 10,
+                                    "cross": true,
+                                    "initial_margin": "7.97",
+                                    "maintenance_margin": "3.99",
+                                    "position_value": "79.65",
+                                    "liquidation_price": "72000.0",
+                                    "unrealized_pnl": "-0.10",
+                                    "return_on_equity": "-0.0125",
+                                    "cumulative_funding": "0.01",
+                                    "adl_index": 0
+                                }
+                            ],
+                            "margin": {
+                                "total_account_value": "100.00",
+                                "available_order_margin": "90.00",
+                                "total_initial_margin": "10.00",
+                                "total_maintenance_margin": "5.00",
+                                "total_position_value": "50.00"
+                            },
+                            "withdrawable": "90.00",
+                            "in_liquidation": false,
+                            "timestamp": 1788546565789
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "positions": [
+                            {
+                                "instrument_id": 6,
+                                "symbol": "BTC-USD",
+                                "size": "0.001",
+                                "entry_price": "79650.0",
+                                "leverage": 10,
+                                "cross": true,
+                                "initial_margin": "7.97",
+                                "maintenance_margin": "3.99",
+                                "position_value": "79.65",
+                                "liquidation_price": "72000.0",
+                                "unrealized_pnl": "-0.10",
+                                "return_on_equity": "-0.0125",
+                                "cumulative_funding": "0.01",
+                                "adl_index": 0
+                            }
+                        ],
+                        "margin": {
+                            "total_account_value": "100.00",
+                            "available_order_margin": "90.00",
+                            "total_initial_margin": "10.00",
+                            "total_maintenance_margin": "5.00",
+                            "total_position_value": "50.00"
+                        },
+                        "withdrawable": "90.00",
+                        "in_liquidation": false,
+                        "timestamp": 1788546565789
+                    },
+                    "timestamp": 1788546565789,
+                    "datetime": "2026-09-04T18:29:25.789Z",
+                    "PUSD": {
+                        "free": 90,
+                        "used": 10,
+                        "total": 100
+                    },
+                    "free": {
+                        "PUSD": 90
+                    },
+                    "used": {
+                        "PUSD": 10
+                    },
+                    "total": {
+                        "PUSD": 100
+                    }
+                }
             }
         ]
     }
