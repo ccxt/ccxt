@@ -1,16 +1,31 @@
 services:
 
-  # Runs a CCXT build & test environment with all the required dependencies installed:
+  # Runs a CCXT build & test environment with every language toolchain installed
+  # (Node/TS, Python, PHP, C#, Go, Java, Rust):
   #
-  #     docker-compose run --rm ccxt
+  #     docker compose run --rm ccxt
   #
   ccxt:
     build:
       context: .
+      target: dev
+    image: ccxt:dev
+    working_dir: /ccxt
     volumes:
       - .:/ccxt
       - /ccxt/node_modules/ # Prevents exposing container's node_modules to the host filesystem
       - /ccxt/vendor/ # Prevents exposing container's vendor to the host filesystem
+      # Package caches persisted across runs (seeded from the image on first use)
+      - go-cache:/root/go
+      - gradle-cache:/root/.gradle
+      - nuget-cache:/root/.nuget
+      - cargo-registry:/usr/local/cargo/registry
     entrypoint: /bin/bash
     stdin_open: true
     tty: true
+
+volumes:
+  go-cache:
+  gradle-cache:
+  nuget-cache:
+  cargo-registry:

@@ -1,7 +1,19 @@
-.git
-.dockerignore
-Dockerfile
+# dependencies are installed inside the image (deps stage)
 node_modules
+**/node_modules
 vendor
+# build outputs / caches
+rust/target
+**/bin
+**/obj
+**/.gradle
+java/**/build
+python/build
+python/**/*.egg-info
+**/__pycache__
+.tox
 *.swp
 *.pyc
+# local secrets
+keys.local.json
+.env
