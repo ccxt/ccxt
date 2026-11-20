@@ -3362,9 +3362,8 @@ export class BaseExchange {
          * @method
          * @description store value under key if key is defined (no-op on undefined)
          */
-        const k = key;
-        if (k !== undefined) {
-            dict[k] = value;
+        if (key !== undefined) {
+            dict[key] = value;
         }
     }
 
@@ -3458,9 +3457,10 @@ export class BaseExchange {
 
     urlEncoderForProxyUrl (targetUrl: string): string {
         // to be overriden
-        const includesQuery = targetUrl.indexOf ('?') >= 0;
-        const finalUrl = includesQuery ? this.encodeURIComponent (targetUrl) : targetUrl;
-        return finalUrl;
+        if (targetUrl.indexOf ('?') >= 0) {
+            return this.encodeURIComponent (targetUrl);
+        }
+        return targetUrl;
     }
 
     checkProxySettings (url: Str = undefined, method: Str = undefined, headers: any = undefined, body: any = undefined): Str[] {
