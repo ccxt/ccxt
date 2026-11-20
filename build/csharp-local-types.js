@@ -17166,6 +17166,8 @@ export const SIGNATURE_ARG_TYPES = {
     // base-only, no overrides: safeNetwork's one caller passes a dictionary literal; no caller passes existingCurrencies
     'safeNetwork': { 0: 'IDictionary<string, object>' },
     'isLeveragedCurrency': { 2: 'IDictionary<string, object>' },
+    // paradex only: both callers pass the `int i` loop counter, the body never writes it
+    'unsubscribeChannelAt': { 5: 'Int64' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
@@ -18401,8 +18403,11 @@ const CORE_LIST_ARGS_SINGLE_CALLER = {
     'completeRawTopics': 0,
     'parseTransactionsByType': 1,
 };
+// paradex subMessageHashes: the five unsubscribeChannels callers pass List<object> locals or literals,
+// forwarded unchanged to From/At; no body rebinds it
+const CORE_LIST_ARGS_SINGLE_CALLER_HASHES = { 'unsubscribeChannels': 3, 'unsubscribeChannelsFrom': 3, 'unsubscribeChannelAt': 3 };
 Object.assign (CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_ARRAY_LENGTH);
-for (const table of [ CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_SINGLE_CALLER ]) {
+for (const table of [ CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_SINGLE_CALLER, CORE_LIST_ARGS_SINGLE_CALLER_HASHES ]) {
     for (const [ name, position ] of Object.entries (table)) {
         CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
     }

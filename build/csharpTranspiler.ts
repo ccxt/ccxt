@@ -9942,6 +9942,11 @@ export function csharpParamsBagGetValue (content: string): string {
                 const declared = new RegExp ('\\b' + t + '[ ]+' + name + '\\b');
                 return masked.some ((l, j) => (j > start) && (j < i) && declared.test (l)) ? t : undefined;
             }
+            // a non-nullable `Int64` parameter the method never writes: the signature is its one binding
+            if ((params[name] === 'Int64') && (seen.size === 1) && ([ ...seen ][0] === 'Int64')
+                && !masked.some ((l, j) => (j > start) && (j < end) && new RegExp ('(?:^|[^\\w.])' + name + '[ ]*(?:=[^=>]|\\+=|-=|\\+\\+|--)|(?:\\+\\+|--)' + name + '\\b').test (l))) {
+                return 'Int64';
+            }
             return forCounter (name);
         };
         const intOperand = (text: string): string | undefined => (/^\d{1,9}$/.test (text) ? 'int' : intName (text));
@@ -10015,6 +10020,17 @@ function paramsBagGetValueSnippetChecks (): string[] {
     {
         const out = nativeDeclaredHelperCalls (wrap ('        if (isEqual(getValue(parameters, "k"), null))\n        {\n        }'));
         if (/\bisEqual\(/.test (out) || !out.includes (': null) == null)')) problems.push (`isEqual(getValue(bag), null): ${out.slice (-400)}`);
+    }
+    // an unwritten non-nullable Int64 parameter indexes a declared list; written / nullable ones keep the helper
+    const paramWrap = (sig: string, body: string) => wrap (body).replace ('List<object> xs, IList<object> ys, object parameters = null', 'IList<object> xs, ' + sig + ', object parameters = null');
+    for (const [ label, sig, body, expected ] of [
+        [ 'Int64 param index', 'Int64 index', '        object a = getValue(xs, index);', 'object a = (xs != null && index < xs.Count ? xs[(int)index] : null);' ],
+        [ 'written Int64 param keeps helper', 'Int64 index', '        index = 2;\n        object a = getValue(xs, index);', 'object a = getValue(xs, index);' ],
+        [ 'incremented Int64 param keeps helper', 'Int64 index', '        index++;\n        object a = getValue(xs, index);', 'object a = getValue(xs, index);' ],
+        [ 'Int64? param keeps helper', 'Int64? index', '        object a = getValue(xs, index);', 'object a = getValue(xs, index);' ],
+    ]) {
+        const out = csharpParamsBagGetValue (paramWrap (sig, body));
+        if (!out.includes (expected)) problems.push (`params bag get value ${label}: ${out.slice (-400)}`);
     }
     return [ ...problems, ...snippetSuite ('params bag get value snippet', csharpParamsBagGetValue, wrap, cases, keeps, 500, true, wrap ('        object a = getValue(parameters, "k");', 'Tests'), 'params bag get value snippet tests namespace changed') ];
 }
