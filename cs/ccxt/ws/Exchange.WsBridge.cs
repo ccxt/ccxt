@@ -214,6 +214,7 @@ public partial class BaseExchange
                 (c, error) => onClose(c, error),
                 (c, error) => onError(c, error),
                 this.verbose, keepAlive, decompressBinary);
+            client.connectionTimeout = this.safeValue(ws, "connectionTimeout", this.safeValue(this.streaming, "connectionTimeout", 10000));
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
