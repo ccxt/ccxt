@@ -1667,6 +1667,9 @@ const VENUE_LIST_ARGS: Record<string, Record<string, number[]>> = {
     'pro:nado': { 'watchPublicMultiple': [ 1, 2, 4 ] },
     'pro:kucoin': { 'subscribeMultiple': [ 3 ] },
     'pro:coinbaseinternational': { 'subscribe': [ 0, 1 ], 'unSubscribe': [ 0 ] },
+    // callers pass IList<object> symbols / List<object> hash locals or literals; no body rebinds them
+    'pro:deribit': { 'watchMultipleWrapper': [ 2 ] },
+    'pro:backpack': { 'watchPublic': [ 1 ], 'watchPrivate': [ 1 ], 'handleUnsubscriptions': [ 1 ] },
 };
 
 const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
