@@ -1855,6 +1855,8 @@ class NewTranspiler {
                 // generated async lambdas go through BaseExchange.supplyAsync, which
                 // defaults to VIRTUAL_EXECUTOR so no tier lands on the ForkJoinPool common pool
                 "asyncSupplier": JAVA_ASYNC_SUPPLIER,
+                // library async methods print a private sync <name>Core plus a one-line supplier wrapper
+                "asyncCoreSplit": "/ts/src/(?!test/)",
             },
         }
     }
@@ -2256,7 +2258,8 @@ class NewTranspiler {
             classBody = out;
             out = this.removeFirstJavaMethod(classBody, methodName);
         }
-        return out;
+        // an async method's private sync core goes with it
+        return methodName.endsWith('Core') ? out : this.removeJavaMethod(out, methodName + 'Core');
     }
 
     removeFirstJavaMethod(classBody: string, methodName: string): string {
@@ -2416,8 +2419,9 @@ class NewTranspiler {
             // fetchTicker, ...); drop the symbol-based surface no prediction venue supports so
             // PredictionExchange.java doesn't carry (and leak) closePosition/fetchGreeks/etc.
             const predImplemented = this.getPredictionImplementedNames();
-            for (const name of this.extractJavaMethodNames('\n' + extras)) {
-                if (!predImplemented.has(name)) {
+            const extrasNames = this.extractJavaMethodNames('\n' + extras);
+            for (const name of extrasNames) {
+                if (!predImplemented.has(name) && !(name.endsWith('Core') && extrasNames.has(name.slice(0, -4)))) {
                     extras = this.removeJavaMethod(extras, name);
                 }
             }
@@ -2861,7 +2865,12 @@ class NewTranspiler {
         const result: string[] = [];
         for (let i = 0; i < lines.length; i++) {
             // Check if this line is "return null;" and the next is "});" (lambda end)
-            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
+            let after = i + 1;
+            while (after < lines.length && lines[after].trim() === '') after++;
+            let head = i;
+            while (head > 0 && !/^ {0,4}(?:public|private|protected) /.test(lines[head])) head--;
+            const coreClose = lines[i].startsWith('        return null;') && lines[after] === '    }' && /^ {0,4}private \S.* \w+Core\(/.test(lines[head]);
+            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && (isAsyncLambdaClose(lines[i + 1].trim()) || coreClose)) {
                 // Check if the preceding non-empty line is "}" closing an else/else-if block
                 // that contains a throw or return
                 let j = i - 1;
@@ -3323,7 +3332,7 @@ class NewTranspiler {
 
         let inSupplyAsync = 0;
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes(JAVA_ASYNC_SUPPLIER + '(')) inSupplyAsync++;
+            if (lines[i].includes(JAVA_ASYNC_SUPPLIER + '(') && lines[i].trimEnd().endsWith('{')) inSupplyAsync++;
             if (inSupplyAsync > 0 && lines[i].trim() === '});') inSupplyAsync--;
             if (inSupplyAsync > 0 && lines[i].trim() === 'return;') {
                 lines[i] = lines[i].replace('return;', 'return null;');
@@ -3334,7 +3343,7 @@ class NewTranspiler {
         let depth = 0;
         for (let i = 0; i < lines.length; i++) {
             const t = lines[i].trim();
-            if (t.includes(JAVA_ASYNC_SUPPLIER + '(')) { depth = 1; continue; }
+            if (t.includes(JAVA_ASYNC_SUPPLIER + '(') && t.endsWith('{')) { depth = 1; continue; }
             if (depth === 0) continue;
             if (t.endsWith('{') && !t.startsWith('}')) { depth++; continue; }
             if (t === '}' || t === '});' || t.startsWith('} ')) { depth--; }
