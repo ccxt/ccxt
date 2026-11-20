@@ -388,73 +388,105 @@ CCXT provides sensible defaults for the most common use cases; however, you may 
 
 ## How to use the InteractiveBrokers in CCXT?
 
-InteractiveBrokers works differently from the other exchanges in CCXT. You connect through the IBKR Web API, using either OAuth or the Client Portal Gateway app.
+InteractiveBrokers (IBKR) works differently from the other exchanges in CCXT: it is a broker rather than a single exchange, and you connect through the IBKR Web API. This section covers:
 
-IBKR allows only one active session per user. If you log in to the IBKR website or another IBKR app with the same user, your running CCXT session may be disconnected. To avoid this, you can create an additional user in Account Management and use it only for the API. Each user needs its own market data subscriptions.
+1. [Choosing a connection method](#choosing-a-connection-method)
+2. [Connecting with OAuth 1.0](#connecting-with-oauth-10)
+3. [Connecting with the Client Portal Gateway](#connecting-with-the-client-portal-gateway)
+4. [One session per user](#one-session-per-user)
+5. [Account ids](#account-ids)
+6. [Paper trading](#paper-trading)
+7. [Symbols](#symbols)
+8. [Choosing which markets to load](#choosing-which-markets-to-load)
+9. [Examples](#examples)
 
-#### Use IBKR Web-Api with Oauth 1.0
+### Choosing a connection method
 
-The access to the Web-API seems not available to all retail users. You should visit https://ndcdyn.interactivebrokers.com/oauth/ where you can generate credentials. If that page shows this error message `Oauth1.0 is only available to institutional clients` ![example screenshot](https://i.imgur.com/vu8JXK9.png)
+There are two ways to connect, and which one you can use depends on your IBKR account:
 
-you need first to go through [this process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and email them  to request programmatic access.
+| | OAuth 1.0 | Client Portal Gateway |
+|---|---|---|
+| Who can use it | only accounts approved by IBKR for programmatic access (does not seem to be available to all retail users) | any account |
+| Credentials | api keys + `.pem` files | none, you log in to a local gateway app |
+| Maintenance | none once the keys are activated | the gateway has to be running, and may need a manual login once every 24 hours |
 
-If you are rejected for Oauth access, then skip to the next paragraph, but if you are approved, then you will be able to generate api-keys. ![example screenshot](https://i.imgur.com/pSHadxF.png)
+If you can get OAuth access, use it. Otherwise use the Client Portal Gateway.
 
-However after generation it might take up to 24 hours to become activated. After the activation you ca set these credentials:
+### Connecting with OAuth 1.0
 
-```
-instance = new ccxt.interactivebrokers ({
-  "apiKey":"______ACCESS_TOKEN______",
-  "secret":"______ACCESS_TOKEN_SECRET______",
-  "options": {
-    "consumer_key": "______VALUE_HERE______",
-    "signaturePemPath": "______PATH_TO_FILE______",
-    "encryptionPemPath": "______PATH_TO_FILE______",
-    "dhParamPemPath": "______PATH_TO_FILE______"
-  }
-})
-```
+1. Visit https://ndcdyn.interactivebrokers.com/oauth/ and try to generate credentials.
+2. If that page shows the error `Oauth1.0 is only available to institutional clients`, you first need to go through [this registration process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and email IBKR to request programmatic access. If your request is rejected, use the [Client Portal Gateway](#connecting-with-the-client-portal-gateway) instead.
 
-#### Use IBKR with Web-Api with Client-Portal Gateway
+    ![OAuth 1.0 is only available to institutional clients error](https://i.imgur.com/vu8JXK9.png)
 
-If your account is not permitted to generate credentials for WebApi, then you can use local IBKR bridge where you will not need api-keys. You need to download `Client-Portal Gateway`, either one of the ways:
-- A) Here is a handy dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ and run it as noted in repo description.
-- B) You can manually download the files from: https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow instructions shown there. Also note, in this case, you will need to manually re-run gateway after every device restart or alike cases, that's why Dockerized approach is preferred for flexibility.
+3. Once approved, generate your api keys.
 
-After you are running Client-Portal Gateway, you can use:
+    ![generating the OAuth api keys](https://i.imgur.com/pSHadxF.png)
 
-```
-instance = new ccxt.interactivebrokers ({
-  "options": {
-    "useGateway": true,
-    //  if custom port needed, add the below field
-    // "gatewayUrl": "https://localhost:5000/",
-  },
-})
-```
-
-Note, Client-Portal gateway needs slighly more maintenance, specifically it might need you to manaully login once in every 24 hours at https://localhost:5000
-
-To overcome the 1 session limitation using the gateway you can create a different user at IBKR for programmatic trading.
-
-#### Account ids
-If you have multiple sub-accounts you need to specify the sub-account you want to trade in. You can provide your UID in options
+4. Wait for the keys to be activated, which might take up to 24 hours.
+5. Set the credentials:
 
 ```
-    const exchange = new ccxt.interactivebrokers ({
-        'options': {
-            'useGateway': true,
-            'gatewayUrl': 'https://localhost:5001',
-            'accountId': 'UXXXXX', // your accountID here
-        },
-    });
-````
+const exchange = new ccxt.interactivebrokers ({
+    'apiKey': '______ACCESS_TOKEN______',
+    'secret': '______ACCESS_TOKEN_SECRET______',
+    'options': {
+        'consumer_key': '______VALUE_HERE______',
+        'signaturePemPath': '______PATH_TO_FILE______',
+        'encryptionPemPath': '______PATH_TO_FILE______',
+        'dhParamPemPath': '______PATH_TO_FILE______',
+    },
+});
+```
 
-#### Paper trading
+### Connecting with the Client Portal Gateway
 
-Paper trading is also supported, upon logging in just toggle the option.
+If your account is not permitted to generate OAuth credentials, you can use the `Client Portal Gateway`, a local IBKR bridge that does not need api keys.
 
-#### Symbols
+1. Get the gateway running, in one of two ways:
+    - **Docker (preferred)**: use the dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ and run it as described there.
+    - **Manual**: download the files from https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow the instructions shown there. In this case you have to re-run the gateway manually after every device restart and similar cases, which is why the dockerized approach is preferred.
+2. Log in at https://localhost:5000
+3. Enable the gateway in CCXT:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        // if a custom port is needed, add the field below
+        // 'gatewayUrl': 'https://localhost:5000/',
+    },
+});
+```
+
+The gateway listens on port 5000 by default. If that port is already taken on your machine, you can run the gateway on any other port, then log in at that port and set `gatewayUrl` to match, e.g. `'gatewayUrl': 'https://localhost:5001/'`.
+
+Note that the gateway needs slightly more maintenance than OAuth: it might require you to log in manually once every 24 hours at https://localhost:5000
+
+### One session per user
+
+IBKR allows only one active session per user. If you log in to the IBKR website or to another IBKR app with the same user, your running CCXT session may be disconnected.
+
+To avoid this, create an additional user in Account Management and use it only for the API (this also applies when connecting through the gateway). Each user needs its own market data subscriptions.
+
+### Account ids
+
+If you have multiple sub-accounts, you need to specify the one you want to trade in, by providing its account id in the options:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        'accountId': 'UXXXXX', // your account id here
+    },
+});
+```
+
+### Paper trading
+
+Paper trading is also supported, just toggle the option upon logging in.
+
+### Symbols
 
 IBKR is a broker, not a single exchange: the same ticker can be listed on many venues (`AAPL` on NASDAQ, on the Mexican exchange, as a CFD, ...) and the same coin is offered by several crypto providers. To keep every market unique, CCXT puts the **listing exchange** in the base part of the symbol, right after the IBKR ticker:
 
@@ -472,7 +504,9 @@ For example, the Apple stock is `AAPL.NASDAQ/USD`:
 | listing exchange | `NASDAQ` | the venue the contract is listed on |
 | currency | `USD` | the currency the contract is quoted in |
 
-The same pattern for each market type:
+The market `id` is always the IBKR contract id (`conid`), e.g. `265598` for `AAPL.NASDAQ/USD`, and the raw IBKR contract is available in `market['info']`.
+
+#### Symbols by market type
 
 | market | example symbol | notes |
 |--------|----------------|-------|
@@ -482,16 +516,26 @@ The same pattern for each market type:
 | cfd | `AAPL.IBUSCFD/USD:USD` | unified as a swap, `IBUSCFD` = US cfds, `IBCFD` = non-US cfds |
 | perp-style future | `BTC.NANO.COINDERIV/USD:USD` | Coinbase Derivatives, unified as a swap |
 | dated future | `BTC.MICRO.CME/USD:USD-261224`, `ETH.CME/USD:USD-261127` | the suffix is the expiry date (2026-12-24) |
-| bond | `US-T-4.125-270131.SMART/USD`, `US-T-270114.SMART/USD` | see below |
+| bond | `US-T-4.125-270131.SMART/USD`, `US-T-270114.SMART/USD` | see the bond rules below |
 
-Some details:
+#### Special cases
 
-- **Futures**: the base is the underlying coin instead of the IBKR ticker (`MBT` -> `BTC`, `BIP` -> `BTC`), and the contract size goes in between as `NANO.` / `MICRO.` when the IBKR contract is a nano or micro one, e.g. `BTC.MICRO.CME/USD:USD-261224` is the CME Micro Bitcoin future (0.1 BTC) expiring on 2026-12-24.
-- **Bonds**: every bond of an issuer has the same IBKR ticker (`US-T` for the US treasuries), so the coupon and the maturity date (`YYMMDD`) are added to tell them apart: `US-T-4.125-270131.SMART/USD` is the 4.125% note maturing on 2027-01-31, and a bill (no coupon) is `US-T-270114.SMART/USD`. Bonds are routed across many venues, so the exchange part is always `SMART`.
+- **Futures**: the base is the underlying coin instead of the IBKR ticker (`MBT` -> `BTC`, `BIP` -> `BTC`), and the contract size goes in between as `NANO.` / `MICRO.` when the IBKR contract is a nano or micro one. For example, `BTC.MICRO.CME/USD:USD-261224` is the CME Micro Bitcoin future (0.1 BTC) expiring on 2026-12-24.
+- **Bonds**: every bond of an issuer has the same IBKR ticker (`US-T` for the US treasuries), so the coupon and the maturity date (`YYMMDD`) are added to tell them apart. `US-T-4.125-270131.SMART/USD` is the 4.125% note maturing on 2027-01-31, and a bill (no coupon) is `US-T-270114.SMART/USD`. Bonds are routed across many venues, so the exchange part is always `SMART`.
 - **Collisions**: if two contracts still end up with the same symbol, the later one gets the IBKR conid in place of the exchange (or appended to the base for bonds), e.g. `BTC.150045489/USD:USD`.
-- The market `id` is always the IBKR contract id (`conid`), e.g. `265598` for `AAPL.NASDAQ/USD`, and the raw IBKR contract is available in `market['info']`.
 
-Which markets are loaded is configured in `options.fetchMarkets`, loading only what you need makes `loadMarkets` much faster:
+#### Finding a symbol
+
+Since the exchange and the expiry are part of the symbol, the easiest way to find a symbol is to look it up in the loaded markets:
+
+```
+const symbols = exchange.symbols.filter ((symbol) => symbol.startsWith ('BTC.'));
+// [ 'BTC.PAXOS/USD', 'BTC.ZEROHASH/USD', ... ]
+```
+
+### Choosing which markets to load
+
+Which markets are loaded is configured in `options.fetchMarkets`. Loading only what you need makes `loadMarkets` much faster:
 
 ```
 const exchange = new ccxt.interactivebrokers ({
@@ -513,12 +557,15 @@ await exchange.loadMarkets ();
 const ticker = await exchange.fetchTicker ('AAPL.NASDAQ/USD');
 ```
 
-Since the exchange and the expiry are part of the symbol, the easiest way to find a symbol is to look it up in the loaded markets:
+| option | what it controls |
+|--------|------------------|
+| `types` | the market types to load |
+| `exchanges` | the listing exchanges to load, per IBKR security type (`STK` = stocks) |
+| `cryptoSpotSymbols` | the coins to load, on every crypto provider |
+| `bondSymbols` | the bond issuers to load |
+| `bondFilters` | IBKR bond filters: `29` = type (Bills, Notes, Bonds, ...), `27` = maturity month (`YYYYMM`) |
 
-```
-const symbols = exchange.symbols.filter ((symbol) => symbol.startsWith ('BTC.'));
-// [ 'BTC.PAXOS/USD', 'BTC.ZEROHASH/USD', ... ]
-```
+### Examples
 
 Complete examples: [stocks](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-stocks.ts), [crypto](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-crypto.ts) and [bonds](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-bonds.ts).
 
