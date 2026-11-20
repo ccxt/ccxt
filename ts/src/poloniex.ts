@@ -459,6 +459,7 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
+                    '401': PermissionDenied, // {"code":401,"message":"Illegal of ip"}
                     '500': ExchangeNotAvailable, // Internal System Error
                     '603': RequestTimeout, // Internal Request Timeout
                     '601': BadRequest, // Invalid Parameter
