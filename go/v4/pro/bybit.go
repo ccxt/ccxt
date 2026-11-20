@@ -569,7 +569,7 @@ func (this *Bybit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var paramsValue any = this.CleanParams(params)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
 	var topic string = *this.SafeString(options, "name", "tickers")
-	var marketIds []any = this.MarketIdsSlice(symbolsValue)
+	var marketIds []string = this.MarketIds(symbolsValue)
 	var topics []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
@@ -631,7 +631,7 @@ func (this *Bybit) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var topic string = *this.SafeString(options, "name", "tickers")
 	var messageHashes []any = []any{}
 	var subMessageHashes []any = []any{}
-	var marketIds []any = this.MarketIdsSlice(symbolsValue)
+	var marketIds []string = this.MarketIds(symbolsValue)
 	var topics []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
@@ -876,7 +876,7 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
-	var marketIds []any = this.MarketIdsSlice(symbolsValue)
+	var marketIds []string = this.MarketIds(symbolsValue)
 	var topics []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
@@ -931,7 +931,7 @@ func (this *Bybit) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 	var symbolsValue []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 	var subMessageHashes []any = []any{}
-	var marketIds []any = this.MarketIdsSlice(symbolsValue)
+	var marketIds []string = this.MarketIds(symbolsValue)
 	var topics []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
@@ -1365,23 +1365,21 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	r1 := <-this.GetUrlByMarketTypeAsync(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}(), false, "watchOrderBook", params)
+	var symbolsNormalizedElem95751 *string = nil
+	if 0 >= 0 && 0 < len(symbolsNormalized) {
+		symbolsNormalizedElem95751 = &symbolsNormalized[0]
+	}
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsNormalizedElem95751, false, "watchOrderBook", params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}())
+	var symbolsNormalizedElem95936 *string = nil
+	if 0 >= 0 && 0 < len(symbolsNormalized) {
+		symbolsNormalizedElem95936 = &symbolsNormalized[0]
+	}
+	var market map[string]any = this.Market(symbolsNormalizedElem95936)
 	var defaultLimit int
 	if *this.SafeBool(market, "option", false) {
 		defaultLimit = 100
@@ -1406,7 +1404,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 		}
 	}
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var marketId any = this.MarketId(symbol)
@@ -1706,7 +1704,7 @@ func (this *Bybit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	}
 	var url string = r1.Value
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -1766,7 +1764,7 @@ func (this *Bybit) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 		panic(r1.Err)
 	}
 	var url string = r1.Value
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var topics []any = []any{}
 	var subMessageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -3246,13 +3244,14 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
-	var messageHash any = "balance"
+	var messageHash string = "balance"
 	var topic *string = this.SafeString(message, "topic")
 	var info []any = nil
 	var rawBalances []any = []any{}
-	var account any = nil
+	var account *string = nil
 	if topic != nil && *topic == "outboundAccountInfo" {
-		account = "spot"
+		accountStr := "spot"
+		account = &accountStr
 		var data []any = ccxt.SafeListTyped(message, "data")
 		for i := 0; i < len(data); i++ {
 			var B []any = this.SafeListSlice(data[i], "B", []any{})
@@ -3272,17 +3271,29 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 	for i := 0; i < len(rawBalances); i++ {
 		this.ParseWsBalance(ccxt.DerefScalar(rawBalances[i]), account)
 	}
-	if !ccxt.IsEqual(account, nil) {
+	if account != nil {
 		if this.SafeDictMap(this.Balance, account) == nil {
-			ccxt.AddElementToObject(this.Balance, account, map[string]any{})
+			this.Balance[*account] = map[string]any{}
 		}
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "info", info)
+		ccxt.AddElementToObject(this.Balance[*account], "info", info)
 		var timestamp *int64 = this.SafeInteger(message, "ts")
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "timestamp", timestamp)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "datetime", this.Iso8601(timestamp))
-		ccxt.AddElementToObject(this.Balance, account, this.SafeBalance(ccxt.GetValue(this.Balance, account)))
-		messageHash = ccxt.Add("balances:", account)
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, account), messageHash)
+		if entry, ok := this.Balance[*account].(map[string]any); ok && (entry != nil) {
+			if timestamp != nil {
+				entry["timestamp"] = *timestamp
+			} else {
+				entry["timestamp"] = nil
+			}
+		}
+		if entry, ok := this.Balance[*account].(map[string]any); ok && (entry != nil) {
+			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+				entry["datetime"] = *ptrValue
+			} else {
+				entry["datetime"] = nil
+			}
+		}
+		this.Balance[*account] = this.SafeBalance(this.Balance[*account])
+		messageHash = "balances:" + *account
+		client.(ccxt.ClientInterface).Resolve(this.Balance[*account], messageHash)
 	} else {
 		if this.Balance != nil {
 			this.Balance["info"] = info

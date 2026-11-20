@@ -3134,7 +3134,11 @@ func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string
 	if (code == 400) || (code == 404) {
 		if strings.HasPrefix(body, "{") {
 			var message *string = this.SafeString(response, "message")
-			var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
+			var feedback *string = nil
+			if message != nil {
+				feedbackValue := this.Id + " " + *message
+				feedback = &feedbackValue
+			}
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			panic(ExchangeError(feedback))

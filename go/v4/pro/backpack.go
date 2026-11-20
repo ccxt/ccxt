@@ -177,7 +177,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 	var normalized []string = this.MarketSymbols(symbols, nil, false)
 	var symbolsResolved []any = []any{}
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var url *string = this.SafeString(wsUrls, "public", "")
@@ -1905,7 +1905,7 @@ func (this *Backpack) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		}
 		messageHash = "orders:" + *this.SafeString(market, "symbol", "")
 	}
-	var topics []any = []any{topic}
+	var topics []string = []string{topic}
 	if market == nil {
 		topics = append(topics, "account.rfqUpdate")
 	}
@@ -1979,7 +1979,7 @@ func (this *Backpack) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 		}
 		messageHash = "unsubscribe:orders:" + *this.SafeString(market, "symbol", "")
 	}
-	var topics []any = []any{topic}
+	var topics []string = []string{topic}
 	if market == nil {
 		topics = append(topics, "account.rfqUpdate")
 	}

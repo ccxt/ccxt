@@ -1429,7 +1429,7 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) map[string]any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var isPublic bool = (apiName == "public") || (apiName == "v4Public") || (apiName == "v4PublicNet")
 	var privateBody string = ""
-	var privateHeaders any = nil
+	var privateHeaders map[string]any = nil
 	if isPublic {
 		url += this.ImplodeParams(path, params)
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
@@ -1455,7 +1455,7 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPublic {
 		requestBody = nil
 	}
-	var requestHeaders any = privateHeaders
+	var requestHeaders map[string]any = privateHeaders
 	if isPublic {
 		requestHeaders = nil
 	}

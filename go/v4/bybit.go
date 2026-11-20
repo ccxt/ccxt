@@ -12025,12 +12025,11 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 	}
 	var symbol *string = nil
 	if symbols != nil {
-		var market map[string]any = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbols) {
-				return symbols[0]
-			}
-			return nil
-		}())
+		var symbolsElem901040 *string = nil
+		if 0 >= 0 && 0 < len(symbols) {
+			symbolsElem901040 = &symbols[0]
+		}
+		var market map[string]any = this.Market(symbolsElem901040)
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
@@ -12072,7 +12071,7 @@ func (this *Bybit) ParseLeverageTiers(response any, optionalArgs ...any) map[str
 	marketIdKey := GetArg(optionalArgs, 1, nil)
 	_ = marketIdKey
 	var tiers map[string]any = map[string]any{}
-	var marketIds any = this.MarketIds(symbols)
+	var marketIds []string = this.MarketIds(symbols)
 	var idKey any = func() any {
 		if marketIdKey == nil {
 			return "symbol"

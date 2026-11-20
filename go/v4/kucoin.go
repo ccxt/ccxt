@@ -8526,7 +8526,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id string, opt
 func (this *Kucoin) HandleTradeType(optionalArgs ...any) *string {
 	var isContractMarket bool = GetArgBool(optionalArgs, 0, false)
 	_ = isContractMarket
-	marginMode := GetArg(optionalArgs, 1, nil)
+	var marginMode *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = marginMode
 	var isUnified bool = GetArgBool(optionalArgs, 2, false)
 	_ = isUnified
@@ -8538,7 +8538,7 @@ func (this *Kucoin) HandleTradeType(optionalArgs ...any) *string {
 			tradeTypeStr := "FUTURES"
 			tradeType = &tradeTypeStr
 		} else if marginMode != nil {
-			tradeTypeStr2 := ToUpper(marginMode)
+			tradeTypeStr2 := strings.ToUpper(*marginMode)
 			tradeType = &tradeTypeStr2
 			if isUnified == true {
 				if tradeType != nil && *tradeType == "ISOLATED" {

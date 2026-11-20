@@ -394,7 +394,7 @@ func (this *Onetrading) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 		}
 	}
 	var messageHash string = "myTrades"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		var symbolValue *string = this.SafeString(market, "symbol", "")
@@ -627,7 +627,7 @@ func (this *Onetrading) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 		}
 	}
 	var messageHash string = "orders"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		var symbolValue *string = this.SafeString(market, "symbol", "")
@@ -1570,7 +1570,7 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var marketIds any = []any{}
+	var marketIds []string = []string{}
 	var numSymbols int = ccxt.GetArrayLength(symbols)
 	if numSymbols == 0 {
 		var marketsById map[string]any = this.Markets_by_id
@@ -1579,7 +1579,13 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 			ch <- ccxt.AsyncResult[any]{Value: []any{}}
 			return nil
 		}
-		marketIds = ccxt.ObjectKeys(marketsById)
+		marketIds = nil
+		if marketsById != nil {
+			marketIds = make([]string, 0, len(marketsById))
+			for objectKey := range marketsById {
+				marketIds = append(marketIds, objectKey)
+			}
+		}
 	} else {
 		marketIds = this.MarketIds(symbols)
 	}
@@ -1590,8 +1596,8 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 	if client != nil {
 		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
 		if subscription != nil {
-			for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-				var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+			for i := 0; i < len(marketIds); i++ {
+				var marketId string = marketIds[i]
 				var marketSubscribed *bool = this.SafeBool(subscription, marketId, false)
 				if !(marketSubscribed != nil && *marketSubscribed) {
 					typeVar = "UPDATE_SUBSCRIPTION"
@@ -1602,8 +1608,8 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 			subscription = map[string]any{}
 		}
 	}
-	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+	for i := 0; i < len(marketIds); i++ {
+		var marketId string = marketIds[i]
 		ccxt.AddElementToObject(subscription, marketId, true)
 	}
 	request["type"] = typeVar

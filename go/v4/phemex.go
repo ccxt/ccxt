@@ -5990,12 +5990,12 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPrivatePost {
 		bodyResolved = requestBody
 	}
-	var requestHeaders any = func() any {
-		if apiName == "private" {
-			return privateHeaders
-		}
-		return nil
-	}()
+	var requestHeaders map[string]any
+	if apiName == "private" {
+		requestHeaders = privateHeaders
+	} else {
+		requestHeaders = nil
+	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -6128,12 +6128,14 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var scaledAmmount any = this.ToEn(amount, this.SafeInteger(currency, "valueScale"))
-	var direction any = nil
+	var direction *int64 = nil
 	var transfer map[string]any = nil
 	if (fromId != nil && *fromId == "spot") && (toId != nil && *toId == "future") {
-		direction = 2
+		directionValue := int64(2)
+		direction = &directionValue
 	} else if (fromId != nil && *fromId == "future") && (toId != nil && *toId == "spot") {
-		direction = 1
+		directionValue2 := int64(1)
+		direction = &directionValue2
 	}
 	if direction != nil {
 		var request map[string]any = map[string]any{

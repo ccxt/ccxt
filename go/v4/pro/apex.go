@@ -138,7 +138,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	}
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -313,7 +313,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	}
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var limitValue int64
 	if limit == nil {
 		limitValue = 25
@@ -502,7 +502,7 @@ func (this *Apex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	var url any = this.GetWsPublicUrl()
 	var messageHash string = "ticker:" + symbolValue
 	var marketId string = *this.SafeString(market, "id2", "")
-	var topics []any = []any{"instrumentInfo" + ".H." + marketId}
+	var topics []string = []string{"instrumentInfo" + ".H." + marketId}
 
 	r1 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)
 	if r1.Err != nil {
@@ -541,7 +541,7 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -943,7 +943,7 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(snapshot, symbolsNormalized2, since, limit, true))}
 		return nil
 	}
-	var topics []any = []any{"positions"}
+	var topics []string = []string{"positions"}
 
 	r3 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)
 	if r3.Err != nil {
@@ -1017,7 +1017,7 @@ func (this *Apex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var topics []any = []any{"orders"}
+	var topics []string = []string{"orders"}
 
 	r2 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, params)
 	if r2.Err != nil {

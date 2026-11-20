@@ -2850,7 +2850,11 @@ func (this *Hashkey) ParseAccount(account any) map[string]any {
 		label = "sub"
 	}
 	var accountType *string = this.ParseAccountType(this.SafeString(account, "accountType"))
-	var typeVar *string = SafeStringPtr(Add(label+" ", accountType))
+	var typeVar *string = nil
+	if accountType != nil {
+		typeVarValue := label + " " + *accountType
+		typeVar = &typeVarValue
+	}
 	return map[string]any{
 		"id":   this.SafeString(account, "accountId"),
 		"type": typeVar,

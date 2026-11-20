@@ -1187,7 +1187,11 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(parsedTicker)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask::", symbol))
+	var messageHash *string = nil
+	if symbol != nil {
+		messageHashValue := "bidask::" + *symbol
+		messageHash = &messageHashValue
+	}
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
 func (this *Okx) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {

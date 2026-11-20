@@ -2021,7 +2021,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url *string = apiUrl
 	var privateBody any = nil
-	var privateHeaders any = nil
+	var privateHeaders map[string]any = nil
 	var isPublic bool = (apiName == "public")
 	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
@@ -2049,7 +2049,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPublic {
 		requestBody = nil
 	}
-	var requestHeaders any = privateHeaders
+	var requestHeaders map[string]any = privateHeaders
 	if isPublic {
 		requestHeaders = nil
 	}

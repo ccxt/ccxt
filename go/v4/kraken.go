@@ -2815,12 +2815,11 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 	} else if isTrailingAmountOrder || isTrailingPercentOrder {
 		var trailingPercentString any = nil
 		if trailingPercent != nil {
-			trailingPercentString = func() any {
-				if strings.HasSuffix(*trailingPercent, "%") {
-					return ("+" + *trailingPercent)
-				}
-				return ("+" + *trailingPercent + "%")
-			}()
+			if strings.HasSuffix(*trailingPercent, "%") {
+				trailingPercentString = ("+" + *trailingPercent)
+			} else {
+				trailingPercentString = ("+" + *trailingPercent + "%")
+			}
 		}
 		var trailingAmountString *string = func() *string {
 			if trailingAmount != nil {

@@ -1866,14 +1866,16 @@ func (this *Bullish) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var maxDelta int64 = duration * int64(maxLimit) * 1000
-	var startTime any = since
+	var startTime *int64 = since
 	// both of since and until are required
 	if (since == nil) && (untilParam == nil) {
 		var now int64 = this.Milliseconds()
 		until = now
-		startTime = now - maxDelta
+		startTimeValue := now - maxDelta
+		startTime = &startTimeValue
 	} else if (since == nil) && (untilParam != nil) {
-		startTime = *untilParam - maxDelta
+		startTimeValue2 := *untilParam - maxDelta
+		startTime = &startTimeValue2
 	} else if untilParam == nil {
 		until = this.Sum(startTime, maxDelta)
 	}
@@ -2181,9 +2183,10 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 	}
 	if (since != nil) || (untilParam != nil) {
 		var timeDelta int64 = (7 * 24) * 60 * 60 * 1000 // 7 days
-		var sinceResolved any = since
+		var sinceResolved *int64 = since
 		if (since == nil) && (untilParam != nil) {
-			sinceResolved = *untilParam - timeDelta
+			sinceResolvedValue := *untilParam - timeDelta
+			sinceResolved = &sinceResolvedValue
 		}
 		if (since != nil) && (untilParam == nil) {
 			var now int64 = this.Milliseconds()

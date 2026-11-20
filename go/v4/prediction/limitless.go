@@ -4021,7 +4021,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 	if categoriesResponse != nil {
 		categories = ccxt.ArrayTyped(categoriesResponse)
 	}
-	var wanted []any = []any{}
+	var wanted []string = []string{}
 	for i := 0; i < ccxt.GetArrayLength(tags); i++ {
 		wanted = append(wanted, ccxt.ToLower(ccxt.GetValue(tags, i)))
 	}
@@ -4033,7 +4033,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 		var categoryId *string = this.SafeString(category, "id")
 		var matched bool = false
 		for wi := 0; wi < len(wanted); wi++ {
-			if ccxt.GetIndexOf(name, wanted[wi]) >= 0 {
+			if strings.Index(name, wanted[wi]) >= 0 {
 				matched = true
 				break
 			}
@@ -4121,7 +4121,11 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.Iso8601(this.Milliseconds())
 		var newline string = "\n" // eslint-disable-line quotes
-		var payload *string = ccxt.SafeStringPtr(*timestamp + newline + method + newline + url + newline + bodyString)
+		var payload *string = nil
+		if timestamp != nil {
+			payloadValue := *timestamp + newline + method + newline + url + newline + bodyString
+			payload = &payloadValue
+		}
 		var signature string = this.Hmac(this.Encode(payload), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 		headersValue = this.Extend(headersValue, map[string]any{
 			"lmts-timestamp": timestamp,

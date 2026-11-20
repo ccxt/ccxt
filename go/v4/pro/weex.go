@@ -289,7 +289,7 @@ func (this *Weex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var topic string = "ticker"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -589,7 +589,7 @@ func (this *Weex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var topic string = "trade"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -902,7 +902,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	var callerMethodName string = *this.SafeString(params, "callerMethodName", "watchOHLCVForSymbols")
 	var paramsOmitted map[string]any = this.OmitDict(params, "callerMethodName")
 	var channels []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var firstEntry []any = ccxt.SafeListTyped(symbolsAndTimeframes, 0)
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
 	var firstMarket map[string]any = this.Market(firstSymbol)
@@ -1230,7 +1230,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	var paramsOmitted map[string]any = this.OmitDict(params, "callerMethodName")
 	var depth string = "200"
 	depthOption, paramsDepth := this.HandleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -1448,7 +1448,7 @@ func (this *Weex) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	if *this.SafeBool(firstMarket, "contract", false) {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks is supported for spot markets only"))
 	}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]

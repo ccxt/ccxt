@@ -874,12 +874,12 @@ func (this *Kucoin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Kucoin) SubscribePublicMultipleUtaAsync(messageHashes any, channel string, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Kucoin) SubscribePublicMultipleUtaAsync(messageHashes []string, channel string, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.subscribePublicMultipleUtaBody(ch, messageHashes, channel, symbols, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[map[string]any], messageHashes any, channel string, symbols any, optionalArgs ...any) any {
+func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[map[string]any], messageHashes []string, channel string, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -947,7 +947,7 @@ func (this *Kucoin) watchUtaTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true)
 	var messageHash string = "uta:ticker"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol *string = this.SafeString(symbolsNormalized, i)
 		var market map[string]any = this.Market(symbol)
@@ -1274,8 +1274,8 @@ func (this *Kucoin) watchMultiHelperBody(ch chan ccxt.AsyncResult[map[string]any
 		panic(r1.Err)
 	}
 	var url *string = r1.Value
-	var marketIds any = this.MarketIds(symbolsNormalized)
-	var joined string = ccxt.Join(marketIds, ",")
+	var marketIds []string = this.MarketIds(symbolsNormalized)
+	var joined string = strings.Join(marketIds, ",")
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
 	var request map[string]any = map[string]any{
 		"id":       requestId,
@@ -1611,7 +1611,11 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	var timeframe *string = this.FindTimeframe(interval)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+symbol+":", timeframe))
+	var messageHash *string = nil
+	if timeframe != nil {
+		messageHashValue := "candles:" + symbol + ":" + *timeframe
+		messageHash = &messageHashValue
+	}
 	if this.Ohlcvs[symbol] == nil {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}
@@ -1661,7 +1665,11 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(data, "i")
 	var timeframe *string = this.FindTimeframe(interval)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("uta:candles:"+symbol+":", timeframe))
+	var messageHash *string = nil
+	if timeframe != nil {
+		messageHashValue := "uta:candles:" + symbol + ":" + *timeframe
+		messageHash = &messageHashValue
+	}
 	if this.Ohlcvs[symbol] == nil {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}
@@ -2674,7 +2682,7 @@ func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]a
 			}
 		} else {
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol.(string)]
-			ccxt.AddElementToObject(orderbook, "nonce", nil)
+			orderbook.Fields().Nonce = nil
 			orderbook.SetCache([]any{})
 		}
 		ccxt.AddElementToObject(limits, symbol, limit)

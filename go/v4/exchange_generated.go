@@ -2090,7 +2090,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	// if exchange does not yet have features manually implemented
 	methodName := GetArg(optionalArgs, 0, nil)
 	_ = methodName
-	paramName := GetArg(optionalArgs, 1, nil)
+	var paramName *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = paramName
 	defaultValue := GetArg(optionalArgs, 2, nil)
 	_ = defaultValue
@@ -2144,11 +2144,8 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	if methodDict == nil {
 		return defaultValue
 	}
-	var splited []string = Split(paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-	var parentKey *string = nil
-	if 0 >= 0 && 0 < len(splited) {
-		parentKey = &splited[0]
-	}
+	var splited []string = strings.Split(*paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+	var parentKey *string = &splited[0]
 	var subKey *string = this.SafeString(splited, 1)
 	if !(InOp(methodDict, parentKey)) {
 		return defaultValue // unsupported paramName, check "exchange.features" for details');
@@ -3853,26 +3850,6 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 
 	return nil
 }
-func (this *BaseExchange) MarketIds(optionalArgs ...any) any {
-	/**
-	 * @param {string[]|undefined} symbols list of unified symbols
-	 * @returns {string[]|undefined} list of exchange-specific market ids
-	 * Overloads: non-null `string[]` input yields `string[]`; optional input yields `Strings`.
-	 */
-	symbols := GetArg(optionalArgs, 0, nil)
-	_ = symbols
-	if symbols == nil {
-		return symbols
-	}
-	var result []any = []any{}
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var id any = this.MarketId(GetValue(symbols, i))
-		if id != nil {
-			result = append(result, id)
-		}
-	}
-	return result
-}
 func (this *BaseExchange) CurrencyIds(optionalArgs ...any) any {
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
@@ -5402,7 +5379,8 @@ func (this *BaseExchange) SafeCurrency(currencyId any, optionalArgs ...any) map[
 	}
 	var code any = currencyId
 	if !IsEqual(currencyId, nil) {
-		code = this.CommonCurrencyCode(ToUpper(currencyId))
+		var upperId string = ToUpper(currencyId)
+		code = this.CommonCurrencyCode(&upperId)
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
@@ -5679,11 +5657,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes706915 map[string]any = r.Value
-	if retRes706915 == nil {
+	var retRes707015 map[string]any = r.Value
+	if retRes707015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes706915}
+		ch <- AsyncResult[map[string]any]{Value: retRes707015}
 	}
 	return nil
 }
@@ -5741,14 +5719,14 @@ func (this *BaseExchange) fetchDepositWithdrawFeeBody(ch chan AsyncResult[Deposi
 	ch <- AsyncResult[DepositWithdrawFee]{Value: DepositWithdrawFeeFromMap(this.SafeDictMap(fees, code))}
 	return nil
 }
-func (this *BaseExchange) GetSupportedMapping(key any, optionalArgs ...any) any {
+func (this *BaseExchange) GetSupportedMapping(key any, optionalArgs ...any) string {
 	var mapping map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = mapping
 	if IsEqual(key, nil) {
 		panic(ArgumentsRequired(this.Id + " getSupportedMapping() requires a key argument"))
 	}
 	if InOp(mapping, key) {
-		return GetValue(mapping, key)
+		return *this.SafeString(mapping, key, key)
 	} else {
 		var keys []string = nil
 		if mapping != nil {
@@ -6612,7 +6590,7 @@ func (this *BaseExchange) MergeBalanceAccount(result map[string]any, code string
 	}
 	return result
 }
-func (this *BaseExchange) CommonCurrencyCode(code any) any {
+func (this *BaseExchange) CommonCurrencyCode(code *string) *string {
 	if !this.SubstituteCommonCurrencyCodes {
 		return code
 	}
@@ -7900,7 +7878,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -7914,7 +7892,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 	maxRetriesOption, paramsMaxRetries := this.HandleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", 3)
 	removeRepeatedOption, paramsRemoveRepeated := this.HandleOptionAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated)
 	paginationDirection, paramsPaginationDirection := this.HandleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward")
-	var paginationTimestamp any = nil
+	var paginationTimestamp *int64 = nil
 	var result []any = []any{}
 	var errors int = 0
 	var until *int64 = this.SafeIntegerN(paramsPaginationDirection, []any{"until", "untill", "till"}) // do not omit it from params here
@@ -7949,8 +7927,8 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 				if paginationDirection != nil && *paginationDirection == "backward" {
 					// do it backwards, starting from the last
 					// UNTIL filtering is required in order to work
-					if !IsEqual(paginationTimestamp, nil) {
-						AddElementToObject(paramsMaxEntriesPerRequest, "until", Subtract(paginationTimestamp, 1))
+					if paginationTimestamp != nil {
+						AddElementToObject(paramsMaxEntriesPerRequest, "until", *paginationTimestamp-1)
 					}
 
 					r := <-this.CallDynamically(method, symbol, nil, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
@@ -7961,7 +7939,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
 						var backwardMessage any = "Dynamic pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
-						if !IsEqual(paginationTimestamp, nil) {
+						if paginationTimestamp != nil {
 							backwardMessage = Add(backwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
 						}
 						this.Log(backwardMessage)
@@ -7974,11 +7952,11 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					result = this.ArrayConcat(result, response)
 					var firstElement map[string]any = SafeMapTyped(response, 0)
 					paginationTimestamp = this.SafeInteger2(firstElement, "timestamp", 0)
-					if IsEqual(paginationTimestamp, nil) {
+					if paginationTimestamp == nil {
 						shouldBreak = true
 						panic("break")
 					}
-					if (since != nil) && (IsLessThanOrEqual(paginationTimestamp, since)) {
+					if (since != nil) && (paginationTimestamp == nil || *paginationTimestamp <= *since) {
 						shouldBreak = true
 						panic("break")
 					}
@@ -7993,7 +7971,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
 						var forwardMessage any = "Dynamic pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength)
-						if !IsEqual(paginationTimestamp, nil) {
+						if paginationTimestamp != nil {
 							forwardMessage = Add(forwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
 						}
 						this.Log(forwardMessage)
@@ -8011,7 +7989,8 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 						panic("break")
 					}
 					var nextPaginationTimestamp int64 = *lastTimestamp + 1
-					paginationTimestamp = nextPaginationTimestamp
+					paginationTimestampValue := nextPaginationTimestamp
+					paginationTimestamp = &paginationTimestampValue
 					if (until != nil) && (nextPaginationTimestamp >= *until) {
 						shouldBreak = true
 						panic("break")
@@ -11475,12 +11454,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048815Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048815 []any = retRes1048815Recv
-	if retRes1048815 == nil {
+	retRes1048915Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048915 []any = retRes1048915Recv
+	if retRes1048915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048915)}
 	}
 	return nil
 }

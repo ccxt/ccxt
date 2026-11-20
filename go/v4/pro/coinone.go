@@ -425,9 +425,10 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	var quoteId *string = this.SafeStringUpper(trade, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var marketResolved map[string]any = this.SafeMarket(symbol, market)

@@ -602,12 +602,11 @@ func (this *Xt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker
 	}
 	var market map[string]any = nil
 	if symbols != nil {
-		market = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbols) {
-				return symbols[0]
-			}
-			return nil
-		}())
+		var symbolsElem38134 *string = nil
+		if 0 >= 0 && 0 < len(symbols) {
+			symbolsElem38134 = &symbols[0]
+		}
+		market = this.Market(symbolsElem38134)
 	}
 	if name != nil {
 

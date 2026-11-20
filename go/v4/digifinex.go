@@ -3048,10 +3048,7 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) Order {
 	var timeInForce *string = nil
 	var typeVar any = nil
 	var reduceOnly any = nil
-	var side any
-	if derefPtr := this.SafeString(order, "type"); derefPtr != nil {
-		side = *derefPtr
-	}
+	var side *string = this.SafeString(order, "type")
 	var sideRaw *string = this.SafeString(order, "type")
 	var marketId *string = this.SafeString2(order, "symbol", "instrument_id")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -3077,16 +3074,20 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		// 1 open long, 2 open short, 3 close long, 4 close short
 		if sideRaw != nil && *sideRaw == "1" {
-			side = "buy"
+			sideStr2 := "buy"
+			side = &sideStr2
 			reduceOnly = false
 		} else if sideRaw != nil && *sideRaw == "2" {
-			side = "sell"
+			sideStr3 := "sell"
+			side = &sideStr3
 			reduceOnly = false
 		} else if sideRaw != nil && *sideRaw == "3" {
-			side = "sell"
+			sideStr4 := "sell"
+			side = &sideStr4
 			reduceOnly = true
 		} else if sideRaw != nil && *sideRaw == "4" {
-			side = "buy"
+			sideStr5 := "buy"
+			side = &sideStr5
 			reduceOnly = true
 		}
 		timestamp = this.SafeInteger(order, "insert_time")
@@ -3098,7 +3099,8 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) Order {
 			var parts []string = strings.Split(*sideRaw, "_")
 			var numParts int = len(parts)
 			if numParts > 1 {
-				side = parts[0]
+				sideStr := parts[0]
+				side = &sideStr
 				typeVar = parts[1]
 			} else {
 				typeVar = "limit"

@@ -9894,7 +9894,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) map[string]any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var pathImploded string = ""
 	var bodyJson any = nil
-	var signedHeaders any = nil
+	var signedHeaders map[string]any = nil
 	var containsSettle bool = (strings.Index(path, "settle") > -1)
 	if containsSettle && (strings.HasSuffix(path, "batch_cancel_orders")) {
 		// special case where we need to extract the settle from the path
@@ -9991,12 +9991,12 @@ func (this *Gate) Sign(path string, optionalArgs ...any) map[string]any {
 			"Content-Type": "application/json",
 		}
 	}
-	var headersResolved any = signedHeaders
+	var headersResolved map[string]any = signedHeaders
 	if typeVar == "futures" {
 		if headersResolved == nil {
 			headersResolved = map[string]any{}
 		}
-		AddElementToObject(headersResolved, "X-Gate-Size-Decimal", "1")
+		headersResolved["X-Gate-Size-Decimal"] = "1"
 	}
 	var bodyResolved any = bodyJson
 	return map[string]any{

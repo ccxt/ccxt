@@ -1207,14 +1207,14 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any
 		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 		return nil
 	} else {
-		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), method, map[string]any{})
+		var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), method, map[string]any{})
 		var hasSymbolSubscription bool = true
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var isSubscribed *bool = this.SafeBool(subscription, marketId, false)
 		if !(isSubscribed != nil && *isSubscribed) {
 			if marketId != nil {
-				ccxt.AddElementToObject(subscription, marketId, true)
+				subscription[*marketId] = true
 			}
 			hasSymbolSubscription = false
 		}

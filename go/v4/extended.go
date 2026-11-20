@@ -3237,7 +3237,7 @@ func (this *Extended) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var marketIds any = this.MarketIds(symbols)
+		var marketIds []string = this.MarketIds(symbols)
 		request["market"] = marketIds
 	}
 
@@ -3366,7 +3366,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 	}
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsList, nil) {
-		var marketIds any = this.MarketIds(symbolsList)
+		var marketIds []string = this.MarketIds(symbolsList)
 		request["market"] = marketIds
 	}
 

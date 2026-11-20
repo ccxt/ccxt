@@ -346,7 +346,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 			messageHashes = append(messageHashes, "deals::"+symbolsNormalized[i])
 		}
 	}
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIds(symbolsNormalized)
 	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"method": "deals.subscribe",

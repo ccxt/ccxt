@@ -888,7 +888,11 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		parsed = this.ParseWsOHLCV(rawOhlcv, market)
 	}
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("candles:"+symbol+":", timeframe))
+	var messageHash *string = nil
+	if timeframe != nil {
+		messageHashValue := "candles:" + symbol + ":" + *timeframe
+		messageHash = &messageHashValue
+	}
 	if this.Ohlcvs[symbol] == nil {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}

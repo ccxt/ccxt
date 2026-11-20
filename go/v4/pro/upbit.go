@@ -66,7 +66,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 		return symbols
 	}()
 	var symbolsNormalized []string = this.MarketSymbols(symbolsRequested)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIds(symbolsNormalized)
 	var url string = this.ImplodeParams(this.SafeString(this.Urls["api"], "ws"), map[string]any{
 		"hostname": this.Hostname,
 	})
@@ -384,7 +384,11 @@ func (this *Upbit) HandleTicker(client any, message map[string]any) {
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
+	var messageHash *string = nil
+	if symbol != nil {
+		messageHashValue := "ticker:" + *symbol
+		messageHash = &messageHashValue
+	}
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Upbit) HandleOrderBook(client any, message map[string]any) {

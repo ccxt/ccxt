@@ -3842,7 +3842,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan AsyncResult[map[string]
 			panic(r.Err)
 		}
 	}
-	var marketIds any = this.MarketIds(symbols)
+	var marketIds []string = this.MarketIds(symbols)
 
 	r1 := <-this.PublicGetTickers(params)
 	if r1.Err != nil {
@@ -3854,7 +3854,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan AsyncResult[map[string]
 	for i := 0; i < len(tickers); i++ {
 		var entry map[string]any = SafeMapTyped(tickers, i)
 		var entry_symbol *string = this.SafeString(entry, "symbol")
-		if !IsEqual(marketIds, nil) {
+		if marketIds != nil {
 			if !this.InArray(entry_symbol, marketIds) {
 				continue
 			}

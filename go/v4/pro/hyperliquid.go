@@ -2035,9 +2035,7 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 		}
 	} else {
 		if code != nil {
-			if code != nil {
-				this.Balance[*code] = account
-			}
+			this.Balance[*code] = account
 		}
 	}
 }

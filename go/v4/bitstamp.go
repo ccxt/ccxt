@@ -4130,12 +4130,12 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		privateHeaders["X-Auth-Signature"] = signature
 	}
-	var requestHeaders any = func() any {
-		if apiName == "public" {
-			return nil
-		}
-		return privateHeaders
-	}()
+	var requestHeaders map[string]any
+	if apiName == "public" {
+		requestHeaders = nil
+	} else {
+		requestHeaders = privateHeaders
+	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,

@@ -1128,7 +1128,7 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 		}
 		tickers = r1.Raw
 	} else {
-		var ids any = this.MarketIds(symbolsNormalized)
+		var ids []string = this.MarketIds(symbolsNormalized)
 		var promises []any = []any{}
 		var queries []any = this.IdsQueryStrings(ids) // the url is limited to about 8000 characters once the commas are percent-encoded
 		for i := 0; i < len(queries); i++ {
@@ -1176,10 +1176,10 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
 	return nil
 }
-func (this *Upbit) IdsQueryStrings(ids any) []any {
+func (this *Upbit) IdsQueryStrings(ids []string) []any {
 	var idsString string = ""
 	var queries []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	for i := 0; i < len(ids); i++ {
 		if idsString != "" {
 			idsString = idsString + ","
 		}

@@ -828,7 +828,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var name string = "trades"
 	var url *string = this.SafeString(this.UrlsApi["ws"], "public", "")
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIds(symbolsNormalized)
 	var subscribe map[string]any = map[string]any{
 		"event":   "subscribe",
 		"channel": []any{name},

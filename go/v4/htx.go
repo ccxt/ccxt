@@ -3708,7 +3708,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"ts", "created-at", "created_at", "create_date", "created_time"})
 	var order *string = this.SafeString2(trade, "order-id", "order_id")
-	var side any = DerefScalar(this.SafeString2(trade, "direction", "side"))
+	var side *string = this.SafeString2(trade, "direction", "side")
 	var rawType *string = this.SafeString(trade, "type")
 	var typeVar any
 	if derefPtr := this.SafeString(trade, "type"); derefPtr != nil {
@@ -3716,7 +3716,8 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if (rawType != nil) && (strings.Index(*rawType, "-") >= 0) {
 		var typeParts []string = strings.Split(*rawType, "-")
-		side = typeParts[0]
+		sideStr := typeParts[0]
+		side = &sideStr
 		typeVar = typeParts[1]
 	}
 	var takerOrMaker *string = this.SafeStringLower(trade, "role")

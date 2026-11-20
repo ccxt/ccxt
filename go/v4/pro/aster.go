@@ -2185,6 +2185,7 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
 		entry["info"] = message
 	}
+	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
 	var messageValue map[string]any = this.SafeDictMap(message, "a", message)
 	var B []any = ccxt.SafeListTyped(messageValue, "B")
 	var wallet string = *this.SafeString(this.Options, "wallet", "wb")
@@ -2197,27 +2198,21 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(entry, "l")
 		account["total"] = this.SafeString(entry, wallet)
 		if code != nil {
-			if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
+			balance[*code] = account
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(messageValue, "E")
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		if timestamp != nil {
-			entry["timestamp"] = *timestamp
-		} else {
-			entry["timestamp"] = nil
-		}
+	if timestamp != nil {
+		balance["timestamp"] = *timestamp
+	} else {
+		balance["timestamp"] = nil
 	}
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-			entry["datetime"] = *ptrValue
-		} else {
-			entry["datetime"] = nil
-		}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		balance["datetime"] = *ptrValue
+	} else {
+		balance["datetime"] = nil
 	}
-	this.Balance[accountType] = this.SafeBalance(this.Balance[accountType])
+	this.Balance[accountType] = this.SafeBalance(balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance[accountType], messageHash)
 }
 
@@ -2680,9 +2675,9 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes186432 := order["fees"]
-							ccxt.AppendToArray(&retRes186432, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes186432)
+							retRes186532 := order["fees"]
+							ccxt.AppendToArray(&retRes186532, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes186532)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

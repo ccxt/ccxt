@@ -271,12 +271,12 @@ func (this *Hitbtc) unSubscribePublicBody(ch chan ccxt.AsyncResult[any], name st
  * @param {string} [symbol] unified CCXT symbol
  * @param {object} [params] extra parameters specific to the hitbtc api
  */
-func (this *Hitbtc) SubscribePrivateAsync(name any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Hitbtc) SubscribePrivateAsync(name string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name any, optionalArgs ...any) any {
+func (this *Hitbtc) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -297,7 +297,7 @@ func (this *Hitbtc) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name any
 	}
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.Urls["api"], "ws")
 	var url *string = this.SafeString(wsUrls, "private")
-	var splitName []string = ccxt.Split(name, "_subscribe")
+	var splitName []string = strings.Split(name, "_subscribe")
 	var messageHashBase *string = this.SafeString(splitName, 0, "")
 	var messageHash *string = messageHashBase
 	if symbol != nil {
@@ -793,7 +793,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		"speed": speedValue,
 	})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"method", "defaultMethod", "speed"})
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIds(symbolsNormalized)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
 			"symbols": marketIds,
@@ -1349,7 +1349,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		market = this.Market(symbol)
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params)
-	var name any = this.GetSupportedMapping(marketType, map[string]any{
+	var name string = this.GetSupportedMapping(marketType, map[string]any{
 		"spot":   "spot_subscribe",
 		"margin": "margin_subscribe",
 		"swap":   "futures_subscribe",
@@ -1616,7 +1616,7 @@ func (this *Hitbtc) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 		}
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
-	var name any = this.GetSupportedMapping(typeVar, map[string]any{
+	var name string = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot_balance_subscribe",
 		"swap":   "futures_balance_subscribe",
 		"future": "futures_balance_subscribe",
@@ -2217,7 +2217,11 @@ func (this *Hitbtc) HandleError(client any, message map[string]any) bool {
 				var code *string = this.SafeString(error, "code")
 				var errorMessage *string = this.SafeString(error, "message")
 				var description *string = this.SafeString(error, "description")
-				var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", description))
+				var feedback *string = nil
+				if description != nil {
+					feedbackValue := this.Id + " " + *description
+					feedback = &feedbackValue
+				}
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 				panic(ccxt.ExchangeError(feedback))

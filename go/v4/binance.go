@@ -17309,7 +17309,7 @@ func (this *Binance) ParseLedgerEntryType(typeVar *string) *string {
 }
 func (this *Binance) GetNetworkCodeByNetworkUrl(currencyCode *string, optionalArgs ...any) any {
 	// depositUrl is like : https://bscscan.com/address/0xEF238AB229342849..
-	depositUrl := GetArg(optionalArgs, 0, nil)
+	var depositUrl *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = depositUrl
 	if depositUrl == nil {
 		return nil
@@ -17467,7 +17467,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			signedBodyStr := query
 			signedBody = &signedBodyStr
-			AddElementToObject(signedHeaders, "Content-Type", "application/x-www-form-urlencoded")
+			signedHeaders["Content-Type"] = "application/x-www-form-urlencoded"
 		}
 	} else {
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {

@@ -252,12 +252,11 @@ func (this *Bitget) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var symbolsList []string = symbolsNormalized
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsList) {
-			return symbolsList[0]
-		}
-		return nil
-	}())
+	var symbolsListElem19436 *string = nil
+	if 0 >= 0 && 0 < len(symbolsList) {
+		symbolsListElem19436 = &symbolsList[0]
+	}
+	var market map[string]any = this.Market(symbolsListElem19436)
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchTickers", "uta", false)
 	instType, paramsValue := this.GetInstType("watchTickers", market, uta, paramsUta)
 	var topics []any = []any{}
@@ -535,12 +534,11 @@ func (this *Bitget) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var symbolsList []string = symbolsNormalized
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsList) {
-			return symbolsList[0]
-		}
-		return nil
-	}())
+	var symbolsListElem44836 *string = nil
+	if 0 >= 0 && 0 < len(symbolsList) {
+		symbolsListElem44836 = &symbolsList[0]
+	}
+	var market map[string]any = this.Market(symbolsListElem44836)
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchBidsAsks", "uta", false)
 	instType, paramsValue := this.GetInstType("watchBidsAsks", market, uta, paramsUta)
 	var topics []any = []any{}
@@ -2017,7 +2015,7 @@ func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) map[strin
 	_ = market
 	var marketId *string = this.SafeString2(position, "instId", "symbol")
 	var marginModeId *string = this.SafeString(position, "marginMode")
-	var marginMode any = this.GetSupportedMapping(marginModeId, map[string]any{
+	var marginMode string = this.GetSupportedMapping(marginModeId, map[string]any{
 		"crossed":  "cross",
 		"isolated": "isolated",
 	})
@@ -3174,7 +3172,11 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 	// see https://github.com/ccxt/ccxt/issues/21973
 	this.Balance["info"] = message
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("balance:", instType))
+	var messageHash *string = nil
+	if instType != nil {
+		messageHashValue := "balance:" + *instType
+		messageHash = &messageHashValue
+	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Bitget) WatchPublicAsync(uta any, messageHash any, args map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

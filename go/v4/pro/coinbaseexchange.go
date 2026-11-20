@@ -623,7 +623,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncRes
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIds(symbolsNormalized)
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		messageHashes = append(messageHashes, name+":"+*this.SafeString(marketIds, i, ""))

@@ -2102,7 +2102,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 			request["priceType"] = priceType
 		}
 		var now int64 = this.Milliseconds()
-		var startTime any = since
+		var startTime *int64 = since
 		var endTime any = now
 		if until != nil {
 			endTime = until
@@ -2119,12 +2119,14 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 			var timeDelta int64 = historyLimit * duration
 			if (since == nil) && (until == nil) {
 				endTime = now
-				startTime = now - timeDelta
+				startTimeValue := now - timeDelta
+				startTime = &startTimeValue
 			} else if since == nil {
 				if until == nil {
 					panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a since or until argument"))
 				}
-				startTime = *until - timeDelta
+				startTimeValue2 := *until - timeDelta
+				startTime = &startTimeValue2
 			} else {
 				// this.sum, a bare + is string concatenation in the php port
 				endTime = this.Sum(since, timeDelta)

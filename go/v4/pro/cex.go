@@ -1980,7 +1980,11 @@ func (this *Cex) HandleErrorMessage(client any, message map[string]any) bool {
 			var data map[string]any = ccxt.SafeMapTyped(message, "data")
 			var error *string = this.SafeString(data, "error")
 			var event string = *this.SafeString(message, "e", "")
-			var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" "+event+" ", error))
+			var feedback *string = nil
+			if error != nil {
+				feedbackValue := this.Id + " " + event + " " + *error
+				feedback = &feedbackValue
+			}
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 			panic(ccxt.ExchangeError(feedback))

@@ -6796,7 +6796,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	// matching the subType. requests a defaultSubType already rewrote
 	// arrive here as future or inverse and pass untouched, which lands on
 	// the same stream the old raw-type ordering produced in every case
-	if (ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(typeVar, "margin")) {
+	if (typeVar == "spot") || (typeVar == "margin") {
 		if subType == "inverse" {
 			typeVar = "inverse"
 		} else {
@@ -6819,7 +6819,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var urlType any = typeVar
 	if isPortfolioMargin != nil && *isPortfolioMargin {
 		urlType = "papi"
-	} else if ccxt.IsEqual(typeVar, "option") {
+	} else if typeVar == "option" {
 		var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
 		if (demoMode != nil && *demoMode) || this.IsSandboxModeEnabled {
 			panic(ccxt.NotSupported(this.Id + " watchPositions() does not support option markets in demo/testnet mode"))

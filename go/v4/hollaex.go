@@ -442,11 +442,13 @@ func (this *Hollaex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		var market map[string]any = SafeMapTyped(pairs, key)
 		var baseId *string = this.SafeString(market, "pair_base")
 		var quoteId *string = this.SafeString(market, "pair_2")
-		var baseCode any = this.CommonCurrencyCode(strings.ToUpper(*baseId))
-		var quoteCode any = this.CommonCurrencyCode(strings.ToUpper(*quoteId))
+		var upperBaseId string = strings.ToUpper(*baseId)
+		var upperQuoteId string = strings.ToUpper(*quoteId)
+		var baseCode *string = this.CommonCurrencyCode(&upperBaseId)
+		var quoteCode *string = this.CommonCurrencyCode(&upperQuoteId)
 		result = append(result, map[string]any{
 			"id":             this.SafeString(market, "name"),
-			"symbol":         Add(Add(baseCode, "/"), quoteCode),
+			"symbol":         *baseCode + "/" + *quoteCode,
 			"base":           baseCode,
 			"quote":          quoteCode,
 			"settle":         nil,
@@ -1229,11 +1231,11 @@ func (this *Hollaex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes95119 []any = r1.Value
-		if retRes95119 == nil {
+		var retRes95319 []any = r1.Value
+		if retRes95319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes95119)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes95319)}
 		}
 		return nil
 	}
@@ -1468,11 +1470,11 @@ func (this *Hollaex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes111615 []any = OrdersToList(r.Value)
-	if retRes111615 == nil {
+	var retRes111815 []any = OrdersToList(r.Value)
+	if retRes111815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes111615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes111815)}
 	}
 	return nil
 }
@@ -1512,11 +1514,11 @@ func (this *Hollaex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes113415 []any = OrdersToList(r.Value)
-	if retRes113415 == nil {
+	var retRes113615 []any = OrdersToList(r.Value)
+	if retRes113615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes113415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes113615)}
 	}
 	return nil
 }
@@ -2744,14 +2746,14 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) map[string]any {
 			"api-expires": expiresString,
 		}
 		if method == "POST" {
-			AddElementToObject(requestHeaders, "Content-type", "application/json")
+			requestHeaders["Content-type"] = "application/json"
 			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				requestBody = this.Json(query)
 				auth = Add(auth, requestBody)
 			}
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-		AddElementToObject(requestHeaders, "api-signature", signature)
+		requestHeaders["api-signature"] = signature
 	}
 	var bodyResult any = requestBody
 	var headersResult any = requestHeaders

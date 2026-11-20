@@ -640,9 +640,10 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) Tic
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "CreatedTimestampUtc"))
 	var baseId *string = this.SafeString(ticker, "PrimaryCurrencyCode")
 	var quoteId *string = this.SafeString(ticker, "SecondaryCurrencyCode")
-	var defaultMarketId any = nil
+	var defaultMarketId *string = nil
 	if (baseId != nil) && (quoteId != nil) {
-		defaultMarketId = *baseId + "/" + *quoteId
+		defaultMarketIdStr := *baseId + "/" + *quoteId
+		defaultMarketId = &defaultMarketIdStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(defaultMarketId, market, "/")
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])

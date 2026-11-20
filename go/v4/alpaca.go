@@ -1129,7 +1129,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		//        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
 		//     }
 		//
-		var bars any = this.SafeDict(response, "bars", map[string]any{})
+		var bars map[string]any = this.SafeDictMap(response, "bars", map[string]any{})
 		ohlcvs = this.SafeList(bars, marketId, []any{})
 		if paginate {
 			// the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
@@ -1146,7 +1146,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 					panic(r2.Err)
 				}
 				response = r2.Raw
-				bars = this.SafeDict(response, "bars", map[string]any{})
+				bars = this.SafeDictMap(response, "bars", map[string]any{})
 				var page []any = this.SafeListSlice(bars, marketId, []any{})
 				var pageLength int = len(page)
 				if pageLength == 0 {

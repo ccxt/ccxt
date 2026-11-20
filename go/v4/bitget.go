@@ -16514,7 +16514,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var requestBody any = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if signed {
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.NumberToString(this.Nonce())
@@ -16548,10 +16548,10 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) map[string]any {
 			"X-CHANNEL-API-CODE": broker,
 		}
 		if method == "POST" {
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			requestHeaders["Content-Type"] = "application/json"
 		}
 	}
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if (sandboxMode != nil && *sandboxMode) && (path != "v2/public/time") && (path != "v3/market/current-fund-rate") {
 		// https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
@@ -16560,7 +16560,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		var productType *string = this.SafeString(params, "productType")
 		if (productType == nil || *productType != "SCOIN-FUTURES") && (productType == nil || *productType != "SUSDT-FUTURES") && (productType == nil || *productType != "SUSDC-FUTURES") {
-			AddElementToObject(headersResult, "PAPTRADING", "1")
+			headersResult["PAPTRADING"] = "1"
 		}
 	}
 	var bodyResult any = requestBody

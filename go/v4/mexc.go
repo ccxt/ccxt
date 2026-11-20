@@ -8259,7 +8259,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 			if requestHeaders == nil {
 				requestHeaders = map[string]any{}
 			}
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			requestHeaders["Content-Type"] = "application/json"
 		}
 	} else if (section == "contract") || (section == "spot2") {
 		var apiUrl *string = this.SafeString(this.UrlsApi[section], access)

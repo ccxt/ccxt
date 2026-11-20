@@ -1385,12 +1385,12 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 	})
 }
 func (this *Hyperliquid) FindOutcomeInMarket(market map[string]any, optionalArgs ...any) any {
-	sideHint := ccxt.GetArg(optionalArgs, 0, nil)
+	var sideHint *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = sideHint
 	var outcomesList []any = ccxt.SafeListTyped(market, "outcomes")
 	var normalizedHint any = func() any {
-		if (sideHint != nil) && (sideHint != "") {
-			return ccxt.ToUpper(sideHint)
+		if (sideHint != nil) && (sideHint == nil || *sideHint != "") {
+			return strings.ToUpper(*sideHint)
 		}
 		return nil
 	}()
@@ -2468,7 +2468,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
-	var lowerQueries []any = []any{}
+	var lowerQueries []string = []string{}
 	for i := 0; i < len(queries); i++ {
 		var queryString *string = &queries[i]
 		lowerQueries = append(lowerQueries, strings.ToLower(*queryString))
@@ -2496,7 +2496,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			var haystack string = description + " " + symLower
 			var matches bool = false
 			for qi := 0; qi < len(lowerQueries); qi++ {
-				var words []string = ccxt.Split(lowerQueries[qi], " ")
+				var words []string = strings.Split(lowerQueries[qi], " ")
 				var wordsLength int = len(words)
 				var allWords bool = true
 				for wi := 0; wi < wordsLength; wi++ {

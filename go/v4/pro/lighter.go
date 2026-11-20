@@ -1214,14 +1214,10 @@ func (this *Lighter) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	var accountIndex int64 = accountIndexparamsAccountIndexPair.Value.V
 	var paramsAccountIndex map[string]any = accountIndexparamsAccountIndexPair.Value.P
 	var messageHash string = this.GetMessageHash("myTrades")
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		messageHash = this.GetMessageHash("myTrades", symbolResolved)
 	}
 	var request map[string]any = map[string]any{

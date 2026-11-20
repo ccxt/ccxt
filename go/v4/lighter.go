@@ -1818,10 +1818,11 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			typeVar = &typeVarStr
 		}
 		var marketSymbol *string = this.SafeString(market, "symbol")
-		var baseId any = marketSymbol
+		var baseId *string = marketSymbol
 		if (marketSymbol != nil) && (strings.Index(*marketSymbol, "/") != -1) {
 			var symbolParts []string = strings.Split(*marketSymbol, "/")
-			baseId = symbolParts[0]
+			baseIdStr := symbolParts[0]
+			baseId = &baseIdStr
 		}
 		var quoteId string = "USDC"
 		var settleId *string = func() *string {

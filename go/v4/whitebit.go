@@ -2635,19 +2635,21 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		// It refuses an end past its own clock, which may be behind this one, so an end within a
 		// timeframe of now is left out, and the latest candles it then returns cover the range
 		var duration int64 = this.ParseTimeframe(timeframe)
-		var endTime any = nil
+		var endTime *int64 = nil
 		if until != nil {
-			endTime = this.ParseToInt(this.ParseToInt(float64(*until)/1000) + duration)
+			endTimeValue := this.ParseToInt(this.ParseToInt(float64(*until)/1000) + duration)
+			endTime = &endTimeValue
 		}
 		if since != nil {
 			var start int64 = this.ParseToInt(float64(*since) / 1000)
 			request["start"] = start
 			var rangeEnd int64 = this.ParseToInt(this.Sum(start, Multiply(duration, cappedLimit)))
-			if (endTime == nil) || (IsLessThan(rangeEnd, endTime)) {
-				endTime = rangeEnd
+			if (endTime == nil) || (endTime != nil && rangeEnd < *endTime) {
+				endTimeValue2 := rangeEnd
+				endTime = &endTimeValue2
 			}
 		}
-		if (endTime != nil) && (IsLessThan(this.Sum(endTime, duration), this.Seconds())) {
+		if (endTime != nil) && ((*endTime + duration) < this.Seconds()) {
 			request["end"] = endTime
 		}
 	}

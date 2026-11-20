@@ -552,7 +552,7 @@ func (this *Cryptocom) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var topics []any = []any{}
+	var topics []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]

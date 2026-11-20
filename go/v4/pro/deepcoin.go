@@ -1078,7 +1078,7 @@ func (this *Deepcoin) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var typeVar *string = this.SafeString(message, "t")
-	if ccxt.IsEqual(ccxt.GetValue(orderbook, "timestamp"), nil) {
+	if ccxt.IsEqual(orderbook.Fields().Timestamp, nil) {
 		if typeVar != nil && *typeVar == "f" {
 			// snapshot
 			this.HandleOrderBookSnapshot(client, message)
@@ -1504,7 +1504,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	var listenKey *string = r1.Value
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]

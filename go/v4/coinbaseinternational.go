@@ -1313,9 +1313,10 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan AsyncResu
 	var market map[string]any = this.Market(symbol)
 	var duration int64 = this.ParseTimeframe("1h") * 1000
 	var now int64 = this.Milliseconds()
-	var sinceResolved any = since
+	var sinceResolved *int64 = since
 	if since == nil {
-		sinceResolved = now - ((30 * 24) * 60 * 60 * 1000)
+		sinceResolvedValue := now - ((30 * 24) * 60 * 60 * 1000)
+		sinceResolved = &sinceResolvedValue
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
@@ -2102,9 +2103,10 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan AsyncResult[[]Tran
 	}
 	var currency map[string]any = this.Currency(code)
 	var now int64 = this.Milliseconds()
-	var sinceResolved any = since
+	var sinceResolved *int64 = since
 	if since == nil {
-		sinceResolved = now - ((30 * 24) * 60 * 60 * 1000)
+		sinceResolvedValue := now - ((30 * 24) * 60 * 60 * 1000)
+		sinceResolved = &sinceResolvedValue
 	}
 	var request map[string]any = map[string]any{
 		"currency":        currency["id"],
@@ -2527,9 +2529,10 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	}
 	var currency map[string]any = this.Currency(code)
 	var now int64 = this.Milliseconds()
-	var sinceResolved any = since
+	var sinceResolved *int64 = since
 	if since == nil {
-		sinceResolved = now - ((30 * 24) * 60 * 60 * 1000)
+		sinceResolvedValue := now - ((30 * 24) * 60 * 60 * 1000)
+		sinceResolved = &sinceResolvedValue
 	}
 	var request map[string]any = map[string]any{
 		"currency":        currency["id"],
@@ -4112,13 +4115,13 @@ func (this *Coinbaseinternational) setLeverageBody(ch chan AsyncResult[map[strin
 func (this *Coinbaseinternational) CreateAuthToken(seconds int64, optionalArgs ...any) any {
 	var method *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = method
-	url := GetArg(optionalArgs, 1, nil)
+	var url *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = url
 	var useEddsa bool = GetArgBool(optionalArgs, 2, false)
 	_ = useEddsa
 	var uri any = nil
 	if (url != nil) && (method != nil) {
-		uri = *method + " " + Replace(url, "https://", "")
+		uri = *method + " " + strings.Replace(*url, "https://", "", 1)
 		var quesPos int = GetIndexOf(uri, "?")
 		if quesPos > 0 {
 			uri = Slice(uri, 0, quesPos)

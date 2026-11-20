@@ -1644,9 +1644,10 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var currency1 *string = this.SafeString(order, "currency1")
 	var currency2 *string = this.SafeString(order, "currency2")
-	var marketId any = nil
+	var marketId *string = nil
 	if (currency1 != nil) && (currency2 != nil) {
-		marketId = *currency1 + "-" + *currency2
+		marketIdStr := *currency1 + "-" + *currency2
+		marketId = &marketIdStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])

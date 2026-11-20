@@ -1216,7 +1216,11 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.Or
 		return nil
 	}
 	var name string = "getBook"
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", marketId))
+	var messageHash *string = nil
+	if marketId != nil {
+		messageHashValue := name + "@" + *marketId
+		messageHash = &messageHashValue
+	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
 		"action": name,
@@ -1305,7 +1309,7 @@ func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]
 		this.Options["orderBookLimits"] = limits
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.Fields().Nonce = nil
 	orderbook.SetCache([]any{})
 }
 func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string]any, marketIds []any) {

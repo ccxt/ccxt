@@ -3556,7 +3556,11 @@ func (this *Predictfun) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	// the venue publishes one book per market, quoted on the yes side, and the no side is its
 	// complement - so a single subscription serves both outcomes and each waits on its own hash
 	var topic string = "predictOrderbook/" + *marketId
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", outcomeHandle))
+	var messageHash *string = nil
+	if outcomeHandle != nil {
+		messageHashValue := "orderbook::" + *outcomeHandle
+		messageHash = &messageHashValue
+	}
 	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"method":    "subscribe",

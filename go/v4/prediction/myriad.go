@@ -296,7 +296,7 @@ func (this *Myriad) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 	var queries []string = this.ParseSearchQueries(params)
 	var rest map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	var queriesLength int = len(queries)
-	var rawMarkets any = []any{}
+	var rawMarkets []any = []any{}
 	if queriesLength > 0 {
 
 		r := <-this.FetchRawMarketsBySearchAsync(queries, rest)
@@ -322,8 +322,8 @@ func (this *Myriad) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 	}
 	var flatMarkets []any = []any{}
 	var eventsDict map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
-		var raw any = ccxt.GetValue(rawMarkets, i)
+	for i := 0; i < len(rawMarkets); i++ {
+		var raw any = rawMarkets[i]
 		var m any = this.ParseMyriadMarket(raw)
 		flatMarkets = append(flatMarkets, m)
 		var ev map[string]any = this.ParseMarketToEvent(raw, m)
@@ -350,12 +350,12 @@ func (this *Myriad) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
  * @returns {object[]} an array of raw myriad market objects
  */
-func (this *Myriad) FetchRawMarketsBySearchAsync(queries any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Myriad) FetchRawMarketsBySearchAsync(queries []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchRawMarketsBySearchBody(ch, queries, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchRawMarketsBySearchBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, optionalArgs ...any) any {
+func (this *Myriad) fetchRawMarketsBySearchBody(ch chan ccxt.AsyncResult[[]map[string]any], queries []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -365,8 +365,8 @@ func (this *Myriad) fetchRawMarketsBySearchBody(ch chan ccxt.AsyncResult[[]map[s
 	var rest map[string]any = this.OmitDict(params, []any{"limit", "state"})
 	var seen map[string]any = map[string]any{}
 	var rawMarkets []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
-		var q *string = ccxt.SafeStringPtr(ccxt.GetValue(queries, i))
+	for i := 0; i < len(queries); i++ {
+		var q string = queries[i]
 
 		r := <-this.MyriadPublicGetMarkets(this.Extend(map[string]any{
 			"keyword": q,
@@ -659,12 +659,12 @@ func (this *Myriad) fetchRawQuestionByIdBody(ch chan ccxt.AsyncResult[map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of raw myriad question objects
  */
-func (this *Myriad) FetchRawQuestionsBySearchAsync(queries any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Myriad) FetchRawQuestionsBySearchAsync(queries []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchRawQuestionsBySearchBody(ch, queries, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchRawQuestionsBySearchBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, optionalArgs ...any) any {
+func (this *Myriad) fetchRawQuestionsBySearchBody(ch chan ccxt.AsyncResult[[]map[string]any], queries []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -673,8 +673,8 @@ func (this *Myriad) fetchRawQuestionsBySearchBody(ch chan ccxt.AsyncResult[[]map
 	var rest map[string]any = this.OmitDict(params, []any{"limit"})
 	var seen map[string]any = map[string]any{}
 	var rawQuestions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
-		var q *string = ccxt.SafeStringPtr(ccxt.GetValue(queries, i))
+	for i := 0; i < len(queries); i++ {
+		var q string = queries[i]
 
 		r := <-this.MyriadPublicGetQuestions(this.Extend(map[string]any{
 			"keyword": q,
@@ -4256,7 +4256,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			rawMarkets = ccxt.ArrayTyped(this.SafeList(listResponses, 0, []any{}))
 			rawQuestions = ccxt.ArrayTyped(this.SafeList(listResponses, 1, []any{}))
 		} else {
-			var tagQueries []any = []any{}
+			var tagQueries []string = []string{}
 			for i := 0; i < requestedTagsLength; i++ {
 				// tag slugs are hyphenated ('world-cup'); search with spaces so titles match
 				var tagSlug any = requestedTags[i]
@@ -4287,7 +4287,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 		var evMarketsLength int = len(evMarkets)
 		var filteredMarkets []any = []any{}
 		for j := 0; j < evMarketsLength; j++ {
-			var m any = this.SafeDict(evMarkets, j, map[string]any{})
+			var m map[string]any = this.SafeDictMap(evMarkets, j, map[string]any{})
 			var marketHandle *string = this.SafeString(m, "market")
 			if marketHandle != nil {
 				if _, ok := seenMarketHandles[*marketHandle]; ok {
@@ -4624,7 +4624,11 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var marketId string = *this.SafeString(info, "marketId", "")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "orderbook:" + networkId + ":" + marketId
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", sym))
+	var messageHash *string = nil
+	if sym != nil {
+		messageHashValue := "orderbook::" + *sym
+		messageHash = &messageHashValue
+	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	// finish the connect handshake first so the client exists and the subscribe follows the connect reply
 
@@ -4777,7 +4781,11 @@ func (this *Myriad) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 	var marketId string = *this.SafeString(info, "marketId", "")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "trades:" + networkId + ":" + marketId
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", sym))
+	var messageHash *string = nil
+	if sym != nil {
+		messageHashValue := "trades::" + *sym
+		messageHash = &messageHashValue
+	}
 
 	r1 := <-this.SubscribeMyriadChannelAsync(*messageHash, channel, params)
 	if r1.Err != nil {
@@ -4992,7 +5000,11 @@ func (this *Myriad) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTick
 	var marketId string = *this.SafeString(info, "marketId", "")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "prices:" + networkId + ":" + marketId
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
+	var messageHash *string = nil
+	if sym != nil {
+		messageHashValue := "ticker::" + *sym
+		messageHash = &messageHashValue
+	}
 
 	r1 := <-this.SubscribeMyriadChannelAsync(*messageHash, channel, params)
 	if r1.Err != nil {

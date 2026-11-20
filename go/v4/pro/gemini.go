@@ -237,7 +237,11 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 		}
 	}
 	stored.Append(trade)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
+	var messageHash *string = nil
+	if symbol != nil {
+		messageHashValue := "trades:" + *symbol
+		messageHash = &messageHashValue
+	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Gemini) HandleTrades(client any, message map[string]any) {
@@ -738,7 +742,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 	if (!(*this.SafeBool(firstMarket, "spot", false))) && (!(*this.SafeBool(firstMarket, "linear", false))) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var marketIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = *this.SafeString(symbolsNormalized, i, "")

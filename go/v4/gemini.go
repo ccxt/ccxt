@@ -2881,7 +2881,11 @@ func (this *Gemini) HandleErrors(code int64, reason string, url string, method s
 	if result != nil && *result == "error" {
 		var reasonInner *string = this.SafeString(response, "reason")
 		var message *string = this.SafeString(response, "message")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
+		var feedback *string = nil
+		if message != nil {
+			feedbackValue := this.Id + " " + *message
+			feedback = &feedbackValue
+		}
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], reasonInner, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

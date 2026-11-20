@@ -1283,9 +1283,11 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 					var ids []string = ObjectKeys(response)
 					for j := 0; j < len(ids); j++ {
 						var id string = ids[j]
-						var ticker any = this.SafeDict(response, id)
-						if !IsEqual(ticker, nil) {
-							AddElementToObject(ticker, "market", this.SafeString(ticker, "market", id))
+						var ticker map[string]any = this.SafeDictMap(response, id)
+						if ticker != nil {
+							if ticker != nil {
+								ticker["market"] = *this.SafeString(ticker, "market", id)
+							}
 							tickers = append(tickers, ticker)
 						}
 					}
@@ -1831,7 +1833,7 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-		var feeCurrencyCode any = this.CommonCurrencyCode(feeCurrencyId)
+		var feeCurrencyCode *string = this.CommonCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrencyCode,
@@ -4284,7 +4286,11 @@ func (this *Bithumb) HandleErrors(code int64, reason string, url string, method 
 	if error != nil {
 		var errorName *string = this.SafeString(error, "name")
 		var message *string = this.SafeString(error, "message")
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
+		var feedback *string = nil
+		if message != nil {
+			feedbackValue := this.Id + " " + *message
+			feedback = &feedbackValue
+		}
 		if errorName != nil {
 			this.ThrowExactlyMatchedException(this.Exceptions, errorName, feedback)
 		}
@@ -4306,7 +4312,11 @@ func (this *Bithumb) HandleErrors(code int64, reason string, url string, method 
 			// https://github.com/ccxt/ccxt/issues/9017
 			return nil // no error
 		}
-		var feedback *string = SafeStringPtr(Add(this.Id+" ", message))
+		var feedback *string = nil
+		if message != nil {
+			feedbackValue := this.Id + " " + *message
+			feedback = &feedbackValue
+		}
 		this.ThrowExactlyMatchedException(this.Exceptions, status, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions, message, feedback)
 		panic(ExchangeError(feedback))

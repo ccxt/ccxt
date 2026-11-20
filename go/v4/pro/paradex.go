@@ -1413,7 +1413,7 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 		}
 		if !ccxt.IsEqual(nonce, this.Sum(storedNonce, 1)) {
 			// a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
-			ccxt.AddElementToObject(stored, "nonce", nil)
+			stored.Fields().Nonce = nil
 			this.Spawn(this.ResubscribeOrderBookAsync, client, deltasChannel, messageHash)
 			return
 		}

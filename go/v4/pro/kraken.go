@@ -2285,6 +2285,7 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = message
 	}
+	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var currencyId *string = this.SafeString(data[i], "asset")
@@ -2293,12 +2294,10 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 		var eq *string = this.SafeString(data[i], "balance")
 		account["total"] = eq
 		if code != nil {
-			if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
+			balance[*code] = account
 		}
 	}
-	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	this.Balance[typeVar] = this.SafeBalance(balance)
 	var channel *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], channel)
 }

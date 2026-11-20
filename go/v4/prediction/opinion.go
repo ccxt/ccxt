@@ -2604,7 +2604,11 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "market.depth.diff"
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", sym))
+	var messageHash *string = nil
+	if sym != nil {
+		messageHashValue := "orderbook::" + *sym
+		messageHash = &messageHashValue
+	}
 
 	r1 := <-this.LoadApiKeyAsync()
 	if r1.Err != nil {
@@ -2737,7 +2741,11 @@ func (this *Opinion) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker::", sym))
+	var messageHash *string = nil
+	if sym != nil {
+		messageHashValue := "ticker::" + *sym
+		messageHash = &messageHashValue
+	}
 
 	r1 := <-this.SubscribeOpinionChannelAsync(*messageHash, "market.last.price", marketId)
 	if r1.Err != nil {
@@ -2817,7 +2825,11 @@ func (this *Opinion) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades::", sym))
+	var messageHash *string = nil
+	if sym != nil {
+		messageHashValue := "trades::" + *sym
+		messageHash = &messageHashValue
+	}
 
 	r1 := <-this.SubscribeOpinionChannelAsync(*messageHash, "market.last.trade", marketId)
 	if r1.Err != nil {

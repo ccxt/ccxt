@@ -602,7 +602,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 	var queries []string = this.ParseSearchQueries(params)
 	var rest map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	var queriesLength int = len(queries)
-	var rawEvents any = []any{}
+	var rawEvents []any = []any{}
 	if queriesLength > 0 {
 
 		r := <-this.FetchRawEventsBySearchAsync(queries, rest)
@@ -628,8 +628,8 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 	}
 	var flatMarkets []any = []any{}
 	var eventsDict map[string]any = map[string]any{}
-	for rei := 0; rei < ccxt.GetArrayLength(rawEvents); rei++ {
-		var rawEvent any = ccxt.GetValue(rawEvents, rei)
+	for rei := 0; rei < len(rawEvents); rei++ {
+		var rawEvent any = rawEvents[rei]
 		var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(rawEvent))
 		for mi := 0; mi < len(ccxtMarkets); mi++ {
 			flatMarkets = append(flatMarkets, ccxtMarkets[mi])
@@ -4467,7 +4467,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 		var sideRef any = side
 		sideRef.(ccxt.IOrderBookSide).StoreArray([]any{price, size})
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+		orderbook.SetDatetime(this.Iso8601(timestamp))
 		ccxt.AddElementToObject(updated, outcome, true)
 	}
 	var updatedSymbols []string = nil
