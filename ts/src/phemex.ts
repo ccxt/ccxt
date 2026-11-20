@@ -431,6 +431,9 @@ export default class phemex extends Exchange {
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
+                        'fetchOHLCV': {
+                            'volume': 'contracts',
+                        },
                     },
                 },
                 'future': {
