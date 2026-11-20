@@ -10155,7 +10155,7 @@ export class RustTranspilerBuilder {
                 'pub async fn $1(&mut self)'],
 
             // Specific sync methods known to mutate self.
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string|sign|handle_errors)\(&self,/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string|sign|handle_errors|parse_currency|parse_currencies)\(&self,/g,
                 'pub fn $1(&mut self,'],
             [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|incrementing_nonce|has_autocorrect)\(&self\)/g,
                 'pub fn $1(&mut self)'],
@@ -10864,6 +10864,7 @@ export class RustTranspilerBuilder {
             'clean_cache', 'clean_unsubscription',
             'watch', 'watch_multiple', 'un_watch',
             'set_markets', 'load_markets', 'load_accounts',
+            'parse_currencies',
             // NB: safe_order/safe_order2/safe_trade are `&self` in the base and
             // don't mutate self — seeding them here wrongly promoted their callers
             // (parse_order/parse_trade) to `&mut self`, which then forced the
@@ -10931,7 +10932,8 @@ export class RustTranspilerBuilder {
                 for (const mutName of mutSet) {
                     // `self.parent.<m>(…)` (WS calling into its REST
                     // parent) needs `&mut self` just like `self.<m>(…)`.
-                    if (new RegExp(`\\bself\\.(?:parent\\.)?${mutName}\\s*\\(`).test(body)) {
+                    // Also the UFCS trait-slot call `<Self as crate::exchange::DerivedExchange>::m(self, …)`.
+                    if (new RegExp(`(?:\\bself\\.(?:parent\\.)?|<Self as crate::exchange::DerivedExchange>::)${mutName}\\s*\\(`).test(body)) {
                         mutSet.add(f.name);
                         changed = true;
                         break;
@@ -14363,7 +14365,7 @@ ${arms.join('\n')}
 
     /** DerivedExchange methods with a `&mut self` receiver: venue overrides persist state (nonce, session) there. */
     mutReceiverTraitMethods(): Set<string> {
-        return new Set([ 'sign', 'handle_errors' ]);
+        return new Set([ 'sign', 'handle_errors', 'parse_currency' ]);
     }
 
     /**
