@@ -1764,10 +1764,8 @@ export default class weex extends weexRest {
             accountType = 'swap';
         }
         const messageHash = accountType + ':balance';
-        if (!(accountType in this.balance)) {
-            this.balance[accountType] = {};
-        }
-        this.balance[accountType]['info'] = message;
+        const balance = this.safeDict (this.balance, accountType, {});
+        balance['info'] = message;
         const balanceUpdates = this.safeList (message, 'd', []);
         for (let i = 0; i < balanceUpdates.length; i++) {
             const entry = this.safeDict (balanceUpdates, i);
@@ -1778,13 +1776,13 @@ export default class weex extends weexRest {
             account['used'] = this.safeString (entry, 'frozen');
             account['total'] = this.safeString2 (entry, 'equity', 'legacyAmount');
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger (message, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
-        this.balance[accountType] = this.safeBalance (this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601 (timestamp);
+        this.balance[accountType] = this.safeBalance (balance);
         client.resolve (this.balance[accountType], messageHash);
     }
 
