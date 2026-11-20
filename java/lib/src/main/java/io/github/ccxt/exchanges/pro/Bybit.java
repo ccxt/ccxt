@@ -1113,8 +1113,6 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "watchOrderBook", parameters)).join();
             Map<String, Object> paramsValue = this.cleanParams((Map<String, Object>) (parameters));
             Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-            Integer defaultLimit = ((Boolean.TRUE.equals((this.safeBool(market, "option", false))))) ? 100 : 50;
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
             if (!java.util.Objects.equals(limit, null))
             {
                 Map<String, Object> limits = new HashMap<String, Object>() {{
@@ -1128,13 +1126,19 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     throw new BadRequest(((((this.id + " watchOrderBookForSymbols(): for ") + this.safeString(market, "type", "")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
                 }
             }
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("limit", limit);
+            Long limitParam = this.safeInteger(mapLiteral1, "limit");
+            Integer limitDefault = ((Boolean.TRUE.equals((this.safeBool(market, "option", false))))) ? 100 : 50;
+            Object limitValue = (((java.util.Objects.equals(limitParam, null)))) ? limitDefault : limitParam;
+            String topicPrefix = (("orderbook." + String.valueOf(limitValue)) + ".");
             List<String> topics = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                String marketId = this.marketId(symbol);
-                String topic = ((("orderbook." + this.numberToString(limitResolved)) + ".") + marketId);
+                String marketId = this.safeString(this.market(symbol), "id", "");
+                String topic = (topicPrefix + marketId);
                 topics.add(topic);
                 String messageHash = ("orderbook:" + symbol);
                 messageHashes.add(messageHash);
@@ -1555,21 +1559,21 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String price = this.safeString(trade, "p");
         String amount = this.safeString2(trade, "q", "v");
         String orderId = this.safeString(trade, "o");
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("id", id);
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("order", orderId);
-        mapLiteral1.put("type", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("takerOrMaker", takerOrMaker);
-        mapLiteral1.put("price", price);
-        mapLiteral1.put("amount", amount);
-        mapLiteral1.put("cost", null);
-        mapLiteral1.put("fee", null);
-        return this.safeTrade(mapLiteral1, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", null);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     public String getPrivateType(String url)
@@ -1618,12 +1622,15 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             String url = (this.getUrlByMarketType(symbolResolved, true, method, parameters)).join();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> topicByMarket = new HashMap<String, Object>() {{
-                put( "spot", "ticketInfo" );
-                put( "unified", "execution" );
-                put( "usdc", "user.openapi.perp.trade" );
-            }};
-            String topic = this.safeString(topicByMarket, this.getPrivateType(url));
+            String privateType = this.getPrivateType(url);
+            String topic = "execution";
+            if (java.util.Objects.equals(privateType, "spot"))
+            {
+                topic = "ticketInfo";
+            } else if (java.util.Objects.equals(privateType, "usdc"))
+            {
+                topic = "user.openapi.perp.trade";
+            }
             Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
             Boolean executionFast = executionFastparamsExecutionFastVariable.first();
             Map<String, Object> paramsExecutionFast = executionFastparamsExecutionFastVariable.second();
@@ -1672,12 +1679,15 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             String url = (this.getUrlByMarketType(symbol, true, method, parameters)).join();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> topicByMarket = new HashMap<String, Object>() {{
-                put( "spot", "ticketInfo" );
-                put( "unified", "execution" );
-                put( "usdc", "user.openapi.perp.trade" );
-            }};
-            String topic = this.safeString(topicByMarket, this.getPrivateType(url));
+            String privateType = this.getPrivateType(url);
+            String topic = "execution";
+            if (java.util.Objects.equals(privateType, "spot"))
+            {
+                topic = "ticketInfo";
+            } else if (java.util.Objects.equals(privateType, "usdc"))
+            {
+                topic = "user.openapi.perp.trade";
+            }
             Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
             Boolean executionFast = executionFastparamsExecutionFastVariable.first();
             Map<String, Object> paramsExecutionFast = executionFastparamsExecutionFastVariable.second();
@@ -2220,18 +2230,18 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             side = "buy";
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", liquidation);
-        mapLiteral2.put("symbol", marketResolved.get("symbol"));
-        mapLiteral2.put("contracts", this.safeNumber2(liquidation, "size", "v", (Object) null));
-        mapLiteral2.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-        mapLiteral2.put("price", this.safeNumber2(liquidation, "price", "p", (Object) null));
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("baseValue", null);
-        mapLiteral2.put("quoteValue", null);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        return this.safeLiquidation(mapLiteral2, (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", liquidation);
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("contracts", this.safeNumber2(liquidation, "size", "v", (Object) null));
+        mapLiteral3.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral3.put("price", this.safeNumber2(liquidation, "price", "p", (Object) null));
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("baseValue", null);
+        mapLiteral3.put("quoteValue", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        return this.safeLiquidation(mapLiteral3, (Map<String, Object>) null);
     }
 
     /**
@@ -2263,12 +2273,19 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             String url = (this.getUrlByMarketType(symbolResolved, true, method, parameters)).join();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> topicsByMarket = new HashMap<String, Object>() {{
-                put( "spot", new ArrayList<Object>(Arrays.asList("order", "stopOrder")) );
-                put( "unified", new ArrayList<Object>(Arrays.asList("order")) );
-                put( "usdc", new ArrayList<Object>(Arrays.asList("user.openapi.perp.order")) );
-            }};
-            List<Object> topics = this.safeList(topicsByMarket, this.getPrivateType(url), new ArrayList<Object>(Arrays.asList()));
+            String privateType = this.getPrivateType(url);
+            List<String> topics = new ArrayList<String>(Arrays.asList());
+            if (java.util.Objects.equals(privateType, "usdc"))
+            {
+                topics.add("user.openapi.perp.order");
+            } else
+            {
+                topics.add("order");
+                if (java.util.Objects.equals(privateType, "spot"))
+                {
+                    topics.add("stopOrder");
+                }
+            }
             List<Object> orders = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -2308,12 +2325,19 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             String url = (this.getUrlByMarketType(symbol, true, method, parameters)).join();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> topicsByMarket = new HashMap<String, Object>() {{
-                put( "spot", new ArrayList<Object>(Arrays.asList("order", "stopOrder")) );
-                put( "unified", new ArrayList<Object>(Arrays.asList("order")) );
-                put( "usdc", new ArrayList<Object>(Arrays.asList("user.openapi.perp.order")) );
-            }};
-            List<Object> topics = this.safeList(topicsByMarket, this.getPrivateType(url), null);
+            String privateType = this.getPrivateType(url);
+            List<String> topics = new ArrayList<String>(Arrays.asList());
+            if (java.util.Objects.equals(privateType, "usdc"))
+            {
+                topics.add("user.openapi.perp.order");
+            } else
+            {
+                topics.add("order");
+                if (java.util.Objects.equals(privateType, "spot"))
+                {
+                    topics.add("stopOrder");
+                }
+            }
             return (this.unWatchTopics(url, "orders", new ArrayList<Object>(Arrays.asList()), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subHash)), topics, parameters, new HashMap<String, Object>() {{}})).join();
         });
 
@@ -2496,10 +2520,6 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
             String url = (this.getUrlByMarketType((String) null, true, method, paramsSubType)).join();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> topicByMarket = new HashMap<String, Object>() {{
-                put( "spot", "outboundAccountInfo" );
-                put( "unified", "wallet" );
-            }};
             if (Boolean.TRUE.equals(isUnifiedAccount))
             {
                 // unified account
@@ -2539,7 +2559,17 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     }
                 }
             }
-            List<String> topics = new ArrayList<String>(Arrays.asList(this.safeString(topicByMarket, this.getPrivateType(url))));
+            String privateType = this.getPrivateType(url);
+            if (java.util.Objects.equals(privateType, "usdc"))
+            {
+                throw new NotSupported((this.id + " watchBalance() is not supported on the usdc private stream")) ;
+            }
+            String topic = "wallet";
+            if (java.util.Objects.equals(privateType, "spot"))
+            {
+                topic = "outboundAccountInfo";
+            }
+            List<String> topics = new ArrayList<String>(Arrays.asList(topic));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, paramsSubType)).join();
         }).thenApply(Balances::new);
 
@@ -2856,7 +2886,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 for (var i = 0; (topicsLength != null && i < topicsLength); i++)
                 {
                     Object topic = (topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i));
-                    if (!((topic != null && subscribedTopics.containsKey(topic))))
+                    if (!(subscribedTopics.containsKey(topic)))
                     {
                         ((List<Object>)newTopics).add(topic);
                     }

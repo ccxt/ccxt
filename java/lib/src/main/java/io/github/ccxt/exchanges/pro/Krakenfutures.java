@@ -178,7 +178,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Integer length = ((List<?>)symbolsValue).size();
             if (java.util.Objects.equals(length, 1))
             {
-                Map<String, Object> market = this.market((marketIds == null || 0 >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(0)));
+                Map<String, Object> market = this.market((symbolsValue == null || 0 >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(0)));
                 messageHash = (messageHash + (":" + market.get("symbol")));
             }
             subscribe.put("product_ids", marketIds);

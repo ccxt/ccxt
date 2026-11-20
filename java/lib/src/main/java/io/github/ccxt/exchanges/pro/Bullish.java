@@ -822,12 +822,13 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             account.put("total", this.safeString(data, "availableQuantity"));
             account.put("used", this.safeString(data, "lockedQuantity"));
             String code = this.safeCurrencyCode((String) (assetId), (Map<String, Object>) null);
+            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), "info", message);
+            Map<String, Object> deltaBalance = this.safeDict(this.balance, tradingAccountId, new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(tradingAccountId, null)) && (!java.util.Objects.equals(code, null)))
             {
-                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), code, account);
+                deltaBalance.put(code, account);
             }
-            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), "info", message);
-            this.balance.put(tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
+            this.balance.put(tradingAccountId, this.safeBalance(deltaBalance));
         }
         String messageHash = "balance";
         String tradingAccountIdHash = ("::" + tradingAccountId);
