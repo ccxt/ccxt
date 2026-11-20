@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/interactivebrokers.js';
-import { ArgumentsRequired, NotSupported, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, InvalidProxySettings, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, InvalidProxySettings, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Account, Balances, Dict, Endpoint, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
@@ -2126,7 +2126,7 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (symbols === undefined) {
-            throw new NotSupported (this.id + ' fetchTickers() requires a symbols argument');
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
         }
         await this.authenticate ();
         if (this.markets === undefined) {
