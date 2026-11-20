@@ -596,7 +596,22 @@ public partial class BaseExchange
                 this.connected.TrySetException(connectionError);
             }
             this.reset(error);
-            this.onErrorCallback?.Invoke(this, error);
+            // the callback is the exchange's virtual onError (and any override of
+            // it). the futures already carry the error, so a throw here must not
+            // reach the transport loops: PingLoop's keepalive timeout would skip
+            // its Close(), and nothing awaits the loops to observe it anyway.
+            // see https://github.com/ccxt/ccxt/issues/29412
+            try
+            {
+                this.onErrorCallback?.Invoke(this, error);
+            }
+            catch (Exception callbackError)
+            {
+                if (this.verbose)
+                {
+                    Console.WriteLine($"onError callback error: {callbackError}");
+                }
+            }
         }
 
         public void onOpen()
@@ -607,10 +622,7 @@ public partial class BaseExchange
             // Awaiters can resume inline in SetResult: publish the ready state first.
             this.connected.SetResult(true);
             // this.clearConnectionTimeout();
-            Task.Run(async () =>
-            {
-                PingLoop();
-            });
+            _ = Task.Run(this.PingLoop);
         }
 
         public Task connect(int backoffDelay = 0)
@@ -652,7 +664,10 @@ public partial class BaseExchange
             }
         }
 
-        public async void PingLoop()
+        // a Task, not async void: an exception that still got past the catch
+        // below would fault this task instead of being rethrown on the thread
+        // pool, where it terminates the host process (ccxt/ccxt#29412)
+        public async Task PingLoop()
         {
             try
             {
