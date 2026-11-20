@@ -11594,7 +11594,7 @@ function nullSeedLiteralCompare90c4 (declaration) {
 // `(a == null ? null : a + …)`, all of static type string, so the write needs no cast and the value is the
 // same text the `object` declaration received
 function nullSeedStringConcatWriteType90c4 (csharp, declaration, node, context) {
-    if (!nullSeedGuardedConcat90c4 (declaration) || !nullSeedLiteralCompare90c4 (declaration)) {
+    if (!nullSeedGuardedConcat90c4 (declaration)) {
         return undefined;
     }
     let base = stripParens (node);
