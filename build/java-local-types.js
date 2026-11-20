@@ -20445,7 +20445,7 @@ function j6DefaultIsFamily (printer, node, family) {
 
 // { family, cast } when the value is a base reader of the family with a proven default, else undefined
 function j6ReaderValue (printer, node, family) {
-    const value = unwrapParens (node);
+    const value = j3j6UnwrapShapeAssertion (printer, unwrapParens (node), family);
     if (value === undefined || !isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
         return undefined;
     }
@@ -20480,7 +20480,7 @@ function j6ReaderLocal (printer, declaration) {
         const writeOk = (right) => j6ReaderValue (printer, right, family) !== undefined
             || (family === 'map' ? javaMapLocalValue (printer, right, declaration) : javaListLocalValue (printer, right, declaration)) !== undefined;
         const ok = isSafeToNarrow (printer, declaration, name, type, isProFile, { noCastAssertions: true, writeOnly: true, writeOk });
-        return ok ? { family, type } : undefined;
+        return ok ? { family, type, mapOverload: j3j6MapOverloadCall (printer, declaration.initializer, family) } : undefined;
     }
     return undefined;
 }
@@ -20516,7 +20516,7 @@ export function installJ6ReaderLocals (transpiler) {
         typed.set (declaration, info);
         const cast = J6_READER_FAMILIES[info.family].cast;
         const rest = printed.slice (at + marker.length);
-        const head = marker.replace (/Object (\S+) = $/, `${info.type} $1 = `) + (rest.startsWith (cast) ? '' : cast + ' ');
+        const head = marker.replace (/Object (\S+) = $/, `${info.type} $1 = `) + (rest.startsWith (cast) || info.mapOverload ? '' : cast + ' ');
         return printed.slice (0, at) + head + rest;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration)?.type);
@@ -28840,4 +28840,30 @@ export function installJavaH26j01MapRowLists (transpiler) {
         return h26j01RowListOf (printer, node?.expression?.expression) !== undefined
             ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
     };
+}
+
+// ===== h26-J03. `this.safeDict (x, k, d) as Dict` readers =====
+// a TS `as` assertion prints nothing in Java; when it names the reader's own family shape the
+// value is still the base reader call, so 77j6 proves it the same way as the bare call
+function j3j6UnwrapShapeAssertion (printer, value, family) {
+    if (value === undefined || !ts.isAsExpression (value) || !j6TsShapeIs (printer, value.type, family)) {
+        return value;
+    }
+    return unwrapParens (value.expression);
+}
+
+// `this.safeDict (x, k, m) as Dict` whose default `m` prints a declared Map local binds the
+// hand-written Map-default safeDict overload: the call already returns a Map, no checkcast
+function j3j6MapOverloadCall (printer, node, family) {
+    const value = unwrapParens (node);
+    if (family !== 'map' || value === undefined || !ts.isAsExpression (value)) {
+        return false;
+    }
+    const call = unwrapParens (value.expression);
+    const last = call?.arguments?.[2];
+    if (!isThisCall (call) || call.expression.name.text !== 'safeDict' || call.arguments.length !== 3 || !ts.isIdentifier (last)) {
+        return false;
+    }
+    const declared = String (printer.javaDeclaredTypeOf (last) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    return declared === 'Map<String,Object>' && printer.printNode (last, 0) === last.text;
 }

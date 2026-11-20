@@ -4530,6 +4530,7 @@ function auditSelfTest (): string[] {
         javaR92j8LocalsSelfTest,
         javaR93j2ListLocalsSelfTest,
         javaR93j8LocalsSelfTest,
+        javaH26J03AsDictReaderSelfTest,
     ];
     return problems.concat(...wired.map((selfTest) => selfTest()));
 }
@@ -9637,4 +9638,32 @@ function nativeJavaLiteralApiDispatch (content: string, apiSource: string): stri
         if (apiDecls.length !== 1 || new RegExp (`\\b${name}\\(`).test (content)) return whole;
         return `(this.${name}(${args})).join()`;
     });
+}
+
+// ===== h26-J03: a `safeDict (..) as Dict` reader with a Dict default prints the 77j6 Map local
+function javaH26J03AsDictReaderSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzh26j03selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';", "import type { Dict, Market } from './base/types.js';",
+        `export default class zzh26j03selftest${process.pid} extends Exchange {`,
+        "    pos (data: Dict) { const o1 = this.safeDict (data, 'order', data) as Dict; return this.safeString (o1, 'id'); }",
+        "    anyDefault (data: any) { const o2 = this.safeDict (data, 'order', data) as Dict; return this.safeString (o2, 'id'); }",
+        "    marketCast (data: Dict, market: Market = undefined) { const o3 = this.safeDict (data, 'm', market) as Market; return this.safeString (o3, 'id'); }",
+        "    otherWrite (data: Dict, r: any) { let o4 = this.safeDict (data, 'order', data) as Dict; if (r) { o4 = r; } return this.safeString (o4, 'id'); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> o1 = this\.safeDict\(/.test(out)) problems.push("h26-J03: 'o1' (as Dict, Dict default) must print Map<String, Object> (Map-default overload, no checkcast)");
+        for (const name of [ 'o2', 'o3', 'o4' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`h26-J03: '${name}' must stay Object`);
+        }
+    } catch (e: any) {
+        problems.push(`h26-J03 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
 }
