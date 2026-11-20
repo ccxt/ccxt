@@ -3209,7 +3209,7 @@ export default class binance extends Exchange {
             promises.push (this.sapiGetMarginAllPairs (params));
         }
         const results = await Promise.all (promises);
-        const responseCurrencies = this.safeValue (results, 0);
+        const responseCurrencies = this.safeList (results, 0, []);
         let marginablesById: NullableDict = undefined;
         if (fetchMargins) {
             const responseMarginables = this.safeList (results, 1);

@@ -18396,6 +18396,7 @@ const CORE_LIST_ARGS_ARRAY_LENGTH = {
     'subscribeChannels': 2,
     'unsubscribeChannels': 2,
     'handleBookSideDeltas': 1,
+    'parseCurrenciesCustom': 0,
 };
 // List parameters whose only callers pass a declared list: filterBySymbol/filterByKey (kraken and
 // pro/hyperliquid lists), luno's book sides (IAsks/IBids are IList<object>), the paradex/blofin/nado
