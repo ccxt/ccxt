@@ -2558,6 +2558,7 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                     continue;
                 }
                 if ((type === '*string') && (assert[1] === 'string')) {
+                    if (goChan3StringResultDeref (edits, before, after.substring (assert[0].length), ls, end + assert[0].length, name)) { continue; }
                     edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': q + 'ToString(' + name + '.Value)' });
                     continue;
                 }
@@ -17098,7 +17099,7 @@ function goNativeAwaitBody (indent: string, valueType: string, converter: string
         `${indent}\tres = *raw`,
         `${indent}}`,
         `${indent}return res, nil`,
-    ] : [
+    ] : ((converter === 'ToString') && (valueType === 'string')) ? goNativeAwaitStringTail (indent) : [
         `${indent}var res ${valueType} = ${assertion ? `raw.(${assertion[1]})` : `${converter}(raw)`}`,
         `${indent}return res, nil`,
     ];
@@ -17109,6 +17110,23 @@ function goNativeAwaitBody (indent: string, valueType: string, converter: string
         `${indent}}`,
         ...tail,
     ];
+}
+
+// ===== h26-G58: a *string carrier (fetchOrderStatus cores) derefs into the typed string result;
+// an absent value keeps ToString(nil)'s "<nil>" answer
+// `var res string = r.Value.(string)` on a *string carrier: the deref the wrapper tail prints for fetchOrderStatus
+function goChan3StringResultDeref (edits: Edit[], before: string, after: string, ls: number, end: number, name: string): boolean {
+    const decl = /^(\t+)var (\w+) string = $/.exec (before);
+    if ((decl === null) || !/^\s*$/.test (after)) {
+        return false;
+    }
+    const [ , ind, x ] = decl;
+    edits.push ({ 'start': ls, end, 'text': ind + 'var ' + x + ' string = "<nil>"\n' + ind + 'if ' + name + '.Value != nil {\n' + ind + '\t' + x + ' = *' + name + '.Value\n' + ind + '}' });
+    return true;
+}
+
+function goNativeAwaitStringTail (indent: string): string[] {
+    return [ `${indent}var res string = "<nil>"`, `${indent}if raw != nil {`, `${indent}\tres = *raw`, `${indent}}`, `${indent}return res, nil` ];
 }
 
 // ===== native IsEqual on proven operands =====
