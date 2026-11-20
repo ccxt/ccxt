@@ -9443,7 +9443,8 @@ public Map<String, Object> describe()
         String code = currencyId;
         if (!java.util.Objects.equals(currencyId, null))
         {
-            code = this.commonCurrencyCode(((String)currencyId).toUpperCase());
+            String upperId = ((String)currencyId).toUpperCase();
+            code = this.commonCurrencyCode(upperId);
         }
         HashMap<String, Object> j39v25 = new HashMap<String, Object>();
         j39v25.put("id", currencyId);
@@ -9695,7 +9696,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object getSupportedMapping(String key, Map<String, Object> mapping)
+    public String getSupportedMapping(String key, Map<String, Object> mapping)
     {
         if (java.util.Objects.equals(key, null))
         {
@@ -9703,7 +9704,7 @@ public Map<String, Object> describe()
         }
         if (mapping.containsKey(key))
         {
-            return (mapping == null || key == null ? null : mapping.get(key));
+            return this.safeString(mapping, key, key);
         } else
         {
             List<String> keys = new ArrayList<String>(mapping.keySet());
