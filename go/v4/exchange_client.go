@@ -18,6 +18,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -89,7 +90,8 @@ type Client struct {
 	Verbose               bool // default false
 	DecompressBinary      bool
 	IsMock                bool                          // static ws tests: transport is stubbed, sends are recorded
-	MockSentMessages      []any                         // frames recorded in mock mode
+	mockSentMu            sync.Mutex                    // guards MockSentMessages: SendAsync appends from its own goroutine
+	MockSentMessages      []any                         // frames recorded in mock mode; read through MockSent()
 	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
 	MaxPingPongMisses     any                           // int or counter type
 	PingInterval          any                           // time.Duration recommended
@@ -346,6 +348,13 @@ func (this *Client) OnClose(event any) {
 	this.OnCloseCallback(this, event) // TODO: What to do with event? parameter is error
 }
 
+// MockSent returns a copy of the frames recorded in mock mode.
+func (this *Client) MockSent() []any {
+	this.mockSentMu.Lock()
+	defer this.mockSentMu.Unlock()
+	return append([]any(nil), this.MockSentMessages...)
+}
+
 func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
 	var msgStr string
 	if str, ok := message.(string); ok {
@@ -367,7 +376,9 @@ func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
 			// static ws tests: record the outgoing frame so the test can assert it
 			var parsed any
 			if err := json.Unmarshal([]byte(msgStr), &parsed); err == nil {
+				this.mockSentMu.Lock()
 				this.MockSentMessages = append(this.MockSentMessages, parsed)
+				this.mockSentMu.Unlock()
 			}
 			future.Resolve(true)
 			ch <- AsyncResult[bool]{Value: true}

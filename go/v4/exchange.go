@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	starkfelt "github.com/NethermindEth/juno/core/felt"
@@ -52,6 +53,7 @@ type BaseExchange struct {
 	Has                  map[string]any
 	Api                  map[string]any
 	TransformedApi       map[string]any
+	requestBookMu        sync.Mutex // guards the request book fields and counters (exchange_request_book.go)
 	requestIds           map[string]int64
 	lastNonce            int64
 	lastNonceSet         bool
@@ -100,7 +102,7 @@ type BaseExchange struct {
 
 	// timestamps
 	LastRestRequestTimestamp int64
-	// the last request/response fields below are plain fields (exchange_request_book.go)
+	// the last request/response fields below are read and written under requestBookMu (exchange_request_book.go)
 	LastRequestHeaders    any
 	Last_request_headers  any
 	Last_response_headers any
