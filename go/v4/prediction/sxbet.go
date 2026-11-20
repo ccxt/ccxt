@@ -2660,24 +2660,29 @@ func (this *Sxbet) FetchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResul
 func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionTicker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcomes []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = outcomes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list"))
 	}
-	var outcomesList any = outcomes
-	var outcomesLength int = ccxt.GetArrayLength(outcomesList)
+	var outcomesList []string
+	if outcomes == nil {
+		outcomesList = []string{}
+	} else {
+		outcomesList = outcomes
+	}
+	var outcomesLength int = len(outcomesList)
 	var hashesOrder []any = []any{}
 	var seenHashes map[string]any = map[string]any{}
 	for i := 0; i < outcomesLength; i++ {
 
-		r := <-this.LoadOutcomeAsync(ccxt.GetValue(outcomesList, i))
+		r := <-this.LoadOutcomeAsync(outcomesList[i])
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
+		var outcomeObj map[string]any = this.Outcome(outcomesList[i])
 		var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
 		if this.SafeBool(seenHashes, marketHash) == nil {
 			if marketHash != nil {
@@ -2754,11 +2759,11 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
  * @param {object} rowsByHash best-odds rows indexed by market hash
  * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
-func (this *Sxbet) ParseSxbetTickersByHash(outcomesList any, rowsByHash map[string]any) map[string]any {
+func (this *Sxbet) ParseSxbetTickersByHash(outcomesList []string, rowsByHash map[string]any) map[string]any {
 	var result map[string]any = map[string]any{}
-	var outcomesLength int = ccxt.GetArrayLength(outcomesList)
+	var outcomesLength int = len(outcomesList)
 	for i := 0; i < outcomesLength; i++ {
-		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
+		var outcomeObj map[string]any = this.Outcome(outcomesList[i])
 		var marketHash string = *this.SafeString(outcomeObj["info"], "marketHash", "")
 		var raw map[string]any = ccxt.SafeMapTyped(rowsByHash, marketHash)
 		if raw == nil {
@@ -3310,7 +3315,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		panic(r1.Err)
 	}
 	var client any = this.Client(url)
-	var isNewSubscription bool = ccxt.IsEqual(client.(ccxt.ClientInterface).SubscriptionSafe(channel), nil)
+	var isNewSubscription bool = client.(ccxt.ClientInterface).SubscriptionSafe(channel) == nil
 	if this.Orderbooks[sym] == nil {
 		// seed from the REST snapshot so the book is served before the first publication
 		this.SetWsOption("wsWatchedBooks", sym, marketHash)
@@ -4496,7 +4501,10 @@ func (this *Sxbet) FetchSxbetRealtimeToken() (string, error) {
 	if r.Err != nil {
 		return "", r.Err
 	}
-	var res string = ccxt.ToString(r.Value)
+	var res string = "<nil>"
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

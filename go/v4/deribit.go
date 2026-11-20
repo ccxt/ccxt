@@ -833,6 +833,10 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	var strike string = *this.SafeString(optionParts, 2, "")
 	var optionType string = *this.SafeString(optionParts, 3, "")
 	var datetime any = this.ConvertExpireDate(expiry)
+	var ternaryStr58326 string = "put"
+	if optionType == "C" {
+		ternaryStr58326 = "call"
+	}
 	return map[string]any{
 		"id":             Add(Add(baseResolved+"-", this.ConvertExpireDateToMarketIdDate(expiry)), ("-" + strike + "-" + optionType)),
 		"symbol":         Add(Add(splitBase+"/"+quote+":"+settle+"-", expiry), ("-" + strike + "-" + optionType)),
@@ -855,13 +859,8 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   nil,
 		"expiry":         this.Parse8601(datetime),
 		"expiryDatetime": datetime,
-		"optionType": func() string {
-			if optionType == "C" {
-				return "call"
-			}
-			return "put"
-		}(),
-		"strike": this.ParseNumber(strike),
+		"optionType":     ternaryStr58326,
+		"strike":         this.ParseNumber(strike),
 		"precision": map[string]any{
 			"amount": nil,
 			"price":  nil,
@@ -1075,15 +1074,12 @@ func (this *Deribit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	var result map[string]any = SafeMapTyped(response, "result")
 	var locked *string = this.SafeString(result, "locked")
 	var updateTime *int64 = this.SafeIntegerProduct(response, "usIn", 0.001, this.Milliseconds())
-
-	var statusValue string
+	var ternaryStr74222 string = "maintenance"
 	if locked != nil && *locked == "false" {
-		statusValue = "ok"
-	} else {
-		statusValue = "maintenance"
+		ternaryStr74222 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr74222,
 		"updated": updateTime,
 		"eta":     nil,
 		"url":     nil,

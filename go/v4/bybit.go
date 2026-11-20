@@ -2387,15 +2387,14 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan AsyncResult[[]any], optionalArgs
 			ch <- AsyncResult[[]any]{Value: []any{this.Options["enableUnifiedMargin"], this.Options["enableUnifiedAccount"]}}
 			return nil
 		}
-		var rawPromises []any = []any{this.PrivateGetV5UserQueryApi(params), this.PrivateGetV5AccountInfo(params)}
 
-		r := <-promiseAll(rawPromises)
+		r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](this.PrivateGetV5UserQueryApi(params), this.PrivateGetV5AccountInfo(params))
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var promises []any = r.Value
-		var response map[string]any = SafeMapTyped(promises, 0)
-		var accountInfo map[string]any = SafeMapTyped(promises, 1)
+		var promises []map[string]any = r.Value
+		var response map[string]any = promises[0]
+		var accountInfo map[string]any = promises[1]
 		//
 		//     {
 		//         "retCode": 0,
@@ -2510,7 +2509,7 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 			panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing symbolQuoteAndSettle"))
 		}
 		var splitQuote []string = strings.Split(*symbolQuoteAndSettle, ":")
-		quote = (*this.SafeString(splitQuote, 0, ""))
+		quote = *this.SafeString(splitQuote, 0, "")
 	} else {
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 		if EndsWith(symbol, "-USDT") {
@@ -2534,26 +2533,28 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 		pricePrecision = this.ParseNumber("0.01")
 	}
 	var convertedExpireDate any = this.ConvertExpireDateToMarketIdDate(expiry)
-	var subTypeValue string
-	if IsEqual(baseName, quote) {
-		subTypeValue = "inverse"
-	} else {
-		subTypeValue = "linear"
+	var ternaryStr165023 string = "linear"
+	if baseName != nil && *baseName == quote {
+		ternaryStr165023 = "inverse"
+	}
+	var ternaryStr166226 string = "put"
+	if optionType != nil && *optionType == "C" {
+		ternaryStr166226 = "call"
 	}
 	return map[string]any{
-		"id":       Add(Add(Add(Add(Add(*baseName+"-", convertedExpireDate), "-"), strike), "-"), optionType),
-		"symbol":   Add(Add(Add(Add(Add(*baseName+"/"+quote+":"+quote+"-", expiry), "-"), strike), "-"), optionType),
-		"base":     baseName,
-		"quote":    quote,
-		"settle":   quote,
-		"baseId":   baseName,
-		"quoteId":  quote,
-		"settleId": quote,
-		"active":   false,
-		"type":     "option",
-		"subType": subTypeValue,
-		"linear":         (!IsEqual(baseName, quote)),
-		"inverse":        (IsEqual(baseName, quote)),
+		"id":             Add(Add(Add(Add(Add(*baseName+"-", convertedExpireDate), "-"), strike), "-"), optionType),
+		"symbol":         Add(Add(Add(Add(Add(*baseName+"/"+quote+":"+quote+"-", expiry), "-"), strike), "-"), optionType),
+		"base":           baseName,
+		"quote":          quote,
+		"settle":         quote,
+		"baseId":         baseName,
+		"quoteId":        quote,
+		"settleId":       quote,
+		"active":         false,
+		"type":           "option",
+		"subType":        ternaryStr165023,
+		"linear":         (baseName == nil || *baseName != quote),
+		"inverse":        (baseName != nil && *baseName == quote),
 		"spot":           false,
 		"swap":           false,
 		"future":         false,
@@ -2563,13 +2564,8 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         this.Parse8601(datetime),
 		"expiryDatetime": datetime,
-		"optionType": func() string {
-			if optionType != nil && *optionType == "C" {
-				return "call"
-			}
-			return "put"
-		}(),
-		"strike": this.ParseNumber(strike),
+		"optionType":     ternaryStr166226,
+		"strike":         this.ParseNumber(strike),
 		"precision": map[string]any{
 			"amount": amountPrecision,
 			"price":  pricePrecision,
@@ -3897,15 +3893,15 @@ func (this *Bybit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var tickerList any = this.SafeList(result, "list", []any{})
+	var tickerList []any = this.SafeListSlice(result, "list", []any{})
 	if category != nil && *category == "spot" {
 		// bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
 		// resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
 		var spotTickers []any = []any{}
-		for i := 0; i < GetArrayLength(tickerList); i++ {
-			var tickerMarket map[string]any = this.SafeMarket(this.SafeString(GetValue(tickerList, i), "symbol"), nil, nil, "spot")
+		for i := 0; i < len(tickerList); i++ {
+			var tickerMarket map[string]any = this.SafeMarket(this.SafeString(tickerList[i], "symbol"), nil, nil, "spot")
 			if !(*this.SafeBool(tickerMarket, "contract", false)) {
-				spotTickers = append(spotTickers, GetValue(tickerList, i))
+				spotTickers = append(spotTickers, tickerList[i])
 			}
 		}
 		tickerList = spotTickers
@@ -6767,12 +6763,12 @@ func (this *Bybit) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bybit) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bybit) CancelOrdersForSymbolsAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Bybit) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Bybit) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6800,7 +6796,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orde
 	// getBybitType consumes its options from the params threaded through every order
 	var query map[string]any = params
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = SafeMapTyped(orders, i)
+		var order map[string]any = orders[i]
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var currentCategory any = nil

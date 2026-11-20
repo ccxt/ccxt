@@ -513,10 +513,7 @@ func (this *Nado) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = nil
-	if r1.Value != nil {
-		request = r1.Value
-	}
+	var request map[string]any = r1.Value
 	var placeOrder map[string]any = this.SafeDictMap(request, "place_order", map[string]any{})
 	_, has1 := placeOrder["trigger"]
 	var isTriggerOrder bool = has1
@@ -748,10 +745,7 @@ func (this *Nado) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = nil
-	if r1.Value != nil {
-		request = r1.Value
-	}
+	var request map[string]any = r1.Value
 
 	r2 := <-this.GatewayPrivatePostExecute(request)
 	if r2.Err != nil {
@@ -925,11 +919,13 @@ func (this *Nado) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ordersRecv, _ := OrdersToList(r.Value), r.Value != nil
-	var orders []any = ordersRecv
-	var canceled map[string]any = SafeMapTyped(orders, 0)
+	var orders []Order = r.Value
+	var canceled Order
+	if len(orders) > 0 {
+		canceled = orders[0]
+	}
 
-	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
+	ch <- AsyncResult[Order]{Value: canceled}
 	return nil
 }
 
@@ -974,10 +970,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = nil
-	if r1.Value != nil {
-		request = r1.Value
-	}
+	var request map[string]any = r1.Value
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 
@@ -1114,10 +1107,7 @@ func (this *Nado) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = nil
-	if r1.Value != nil {
-		request = r1.Value
-	}
+	var request map[string]any = r1.Value
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 
@@ -2247,15 +2237,12 @@ func (this *Nado) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 	//     }
 	//
 	var status *string = this.SafeString(response, "data")
-
-	var statusValue string
+	var ternaryStr170222 string = "error"
 	if status != nil && *status == "active" {
-		statusValue = "ok"
-	} else {
-		statusValue = "error"
+		ternaryStr170222 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr170222,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -2284,18 +2271,18 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbolsRequest any = this.GatewayPublicGetSymbols(params)
-	var pairsRequest any = this.GatewayV2PublicGetPairs(params)
-	var assetsRequest any = this.GatewayV2PublicGetAssets(params)
+	symbolsRequest := this.GatewayPublicGetSymbols(params)
+	pairsRequest := this.GatewayV2PublicGetPairs(params)
+	assetsRequest := this.GatewayV2PublicGetAssets(params)
 
-	r := <-promiseAll([]any{symbolsRequest, pairsRequest, assetsRequest})
+	r := <-PromiseAllTyped[[]any, EndpointResult[[]any]](symbolsRequest, pairsRequest, assetsRequest)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = r.Value
-	var symbols []any = SafeListTyped(responses, 0)
-	var pairs []any = SafeListTyped(responses, 1)
-	var assets []any = SafeListTyped(responses, 2)
+	var responses [][]any = r.Value
+	var symbols []any = responses[0]
+	var pairs []any = responses[1]
+	var assets []any = responses[2]
 	// product_id is a JSON number: JS object keys are always strings but a Python
 	// dict keeps int keys, so indexBy would never match the safeString lookups below
 	var pairsById map[string]any = map[string]any{}
@@ -2311,7 +2298,7 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		var rawAsset any = assets[i]
 		var assetProductId *string = this.SafeString(rawAsset, "product_id")
 		if assetProductId != nil {
-			AddElementToObject(assetsById, assetProductId, rawAsset)
+			assetsById[*assetProductId] = rawAsset
 		}
 	}
 	var assetsByCode map[string]any = map[string]any{}
@@ -2324,14 +2311,14 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		}
 		var previous map[string]any = SafeMapTyped(assetsByCode, assetCode)
 		if previous == nil {
-			AddElementToObject(assetsByCode, assetCode, rawAsset)
+			assetsByCode[*assetCode] = rawAsset
 		} else {
 			var previousDeposit *bool = this.SafeBool(previous, "can_deposit", false)
 			var previousWithdraw *bool = this.SafeBool(previous, "can_withdraw", false)
 			var currentDeposit *bool = this.SafeBool(rawAsset, "can_deposit", false)
 			var currentWithdraw *bool = this.SafeBool(rawAsset, "can_withdraw", false)
 			if (!(previousDeposit != nil && *previousDeposit)) && (!(previousWithdraw != nil && *previousWithdraw)) && ((currentDeposit != nil && *currentDeposit) || (currentWithdraw != nil && *currentWithdraw)) {
-				AddElementToObject(assetsByCode, assetCode, rawAsset)
+				assetsByCode[*assetCode] = rawAsset
 			}
 		}
 	}
@@ -2597,13 +2584,15 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbolValue)
-	if ticker == nil {
+	var tickers map[string]Ticker = r1.Value
+	var ticker Ticker
+	var tickerOk bool
+	ticker, tickerOk = tickers[symbolValue]
+	if !tickerOk {
 		panic(BadSymbol(this.Id + " fetchTicker() ticker not found for " + symbolValue))
 	}
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 

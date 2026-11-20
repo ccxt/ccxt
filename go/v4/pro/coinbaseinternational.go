@@ -2090,15 +2090,13 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var methodValue string
+	var ternaryStr132222 string = "public/unsubscribe"
 	if isPrivate {
-		methodValue = "private/unsubscribe"
-	} else {
-		methodValue = "public/unsubscribe"
+		ternaryStr132222 = "private/unsubscribe"
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
-		"method": methodValue,
+		"method":  ternaryStr132222,
 		"params": map[string]any{
 			"channels": []any{channel},
 		},

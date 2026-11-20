@@ -7434,10 +7434,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var spotRequest any = nil
-		if r1.Value != nil {
-			spotRequest = r1.Value
-		}
+		var spotRequest map[string]any = r1.Value
 
 		r2 := <-this.SpotPrivatePostV1OrderOrdersPlace(spotRequest)
 		if r2.Err != nil {
@@ -8136,11 +8133,7 @@ func (this *Htx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 		var clientOrderIds any = this.SafeValue2(query, "client-order-id", "clientOrderId")
 		clientOrderIds = this.SafeValue2(query, "client-order-ids", "clientOrderIds", clientOrderIds)
 		if IsEqual(clientOrderIds, nil) {
-			if IsString(clientOrderIds) {
-				request["order-ids"] = []any{ids}
-			} else {
-				request["order-ids"] = ids
-			}
+			request["order-ids"] = ids
 		} else {
 			if IsString(clientOrderIds) {
 				request["client-order-ids"] = []any{clientOrderIds}
@@ -9378,8 +9371,8 @@ func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 	var fromOrToFuturesAccount bool = (fromAccountIdStr == "futures") || (toAccountIdStr == "futures")
 	var response map[string]any = nil
 	if fromOrToFuturesAccount {
-		var typeVar any = fromAccountIdStr + "-to-" + toAccountIdStr
-		typeVar = DerefScalar(this.SafeString(paramsSubType, "type", typeVar))
+		var typeVar string = fromAccountIdStr + "-to-" + toAccountIdStr
+		typeVar = *this.SafeString(paramsSubType, "type", typeVar)
 		request["type"] = typeVar
 
 		r1 := <-this.SpotPrivatePostV1FuturesTransfer(this.Extend(request, paramsSubType))
@@ -9722,11 +9715,11 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes720023 []any = r1.Value
-			if retRes720023 == nil {
+			var retRes719623 []any = r1.Value
+			if retRes719623 == nil {
 				ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes720023)}
+				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes719623)}
 			}
 			return nil
 		}
@@ -9735,11 +9728,11 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes720219 []any = r2.Value
-		if retRes720219 == nil {
+		var retRes719819 []any = r2.Value
+		if retRes719819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes720219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes719819)}
 		}
 		return nil
 	}
@@ -11090,11 +11083,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes858219 []any = r1.Value
-		if retRes858219 == nil {
+		var retRes857819 []any = r1.Value
+		if retRes857819 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes858219)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes857819)}
 		}
 		return nil
 	}
@@ -13312,7 +13305,10 @@ func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdB
 	if r.Err != nil {
 		return "", r.Err
 	}
-	var res string = ToString(r.Value)
+	var res string = "<nil>"
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

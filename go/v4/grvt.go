@@ -1389,9 +1389,9 @@ func (this *Grvt) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	var request map[string]any = map[string]any{
 		"instrument": this.MarketId(&symbol),
 	}
-	var limitResolved any = 100
+	var limitResolved int64 = 100
 	if limit != nil {
-		limitResolved = limit
+		limitResolved = *limit
 	}
 	if (limit == nil) || (*limit <= 500) {
 		request["depth"] = this.FindNearestCeiling([]any{10, 50, 100, 500}, limitResolved)
@@ -4408,6 +4408,10 @@ func (this *Grvt) FormatSignatureRS(value any) string {
 func (this *Grvt) DefaultSignature() map[string]any {
 	var expirationSeconds int64 = *this.SafeInteger(this.Options, "expirationSeconds", 30)
 	var expiration int64 = (this.Milliseconds() * 1000000) + (1000000*expirationSeconds)*1000
+	var ternaryStr330324 string = "325"
+	if this.IsSandboxModeEnabled {
+		ternaryStr330324 = "326"
+	}
 	return map[string]any{
 		"signer":     "",
 		"r":          "",
@@ -4415,12 +4419,7 @@ func (this *Grvt) DefaultSignature() map[string]any {
 		"v":          0,
 		"expiration": strconv.FormatInt(expiration, 10),
 		"nonce":      this.Nonce(),
-		"chain_id": func() string {
-			if this.IsSandboxModeEnabled {
-				return "326"
-			}
-			return "325"
-		}(),
+		"chain_id":   ternaryStr330324,
 	}
 }
 func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {

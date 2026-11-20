@@ -4295,16 +4295,14 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 		}
 	} else {
 		if isTwapOrder {
-			var positionSideValue string
+			var ternaryStr334236 string = "SHORT"
 			if side != nil && *side == "buy" {
-				positionSideValue = "LONG"
-			} else {
-				positionSideValue = "SHORT"
+				ternaryStr334236 = "LONG"
 			}
 			var twapRequest map[string]any = map[string]any{
 				"symbol":       request["symbol"],
 				"side":         request["side"],
-				"positionSide": positionSideValue,
+				"positionSide": ternaryStr334236,
 				"triggerPrice": this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice)),
 				"totalAmount":  this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
 			}
@@ -5659,11 +5657,9 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		}
 	}
 	var isActive bool = (timeout > 0)
-	var typeValue string
+	var ternaryStr467320 string = "CLOSE"
 	if isActive {
-		typeValue = "ACTIVATE"
-	} else {
-		typeValue = "CLOSE"
+		ternaryStr467320 = "ACTIVATE"
 	}
 	var timeOutValue int64
 	if isActive {
@@ -5672,7 +5668,7 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		timeOutValue = int64(0)
 	}
 	var request map[string]any = map[string]any{
-		"type":    typeValue,
+		"type":    ternaryStr467320,
 		"timeOut": timeOutValue,
 	}
 	var response map[string]any = nil
@@ -7330,16 +7326,14 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = this.SafeString(data, "type")
-	var typeValue string
+	var ternaryStr610520 string = "reduce"
 	if typeVar != nil && *typeVar == "1" {
-		typeValue = "add"
-	} else {
-		typeValue = "reduce"
+		ternaryStr610520 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
-		"type":       typeValue,
+		"type":       ternaryStr610520,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      this.SafeNumber(data, "margin"),

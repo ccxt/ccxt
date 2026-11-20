@@ -883,7 +883,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var values []any = ObjectValues(currentTypeMarkets)
 		var valuesLength int = len(values)
 		if valuesLength > 0 {
-			var first any = DerefScalar(values[0])
+			var first any = values[0]
 			if !IsEqual(first, nil) {
 				symbol = GetValue(first, "symbol")
 			}

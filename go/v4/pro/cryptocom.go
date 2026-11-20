@@ -203,9 +203,9 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var topics []string = []string{}
 	var messageHashes []any = []any{}
-	var limitResolved any = 50
+	var limitResolved int64 = 50
 	if (limit != nil) && (limit == nil || *limit != 0) {
-		limitResolved = limit
+		limitResolved = *limit
 	}
 	var topicParams map[string]any = ccxt.SafeMapTyped(params, "params")
 	if topicParams == nil {

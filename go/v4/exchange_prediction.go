@@ -268,11 +268,11 @@ func (this *PredictionExchange) NormalizeTagKey(tag any) string {
 func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...any) any {
 	// keep events carrying one of the requested tags; tolerant to string tags and to
 	// object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-	tags := GetArg(optionalArgs, 0, nil)
+	var tags []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = tags
 	var tagsLength int = 0
 	if tags != nil {
-		tagsLength = GetArrayLength(tags)
+		tagsLength = len(tags)
 	}
 	if tagsLength == 0 {
 		return events
@@ -458,10 +458,10 @@ func (this *PredictionExchange) loadEventsBody(ch chan AsyncResult[map[string]Pr
 func (this *PredictionExchange) GetEvent(eventIdOrSlug string) any {
 	// cache-only event resolver (the event analogue of this.outcome) - the cache fills
 	// through fetchEvents; this never fetches
-	if (this.Events != nil) && (InOp(this.Events, eventIdOrSlug)) {
+	if _, ok := this.Events[eventIdOrSlug]; (this.Events != nil) && ok {
 		return this.SafeDict(this.Events, eventIdOrSlug)
 	}
-	if (this.Events_by_slug != nil) && (InOp(this.Events_by_slug, eventIdOrSlug)) {
+	if _, ok := this.Events_by_slug[eventIdOrSlug]; (this.Events_by_slug != nil) && ok {
 		return this.SafeDict(this.Events_by_slug, eventIdOrSlug)
 	}
 	panic(BadSymbol(this.Id + " has no cached event " + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first"))
@@ -719,7 +719,7 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 					var idLen int = len(*ocId)
 					var suffix *string = ocId
 					if idLen > 6 {
-						suffixStr := Slice(ocId, idLen-6, nil)
+						suffixStr := (*ocId)[idLen-6:]
 						suffix = &suffixStr
 					}
 					ocSymbolStr := *ocSymbol + "_" + strings.ToUpper(*suffix)
@@ -2299,7 +2299,7 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 	var lengthOfLength int64 = this.ParseToInt(float64(len(lengthHex)) / 2)
 	return Add(this.IntToBase16(183+lengthOfLength)+lengthHex, hex)
 }
-func (this *PredictionExchange) RlpEncodeList(items []any) any {
+func (this *PredictionExchange) RlpEncodeList(items []any) string {
 	var concatenated string = ""
 	for i := 0; i < len(items); i++ {
 		concatenated = concatenated + *this.SafeString(items, i, "")
@@ -2316,7 +2316,7 @@ func (this *PredictionExchange) RlpEncodeList(items []any) any {
 	var lengthOfLength int64 = this.ParseToInt(float64(len(lengthHex)) / 2)
 	return this.IntToBase16(247+lengthOfLength) + lengthHex + concatenated
 }
-func (this *PredictionExchange) IntToRlpHex(value *int64) any {
+func (this *PredictionExchange) IntToRlpHex(value *int64) string {
 	if value == nil {
 		panic(ArgumentsRequired(this.Id + " intToRlpHex() requires a value argument"))
 	}

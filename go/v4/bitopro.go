@@ -426,17 +426,15 @@ func (this *Bitopro) ParseCurrency(rawCurrency any) map[string]any {
 	var deposit *bool = this.SafeBool(rawCurrency, "deposit")
 	var withdraw *bool = this.SafeBool(rawCurrency, "withdraw")
 	var isFiat bool = this.InArray(code, fiatCurrencies)
-	var typeValue string
+	var ternaryStr38520 string = "crypto"
 	if isFiat {
-		typeValue = "fiat"
-	} else {
-		typeValue = "crypto"
+		ternaryStr38520 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":   currencyId,
-		"code": code,
-		"info": rawCurrency,
-		"type": typeValue,
+		"id":        currencyId,
+		"code":      code,
+		"info":      rawCurrency,
+		"type":      ternaryStr38520,
 		"name":      nil,
 		"active":    ((deposit != nil && *deposit == true) && (withdraw != nil && *withdraw == true)),
 		"deposit":   deposit,

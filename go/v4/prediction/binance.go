@@ -1126,7 +1126,7 @@ func (this *Binance) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 				panic(r1.Err)
 			}
 			response = r1.Raw
-			ccxt.AddElementToObject(responsesByMarketId, marketId, response)
+			responsesByMarketId[*marketId] = response
 		}
 		var ticker map[string]any = this.ParsePredictionTicker(response, outcomeObj)
 		var symbolKey *string = this.SafeString(ticker, "outcome", outcomes[i])

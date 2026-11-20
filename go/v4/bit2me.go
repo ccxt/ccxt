@@ -556,14 +556,12 @@ func (this *Bit2me) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	includeTestnet, query := this.HandleOptionBoolAndParams(params, "fetchCurrencies", "includeTestnet", false)
-	var includeTestnetValue string
+	var ternaryStr49930 string = "false"
 	if includeTestnet {
-		includeTestnetValue = "true"
-	} else {
-		includeTestnetValue = "false"
+		ternaryStr49930 = "true"
 	}
 	var request map[string]any = map[string]any{
-		"includeTestnet": includeTestnetValue,
+		"includeTestnet": ternaryStr49930,
 	}
 	var promises []any = []any{this.PublicGetV2CurrencyAssets(this.Extend(request, query)), this.PublicGetV1WalletSettingsAssets(query)}
 
@@ -682,11 +680,9 @@ func (this *Bit2me) ParseCurrency(rawCurrency any) map[string]any {
 			},
 		}
 	}
-	var typeValue string
+	var ternaryStr61120 string = "crypto"
 	if assetType != nil && *assetType == "fiat" {
-		typeValue = "fiat"
-	} else {
-		typeValue = "crypto"
+		ternaryStr61120 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
@@ -699,7 +695,7 @@ func (this *Bit2me) ParseCurrency(rawCurrency any) map[string]any {
 		"networks":  networks,
 		"fee":       nil,
 		"precision": precision,
-		"type": typeValue,
+		"type":      ternaryStr61120,
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,

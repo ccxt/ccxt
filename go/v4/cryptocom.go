@@ -2564,12 +2564,12 @@ func (this *Cryptocom) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptocom) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Cryptocom) CancelOrdersForSymbolsAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2583,7 +2583,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 	}
 	var orderRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = SafeMapTyped(orders, i)
+		var order map[string]any = orders[i]
 		var id *string = this.SafeString(order, "id")
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = this.Market(symbol)
@@ -4502,19 +4502,18 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) Position
 	var symbol *string = this.SafeSymbol(marketId, marketResolved, nil, "contract")
 	var timestamp *int64 = this.SafeInteger(position, "update_timestamp_ms")
 	var amount *string = this.SafeString(position, "quantity")
+	var ternaryStr338820 string = "short"
+	if Precise.StringGt(amount, "0") {
+		ternaryStr338820 = "long"
+	}
 	return this.SafePosition(map[string]any{
-		"info":      position,
-		"id":        nil,
-		"symbol":    symbol,
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
-		"hedged":    nil,
-		"side": func() string {
-			if Precise.StringGt(amount, "0") {
-				return "long"
-			}
-			return "short"
-		}(),
+		"info":                        position,
+		"id":                          nil,
+		"symbol":                      symbol,
+		"timestamp":                   timestamp,
+		"datetime":                    this.Iso8601(timestamp),
+		"hedged":                      nil,
+		"side":                        ternaryStr338820,
 		"contracts":                   this.ParseNumber(Precise.StringAbs(amount)),
 		"contractSize":                marketResolved["contractSize"],
 		"entryPrice":                  nil,

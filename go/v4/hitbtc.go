@@ -3380,7 +3380,7 @@ func (this *Hitbtc) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, typeVar string, side string, amount any, optionalArgs ...any) (map[string]any, map[string]any) {
+func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType *string, typeVar string, side string, amount any, optionalArgs ...any) (map[string]any, map[string]any) {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	marginMode := GetArg(optionalArgs, 1, nil)
@@ -3436,7 +3436,7 @@ func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, ty
 		panic(ExchangeError(this.Id + " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders"))
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"})
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 		// set default margin mode to cross
 		request["margin_mode"] = func() any {
 			if marginMode == nil {

@@ -217,9 +217,11 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchTickers")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchTickers")
+	methodName := *methodNamePtr
 	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
@@ -291,9 +293,11 @@ func (this *Aster) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchTickers")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchTickers")
+	methodName := *methodNamePtr
 	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
@@ -440,9 +444,11 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchMarkPrices")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchMarkPrices")
+	methodName := *methodNamePtr
 	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
@@ -519,9 +525,11 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchMarkPrices")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchMarkPrices")
+	methodName := *methodNamePtr
 	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
@@ -942,9 +950,11 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
+	methodName := *methodNamePtr
 	if symbolsLength == 0 {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
@@ -1014,9 +1024,11 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchTradesForSymbols")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchTradesForSymbols")
+	methodName := *methodNamePtr
 	if symbolsLength == 0 {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
@@ -1356,9 +1368,11 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
+	methodName := *methodNamePtr
 	if symbolsLength == 0 {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
@@ -1426,10 +1440,12 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchOrderBookForSymbols")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchOrderBookForSymbols")
+	methodName := *methodNamePtr
 	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	if symbolsLength == 0 {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
@@ -1643,9 +1659,11 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 		}
 	}
 	var symbolsLength int = len(symbolsAndTimeframes)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchOHLCVForSymbols")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchOHLCVForSymbols")
+	methodName := *methodNamePtr
 	if symbolsLength == 0 {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
@@ -1720,9 +1738,11 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		}
 	}
 	var symbolsLength int = len(symbolsAndTimeframes)
-	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchOHLCVForSymbols")
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchOHLCVForSymbols")
+	methodName := *methodNamePtr
 	if symbolsLength == 0 {
-		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
@@ -2717,9 +2737,11 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 						}
 					}
 					// save this trade in the order
-					var orderTrades any = this.SafeList(order, "trades", []any{})
-					ccxt.AppendToArray(&orderTrades, trade)
-					ccxt.AddElementToObject(order, "trades", orderTrades)
+					var orderTrades []any = this.SafeListSlice(order, "trades", []any{})
+					orderTrades = append(orderTrades, trade)
+					if order != nil {
+						order["trades"] = orderTrades
+					}
 				}
 			}
 		}

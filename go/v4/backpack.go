@@ -790,22 +790,20 @@ func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 		deposit = false
 		withdraw = false
 	}
-	var typeValue string
+	var ternaryStr63020 string = "crypto"
 	if stock {
-		typeValue = "stock"
-	} else {
-		typeValue = "crypto"
+		ternaryStr63020 = "stock"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
 		"precision": nil,
-		"type": typeValue,
-		"name":     this.SafeString(rawCurrency, "displayName"),
-		"active":   active,
-		"deposit":  deposit,
-		"withdraw": withdraw,
-		"fee":      nil,
+		"type":      ternaryStr63020,
+		"name":      this.SafeString(rawCurrency, "displayName"),
+		"active":    active,
+		"deposit":   deposit,
+		"withdraw":  withdraw,
+		"fee":       nil,
 		"limits": map[string]any{
 			"deposit": map[string]any{
 				"min": nil,
@@ -1784,10 +1782,10 @@ func (this *Backpack) StockDataRequest(methodName string, params any, optionalAr
  * @param {Array} entries parsed trades or orders
  * @returns {Array} tokenized stock structures
  */
-func (this *Backpack) FilterStockStructures(entries any) []any {
+func (this *Backpack) FilterStockStructures(entries []any) []any {
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(entries); i++ {
-		var entry any = GetValue(entries, i)
+	for i := 0; i < len(entries); i++ {
+		var entry any = entries[i]
 		var symbol *string = this.SafeString(entry, "symbol")
 		var market map[string]any = SafeMapTyped(this.Markets, symbol)
 		if *this.SafeBool(market, "stock", false) {

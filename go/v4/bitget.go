@@ -4638,18 +4638,16 @@ func (this *Bitget) ParseCurrency(rawCurrency any) map[string]any {
 	}
 	var active bool = (withdraw == true) && (deposit == true)
 	var isFiat bool = this.InArray(code, fiatCurrencies)
-	var typeValue string
+	var ternaryStr287520 string = "crypto"
 	if isFiat {
-		typeValue = "fiat"
-	} else {
-		typeValue = "crypto"
+		ternaryStr287520 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"info":     entry,
-		"id":       id,
-		"code":     code,
-		"networks": networks,
-		"type": typeValue,
+		"info":      entry,
+		"id":        id,
+		"code":      code,
+		"networks":  networks,
+		"type":      ternaryStr287520,
 		"name":      nil,
 		"active":    active,
 		"deposit":   deposit,
@@ -12477,7 +12475,7 @@ func (this *Bitget) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[
 func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -13204,7 +13202,7 @@ func (this *Bitget) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResu
 func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRate], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -13885,16 +13883,14 @@ func (this *Bitget) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	if isCrossMarginMode {
 		shortLevKey = "crossedMarginLeverage"
 	}
-	var marginModeValue string
+	var ternaryStr1020926 string = "isolated"
 	if isCrossMarginMode {
-		marginModeValue = "cross"
-	} else {
-		marginModeValue = "isolated"
+		ternaryStr1020926 = "cross"
 	}
 	return LeverageFromMap(map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeString(market, "symbol"),
-		"marginMode":    marginModeValue,
+		"marginMode":    ternaryStr1020926,
 		"longLeverage":  this.SafeInteger(leverage, longLevKey),
 		"shortLeverage": this.SafeInteger(leverage, shortLevKey),
 	})

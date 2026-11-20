@@ -6239,7 +6239,7 @@ func (this *Woo) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
+func (this *Woo) DefaultNetworkCodeForCurrency(code any) *string {
 	var currencyItem map[string]any = this.Currency(code)
 	var networks map[string]any = MapTyped(currencyItem["networks"])
 	var networkKeys []string = nil
@@ -6252,7 +6252,8 @@ func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
 	for i := 0; i < len(networkKeys); i++ {
 		var network string = networkKeys[i]
 		if network == "ERC20" {
-			return network
+			retStrVal := network
+			return &retStrVal
 		}
 	}
 	// if it was not returned according to above options, then return the first network of currency

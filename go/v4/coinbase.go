@@ -2589,14 +2589,13 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan AsyncResult[Currencie
 	var expires int64 = *this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()
 	if (timestamp == nil) || ((now - *timestamp) > expires) {
-		var promises []any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params)}
 
-		r := <-promiseAll(promises)
+		r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params))
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var promisesResult []any = r.Value
-		var fiatResponse map[string]any = SafeMapTyped(promisesResult, 0)
+		var promisesResult []map[string]any = r.Value
+		var fiatResponse map[string]any = promisesResult[0]
 		//
 		//    [
 		//        "data": {
@@ -2607,7 +2606,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan AsyncResult[Currencie
 		//        ...
 		//    ]
 		//
-		var cryptoResponse map[string]any = SafeMapTyped(promisesResult, 1)
+		var cryptoResponse map[string]any = promisesResult[1]
 		//
 		//    {
 		//        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
@@ -2658,14 +2657,13 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises []any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params), this.V2PublicGetExchangeRates(params)}
 
-	r := <-promiseAll(promises)
+	r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params), this.V2PublicGetExchangeRates(params))
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promisesResult []any = r.Value
-	var fiatResponse map[string]any = SafeMapTyped(promisesResult, 0)
+	var promisesResult []map[string]any = r.Value
+	var fiatResponse map[string]any = promisesResult[0]
 	//
 	//    [
 	//        "data": [
@@ -2676,7 +2674,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	//            },
 	//        ...
 	//
-	var cryptoResponse map[string]any = SafeMapTyped(promisesResult, 1)
+	var cryptoResponse map[string]any = promisesResult[1]
 	//
 	//     [
 	//        "data": [
@@ -2692,7 +2690,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	//           },
 	//          ...
 	//
-	var ratesResponse map[string]any = SafeMapTyped(promisesResult, 2)
+	var ratesResponse map[string]any = promisesResult[2]
 	var fiatData []any = this.SafeListSlice(fiatResponse, "data", []any{})
 	var cryptoData []any = this.SafeListSlice(cryptoResponse, "data", []any{})
 	var ratesData map[string]any = SafeMapTyped(ratesResponse, "data")

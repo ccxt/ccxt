@@ -1186,10 +1186,10 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	var future bool = (typeVar == "future")
 	var isV5Linear bool = (linear && (swap || future))
 	if typeVar == "spot" {
-		var mode *string = this.SafeString2(this.Options, "watchMyTrades", "mode", "0")
-		mode = this.SafeString(paramsRequest, "mode", mode)
+		var mode string = *this.SafeString2(this.Options, "watchMyTrades", "mode", "0")
+		mode = *this.SafeString(paramsRequest, "mode", mode)
 		paramsRequest = this.Omit(paramsRequest, "mode")
-		messageHash = "trade.clearing" + "#" + *this.SafeString(market, "lowercaseId", "*") + "#" + *mode
+		messageHash = "trade.clearing" + "#" + *this.SafeString(market, "lowercaseId", "*") + "#" + mode
 		channel = messageHash
 	} else if isV5Linear {
 		var channelAndMessageHashAndParams []any = this.GetV5LinearChannelAndMessageHash("trade", market, paramsRequest)
@@ -2249,7 +2249,9 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 			}
 		}
 		newPositions = append(newPositions, position)
-		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
+		if marginMode != nil {
+			positionsByMarginMode[*marginMode] = this.SafeList(positionsByMarginMode, marginMode, []any{})
+		}
 		retRes180712 := func() any {
 			if marginMode == nil {
 				return nil

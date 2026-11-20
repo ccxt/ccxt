@@ -786,11 +786,9 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
-	var typeValue string
+	var ternaryStr68120 string = "crypto"
 	if isFiat {
-		typeValue = "fiat"
-	} else {
-		typeValue = "crypto"
+		ternaryStr68120 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
@@ -803,7 +801,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 		"networks":  networks,
 		"fee":       withdrawFee,
 		"precision": nil,
-		"type": typeValue,
+		"type":      ternaryStr68120,
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,

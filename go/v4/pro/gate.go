@@ -2779,9 +2779,9 @@ func (this *Gate) HandleLiquidation(client any, message map[string]any) {
 		newLiquidations = append(newLiquidations, liquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
 		if symbol != nil {
-			var symbolLiquidations any = this.SafeList(liquidationsBySymbol, symbol, []any{})
-			ccxt.AppendToArray(&symbolLiquidations, liquidation)
-			ccxt.AddElementToObject(liquidationsBySymbol, symbol, symbolLiquidations)
+			var symbolLiquidations []any = this.SafeListSlice(liquidationsBySymbol, symbol, []any{})
+			symbolLiquidations = append(symbolLiquidations, liquidation)
+			liquidationsBySymbol[*symbol] = symbolLiquidations
 		}
 	}
 	var symbols []string = nil

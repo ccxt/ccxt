@@ -332,11 +332,11 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 	var allRaw []any = []any{}
 	var queriesLength int = len(queries)
 	if queriesLength > 0 {
-		var requestedLimit *int64 = this.SafeInteger(params, "limit", 50)
+		var requestedLimit int64 = *this.SafeInteger(params, "limit", 50)
 		// the search endpoint rejects limit > 50 - cap the per-query request and let
 		// maxMarkets bound the overall collection
-		var limit any = 50
-		if (requestedLimit != nil) && (*requestedLimit < 50) {
+		var limit int64 = 50
+		if requestedLimit < 50 {
 			limit = requestedLimit
 		}
 		var searchRest map[string]any = this.OmitDict(rest, []any{"limit"})
@@ -1454,7 +1454,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 		var grouped any = this.SafeList(outcomesBySlug, slug, []any{})
 		ccxt.AppendToArray(&grouped, outcomeObj)
 		if slug != nil {
-			ccxt.AddElementToObject(outcomesBySlug, slug, grouped)
+			outcomesBySlug[*slug] = grouped
 		}
 	}
 	var promises []any = []any{}
@@ -2243,13 +2243,16 @@ func (this *Limitless) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders []any = ccxt.PredictionOrdersToList(r1.Value)
-	var order map[string]any = ccxt.SafeMapTyped(orders, 0)
-	if order == nil {
+	var orders []ccxt.PredictionOrder = r1.Value
+	var order ccxt.PredictionOrder
+	if len(orders) > 0 {
+		order = orders[0]
+	}
+	if len(orders) == 0 {
 		panic(ccxt.OrderNotFound(this.Id + " fetchOrder() could not find order " + id))
 	}
 
-	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(order)}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: order}
 	return nil
 }
 
@@ -2909,9 +2912,9 @@ func (this *Limitless) SignMessage(message any, privateKey string) string {
 }
 func (this *Limitless) SignEvmTransaction(tx any, privateKey any) any {
 	// builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
-	var accessList any = this.RlpEncodeList([]any{})
+	var accessList string = this.RlpEncodeList([]any{})
 	var fields []any = []any{this.RlpEncodeBytes(this.IntToRlpHex(this.SafeInteger(tx, "chainId"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "nonce"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxPriorityFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "gasLimit"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "to"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "value", "0x0"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "data", "0x"))), accessList}
-	var payload *string = ccxt.SafeStringPtr(ccxt.Add("02", this.RlpEncodeList(fields)))
+	var payload string = "02" + this.RlpEncodeList(fields)
 	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex any
@@ -2932,7 +2935,7 @@ func (this *Limitless) SignEvmTransaction(tx any, privateKey any) any {
 	signedFields = append(signedFields, this.RlpEncodeBytes(this.IntToRlpHex(yParity)))
 	signedFields = append(signedFields, this.RlpEncodeBytes(rHex))
 	signedFields = append(signedFields, this.RlpEncodeBytes(sHex))
-	return ccxt.Add("0x02", this.RlpEncodeList(signedFields))
+	return "0x02" + this.RlpEncodeList(signedFields)
 }
 
 /**
@@ -3791,10 +3794,10 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	// eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
 	var rawMarkets []any = []any{}
 	if queriesLength > 0 {
-		var requestedLimit *int64 = this.SafeInteger(params, "limit", 50)
+		var requestedLimit int64 = *this.SafeInteger(params, "limit", 50)
 		// the search endpoint rejects limit > 50 - cap the per-query request
-		var limit any = 50
-		if (requestedLimit != nil) && (*requestedLimit < 50) {
+		var limit int64 = 50
+		if requestedLimit < 50 {
 			limit = requestedLimit
 		}
 		var seen map[string]any = map[string]any{}

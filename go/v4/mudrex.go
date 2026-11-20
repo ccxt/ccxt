@@ -1041,25 +1041,23 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if (typeVar == "market") && (price == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
+	var ternaryStr73926 string = "SHORT"
+	if side == "buy" {
+		ternaryStr73926 = "LONG"
+	}
+	var ternaryStr74028 string = "LIMIT"
+	if typeVar == "market" {
+		ternaryStr74028 = "MARKET"
+	}
 	var request map[string]any = map[string]any{
-		"asset_id":    market["id"],
-		"is_symbol":   1,
-		"leverage":    this.NumberToString(lev),
-		"quantity":    this.AmountToPrecision(symbol, amount),
-		"order_price": this.PriceToPrecision(symbol, price),
-		"order_type": func() string {
-			if side == "buy" {
-				return "LONG"
-			}
-			return "SHORT"
-		}(),
-		"trigger_type": func() string {
-			if typeVar == "market" {
-				return "MARKET"
-			}
-			return "LIMIT"
-		}(),
-		"reduce_only": this.SafeBool(params, "reduceOnly", false),
+		"asset_id":     market["id"],
+		"is_symbol":    1,
+		"leverage":     this.NumberToString(lev),
+		"quantity":     this.AmountToPrecision(symbol, amount),
+		"order_price":  this.PriceToPrecision(symbol, price),
+		"order_type":   ternaryStr73926,
+		"trigger_type": ternaryStr74028,
+		"reduce_only":  this.SafeBool(params, "reduceOnly", false),
 	}
 	// mudrex only supports take-profit / stop-loss orders attached to the position-opening order
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
@@ -1764,12 +1762,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 		}
 		var numCandidates int = len(candidates)
 		if numCandidates > 0 {
-			var found map[string]any = MapTyped(func() any {
-				if 0 >= 0 && 0 < len(candidates) {
-					return DerefScalar(candidates[0])
-				}
-				return nil
-			}())
+			var found map[string]any = MapTyped(candidates[0])
 			positionId = this.SafeString(found, "id")
 		}
 	}
@@ -1851,7 +1844,7 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbo
 		var matches []any = this.FilterBy(positions, "symbol", symbol)
 		var numMatches int = len(matches)
 		if numMatches > 0 {
-			var found map[string]any = MapTyped(DerefScalar(matches[0]))
+			var found map[string]any = MapTyped(matches[0])
 			positionId = this.SafeString(found, "id")
 		}
 	}

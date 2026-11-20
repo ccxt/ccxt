@@ -487,15 +487,12 @@ func (this *Polymarket) fetchStatusBody(ch chan AsyncResult[Status], optionalArg
 	//     }
 	//
 	var cancelOnly *bool = this.SafeBool(response, "cancel_only", false)
-
-	var statusValue string
+	var ternaryStr39022 string = "ok"
 	if cancelOnly != nil && *cancelOnly {
-		statusValue = "maintenance"
-	} else {
-		statusValue = "ok"
+		ternaryStr39022 = "maintenance"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr39022,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -806,13 +803,12 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 		panic(r.Err)
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var promises []any = []any{this.PublicGetInfoTickers(params), this.PublicGetInfoStatistics(params), this.PublicGetInfoBbo(params)}
 
-	r1 := <-promiseAll(promises)
+	r1 := <-PromiseAllTyped[[]any, EndpointResult[[]any]](this.PublicGetInfoTickers(params), this.PublicGetInfoStatistics(params), this.PublicGetInfoBbo(params))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responses []any = r1.Value
+	var responses [][]any = r1.Value
 	//
 	// tickers
 	//
@@ -857,14 +853,16 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	//     ]
 	//
 	var merged map[string]any = map[string]any{}
-	var statistics []any = SafeListTyped(responses, 1)
+	var statistics []any = responses[1]
 	for i := 0; i < len(statistics); i++ {
 		var entry any = statistics[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		// the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
-		AddElementToObject(merged, instrumentId, this.Omit(entry, "klines"))
+		if instrumentId != nil {
+			merged[*instrumentId] = this.Omit(entry, "klines")
+		}
 	}
-	var bbos []any = SafeListTyped(responses, 2)
+	var bbos []any = responses[2]
 	for i := 0; i < len(bbos); i++ {
 		var entry any = bbos[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
@@ -874,7 +872,7 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 			merged[*instrumentId] = this.Extend(previous, entry)
 		}
 	}
-	var tickers []any = SafeListTyped(responses, 0)
+	var tickers []any = responses[0]
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
 		var entry any = tickers[i]
@@ -1682,7 +1680,7 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 	var schedule []any = SafeListTyped(response, "fee_schedule")
 	var byCategory map[string]any = map[string]any{}
 	for i := 0; i < len(schedule); i++ {
-		var entry any = DerefScalar(schedule[i])
+		var entry any = schedule[i]
 		var category *string = this.SafeString(entry, "category")
 		if category != nil {
 			byCategory[*category] = entry
@@ -1853,8 +1851,7 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ordersRecv, _ := OrdersToList(r1.Value), r1.Value != nil
-	var orders []any = ordersRecv
+	var orders []any = OrdersToList(r1.Value)
 	var first map[string]any = SafeMapTyped(orders, 0)
 	var firstStatus *string = this.SafeString(first, "status")
 	if firstStatus != nil && *firstStatus == "rejected" {
@@ -1925,10 +1922,7 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var signed any = nil
-	if r1.Value != nil {
-		signed = r1.Value
-	}
+	var signed map[string]any = r1.Value
 
 	responseRecv := <-this.TradePostTradeOrders(signed)
 	if responseRecv.Err != nil {
@@ -1997,11 +1991,13 @@ func (this *Polymarket) cancelOrderBody(ch chan AsyncResult[Order], id string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ordersRecv, _ := OrdersToList(r.Value), r.Value != nil
-	var orders []any = ordersRecv
-	var canceled map[string]any = SafeMapTyped(orders, 0)
+	var orders []Order = r.Value
+	var canceled Order
+	if len(orders) > 0 {
+		canceled = orders[0]
+	}
 
-	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
+	ch <- AsyncResult[Order]{Value: canceled}
 	return nil
 }
 
@@ -2165,10 +2161,7 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan AsyncResult[[]Order], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var signed any = nil
-	if r1.Value != nil {
-		signed = r1.Value
-	}
+	var signed map[string]any = r1.Value
 
 	r2 := <-this.TradeDeleteTradeOrdersAll(signed)
 	if r2.Err != nil {
@@ -2225,10 +2218,7 @@ func (this *Polymarket) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var signed any = nil
-	if r1.Value != nil {
-		signed = r1.Value
-	}
+	var signed map[string]any = r1.Value
 
 	r2 := <-this.TradePatchTradeAutoCancel(signed)
 	if r2.Err != nil {
@@ -2297,10 +2287,7 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var signed any = nil
-	if r1.Value != nil {
-		signed = r1.Value
-	}
+	var signed map[string]any = r1.Value
 
 	responseRecv := <-this.TradePatchTradeOrders(signed)
 	if responseRecv.Err != nil {
@@ -3582,10 +3569,7 @@ func (this *Polymarket) setLeverageBody(ch chan AsyncResult[map[string]any], lev
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var signed any = nil
-	if r1.Value != nil {
-		signed = r1.Value
-	}
+	var signed map[string]any = r1.Value
 
 	r2 := <-this.TradePatchTradeLeverage(signed)
 	if r2.Err != nil {
@@ -3697,10 +3681,7 @@ func (this *Polymarket) modifyMarginHelperBody(ch chan AsyncResult[map[string]an
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var signed any = nil
-	if r1.Value != nil {
-		signed = r1.Value
-	}
+	var signed map[string]any = r1.Value
 
 	r2 := <-this.TradePatchTradeMargin(signed)
 	if r2.Err != nil {

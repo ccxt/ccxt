@@ -1847,6 +1847,10 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) Tran
 			"rate":     nil,
 		}
 	}
+	var ternaryStr141020 string = "deposit"
+	if depositId == nil {
+		ternaryStr141020 = "withdraw"
+	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString2(transaction, "withdraw_id", "deposit_id"),
 		"txid":        this.SafeString2(transaction, "txid", "tx"),
@@ -1857,22 +1861,17 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) Tran
 		"address":     this.SafeString(transaction, "withdraw_address"),
 		"addressTo":   nil,
 		"amount":      this.SafeNumberN(transaction, []any{"amount", "withdraw_amount", "deposit_amount"}),
-		"type": func() string {
-			if depositId == nil {
-				return "withdraw"
-			}
-			return "deposit"
-		}(),
-		"currency": this.SafeCurrencyCode(nil, currency),
-		"status":   this.ParseTransactionStatus(status),
-		"updated":  nil,
-		"tagFrom":  nil,
-		"tag":      nil,
-		"tagTo":    nil,
-		"comment":  this.SafeString(transaction, "withdraw_memo"),
-		"internal": nil,
-		"fee":      fee,
-		"info":     transaction,
+		"type":        ternaryStr141020,
+		"currency":    this.SafeCurrencyCode(nil, currency),
+		"status":      this.ParseTransactionStatus(status),
+		"updated":     nil,
+		"tagFrom":     nil,
+		"tag":         nil,
+		"tagTo":       nil,
+		"comment":     this.SafeString(transaction, "withdraw_memo"),
+		"internal":    nil,
+		"fee":         fee,
+		"info":        transaction,
 	})
 }
 func (this *Indodax) ParseTransactionStatus(status *string) *string {

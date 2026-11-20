@@ -2150,15 +2150,12 @@ func (this *Kucoin) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var status *string = this.SafeString2(data, "status", "serverStatus")
-
-	var statusValue string
+	var ternaryStr161922 string = "maintenance"
 	if status != nil && *status == "open" {
-		statusValue = "ok"
-	} else {
-		statusValue = "maintenance"
+		ternaryStr161922 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr161922,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -3000,17 +2997,15 @@ func (this *Kucoin) ParseCurrency(currency any) map[string]any {
 	var rawPrecision *string = this.SafeString(entry, "precision")
 	var precision *float64 = this.ParseNumber(this.ParsePrecision(rawPrecision))
 	var isFiat bool = (chainsLength == 0)
-	var typeValue string
+	var ternaryStr240020 string = "crypto"
 	if isFiat {
-		typeValue = "fiat"
-	} else {
-		typeValue = "crypto"
+		ternaryStr240020 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"name":      this.SafeString(entry, "fullName"),
 		"code":      code,
-		"type":      typeValue,
+		"type":      ternaryStr240020,
 		"precision": precision,
 		"info":      entry,
 		"networks":  networks,
@@ -9485,10 +9480,10 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan AsyncResult[[]Trade], opti
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "items", []any{})
+	var trades []any = this.SafeListSlice(data, "items", []any{})
 	var tradesList []any = []any{}
 	if trades != nil {
-		tradesList = ArrayTyped(trades)
+		tradesList = trades
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, since, limit))}
@@ -9622,10 +9617,10 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var trades any = this.SafeList(data, "items", []any{})
+	var trades []any = this.SafeListSlice(data, "items", []any{})
 	var tradesList []any = []any{}
 	if trades != nil {
-		tradesList = ArrayTyped(trades)
+		tradesList = trades
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, since, limit))}
@@ -11616,8 +11611,8 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 	var clientOid string = this.Uuid()
 	clientOidOption, paramsClientOid := this.HandleParamString2(paramsToUserId, "clientOid", "clientOrderId", clientOid)
 	request["clientOid"] = clientOidOption
-	var fromId any = this.ConvertTypeToAccount(fromAccount)
-	var toId any = this.ConvertTypeToAccount(toAccount)
+	var fromId string = this.ConvertTypeToAccount(fromAccount)
+	var toId string = this.ConvertTypeToAccount(toAccount)
 	var exchangeIds any = func() any {
 		if this.Ids == nil {
 			return []any{}
@@ -11635,10 +11630,10 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 		toId = "ISOLATED"
 	}
 	var utaAccountsByType map[string]any = SafeMapTyped(this.Options, "utaAccountsByType")
-	fromId = DerefScalar(this.SafeString(utaAccountsByType, fromId, fromId))
-	toId = DerefScalar(this.SafeString(utaAccountsByType, toId, toId))
-	request["fromAccountType"] = ToUpper(fromId)
-	request["toAccountType"] = ToUpper(toId)
+	fromId = *this.SafeString(utaAccountsByType, fromId, fromId)
+	toId = *this.SafeString(utaAccountsByType, toId, toId)
+	request["fromAccountType"] = strings.ToUpper(fromId)
+	request["toAccountType"] = strings.ToUpper(toId)
 	var types map[string]any = map[string]any{
 		"INTERNAL":      "0",
 		"PARENT_TO_SUB": "1",
@@ -12870,6 +12865,7 @@ func (this *Kucoin) ParseBorrowRateHistories(response []any, codes any, since an
 			var borrowRateStructure map[string]any = this.ParseBorrowRate(item)
 			var borrowRateHistoriesCode any = borrowRateHistories[*code]
 			AppendToArray(&borrowRateHistoriesCode, borrowRateStructure)
+			borrowRateHistories[*code] = borrowRateHistoriesCode
 		}
 	}
 	var keys []string = nil

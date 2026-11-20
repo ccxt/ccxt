@@ -1357,7 +1357,13 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 			var timestamp *int64 = this.SafeInteger(data, "date")
 			var tickers map[string]any = this.OmitDict(data, "date")
-			var currencyIds []string = ObjectKeys(tickers)
+			var currencyIds []string = nil
+			if tickers != nil {
+				currencyIds = make([]string, 0, len(tickers))
+				for objectKey := range tickers {
+					currencyIds = append(currencyIds, objectKey)
+				}
+			}
 			for j := 0; j < len(currencyIds); j++ {
 				var currencyId string = currencyIds[j]
 				var ticker any = data[currencyId]
@@ -2849,14 +2855,12 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var response map[string]any = nil
 	if generation == 2 {
 		var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-
+		var ternaryStr2343115 string = "wait"
+		if twap != nil && *twap {
+			ternaryStr2343115 = "progress"
+		}
 		r1 := <-this.FetchOrdersAsync(symbol, since, limit, this.Extend(paramsGeneration, map[string]any{
-			"state": func() string {
-				if twap != nil && *twap {
-					return "progress"
-				}
-				return "wait"
-			}(),
+			"state": ternaryStr2343115,
 		}))
 		if r1.Err != nil {
 			panic(r1.Err)

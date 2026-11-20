@@ -2774,7 +2774,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []stri
 			panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument for swap markets"))
 		}
 		var marketSymbol *string = SafeStringPtr(market["symbol"])
-		var orders []any = []any{}
+		var orders []map[string]any = []map[string]any{}
 		for i := 0; i < len(ids); i++ {
 			var orderItem map[string]any = map[string]any{
 				"id":     ids[i],
@@ -2834,12 +2834,12 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []stri
  * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Digifinex) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Digifinex) CancelOrdersForSymbolsAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2856,7 +2856,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 	var symbolsById map[string]any = map[string]any{}
 	var marketType *string = nil
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = MapTyped(orders[i])
+		var order map[string]any = orders[i]
 		var id *string = this.SafeString(order, "id")
 		if id == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrdersForSymbols() requires an id for each order"))
@@ -6057,15 +6057,14 @@ func (this *Digifinex) ParseMarginModification(data any, optionalArgs ...any) ma
 	_ = market
 	var marketId *string = this.SafeString(data, "instrument_id")
 	var rawType *int64 = this.SafeInteger(data, "type")
+	var ternaryStr458520 string = "reduce"
+	if rawType != nil && *rawType == 1 {
+		ternaryStr458520 = "add"
+	}
 	return map[string]any{
-		"info":   data,
-		"symbol": this.SafeSymbol(marketId, market, nil, "swap"),
-		"type": func() string {
-			if rawType != nil && *rawType == 1 {
-				return "add"
-			}
-			return "reduce"
-		}(),
+		"info":       data,
+		"symbol":     this.SafeSymbol(marketId, market, nil, "swap"),
+		"type":       ternaryStr458520,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      nil,

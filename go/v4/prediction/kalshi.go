@@ -1118,15 +1118,12 @@ func (this *Kalshi) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], optio
 	//     { "exchange_active": true, "trading_active": true }
 	//
 	var tradingActive *bool = this.SafeBool(response, "trading_active", false)
-
-	var statusValue string
+	var ternaryStr78722 string = "maintenance"
 	if tradingActive != nil && *tradingActive {
-		statusValue = "ok"
-	} else {
-		statusValue = "maintenance"
+		ternaryStr78722 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr78722,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1398,7 +1395,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
 		var grouped any = this.SafeList(outcomesByTicker, ticker, []any{})
 		ccxt.AppendToArray(&grouped, outcomeObj)
-		ccxt.AddElementToObject(outcomesByTicker, ticker, grouped)
+		outcomesByTicker[*ticker] = grouped
 	}
 	var chunkSize *int64 = this.SafeInteger(this.Options, "fetchTickersBatchSize", 100)
 	var result map[string]any = map[string]any{}
@@ -3109,10 +3106,7 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var fullEvent any = nil
-		if r1.Value != nil {
-			fullEvent = r1.Value
-		}
+		var fullEvent map[string]any = r1.Value
 		rawEvents = []any{fullEvent}
 	} else {
 		// tags / category / series_ticker resolve to a set of series; fetch their events, capped
@@ -3220,12 +3214,12 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string
 	var rawEvents []any = []any{}
 	var eventTickersLength int = len(eventTickers)
 	var hasLimit bool = (limit != nil)
-	var limitOrZero any = func() any {
-		if hasLimit {
-			return limit
-		}
-		return 0
-	}()
+	var limitOrZero int64
+	if hasLimit {
+		limitOrZero = *limit
+	} else {
+		limitOrZero = 0
+	}
 	var limitValue int64 = this.ParseToInt(limitOrZero)
 	for ei := 0; ei < eventTickersLength; ei++ {
 		var collectedLength int = len(rawEvents)
@@ -3255,10 +3249,7 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-				var fullEvent any = nil
-				if r1.Value != nil {
-					fullEvent = r1.Value
-				}
+				var fullEvent map[string]any = r1.Value
 				rawEvents = append(rawEvents, fullEvent)
 				return nil
 			}(this)
@@ -3421,12 +3412,12 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]
 	var pageLimit int64 = this.ParseToInt(this.SafeInteger(this.Options, "defaultFetchEventsLimit", 200))
 	var maxPages int64 = *this.SafeInteger(this.Options, "maxEventPagesPerSeries", 20)
 	var hasLimit bool = (limit != nil)
-	var limitOrZero any = func() any {
-		if hasLimit {
-			return limit
-		}
-		return 0
-	}()
+	var limitOrZero int64
+	if hasLimit {
+		limitOrZero = *limit
+	} else {
+		limitOrZero = 0
+	}
 	var limitValue int64 = this.ParseToInt(limitOrZero)
 	for si := 0; si < seriesTickersLength; si++ {
 		var collectedLength int = len(rawEvents)
@@ -3505,10 +3496,7 @@ func (this *Kalshi) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var fullEvent any = nil
-	if r.Value != nil {
-		fullEvent = r.Value
-	}
+	var fullEvent map[string]any = r.Value
 	var event map[string]any = this.ParseEvent(fullEvent)
 	this.IndexEventOutcomes(event)
 

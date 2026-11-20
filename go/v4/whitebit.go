@@ -1042,23 +1042,21 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
-	var typeValue string
+	var ternaryStr73820 string = "crypto"
 	if hasProvider {
-		typeValue = "fiat"
-	} else {
-		typeValue = "crypto"
+		ternaryStr73820 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":       id,
-		"code":     code,
-		"info":     rawCurrency,
-		"name":     nil,
-		"active":   nil,
-		"deposit":  this.SafeBool(rawCurrency, "can_deposit"),
-		"withdraw": this.SafeBool(rawCurrency, "can_withdraw"),
-		"fee":      nil,
-		"networks": networks,
-		"type": typeValue,
+		"id":        id,
+		"code":      code,
+		"info":      rawCurrency,
+		"name":      nil,
+		"active":    nil,
+		"deposit":   this.SafeBool(rawCurrency, "can_deposit"),
+		"withdraw":  this.SafeBool(rawCurrency, "can_withdraw"),
+		"fee":       nil,
+		"networks":  networks,
+		"type":      ternaryStr73820,
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "currency_precision"))),
 		"limits": map[string]any{
 			"amount": map[string]any{
@@ -2616,13 +2614,14 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"market":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var cappedLimit any = 1440
+	var cappedLimit int64 = 1440
 	if (limit != nil) && (*limit < 1440) {
-		cappedLimit = limit
+		cappedLimit = *limit
 	}
-	var limitResolved any = limit
+	var limitResolved *int64 = limit
 	if since != nil {
-		limitResolved = cappedLimit
+		limitResolvedValue := cappedLimit
+		limitResolved = &limitResolvedValue
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
@@ -2639,7 +2638,7 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if since != nil {
 			var start int64 = this.ParseToInt(float64(*since) / 1000)
 			request["start"] = start
-			var rangeEnd int64 = this.ParseToInt(this.Sum(start, Multiply(duration, cappedLimit)))
+			var rangeEnd int64 = this.ParseToInt(start + duration*cappedLimit)
 			if (endTime == nil) || (endTime != nil && rangeEnd < *endTime) {
 				endTimeValue2 := rangeEnd
 				endTime = &endTimeValue2
@@ -4510,6 +4509,10 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var currencyId *string = this.SafeString(transaction, "ticker")
 	var status *string = this.SafeString(transaction, "status")
 	var method *string = this.SafeString(transaction, "method")
+	var ternaryStr324720 string = "withdrawal"
+	if method != nil && *method == "1" {
+		ternaryStr324720 = "deposit"
+	}
 	return TransactionFromMap(map[string]any{
 		"id":        this.SafeString(transaction, "uniqueId"),
 		"txid":      this.SafeString(transaction, "transactionId"),
@@ -4529,13 +4532,8 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 			}
 			return nil
 		}(),
-		"amount": this.SafeNumber(transaction, "amount"),
-		"type": func() string {
-			if method != nil && *method == "1" {
-				return "deposit"
-			}
-			return "withdrawal"
-		}(),
+		"amount":   this.SafeNumber(transaction, "amount"),
+		"type":     ternaryStr324720,
 		"currency": this.SafeCurrencyCode(currencyId, currencyResolved),
 		"status":   this.ParseTransactionStatus(status),
 		"updated":  nil,
@@ -4753,10 +4751,10 @@ func (this *Whitebit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	//         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//     }
 	//
-	var records any = this.SafeList(response, "records", []any{})
+	var records []any = this.SafeListSlice(response, "records", []any{})
 	var recordsList []any = []any{}
 	if records != nil {
-		recordsList = ArrayTyped(records)
+		recordsList = records
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(recordsList, currency, since, limit))}

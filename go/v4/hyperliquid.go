@@ -426,15 +426,12 @@ func (this *Hyperliquid) fetchStatusBody(ch chan AsyncResult[Status], optionalAr
 	//     }
 	//
 	var status *string = this.SafeString(response, "specialStatuses")
-
-	var statusValue string
+	var ternaryStr41822 string = "maintenance"
 	if status == nil {
-		statusValue = "ok"
-	} else {
-		statusValue = "maintenance"
+		ternaryStr41822 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr41822,
 		"updated": this.SafeInteger(response, "time"),
 		"eta":     nil,
 		"url":     nil,
@@ -1064,7 +1061,11 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterf
 		var mappedQuoteId *string = this.SafeString(spotCurrencyMapping, quoteId, quoteId)
 		var mappedBase *string = this.SafeCurrencyCode(mappedBaseName)
 		var mappedQuote *string = this.SafeCurrencyCode(mappedQuoteId)
-		var mappedSymbol *string = SafeStringPtr(Add(Add(mappedBase, "/"), mappedQuote))
+		var mappedSymbol *string = nil
+		if mappedBase != nil && mappedQuote != nil {
+			mappedSymbolValue := *mappedBase + "/" + *mappedQuote
+			mappedSymbol = &mappedSymbolValue
+		}
 		var innerBaseTokenInfo map[string]any = this.SafeDictMap(baseTokenInfo, "spec", baseTokenInfo)
 		// const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
 		var amountPrecisionStr *string = this.SafeString(innerBaseTokenInfo, "szDecimals")
@@ -1313,14 +1314,12 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[Balances], optiona
 	var paramsValue map[string]any = MapTyped(isUnifiedEnabledparamsValueVariable[1])
 	var dex *string = this.SafeString(paramsValue, "dex")
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled == true)) && (dex == nil)
-	var typeValue string
+	var ternaryStr117220 string = "clearinghouseState"
 	if isSpot {
-		typeValue = "spotClearinghouseState"
-	} else {
-		typeValue = "clearinghouseState"
+		ternaryStr117220 = "spotClearinghouseState"
 	}
 	var request map[string]any = map[string]any{
-		"type": typeValue,
+		"type": ternaryStr117220,
 		"user": userAddress,
 	}
 
@@ -2356,14 +2355,12 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan AsyncResult[map[string]an
 	defer ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var hyperliquidChainValue string
+	var ternaryStr192732 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		hyperliquidChainValue = "Testnet"
-	} else {
-		hyperliquidChainValue = "Mainnet"
+		ternaryStr192732 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": hyperliquidChainValue,
+		"hyperliquidChain": ternaryStr192732,
 		"maxFeeRate":       maxFeeRate,
 		"builder":          builder,
 		"nonce":            nonce,
@@ -2635,14 +2632,12 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan AsyncResult[map[string]a
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userSetAbstraction")
-	var hyperliquidChainValue string
+	var ternaryStr206032 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		hyperliquidChainValue = "Testnet"
-	} else {
-		hyperliquidChainValue = "Mainnet"
+		ternaryStr206032 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": hyperliquidChainValue,
+		"hyperliquidChain": ternaryStr206032,
 		"user":             userAddress,
 		"abstraction":      abstraction,
 		"nonce":            nonce,
@@ -2704,14 +2699,12 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan AsyncResult[map[st
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userDexAbstraction")
-	var hyperliquidChainValue string
+	var ternaryStr210632 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		hyperliquidChainValue = "Testnet"
-	} else {
-		hyperliquidChainValue = "Mainnet"
+		ternaryStr210632 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": hyperliquidChainValue,
+		"hyperliquidChain": ternaryStr210632,
 		"user":             userAddress,
 		"enabled":          enabled,
 		"nonce":            nonce,
@@ -3172,7 +3165,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []any, optionalArgs ...any) 
 			var takeProfitOrderTriggerPrice *string = this.SafeString2(takeProfit, "triggerPrice", "stopPrice")
 			var takeProfitOrderType *string = this.SafeString(takeProfit, "type", "limit")
 			var takeProfitOrderLimitPrice *string = this.SafeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
-			grouping = (*this.SafeString(orderParams, "grouping", "normalTpsl"))
+			grouping = *this.SafeString(orderParams, "grouping", "normalTpsl")
 			if grouping == "positionTpsl" {
 				amountStr := "0"
 				amount = &amountStr
@@ -3292,11 +3285,13 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ordersRecv, _ := OrdersToList(r1.Value), r1.Value != nil
-	var orders []any = ordersRecv
-	var canceled map[string]any = SafeMapTyped(orders, 0)
+	var orders []Order = r1.Value
+	var canceled Order
+	if len(orders) > 0 {
+		canceled = orders[0]
+	}
 
-	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
+	ch <- AsyncResult[Order]{Value: canceled}
 	return nil
 }
 
@@ -3552,12 +3547,12 @@ func (this *Hyperliquid) CancelOrdersRequest(ids []string, optionalArgs ...any) 
  * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hyperliquid) CancelOrdersForSymbolsAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3586,7 +3581,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 	}
 	var cancelByCloid bool = false
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = SafeMapTyped(orders, i)
+		var order map[string]any = orders[i]
 		var clientOrderId *string = this.SafeString(order, "clientOrderId")
 		if clientOrderId != nil {
 			cancelByCloid = true
@@ -5760,14 +5755,12 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		}
 		var strAmountFinal any = strAmount // java req
 		var toPerp bool = (toAccount == "perp") || (toAccount == "swap")
-		var hyperliquidChainValue string
+		var ternaryStr435736 string = "Mainnet"
 		if isSandboxMode != nil && *isSandboxMode {
-			hyperliquidChainValue = "Testnet"
-		} else {
-			hyperliquidChainValue = "Mainnet"
+			ternaryStr435736 = "Testnet"
 		}
 		var transferPayload map[string]any = map[string]any{
-			"hyperliquidChain": hyperliquidChainValue,
+			"hyperliquidChain": ternaryStr435736,
 			"amount":           strAmountFinal,
 			"toPerp":           toPerp,
 			"nonce":            nonce,
@@ -5854,14 +5847,12 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		}
 		var sourceDex *string = this.SafeString(paramsSendAsset, "sourceDex", defaultDex)
 		var destinationDex *string = this.SafeString(paramsSendAsset, "destinationDex", defaultDex)
-		var hyperliquidChainValue2 string
+		var ternaryStr442236 string = "Mainnet"
 		if isSandboxMode != nil && *isSandboxMode {
-			hyperliquidChainValue2 = "Testnet"
-		} else {
-			hyperliquidChainValue2 = "Mainnet"
+			ternaryStr442236 = "Testnet"
 		}
 		var sendAssetPayload map[string]any = map[string]any{
-			"hyperliquidChain": hyperliquidChainValue2,
+			"hyperliquidChain": ternaryStr442236,
 			"destination": func() any {
 				if isDeposit {
 					return subAccountAddress
@@ -6043,14 +6034,12 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 		sig = this.SignL1Action(action, nonce)
 	} else {
 		var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-		var hyperliquidChainValue string
+		var ternaryStr456136 string = "Mainnet"
 		if isSandboxMode != nil && *isSandboxMode {
-			hyperliquidChainValue = "Testnet"
-		} else {
-			hyperliquidChainValue = "Mainnet"
+			ternaryStr456136 = "Testnet"
 		}
 		var payload map[string]any = map[string]any{
-			"hyperliquidChain": hyperliquidChainValue,
+			"hyperliquidChain": ternaryStr456136,
 			"destination":      address,
 			"amount":           this.NumberToString(amount),
 			"time":             nonce,

@@ -2434,6 +2434,10 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 		return this.ConvertExpireDate(expiry)
 	}()
 	var timestamp *int64 = this.Parse8601(datetime)
+	var ternaryStr155826 string = "put"
+	if optionType == "C" {
+		ternaryStr155826 = "call"
+	}
 	return map[string]any{
 		"id":             *base + "-" + quote + "-" + *expiry + "-" + strike + "-" + optionType,
 		"symbol":         *base + "/" + quote + ":" + *base + "-" + *expiry + "-" + strike + "-" + optionType,
@@ -2456,13 +2460,8 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() string {
-			if optionType == "C" {
-				return "call"
-			}
-			return "put"
-		}(),
-		"strike": this.ParseNumber(strike),
+		"optionType":     ternaryStr155826,
+		"strike":         this.ParseNumber(strike),
 		"precision": map[string]any{
 			"amount": nil,
 			"price":  nil,
@@ -2562,15 +2561,13 @@ func (this *Okx) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...an
 	//
 	var data []any = SafeListTyped(response, "data")
 	var dataLength int = len(data)
-	var statusValue string
+	var ternaryStr163622 string = "maintenance"
 	if dataLength == 0 {
-		statusValue = "ok"
-	} else {
-		statusValue = "maintenance"
+		ternaryStr163622 = "ok"
 	}
 	var update map[string]any = map[string]any{
 		"updated": nil,
-		"status":  statusValue,
+		"status":  ternaryStr163622,
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
@@ -4045,7 +4042,7 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		"bar":    bar,
 		"limit":  limitResolved,
 	}
-	var defaultType any = "Candles"
+	var defaultType string = "Candles"
 	if since != nil {
 		var now int64 = this.Milliseconds()
 		var durationInMilliseconds int64 = duration * 1000
@@ -4077,7 +4074,7 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	} else {
 		paramsUntil = paramsPrice
 	}
-	defaultType = DerefScalar(this.SafeString(options, "type", defaultType)) // Candles or HistoryCandles
+	defaultType = *this.SafeString(options, "type", defaultType) // Candles or HistoryCandles
 	var typeVar *string = this.SafeString(paramsUntil, "type", defaultType)
 	var paramsType map[string]any = this.OmitDict(paramsUntil, "type")
 	var isHistoryCandles bool = (typeVar != nil && *typeVar == "HistoryCandles")
@@ -5787,12 +5784,12 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
  * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Okx) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Okx) CancelOrdersForSymbolsAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5816,7 +5813,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders
 		method = &methodStr
 	}
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = SafeMapTyped(orders, i)
+		var order map[string]any = orders[i]
 		var id *string = this.SafeString(order, "id")
 		var clientOrderId *string = this.SafeString2(order, "clOrdId", "clientOrderId")
 		var symbol *string = this.SafeString(order, "symbol")
@@ -10122,6 +10119,7 @@ func (this *Okx) ParseBorrowRateHistories(response []any, codes any, since any, 
 			borrowRateStructure["period"] = 31536000000
 			var borrrowRateCode any = borrowRateHistories[*code]
 			AppendToArray(&borrrowRateCode, borrowRateStructure)
+			borrowRateHistories[*code] = borrrowRateCode
 		}
 	}
 	var keys []string = nil
@@ -10321,14 +10319,12 @@ func (this *Okx) modifyMarginHelperBody(ch chan AsyncResult[MarginModification],
 	var data []any = SafeListTyped(response, "data")
 	var entry map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 	var errorCode *string = this.SafeString(response, "code")
-
+	var ternaryStr775722 string = "failed"
+	if errorCode != nil && *errorCode == "0" {
+		ternaryStr775722 = "ok"
+	}
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(entry, market), map[string]any{
-		"status": func() string {
-			if errorCode != nil && *errorCode == "0" {
-				return "ok"
-			}
-			return "failed"
-		}(),
+		"status": ternaryStr775722,
 	}))}
 	return nil
 }

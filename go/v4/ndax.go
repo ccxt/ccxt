@@ -638,15 +638,12 @@ func (this *Ndax) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 	//     }
 	//
 	var message *string = this.SafeString(response, "msg")
-
-	var statusValue string
+	var ternaryStr42422 string = "error"
 	if message != nil && *message == "PONG" {
-		statusValue = "ok"
-	} else {
-		statusValue = "error"
+		ternaryStr42422 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr42422,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,

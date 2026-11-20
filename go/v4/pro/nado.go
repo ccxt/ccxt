@@ -1462,10 +1462,7 @@ func (this *Nado) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = nil
-	if r1.Value != nil {
-		request = r1.Value
-	}
+	var request map[string]any = r1.Value
 	var placeOrder map[string]any = this.SafeDictMap(request, "place_order", map[string]any{})
 	if _, ok := placeOrder["trigger"]; ok {
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support trigger orders, use createOrder() instead"))
@@ -1556,10 +1553,7 @@ func (this *Nado) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = nil
-	if r1.Value != nil {
-		request = r1.Value
-	}
+	var request map[string]any = r1.Value
 
 	r2 := <-this.WatchExecuteRequestAsync(*requestIdString, request)
 	if r2.Err != nil {
@@ -1678,10 +1672,7 @@ func (this *Nado) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = nil
-	if r1.Value != nil {
-		request = r1.Value
-	}
+	var request map[string]any = r1.Value
 
 	r2 := <-this.WatchExecuteRequestAsync(*requestIdString, request)
 	if r2.Err != nil {
@@ -1762,10 +1753,7 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = nil
-	if r1.Value != nil {
-		request = r1.Value
-	}
+	var request map[string]any = r1.Value
 
 	r2 := <-this.WatchExecuteRequestAsync(*requestIdString, request)
 	if r2.Err != nil {
@@ -2214,7 +2202,7 @@ func (this *Nado) ParseWsTimestamp(message any, key string) any {
 	// local is the regex transpiler's ARRAY hint and would emit php count()
 	// on a string, breaking every ws parser with a TypeError
 	if len(*value) > 13 {
-		return this.ParseToInt(ccxt.Slice(value, 0, ccxt.GetLength(value)-6))
+		return this.ParseToInt((*value)[:len((*value))-6])
 	}
 	return this.SafeInteger(message, key)
 }

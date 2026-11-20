@@ -1798,7 +1798,7 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 func (this *Backpack) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var microseconds int64 = *this.SafeInteger(delta, "T", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
+	orderbook.SetTimestamp(&timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	orderbook.SetNonce(this.SafeInteger(delta, "u"))
 	var bids []any = this.SafeListSlice(delta, "b", []any{})
@@ -2152,7 +2152,7 @@ func (this *Backpack) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 			}
 			var account map[string]any = this.SafeDictMap(balances, code)
 			if account != nil {
-				ccxt.AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 

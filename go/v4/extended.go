@@ -519,12 +519,18 @@ func (this *Extended) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 	ch <- AsyncResult[map[string]any]{Value: markets}
 	return nil
 }
-func (this *Extended) IndexByStringifiedNumericId(input any) any {
+func (this *Extended) IndexByStringifiedNumericId(input map[string]any) any {
 	var result map[string]any = map[string]any{}
-	if IsEqual(input, nil) {
+	if input == nil {
 		return nil
 	}
-	var keys []string = ObjectKeys(input)
+	var keys []string = nil
+	if input != nil {
+		keys = make([]string, 0, len(input))
+		for objectKey := range input {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var item map[string]any = this.SafeDictMap(input, key, map[string]any{})
@@ -3367,7 +3373,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbolsList, nil) {
+	if symbolsList != nil {
 		var marketIds []string = this.MarketIds(symbolsList)
 		request["market"] = marketIds
 	}

@@ -1582,24 +1582,23 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var isMaker *int64 = this.SafeInteger(trade, "m")
 	var feeAmount *string = this.SafeString2(trade, "n", "feeAmount")
 	var feeCurrencyId *string = this.SafeString2(trade, "N", "feeCurrency")
+	var ternaryStr131128 string = "taker"
+	if (isMaker != nil) && (isMaker == nil || *isMaker != 0) {
+		ternaryStr131128 = "maker"
+	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
-		"info":      trade,
-		"id":        tradeId,
-		"order":     this.SafeString2(trade, "i", "orderId"),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
-		"symbol":    this.SafeSymbol(nil, market),
-		"type":      nil,
-		"side":      side,
-		"takerOrMaker": func() string {
-			if (isMaker != nil) && (isMaker == nil || *isMaker != 0) {
-				return "maker"
-			}
-			return "taker"
-		}(),
-		"price":  priceString,
-		"amount": amountString,
-		"cost":   this.SafeString(trade, "amount"),
+		"info":         trade,
+		"id":           tradeId,
+		"order":        this.SafeString2(trade, "i", "orderId"),
+		"timestamp":    timestamp,
+		"datetime":     this.Iso8601(timestamp),
+		"symbol":       this.SafeSymbol(nil, market),
+		"type":         nil,
+		"side":         side,
+		"takerOrMaker": ternaryStr131128,
+		"price":        priceString,
+		"amount":       amountString,
+		"cost":         this.SafeString(trade, "amount"),
 		"fee": map[string]any{
 			"cost":     feeAmount,
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
@@ -1868,6 +1867,10 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 			"cost":     nil,
 		}
 	}
+	var ternaryStr155720 string = "sell"
+	if side != nil && *side == "1" {
+		ternaryStr155720 = "buy"
+	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "id"),
 		"clientOrderId":      this.SafeString(order, "clientId"),
@@ -1878,23 +1881,18 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"symbol":             this.SafeSymbol(nil, market),
 		"type":               this.ParseWsOrderType(typeVar),
 		"timeInForce":        this.ParseWsTimeInForce(typeVar),
-		"side": func() string {
-			if side != nil && *side == "1" {
-				return "buy"
-			}
-			return "sell"
-		}(),
-		"price":        this.SafeString(order, "price"),
-		"stopPrice":    this.SafeString2(order, "triggerPrice", "P"),
-		"triggerPrice": this.SafeString2(order, "triggerPrice", "P"),
-		"average":      this.SafeString(order, "avgPrice"),
-		"amount":       this.SafeString(order, "quantity"),
-		"cost":         this.SafeString(order, "amount"),
-		"filled":       this.SafeString(order, "cumulativeQuantity"),
-		"remaining":    this.SafeString(order, "remainQuantity"),
-		"fee":          fee,
-		"trades":       nil,
-		"info":         order,
+		"side":               ternaryStr155720,
+		"price":              this.SafeString(order, "price"),
+		"stopPrice":          this.SafeString2(order, "triggerPrice", "P"),
+		"triggerPrice":       this.SafeString2(order, "triggerPrice", "P"),
+		"average":            this.SafeString(order, "avgPrice"),
+		"amount":             this.SafeString(order, "quantity"),
+		"cost":               this.SafeString(order, "amount"),
+		"filled":             this.SafeString(order, "cumulativeQuantity"),
+		"remaining":          this.SafeString(order, "remainQuantity"),
+		"fee":                fee,
+		"trades":             nil,
+		"info":               order,
 	}, market))
 }
 func (this *Mexc) ParseWsOrderStatus(status *string, optionalArgs ...any) *string {

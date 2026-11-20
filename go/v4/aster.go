@@ -1407,22 +1407,20 @@ func (this *Aster) ParseMarket(market any) map[string]any {
 	} else {
 		amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}
-	var typeValue string
+	var ternaryStr104020 string = "spot"
 	if isContract {
-		typeValue = "swap"
-	} else {
-		typeValue = "spot"
+		ternaryStr104020 = "swap"
 	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":       id,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"settle":   settle,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"settleId": settleId,
-		"type": typeValue,
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           ternaryStr104020,
 		"spot":           spot,
 		"margin":         false,
 		"swap":           swap,
@@ -4454,27 +4452,23 @@ func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "swap")
 	var noErrorCode bool = (errorCode == nil)
 	var success bool = (errorCode != nil && *errorCode == "200")
-	var typeValue string
+	var ternaryStr334120 string = "reduce"
 	if rawType != nil && *rawType == 1 {
-		typeValue = "add"
-	} else {
-		typeValue = "reduce"
+		ternaryStr334120 = "add"
 	}
-	var statusValue string
+	var ternaryStr334622 string = "failed"
 	if success || noErrorCode {
-		statusValue = "ok"
-	} else {
-		statusValue = "failed"
+		ternaryStr334622 = "ok"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     marketResolved["symbol"],
-		"type":       typeValue,
+		"type":       ternaryStr334120,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"code":       this.SafeString(data, "asset"),
 		"total":      nil,
-		"status":     statusValue,
+		"status":     ternaryStr334622,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}

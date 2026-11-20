@@ -814,15 +814,12 @@ func (this *Paradex) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	//     }
 	//
 	var status *string = this.SafeString(response, "status")
-
-	var statusValue string
+	var ternaryStr54822 string = "maintenance"
 	if status != nil && *status == "ok" {
-		statusValue = "ok"
-	} else {
-		statusValue = "maintenance"
+		ternaryStr54822 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr54822,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1238,6 +1235,10 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 	if !IsEqual(strike, nil) {
 		strikeInId = Replace(strike, ".", "_")
 	}
+	var ternaryStr92326 string = "put"
+	if optionType != nil && *optionType == "C" {
+		ternaryStr92326 = "call"
+	}
 	return map[string]any{
 		"id":             Add(Add(Add(Add(Add(Add(Add(Add(base, "-"), quote), "-"), idDate), "-"), strikeInId), "-"), optionType),
 		"symbol":         Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiryDate), "-"), strike), "-"), optionType),
@@ -1261,13 +1262,8 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() string {
-			if optionType != nil && *optionType == "C" {
-				return "call"
-			}
-			return "put"
-		}(),
-		"strike": this.ParseNumber(strike),
+		"optionType":     ternaryStr92326,
+		"strike":         this.ParseNumber(strike),
 		"precision": map[string]any{
 			"amount": nil,
 			"price":  nil,
@@ -2441,10 +2437,7 @@ func (this *Paradex) retrieveAccountBody(ch chan AsyncResult[map[string]any]) an
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var domain any = nil
-		if r1.Value != nil {
-			domain = r1.Value
-		}
+		var domain map[string]any = r1.Value
 		var messageTypes map[string]any = map[string]any{
 			"Constant": []any{map[string]any{
 				"name": "action",
@@ -2487,10 +2480,7 @@ func (this *Paradex) onboardingBody(ch chan AsyncResult[map[string]any], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var domain any = nil
-	if r1.Value != nil {
-		domain = r1.Value
-	}
+	var domain map[string]any = r1.Value
 	var messageTypes map[string]any = map[string]any{
 		"Constant": []any{map[string]any{
 			"name": "action",
@@ -2555,10 +2545,7 @@ func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var domain any = nil
-	if r1.Value != nil {
-		domain = r1.Value
-	}
+	var domain map[string]any = r1.Value
 	var messageTypes map[string]any = map[string]any{
 		"Request": []any{map[string]any{
 			"name": "method",
@@ -2896,15 +2883,14 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], r
 		panic(ExchangeError(this.Id + " signOrderRequest() missing orderType"))
 	}
 	var isMarket bool = (strings.Index(*orderType, "MARKET") >= 0)
+	var ternaryStr213320 string = "2"
+	if this.SafeString(request, "side") != nil && *this.SafeString(request, "side") == "BUY" {
+		ternaryStr213320 = "1"
+	}
 	var orderReq map[string]any = map[string]any{
 		"timestamp": now,
 		"market":    this.StringToBase16(this.SafeString(request, "market")),
-		"side": func() string {
-			if this.SafeString(request, "side") != nil && *this.SafeString(request, "side") == "BUY" {
-				return "1"
-			}
-			return "2"
-		}(),
+		"side":      ternaryStr213320,
 		"orderType": this.StringToBase16(this.SafeString(request, "type")),
 		"size":      this.ScaleNumber(this.SafeString(request, "size")),
 		"price": func() any {
@@ -2953,10 +2939,7 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], r
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var domain any = nil
-	if r1.Value != nil {
-		domain = r1.Value
-	}
+	var domain map[string]any = r1.Value
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, orderReq, this.SafeString(account, "address"))
 	var signature any = this.StarknetSign(msg, GetValue(account, "privateKey"))
 	var signedRequest map[string]any = this.Extend(request, map[string]any{

@@ -3570,13 +3570,13 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	}
 	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "watchBalance", "uta", uta)
-	var defaultType any = "spot"
+	var defaultType string = "spot"
 	if utaOption != nil && *utaOption {
 		defaultType = "unified"
 	}
 	var typeVar any = defaultType
 	if !(utaOption != nil && *utaOption) {
-		defaultType = ccxt.DerefScalar(this.SafeString(this.Options, "defaultType", defaultType))
+		defaultType = *this.SafeString(this.Options, "defaultType", defaultType)
 		if derefPtr := this.SafeString(paramsUta, "type", defaultType); derefPtr != nil {
 			typeVar = *derefPtr
 		} else {
@@ -3789,10 +3789,8 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		if _, ok := this.Balance[*uniformType]; !ok {
 			this.Balance[*uniformType] = map[string]any{}
 		}
-		if entry, ok := this.Balance[*uniformType].(map[string]any); ok && (entry != nil) {
-			entry["info"] = data
-		}
 		var balance map[string]any = this.SafeDictMap(this.Balance, uniformType, map[string]any{})
+		balance["info"] = data
 		var timestamp *int64 = this.SafeInteger2(data, "time", "timestamp")
 		if timestamp != nil {
 			balance["timestamp"] = *timestamp
@@ -3844,10 +3842,8 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		entry["info"] = data
-	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	balance["info"] = data
 	var timestamp *int64 = this.SafeIntegerProduct(data, "U", 0.000001)
 	if timestamp != nil {
 		balance["timestamp"] = *timestamp

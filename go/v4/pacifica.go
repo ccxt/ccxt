@@ -959,7 +959,7 @@ func (this *Pacifica) ParseMarket(market any) map[string]any {
 	var instrumentType *string = this.SafeString(market, "instrument_type")
 	var isSpot bool = (instrumentType != nil && *instrumentType == "spot")
 	var isSwap bool = !isSpot
-	var quoteId any = "USDC"
+	var quoteId string = "USDC"
 	var settleId any = nil
 	var typeVar string = "spot"
 	var linear any = nil
@@ -974,7 +974,7 @@ func (this *Pacifica) ParseMarket(market any) map[string]any {
 	}
 	if isSpot {
 		var idParts []string = strings.Split(*id, "-")
-		quoteId = DerefScalar(this.SafeString(idParts, 1, quoteId))
+		quoteId = *this.SafeString(idParts, 1, quoteId)
 	}
 	var isolatedOnly *bool = this.SafeBool(market, "isolated_only", false)
 	if isSwap {
@@ -3470,7 +3470,7 @@ func (this *Pacifica) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	var lastIdx int = len(sorted)
 	if lastIdx > 0 {
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(DerefScalar(sorted[0]), market)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(sorted[0], market)}
 		return nil
 	}
 

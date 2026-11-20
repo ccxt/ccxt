@@ -2848,7 +2848,10 @@ func (this *Exchange) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 	if r.Err != nil {
 		return "", r.Err
 	}
-	var res string = ToString(r.Value)
+	var res string = "<nil>"
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 func (this *Exchange) FetchUnifiedOrder(order Order, options ...FetchUnifiedOrderOptions) (Order, error) {

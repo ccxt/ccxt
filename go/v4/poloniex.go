@@ -4581,9 +4581,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 					parsedFee["networks"] = this.Extend(this.SafeDict(parsedFee, "networks", map[string]any{}), networkObject)
 				}
 			}
-			if code != nil {
-				depositWithdrawFees[*code] = parsedFee
-			}
+			depositWithdrawFees[*code] = parsedFee
 		}
 	}
 	return depositWithdrawFees
@@ -4593,7 +4591,9 @@ func (this *Poloniex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[
 	_ = currency
 	var currencyCode *string = this.SafeString(currency, "code")
 	var info map[string]any = map[string]any{}
-	AddElementToObject(info, currencyCode, fee)
+	if currencyCode != nil {
+		info[*currencyCode] = fee
+	}
 	var depositWithdrawFee map[string]any = this.DepositWithdrawFee(info)
 	var networkId *string = this.SafeString(fee, "blockchain")
 	var withdrawFee *float64 = this.SafeNumber(fee, "withdrawalFee")
@@ -5892,7 +5892,10 @@ func (this *Poloniex) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 	if r.Err != nil {
 		return "", r.Err
 	}
-	var res string = ToString(r.Value)
+	var res string = "<nil>"
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

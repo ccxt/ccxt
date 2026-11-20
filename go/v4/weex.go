@@ -1283,33 +1283,30 @@ func (this *Weex) ParseMarket(market any) map[string]any {
 		amountPrecision = this.ParseNumber(amountPrecisionString)
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}
-	var branchValue string
+	var ternaryStr107147 string = "contract"
 	if isSpot {
-		branchValue = "spot"
-	} else {
-		branchValue = "contract"
+		ternaryStr107147 = "spot"
 	}
-	var fees map[string]any = SafeMapTyped(this.Fees, branchValue)
+	var fees map[string]any = SafeMapTyped(this.Fees, ternaryStr107147)
 	if id == nil {
 		panic(ExchangeError(this.Id + " method() missing id"))
 	}
+	var ternaryStr108620 string = "swap"
+	if isSpot {
+		ternaryStr108620 = "spot"
+	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":          id,
-		"lowercaseId": strings.ToLower(*id),
-		"numericId":   this.SafeInteger(market, "contractId"),
-		"symbol":      symbol,
-		"base":        base,
-		"quote":       quote,
-		"settle":      settle,
-		"baseId":      baseId,
-		"quoteId":     quoteId,
-		"settleId":    settleId,
-		"type": func() string {
-			if isSpot {
-				return "spot"
-			}
-			return "swap"
-		}(),
+		"id":             id,
+		"lowercaseId":    strings.ToLower(*id),
+		"numericId":      this.SafeInteger(market, "contractId"),
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           ternaryStr108620,
 		"spot":           isSpot,
 		"margin":         false,
 		"swap":           !isSpot,
@@ -2103,9 +2100,9 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 		}
 		var now int64 = this.Milliseconds()
 		var startTime *int64 = since
-		var endTime any = now
+		var endTime int64 = now
 		if until != nil {
-			endTime = until
+			endTime = *until
 		}
 		if (since == nil) || (until == nil) {
 			var duration int64 = this.ParseToInt(this.ParseTimeframe(timeframe) * 1000)
@@ -2129,11 +2126,11 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 				startTime = &startTimeValue2
 			} else {
 				// this.sum, a bare + is string concatenation in the php port
-				endTime = this.Sum(since, timeDelta)
+				endTime = *since + timeDelta
 			}
 		}
 		// the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-		if IsGreaterThan(endTime, now) {
+		if endTime > now {
 			endTime = now
 		}
 		request["startTime"] = startTime
@@ -4293,7 +4290,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 	if (errorCode != nil) || (errorMessage != nil) {
 		this.HandleOrderOrPositionError(errorCode, errorMessage, order)
 	}
-	var orderMarketId any = this.FromSandboxMarketId(this.SafeString(order, "symbol"))
+	var orderMarketId *string = this.FromSandboxMarketId(this.SafeString(order, "symbol"))
 	var positionSide *string = this.SafeString(order, "positionSide")
 	var orderMarketType string = "swap"
 	if positionSide == nil {
@@ -5163,7 +5160,7 @@ func (this *Weex) ParsePosition(position any, optionalArgs ...any) Position {
 	if errorMessage != nil {
 		this.HandleOrderOrPositionError(errorCode, errorMessage, position)
 	}
-	var marketId any = this.FromSandboxMarketId(this.SafeString2(position, "symbol", "coinId")) // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+	var marketId *string = this.FromSandboxMarketId(this.SafeString2(position, "symbol", "coinId")) // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
 	var timestamp *int64 = this.SafeInteger(position, "createdTime")
 	var marginType *string = this.SafeString2(position, "marginType", "marginMode")
@@ -5979,12 +5976,13 @@ func (this *Weex) addMarginBody(ch chan AsyncResult[MarginModification], symbol 
  * @param {object} market a unified market structure
  * @returns {string} the market id for the request
  */
-func (this *Weex) ToSandboxMarketId(market any) any {
+func (this *Weex) ToSandboxMarketId(market any) *string {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var baseId *string = this.SafeString(market, "baseId")
 	if (sandboxMode != nil && *sandboxMode) && (baseId != nil) {
 		// demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
-		return *baseId + "SUSDT"
+		retStrVal := *baseId + "SUSDT"
+		return &retStrVal
 	}
 	return this.SafeString(market, "id")
 }
@@ -5997,7 +5995,7 @@ func (this *Weex) ToSandboxMarketId(market any) any {
  * @param {string} [marketId] a market id from an exchange response
  * @returns {string} the live market id
  */
-func (this *Weex) FromSandboxMarketId(marketId *string) any {
+func (this *Weex) FromSandboxMarketId(marketId *string) *string {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	if (!(sandboxMode != nil && *sandboxMode)) || (marketId == nil) {
 		return marketId
@@ -6006,7 +6004,8 @@ func (this *Weex) FromSandboxMarketId(marketId *string) any {
 		return marketId // a live market id, not a demo one
 	}
 	if strings.HasSuffix(*marketId, "SUSDT") {
-		return (*marketId)[0:len((*marketId))-5] + "USDT"
+		retStrVal := (*marketId)[0:len((*marketId))-5] + "USDT"
+		return &retStrVal
 	}
 	return marketId
 }

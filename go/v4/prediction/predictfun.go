@@ -2735,13 +2735,16 @@ func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ccxt.PredictionOrdersToList(r.Value)
-	var order map[string]any = ccxt.SafeMapTyped(orders, 0)
-	if order == nil {
+	var orders []ccxt.PredictionOrder = r.Value
+	var order ccxt.PredictionOrder
+	if len(orders) > 0 {
+		order = orders[0]
+	}
+	if len(orders) == 0 {
 		panic(ccxt.OrderNotFound(this.Id + " cancelOrder() could not remove " + id))
 	}
 
-	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(order)}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: order}
 	return nil
 }
 
@@ -3366,9 +3369,9 @@ func (this *Predictfun) AdapterAddress(isYieldBearing bool) *string {
  * @returns {string} the signed raw transaction
  */
 func (this *Predictfun) SignEvmTransaction(tx any, privateKey any) any {
-	var accessList any = this.RlpEncodeList([]any{})
+	var accessList string = this.RlpEncodeList([]any{})
 	var fields []any = []any{this.RlpEncodeBytes(this.IntToRlpHex(this.SafeInteger(tx, "chainId"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "nonce"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxPriorityFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "gasLimit"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "to"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "value", "0x0"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "data", "0x"))), accessList}
-	var payload *string = ccxt.SafeStringPtr(ccxt.Add("02", this.RlpEncodeList(fields)))
+	var payload string = "02" + this.RlpEncodeList(fields)
 	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex any
@@ -3383,7 +3386,7 @@ func (this *Predictfun) SignEvmTransaction(tx any, privateKey any) any {
 	sHex = this.PadHexToEven(sHex)
 	var yParity *int64 = this.SafeInteger(signature, "v")
 	var signedFields []any = this.ArrayConcat(fields, []any{this.RlpEncodeBytes(this.IntToRlpHex(yParity)), this.RlpEncodeBytes(rHex), this.RlpEncodeBytes(sHex)})
-	return ccxt.Add("0x02", this.RlpEncodeList(signedFields))
+	return "0x02" + this.RlpEncodeList(signedFields)
 }
 
 /**
@@ -4249,11 +4252,17 @@ func (this *Predictfun) OutcomesByMarketId(marketId *string) []any {
 	if (marketId == nil) || (this.Outcomes == nil) {
 		return result
 	}
-	var cached any = this.Outcomes
-	var handles []string = ccxt.ObjectKeys(cached)
+	var cached map[string]any = this.Outcomes
+	var handles []string = nil
+	if cached != nil {
+		handles = make([]string, 0, len(cached))
+		for objectKey := range cached {
+			handles = append(handles, objectKey)
+		}
+	}
 	var handlesLength int = len(handles)
 	for i := 0; i < handlesLength; i++ {
-		var outcomeObj any = ccxt.GetValue(cached, handles[i])
+		var outcomeObj any = cached[handles[i]]
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		if this.SafeString(info, "marketId") == marketId || (this.SafeString(info, "marketId") != nil && marketId != nil && *this.SafeString(info, "marketId") == *marketId) {
 			result = append(result, outcomeObj)

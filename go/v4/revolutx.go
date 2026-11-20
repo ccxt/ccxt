@@ -770,13 +770,15 @@ func (this *Revolutx) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbol)
-	if ticker == nil {
+	var tickers map[string]Ticker = r1.Value
+	var ticker Ticker
+	var tickerOk bool
+	ticker, tickerOk = tickers[symbol]
+	if !tickerOk {
 		panic(ExchangeError(this.Id + " fetchTicker() could not find ticker for symbol " + symbol))
 	}
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 

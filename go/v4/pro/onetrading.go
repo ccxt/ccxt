@@ -483,9 +483,9 @@ func (this *Onetrading) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "book:" + symbolValue
 	var subscriptionHash string = "ORDER_BOOK"
-	var depth any = 0
+	var depth int64 = 0
 	if limit != nil {
-		depth = limit
+		depth = *limit
 	}
 	var request map[string]any = map[string]any{
 		"type": "SUBSCRIBE",
@@ -1209,7 +1209,11 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 		symbol = this.SafeString(parsed, "symbol", "")
 		orders.Append(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("orders:", symbol))
+	if symbol != nil {
+		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*symbol)
+	} else {
+		client.(ccxt.ClientInterface).Resolve(this.Orders, nil)
+	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
 	// update balance
 	var balanceKeys []string = []string{"locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"}
@@ -1304,7 +1308,12 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+symbolValue+".", timeframe))
 	var subscriptionHash string = "CANDLESTICKS"
-	var client any = this.SafeValue(this.Clients, url)
+	var client ccxt.ClientInterface = nil
+	if url != nil {
+		if entry := this.Clients[*url]; entry != nil {
+			client = entry
+		}
+	}
 	var typeVar string = "SUBSCRIBE"
 	var subscription any = map[string]any{}
 	if client != nil {
@@ -1591,7 +1600,12 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 		marketIds = this.MarketIds(symbols)
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var client any = this.SafeValue(this.Clients, url)
+	var client ccxt.ClientInterface = nil
+	if url != nil {
+		if entry := this.Clients[*url]; entry != nil {
+			client = entry
+		}
+	}
 	var typeVar string = "SUBSCRIBE"
 	var subscription any = map[string]any{}
 	if client != nil {

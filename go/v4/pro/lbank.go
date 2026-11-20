@@ -383,10 +383,10 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	var timeframeId string = ""
 	var messageHash string = ""
 	if records != nil {
-		timeframeId = (*this.SafeString(message, "kbar", ""))
+		timeframeId = *this.SafeString(message, "kbar", "")
 		messageHash = "fetchOHLCV:" + *symbol + ":" + timeframeId
 	} else {
-		timeframeId = (*this.SafeString(this.SafeDict(message, "kbar", map[string]any{}), "slot", ""))
+		timeframeId = *this.SafeString(this.SafeDict(message, "kbar", map[string]any{}), "slot", "")
 		messageHash = "ohlcv:" + *symbol + ":" + timeframeId
 		if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 			// a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge

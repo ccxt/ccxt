@@ -801,25 +801,24 @@ func (this *Alpaca) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 		typeVarStr := "limit"
 		typeVar = &typeVarStr
 	}
+	var ternaryStr62328 string = "maker"
+	if typeVar != nil && *typeVar == "market" {
+		ternaryStr62328 = "taker"
+	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
-		"id":        this.SafeString(trade, "i"),
-		"info":      trade,
-		"timestamp": this.Parse8601(datetime),
-		"datetime":  datetime,
-		"symbol":    this.SafeSymbol(marketId, nil, "/"),
-		"order":     this.SafeString(trade, "id"),
-		"type":      typeVar,
-		"side":      this.SafeString(trade, "side"),
-		"takerOrMaker": func() string {
-			if typeVar != nil && *typeVar == "market" {
-				return "taker"
-			}
-			return "maker"
-		}(),
-		"price":  this.SafeString(trade, "filled_avg_price"),
-		"amount": this.SafeString(trade, "filled_qty"),
-		"cost":   nil,
-		"fee":    nil,
+		"id":           this.SafeString(trade, "i"),
+		"info":         trade,
+		"timestamp":    this.Parse8601(datetime),
+		"datetime":     datetime,
+		"symbol":       this.SafeSymbol(marketId, nil, "/"),
+		"order":        this.SafeString(trade, "id"),
+		"type":         typeVar,
+		"side":         this.SafeString(trade, "side"),
+		"takerOrMaker": ternaryStr62328,
+		"price":        this.SafeString(trade, "filled_avg_price"),
+		"amount":       this.SafeString(trade, "filled_qty"),
+		"cost":         nil,
+		"fee":          nil,
 	}, market))
 }
 func (this *Alpaca) AuthenticateAsync(url any, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {

@@ -938,7 +938,7 @@ func (this *Toobit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	}
 	var url string = this.GetUserStreamUrl()
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, marketType, subscriptionHash, paramsMarketType)
+	this.SetBalanceCache(client, *marketType, subscriptionHash, paramsMarketType)
 	client.(ccxt.ClientInterface).Future(typeVar + ":fetchBalanceSnapshot")
 
 	r2 := <-this.Watch(url, messageHash, paramsMarketType, subscriptionHash)
@@ -948,7 +948,7 @@ func (this *Toobit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Toobit) SetBalanceCache(client any, marketType *string, optionalArgs ...any) {
+func (this *Toobit) SetBalanceCache(client any, marketType string, optionalArgs ...any) {
 	var subscriptionHash *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subscriptionHash
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -957,7 +957,7 @@ func (this *Toobit) SetBalanceCache(client any, marketType *string, optionalArgs
 		return
 	}
 	var typeVar string = "contract"
-	if marketType != nil && *marketType == "spot" {
+	if marketType == "spot" {
 		typeVar = "spot"
 	}
 	var messageHash string = typeVar + ":fetchBalanceSnapshot"
@@ -1039,12 +1039,12 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 	this.Balance[typeVar] = this.SafeBalance(typeBalance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 }
-func (this *Toobit) LoadBalanceSnapshotAsync(client any, messageHash string, marketType any) <-chan ccxt.AsyncResult[bool] {
+func (this *Toobit) LoadBalanceSnapshotAsync(client any, messageHash string, marketType string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, marketType)
 	return ch
 }
-func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, marketType any) any {
+func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, marketType string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1059,7 +1059,7 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
 	var typeVar string = "contract"
-	if ccxt.IsEqual(marketType, "spot") {
+	if marketType == "spot" {
 		typeVar = "spot"
 	}
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))

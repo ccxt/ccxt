@@ -809,14 +809,15 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 	})
 	return token
 }
-func (this *Lighter) Pow(n string, m any) any {
+func (this *Lighter) Pow(n string, m any) *string {
 	var r *string = Precise.StringMul(n, "1")
 	var c int64 = this.ParseToInt(m)
 	if c < 0 {
 		panic(BadRequest(this.Id + " pow() requires m > 0."))
 	}
 	if c == 0 {
-		return "1"
+		retStrVal := "1"
+		return &retStrVal
 	}
 	if c > 100 {
 		panic(BadRequest(this.Id + " pow() requires m < 100."))
@@ -1190,8 +1191,8 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar string, side string,
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var amountStr *string = nil
 	var priceStr *string = this.PriceToPrecision(symbol, price)
-	var amountScale any = this.Pow("10", marketInfo["size_decimals"])
-	var priceScale any = this.Pow("10", marketInfo["price_decimals"])
+	var amountScale *string = this.Pow("10", marketInfo["size_decimals"])
+	var priceScale *string = this.Pow("10", marketInfo["price_decimals"])
 	var triggerPriceStr any = "0"                       // default is 0
 	var defaultClientOrderId int64 = this.RandNumber(9) // c# only support int32 2147483647.
 	var clientOrderId *int64 = this.SafeInteger2(paramsOmitted, "client_order_index", "clientOrderId", defaultClientOrderId)
@@ -1405,7 +1406,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 	if totalOrderRequests < 1 {
 		panic(InvalidOrder(this.Id + " createOrder() built no order request"))
 	}
-	var order any = DerefScalar(orderRequests[0])
+	var order any = orderRequests[0]
 	// the nonce could be updated
 	if this.SafeInteger(order, "nonce") == nil {
 		r3 := <-this.FetchNonceAsync(accountIndex, apiKeyIndex)
@@ -1560,8 +1561,8 @@ func (this *Lighter) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	signer := r1.Value
 	var market map[string]any = this.Market(symbol)
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
-	var amountScale any = this.Pow("10", marketInfo["size_decimals"])
-	var priceScale any = this.Pow("10", marketInfo["price_decimals"])
+	var amountScale *string = this.Pow("10", marketInfo["size_decimals"])
+	var priceScale *string = this.Pow("10", marketInfo["price_decimals"])
 	var triggerPrice *string = this.SafeStringN(paramsAccountIndex, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	var paramsOmitted map[string]any = this.OmitDict(paramsAccountIndex, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	var amountStr *string = nil
@@ -1648,15 +1649,12 @@ func (this *Lighter) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	//     }
 	//
 	var status *string = this.SafeString(response, "status")
-
-	var statusValue string
+	var ternaryStr113622 string = "error"
 	if status != nil && *status == "200" {
-		statusValue = "ok"
-	} else {
-		statusValue = "error"
+		ternaryStr113622 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr113622,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -3014,15 +3012,13 @@ func (this *Lighter) ParseAccount(account any) map[string]any {
 	//     }
 	//
 	var accountType *string = this.SafeString(account, "account_type")
-	var typeValue string
+	var ternaryStr219720 string = "subaccount"
 	if accountType != nil && *accountType == "0" {
-		typeValue = "main"
-	} else {
-		typeValue = "subaccount"
+		ternaryStr219720 = "main"
 	}
 	return map[string]any{
 		"id":   this.SafeString(account, "account_index"),
-		"type": typeValue,
+		"type": ternaryStr219720,
 		"code": nil,
 		"info": account,
 	}
@@ -3670,7 +3666,7 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(rows, 0)
 	if (first != nil) && (cursor != nil) {
-		AddElementToObject(GetValue(rows, 0), "cursor", cursor)
+		AddElementToObject(rows[0], "cursor", cursor)
 	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit, paramsApiKeyIndex))}
@@ -3819,7 +3815,7 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (cursor != nil) {
-		AddElementToObject(GetValue(data, 0), "cursor", cursor)
+		AddElementToObject(data[0], "cursor", cursor)
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
@@ -3926,7 +3922,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (cursor != nil) {
-		AddElementToObject(GetValue(data, 0), "cursor", cursor)
+		AddElementToObject(data[0], "cursor", cursor)
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
@@ -4296,7 +4292,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	var nextCursor *string = this.SafeString(response, "next_cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (nextCursor != nil) {
-		AddElementToObject(GetValue(data, 0), "next_cursor", nextCursor)
+		AddElementToObject(data[0], "next_cursor", nextCursor)
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit, paramsUntil))}

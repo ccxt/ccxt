@@ -1916,9 +1916,9 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var subAccounts []any = SafeListTyped(spotAccount, "subAccounts")
 	var nonce string = "0"
 	if len(subAccounts) > 0 {
-		nonce = (*this.SafeString(subAccounts[0], "nonce", "0"))
+		nonce = *this.SafeString(subAccounts[0], "nonce", "0")
 	}
-	var finalNonce any = nonce // java req
+	var finalNonce string = nonce // java req
 	var ethAddress *string = this.SafeString(accountData, "ethereumAddress", "")
 	var accountId *string = this.SafeString(accountData, "id", "")
 	var currency any = map[string]any{}

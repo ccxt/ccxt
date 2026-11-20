@@ -770,15 +770,13 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var actionValue string
+	var ternaryStr57922 string = "ask"
 	if side == "buy" {
-		actionValue = "bid"
-	} else {
-		actionValue = "ask"
+		ternaryStr57922 = "bid"
 	}
 	var request map[string]any = map[string]any{
 		"currency_pair": market["id"],
-		"action":        actionValue,
+		"action":        ternaryStr57922,
 		"amount":        amount,
 		"price":         price,
 	}

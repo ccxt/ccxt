@@ -2830,7 +2830,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, paramsUntil))}
 	return nil
 }
-func (this *Blofin) NetworkCodeToChainId(networkCode string, optionalArgs ...any) any {
+func (this *Blofin) NetworkCodeToChainId(networkCode string, optionalArgs ...any) *string {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var aliasedCode *string = this.SafeString(this.Options["networkCodeAliases"], networkCode, networkCode)
@@ -2855,7 +2855,8 @@ func (this *Blofin) NetworkCodeToChainId(networkCode string, optionalArgs ...any
 	var prefix *string = this.SafeString(this.Options["networkPrefixes"], unifiedCode)
 	if prefix != nil {
 		var suffix *string = this.SafeString(this.Options["networkSuffixes"], unifiedCode, unifiedCode)
-		return *prefix + " " + "(" + *suffix + ")"
+		retStrVal := *prefix + " " + "(" + *suffix + ")"
+		return &retStrVal
 	}
 	return unifiedCode
 }
@@ -4776,14 +4777,12 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var positionModeValue string
+	var ternaryStr346928 string = "net_mode"
 	if hedged {
-		positionModeValue = "long_short_mode"
-	} else {
-		positionModeValue = "net_mode"
+		ternaryStr346928 = "long_short_mode"
 	}
 	var request map[string]any = map[string]any{
-		"positionMode": positionModeValue,
+		"positionMode": ternaryStr346928,
 	}
 
 	//

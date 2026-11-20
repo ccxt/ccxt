@@ -84,22 +84,22 @@ func (this *Xt) Describe() map[string]any {
  * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
  * @returns {string} listen key / access token
  */
-func (this *Xt) GetListenKeyAsync(isContract any) <-chan ccxt.AsyncResult[*string] {
+func (this *Xt) GetListenKeyAsync(isContract bool) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.getListenKeyBody(ch, isContract)
 	return ch
 }
-func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract any) any {
+func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract bool) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	this.CheckRequiredCredentials()
 	var tradeType string = "spot"
-	if ccxt.EvalTruthy(isContract) {
+	if isContract {
 		tradeType = "contract"
 	}
 	var apiUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(apiUrls, tradeType)
-	if !ccxt.EvalTruthy(isContract) {
+	if !isContract {
 		if url != nil {
 			urlValue := *url + "/private"
 			url = &urlValue
@@ -156,7 +156,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 				}()
 				// try block:
 				var listenKey any = nil
-				if ccxt.EvalTruthy(isContract) {
+				if isContract {
 
 					r1 := <-this.PrivateLinearGetFutureUserV1UserListenKey()
 					if r1.Err != nil {
@@ -298,14 +298,12 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
-	var methodValue string
+	var ternaryStr21022 string = "subscribe"
 	if isContract {
-		methodValue = "SUBSCRIBE"
-	} else {
-		methodValue = "subscribe"
+		ternaryStr21022 = "SUBSCRIBE"
 	}
 	var subscribe map[string]any = map[string]any{
-		"method": methodValue,
+		"method": ternaryStr21022,
 		"id":     id,
 	}
 	if privateAccess {
@@ -397,14 +395,12 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
-	var methodValue string
+	var ternaryStr26922 string = "unsubscribe"
 	if isContract {
-		methodValue = "UNSUBSCRIBE"
-	} else {
-		methodValue = "unsubscribe"
+		ternaryStr26922 = "UNSUBSCRIBE"
 	}
 	var unsubscribe map[string]any = map[string]any{
-		"method": methodValue,
+		"method": ternaryStr26922,
 		"id":     id,
 	}
 	if privateAccess {

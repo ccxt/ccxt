@@ -2622,24 +2622,23 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = (this.SafeString(info, "execType", "") != nil && *this.SafeString(info, "execType", "") == "T")
+	var ternaryStr187928 string = "maker"
+	if isTaker {
+		ternaryStr187928 = "taker"
+	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
-		"info":      info,
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
-		"symbol":    this.SafeString(order, "symbol"),
-		"id":        this.SafeString(info, "tradeId"),
-		"order":     this.SafeString(order, "id"),
-		"type":      this.SafeString(order, "type"),
-		"takerOrMaker": func() string {
-			if isTaker {
-				return "taker"
-			}
-			return "maker"
-		}(),
-		"side":   this.SafeString(order, "side"),
-		"price":  this.SafeNumber(info, "fillPx"),
-		"amount": this.SafeNumber(info, "fillSz"),
-		"cost":   this.SafeNumber(order, "cost"),
+		"info":         info,
+		"timestamp":    timestamp,
+		"datetime":     this.Iso8601(timestamp),
+		"symbol":       this.SafeString(order, "symbol"),
+		"id":           this.SafeString(info, "tradeId"),
+		"order":        this.SafeString(order, "id"),
+		"type":         this.SafeString(order, "type"),
+		"takerOrMaker": ternaryStr187928,
+		"side":         this.SafeString(order, "side"),
+		"price":        this.SafeNumber(info, "fillPx"),
+		"amount":       this.SafeNumber(info, "fillSz"),
+		"cost":         this.SafeNumber(order, "cost"),
 		"fee": map[string]any{
 			"cost":     this.SafeNumber(info, "fillFee"),
 			"currency": this.SafeCurrencyCode(feeMarketId),

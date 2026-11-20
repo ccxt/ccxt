@@ -1411,7 +1411,7 @@ func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput *string) any {
 	}
 	var colonIndex int = strings.Index(*outcomeInput, ":")
 	if (colonIndex > -1) && (colonIndex < ccxt.GetLength(outcomeInput)-1) {
-		var side string = strings.ToUpper(ccxt.Slice(outcomeInput, colonIndex+1, nil))
+		var side string = strings.ToUpper((*outcomeInput)[colonIndex+1:])
 		if (side == "YES") || (side == "NO") {
 			return side
 		}
@@ -1455,11 +1455,15 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput string) any {
 	}
 	for i := 0; i < len(candidates); i++ {
 		var key *string = ccxt.SafeStringPtr(candidates[i])
-		if ccxt.InOp(this.Outcomes, key) {
-			return this.SafeDict(this.Outcomes, key, map[string]any{})
+		if key != nil {
+			if _, ok := this.Outcomes[*key]; ok {
+				return this.SafeDict(this.Outcomes, key, map[string]any{})
+			}
 		}
-		if ccxt.InOp(this.Outcomes_by_id, key) {
-			return this.SafeDict(this.Outcomes_by_id, key, map[string]any{})
+		if key != nil {
+			if _, ok := this.Outcomes_by_id[*key]; ok {
+				return this.SafeDict(this.Outcomes_by_id, key, map[string]any{})
+			}
 		}
 	}
 	_, has3 := this.Markets[outcomeInput]
@@ -2525,10 +2529,10 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		// push through a local and write the slice back — the go transpiler's
 		// ccxt.AppendToArray reassigns only a local copy of a map-stored array, so a
 		// direct push on groupMap[parentSymbol] loses the element in go
-		var parentMarkets any = this.SafeList(groupMap, parentSymbol, []any{})
-		ccxt.AppendToArray(&parentMarkets, mkt)
+		var parentMarkets []any = this.SafeListSlice(groupMap, parentSymbol, []any{})
+		parentMarkets = append(parentMarkets, mkt)
 		if parentSymbol != nil {
-			ccxt.AddElementToObject(groupMap, parentSymbol, parentMarkets)
+			groupMap[*parentSymbol] = parentMarkets
 		}
 	}
 	var events []any = []any{}
@@ -2798,14 +2802,12 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[stri
 	defer ccxt.ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var hyperliquidChainValue string
+	var ternaryStr219132 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		hyperliquidChainValue = "Testnet"
-	} else {
-		hyperliquidChainValue = "Mainnet"
+		ternaryStr219132 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": hyperliquidChainValue,
+		"hyperliquidChain": ternaryStr219132,
 		"maxFeeRate":       maxFeeRate,
 		"builder":          builder,
 		"nonce":            nonce,

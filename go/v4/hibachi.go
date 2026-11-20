@@ -734,10 +734,10 @@ func (this *Hibachi) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 	//     ]
 	// }
 	//
-	var trades any = this.SafeList(response, "trades", []any{})
+	var trades []any = this.SafeListSlice(response, "trades", []any{})
 	var tradesList []any = []any{}
 	if trades != nil {
-		tradesList = ArrayTyped(trades)
+		tradesList = trades
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market))}
@@ -2552,14 +2552,13 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
-	var rawPromises []any = []any{this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params))}
 
-	r1 := <-promiseAll(rawPromises)
+	r1 := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params)))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var promises []any = r1.Value
-	var responseCapitalHistory map[string]any = SafeMapTyped(promises, 0)
+	var promises []map[string]any = r1.Value
+	var responseCapitalHistory map[string]any = promises[0]
 	//
 	// {
 	//     "transactions": [
@@ -2614,7 +2613,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	// }
 	//
 	var rowsCapitalHistory []any = this.SafeListSlice(responseCapitalHistory, "transactions", []any{})
-	var responseTradingHistory map[string]any = SafeMapTyped(promises, 1)
+	var responseTradingHistory map[string]any = promises[1]
 	//
 	// {
 	//     "tradingHistory": [

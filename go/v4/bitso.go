@@ -2570,6 +2570,10 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 		}
 		return nil
 	}()
+	var ternaryStr194120 string = "withdrawal"
+	if withdrawId == nil {
+		ternaryStr194120 = "deposit"
+	}
 	var addressValue *string
 	if withdrawalAddress != nil {
 		addressValue = withdrawalAddress
@@ -2583,25 +2587,20 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 		"datetime":    datetime,
 		"network":     networkCodeUpper,
 		"addressFrom": receivingAddress,
-		"address": addressValue,
-		"addressTo": withdrawalAddress,
-		"amount":    this.SafeNumber(transaction, "amount"),
-		"type": func() string {
-			if withdrawId == nil {
-				return "deposit"
-			}
-			return "withdrawal"
-		}(),
-		"currency": this.SafeCurrencyCode(currencyId, currencyResolved),
-		"status":   this.ParseTransactionStatus(status),
-		"updated":  nil,
-		"tagFrom":  nil,
-		"tag":      nil,
-		"tagTo":    nil,
-		"comment":  nil,
-		"internal": nil,
-		"fee":      nil,
-		"info":     transaction,
+		"address":     addressValue,
+		"addressTo":   withdrawalAddress,
+		"amount":      this.SafeNumber(transaction, "amount"),
+		"type":        ternaryStr194120,
+		"currency":    this.SafeCurrencyCode(currencyId, currencyResolved),
+		"status":      this.ParseTransactionStatus(status),
+		"updated":     nil,
+		"tagFrom":     nil,
+		"tag":         nil,
+		"tagTo":       nil,
+		"comment":     nil,
+		"internal":    nil,
+		"fee":         nil,
+		"info":        transaction,
 	})
 }
 func (this *Bitso) ParseTransactionStatus(status *string) *string {

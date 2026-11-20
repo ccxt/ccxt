@@ -810,17 +810,15 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
-	var typeValue string
+	var ternaryStr66620 string = "crypto"
 	if isFiat != nil && *isFiat {
-		typeValue = "fiat"
-	} else {
-		typeValue = "crypto"
+		ternaryStr66620 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":   id,
-		"name": this.SafeString(rawCurrency, "name"),
-		"code": code,
-		"type": typeValue,
+		"id":        id,
+		"name":      this.SafeString(rawCurrency, "name"),
+		"code":      code,
+		"type":      ternaryStr66620,
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "transferPrecision"))),
 		"info":      rawCurrency,
 		"active":    nil,
@@ -1874,14 +1872,14 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
-		newOrderRespType = (*this.SafeString(newOrderRespTypes, "limit", "FULL"))
+		newOrderRespType = *this.SafeString(newOrderRespTypes, "limit", "FULL")
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 		if orderType == nil || *orderType != "LIMIT_MAKER" {
 			request["timeInForce"] = this.SafeString(options, "timeInForce", "GTC")
 		}
 	} else if (orderType != nil && *orderType == "MARKET") || (orderType != nil && *orderType == "STOP_LOSS") || (orderType != nil && *orderType == "TAKE_PROFIT") {
-		newOrderRespType = (*this.SafeString(newOrderRespTypes, "market", "FULL"))
+		newOrderRespType = *this.SafeString(newOrderRespTypes, "market", "FULL")
 		if orderSide != nil && *orderSide == "SELL" {
 			request["quantity"] = this.AmountToPrecision(symbol, amount)
 		} else if orderSide != nil && *orderSide == "BUY" {

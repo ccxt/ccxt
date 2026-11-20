@@ -983,7 +983,7 @@ func (this *Whitebit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, typeVar, messageHash)
+	this.SetBalanceCache(client, *typeVar, messageHash)
 	fetchBalanceSnapshot, paramsFetchBalanceSnapshot := this.HandleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true)
 	awaitBalanceSnapshot, paramsAwaitBalanceSnapshot := this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true)
 	if fetchBalanceSnapshot && awaitBalanceSnapshot {
@@ -1003,25 +1003,25 @@ func (this *Whitebit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Whitebit) SetBalanceCache(client any, typeVar *string, subscriptionHash string) {
+func (this *Whitebit) SetBalanceCache(client any, typeVar string, subscriptionHash string) {
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 		return
 	}
 	var fetchBalanceSnapshot bool = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true) == true
 	if fetchBalanceSnapshot == true {
-		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
-		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar, subscriptionHash)
 		}
 	}
 }
-func (this *Whitebit) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any, subscriptionHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Whitebit) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string, subscriptionHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar, subscriptionHash)
 	return ch
 }
-func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any, subscriptionHash string) any {
+func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string, subscriptionHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1037,8 +1037,8 @@ func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	this.Balance = this.Extend(response, this.Balance)
 	// don't remove the future from the .futures cache
-	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance, subscriptionHash)
 	}
@@ -1179,7 +1179,12 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var id int64 = this.IncrementingNonce()
-	var client any = this.SafeValue(this.Clients, url)
+	var client ccxt.ClientInterface = nil
+	if url != nil {
+		if entry := this.Clients[*url]; entry != nil {
+			client = entry
+		}
+	}
 	var request any = nil
 	var marketIds []any = []any{}
 	if client == nil {

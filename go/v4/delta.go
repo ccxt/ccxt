@@ -829,12 +829,18 @@ func (this *Delta) loadMarketsBody(ch chan AsyncResult[map[string]any], optional
 	ch <- AsyncResult[map[string]any]{Value: markets}
 	return nil
 }
-func (this *Delta) IndexByStringifiedNumericId(input any) any {
+func (this *Delta) IndexByStringifiedNumericId(input map[string]any) any {
 	var result map[string]any = map[string]any{}
-	if IsEqual(input, nil) {
+	if input == nil {
 		return nil
 	}
-	var keys []string = ObjectKeys(input)
+	var keys []string = nil
+	if input != nil {
+		keys = make([]string, 0, len(input))
+		for objectKey := range input {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var item map[string]any = this.SafeDictMap(input, key, map[string]any{})
@@ -1986,10 +1992,10 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var limitValue any = 2000
+	var limitValue int64 = 2000
 	var windowSeconds int64 = 2000 * duration
 	if (limit != nil) && (limit == nil || *limit != 0) {
-		limitValue = limit // max 2000
+		limitValue = *limit // max 2000
 		windowSeconds = *limit * duration
 	}
 	var until *int64 = this.SafeIntegerProduct(params, "until", 0.001)

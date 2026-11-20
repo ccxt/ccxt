@@ -1347,7 +1347,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 				endIndex = int64(tokenIdsLength)
 			}
 			var chunk []any = []any{}
-			for i := int(ccxt.ParseInt(startIndex)); ccxt.IsLessThan(i, endIndex); i++ {
+			for i := int(startIndex); ccxt.IsLessThan(i, endIndex); i++ {
 				chunk = append(chunk, ccxt.GetValue(tokenIds, i))
 			}
 			// gamma matches repeated clob_token_ids params — comma-joined ids are rejected
@@ -1542,7 +1542,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 			endIndex = int64(tokenIdsLength)
 		}
 		var bookParams []any = []any{}
-		for i := int(ccxt.ParseInt(startIndex)); ccxt.IsLessThan(i, endIndex); i++ {
+		for i := int(startIndex); ccxt.IsLessThan(i, endIndex); i++ {
 			bookParams = append(bookParams, map[string]any{
 				"token_id": ccxt.GetValue(tokenIds, i),
 			})
@@ -1558,31 +1558,31 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 		var midpoints any = responses[1]
 		var lastTradesResponse any = responses[2]
 		var booksIsArray bool = ccxt.IsArray(booksResponse)
-		var books any = func() any {
-			if booksIsArray {
-				return booksResponse
-			}
-			return []any{}
-		}()
+		var books []any
+		if booksIsArray {
+			books = ccxt.ArrayTyped(booksResponse)
+		} else {
+			books = []any{}
+		}
 		var lastTradesIsArray bool = ccxt.IsArray(lastTradesResponse)
-		var lastTrades any = func() any {
-			if lastTradesIsArray {
-				return lastTradesResponse
-			}
-			return []any{}
-		}()
+		var lastTrades []any
+		if lastTradesIsArray {
+			lastTrades = ccxt.ArrayTyped(lastTradesResponse)
+		} else {
+			lastTrades = []any{}
+		}
 		var lastTradesByTokenId map[string]any = map[string]any{}
-		var lastTradesLength int = ccxt.GetArrayLength(lastTrades)
+		var lastTradesLength int = len(lastTrades)
 		for li := 0; li < lastTradesLength; li++ {
-			var lastTradeEntry any = ccxt.GetValue(lastTrades, li)
+			var lastTradeEntry any = lastTrades[li]
 			var lastTradeTokenId *string = this.SafeString(lastTradeEntry, "token_id")
 			if lastTradeTokenId != nil {
 				lastTradesByTokenId[*lastTradeTokenId] = lastTradeEntry
 			}
 		}
-		var booksLength int = ccxt.GetArrayLength(books)
+		var booksLength int = len(books)
 		for i := 0; i < booksLength; i++ {
-			var book any = ccxt.GetValue(books, i)
+			var book any = books[i]
 			var tokenId *string = this.SafeString(book, "asset_id")
 			var tokenIdInOutcomesByTokenId bool
 			if tokenId != nil {
@@ -2028,15 +2028,12 @@ func (this *Polymarket) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], o
 	//     OK
 	//
 	var ok bool = (response == "OK") || (response == "ok")
-
-	var statusValue string
+	var ternaryStr140922 string = "maintenance"
 	if ok {
-		statusValue = "ok"
-	} else {
-		statusValue = "maintenance"
+		ternaryStr140922 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status": statusValue,
+		"status":  ternaryStr140922,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,

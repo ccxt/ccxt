@@ -2335,13 +2335,16 @@ func (this *Krakenfutures) fetchOrderBody(ch chan AsyncResult[Order], id string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders []any = OrdersToList(r1.Value)
-	var order map[string]any = SafeMapTyped(orders, 0)
-	if order == nil {
+	var orders []Order = r1.Value
+	var order Order
+	if len(orders) > 0 {
+		order = orders[0]
+	}
+	if len(orders) == 0 {
 		panic(OrderNotFound(this.Id + " fetchOrder could not find order id " + id))
 	}
 
-	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
+	ch <- AsyncResult[Order]{Value: order}
 	return nil
 }
 

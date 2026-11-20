@@ -2060,7 +2060,7 @@ func (this *Phemex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[ma
 func (this *Phemex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -5238,6 +5238,10 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 	var isCross *bool = this.SafeBool(position, "crossMargin", false)
 	var timestamp *int64 = this.SafeInteger(position, "openedTimeNs")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "updatedTimeNs", this.SafeIntegerProduct(position, "transactTimeNs", 0.000001))
+	var ternaryStr425726 string = "isolated"
+	if isCross != nil && *isCross {
+		ternaryStr425726 = "cross"
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "execSeq"),
@@ -5262,17 +5266,12 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 		"marginRatio":                 this.ParseNumber(marginRatio),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"marginMode": func() string {
-			if isCross != nil && *isCross {
-				return "cross"
-			}
-			return "isolated"
-		}(),
-		"side":            side,
-		"hedged":          (this.SafeString(position, "posMode") != nil && *this.SafeString(position, "posMode") == "Hedged"),
-		"percentage":      nil,
-		"stopLossPrice":   nil,
-		"takeProfitPrice": nil,
+		"marginMode":                  ternaryStr425726,
+		"side":                        side,
+		"hedged":                      (this.SafeString(position, "posMode") != nil && *this.SafeString(position, "posMode") == "Hedged"),
+		"percentage":                  nil,
+		"stopLossPrice":               nil,
+		"takeProfitPrice":             nil,
 	})
 }
 
@@ -5786,7 +5785,7 @@ func (this *Phemex) FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncRes
 func (this *Phemex) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params

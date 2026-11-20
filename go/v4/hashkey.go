@@ -5121,11 +5121,9 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var errorCode *string = this.SafeString(data, "code")
 	var success bool = (errorCode != nil && *errorCode == "0000")
-	var statusValue string
+	var ternaryStr430122 string = "failed"
 	if success {
-		statusValue = "ok"
-	} else {
-		statusValue = "failed"
+		ternaryStr430122 = "ok"
 	}
 	return map[string]any{
 		"info":       data,
@@ -5135,7 +5133,7 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
 		"amount":     nil,
 		"total":      this.SafeNumber(data, "margin"),
 		"code":       marketResolved["settle"],
-		"status":     statusValue,
+		"status":     ternaryStr430122,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}

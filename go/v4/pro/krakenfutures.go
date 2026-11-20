@@ -1426,6 +1426,10 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) map[stri
 	var marketId *string = this.SafeString(unparsedOrder, "instrument")
 	var timestamp *string = this.SafeString(unparsedOrder, "time")
 	var direction *int64 = this.SafeInteger(unparsedOrder, "direction")
+	var ternaryStr105820 string = "sell"
+	if direction != nil && *direction == 0 {
+		ternaryStr105820 = "buy"
+	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             this.SafeSymbol(marketId, market),
@@ -1437,21 +1441,16 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) map[stri
 		"type":               this.SafeString(unparsedOrder, "type"),
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"side": func() string {
-			if direction != nil && *direction == 0 {
-				return "buy"
-			}
-			return "sell"
-		}(),
-		"price":        this.SafeString(unparsedOrder, "limit_price"),
-		"stopPrice":    this.SafeString(unparsedOrder, "stop_price"),
-		"triggerPrice": this.SafeString(unparsedOrder, "stop_price"),
-		"amount":       nil,
-		"cost":         nil,
-		"average":      nil,
-		"filled":       this.SafeString(unparsedOrder, "filled"),
-		"remaining":    this.SafeString(unparsedOrder, "qty"),
-		"status":       status,
+		"side":               ternaryStr105820,
+		"price":              this.SafeString(unparsedOrder, "limit_price"),
+		"stopPrice":          this.SafeString(unparsedOrder, "stop_price"),
+		"triggerPrice":       this.SafeString(unparsedOrder, "stop_price"),
+		"amount":             nil,
+		"cost":               nil,
+		"average":            nil,
+		"filled":             this.SafeString(unparsedOrder, "filled"),
+		"remaining":          this.SafeString(unparsedOrder, "qty"),
+		"status":             status,
 		"fee": map[string]any{
 			"rate":     nil,
 			"cost":     nil,
@@ -1693,8 +1692,8 @@ func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 		var bids ccxt.IOrderBookSide = orderbook.GetBids()
 		bids.Store(price, qty)
 	}
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
@@ -2120,20 +2119,19 @@ func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) map[st
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var isBuy *bool = this.SafeBool(trade, "buy", false)
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
+	var ternaryStr167220 string = "sell"
+	if isBuy != nil && *isBuy {
+		ternaryStr167220 = "buy"
+	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
-		"info":      trade,
-		"id":        this.SafeString(trade, "fill_id"),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
-		"symbol":    this.SafeString(marketResolved, "symbol"),
-		"order":     this.SafeString(trade, "order_id"),
-		"type":      this.SafeString(trade, "type"),
-		"side": func() string {
-			if isBuy != nil && *isBuy {
-				return "buy"
-			}
-			return "sell"
-		}(),
+		"info":         trade,
+		"id":           this.SafeString(trade, "fill_id"),
+		"timestamp":    timestamp,
+		"datetime":     this.Iso8601(timestamp),
+		"symbol":       this.SafeString(marketResolved, "symbol"),
+		"order":        this.SafeString(trade, "order_id"),
+		"type":         this.SafeString(trade, "type"),
+		"side":         ternaryStr167220,
 		"takerOrMaker": this.SafeString(trade, "fill_type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "qty"),

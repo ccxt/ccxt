@@ -2630,7 +2630,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		"marketId": marketId,
 	}
 	var subscriptionKey string = channel + ":" + *this.SafeString(subscribeMsg, "marketId", "")
-	var isNewSubscription bool = ccxt.IsEqual(client.(ccxt.ClientInterface).SubscriptionSafe(subscriptionKey), nil)
+	var isNewSubscription bool = client.(ccxt.ClientInterface).SubscriptionSafe(subscriptionKey) == nil
 	if isNewSubscription {
 
 		r2 := <-this.SeedOrderBookAsync(outcome, sym, limit)

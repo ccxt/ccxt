@@ -996,14 +996,12 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 					ccxt.AppendToArray(&previousTrades, trade)
 					ccxt.AddElementToObject(previousOrder, "trades", previousTrades)
 					ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
-					totalCostLit119 := "0"
-					var totalCost *string = &totalCostLit119
-					totalAmountLit120 := "0"
-					var totalAmount *string = &totalAmountLit120
+					var totalCost string = "0"
+					var totalAmount string = "0"
 					for i := 0; i < ccxt.GetArrayLength(previousTrades); i++ {
 						var tradeEntry map[string]any = ccxt.SafeMapTyped(previousTrades, i)
-						totalCost = this.SafeString(tradeEntry, "cost", "0")
-						totalAmount = this.SafeString(tradeEntry, "amount", "0")
+						totalCost = *this.SafeString(tradeEntry, "cost", "0")
+						totalAmount = *this.SafeString(tradeEntry, "amount", "0")
 					}
 					if !ccxt.Precise.StringEq(totalAmount, "0") {
 						if previousOrder != nil {

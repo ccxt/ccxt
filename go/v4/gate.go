@@ -2082,6 +2082,10 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 	var optionType string = *this.SafeString(optionParts, 3, "")
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
+	var ternaryStr133226 string = "put"
+	if optionType == "C" {
+		ternaryStr133226 = "call"
+	}
 	return map[string]any{
 		"id":             *base + "_" + quote + "-" + "20" + *expiry + "-" + strike + "-" + optionType,
 		"symbol":         *base + "/" + quote + ":" + settle + "-" + *expiry + "-" + strike + "-" + optionType,
@@ -2104,13 +2108,8 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() string {
-			if optionType == "C" {
-				return "call"
-			}
-			return "put"
-		}(),
-		"strike": this.ParseNumber(strike),
+		"optionType":     ternaryStr133226,
+		"strike":         this.ParseNumber(strike),
 		"precision": map[string]any{
 			"amount": this.ParseNumber("1"),
 			"price":  nil,
@@ -8324,7 +8323,7 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		panic(ArgumentsRequired(this.Id + " cancelOrders requires a symbol argument for spot markets"))
 	}
 	if isSpot {
-		var ordersRequests []any = []any{}
+		var ordersRequests []map[string]any = []map[string]any{}
 		for i := 0; i < len(ids); i++ {
 			var id string = ids[i]
 			var orderItem map[string]any = map[string]any{
@@ -8375,12 +8374,12 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) CancelOrdersForSymbolsAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Gate) CancelOrdersForSymbolsAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Gate) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Gate) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8399,7 +8398,7 @@ func (this *Gate) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], order
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = SafeMapTyped(orders, i)
+		var order map[string]any = orders[i]
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = this.Market(symbol)
 		if !(*this.SafeBool(market, "spot", false)) {

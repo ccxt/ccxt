@@ -1172,9 +1172,11 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		var valuesList []any = SafeListTyped(networkObj, 1)
 		var networkName *string = this.SafeString(valuesList, 0)
 		// for GOlang transpiler, do with "safe" method
-		var networksList any = this.SafeList(indexedNetworks, networkName, []any{})
-		AppendToArray(&networksList, networkId)
-		AddElementToObject(indexedNetworks, networkName, networksList)
+		var networksList []any = this.SafeListSlice(indexedNetworks, networkName, []any{})
+		networksList = append(networksList, networkId)
+		if networkName != nil {
+			indexedNetworks[*networkName] = networksList
+		}
 	}
 	var ids []any = this.SafeListSlice(response, 0, []any{})
 
@@ -1413,8 +1415,8 @@ func (this *Bitfinex) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		panic(ArgumentsRequired(this.Id + " transfer() toAccount must be one of " + strings.Join(keys, ", ")))
 	}
 	var currency map[string]any = this.Currency(code)
-	var fromCurrencyId any = this.ConvertDerivativesId(currency, fromAccount)
-	var toCurrencyId any = this.ConvertDerivativesId(currency, toAccount)
+	var fromCurrencyId *string = this.ConvertDerivativesId(currency, fromAccount)
+	var toCurrencyId *string = this.ConvertDerivativesId(currency, toAccount)
 	var requestedAmount *string = this.CurrencyToPrecision(code, amount)
 	// this request is slightly different from v1 fromAccount -> from
 	var request map[string]any = map[string]any{
@@ -1517,7 +1519,7 @@ func (this *Bitfinex) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitfinex) ConvertDerivativesId(currency map[string]any, typeVar string) any {
+func (this *Bitfinex) ConvertDerivativesId(currency map[string]any, typeVar string) *string {
 	// there is a difference between this and the v1 api, namely trading wallet is called margin in v2
 	// {
 	//   "id": "fUSTF0",
@@ -1529,7 +1531,8 @@ func (this *Bitfinex) ConvertDerivativesId(currency map[string]any, typeVar stri
 	if typeVar == "derivatives" {
 		var derivativesId *string = this.SafeString(underlying, 0, this.SafeString(info, 0, ""))
 		if !strings.HasSuffix(*derivativesId, "F0") {
-			return *derivativesId + "F0"
+			retStrVal := *derivativesId + "F0"
+			return &retStrVal
 		}
 		return derivativesId
 	} else if typeVar != "margin" {
@@ -2839,13 +2842,16 @@ func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = OrdersToList(r.Value)
-	var order map[string]any = SafeMapTyped(orders, 0)
-	if order == nil {
+	var orders []Order = r.Value
+	var order Order
+	if len(orders) > 0 {
+		order = orders[0]
+	}
+	if len(orders) == 0 {
 		panic(OrderNotFound(this.Id + " order " + id + " not found"))
 	}
 
-	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
+	ch <- AsyncResult[Order]{Value: order}
 	return nil
 }
 
@@ -2880,13 +2886,16 @@ func (this *Bitfinex) fetchClosedOrderBody(ch chan AsyncResult[Order], id string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = OrdersToList(r.Value)
-	var order map[string]any = SafeMapTyped(orders, 0)
-	if order == nil {
+	var orders []Order = r.Value
+	var order Order
+	if len(orders) > 0 {
+		order = orders[0]
+	}
+	if len(orders) == 0 {
 		panic(OrderNotFound(this.Id + " order " + id + " not found"))
 	}
 
-	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
+	ch <- AsyncResult[Order]{Value: order}
 	return nil
 }
 
@@ -4040,26 +4049,25 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position 
 	var meta *string = this.SafeString(positionList, 19)
 	var tradePrice *string = this.SafeString(meta, "trade_price")
 	var tradeAmount *string = this.SafeString(meta, "trade_amount")
+	var ternaryStr303420 string = "short"
+	if Precise.StringGt(amount, "0") {
+		ternaryStr303420 = "long"
+	}
 	return this.SafePosition(map[string]any{
-		"info":             positionList,
-		"id":               this.SafeString(positionList, 11),
-		"symbol":           this.SafeSymbol(marketId, market),
-		"notional":         this.ParseNumber(amount),
-		"marginMode":       "isolated",
-		"liquidationPrice": this.SafeNumber(positionList, 8),
-		"entryPrice":       this.SafeNumber(positionList, 3),
-		"unrealizedPnl":    this.SafeNumber(positionList, 6),
-		"percentage":       this.SafeNumber(positionList, 7),
-		"contracts":        nil,
-		"contractSize":     nil,
-		"markPrice":        nil,
-		"lastPrice":        nil,
-		"side": func() string {
-			if Precise.StringGt(amount, "0") {
-				return "long"
-			}
-			return "short"
-		}(),
+		"info":                        positionList,
+		"id":                          this.SafeString(positionList, 11),
+		"symbol":                      this.SafeSymbol(marketId, market),
+		"notional":                    this.ParseNumber(amount),
+		"marginMode":                  "isolated",
+		"liquidationPrice":            this.SafeNumber(positionList, 8),
+		"entryPrice":                  this.SafeNumber(positionList, 3),
+		"unrealizedPnl":               this.SafeNumber(positionList, 6),
+		"percentage":                  this.SafeNumber(positionList, 7),
+		"contracts":                   nil,
+		"contractSize":                nil,
+		"markPrice":                   nil,
+		"lastPrice":                   nil,
+		"side":                        ternaryStr303420,
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),

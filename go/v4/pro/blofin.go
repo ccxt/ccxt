@@ -341,16 +341,11 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var callerMethodNamePtr *string = nil
 	callerMethodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
-	callerMethodName := func() any {
-		if callerMethodNamePtr != nil {
-			return *callerMethodNamePtr
-		}
-		return nil
-	}()
+	callerMethodName := *callerMethodNamePtr
 	channelName, paramsChannel := this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodName, "channel", "books")
 	// due to some problem, temporarily disable other channels
 	if channelName == nil || *channelName != "books" {
-		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")))
+		panic(ccxt.NotSupported(this.Id + " " + callerMethodName + "() at this moment " + *channelName + " is not supported, coming soon"))
 	}
 
 	r1 := <-this.WatchMultipleWrapperAsync(true, *channelName, callerMethodName, symbols, paramsChannel)
@@ -1271,12 +1266,12 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	var messageHash string = "fundingRate:" + symbol
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Blofin) WatchMultipleWrapperAsync(isPublic bool, channelName string, callerMethodName any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Blofin) WatchMultipleWrapperAsync(isPublic bool, channelName string, callerMethodName string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMultipleWrapperBody(ch, isPublic, channelName, callerMethodName, optionalArgs...)
 	return ch
 }
-func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPublic bool, channelName string, callerMethodName any, optionalArgs ...any) any {
+func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPublic bool, channelName string, callerMethodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// underlier method for all watch-multiple symbols

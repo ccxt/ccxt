@@ -1046,9 +1046,9 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	// builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
 	// tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
 	// byte-identical to ethers' serialization
-	var accessList any = this.RlpEncodeList([]any{})
+	var accessList string = this.RlpEncodeList([]any{})
 	var fields []any = []any{this.RlpEncodeBytes(this.IntToRlpHex(this.SafeInteger(tx, "chainId"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "nonce"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxPriorityFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "gasLimit"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "to"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "value", "0x0"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "data", "0x"))), accessList}
-	var payload *string = ccxt.SafeStringPtr(ccxt.Add("02", this.RlpEncodeList(fields)))
+	var payload string = "02" + this.RlpEncodeList(fields)
 	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex *string = this.SafeString(signature, "r")
@@ -1077,7 +1077,7 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	signedFields = append(signedFields, this.RlpEncodeBytes(this.IntToRlpHex(yParity)))
 	signedFields = append(signedFields, this.RlpEncodeBytes(rHex))
 	signedFields = append(signedFields, this.RlpEncodeBytes(sHex))
-	return ccxt.Add("0x02", this.RlpEncodeList(signedFields))
+	return "0x02" + this.RlpEncodeList(signedFields)
 }
 func (this *Myriad) EthRpcAsync(rpcUrl any, method string, rpcParams any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -1931,6 +1931,10 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) map[str
 		outcomeObj = this.SafeOutcome(composite, market)
 		outcome = this.SafeString(outcomeObj, "outcome")
 	}
+	var ternaryStr134720 string = "limit"
+	if isMarketTif {
+		ternaryStr134720 = "market"
+	}
 	return this.SafePredictionOrder(map[string]any{
 		"id":                 orderHash,
 		"clientOrderId":      nil,
@@ -1942,25 +1946,20 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) map[str
 		"outcomeId":          this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":              this.SafeString(outcomeObj, "label"),
 		"market":             this.SafeString(outcomeObj, "market"),
-		"type": func() string {
-			if isMarketTif {
-				return "market"
-			}
-			return "limit"
-		}(),
-		"timeInForce":  tif,
-		"postOnly":     (tif != nil && *tif == "PO"),
-		"side":         side,
-		"price":        price,
-		"triggerPrice": nil,
-		"amount":       amount,
-		"filled":       filled,
-		"remaining":    nil,
-		"cost":         nil,
-		"average":      nil,
-		"status":       status,
-		"fee":          nil,
-		"trades":       nil,
+		"type":               ternaryStr134720,
+		"timeInForce":        tif,
+		"postOnly":           (tif != nil && *tif == "PO"),
+		"side":               side,
+		"price":              price,
+		"triggerPrice":       nil,
+		"amount":             amount,
+		"filled":             filled,
+		"remaining":          nil,
+		"cost":               nil,
+		"average":            nil,
+		"status":             status,
+		"fee":                nil,
+		"trades":             nil,
 	}, market)
 }
 
@@ -3077,7 +3076,11 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]a
 		var outcomeLabel *string = this.SafeString(outcome, "label", this.SafeString(outcome, "title", outcomeId))
 		var price *float64 = this.SafeNumber(outcome, "price")
 		var outcomeHandle string = this.SlugToOutcomeSymbol(eventSlug, slug, outcomeLabel)
-		var outcomeCompositeId *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(networkId, ":"), marketId), "/"), outcomeId))
+		var outcomeCompositeId *string = nil
+		if networkId != nil && marketId != nil {
+			outcomeCompositeIdValue := *networkId + ":" + *marketId + "/" + *outcomeId
+			outcomeCompositeId = &outcomeCompositeIdValue
+		}
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil
 		if hasResolution {
@@ -5261,6 +5264,10 @@ func (this *Myriad) HandleOrder(client any, data any) {
 	var tif *string = this.SafeStringUpper(data, "timeInForce")
 	var isMarketTif bool = (tif != nil && *tif == "FOK") || (tif != nil && *tif == "FAK")
 	var timestamp *int64 = this.Parse8601(this.SafeString2(data, "updatedAt", "createdAt"))
+	var ternaryStr372820 string = "limit"
+	if isMarketTif {
+		ternaryStr372820 = "market"
+	}
 	var parsed map[string]any = this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString(data, "orderHash"),
 		"clientOrderId": nil,
@@ -5271,23 +5278,18 @@ func (this *Myriad) HandleOrder(client any, data any) {
 		"outcomeId":     this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":         this.SafeString(outcomeObj, "label"),
 		"market":        this.SafeString(outcomeObj, "market"),
-		"type": func() string {
-			if isMarketTif {
-				return "market"
-			}
-			return "limit"
-		}(),
-		"timeInForce": tif,
-		"side":        this.SafeStringLower(data, "side"),
-		"price":       price,
-		"amount":      amount,
-		"filled":      filled,
-		"remaining":   nil,
-		"average":     nil,
-		"cost":        nil,
-		"status":      status,
-		"fee":         nil,
-		"trades":      nil,
+		"type":          ternaryStr372820,
+		"timeInForce":   tif,
+		"side":          this.SafeStringLower(data, "side"),
+		"price":         price,
+		"amount":        amount,
+		"filled":        filled,
+		"remaining":     nil,
+		"average":       nil,
+		"cost":          nil,
+		"status":        status,
+		"fee":           nil,
+		"trades":        nil,
 	})
 	var stored ccxt.WsArrayCache = this.Orders
 	stored.Append(parsed)

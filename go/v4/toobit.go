@@ -1241,11 +1241,9 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 			symbol = nil
 		}
 	}
-	var typeValue string
+	var ternaryStr99720 string = "spot"
 	if isContract {
-		typeValue = "swap"
-	} else {
-		typeValue = "spot"
+		ternaryStr99720 = "swap"
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
@@ -1256,7 +1254,7 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 		"baseId":   baseId,
 		"quoteId":  quoteId,
 		"settleId": settleId,
-		"type": typeValue,
+		"type":     ternaryStr99720,
 		"spot":     !isContract,
 		"margin":   false,
 		"swap":     isContract,
@@ -3992,7 +3990,7 @@ func (this *Toobit) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[
 func (this *Toobit) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4006,7 +4004,7 @@ func (this *Toobit) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if symbols != nil {
-		var length int = GetArrayLength(symbols)
+		var length int = len(symbols)
 		if length > 1 {
 			panic(BadRequest(this.Id + " fetchPositions() only accepts an array with a single symbol or without symbols argument"))
 		}

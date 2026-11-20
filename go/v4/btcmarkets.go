@@ -1317,15 +1317,14 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var ternaryStr97420 string = "Ask"
+	if side == "buy" {
+		ternaryStr97420 = "Bid"
+	}
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
 		"amount":   this.AmountToPrecision(symbol, amount),
-		"side": func() string {
-			if side == "buy" {
-				return "Bid"
-			}
-			return "Ask"
-		}(),
+		"side":     ternaryStr97420,
 	}
 	var lowercaseType string = strings.ToLower(typeVar)
 	var orderTypes map[string]any = this.SafeDictMap(this.Options, "orderTypes", map[string]any{

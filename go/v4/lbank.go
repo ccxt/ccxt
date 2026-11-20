@@ -1550,10 +1550,10 @@ func (this *Lbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var now int64 = this.Milliseconds()
 	var defaultSince int64 = now - ((duration * 1000) * limitResolved)
-	var sinceResolved any = defaultSince
+	var sinceResolved int64 = defaultSince
 	var parsedSince int64 = this.ParseToInt(float64(defaultSince) / 1000)
 	if since != nil {
-		sinceResolved = since
+		sinceResolved = *since
 		parsedSince = this.ParseToInt(float64(*since) / 1000)
 	}
 	var parsedLimit any = min(limitResolved+1, 2000) // max 2000;

@@ -4506,11 +4506,9 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 	_ = market
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var success *bool = this.SafeBool(data, "success", false)
-	var statusValue string
+	var ternaryStr316722 string = "failed"
 	if success != nil && *success {
-		statusValue = "ok"
-	} else {
-		statusValue = "failed"
+		ternaryStr316722 = "ok"
 	}
 	return map[string]any{
 		"info":       data,
@@ -4520,7 +4518,7 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 		"amount":     nil,
 		"total":      nil,
 		"code":       this.SafeString(market, "settle"),
-		"status":     statusValue,
+		"status":     ternaryStr316722,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}
@@ -5016,8 +5014,17 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 				var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
 				if path == "batch-order" {
 					var ordersList []any = SafeListTyped(requestParams, "orders")
+					var taggedOrders []any = []any{}
+					var hasOrders bool = false
 					for i := 0; i < len(ordersList); i++ {
-						AddElementToObject(GetValue(requestParams["orders"], i), "order_tag", brokerId)
+						var orderRow map[string]any = this.Extend(ordersList[i], map[string]any{
+							"order_tag": brokerId,
+						})
+						taggedOrders = append(taggedOrders, orderRow)
+						hasOrders = true
+					}
+					if hasOrders {
+						requestParams["orders"] = taggedOrders
 					}
 				} else {
 					requestParams["order_tag"] = brokerId

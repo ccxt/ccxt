@@ -1091,7 +1091,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				bookside.StoreArray([]any{price, size, counter})
 			}
 		}
-		ccxt.AddElementToObject(orderbook, "symbol", symbol)
+		orderbook.SetSymbol(symbol)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]

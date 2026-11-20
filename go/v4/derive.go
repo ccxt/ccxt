@@ -4672,7 +4672,7 @@ func (this *Derive) ParseBalanceList(response any) map[string]any {
 				}
 			}
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}
@@ -5437,6 +5437,10 @@ func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	}
 	// withdrawal rows carry the recipient address, deposit rows carry l1_sender/wallet instead
 	var addressTo *string = this.SafeString(transaction, "recipient")
+	var ternaryStr423220 string = "deposit"
+	if addressTo != nil {
+		ternaryStr423220 = "withdrawal"
+	}
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString2(transaction, "operation_id", "transaction_id"),
@@ -5449,20 +5453,15 @@ func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		"tag":         nil,
 		"tagFrom":     nil,
 		"tagTo":       nil,
-		"type": func() string {
-			if addressTo != nil {
-				return "withdrawal"
-			}
-			return "deposit"
-		}(),
-		"amount":   this.SafeNumber(transaction, "amount"),
-		"currency": code,
-		"status":   this.ParseTransactionStatus(this.SafeString2(transaction, "batch_status", "tx_status")),
-		"updated":  nil,
-		"comment":  nil,
-		"internal": nil,
-		"fee":      fee,
-		"network":  nil,
+		"type":        ternaryStr423220,
+		"amount":      this.SafeNumber(transaction, "amount"),
+		"currency":    code,
+		"status":      this.ParseTransactionStatus(this.SafeString2(transaction, "batch_status", "tx_status")),
+		"updated":     nil,
+		"comment":     nil,
+		"internal":    nil,
+		"fee":         fee,
+		"network":     nil,
 	})
 }
 func (this *Derive) ParseTransactionStatus(status *string) *string {

@@ -202,7 +202,10 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var messageHash string = "trades"
 	var subscriptionHash string = "old:" + symbolValue
-	var client any = this.SafeValue(this.Clients, url)
+	var client ccxt.ClientInterface = nil
+	if entry := this.Clients[*url]; entry != nil {
+		client = entry
+	}
 	if client != nil {
 		var subscriptionKeys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		for i := 0; i < len(subscriptionKeys); i++ {

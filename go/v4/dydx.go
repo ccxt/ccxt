@@ -1709,7 +1709,7 @@ func (this *Dydx) Pow(n string, m *string) *string {
 	}
 	return r
 }
-func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) []any {
+func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) (string, map[string]any) {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1892,7 +1892,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 		clobPairIdValue = *clobPairId
 	}
 	var orderId string = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
-	return []any{orderId, this.Extend(signingPayload, paramsOmitted)}
+	return orderId, this.Extend(signingPayload, paramsOmitted)
 }
 func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId int64, orderFlags any, clobPairId int64) string {
 	var nameSp string = *this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
@@ -2003,9 +2003,9 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var newParams map[string]any = this.Extend(params, map[string]any{
 		"latestBlockHeight": lastBlockHeight,
 	})
-	var orderRequestRes []any = ArrayTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, newParams))
-	var orderId *string = SafeStringPtr(orderRequestRes[0])
-	var orderRequest any = orderRequestRes[1]
+	orderRequestResSlot0, orderRequestResSlot1 := this.CreateOrderRequest(symbol, typeVar, side, amount, price, newParams)
+	var orderId *string = SafeStringPtr(orderRequestResSlot0)
+	orderRequest := orderRequestResSlot1
 	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), orderRequest, "", chainName, account, nil)
 	var request map[string]any = map[string]any{
@@ -2663,10 +2663,7 @@ func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var txFee any = nil
-	if r2.Value != nil {
-		txFee = r2.Value
-	}
+	var txFee map[string]any = r2.Value
 	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, "", chainName, account, nil, txFee)
 	var request map[string]any = map[string]any{
@@ -2926,10 +2923,7 @@ func (this *Dydx) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var txFee any = nil
-	if r2.Value != nil {
-		txFee = r2.Value
-	}
+	var txFee map[string]any = r2.Value
 	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, tag, chainName, account, nil, txFee)
 	var request map[string]any = map[string]any{

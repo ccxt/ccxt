@@ -1574,11 +1574,12 @@ func (this *Tokocrypto) IsNativeMarket(market map[string]any) bool {
  * @param {object} market a unified market structure
  * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
  */
-func (this *Tokocrypto) GetMarketIdByType(market map[string]any) any {
+func (this *Tokocrypto) GetMarketIdByType(market map[string]any) *string {
 	if this.IsNativeMarket(market) {
 		return this.SafeString(market, "id")
 	}
-	return *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
+	retStrVal := *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
+	return &retStrVal
 }
 
 /**

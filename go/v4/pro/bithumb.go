@@ -622,7 +622,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		}
 		var legacyOrderbook ccxt.OrderBookInterface = this.Orderbooks[*legacySymbol]
 		this.HandleBookDeltas(legacyOrderbook, list)
-		ccxt.AddElementToObject(legacyOrderbook, "timestamp", legacyTimestamp)
+		legacyOrderbook.SetTimestamp(&legacyTimestamp)
 		legacyOrderbook.SetDatetime(this.Iso8601(legacyTimestamp))
 		var legacyMessageHash string = "orderbook" + ":" + *legacySymbol
 		client.(ccxt.ClientInterface).Resolve(legacyOrderbook, legacyMessageHash)
@@ -896,20 +896,19 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		timestamp = &timestampValue
 	}
 	var sideId *string = this.SafeString(trade, "buySellGb")
+	var ternaryStr71720 string = "sell"
+	if sideId != nil && *sideId == "1" {
+		ternaryStr71720 = "buy"
+	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
-		"id":        nil,
-		"info":      trade,
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
-		"symbol":    this.SafeSymbol(marketId, market, "_"),
-		"order":     nil,
-		"type":      nil,
-		"side": func() string {
-			if sideId != nil && *sideId == "1" {
-				return "buy"
-			}
-			return "sell"
-		}(),
+		"id":           nil,
+		"info":         trade,
+		"timestamp":    timestamp,
+		"datetime":     this.Iso8601(timestamp),
+		"symbol":       this.SafeSymbol(marketId, market, "_"),
+		"order":        nil,
+		"type":         nil,
+		"side":         ternaryStr71720,
 		"takerOrMaker": nil,
 		"price":        this.SafeString(trade, "contPrice"),
 		"amount":       this.SafeString(trade, "contQty"),
