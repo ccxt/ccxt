@@ -27435,8 +27435,11 @@ function j02IdentifierPlain (ctx, identifier, depth) {
     const checker = ctx.checker;
     const symbol = checker.getSymbolAtLocation (identifier);
     const declaration = symbol?.valueDeclaration?.resolve ();
-    if (symbol === undefined || declaration === undefined || (symbol.declarations?.length ?? 0) !== 1 || ctx.seen.has (symbol)) {
+    if (symbol === undefined || declaration === undefined || (symbol.declarations?.length ?? 0) !== 1) {
         return false;
+    }
+    if (ctx.seen.has (symbol)) {
+        return true; // a self-reference (`x = safeDict (m, k, x)`) adds no value: the outer walk still checks every other write
     }
     ctx.seen.add (symbol);
     let ok;
