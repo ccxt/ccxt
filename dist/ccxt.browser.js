@@ -278033,11 +278033,14 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, marketResolved, '-');
         const filled = this.safeString(order, 'filledSize');
-        const price = this.safeStringN(order, [
+        let price = this.safeStringN(order, [
             'px',
             'price',
             'orderPrice'
         ]);
+        if (price === '-1') {
+            price = undefined; // trigger orders send orderPrice -1 for market execution
+        }
         const average = this.safeString(order, 'averagePrice');
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const feeCostString = this.safeString(order, 'fee');
@@ -278085,6 +278088,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': this.safeNumber(order, 'triggerPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,
@@ -490286,7 +490290,12 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                     '12004': _base_errors_js__rspack_import_2.PermissionDenied,
                     '21001': _base_errors_js__rspack_import_2.OperationRejected
                 },
-                'broad': {}
+                'broad': {
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature': _base_errors_js__rspack_import_2.AuthenticationError,
+                    'ApiKey not exist': _base_errors_js__rspack_import_2.AuthenticationError,
+                    'Illegal of ip': _base_errors_js__rspack_import_2.PermissionDenied
+                }
             }
         });
     }
@@ -493732,8 +493741,8 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         if (responseCode !== undefined && responseCode !== '200') {
             const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
         }
         return undefined;
@@ -552184,13 +552193,39 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
             channel = 'orders-algo';
         }
         const orders = await this.watchMultipleWrapper(false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
-        const first = this.safeDict(orders, 0);
-        const tradeSymbol = this.safeString(first, 'symbol');
+        // every symbol shares one orders cache, so filter by the requested symbols and count
+        // per symbol only when exactly one is requested
+        let requestedSymbols = undefined;
+        let countSymbol = undefined;
+        const unifiedSymbols = this.marketSymbols(symbols, undefined, true);
+        if (unifiedSymbols !== undefined) {
+            const symbolsLength = unifiedSymbols.length;
+            if (symbolsLength > 0) {
+                requestedSymbols = unifiedSymbols;
+            }
+            if (symbolsLength === 1) {
+                countSymbol = unifiedSymbols[0];
+            }
+        }
+        let newest = orders;
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit(tradeSymbol, limit);
+            if (countSymbol !== undefined) {
+                limitResolved = orders.getLimit(countSymbol, limit);
+            } else {
+                // updated orders move to the end of the shared cache, so the newest entries across all
+                // symbols are exactly this read's updates; take them before filtering by symbol
+                const newCount = orders.getLimit(undefined, undefined);
+                if (newCount === 0) {
+                    // another watcher already took the count, and a limit of 0 would return the whole cache
+                    newest = [];
+                } else {
+                    newest = this.filterBySinceLimit(orders, undefined, newCount, 'timestamp', true);
+                }
+            }
         }
-        return this.filterBySinceLimit(orders, since, limitResolved, 'timestamp', true);
+        const requested = this.filterByArray(newest, 'symbol', requestedSymbols, false);
+        return this.filterBySinceLimit(requested, since, limitResolved, 'timestamp', true);
     }
     handleOrders(client, message) {
         //
@@ -552210,11 +552245,16 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         const arg = this.safeDict(message, 'arg');
         const channelName = this.safeString(arg, 'channel');
         const data = this.safeList(message, 'data');
+        const symbols = [];
         for(let i = 0; i < data.length; i++){
             const order = this.parseWsOrder(this.safeDict(data, i, {}));
             orders.append(order);
+            symbols.push(this.safeString(order, 'symbol', ''));
+        }
+        // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
+        for(let i = 0; i < symbols.length; i++){
             if (channelName !== undefined) {
-                client.resolve(orders, channelName + ':' + this.safeString(order, 'symbol', ''));
+                client.resolve(orders, channelName + ':' + symbols[i]);
             }
             client.resolve(orders, channelName);
         }
@@ -552537,28 +552577,34 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const milliseconds = this.milliseconds();
         const messageHash = 'authenticate_hash';
-        const timestamp = milliseconds.toString();
-        const nonce = 'n_' + timestamp;
-        const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
-        const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_3/* .sha256 */.sc));
-        const request = {
-            'op': 'login',
-            'args': [
-                {
-                    'apiKey': this.apiKey,
-                    'passphrase': this.password,
-                    'timestamp': timestamp,
-                    'nonce': nonce,
-                    'sign': signature
-                }
-            ]
-        };
         const marketType = 'swap'; // for now
         const typeUrls = this.safeDict(this.urls['api']['ws'], marketType, {});
         const url = this.safeString(typeUrls, 'private');
-        await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        const client = this.client(url);
+        const future = client.reusableFuture(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const milliseconds = this.milliseconds();
+            const timestamp = milliseconds.toString();
+            const nonce = 'n_' + timestamp;
+            const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+            const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_3/* .sha256 */.sc));
+            const request = {
+                'op': 'login',
+                'args': [
+                    {
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'nonce': nonce,
+                        'sign': signature
+                    }
+                ]
+            };
+            this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        }
+        return await future;
     }
 }
 //  ---------------------------------------------------------------------------
