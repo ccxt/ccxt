@@ -19,6 +19,9 @@ export default class deribit extends deribitRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchBidsAsks': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'unWatchTrades': true,
@@ -27,8 +30,12 @@ export default class deribit extends deribitRest {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
             },
             'urls': {
                 'test': {
@@ -255,6 +262,36 @@ export default class deribit extends deribitRest {
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
+    /**
+     * @method
+     * @name deribit#unWatchTicker
+     * @description unsubscribes from the ticker channel
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] the interval the subscription was opened with. Possible values: 100ms, raw
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name deribit#unWatchTickers
+     * @description unsubscribes from the ticker channel for a list of symbols
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] the interval the subscription was opened with. Possible values: 100ms, raw
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        const interval = this.safeString (params, 'interval', '100ms');
+        const paramsOmitted: Dict = this.omit (params, 'interval');
+        return await this.unWatchMultipleWrapper ('ticker', 'ticker', interval, symbols, paramsOmitted);
+    }
+
     handleTicker (client: Client, message: Dict) {
         //
         //     {
@@ -334,6 +371,19 @@ export default class deribit extends deribitRest {
             return tickers;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
+    }
+
+    /**
+     * @method
+     * @name deribit#unWatchBidsAsks
+     * @description unsubscribes from the best bid & ask channel for a list of symbols
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        return await this.unWatchMultipleWrapper ('bidsasks', 'quote', undefined, symbols, params);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -631,6 +681,52 @@ export default class deribit extends deribitRest {
         return orderbook.limit ();
     }
 
+    /**
+     * @method
+     * @name deribit#unWatchOrderBook
+     * @description unsubscribes from the orderbook channel
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.interval] the interval the subscription was opened with. Possible values: 100ms, raw
+     * @param {boolean} [params.useDepthEndpoint] true if the subscription was opened on the book.group.depth.interval channel
+     * @param {string} [params.depth] the depth the subscription was opened with, used with useDepthEndpoint
+     * @param {string} [params.group] the group the subscription was opened with, used with useDepthEndpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name deribit#unWatchOrderBookForSymbols
+     * @description unsubscribes from the orderbook channel for a list of symbols
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.interval] the interval the subscription was opened with. Possible values: 100ms, raw
+     * @param {boolean} [params.useDepthEndpoint] true if the subscription was opened on the book.group.depth.interval channel
+     * @param {string} [params.depth] the depth the subscription was opened with, used with useDepthEndpoint
+     * @param {string} [params.group] the group the subscription was opened with, used with useDepthEndpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        const [ interval, paramsInterval ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
+        const [ useDepthEndpoint, paramsUseDepthEndpoint ] = this.handleOptionBoolAndParams (paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        const [ depth, paramsDepth ] = this.handleOptionStringAndParams (paramsUseDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+        const [ group, paramsGroup ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+        let descriptor = interval;
+        if (useDepthEndpoint) {
+            descriptor = group + '.' + depth + '.' + interval;
+        }
+        let paramsResolved: Dict = paramsUseDepthEndpoint;
+        if (useDepthEndpoint) {
+            paramsResolved = paramsGroup;
+        }
+        return await this.unWatchMultipleWrapper ('orderbook', 'book', descriptor, symbols, paramsResolved);
+    }
+
     handleOrderBook (client: Client, message: Dict) {
         //
         //  snapshot
@@ -887,6 +983,37 @@ export default class deribit extends deribitRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
+    /**
+     * @method
+     * @name deribit#unWatchOHLCV
+     * @description unsubscribes from the candlestick channel
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    }
+
+    /**
+     * @method
+     * @name deribit#unWatchOHLCVForSymbols
+     * @description unsubscribes from the candlestick channel for a list of symbols and timeframes
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unsubscribe from, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        return await this.unWatchMultipleWrapper ('ohlcv', 'chart.trades', undefined, symbolsAndTimeframes, params);
+    }
+
     handleOHLCV (client: Client, message: Dict) {
         //
         //     {
@@ -1008,31 +1135,69 @@ export default class deribit extends deribitRest {
      * @method
      * @name deribit#unWatchMultipleWrapper
      * @description sends a public/unsubscribe request for a list of symbols and registers the pending unsubscription under the request id
-     * @param {string} topic unified cache topic: trades, orderbook, ticker
+     * @param {string} topic unified cache topic: trades, orderbook, ticker, bidsasks, ohlcv
      * @param {string} channelName exchange channel name
-     * @param {string} channelDescriptor exchange channel suffix, the interval the subscription was opened with
-     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {string} channelDescriptor exchange channel suffix, the interval the subscription was opened with, not used for bidsasks and ohlcv
+     * @param {string[]|string[][]} symbolsArray unified symbols of the markets to unsubscribe from, for ohlcv an array of [symbol, timeframe] pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchMultipleWrapper (topic: string, channelName: string, channelDescriptor: Str, symbols: string[], params: Dict = {}): Promise<any> {
+    async unWatchMultipleWrapper (topic: string, channelName: string, channelDescriptor: Str, symbolsArray: any, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbols === undefined) {
+        if (symbolsArray === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchMultipleWrapper() requires a symbols argument');
         }
         const url = this.urls['api']['ws'];
+        const isOHLCV = (topic === 'ohlcv');
+        // ticker and quote futures are keyed by the raw channel name, the other ones by channel|symbol|descriptor
+        const hashIsChannel = (topic === 'ticker') || (topic === 'bidsasks');
+        let symbols = symbolsArray;
+        if (isOHLCV) {
+            symbols = this.getListFromObjectValues (symbolsArray, 0);
+        }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        let entries = symbolsNormalized;
+        if (isOHLCV) {
+            entries = symbolsArray;
+        }
+        const entriesLength = entries.length;
+        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const wsTimeframes: Dict = this.safeDict (wsOptions, 'timeframes', {});
+        const symbolsAndTimeframes: List = [];
         const rawSubscriptions: string[] = [];
         const subMessageHashes: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const market = this.market (symbolsNormalized[i]);
+        for (let i = 0; i < entriesLength; i++) {
+            let market: Market = undefined;
+            let currentDescriptor: Str = channelDescriptor;
+            if (isOHLCV) {
+                const currentPair = this.safeList (entries, i, []);
+                market = this.market (this.safeString (currentPair, 0));
+                const unifiedTimeframe = this.safeString (currentPair, 1);
+                currentDescriptor = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
+                // the candles are cached under the timeframe the message handler resolves from the raw resolution
+                let cacheTimeframe = this.findTimeframe (currentDescriptor, wsTimeframes);
+                if (cacheTimeframe === undefined) {
+                    cacheTimeframe = unifiedTimeframe;
+                }
+                symbolsAndTimeframes.push ([ this.safeString (market, 'symbol', ''), cacheTimeframe ]);
+            } else {
+                market = this.market (this.safeString (entries, i));
+            }
             const marketId = this.safeString (market, 'id', '');
             const symbol = this.safeString (market, 'symbol', '');
-            const subMessageHash = channelName + '|' + symbol + '|' + channelDescriptor;
-            rawSubscriptions.push (channelName + '.' + marketId + '.' + channelDescriptor);
+            let rawSubscription = channelName + '.' + marketId;
+            let subMessageHash = channelName + '|' + symbol;
+            if (currentDescriptor !== undefined) {
+                rawSubscription = rawSubscription + '.' + currentDescriptor;
+                subMessageHash = subMessageHash + '|' + currentDescriptor;
+            }
+            if (hashIsChannel) {
+                subMessageHash = rawSubscription;
+            }
+            rawSubscriptions.push (rawSubscription);
             subMessageHashes.push (subMessageHash);
             messageHashes.push ('unsubscribe:' + subMessageHash);
         }
@@ -1053,6 +1218,7 @@ export default class deribit extends deribitRest {
             'id': requestIdString,
             'topic': topic,
             'symbols': symbolsNormalized,
+            'symbolsAndTimeframes': symbolsAndTimeframes,
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
             'subscribeHashes': rawSubscriptions,
