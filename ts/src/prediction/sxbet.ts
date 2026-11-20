@@ -1886,7 +1886,7 @@ export default class sxbet extends Exchange {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
-        const outcomesList: string[] = outcomes;
+        const outcomesList: string[] = (outcomes === undefined) ? [] : outcomes;
         const outcomesLength = outcomesList.length;
         const hashesOrder: string[] = [];
         const seenHashes: Dict = {};
