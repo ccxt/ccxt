@@ -459,8 +459,8 @@ impl crate::exchange::DerivedExchange for Delta {
         let currenciesByNumericId: crate::value::Dict = self.safe_dict_k_t(&self.options, "currenciesByNumericId");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_620: bool = true;
-            while { if !__for_first_620 { i += 1; } __for_first_620 = false; i < (balances.len() as i64) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { i += 1; } __for_first_621 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset_id", &[]);
             let currency: Option<crate::value::Dict> = self.safe_dict_o(&currenciesByNumericId, &currencyId);
@@ -729,8 +729,8 @@ impl crate::exchange::DerivedExchange for Delta {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_616: bool = true;
-            while { if !__for_first_616 { j += 1; } __for_first_616 = false; j < (chains.len() as i64) } {
+            let mut __for_first_617: bool = true;
+            while { if !__for_first_617 { j += 1; } __for_first_617 = false; j < (chains.len() as i64) } {
             let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -2302,8 +2302,8 @@ impl Delta {
         let mut keys: Vec<&str> = input.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { i += 1; } __for_first_617 = false; i < (keys.len() as i64) } {
+            let mut __for_first_618: bool = true;
+            while { if !__for_first_618 { i += 1; } __for_first_618 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).copied();
             let item: crate::value::Dict = self.safe_dict_t(&input, Value::from(key.as_deref()));
             let numericIdString: Option<String> = self.safe_string_k_opt(&item, "numericId", &[]);
@@ -2519,8 +2519,8 @@ impl Delta {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_618: bool = true;
-            while { if !__for_first_618 { i += 1; } __for_first_618 = false; i < (markets.len() as i64) } {
+            let mut __for_first_619: bool = true;
+            while { if !__for_first_619 { i += 1; } __for_first_619 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let mut type_var: Option<String> = self.safe_string_k_opt(&market, "contract_type", &[]);
             if (type_var.as_deref() == Some("options_combos")) || (type_var.as_deref() == Some("binary_call_options")) || (type_var.as_deref() == Some("binary_put_options")) {
@@ -2980,8 +2980,8 @@ impl Delta {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_619: bool = true;
-            while { if !__for_first_619 { i += 1; } __for_first_619 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_620: bool = true;
+            while { if !__for_first_620 { i += 1; } __for_first_620 = false; i < (tickers.len() as i64) } {
             let rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             let contractType: Option<String> = self.safe_string_k_opt(&rawTicker, "contract_type", &[]);
             if (contractType.as_deref() == Some("options_combos")) || (contractType.as_deref() == Some("binary_call_options")) || (contractType.as_deref() == Some("binary_put_options")) {
@@ -4661,8 +4661,8 @@ impl Delta {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_621: bool = true;
-            while { if !__for_first_621 { i += 1; } __for_first_621 = false; i < (settlements.len() as i64) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (settlements.len() as i64) } {
             result.push(Value::Dict(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market)));
         }
         }

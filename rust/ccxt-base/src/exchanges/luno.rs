@@ -284,8 +284,8 @@ impl crate::exchange::DerivedExchange for Luno {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_944: bool = true;
-            while { if !__for_first_944 { i += 1; } __for_first_944 = false; i < (wallets.len() as i64) } {
+            let mut __for_first_945: bool = true;
+            while { if !__for_first_945 { i += 1; } __for_first_945 = false; i < (wallets.len() as i64) } {
             let wallet: crate::value::Dict = self.safe_dict_t(&wallets, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&wallet, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -419,8 +419,8 @@ impl crate::exchange::DerivedExchange for Luno {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_941: bool = true;
-            while { if !__for_first_941 { i += 1; } __for_first_941 = false; i < (rawCurrency.len() as i64) } {
+            let mut __for_first_942: bool = true;
+            while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Option<crate::value::Dict> = self.safe_dict_o(&rawCurrency, Value::Int(i));
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "name", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -1330,8 +1330,8 @@ impl Luno {
         let markets: crate::value::List = self.safe_list_k_t(&response, "markets");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (markets.len() as i64) } {
+            let mut __for_first_943: bool = true;
+            while { if !__for_first_943 { i += 1; } __for_first_943 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "market_id", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
@@ -1463,8 +1463,8 @@ impl Luno {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_943: bool = true;
-            while { if !__for_first_943 { i += 1; } __for_first_943 = false; i < (wallets.len() as i64) } {
+            let mut __for_first_944: bool = true;
+            while { if !__for_first_944 { i += 1; } __for_first_944 = false; i < (wallets.len() as i64) } {
             let account: crate::value::Dict = self.safe_dict_t(&wallets, Value::Int(i));
             let accountId: Option<String> = self.safe_string_k_opt(&account, "account_id", &[]);
             let currencyId: Option<String> = self.safe_string_k_opt(&account, "asset", &[]);
@@ -1755,8 +1755,8 @@ impl Luno {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_945: bool = true;
-            while { if !__for_first_945 { i += 1; } __for_first_945 = false; i < (ids.len() as i64) } {
+            let mut __for_first_946: bool = true;
+            while { if !__for_first_946 { i += 1; } __for_first_946 = false; i < (ids.len() as i64) } {
             let id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(id.as_deref(), None, &[]);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);

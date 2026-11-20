@@ -486,8 +486,8 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         let balances: crate::value::List = self.safe_list_k_t(response, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_613: bool = true;
-            while { if !__for_first_613 { i += 1; } __for_first_613 = false; i < (balances.len() as i64) } {
+            let mut __for_first_614: bool = true;
+            while { if !__for_first_614 { i += 1; } __for_first_614 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&balance, "ccy", &[]);
             let code: Option<String> = self.safe_currency_code(symbol.as_deref(), None);
@@ -865,8 +865,8 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         if (errorList.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_615: bool = true;
-                while { if !__for_first_615 { i += 1; } __for_first_615 = false; i < (errorList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_616: bool = true;
+                while { if !__for_first_616 { i += 1; } __for_first_616 = false; i < (errorList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let entry: crate::value::Dict = self.safe_dict_t(&errorList, Value::Int(i));
                 errorCode = self.safe_string_k_opt(&entry, "errorCode", &[]);
             }
@@ -1765,16 +1765,16 @@ impl Deepcoin {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_610: bool = true;
-            while { if !__for_first_610 { i += 1; } __for_first_610 = false; i < (types.len() as i64) } {
+            let mut __for_first_611: bool = true;
+            while { if !__for_first_611 { i += 1; } __for_first_611 = false; i < (types.len() as i64) } {
             promises.push(self.fetch_markets_by_type(self.safe_string(&types, Value::Int(i), &[]).as_str(), &[&params]).await);
         }
         }
         let responses: Vec<Value> = promise_all(&Value::from(promises)).await.to_vec();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_611: bool = true;
-            while { if !__for_first_611 { i += 1; } __for_first_611 = false; i < (responses.len() as i64) } {
+            let mut __for_first_612: bool = true;
+            while { if !__for_first_612 { i += 1; } __for_first_612 = false; i < (responses.len() as i64) } {
             result = self.array_concat_t(Value::Arr(result), responses.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1837,8 +1837,8 @@ impl Deepcoin {
         let symbols: Vec<Value> = Value::Array(result.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { i += 1; } __for_first_612 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_613: bool = true;
+            while { if !__for_first_613 { i += 1; } __for_first_613 = false; i < (symbols.len() as i64) } {
             let symbol: Option<&str> = symbols.get(i as usize).and_then(Value::as_str);
             let market: Value = self.safe_dict(&result, Value::from(symbol.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -2462,8 +2462,8 @@ impl Deepcoin {
         if (network.is_some()) && (length > 1) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_614: bool = true;
-                while { if !__for_first_614 { i += 1; } __for_first_614 = false; i < length } {
+                let mut __for_first_615: bool = true;
+                while { if !__for_first_615 { i += 1; } __for_first_615 = false; i < length } {
                 let entryNetwork: Option<String> = self.safe_string_k_opt((match addressess.get(i as usize) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
     let m = indexmap::IndexMap::new();
     m

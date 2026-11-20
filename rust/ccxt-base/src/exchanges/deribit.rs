@@ -349,8 +349,8 @@ impl crate::exchange::DerivedExchange for Deribit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i += 1; } __for_first_625 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (summaries.len() as i64) } {
             let data: crate::value::Dict = self.safe_dict_t(&summaries, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
             let currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -2522,8 +2522,8 @@ impl Deribit {
             let currenciesResult: crate::value::List = self.safe_list_k_t(&currenciesResponse, "result");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_622: bool = true;
-                while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (currenciesResult.len() as i64) } {
+                let mut __for_first_623: bool = true;
+                while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (currenciesResult.len() as i64) } {
                 let currencyId: Option<String> = self.safe_string_k_opt(currenciesResult.get(i as usize).cloned().unwrap_or(Value::Null), "currency", &[]);
                 let request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -2611,13 +2611,13 @@ impl Deribit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i += 1; } __for_first_624 = false; i < (instrumentsResponses.len() as i64) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i += 1; } __for_first_625 = false; i < (instrumentsResponses.len() as i64) } {
             let instrumentsResult: crate::value::List = self.safe_list_k_t(instrumentsResponses.get(i as usize).cloned().unwrap_or(Value::Null), "result");
             {
                                 let mut k: i64 = 0;
-                let mut __for_first_623: bool = true;
-                while { if !__for_first_623 { k += 1; } __for_first_623 = false; k < (instrumentsResult.len() as i64) } {
+                let mut __for_first_624: bool = true;
+                while { if !__for_first_624 { k += 1; } __for_first_624 = false; k < (instrumentsResult.len() as i64) } {
                 let market: crate::value::Dict = self.safe_dict_t(&instrumentsResult, Value::Int(k));
                 let kind: Option<String> = self.safe_string_k_opt(&market, "kind", &[]);
                 let isSpot: bool = kind.as_deref() == Some("spot");
@@ -3066,8 +3066,8 @@ impl Deribit {
         if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_626: bool = true;
-                while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_627: bool = true;
+                while { if !__for_first_627 { i += 1; } __for_first_627 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let marketBase: Option<String> = self.safe_string_k_opt(&market, "base", &[]);
                 if (code.is_some()) && (code != marketBase) {
@@ -3137,8 +3137,8 @@ impl Deribit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i += 1; } __for_first_627 = false; i < (result.len() as i64) } {
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (result.len() as i64) } {
             let ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, result.get(i as usize).cloned().unwrap_or(Value::Null), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
             let symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {
@@ -3430,8 +3430,8 @@ impl Deribit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (fees.len() as i64) } {
+            let mut __for_first_629: bool = true;
+            while { if !__for_first_629 { i += 1; } __for_first_629 = false; i < (fees.len() as i64) } {
             let feeEntry: crate::value::Dict = self.safe_dict_t(&fees, Value::Int(i));
             let instrumentType: Option<String> = self.safe_string_k_opt(&feeEntry, "instrument_type", &[]);
             if (instrumentType.as_deref() == Some("future")) {
@@ -3468,8 +3468,8 @@ impl Deribit {
         let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_629: bool = true;
-            while { if !__for_first_629 { i += 1; } __for_first_629 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_630: bool = true;
+            while { if !__for_first_630 { i += 1; } __for_first_630 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut fee: crate::value::Dict = std::sync::Arc::new({
@@ -4658,8 +4658,8 @@ impl Deribit {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i += 1; } __for_first_630 = false; i < (volatilityResult.len() as i64) } {
+            let mut __for_first_631: bool = true;
+            while { if !__for_first_631 { i += 1; } __for_first_631 = false; i < (volatilityResult.len() as i64) } {
             let timestamp: Option<i64> = self.safe_integer(volatilityResult.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_i64();
             let volatilityObj: Option<f64> = self.safe_number(volatilityResult.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]).as_f64();
             result.push(Value::Map({
@@ -5089,8 +5089,8 @@ impl Deribit {
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_631: bool = true;
-            while { if !__for_first_631 { i += 1; } __for_first_631 = false; i < (result.len() as i64) } {
+            let mut __for_first_632: bool = true;
+            while { if !__for_first_632 { i += 1; } __for_first_632 = false; i < (result.len() as i64) } {
             let fr: Option<crate::value::Dict> = self.safe_dict_o(&result, Value::Int(i));
             let rate: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &fr, Some(&market)).into_dict();
             rates.push(Value::Dict(rate));

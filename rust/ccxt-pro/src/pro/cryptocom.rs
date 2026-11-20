@@ -2094,7 +2094,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("user.position_balance".to_string(), Value::Str("handle_positions".into()));
             m
         });
-        let result: Value = self.safe_value2(message, Value::Str("result".into()), Value::Str("info".into()), &[]);
+        let result: Value = self.safe_dict2(message, Value::Str("result".into()), Value::Str("info".into()), &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]);
         let channel: Option<String> = self.safe_string_k_opt(&result, "channel", &[]);
         if (channel.is_some()) && channel.as_deref().unwrap_or_default().contains("user.trade") {
             // channel might be user.trade.BTC_USDT

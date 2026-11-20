@@ -1956,16 +1956,20 @@ impl Apex {
             if (self.markets.is_some()) && (matches!((&self.markets, &Value::from(marketId)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 marketResolved = (if let (Some(__m), Some(__k)) = (self.markets.as_deref(), marketId) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }  else if (self.markets_by_id.is_some()) && (matches!((&self.markets_by_id, &Value::from(marketId)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                marketResolved = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_deref(), marketId) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                marketResolved = self.safe_dict((if let (Some(__m), Some(__k)) = (self.markets_by_id.as_deref(), marketId) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Int(0), &[]);
             }  else {
                 let newMarketId: Option<String> = self.add_hyphen_before_usdt(marketId.unwrap_or_default());
                 if (self.markets_by_id.is_some()) && (matches!((&self.markets_by_id, newMarketId.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                     let markets: Value = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_deref(), newMarketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-                    let numMarkets: i64 = get_array_length(&markets).as_i64().unwrap_or_default();
-                    if numMarkets > 0 {
-                        if is_equal(&crate::value::get_value_k(&get_value(&markets, &Value::Int(0)), "id2"), &Value::from(marketId)) {
-                            marketResolved = get_value(&markets, &Value::Int(0));
+                    let numMarkets: i64 = markets.len() as i64;
+                    {
+                                                let mut i: i64 = 0;
+                        let mut __for_first_227: bool = true;
+                        while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < numMarkets } {
+                        if (i == 0) && (markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null).as_str() == marketId) {
+                            marketResolved = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                         }
+                    }
                     }
                 }
             }
@@ -2213,8 +2217,8 @@ impl Apex {
         let numAssets: i64 = assets.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_227: bool = true;
-            while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < numAssets } {
+            let mut __for_first_228: bool = true;
+            while { if !__for_first_228 { i += 1; } __for_first_228 = false; i < numAssets } {
             let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             if (self.safe_string_k(&asset, "token", &[Value::Str("".into())]).as_str() == code.as_str()) {
                 currency = Value::Dict(asset);

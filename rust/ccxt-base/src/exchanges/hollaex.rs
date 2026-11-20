@@ -264,8 +264,8 @@ impl crate::exchange::DerivedExchange for Hollaex {
         let currencyIds: Vec<Value> = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_767: bool = true;
-            while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_768: bool = true;
+            while { if !__for_first_768 { i += 1; } __for_first_768 = false; i < (currencyIds.len() as i64) } {
             let currencyId: String = self.safe_string(&currencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let code: Option<String> = self.safe_currency_code(Some(currencyId.as_str()), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -333,8 +333,8 @@ impl crate::exchange::DerivedExchange for Hollaex {
         let networkIds: Vec<Value> = Value::Array(rawNetworks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_763: bool = true;
-            while { if !__for_first_763 { j += 1; } __for_first_763 = false; j < (networkIds.len() as i64) } {
+            let mut __for_first_764: bool = true;
+            while { if !__for_first_764 { j += 1; } __for_first_764 = false; j < (networkIds.len() as i64) } {
             let networkId: Option<&str> = networkIds.get(j as usize).and_then(Value::as_str);
             let mut networkEntry: Option<crate::value::Dict> = self.safe_dict_o(&rawNetworks, Value::from(networkId.as_deref()));
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -573,8 +573,8 @@ impl crate::exchange::DerivedExchange for Hollaex {
             let keysLength: i64 = keys.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_768: bool = true;
-                while { if !__for_first_768 { i += 1; } __for_first_768 = false; i < keysLength } {
+                let mut __for_first_769: bool = true;
+                while { if !__for_first_769 { i += 1; } __for_first_769 = false; i < keysLength } {
                 let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let value: crate::value::Dict = self.safe_dict_t(&withdrawalFees, Value::from(key.as_deref()));
                 let currencyId: Option<String> = self.safe_string_k_opt(&value, "symbol", &[]);
@@ -1292,8 +1292,8 @@ impl Hollaex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_762: bool = true;
-            while { if !__for_first_762 { i += 1; } __for_first_762 = false; i < (keys.len() as i64) } {
+            let mut __for_first_763: bool = true;
+            while { if !__for_first_763 { i += 1; } __for_first_763 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut market: Option<crate::value::Dict> = self.safe_dict_o(&pairs, Value::from(key.as_deref()));
             let baseId: Option<String> = self.safe_string_k_opt(&market, "pair_base", &[]);
@@ -1501,8 +1501,8 @@ impl Hollaex {
         let marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_764: bool = true;
-            while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_765: bool = true;
+            while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let orderbook: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
@@ -1654,8 +1654,8 @@ impl Hollaex {
         let mut keys: Vec<&str> = tickers.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_765: bool = true;
-            while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < (keys.len() as i64) } {
+            let mut __for_first_766: bool = true;
+            while { if !__for_first_766 { i += 1; } __for_first_766 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).copied();
             let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::from(key.as_deref()));
             let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[&Value::from(key.as_deref())]);
@@ -1787,8 +1787,8 @@ impl Hollaex {
         let symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_766: bool = true;
-            while { if !__for_first_766 { i += 1; } __for_first_766 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_767: bool = true;
+            while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let makerString: Option<String> = self.safe_string_opt(&makerFees, Value::from((market).id.as_deref()), &[]);

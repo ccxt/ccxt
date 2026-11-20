@@ -2595,8 +2595,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let result: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_496: bool = true;
-            while { if !__for_first_496 { i += 1; } __for_first_496 = false; i < (result.len() as i64) } {
+            let mut __for_first_497: bool = true;
+            while { if !__for_first_497 { i += 1; } __for_first_497 = false; i < (result.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let datetime: Option<String> = self.safe_string_k_opt(&entry, "updatedAtDatetime", &[]);
             rates.push(Value::Map({
@@ -3435,8 +3435,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let accounts: crate::value::List = self.to_array_t(&response);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_497: bool = true;
-                while { if !__for_first_497 { i += 1; } __for_first_497 = false; i < (accounts.len() as i64) } {
+                let mut __for_first_498: bool = true;
+                while { if !__for_first_498 { i += 1; } __for_first_498 = false; i < (accounts.len() as i64) } {
                 let account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
                 let name: Option<String> = self.safe_string_k_opt(&account, "tradingAccountName", &[]);
                 if (name.as_deref() == Some("Primary Account")) {
@@ -3542,8 +3542,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (network.is_some()) {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_498: bool = true;
-                    while { if !__for_first_498 { i += 1; } __for_first_498 = false; i < (safeResponse.len() as i64) } {
+                    let mut __for_first_499: bool = true;
+                    while { if !__for_first_499 { i += 1; } __for_first_499 = false; i < (safeResponse.len() as i64) } {
                     let entry: crate::value::Dict = self.safe_dict_t(&safeResponse, Value::Int(i));
                     let networkId: Option<String> = self.safe_string_k_opt(&entry, "network", &[]);
                     let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_text().as_deref());
@@ -3637,8 +3637,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let rows: crate::value::List = self.to_array_t(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_499: bool = true;
-            while { if !__for_first_499 { i += 1; } __for_first_499 = false; i < (rows.len() as i64) } {
+            let mut __for_first_500: bool = true;
+            while { if !__for_first_500 { i += 1; } __for_first_500 = false; i < (rows.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&balance, "assetSymbol", &[]);
             let code: Option<String> = self.safe_currency_code(symbol.as_deref(), None);

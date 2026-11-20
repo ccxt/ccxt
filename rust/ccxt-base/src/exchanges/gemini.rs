@@ -479,8 +479,8 @@ impl crate::exchange::DerivedExchange for Gemini {
                 let quoteCurrencies: Value = self.handle_option(Value::Str("fetchMarketsFromAPI".into()), Value::Str("quoteCurrencies".into()), &[Value::from(vec![])]);
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_721: bool = true;
-                    while { if !__for_first_721 { i += 1; } __for_first_721 = false; (i as f64) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_722: bool = true;
+                    while { if !__for_first_722 { i += 1; } __for_first_722 = false; (i as f64) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
                     let mut quoteCurrency: String = self.safe_string(&quoteCurrencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     if ((if let (Some(__h), Some(__n)) = (marketIdWithoutPerp.as_deref(), Some(quoteCurrency.as_str())) { __h.ends_with(__n) } else { false })) {
                         let quoteLength: Option<i64> = self.parse_to_int(Value::Int((-1 * ((quoteCurrency.chars().count() as i64)))));
@@ -1997,8 +1997,8 @@ impl Gemini {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 1;
-            let mut __for_first_714: bool = true;
-            while { if !__for_first_714 { i += 1; } __for_first_714 = false; i < numRows } {
+            let mut __for_first_715: bool = true;
+            while { if !__for_first_715 { i += 1; } __for_first_715 = false; i < numRows } {
             let row: Option<String> = rows.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let cells: crate::value::List = crate::value::List::new(if let Some(__s) = row.as_deref() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }); // eslint-disable-line quotes
             let numCells: i64 = cells.len() as i64;
@@ -2139,8 +2139,8 @@ impl Gemini {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_715: bool = true;
-            while { if !__for_first_715 { i += 1; } __for_first_715 = false; i < (fetchUsdtMarkets.len() as i64) } {
+            let mut __for_first_716: bool = true;
+            while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (fetchUsdtMarkets.len() as i64) } {
             let marketId: Option<String> = fetchUsdtMarkets.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2184,8 +2184,8 @@ impl Gemini {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_716: bool = true;
-            while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (allMarketIds.len() as i64) } {
+            let mut __for_first_717: bool = true;
+            while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (allMarketIds.len() as i64) } {
             if !self.in_array(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
                 marketIds.push(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null));
             }
@@ -2195,8 +2195,8 @@ impl Gemini {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_717: bool = true;
-                while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (marketIds.len() as i64) } {
+                let mut __for_first_718: bool = true;
+                while { if !__for_first_718 { i += 1; } __for_first_718 = false; i < (marketIds.len() as i64) } {
                 let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                 let request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -2210,8 +2210,8 @@ impl Gemini {
             let responses: Vec<Value> = promise_all(&Value::from(promises)).await.to_vec();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_718: bool = true;
-                while { if !__for_first_718 { i += 1; } __for_first_718 = false; i < (responses.len() as i64) } {
+                let mut __for_first_719: bool = true;
+                while { if !__for_first_719 { i += 1; } __for_first_719 = false; i < (responses.len() as i64) } {
                 let parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, responses.get(i as usize).cloned().unwrap_or(Value::Null));
                 if (parsed != Value::Null) {
                     result.push(parsed.clone());
@@ -2225,8 +2225,8 @@ impl Gemini {
                 let indexedTradingPairs: crate::value::Dict = self.index_by(tradingPairs.map_or(Value::Null, Value::Arr), Value::Int(0));
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_719: bool = true;
-                    while { if !__for_first_719 { i += 1; } __for_first_719 = false; i < (marketIds.len() as i64) } {
+                    let mut __for_first_720: bool = true;
+                    while { if !__for_first_720 { i += 1; } __for_first_720 = false; i < (marketIds.len() as i64) } {
                     let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                     let mut pairInfo: Option<crate::value::List> = self.safe_list_o(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
                     if (pairInfo.is_some()) && !self.in_array(Value::from(marketId.as_deref()), Value::from(&brokenPairs)) {
@@ -2240,8 +2240,8 @@ impl Gemini {
             }  else {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_720: bool = true;
-                    while { if !__for_first_720 { i += 1; } __for_first_720 = false; i < (marketIds.len() as i64) } {
+                    let mut __for_first_721: bool = true;
+                    while { if !__for_first_721 { i += 1; } __for_first_721 = false; i < (marketIds.len() as i64) } {
                     if !self.in_array(marketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
                         let parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, marketIds.get(i as usize).cloned().unwrap_or(Value::Null));
                         if (parsed != Value::Null) {
@@ -2503,8 +2503,8 @@ impl Gemini {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_722: bool = true;
-            while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (response.len() as i64) } {
+            let mut __for_first_723: bool = true;
+            while { if !__for_first_723 { i += 1; } __for_first_723 = false; i < (response.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -2584,8 +2584,8 @@ impl Gemini {
         let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_723: bool = true;
-            while { if !__for_first_723 { i += 1; } __for_first_723 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_724: bool = true;
+            while { if !__for_first_724 { i += 1; } __for_first_724 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

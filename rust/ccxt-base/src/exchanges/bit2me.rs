@@ -1296,8 +1296,8 @@ impl Bit2me {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (ids.len() as i64) } {
+            let mut __for_first_336: bool = true;
+            while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < (ids.len() as i64) } {
             let id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::from(id.as_deref()));
             let assetSettings: crate::value::Dict = self.safe_dict_t(&settingsById, Value::from(id.as_deref()));
@@ -1492,8 +1492,8 @@ impl Bit2me {
         let length: i64 = response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_336: bool = true;
-            while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < length } {
+            let mut __for_first_337: bool = true;
+            while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < length } {
             reversed.push(response.as_deref().map(Vec::as_slice).unwrap_or_default().get(((length - 1) - i) as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1605,8 +1605,8 @@ impl Bit2me {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_337: bool = true;
-            while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (response.len() as i64) } {
+            let mut __for_first_338: bool = true;
+            while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (response.len() as i64) } {
             let wallet: crate::value::Dict = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let currencyId: Option<String> = self.safe_string_k_opt(&wallet, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);

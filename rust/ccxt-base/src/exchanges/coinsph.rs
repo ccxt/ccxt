@@ -351,8 +351,8 @@ impl crate::exchange::DerivedExchange for Coinsph {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_581: bool = true;
-            while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (balances.len() as i64) } {
+            let mut __for_first_582: bool = true;
+            while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -403,8 +403,8 @@ impl crate::exchange::DerivedExchange for Coinsph {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { j += 1; } __for_first_576 = false; j < (networkList.len() as i64) } {
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { j += 1; } __for_first_577 = false; j < (networkList.len() as i64) } {
             let networkItem: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
             let network: Option<String> = self.safe_string_k_opt(&networkItem, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(network.as_deref(), code.as_deref());
@@ -1674,8 +1674,8 @@ impl Coinsph {
             let byNumberOfSymbols: crate::value::List = config.key_list("byNumberOfSymbols");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_577: bool = true;
-                while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (byNumberOfSymbols.len() as i64) } {
+                let mut __for_first_578: bool = true;
+                while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (byNumberOfSymbols.len() as i64) } {
                 let entry: crate::value::List = byNumberOfSymbols.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
                 let threshold: Option<i64> = self.safe_integer(&entry, Value::Int(0), &[]).as_i64();
                 if (threshold.is_some()) && (threshold.is_some() && Some(symbolsAmount) >= threshold) {
@@ -1687,8 +1687,8 @@ impl Coinsph {
             let byLimit: crate::value::List = config.key_list("byLimit");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_578: bool = true;
-                while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_579: bool = true;
+                while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (byLimit.len() as i64) } {
                 let entry: crate::value::List = byLimit.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
                 let threshold: Option<i64> = self.safe_integer(&entry, Value::Int(0), &[]).as_i64();
                 if (threshold.is_some()) && (limit.is_some() && threshold.is_some() && limit >= threshold) {
@@ -1840,8 +1840,8 @@ impl Coinsph {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_579: bool = true;
-            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (markets.len() as i64) } {
+            let mut __for_first_580: bool = true;
+            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
@@ -1961,8 +1961,8 @@ impl Coinsph {
             let mut ids: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_580: bool = true;
-                while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_581: bool = true;
+                while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (symbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let id: Option<String> = (market).id.as_deref().map(str::to_owned);
                 std::sync::Arc::make_mut(&mut ids).push(id.map(Value::from).unwrap_or(Value::Null));
@@ -2862,8 +2862,8 @@ impl Coinsph {
         let fees: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (fees.len() as i64) } {
+            let mut __for_first_583: bool = true;
+            while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (fees.len() as i64) } {
             let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None));
             let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {
@@ -3134,8 +3134,8 @@ impl Coinsph {
         let mut keys: Vec<&str> = query.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_583: bool = true;
-            while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (keys.len() as i64) } {
+            let mut __for_first_584: bool = true;
+            while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).copied();
             if (matches!(&(if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Arr(_))) {
                 if (i != 0) {

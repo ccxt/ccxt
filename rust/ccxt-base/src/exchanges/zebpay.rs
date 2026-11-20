@@ -242,8 +242,8 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let currencyList: crate::value::List = self.safe_list_k_t(response, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1213: bool = true;
-            while { if !__for_first_1213 { i += 1; } __for_first_1213 = false; i < (currencyList.len() as i64) } {
+            let mut __for_first_1214: bool = true;
+            while { if !__for_first_1214 { i += 1; } __for_first_1214 = false; i < (currencyList.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&currencyList, Value::Int(i));
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&entry, "total", &[]));
@@ -332,8 +332,8 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let mut withdraw: bool = false;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1209: bool = true;
-            while { if !__for_first_1209 { j += 1; } __for_first_1209 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1210: bool = true;
+            while { if !__for_first_1210 { j += 1; } __for_first_1210 = false; j < (chains.len() as i64) } {
             let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -1287,8 +1287,8 @@ impl Zebpay {
         let types: crate::value::List = self.safe_list_k_or(&fetchMarketsOptions, "types", defaultMarkets);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1208: bool = true;
-            while { if !__for_first_1208 { i += 1; } __for_first_1208 = false; i < (types.len() as i64) } {
+            let mut __for_first_1209: bool = true;
+            while { if !__for_first_1209 { i += 1; } __for_first_1209 = false; i < (types.len() as i64) } {
             let type_var: String = self.safe_string(&types, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (type_var == "spot") {
                 promisesUnresolved.push(self.fetch_spot_markets(&[params.clone()]).await);
@@ -1493,8 +1493,8 @@ impl Zebpay {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1210: bool = true;
-            while { if !__for_first_1210 { i += 1; } __for_first_1210 = false; i < (fees.len() as i64) } {
+            let mut __for_first_1211: bool = true;
+            while { if !__for_first_1211 { i += 1; } __for_first_1211 = false; i < (fees.len() as i64) } {
             let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None));
             let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {
@@ -2735,8 +2735,8 @@ impl Zebpay {
         let markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1211: bool = true;
-            while { if !__for_first_1211 { i += 1; } __for_first_1211 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1212: bool = true;
+            while { if !__for_first_1212 { i += 1; } __for_first_1212 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
@@ -2839,8 +2839,8 @@ impl Zebpay {
         let markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1212: bool = true;
-            while { if !__for_first_1212 { i += 1; } __for_first_1212 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1213: bool = true;
+            while { if !__for_first_1213 { i += 1; } __for_first_1213 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);

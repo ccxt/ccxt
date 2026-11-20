@@ -382,8 +382,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut contracts: Option<f64> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_758: bool = true;
-            while { if !__for_first_758 { i += 1; } __for_first_758 = false; i < (positions.len() as i64) } {
+            let mut __for_first_759: bool = true;
+            while { if !__for_first_759 { i += 1; } __for_first_759 = false; i < (positions.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             liquidationPrice = self.safe_number_k(&entry, "price_liquidation", &[]).as_f64();
             entryPrice = self.safe_number_k(&entry, "price_entry", &[]).as_f64();
@@ -394,8 +394,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut collateral: Option<f64> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_759: bool = true;
-            while { if !__for_first_759 { i += 1; } __for_first_759 = false; i < (currencies.len() as i64) } {
+            let mut __for_first_760: bool = true;
+            while { if !__for_first_760 { i += 1; } __for_first_760 = false; i < (currencies.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&currencies, Value::Int(i));
             collateral = self.safe_number_k(&entry, "margin_balance", &[]).as_f64();
         }
@@ -510,8 +510,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_747: bool = true;
-            while { if !__for_first_747 { j += 1; } __for_first_747 = false; j < (rawNetworks.len() as i64) } {
+            let mut __for_first_748: bool = true;
+            while { if !__for_first_748 { j += 1; } __for_first_748 = false; j < (rawNetworks.len() as i64) } {
             let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(j));
             let networkId: Option<String> = self.safe_string2_opt(&rawNetwork, Value::Str("protocol".into()), Value::Str("network".into()), &[]);
             let rawNetworkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -804,8 +804,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_761: bool = true;
-            while { if !__for_first_761 { j += 1; } __for_first_761 = false; j < (networks.len() as i64) } {
+            let mut __for_first_762: bool = true;
+            while { if !__for_first_762 { j += 1; } __for_first_762 = false; j < (networks.len() as i64) } {
             let networkEntry: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "network", &[]);
             let code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
@@ -2237,8 +2237,8 @@ impl Hitbtc {
         let ids: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_746: bool = true;
-            while { if !__for_first_746 { i += 1; } __for_first_746 = false; i < (ids.len() as i64) } {
+            let mut __for_first_747: bool = true;
+            while { if !__for_first_747 { i += 1; } __for_first_747 = false; i < (ids.len() as i64) } {
             let id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             if (id.as_deref().unwrap_or_default().ends_with("_BQX")) {
                 continue;
@@ -2564,8 +2564,8 @@ impl Hitbtc {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_748: bool = true;
-            while { if !__for_first_748 { i += 1; } __for_first_748 = false; i < (response.len() as i64) } {
+            let mut __for_first_749: bool = true;
+            while { if !__for_first_749 { i += 1; } __for_first_749 = false; i < (response.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -2715,8 +2715,8 @@ impl Hitbtc {
         let mut keys: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_749: bool = true;
-            while { if !__for_first_749 { i += 1; } __for_first_749 = false; i < (keys.len() as i64) } {
+            let mut __for_first_750: bool = true;
+            while { if !__for_first_750 { i += 1; } __for_first_750 = false; i < (keys.len() as i64) } {
             let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
@@ -2781,8 +2781,8 @@ impl Hitbtc {
         let marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_750: bool = true;
-            while { if !__for_first_750 { i += 1; } __for_first_750 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_751: bool = true;
+            while { if !__for_first_751 { i += 1; } __for_first_751 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let marketInner: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let rawTrades: crate::value::List = self.safe_list_t(&response, marketId.map(Value::from).unwrap_or(Value::Null));
@@ -3065,8 +3065,8 @@ impl Hitbtc {
         let marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_751: bool = true;
-            while { if !__for_first_751 { i += 1; } __for_first_751 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_752: bool = true;
+            while { if !__for_first_752 { i += 1; } __for_first_752 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let orderbook: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
@@ -3241,8 +3241,8 @@ impl Hitbtc {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_752: bool = true;
-            while { if !__for_first_752 { i += 1; } __for_first_752 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_753: bool = true;
+            while { if !__for_first_753 { i += 1; } __for_first_753 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3439,8 +3439,8 @@ impl Hitbtc {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_753: bool = true;
-            while { if !__for_first_753 { i += 1; } __for_first_753 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_754: bool = true;
+            while { if !__for_first_754 { i += 1; } __for_first_754 = false; i < (parsed.len() as i64) } {
             let status: Option<String> = self.safe_string_k_opt(parsed.get(i as usize).cloned().unwrap_or(Value::Null), "status", &[]);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
                 result.push(parsed.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -4380,8 +4380,8 @@ impl Hitbtc {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_754: bool = true;
-            while { if !__for_first_754 { i += 1; } __for_first_754 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_755: bool = true;
+            while { if !__for_first_755 { i += 1; } __for_first_755 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<String> = self.safe_string_opt(&marketIds, Value::Int(i), &[]);
             if (marketId.is_none()) {
                 continue;
@@ -4472,15 +4472,15 @@ impl Hitbtc {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_756: bool = true;
-            while { if !__for_first_756 { i += 1; } __for_first_756 = false; i < (contracts.len() as i64) } {
+            let mut __for_first_757: bool = true;
+            while { if !__for_first_757 { i += 1; } __for_first_757 = false; i < (contracts.len() as i64) } {
             let marketId: Option<&str> = contracts.get(i as usize).and_then(Value::as_str);
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let fundingRateData: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_755: bool = true;
-                while { if !__for_first_755 { j += 1; } __for_first_755 = false; j < (fundingRateData.len() as i64) } {
+                let mut __for_first_756: bool = true;
+                while { if !__for_first_756 { j += 1; } __for_first_756 = false; j < (fundingRateData.len() as i64) } {
                 let entry: crate::value::Dict = self.safe_dict_t(&fundingRateData, Value::Int(j));
                 let symbolInner: Option<String> = self.safe_symbol((crate::value::KeyRead::key_read(&&marketInner, "symbol")).as_str(), None, &[]).as_str().map(str::to_owned);
                 let fundingRate: Option<f64> = self.safe_number_k(&entry, "funding_rate", &[]).as_f64();
@@ -4595,8 +4595,8 @@ impl Hitbtc {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_757: bool = true;
-            while { if !__for_first_757 { i += 1; } __for_first_757 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_758: bool = true;
+            while { if !__for_first_758 { i += 1; } __for_first_758 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4725,8 +4725,8 @@ impl Hitbtc {
         let markets: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_760: bool = true;
-            while { if !__for_first_760 { i += 1; } __for_first_760 = false; i < (markets.len() as i64) } {
+            let mut __for_first_761: bool = true;
+            while { if !__for_first_761 { i += 1; } __for_first_761 = false; i < (markets.len() as i64) } {
             let marketId: Option<&str> = markets.get(i as usize).and_then(Value::as_str);
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let openInterest: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));

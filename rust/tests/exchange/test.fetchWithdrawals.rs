@@ -16,8 +16,8 @@ pub async fn testFetchWithdrawals(mut exchange: Value, mut skippedProperties: Va
     let now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1605: bool = true;
-        while { if !__for_first_1605 { i += 1; } __for_first_1605 = false; i < (transactions.len() as i64) } {
+        let mut __for_first_1606: bool = true;
+        while { if !__for_first_1606 { i += 1; } __for_first_1606 = false; i < (transactions.len() as i64) } {
         testDepositWithdrawal(exchange.clone(), skippedProperties.clone(), method.clone(), transactions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone(), now.clone());
     }
     }

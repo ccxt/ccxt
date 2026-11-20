@@ -387,8 +387,8 @@ impl crate::exchange::DerivedExchange for Independentreserve {
             let mut keys: Vec<Value> = Value::Array(paramsDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_839: bool = true;
-                while { if !__for_first_839 { i += 1; } __for_first_839 = false; i < (keys.len() as i64) } {
+                let mut __for_first_840: bool = true;
+                while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (keys.len() as i64) } {
                 let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let value: String = self.safe_string(&paramsDict, Value::from(key.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 auth.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), value).into()));
@@ -405,8 +405,8 @@ impl crate::exchange::DerivedExchange for Independentreserve {
             query.insert("signature".into(), Value::from(signature.to_uppercase()));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_840: bool = true;
-                while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (keys.len() as i64) } {
+                let mut __for_first_841: bool = true;
+                while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (keys.len() as i64) } {
                 let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 query.insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&paramsDict, &Value::from(key)));
             }
@@ -1068,15 +1068,15 @@ impl Independentreserve {
         let quoteCurrencyIds: crate::value::List = self.to_array_t(self.safe_list(&responses, Value::Int(1), &[]));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_835: bool = true;
-            while { if !__for_first_835 { i += 1; } __for_first_835 = false; i < (baseCurrencyIds.len() as i64) } {
+            let mut __for_first_836: bool = true;
+            while { if !__for_first_836 { i += 1; } __for_first_836 = false; i < (baseCurrencyIds.len() as i64) } {
             let baseId: String = self.safe_string(&baseCurrencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let base: Option<String> = self.safe_currency_code(Some(baseId.as_str()), None);
             let minAmount: Option<f64> = self.safe_number(&limits, Value::from(baseId.clone()), &[]).as_f64();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_834: bool = true;
-                while { if !__for_first_834 { j += 1; } __for_first_834 = false; j < (quoteCurrencyIds.len() as i64) } {
+                let mut __for_first_835: bool = true;
+                while { if !__for_first_835 { j += 1; } __for_first_835 = false; j < (quoteCurrencyIds.len() as i64) } {
                 let quoteId: String = self.safe_string(&quoteCurrencyIds, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let quote: Option<String> = self.safe_currency_code(Some(quoteId.as_str()), None);
                 if (base.is_none()) || (quote.is_none()) {
@@ -1170,8 +1170,8 @@ impl Independentreserve {
         let accounts: crate::value::List = self.to_array_t(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_836: bool = true;
-            while { if !__for_first_836 { i += 1; } __for_first_836 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_837: bool = true;
+            while { if !__for_first_837 { i += 1; } __for_first_837 = false; i < (accounts.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "CurrencyCode", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1581,8 +1581,8 @@ impl Independentreserve {
         let rows: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_837: bool = true;
-            while { if !__for_first_837 { i += 1; } __for_first_837 = false; i < (rows.len() as i64) } {
+            let mut __for_first_838: bool = true;
+            while { if !__for_first_838 { i += 1; } __for_first_838 = false; i < (rows.len() as i64) } {
             let mut fee: Option<crate::value::Dict> = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             let currencyId: Option<String> = self.safe_string_k_opt(&fee, "CurrencyCode", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1604,8 +1604,8 @@ impl Independentreserve {
         let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_838: bool = true;
-            while { if !__for_first_838 { i += 1; } __for_first_838 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_839: bool = true;
+            while { if !__for_first_839 { i += 1; } __for_first_839 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let fee: crate::value::Dict = self.safe_dict_t(&fees, Value::from((market).base.clone()));

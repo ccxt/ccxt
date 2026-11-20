@@ -1740,8 +1740,8 @@ impl Dydx {
         let rows: crate::value::List = self.safe_list_k_t(&response, "historicalFunding");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_661: bool = true;
-            while { if !__for_first_661 { i += 1; } __for_first_661 = false; i < (rows.len() as i64) } {
+            let mut __for_first_662: bool = true;
+            while { if !__for_first_662 { i += 1; } __for_first_662 = false; i < (rows.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&entry, "effectiveAt", &[]));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "ticker", &[]);
@@ -2241,8 +2241,8 @@ impl Dydx {
         let mut c: Option<i64> = self.parse_to_int(m);
         {
                         let mut i: i64 = 1;
-            let mut __for_first_662: bool = true;
-            while { if !__for_first_662 { i += 1; } __for_first_662 = false; matches!(c, Some(__b) if (i as f64) < (__b as f64)) } {
+            let mut __for_first_663: bool = true;
+            while { if !__for_first_663 { i += 1; } __for_first_663 = false; matches!(c, Some(__b) if (i as f64) < (__b as f64)) } {
             r = crate::precise::Precise::stringMul(&r, &Value::from(n)).as_str().map(str::to_owned);
         }
         }
@@ -3445,8 +3445,8 @@ impl Dydx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { i += 1; } __for_first_663 = false; i < (rows.len() as i64) } {
+            let mut __for_first_664: bool = true;
+            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (rows.len() as i64) } {
             let account: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let accountId: Option<String> = self.safe_string_k_opt(&account, "subaccountNumber", &[]);
             result.push(Value::Map({

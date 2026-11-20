@@ -654,8 +654,8 @@ if _try_result.is_err() {
         let chainsLength: i64 = chains.len() as i64;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_892: bool = true;
-            while { if !__for_first_892 { j += 1; } __for_first_892 = false; j < chainsLength } {
+            let mut __for_first_893: bool = true;
+            while { if !__for_first_893 { j += 1; } __for_first_893 = false; j < chainsLength } {
             let chain: Option<crate::value::Dict> = self.safe_dict_o(&chains, Value::Int(j));
             let chainId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
             let networkCode: Option<String> = self.network_id_to_code(chainId.as_deref(), code.as_deref());
@@ -1228,8 +1228,8 @@ if _try_result.is_err() {
         let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_911: bool = true;
-            while { if !__for_first_911 { i += 1; } __for_first_911 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_912: bool = true;
+            while { if !__for_first_912 { i += 1; } __for_first_912 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let tier: crate::value::Dict = self.safe_dict_t(&info, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&tier, "symbol", &[]);
             let tierMarket: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketCursor.clone()).as_ref(), &[]));
@@ -1299,8 +1299,8 @@ if _try_result.is_err() {
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_894: bool = true;
-                while { if !__for_first_894 { i += 1; } __for_first_894 = false; i < (chains.len() as i64) } {
+                let mut __for_first_895: bool = true;
+                while { if !__for_first_895 { i += 1; } __for_first_895 = false; i < (chains.len() as i64) } {
                 let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(i));
                 let chainId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
                 let networkCodeNew: Option<String> = self.network_id_to_code(chainId.as_deref(), self.safe_string_k(&currency, "code", &[]).as_str());
@@ -4959,8 +4959,8 @@ impl Kucoin {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_889: bool = true;
-            while { if !__for_first_889 { i += 1; } __for_first_889 = false; i < (symbolsData.len() as i64) } {
+            let mut __for_first_890: bool = true;
+            while { if !__for_first_890 { i += 1; } __for_first_890 = false; i < (symbolsData.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&symbolsData, Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             if (id.is_none()) {
@@ -5139,8 +5139,8 @@ impl Kucoin {
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_890: bool = true;
-            while { if !__for_first_890 { i += 1; } __for_first_890 = false; i < (data.len() as i64) } {
+            let mut __for_first_891: bool = true;
+            while { if !__for_first_891 { i += 1; } __for_first_891 = false; i < (data.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let expiry: Option<i64> = self.safe_integer_k(&market, "expireDate", &[]).as_i64();
@@ -5348,8 +5348,8 @@ impl Kucoin {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_891: bool = true;
-            while { if !__for_first_891 { i += 1; } __for_first_891 = false; i < (symbolsData.len() as i64) } {
+            let mut __for_first_892: bool = true;
+            while { if !__for_first_892 { i += 1; } __for_first_892 = false; i < (symbolsData.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&symbolsData, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
@@ -5669,8 +5669,8 @@ impl Kucoin {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_893: bool = true;
-            while { if !__for_first_893 { i += 1; } __for_first_893 = false; i < (data.len() as i64) } {
+            let mut __for_first_894: bool = true;
+            while { if !__for_first_894 { i += 1; } __for_first_894 = false; i < (data.len() as i64) } {
             let account: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let accountId: Option<String> = self.safe_string_k_opt(&account, "id", &[]);
             let currencyId: Option<String> = self.safe_string_k_opt(&account, "currency", &[]);
@@ -6189,8 +6189,8 @@ impl Kucoin {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_895: bool = true;
-            while { if !__for_first_895 { i += 1; } __for_first_895 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_896: bool = true;
+            while { if !__for_first_896 { i += 1; } __for_first_896 = false; i < (tickers.len() as i64) } {
             add_element_to_object(get_value_mut(&mut tickers, &Value::Int(i)), &Value::Str("time".into()), Value::from(time));
             let ticker: crate::value::Dict = self.parse_spot_or_uta_ticker(tickers.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
@@ -8157,8 +8157,8 @@ impl Kucoin {
         let ordersList: crate::value::List = self.to_array_t(orders.clone());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_896: bool = true;
-            while { if !__for_first_896 { i += 1; } __for_first_896 = false; i < (ordersList.len() as i64) } {
+            let mut __for_first_897: bool = true;
+            while { if !__for_first_897 { i += 1; } __for_first_897 = false; i < (ordersList.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&ordersList, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             if (symbol.is_none()) {
@@ -8217,8 +8217,8 @@ impl Kucoin {
         let ordersList: crate::value::List = self.to_array_t(orders);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_897: bool = true;
-            while { if !__for_first_897 { i += 1; } __for_first_897 = false; i < (ordersList.len() as i64) } {
+            let mut __for_first_898: bool = true;
+            while { if !__for_first_898 { i += 1; } __for_first_898 = false; i < (ordersList.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&ordersList, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (marketId.is_none()) {
@@ -8336,8 +8336,8 @@ impl Kucoin {
         let ordersList: crate::value::List = self.to_array_t(orders);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_898: bool = true;
-            while { if !__for_first_898 { i += 1; } __for_first_898 = false; i < (ordersList.len() as i64) } {
+            let mut __for_first_899: bool = true;
+            while { if !__for_first_899 { i += 1; } __for_first_899 = false; i < (ordersList.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&ordersList, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
@@ -12257,8 +12257,8 @@ impl Kucoin {
             let assets: crate::value::List = self.safe_list_k_t(&data, "assets");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_899: bool = true;
-                while { if !__for_first_899 { i += 1; } __for_first_899 = false; i < (assets.len() as i64) } {
+                let mut __for_first_900: bool = true;
+                while { if !__for_first_900 { i += 1; } __for_first_900 = false; i < (assets.len() as i64) } {
                 let entry: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
                 let base: crate::value::Dict = self.safe_dict_k_t(&entry, "baseAsset");
                 let quote: crate::value::Dict = self.safe_dict_k_t(&entry, "quoteAsset");
@@ -12277,8 +12277,8 @@ impl Kucoin {
             let accounts: crate::value::List = self.safe_list_k_t(&data, "accounts");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_900: bool = true;
-                while { if !__for_first_900 { i += 1; } __for_first_900 = false; i < (accounts.len() as i64) } {
+                let mut __for_first_901: bool = true;
+                while { if !__for_first_901 { i += 1; } __for_first_901 = false; i < (accounts.len() as i64) } {
                 let balance: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
                 let codeInner: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -12291,8 +12291,8 @@ impl Kucoin {
             let data: crate::value::List = self.safe_list_k_t(&response, "data");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_901: bool = true;
-                while { if !__for_first_901 { i += 1; } __for_first_901 = false; i < (data.len() as i64) } {
+                let mut __for_first_902: bool = true;
+                while { if !__for_first_902 { i += 1; } __for_first_902 = false; i < (data.len() as i64) } {
                 let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
                 let balanceType: Option<String> = self.safe_string_k_opt(&balance, "type", &[]);
                 if (balanceType == type_var) {
@@ -12505,14 +12505,14 @@ impl Kucoin {
         if isIsolated {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_903: bool = true;
-                while { if !__for_first_903 { i += 1; } __for_first_903 = false; i < (accounts.len() as i64) } {
+                let mut __for_first_904: bool = true;
+                while { if !__for_first_904 { i += 1; } __for_first_904 = false; i < (accounts.len() as i64) } {
                 let entry: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
                 let currencies: crate::value::List = self.safe_list_k_t(&entry, "currencies");
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_902: bool = true;
-                    while { if !__for_first_902 { j += 1; } __for_first_902 = false; j < (currencies.len() as i64) } {
+                    let mut __for_first_903: bool = true;
+                    while { if !__for_first_903 { j += 1; } __for_first_903 = false; j < (currencies.len() as i64) } {
                     let currencyEntry: crate::value::Dict = self.safe_dict_t(&currencies, Value::Int(j));
                     let currencyId: Option<String> = self.safe_string_k_opt(&currencyEntry, "currency", &[]);
                     let currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -12528,8 +12528,8 @@ impl Kucoin {
             let currencies: crate::value::List = self.safe_list_k_t(&firstAccount, "currencies");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_904: bool = true;
-                while { if !__for_first_904 { i += 1; } __for_first_904 = false; i < (currencies.len() as i64) } {
+                let mut __for_first_905: bool = true;
+                while { if !__for_first_905 { i += 1; } __for_first_905 = false; i < (currencies.len() as i64) } {
                 let currencyEntry: crate::value::Dict = self.safe_dict_t(&currencies, Value::Int(i));
                 let currencyId: Option<String> = self.safe_string_k_opt(&currencyEntry, "currency", &[]);
                 let currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -13409,8 +13409,8 @@ impl Kucoin {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_905: bool = true;
-            while { if !__for_first_905 { i += 1; } __for_first_905 = false; i < (response.len() as i64) } {
+            let mut __for_first_906: bool = true;
+            while { if !__for_first_906 { i += 1; } __for_first_906 = false; i < (response.len() as i64) } {
             let mut item: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::Int(i));
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&item, "currency", &[]).as_str(), None);
             if (code.is_some()) && ((codes == Value::Null) || self.in_array(&code, &codes)) {
@@ -13426,8 +13426,8 @@ impl Kucoin {
         let mut keys: Vec<Value> = Value::Array(borrowRateHistories.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_906: bool = true;
-            while { if !__for_first_906 { i += 1; } __for_first_906 = false; i < (keys.len() as i64) } {
+            let mut __for_first_907: bool = true;
+            while { if !__for_first_907 { i += 1; } __for_first_907 = false; i < (keys.len() as i64) } {
             let code: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             { let __be_tmp = Value::Arr(self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), code.as_deref(), since, limit, &[])); borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
         }
@@ -14176,8 +14176,8 @@ impl Kucoin {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_907: bool = true;
-            while { if !__for_first_907 { i += 1; } __for_first_907 = false; i < (data.len() as i64) } {
+            let mut __for_first_908: bool = true;
+            while { if !__for_first_908 { i += 1; } __for_first_908 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
@@ -14421,8 +14421,8 @@ impl Kucoin {
         let mut fees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_908: bool = true;
-            while { if !__for_first_908 { i += 1; } __for_first_908 = false; i < (dataList.len() as i64) } {
+            let mut __for_first_909: bool = true;
+            while { if !__for_first_909 { i += 1; } __for_first_909 = false; i < (dataList.len() as i64) } {
             let listItem: crate::value::Dict = self.safe_dict_t(&dataList, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer2(&listItem, Value::Str("timePoint".into()), Value::Str("settlementTime".into()), &[]).as_i64();
             let marketId: Option<String> = self.safe_string_k_opt(&listItem, "symbol", &[]);
@@ -14821,8 +14821,8 @@ impl Kucoin {
         let mut useClientorderId: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_909: bool = true;
-            while { if !__for_first_909 { i += 1; } __for_first_909 = false; i < (clientOrderIds.len() as i64) } {
+            let mut __for_first_910: bool = true;
+            while { if !__for_first_910 { i += 1; } __for_first_910 = false; i < (clientOrderIds.len() as i64) } {
             useClientorderId = true;
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")));
@@ -14837,8 +14837,8 @@ impl Kucoin {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_910: bool = true;
-            while { if !__for_first_910 { i += 1; } __for_first_910 = false; i < (ids.len() as i64) } {
+            let mut __for_first_911: bool = true;
+            while { if !__for_first_911 { i += 1; } __for_first_911 = false; i < (ids.len() as i64) } {
             let orderId: Option<String> = self.safe_string_opt(&ids, Value::Int(i), &[]);
             if uta {
                 std::sync::Arc::make_mut(&mut ordersRequests).push(Value::Map({
@@ -15444,8 +15444,8 @@ impl Kucoin {
         let tiers: Vec<Value> = <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &data, None).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_912: bool = true;
-            while { if !__for_first_912 { i += 1; } __for_first_912 = false; i < (tiers.len() as i64) } {
+            let mut __for_first_913: bool = true;
+            while { if !__for_first_913 { i += 1; } __for_first_913 = false; i < (tiers.len() as i64) } {
             let tier: Value = self.safe_dict(&tiers, Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(&tier, "symbol", &[]);
             if (symbol.is_some()) {

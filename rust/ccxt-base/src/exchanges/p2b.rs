@@ -366,8 +366,8 @@ impl crate::exchange::DerivedExchange for P2b {
         let mut keys: Vec<&str> = response.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (keys.len() as i64) } {
             let currencyId: Option<&str> = keys.get(i as usize).copied();
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::from(currencyId.as_deref()));
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1877,8 +1877,8 @@ impl P2b {
         let mut keys: Vec<Value> = Value::Array(result.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (keys.len() as i64) } {
             let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[&Value::from(sinceResolved), &Value::from(limit)]);

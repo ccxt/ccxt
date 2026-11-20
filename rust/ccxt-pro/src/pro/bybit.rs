@@ -2017,8 +2017,9 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.as_str())) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
+            symbolResolved = Some(self.symbol(symbol.as_str()));
             messageHash.push_str(&format!("{}{}", ":", symbolResolved.as_deref().unwrap_or("null")));
         }
         let url: Option<String> = self.get_url_by_market_type(symbolResolved.as_deref(), &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
@@ -2690,8 +2691,9 @@ impl Bybit {
         }
         let method: String = "watchOrders".to_string();
         let mut messageHash: String = "orders".to_string();
-        let symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.as_str())) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
+            symbolResolved = Some(self.symbol(symbol.as_str()));
             messageHash.push_str(&format!("{}{}", ":", symbolResolved.as_deref().unwrap_or("null")));
         }
         let url: Option<String> = self.get_url_by_market_type(symbolResolved.as_deref(), &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
@@ -3290,7 +3292,7 @@ impl Bybit {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_214: bool = true;
-                while { if !__for_first_214 { i += 1; } __for_first_214 = false; i < topicsLength } {
+                while { if !__for_first_214 { i += 1; } __for_first_214 = false; i < messageHashesLength } {
                 let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if !(client.has_subscription(messageHash.as_deref())) {
                     newTopics.push(topics.get(i as usize).cloned().unwrap_or(Value::Null));

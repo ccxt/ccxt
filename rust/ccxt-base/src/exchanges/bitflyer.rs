@@ -951,8 +951,8 @@ impl Bitflyer {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_365: bool = true;
-            while { if !__for_first_365 { i += 1; } __for_first_365 = false; i < (markets.len() as i64) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i += 1; } __for_first_366 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "product_code", &[]);
             let currencies: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
@@ -1099,8 +1099,8 @@ impl Bitflyer {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_366: bool = true;
-            while { if !__for_first_366 { i += 1; } __for_first_366 = false; i < (response.len() as i64) } {
+            let mut __for_first_367: bool = true;
+            while { if !__for_first_367 { i += 1; } __for_first_367 = false; i < (response.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency_code", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);

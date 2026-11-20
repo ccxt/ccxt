@@ -15,8 +15,8 @@ pub async fn testFetchMarketLeverageTiers(mut exchange: Value, mut skippedProper
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tiers.clone(), symbol]);
     {
                 let mut j: i64 = 0;
-        let mut __for_first_1585: bool = true;
-        while { if !__for_first_1585 { j += 1; } __for_first_1585 = false; j < (tiers.len() as i64) } {
+        let mut __for_first_1586: bool = true;
+        while { if !__for_first_1586 { j += 1; } __for_first_1586 = false; j < (tiers.len() as i64) } {
         testLeverageTier(exchange.clone(), skippedProperties.clone(), method.clone(), tiers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
     }
     }

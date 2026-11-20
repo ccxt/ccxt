@@ -133,8 +133,8 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())) != Value::Null))));
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1539: bool = true;
-        while { if !__for_first_1539 { i += 1; } __for_first_1539 = false; i < (keys.len() as i64) } {
+        let mut __for_first_1540: bool = true;
+        while { if !__for_first_1540 { i += 1; } __for_first_1540 = false; i < (keys.len() as i64) } {
         let key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())), &key);
         assert!(ccxt::runtime::is_true(&(Value::Bool(userAgent != Value::Null))));
