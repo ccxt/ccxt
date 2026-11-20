@@ -1249,7 +1249,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             'user.balance': self.handle_balance,
             'user.position_balance': self.handle_positions,
         }
-        result = self.safe_value_2(message, 'result', 'info')
+        result = self.safe_dict_2(message, 'result', 'info', {})
         channel = self.safe_string(result, 'channel')
         if (channel is not None) and channel.find('user.trade') > -1:
             # channel might be user.trade.BTC_USDT

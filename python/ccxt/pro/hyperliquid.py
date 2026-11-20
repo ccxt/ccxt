@@ -1229,10 +1229,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             account['used'] = self.safe_string(balance, 'hold')
             account['total'] = self.safe_string(balance, 'total')
         if accountType is not None:
-            if self.safe_value(self.balance, accountType) is None:
-                self.balance[accountType] = {}
-            if (accountType is not None) and (code is not None):
-                self.balance[accountType][code] = account
+            accountBalance = self.safe_dict(self.balance, accountType, {})
+            if code is not None:
+                accountBalance[code] = account
+            self.balance[accountType] = accountBalance
         else:
             if code is not None:
                 self.balance[code] = account

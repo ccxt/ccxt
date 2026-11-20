@@ -8993,7 +8993,7 @@ class bitget(Exchange, ImplicitAPI):
         productType = None
         uta = None
         response = None
-        result = None
+        result = []
         paramsProductType = None
         productType, paramsProductType = self.handle_product_type_and_params(market, params)
         uta, paramsProductType = await self.handle_uta_and_params(paramsProductType, 'fetchFundingRateHistory', False)

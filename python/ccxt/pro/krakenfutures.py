@@ -1383,6 +1383,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             self.balance['cash']['timestamp'] = timestamp
             self.balance['cash']['datetime'] = self.iso8601(timestamp)
             holdingCodes = {}
+            cashBalance = self.safe_dict(self.balance, 'cash', {})
             for i in range(0, len(holdingKeys)):
                 key = holdingKeys[i]
                 code = self.safe_currency_code(key)
@@ -1390,7 +1391,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 newAccount['total'] = self.safe_string(holding, key)
                 if code is not None:
                     holdingCodes[code] = True
-                    self.balance['cash'][code] = newAccount
+                    cashBalance[code] = newAccount
+            self.balance['cash'] = cashBalance
             self.balance['cash'] = self.prune_stale_balance_keys(self.balance['cash'], holdingCodes)
             self.balance['cash'] = self.safe_balance(self.balance['cash'])
             updatedBalance = self.balance['cash']
@@ -1401,6 +1403,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             self.balance['margin']['timestamp'] = timestamp
             self.balance['margin']['datetime'] = self.iso8601(timestamp)
             futuresSymbols = {}
+            marginBalance = self.safe_dict(self.balance, 'margin', {})
             for i in range(0, len(futuresKeys)):
                 key = futuresKeys[i]
                 symbol = self.safe_symbol(key)
@@ -1415,7 +1418,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if (symbol is not None) and (code is not None):
                     futuresSymbols[symbol] = True
                     symbolAccounts[code] = newAccount
-                self.balance['margin'][symbol] = symbolAccounts
+                marginBalance[symbol] = symbolAccounts
+            self.balance['margin'] = marginBalance
             self.balance['margin'] = self.prune_stale_balance_keys(self.balance['margin'], futuresSymbols)
             self.balance['margin'] = self.safe_balance(self.balance['margin'])
             client.resolve(self.balance['margin'], messageHash + ':futures')
@@ -1429,6 +1433,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             self.balance['flex']['timestamp'] = timestamp
             self.balance['flex']['datetime'] = self.iso8601(timestamp)
             flexCodes = {}
+            flexBalance = self.safe_dict(self.balance, 'flex', {})
             for i in range(0, len(flexFuturesKeys)):
                 key = flexFuturesKeys[i]
                 flexFuture = self.safe_dict(flexFutureCurrencies, key)
@@ -1439,7 +1444,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 newAccount['total'] = self.safe_string(flexFuture, 'quantity')
                 if code is not None:
                     flexCodes[code] = True
-                    self.balance['flex'][code] = newAccount
+                    flexBalance[code] = newAccount
+            self.balance['flex'] = flexBalance
             self.balance['flex'] = self.prune_stale_balance_keys(self.balance['flex'], flexCodes)
             self.balance['flex'] = self.safe_balance(self.balance['flex'])
             client.resolve(self.balance['flex'], messageHash + ':flex_futures')

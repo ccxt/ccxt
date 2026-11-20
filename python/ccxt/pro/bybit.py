@@ -1288,8 +1288,9 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'myTrades'
         if self.markets is None:
             await self.load_markets()
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+        symbolResolved = None
         if symbol is not None:
+            symbolResolved = self.symbol(symbol)
             messageHash += ':' + symbolResolved
         url = await self.get_url_by_market_type(symbolResolved, True, method, params)
         await self.authenticate(url)
@@ -1785,8 +1786,9 @@ class bybit(ccxt.async_support.bybit):
             await self.load_markets()
         method = 'watchOrders'
         messageHash = 'orders'
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
+        symbolResolved = None
         if symbol is not None:
+            symbolResolved = self.symbol(symbol)
             messageHash += ':' + symbolResolved
         url = await self.get_url_by_market_type(symbolResolved, True, method, params)
         await self.authenticate(url)
@@ -2264,7 +2266,7 @@ class bybit(ccxt.async_support.bybit):
         topicsLength = len(topics)
         messageHashesLength = len(messageHashes)
         if topicsLength == messageHashesLength:
-            for i in range(0, topicsLength):
+            for i in range(0, messageHashesLength):
                 messageHash = messageHashes[i]
                 if not (messageHash in client.subscriptions):
                     newTopics.append(topics[i])

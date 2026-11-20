@@ -534,13 +534,15 @@ class blofin(ccxt.async_support.blofin):
         # the merged currencies by safeBalance
         self.balance[marketType] = self.safe_dict(self.balance, marketType, {})
         parsed = self.parse_ws_balance(message)
+        marketBalance = self.safe_dict(self.balance, marketType, {})
         reserved = ['free', 'used', 'total']
         keys = list(parsed.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             if self.in_array(key, reserved):
                 continue
-            self.balance[marketType][key] = parsed[key]
+            marketBalance[key] = parsed[key]
+        self.balance[marketType] = marketBalance
         self.balance[marketType] = self.safe_balance(self.balance[marketType])
         messageHash = marketType + ':balance'
         client.resolve(self.balance[marketType], messageHash)
