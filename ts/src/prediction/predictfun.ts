@@ -342,10 +342,10 @@ export default class predictfun extends Exchange {
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        let rawTopics: any[] = [];
+        let rawTopics: Dict[] = [];
         if (slug !== undefined) {
             const response = await this.predictfunGetV1CategoriesSlug (this.extend ({ 'slug': slug }, rest));
-            const data = this.safeDict (response, 'data');
+            const data: any = this.safeDict (response, 'data');
             rawTopics = [ data ];
         } else if (queriesLength > 0) {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
