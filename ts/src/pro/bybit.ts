@@ -612,12 +612,12 @@ export default class bybit extends bybitRest {
         if (isSpot) {
             type = 'spot';
         }
+        if ((updateType !== 'snapshot') && (updateType !== 'delta')) {
+            return;
+        }
         let symbol: Str = undefined;
-        let parsed: Ticker | undefined = undefined;
-        if ((updateType === 'snapshot')) {
-            parsed = this.parseTicker (data);
-            symbol = this.safeString (parsed, 'symbol');
-        } else if (updateType === 'delta') {
+        let tickerInput: Dict = data;
+        if (updateType === 'delta') {
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString (topicParts, topicLength - 1);
@@ -626,10 +626,13 @@ export default class bybit extends bybitRest {
             // update the info in place
             const ticker = this.safeDict (this.tickers, symbol, {});
             const rawTicker = this.safeDict (ticker, 'info', {});
-            const merged = this.extend (rawTicker, data);
-            parsed = this.parseTicker (merged);
+            tickerInput = this.extend (rawTicker, data);
         }
-        if ((parsed === undefined) || (symbol === undefined)) {
+        const parsed = this.parseTicker (tickerInput);
+        if (updateType === 'snapshot') {
+            symbol = this.safeString (parsed, 'symbol');
+        }
+        if (symbol === undefined) {
             return;
         }
         const timestamp = this.safeInteger (message, 'ts');
