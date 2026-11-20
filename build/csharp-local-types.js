@@ -225,6 +225,7 @@ export const RETYPE_CS_DIVIDE_NUMERIC_ARGS = {
     'safeDeterministicCall': { 2: 'Int64?', 3: 'Int64?' },
     'fetchPaginatedCallDeterministic': { 2: 'Int64?' },
     'createTwapOrder': { 3: 'double' },
+    'fetchPaginatedCallDynamic': { 2: 'Int64?' },
 };
 for (const [ retypeName, retypePositions ] of Object.entries (RETYPE_CS_DIVIDE_NUMERIC_ARGS)) {
     CORE_NUMERIC_ARGS[retypeName] = { ...(CORE_NUMERIC_ARGS[retypeName] ?? {}), ...retypePositions };
