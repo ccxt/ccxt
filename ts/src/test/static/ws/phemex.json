@@ -496,7 +496,6 @@
         "unWatchTrades": [
             {
                 "description": "spot trades unsubscribe on the trade channel, resolved by phemex's answer to the request id; frame shape from a live unsubscribe",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USDT"
                 ],
@@ -523,7 +522,6 @@
             },
             {
                 "description": "usdt perpetual trades unsubscribe on the trade_p channel, resolved by phemex's answer to the request id",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USDT:USDT"
                 ],
@@ -552,7 +550,6 @@
         "unWatchOHLCV": [
             {
                 "description": "spot 1h candles unsubscribe sends the interval so only that kline stream is dropped, resolved by the answer to the request id; frame shape from a live unsubscribe",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USDT",
                     "1h"
@@ -581,7 +578,6 @@
             },
             {
                 "description": "usdt perpetual 1m candles unsubscribe on the kline_p channel, resolved by the answer to the request id",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USDT:USDT",
                     "1m"

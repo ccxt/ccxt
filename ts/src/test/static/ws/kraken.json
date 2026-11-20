@@ -1621,7 +1621,6 @@
         "unWatchTrades": [
             {
                 "description": "spot trades unsubscribe acknowledged for the symbol",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USD"
                 ],
@@ -1660,7 +1659,6 @@
         "unWatchTradesForSymbols": [
             {
                 "description": "spot trades unsubscribe for two symbols in one request, kraken acknowledges each symbol separately",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     [
                         "BTC/USD",
@@ -1714,7 +1712,6 @@
         "unWatchOHLCV": [
             {
                 "description": "spot ohlcv 5m unsubscribe, the acknowledgement echoes the interval in minutes",
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
                 "input": [
                     "BTC/USD",
                     "5m"
