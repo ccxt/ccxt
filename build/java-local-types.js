@@ -6116,6 +6116,14 @@ function dataflowThisCallType (printer, node) {
     return undefined;
 }
 
+// an internal method the printer retyped to one of the boxes this engine already joins
+// (`public Double parseX18 (String)`): the call needs no checkcast, like a single-box accessor
+const DATAFLOW_INTERNAL_RETURN_BOXES = new Set ([ JAVA_DATAFLOW_STRING, 'Double', 'Long', 'Boolean' ]);
+function dataflowInternalReturnType (printer, node) {
+    const native = internalReturnLocalType (printer, node)?.type;
+    return DATAFLOW_INTERNAL_RETURN_BOXES.has (native) ? native : undefined;
+}
+
 function dataflowIsStructureCall (printer, node) {
     while (node !== undefined && ts.isParenthesizedExpression (node)) {
         node = node.expression;
@@ -6190,7 +6198,7 @@ function dataflowValueType (printer, node, context) {
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
                 // a venue method the printer retyped to `public String` (kucoin marketOrderAmountToPrecision)
                 return dataflowThisCallType (printer, node) ?? joinBaseProducerType (printer, node)
-                    ?? (internalReturnLocalType (printer, node)?.type === JAVA_DATAFLOW_STRING ? JAVA_DATAFLOW_STRING : undefined);
+                    ?? dataflowInternalReturnType (printer, node);
             }
             if (ts.isIdentifier (callee.expression) && callee.expression.text === 'Precise') {
                 return PRECISE_STRING_STATICS.has (callee.name.text) ? JAVA_DATAFLOW_STRING : undefined;
@@ -6348,7 +6356,7 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
             && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
             continue; // not a plain write — the safety scan handles the rest
         }
-        const written = dataflowValueType (printer, unwrapParens (parent.right), context);
+        const written = dataflowPlainWriteType (printer, unwrapParens (parent.right), context);
         dataflowDebug (`write ${varName} = ${written}`);
         if (written === undefined) {
             return undefined; // an unprovable write
@@ -6362,6 +6370,12 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
         }
     }
     return type;
+}
+
+// a whole-statement numeric literal write takes the printed literal's own box (`1` Integer,
+// `1L` Long, `1.5` Double); never inside a ternary, whose other arm may print an `(Object)` cast
+function dataflowPlainWriteType (printer, node, context) {
+    return (node?.kind === ts.SyntaxKind.NumericLiteral) ? literalTypeOfNumericLiteral (printer, node) : dataflowValueType (printer, node, context);
 }
 
 // is `value` the LEFT operand of a `+` / `+=`? (prints `Helpers.add(value, ...)`)
@@ -6562,7 +6576,7 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // the join already proved every plain write; re-check so a write the
                     // join could not see still rejects
-                    const written = dataflowValueType (printer, unwrapParens (parent.right), context);
+                    const written = dataflowPlainWriteType (printer, unwrapParens (parent.right), context);
                     if (written === undefined || (written !== 'null' && written !== javaType)) {
                         return false;
                     }
