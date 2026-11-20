@@ -759,7 +759,8 @@ class cex(ccxt.async_support.cex):
         timestamp = self.safe_integer(data, 'time')
         order['timestamp'] = timestamp
         order['datetime'] = self.iso8601(timestamp)
-        order = self.safe_order(order)
+        # a fresh map copy: the cached entry is untyped
+        order = self.safe_order(self.extend(order, {}))
         storedOrders.append(order)
         messageHash = 'orders:' + symbol
         client.resolve(storedOrders, messageHash)

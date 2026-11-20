@@ -1522,17 +1522,11 @@ class bitvavo(ccxt.async_support.bitvavo):
         client.resolve(markets, messageHash)
 
     def build_message_hash(self, action: Str, params: dict = {}) -> Str:
-        methods = {
-            'privateCreateOrder': self.action_and_market_message_hash,
-            'privateUpdateOrder': self.action_and_order_id_message_hash,
-            'privateCancelOrder': self.action_and_order_id_message_hash,
-            'privateGetOrder': self.action_and_order_id_message_hash,
-            'privateGetTrades': self.action_and_market_message_hash,
-        }
-        method = self.safe_value(methods, action)
         messageHash = action
-        if method is not None:
-            messageHash = method(action, params)
+        if (action == 'privateCreateOrder') or (action == 'privateGetTrades'):
+            messageHash = self.action_and_market_message_hash(action, params)
+        elif (action == 'privateUpdateOrder') or (action == 'privateCancelOrder') or (action == 'privateGetOrder'):
+            messageHash = self.action_and_order_id_message_hash(action, params)
         return messageHash
 
     def action_and_market_message_hash(self, action: str, params: dict = {}) -> str:

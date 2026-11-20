@@ -66,7 +66,7 @@ class ImplicitAPI:
     private_post_api_v1_account_withdraw = privatePostApiV1AccountWithdraw = Entry[_Dict]('api/v1/account/withdraw', ['private'], 'POST', {'cost': 1})
     private_put_api_v1_userdatastream = privatePutApiV1UserDataStream = Entry[_Dict]('api/v1/userDataStream', ['private'], 'PUT', {'cost': 1})
     private_delete_api_v1_spot_order = privateDeleteApiV1SpotOrder = Entry[_Dict]('api/v1/spot/order', ['private'], 'DELETE', {'cost': 1})
-    private_delete_api_v1_spot_openorders = privateDeleteApiV1SpotOpenOrders = Entry[_List]('api/v1/spot/openOrders', ['private'], 'DELETE', {'cost': 5})
+    private_delete_api_v1_spot_openorders = privateDeleteApiV1SpotOpenOrders = Entry[_Dict]('api/v1/spot/openOrders', ['private'], 'DELETE', {'cost': 5})
     private_delete_api_v1_spot_cancelorderbyids = privateDeleteApiV1SpotCancelOrderByIds = Entry[_Dict]('api/v1/spot/cancelOrderByIds', ['private'], 'DELETE', {'cost': 5})
     private_delete_api_v1_spot_cancelallopenorders = privateDeleteApiV1SpotCancelAllOpenOrders = Entry[_Dict]('api/v1/spot/cancelAllOpenOrders', ['private'], 'DELETE', {'cost': 5})
     private_delete_api_v1_futures_order = privateDeleteApiV1FuturesOrder = Entry[_Dict]('api/v1/futures/order', ['private'], 'DELETE', {'cost': 1})

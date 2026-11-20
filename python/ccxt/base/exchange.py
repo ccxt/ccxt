@@ -7770,8 +7770,9 @@ class BaseExchange(object):
         uniqueResult = {}
         for i in range(0, len(input)):
             entry = input[i]
-            id = self.safe_string(entry, 'id')
-            if id is None:
+            # safeString treats an empty id as missing, so '' marks an absent id
+            id = self.safe_string(entry, 'id', '')
+            if id == '':
                 price = self.safe_string(entry, 'price', '')
                 amount = self.safe_string(entry, 'amount', '')
                 timestamp = self.safe_string(entry, 'timestamp')
@@ -7782,7 +7783,7 @@ class BaseExchange(object):
                 # optional parts are empty when absent, separators keep positions distinct
                 id = 't_' + str(timestamp) + '_' + side + '_'
                 id = id + (price + '_' + amount)
-            if id is not None and not (id in uniqueResult):
+            if not (id in uniqueResult):
                 uniqueResult[id] = entry
         values = list(uniqueResult.values())
         return values
