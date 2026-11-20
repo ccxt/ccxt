@@ -775,7 +775,7 @@ export default class interactivebrokers extends Exchange {
             response = await this.ibkrGatewayRegainSession (params);
             authenticated = this.safeBool (response, 'authenticated', false);
             if (!authenticated) {
-                const gatewayUrl = this.safeString (this.options, 'gatewayUrl');
+                const gatewayUrl = this.safeString (this.options, 'gatewayUrl') as string;
                 throw new AuthenticationError (this.id + ' the client portal gateway session is not authenticated, log in at ' + gatewayUrl + ' in a browser, ' + this.json (response));
             }
         }
@@ -784,7 +784,7 @@ export default class interactivebrokers extends Exchange {
             const lostTimestamp = this.ibkrGatewayOnSessionLost ();
             const regainDelay = this.ibkrGatewayRegainDelay ();
             if (regainDelay <= 0) {
-                const gatewayUrl = this.safeString (this.options, 'gatewayUrl');
+                const gatewayUrl = this.safeString (this.options, 'gatewayUrl') as string;
                 throw new AuthenticationError (this.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at ' + gatewayUrl + ' in a browser or set options.autoRegainSession to take it back automatically, ' + this.json (response));
             }
             const regainTimestamp = this.sum (lostTimestamp, regainDelay);
@@ -3986,7 +3986,7 @@ export default class interactivebrokers extends Exchange {
         const isLiveSessionTokenRequest = path.endsWith ('v1/api/oauth/live_session_token');
         if (this.ibkrIsGatewayRequest (path)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
-            const gatewayUrl = this.safeString (this.options, 'gatewayUrl');
+            const gatewayUrl = this.safeString (this.options, 'gatewayUrl') as string;
             url = this.ibkrGatewayBaseUrl (this.urls['api'][apiBase], gatewayUrl) + implodedPath;
             if (isGetOrDelete) {
                 if (hasQuery) {
@@ -4109,7 +4109,7 @@ export default class interactivebrokers extends Exchange {
         if ((code === 401) && this.safeBool (this.options, 'useGateway', false)) {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             this.options['gatewayAuthenticatedTimestamp'] = undefined;
-            const gatewayUrl = this.safeString (this.options, 'gatewayUrl');
+            const gatewayUrl = this.safeString (this.options, 'gatewayUrl') as string;
             throw new AuthenticationError (this.id + ' the client portal gateway is not logged in, log in again at ' + gatewayUrl + ' in a browser. Current action: ' + method + ' ' + url + ' ' + body);
         }
         if (response === undefined) {
