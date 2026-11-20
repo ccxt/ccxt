@@ -7234,6 +7234,9 @@ const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
         'emptyDefaultCalls': [ 'safeDict', 'safeDictMap', 'safeList' ],
         'userPathMethods': '^(?:setBalanceCache|cleanWsData)$',
     },
+    // typed market rows: true prints string-literal reads of a MarketInterface / CurrencyInterface row as struct
+    // fields; stays false until the cache stores *MarketInterface rows
+    'markets': { 'rowStructReads': false },
 };
 
 const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = {
