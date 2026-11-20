@@ -826,7 +826,11 @@ public class Poloniex extends PoloniexApi
                     put( "12004", PermissionDenied.class );
                     put( "21001", OperationRejected.class );
                 }} );
-                put( "broad", new HashMap<String, Object>() {{}} );
+                put( "broad", new HashMap<String, Object>() {{
+                    put( "Invalid Apikey or Signature", AuthenticationError.class );
+                    put( "ApiKey not exist", AuthenticationError.class );
+                    put( "Illegal of ip", PermissionDenied.class );
+                }} );
             }} );
         }});
     }
@@ -4817,8 +4821,8 @@ public class Poloniex extends PoloniexApi
         {
             String message = this.safeString2(response, "message", "msg");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), responseCode, feedback);
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), responseCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;
