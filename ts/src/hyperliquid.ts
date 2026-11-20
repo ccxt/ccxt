@@ -603,7 +603,7 @@ export default class hyperliquid extends Exchange {
             const offset = this.sum (110000, secondPart);
             perpDexesOffset[this.safeString (dex, 'name', '')] = offset;
         }
-        let fetchDexesList: List = [];
+        let fetchDexesList: Str[] = [];
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict (options, 'hip3', {});
         const dexesProvided = this.safeList (hip3, 'dexes', []); // let users provide their own list of dexes to load
@@ -645,7 +645,7 @@ export default class hyperliquid extends Exchange {
         this.options['hip3TokensByName'] = {};
         let markets: List = [];
         for (let i = 0; i < promises.length; i++) {
-            const dexName = fetchDexesList[i];
+            const dexName = this.safeString (fetchDexesList, i);
             const offset = this.safeInteger (perpDexesOffset, dexName);
             const response = this.safeList (promises, i);
             const meta = this.safeDict (response, 0, {});
@@ -5210,7 +5210,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    extractTypeFromDelta (data: Dict[] = []): Dict[] {
+    extractTypeFromDelta (data: Dict[]): Dict[] {
         const records: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const record = this.safeDict (data, i, {});
