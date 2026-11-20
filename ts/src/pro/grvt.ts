@@ -980,10 +980,18 @@ export default class grvt extends grvtRest {
             const body = this.json (response);
             const feedback = this.id + ' ' + body;
             const message = this.safeString (error, 'message');
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (this.id + ' ' + body);
+            try {
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                // the ws client calls this from its read loop, which has no recover in the
+                // Go port, so an escaping throw (transpiled to panic) kills the process;
+                // reject the pending future instead, as the other ws venues do
+                throw new ExchangeError (feedback);
+            } catch (e) {
+                client.reject (e);
+            }
+            return true;
         }
         return false;
     }

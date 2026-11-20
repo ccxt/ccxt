@@ -1311,10 +1311,31 @@ func (this *Grvt) HandleErrorMessage(client any, response map[string]any) bool {
 		var body string = this.Json(response)
 		var feedback string = this.Id + " " + body
 		var message *string = this.SafeString(error, "message")
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-		panic(ccxt.ExchangeError(this.Id + " " + body))
+
+		{
+			func(this *Grvt) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *Grvt) any {
+							// catch block:
+							client.(ccxt.ClientInterface).Reject(e)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
+				this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
+				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
+				panic(ccxt.ExchangeError(feedback))
+
+			}(this)
+
+		}
+		return true
 	}
 	return false
 }
