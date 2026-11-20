@@ -14152,7 +14152,9 @@ ${constStatements.join('\n')}
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
             // orderbookChecksumMessage (: string, no venue override) throws on a nil symbol, so its one return is a Go string
-            const baseStringReturns = { 'OrderbookChecksumMessage': [ 'return *symbol + " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\\"watchOrderBook\\"][\\"checksum\\"] = false"' ] };
+            const baseStringReturns = { 'OrderbookChecksumMessage': [ 'return *symbol + " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\\"watchOrderBook\\"][\\"checksum\\"] = false"' ],
+                // never nil: a nil symbol panics first, and the SafeString default is that symbol
+                'Symbol': [ 'return *this.SafeString(market, "symbol", symbol)' ] };
             this.writeGeneratedOnce (BASE_METHODS_FILE, goRetypeStringReturns (this.declareBaseFileStdlibImports (goBaseNativePasses (file), baseFile.stdlibImports), 'BaseExchange', baseStringReturns));
         }
     }
@@ -17529,8 +17531,12 @@ function goRetypeStringReturns (content: string, receiver: string, methods: { [n
         const open = head.index + head[0].length - 1;
         const close = goMatchingCloseText (content, open);
         const found = (content.slice (open, close).match (/^[ \t]*return\b.*$/gm) ?? []).map ((r) => r.trim ());
-        if ((close < 0) || (found.length !== returns.length) || found.some ((r, i) => r !== returns[i])) { continue; }
-        content = content.slice (0, head.index) + head[0].replace (/ any \{$/, ' string {') + content.slice (head.index + head[0].length);
+        // an expected `return *X` row also accepts the printed `return X` (a `*string` proven non-nil) and derefs it
+        const bare = (r: string) => r.replace (/^return \*/, 'return ');
+        if ((close < 0) || (found.length !== returns.length) || found.some ((r, i) => (r !== returns[i]) && (r !== bare (returns[i])))) { continue; }
+        let body = content.slice (head.index + head[0].length, close);
+        returns.filter ((r) => r !== bare (r)).forEach ((r) => { body = body.replace (new RegExp ('^([ \\t]*)' + bare (r).replace (/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'm'), '$1' + r); });
+        content = content.slice (0, head.index) + head[0].replace (/ any \{$/, ' string {') + body + content.slice (close);
     }
     return content;
 }
