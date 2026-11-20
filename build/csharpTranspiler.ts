@@ -2493,6 +2493,14 @@ function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: 
         const types = csharpRetMethodBindings (methodLines).get (sorted[1])
         return (types !== undefined) && (types.length === 1) && (types[0] === targetType)
     }
+    // generic `List<T> filterBy*SinceLimit<T>(IList<T> ...)` over a local bound once as the target list
+    const filtered = /^this\.(?:filterBySinceLimit|filterBySymbolSinceLimit|filterByCurrencySinceLimit)\(([A-Za-z_]\w*), [^()]*(?:\([^()]*\)[^()]*)*\)$/.exec (value)
+    if ((filtered !== null) && (targetType === 'List<Dictionary<string, object>>')) {
+        const types = csharpRetMethodBindings (methodLines).get (filtered[1])
+        if ((types !== undefined) && (types.length === 1) && (types[0] === targetType)) {
+            return true
+        }
+    }
     const call = CSHARP_RET_CALL.exec (value) ?? CSHARP_RET_BARE_CALL.exec (value)
     if (call !== null) {
         const awaited = call[1] !== undefined

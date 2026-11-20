@@ -1099,6 +1099,15 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
 // (htx: generic sortBy into ToDictList); its `result` accumulator proves every push is a dict
 const CSHARP_COLLECTION_RETURN_METHODS_BY_VENUE = {
     'htx': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+    // each pushes only parseSettlement rows (Dictionary) and its callers only sortBy the result
+    'binance': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+    'bybit': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+    'cryptocom': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+    'delta': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+    'derive': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+    'gate': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+    'hibachi': { 'parseSettlements': 'List<Dictionary<string, object>>' },
+    'okx': { 'parseSettlements': 'List<Dictionary<string, object>>' },
 };
 
 // the mapped collection type for a method declaration, or undefined to leave the printer's
@@ -1536,7 +1545,7 @@ export function installCsharpCollectionReturns (transpiler) {
     const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
     csharp.printVariableDeclarationList = (node, identation) => {
         const printed = upstreamDeclaration (node, identation);
-        if (node?.declarations?.length === 1 && (dictListCallLocal (node.declarations[0]) || dictListSortedLocal (csharp, node.declarations[0]))) {
+        if (node?.declarations?.length === 1 && (dictListCallLocal (node.declarations[0]) || dictListSortedLocal (csharp, node.declarations[0]) || dictListVenueSortedLocal (csharp, node.declarations[0]))) {
             return printed.replace (/^(\s*)List<object> (\w+) = this\./, '$1List<Dictionary<string, object>> $2 = this.');
         }
         if (node?.declarations?.length !== 1 || !dictListAccumulator (csharp, node.declarations[0])) {
@@ -8542,6 +8551,40 @@ function dictListSortedLocal (csharp, declaration, checkSource = true) {
     }
     const source = (indexScope (csharp, scope).identifiers.get (call.arguments[0].text) ?? []).find ((n) => n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n)?.parent;
     return dictListAccumulator (csharp, source);
+}
+
+// `const sorted = this.sortBy (rows, ...)` where `rows` is a dictListVenueCallLocal and `sorted` is
+// read only by `return this.filterBy*SinceLimit (sorted, ...)`: sortBy<T> binds T = Dictionary
+function dictListVenueSortedLocal (csharp, declaration) {
+    const scope = enclosingFunction (declaration);
+    const call = stripParens (declaration?.initializer);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || call === undefined
+            || dictListSortCall (call.arguments?.[0]) !== call || call.arguments[0].kind !== ts.SyntaxKind.Identifier || scope?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return false;
+    }
+    const name = declaration.name.text;
+    const uses = (indexScope (csharp, scope).identifiers.get (name) ?? []).filter ((n) => n !== declaration.name);
+    if (uses.length === 0 || !uses.every ((use) => enclosingFunction (use) === scope && use.parent?.parent?.kind === ts.SyntaxKind.ReturnStatement && dictListGenericFilterOf (use.parent, name))) {
+        return false;
+    }
+    const sourceUses = indexScope (csharp, scope).identifiers.get (call.arguments[0].text) ?? [];
+    const source = sourceUses.filter ((n) => n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n);
+    // the source is read only by this sortBy, so no write can change its element type
+    return source.length === 1 && source[0].parent.parent?.flags !== undefined && (source[0].parent.parent.flags & ts.NodeFlags.Const) !== 0
+        && sourceUses.every ((n) => n === source[0] || n === call.arguments[0]) && dictListVenueCallLocal (csharp, source[0].parent);
+}
+
+// `const rows = this.<name> (...)` bound to a declaration CSHARP_COLLECTION_RETURN_METHODS_BY_VENUE
+// prints List<Dictionary<string, object>>: the local is declared from that signature
+function dictListVenueCallLocal (csharp, declaration) {
+    const call = stripParens (declaration?.initializer);
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const bound = boundCollectionDeclaration (csharp, call, callee.name.text);
+    return bound !== undefined && !isPredictionSource (bound)
+        && CSHARP_COLLECTION_RETURN_METHODS_BY_VENUE[sourceExchangeId (bound)]?.[bound.name?.text] === 'List<Dictionary<string, object>>';
 }
 
 // ---- element reads of a narrowed string-list PARAMETER -----------------------------
