@@ -7297,7 +7297,7 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'handleDeltas': { 1: '[]any' },
     // row-list params every ts/src caller hands a `[]any` (literals, typed locals); the typed wrapper keeps
     // its annotated slice and converts it (Convert*ToArray), so the core never sees a [][]string / struct slice
-    'cancelOrdersForSymbols': { 0: '[]any' }, 'editOrders': { 0: '[]any' },
+    'cancelOrdersForSymbols': { 0: '[]map[string]any' }, 'editOrders': { 0: '[]any' },
     // symbol-list params every caller hands a `[]any` literal; the typed wrapper converts its []string
     'watchOrderBookForSymbols': { 0: '[]any' }, 'watchTradesForSymbols': { 0: '[]any' },
     // base List params with no override and no interface line; every ts/src caller hands a `[]any` local or ToArray
@@ -13637,7 +13637,7 @@ class NewTranspiler {
         // on the method record (`parameters[i].goType`; an optional or variadic slot rides the options struct and has none)
         const decidedGoType = param?.goType;
         // the typed wrapper keeps `[]OrderRequest` (it converts to the core's []any); only the core is retyped
-        const wrapperKeepsAnnotation = ((decidedGoType === '[]any') || (decidedGoType === '[][]any')) && (/(?:OrderRequest|CancellationRequest|string\[\])\[\]$/.test (String (param?.type ?? ''))
+        const wrapperKeepsAnnotation = ((decidedGoType === '[]any') || (decidedGoType === '[][]any') || (decidedGoType === '[]map[string]any')) && (/(?:OrderRequest|CancellationRequest|string\[\])\[\]$/.test (String (param?.type ?? ''))
             || ((String (param?.type ?? '') === 'string[]') && (GO_UNIFIED_SLICE_PARAMS[methodName ?? '']?.[0] === '[]any')));
         if ((typeof decidedGoType === 'string') && (decidedGoType.length > 0) && !wrapperKeepsAnnotation) {
             return `${safeName} ${decidedGoType}`;
@@ -13971,7 +13971,7 @@ class NewTranspiler {
             }
 
             const sliceConversion = GO_WRAPPER_SLICE_CONVERSIONS[String (param.type ?? '')];
-            if ((sliceConversion !== undefined) && String (GO_UNIFIED_SLICE_PARAMS[methodName]?.[0]).endsWith ('[]any') && (methodWrapper.parameters.indexOf (param) === 0)) {
+            if ((sliceConversion !== undefined) && /(?:\[\]any|\[\]map\[string\]any)$/.test (String (GO_UNIFIED_SLICE_PARAMS[methodName]?.[0])) && (methodWrapper.parameters.indexOf (param) === 0)) {
                 return `${sliceConversion}(${this.safeGoName(param.name)})`;
             }
             // optional params live on the options struct: hand the field straight to the

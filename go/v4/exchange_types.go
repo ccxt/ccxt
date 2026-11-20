@@ -1374,9 +1374,9 @@ func ConvertStringMatrixToArray(rows [][]string) [][]any {
 	return result
 }
 
-// ConvertCancellationRequestListToArray hands typed cancellation requests to a core taking []any rows
-func ConvertCancellationRequestListToArray(requests []CancellationRequest) []any {
-	result := make([]any, 0, len(requests))
+// ConvertCancellationRequestListToArray hands typed cancellation requests to a core taking map rows
+func ConvertCancellationRequestListToArray(requests []CancellationRequest) []map[string]any {
+	result := make([]map[string]any, 0, len(requests))
 	for _, request := range requests {
 		row := map[string]any{}
 		if request.Id != nil {
