@@ -465,7 +465,10 @@ export default class opinion extends Exchange {
             const eventMarketsLength = eventMarkets.length;
             for (let mi = 0; mi < eventMarketsLength; mi++) {
                 const m = eventMarkets[mi];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString (m, 'market');
+                if (marketKey !== undefined) {
+                    this.markets[marketKey] = m;
+                }
             }
         }
         this.populateOutcomes ();
