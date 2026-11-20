@@ -17980,12 +17980,13 @@ export function goAsyncInt64Value (content: string): string {
     const re = /^(\t+var \w+ \*int64 = )Int64PtrTyped\((r\d+)\.Value\)$/gm;
     return content.replace (re, (line: string, head: string, recv: string, at: number) => {
         const before = content.slice (0, at);
-        const recvAt = before.lastIndexOf ('\n\t' + recv + ' := <-this.');
+        // the receive may sit in a nested block: any tab depth before `rN := <-this.`
+        const recvAt = before.lastIndexOf ('\t' + recv + ' := <-this.');
         const funcAt = before.lastIndexOf ('\nfunc ');
-        if ((recvAt < 0) || (recvAt < funcAt)) {
+        if ((recvAt < 0) || (recvAt < funcAt) || !/\n\t*$/.test (before.slice (funcAt, recvAt + 1))) {
             return line;
         }
-        const callee = /^<-this\.(\w+Async)\(/.exec (before.slice (recvAt + recv.length + 6, recvAt + recv.length + 80));
+        const callee = /^<-this\.(\w+Async)\(/.exec (before.slice (recvAt + recv.length + 5, recvAt + recv.length + 80));
         if (!callee) {
             return line;
         }
@@ -18005,6 +18006,8 @@ export function goAsyncInt64ValueCheck (): string[] {
     if (!goAsyncInt64Value (sig ('*int64') + use).includes ('var n *int64 = r1.Value')) { problems.push ('async-int64: *int64 form missing'); }
     if (goAsyncInt64Value (sig ('any') + use) !== sig ('any') + use) { problems.push ('async-int64: any rewritten'); }
     if (goAsyncInt64Value (use) !== use) { problems.push ('async-int64: unproven callee rewritten'); }
+    const nested = use.replace (/\n\t/g, '\n\t\t\t');
+    if (!goAsyncInt64Value (sig ('*int64') + nested).includes ('\t\t\tvar n *int64 = r1.Value')) { problems.push ('async-int64: nested *int64 form missing'); }
     return problems;
 }
 
