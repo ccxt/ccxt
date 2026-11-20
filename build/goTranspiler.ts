@@ -14164,7 +14164,9 @@ ${constStatements.join('\n')}
             // orderbookChecksumMessage (: string, no venue override) throws on a nil symbol, so its one return is a Go string
             const baseStringReturns = { 'OrderbookChecksumMessage': [ 'return *symbol + " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\\"watchOrderBook\\"][\\"checksum\\"] = false"' ],
                 // never nil: a nil symbol panics first, and the SafeString default is that symbol
-                'Symbol': [ 'return *this.SafeString(market, "symbol", symbol)' ] };
+                'Symbol': [ 'return *this.SafeString(market, "symbol", symbol)' ],
+                // never nil: a nil key panics first, and the SafeString default is that key
+                'GetSupportedMapping': [ 'return *this.SafeString(mapping, key, key)' ] };
             this.writeGeneratedOnce (BASE_METHODS_FILE, goRetypeStringReturns (this.declareBaseFileStdlibImports (goBaseNativePasses (file), baseFile.stdlibImports), 'BaseExchange', baseStringReturns));
         }
     }

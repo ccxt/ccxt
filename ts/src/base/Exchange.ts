@@ -7116,12 +7116,12 @@ export class BaseExchange {
         return this.safeDict (fees, code) as DepositWithdrawFee;
     }
 
-    getSupportedMapping (key: Str, mapping: Dict = {}) {
+    getSupportedMapping (key: Str, mapping: Dict = {}): string {
         if (key === undefined) {
             throw new ArgumentsRequired (this.id + ' getSupportedMapping() requires a key argument');
         }
         if (key in mapping) {
-            return mapping[key];
+            return this.safeString (mapping, key, key);
         } else {
             const keys = Object.keys (mapping);
             // "mapping" must stay literal-final and the list must not be introduced with ": ":
