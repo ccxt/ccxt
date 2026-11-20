@@ -10205,22 +10205,22 @@ function goGuardedReadSplitHasSeparator (init: string, header: string | undefine
 // `for i := 0; i < len(hashes); i++`: every found hash contains `e`, so when `e` holds `sep` index 1 exists
 function goGuardedReadSplitOfFoundHash (maskedLines: string[], fn: any, read: any, lines: string[], key: string): boolean {
     const at = read.line;
-    const split = ((key !== '1') || (at < fn.open + 3)) ? null : /^([ \t]+)var [A-Za-z_]\w* \[\]string = strings\.Split\(\*([A-Za-z_]\w*), ("[^"\\]+")\)[ \t]*$/.exec (lines[at]);
+    const split = ((key !== '1') || (at < fn.open + 3)) ? null : /^([ \t]+)var [A-Za-z_]\w* \[\]string = strings\.Split\(\*?([A-Za-z_]\w*), ("[^"\\]+")\)[ \t]*$/.exec (lines[at]);
     if (split === null) {
         return false;
     }
     const h = split[2];
-    const hash = new RegExp ('^' + split[1] + 'var ' + h + ' \\*string = (?:(?:ccxt\\.)?SafeStringPtr\\((\\w+)\\[(\\w+)\\]\\)|this\\.SafeString\\((\\w+), (\\w+), ""\\))$').exec (lines[at - 1]);
+    const hash = new RegExp ('^' + split[1] + 'var ' + h + ' (?:\\*string = (?:(?:ccxt\\.)?SafeStringPtr\\((\\w+)\\[(\\w+)\\]\\)|this\\.SafeString\\((\\w+), (\\w+), ""\\))|string = (\\w+)\\[(\\w+)\\])$').exec (lines[at - 1]);
     if (hash === null) {
         return false;
     }
-    const hashes = hash[1] ?? hash[3];
-    const i = hash[2] ?? hash[4];
+    const hashes = hash[1] ?? hash[3] ?? hash[5];
+    const i = hash[2] ?? hash[4] ?? hash[6];
     if (lines[at - 2] !== split[1].substring (1) + 'for ' + i + ' := 0; ' + i + ' < len(' + hashes + '); ' + i + '++ {') {
         return false;
     }
     const source = goGuardedReadContainer (maskedLines, fn, hashes, lines);
-    const found = (source?.init === undefined) ? null : /^[ \t]*var \w+ \[\]any = (?:ccxt\.)?ArrayTyped\(this\.FindMessageHashes\((?:ccxt\.)?AsClient\(client\), (?:[A-Za-z_]\w*\+)?("[^"\\]*")\)\)[ \t]*$/.exec (source.init);
+    const found = (source?.init === undefined) ? null : /^[ \t]*var \w+ (?:\[\]any = (?:ccxt\.)?ArrayTyped\((?=.*\)\)[ \t]*$)|\[\]string = )this\.FindMessageHashes\((?:ccxt\.)?AsClient\(client\), (?:[A-Za-z_]\w*\+)?("[^"\\]*")\)\)?[ \t]*$/.exec (source.init);
     return (found !== null) && (found[1].indexOf (split[3].slice (1, -1)) >= 0);
 }
 
@@ -10576,6 +10576,8 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     const hashes = (e: string, sepLit: string) => g ('\tvar hs []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), ' + e + '))\n\tfor i := 0; i < len(hs); i++ {\n\t\tvar h *string = ccxt.SafeStringPtr(hs[i])\n\t\tvar parts []string = strings.Split(*h, ' + sepLit + ')\n' + read ('1', 'parts', '') + '\t}\n');
     ok (hashes ('t+":positions::"', '"::"').indexOf ('var m any = parts[1]') >= 0, 'a found hash holding the separator proves index 1');
     ok (hashes ('"positions:"', '"::"').indexOf ('func() any {') >= 0, 'a found hash without the separator keeps the literal');
+    const typedHashes = g ('\tvar hs []string = this.FindMessageHashes(ccxt.AsClient(client), t+":positions::")\n\tfor i := 0; i < len(hs); i++ {\n\t\tvar h string = hs[i]\n\t\tvar parts []string = strings.Split(h, "::")\n' + read ('1', 'parts', '') + '\t}\n');
+    ok (typedHashes.indexOf ('var m any = parts[1]') >= 0, 'a found hash from the []string result proves index 1');
     ok (g (lists + '\tif n > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'an unknown bound name keeps the literal');
     ok (g (lists + '\tif len(markets) > 0 {\n\t\tmarkets = []any{}\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'a written slice keeps the literal');
     ok (g (lists + '\tif len(markets) > 1 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[1]') >= 0, 'len() > key');
@@ -15261,7 +15263,8 @@ ${caseStatements.join('\n')}
         const wsQual = isWs ? 'ccxt.' : '';
         const derefFn = wsQual + 'DerefScalar(';
         const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601|' + CCXT_GO_STRING_PTR_METHOD_NAMES.join ('|') + ')\\((?:[^()]|\\([^()]*\\))*\\)';
-        const safeCallNoOmitZero = safeCall.replace ('|OmitZero)', ')');
+        // SafeOutcomeSymbol's reassigned `any` locals feed only deref-aware readers (filterBy*, IsEqual, ValueIsDefined)
+        const safeCallNoOmitZero = safeCall.replace ('|OmitZero)', ')').replace ('|SafeOutcomeSymbol', '');
         content = content.replace (new RegExp ('(var \\w+ any = )(' + safeCall + ')', 'g'), ((_m: string, decl: string, call: string) => decl + derefFn + call + ')') as any);
         // A SafeBool* call compared directly to a bool literal has no local for the unwrap
         // above, and the printer emits the comparison raw -- `this.SafeBool(..) == true`.
