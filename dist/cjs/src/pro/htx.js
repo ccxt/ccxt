@@ -929,10 +929,8 @@ class htx extends htx$1["default"] {
         return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     getOrderChannelAndMessageHash(type, subType, market = undefined, params = {}) {
-        let messageHash = undefined;
-        let channel = undefined;
-        let orderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
-        orderType = this.safeString(params, 'orderType', orderType);
+        const defaultOrderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
+        const orderType = this.safeString(params, 'orderType', defaultOrderType);
         const paramsOmitted = this.omit(params, 'orderType');
         let marketCode = undefined;
         if (market !== undefined) {
@@ -943,7 +941,8 @@ class htx extends htx$1["default"] {
             baseId = market['baseId'];
         }
         const prefix = orderType;
-        messageHash = prefix;
+        let messageHash = prefix;
+        let channel = prefix + '.' + '*';
         if (subType === 'linear') {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             const marginMode = this.safeString(paramsOmitted, 'margin', 'cross');
@@ -953,8 +952,9 @@ class htx extends htx$1["default"] {
             }
             messageHash = marginPrefix;
             if (marketCode !== undefined) {
-                messageHash = marginPrefix + '.' + marketCode;
-                channel = messageHash;
+                const marketTopic = marginPrefix + '.' + marketCode;
+                messageHash = marketTopic;
+                channel = marketTopic;
             }
             else {
                 channel = marginPrefix + '.' + '*';
@@ -963,8 +963,10 @@ class htx extends htx$1["default"] {
         else if (type === 'future') {
             // inverse futures Example: BCH/USD:BCH-220408
             if (baseId !== undefined) {
-                channel = prefix + '.' + baseId.toLowerCase();
-                messageHash = channel;
+                const lowerBaseId = baseId.toLowerCase();
+                const baseTopic = prefix + '.' + lowerBaseId;
+                channel = baseTopic;
+                messageHash = baseTopic;
             }
             else {
                 channel = prefix + '.' + '*';
@@ -973,8 +975,9 @@ class htx extends htx$1["default"] {
         else {
             // inverse swaps: Example: BTC/USD:BTC
             if (marketCode !== undefined) {
-                channel = prefix + '.' + marketCode;
-                messageHash = channel;
+                const swapTopic = prefix + '.' + marketCode;
+                channel = swapTopic;
+                messageHash = swapTopic;
             }
             else {
                 channel = prefix + '.' + '*';

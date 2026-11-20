@@ -515,7 +515,8 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     async fetchEvent(id, params = {}) {
-        let rawMarkets = await this.fetchRawMarketsPaged(this.extend({ 'sportXeventId': id }, params), undefined);
+        let rawMarkets = [];
+        rawMarkets = await this.fetchRawMarketsPaged(this.extend({ 'sportXeventId': id }, params), undefined);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = this.filterRawMarketsByFixture(rawMarkets, id);
         const rawMarketsLength = rawMarkets.length;

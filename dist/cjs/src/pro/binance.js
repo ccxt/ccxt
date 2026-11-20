@@ -2986,7 +2986,7 @@ class binance extends binance$1["default"] {
      * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    async ensureUserDataStreamWsSubscribeListenToken(marketType = 'margin', params = {}) {
+    async ensureUserDataStreamWsSubscribeListenToken(marketType, params = {}) {
         const wsApiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
         const wsApiDict = this.safeDict(wsApiUrls, 'ws-api', {});
         const url = this.safeString(wsApiDict, 'spot');

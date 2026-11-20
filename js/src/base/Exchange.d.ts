@@ -134,7 +134,7 @@ export declare class BaseExchange {
     id: string;
     markets: Dictionary<any> | undefined;
     has: Dictionary<boolean | 'emulated' | undefined>;
-    features: Dictionary<Dictionary<any> | undefined>;
+    features: Dictionary<NullableDict>;
     status: {
         status: Str;
         updated: Num;
@@ -688,7 +688,7 @@ export declare class BaseExchange {
     hasAutocorrect(): void;
     initRestRateLimiter(): void;
     featuresGenerator(): void;
-    featuresMapper(initialFeatures: Dict, marketType: Str, subType?: Str): Dictionary<any> | undefined;
+    featuresMapper(initialFeatures: Dict, marketType: Str, subType?: Str): NullableDict;
     featureValue(symbol: string, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     featureValueByType(marketType: string, subType: Str, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     orderbookChecksumMessage(symbol: Str): string;

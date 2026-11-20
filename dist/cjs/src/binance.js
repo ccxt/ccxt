@@ -3204,7 +3204,7 @@ class binance extends binance$1["default"] {
             promises.push(this.sapiGetMarginAllPairs(params));
         }
         const results = await Promise.all(promises);
-        const responseCurrencies = this.safeValue(results, 0);
+        const responseCurrencies = this.safeList(results, 0, []);
         let marginablesById = undefined;
         if (fetchMargins) {
             const responseMarginables = this.safeList(results, 1);

@@ -6224,28 +6224,43 @@ class okx extends okx$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(data, market);
-    }
-    parseLeverage(leverage, market = undefined) {
         let marketId = undefined;
-        let marginMode = undefined;
+        let rowMarginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        for (let i = 0; i < leverage.length; i++) {
-            const entry = this.safeDict(leverage, i);
-            marginMode = this.safeStringLower(entry, 'mgnMode');
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict(data, i);
+            rowMarginMode = this.safeStringLower(entry, 'mgnMode');
             marketId = this.safeString(entry, 'instId');
             const positionSide = this.safeStringLower(entry, 'posSide');
-            if (positionSide === 'long') {
-                longLeverage = this.safeInteger(entry, 'lever');
+            const lever = this.safeInteger(entry, 'lever');
+            if (positionSide !== 'short') {
+                longLeverage = lever;
             }
-            else if (positionSide === 'short') {
-                shortLeverage = this.safeInteger(entry, 'lever');
+            if (positionSide !== 'long') {
+                shortLeverage = lever;
             }
-            else {
-                longLeverage = this.safeInteger(entry, 'lever');
-                shortLeverage = this.safeInteger(entry, 'lever');
-            }
+        }
+        return {
+            'info': data,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': rowMarginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'instId');
+        const positionSide = this.safeStringLower(leverage, 'posSide');
+        const lever = this.safeInteger(leverage, 'lever');
+        const marginMode = this.safeStringLower(leverage, 'mgnMode');
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        if (positionSide !== 'short') {
+            longLeverage = lever;
+        }
+        if (positionSide !== 'long') {
+            shortLeverage = lever;
         }
         return {
             'info': leverage,

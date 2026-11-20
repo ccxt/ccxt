@@ -205477,7 +205477,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             promises.push(this.sapiGetMarginAllPairs(params));
         }
         const results = await Promise.all(promises);
-        const responseCurrencies = this.safeValue(results, 0);
+        const responseCurrencies = this.safeList(results, 0, []);
         let marginablesById = undefined;
         if (fetchMargins) {
             const responseMarginables = this.safeList(results, 1);
@@ -467256,26 +467256,43 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(data, market);
-    }
-    parseLeverage(leverage, market = undefined) {
         let marketId = undefined;
-        let marginMode = undefined;
+        let rowMarginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        for(let i = 0; i < leverage.length; i++){
-            const entry = this.safeDict(leverage, i);
-            marginMode = this.safeStringLower(entry, 'mgnMode');
+        for(let i = 0; i < data.length; i++){
+            const entry = this.safeDict(data, i);
+            rowMarginMode = this.safeStringLower(entry, 'mgnMode');
             marketId = this.safeString(entry, 'instId');
             const positionSide = this.safeStringLower(entry, 'posSide');
-            if (positionSide === 'long') {
-                longLeverage = this.safeInteger(entry, 'lever');
-            } else if (positionSide === 'short') {
-                shortLeverage = this.safeInteger(entry, 'lever');
-            } else {
-                longLeverage = this.safeInteger(entry, 'lever');
-                shortLeverage = this.safeInteger(entry, 'lever');
+            const lever = this.safeInteger(entry, 'lever');
+            if (positionSide !== 'short') {
+                longLeverage = lever;
             }
+            if (positionSide !== 'long') {
+                shortLeverage = lever;
+            }
+        }
+        return {
+            'info': data,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': rowMarginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage
+        };
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'instId');
+        const positionSide = this.safeStringLower(leverage, 'posSide');
+        const lever = this.safeInteger(leverage, 'lever');
+        const marginMode = this.safeStringLower(leverage, 'mgnMode');
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        if (positionSide !== 'short') {
+            longLeverage = lever;
+        }
+        if (positionSide !== 'long') {
+            shortLeverage = lever;
         }
         return {
             'info': leverage,
@@ -522751,7 +522768,8 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */ async fetchEvent(id, params = {}) {
-        let rawMarkets = await this.fetchRawMarketsPaged(this.extend({
+        let rawMarkets = [];
+        rawMarkets = await this.fetchRawMarketsPaged(this.extend({
             'sportXeventId': id
         }, params), undefined);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
@@ -534051,7 +534069,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
      * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation} // deprecated
      * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
-     */ async ensureUserDataStreamWsSubscribeListenToken(marketType = 'margin', params = {}) {
+     */ async ensureUserDataStreamWsSubscribeListenToken(marketType, params = {}) {
         const wsApiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
         const wsApiDict = this.safeDict(wsApiUrls, 'ws-api', {});
         const url = this.safeString(wsApiDict, 'spot');
@@ -578341,10 +578359,8 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     getOrderChannelAndMessageHash(type, subType, market = undefined, params = {}) {
-        let messageHash = undefined;
-        let channel = undefined;
-        let orderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
-        orderType = this.safeString(params, 'orderType', orderType);
+        const defaultOrderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
+        const orderType = this.safeString(params, 'orderType', defaultOrderType);
         const paramsOmitted = this.omit(params, 'orderType');
         let marketCode = undefined;
         if (market !== undefined) {
@@ -578355,7 +578371,8 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             baseId = market['baseId'];
         }
         const prefix = orderType;
-        messageHash = prefix;
+        let messageHash = prefix;
+        let channel = prefix + '.' + '*';
         if (subType === 'linear') {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             const marginMode = this.safeString(paramsOmitted, 'margin', 'cross');
@@ -578365,24 +578382,28 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             }
             messageHash = marginPrefix;
             if (marketCode !== undefined) {
-                messageHash = marginPrefix + '.' + marketCode;
-                channel = messageHash;
+                const marketTopic = marginPrefix + '.' + marketCode;
+                messageHash = marketTopic;
+                channel = marketTopic;
             } else {
                 channel = marginPrefix + '.' + '*';
             }
         } else if (type === 'future') {
             // inverse futures Example: BCH/USD:BCH-220408
             if (baseId !== undefined) {
-                channel = prefix + '.' + baseId.toLowerCase();
-                messageHash = channel;
+                const lowerBaseId = baseId.toLowerCase();
+                const baseTopic = prefix + '.' + lowerBaseId;
+                channel = baseTopic;
+                messageHash = baseTopic;
             } else {
                 channel = prefix + '.' + '*';
             }
         } else {
             // inverse swaps: Example: BTC/USD:BTC
             if (marketCode !== undefined) {
-                channel = prefix + '.' + marketCode;
-                messageHash = channel;
+                const swapTopic = prefix + '.' + marketCode;
+                channel = swapTopic;
+                messageHash = swapTopic;
             } else {
                 channel = prefix + '.' + '*';
             }
