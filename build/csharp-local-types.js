@@ -11228,6 +11228,40 @@ function nonNullStringDefaultCall (csharp, node, context) {
     return csharpTypeOfValue (csharp, initializer.arguments[arity - 1], context) === 'string';
 }
 
+// `let x = this.safeString (o, k); if (x === undefined [|| ...]) { throw|return }`: a nullable safeString* local whose
+// very next statement exits on null holds a non-null string at every later read, so it joins the non-null family
+function nullExitGuardedStringInit (csharp, declaration, context) {
+    const init = stripParens (declaration?.initializer);
+    const callee = init?.kind === ts.SyntaxKind.CallExpression ? init.expression : undefined;
+    const name = callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword ? callee.name?.text : undefined;
+    const arity = NON_NULL_DEFAULT_SAFE_STRING_ARITY[name];
+    if (arity === undefined || init.arguments?.length !== arity - 1 || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const statement = declaration.parent?.parent;
+    const block = statement?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement || declaration.parent.declarations.length !== 1 || block?.statements === undefined) {
+        return false;
+    }
+    const guard = block.statements[block.statements.indexOf (statement) + 1];
+    if (guard?.kind !== ts.SyntaxKind.IfStatement || guard.elseStatement !== undefined) {
+        return false;
+    }
+    let exit = guard.thenStatement;
+    if (exit?.kind === ts.SyntaxKind.Block) {
+        exit = (exit.statements.length === 1) ? exit.statements[0] : undefined;
+    }
+    if (exit?.kind !== ts.SyntaxKind.ThrowStatement && exit?.kind !== ts.SyntaxKind.ReturnStatement) {
+        return false;
+    }
+    const parts = [];
+    const flat = (c) => { c = stripParens (c); (c.kind === ts.SyntaxKind.BinaryExpression && c.operatorToken.kind === ts.SyntaxKind.BarBarToken) ? (flat (c.left), flat (c.right)) : parts.push (c); };
+    flat (guard.expression);
+    const varName = declaration.name.text;
+    return parts.some ((c) => c.kind === ts.SyntaxKind.BinaryExpression && c.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken
+        && stripParens (c.left).kind === ts.SyntaxKind.Identifier && stripParens (c.left).text === varName && isUndefinedLiteral (stripParens (c.right)));
+}
+
 // the C# declaration for `declaration`: the type plus the value rewrite it needs, or
 // undefined to keep the printer's output. `context` is only set while resolving another
 // declaration's write/initializer through resolveLocalReadType; a top-level call (the
@@ -12217,7 +12251,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // `object x = this.safeString (obj, key, <default>)`: the proven non-null string default
     // (nonNullStringDefaultCall) lets the scan accept the non-null spelling with its identity
     // `(string)` cast — retried only after `string?` was rejected, never in the prediction tree
-    if (!safe && csharpType === 'string?' && nonNullStringDefaultCall (csharp, declaration.initializer, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+    if (!safe && csharpType === 'string?' && (nonNullStringDefaultCall (csharp, declaration.initializer, ctx) || nullExitGuardedStringInit (csharp, declaration, ctx)) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
         cast = 'string';
         safe = true;
@@ -12350,7 +12384,7 @@ function isNullInit (declaration) {
 // a string literal, or a `+` chain the module types `string`: it prints add(string, *) or a
 // native C# concatenation, and both are never null
 function nonNullStringInit (csharp, context, declaration) {
-    if (isStringLiteralInit (declaration) || nonNullStringDefaultCall (csharp, declaration?.initializer, context)) {
+    if (isStringLiteralInit (declaration) || nonNullStringDefaultCall (csharp, declaration?.initializer, context) || nullExitGuardedStringInit (csharp, declaration, context)) {
         return true;
     }
     const value = stripParens (declaration?.initializer);
@@ -13918,7 +13952,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
     const interfaceInitial = (initial === 'IDictionary<string, object>');
     // a safeString* initialiser with a non-null string default joins as `string?` but holds a non-null
     // string until a write that is not a proven `string` lands (the accumulator branch below)
-    let nonNullStringRun = (initial === 'string?') && nonNullStringDefaultCall (csharp, declaration.initializer, context);
+    let nonNullStringRun = (initial === 'string?') && (nonNullStringDefaultCall (csharp, declaration.initializer, context) || nullExitGuardedStringInit (csharp, declaration, context));
     for (const n of (index.identifiers.get (varName) ?? [])) {
         if (n === declaration.name || isNotAUse (n)) {
             continue;
