@@ -1510,8 +1510,8 @@ export default class aster extends asterRest {
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
         }
-        this.balance[accountType]['info'] = message;
         const balance = this.safeDict (this.balance, accountType, {});
+        balance['info'] = message;
         const messageValue: Dict = this.safeDict (message, 'a', message);
         const B: Dict[] = this.safeList (messageValue, 'B', []);
         const wallet = this.safeString (this.options, 'wallet', 'wb');

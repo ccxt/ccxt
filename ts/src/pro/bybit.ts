@@ -2370,8 +2370,8 @@ export default class bybit extends bybitRest {
             if (this.safeDict (this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
-            this.balance[account]['info'] = info;
             const balance = this.safeDict (this.balance, account, {});
+            balance['info'] = info;
             const timestamp = this.safeInteger (message, 'ts');
             balance['timestamp'] = timestamp;
             balance['datetime'] = this.iso8601 (timestamp);
