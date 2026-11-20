@@ -1662,6 +1662,10 @@ const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price', 
 // class declares the method once and no file calls it by that venue's binding.
 const VENUE_LIST_ARGS: Record<string, Record<string, number[]>> = {
     'pro:krakenfutures': { 'subscribePublic': [ 1 ] },
+    // every caller passes a List<object> local or list literal and no body rebinds the parameter
+    'pro:nado': { 'watchPublicMultiple': [ 1, 2, 4 ] },
+    'pro:kucoin': { 'subscribeMultiple': [ 3 ] },
+    'pro:coinbaseinternational': { 'subscribe': [ 0, 1 ], 'unSubscribe': [ 0 ] },
 };
 
 const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
