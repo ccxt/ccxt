@@ -459,6 +459,7 @@ class poloniex extends poloniex$1["default"] {
             'exceptions': {
                 'exact': {
                     // General
+                    '401': errors.PermissionDenied, // {"code":401,"message":"Illegal of ip"}
                     '500': errors.ExchangeNotAvailable, // Internal System Error
                     '603': errors.RequestTimeout, // Internal Request Timeout
                     '601': errors.BadRequest, // Invalid Parameter

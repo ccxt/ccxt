@@ -490138,6 +490138,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'exceptions': {
                 'exact': {
                     // General
+                    '401': _base_errors_js__rspack_import_2.PermissionDenied,
                     '500': _base_errors_js__rspack_import_2.ExchangeNotAvailable,
                     '603': _base_errors_js__rspack_import_2.RequestTimeout,
                     '601': _base_errors_js__rspack_import_2.BadRequest,
