@@ -28672,3 +28672,152 @@ export function installJavaNullSeedStructureLocals (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? JAVA_STRUCTURE_TYPE : undefined));
 }
+
+// ===== h26-J01 map-row accumulators =====
+// `const xs: Dict[] = []` whose every push is a value Java declares a Map (a Map local, a TypedMap DTO, a
+// literal), read only by counter index / `.length` / Object-taking base readers, prints
+// List<Map<String, Object>>: the producer types the element, so `const x = xs[i]` needs no cast.
+const H26J01_ROW_TYPE = 'java.util.List<java.util.Map<String, Object>>';
+const H26J01_OBJECT_ARG_CALLS = new Set ([ 'indexBy', 'indexBySafe' ]);
+const h26j01Decisions = new WeakMap ();
+
+function h26j01PushIsMap (printer, arg) {
+    const value = unwrapParens (arg);
+    if (value === undefined) {
+        return false;
+    }
+    if (ts.isObjectLiteralExpression (value)) {
+        return true;
+    }
+    if (!ts.isIdentifier (value) || printer.printNode (value, 0) !== value.text) {
+        return false;
+    }
+    const declared = String (printer.javaDeclaredTypeOf (value) ?? '').trim ();
+    if (/^(?:java\.util\.)?Map<String, ?Object>$/.test (declared) || h26j01DeepExtendConst (printer, value)) {
+        return true;
+    }
+    const dto = /^(?:io\.github\.ccxt\.types\.)?(\w+)$/.exec (declared)?.[1];
+    return dto !== undefined && javaIsTypedMapDto (dto);
+}
+
+// a const local bound from the base `deepExtend (..)`, which the hand-written Java declares Map<String, Object>
+function h26j01DeepExtendConst (printer, node) {
+    const d = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+    const init = d !== undefined && ts.isVariableDeclaration (d) && (ts.getCombinedNodeFlags (d) & ts.NodeFlags.Const) !== 0
+        ? unwrapParens (d.initializer) : undefined;
+    const member = init !== undefined && isThisCall (init) && init.expression.name.text === 'deepExtend'
+        ? printer.getChecker ().getSymbolAtLocation (init.expression)?.valueDeclaration?.resolve?.() : undefined;
+    return member !== undefined && ts.isPropertyDeclaration (member)
+        && /[\\/]base[\\/]Exchange(\.[\w.]+)?\.ts$/.test (member.getSourceFile ().fileName);
+}
+
+function h26j01UseOk (printer, n) {
+    const parent = n.parent;
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === n) {
+        if (parent.name.text === 'length') {
+            return true;
+        }
+        const call = parent.parent;
+        return parent.name.text === 'push' && ts.isCallExpression (call) && call.expression === parent
+            && call.arguments.length === 1 && ts.isExpressionStatement (call.parent) && h26j01PushIsMap (printer, call.arguments[0]);
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === n) {
+        const outer = parent.parent;
+        if (outer === undefined || outer.kind === ts.SyntaxKind.DeleteExpression
+            || (ts.isCallExpression (outer) && outer.expression === parent)
+            || (ts.isBinaryExpression (outer) && outer.left === parent && ASSIGNMENT_OPERATORS.includes (outer.operatorToken.kind))) {
+            return false;
+        }
+        return printer.javaPrimitiveCounterIndex (parent.argumentExpression);
+    }
+    // a hand-written base reader declared `(Object a, Object key)` takes the list as is
+    return ts.isCallExpression (parent) && parent.arguments[0] === n && isThisCall (parent)
+        && H26J01_OBJECT_ARG_CALLS.has (parent.expression.name.text);
+}
+
+function h26j01RowListType (printer, declaration) {
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+        || declaration.type === undefined || (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) === 0
+        || typeof printer.javaPrimitiveCounterIndex !== 'function' || typeof printer.javaJsonBoxType !== 'function') {
+        return undefined;
+    }
+    if (!h26j01Decisions.has (declaration)) {
+        let ok = false;
+        try {
+            const init = unwrapParens (declaration.initializer);
+            const checker = printer.getChecker ();
+            const type = checker.getTypeAtLocation (declaration.type);
+            const element = checker.isArrayType (type) ? checker.getTypeArguments (type)?.[0] : undefined;
+            const scope = enclosingFunction (declaration);
+            if (init !== undefined && ts.isArrayLiteralExpression (init) && init.elements.length === 0 && element !== undefined
+                && (printer.javaJsonBoxType (element) || r90j1UnifiedStructureType (checker, element)) && scope !== undefined) {
+                const symbol = checker.getSymbolAtLocation (declaration.name);
+                let pushes = 0;
+                ok = symbol !== undefined;
+                for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+                    if (!ok) {
+                        break;
+                    }
+                    if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+                        continue;
+                    }
+                    ok = enclosingFunction (n) === scope && h26j01UseOk (printer, n);
+                    pushes += ts.isPropertyAccessExpression (n.parent) && n.parent.name.text === 'push' ? 1 : 0;
+                }
+                ok = ok && pushes > 0;
+            }
+        } catch (e) {
+            ok = false;
+        }
+        h26j01Decisions.set (declaration, ok);
+    }
+    return h26j01Decisions.get (declaration) ? H26J01_ROW_TYPE : undefined;
+}
+
+function h26j01RowListOf (printer, node) {
+    const n = unwrapParens (node);
+    if (n === undefined || !ts.isIdentifier (n) || printer.printNode (n, 0) !== n.text) {
+        return undefined;
+    }
+    const d = printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve ();
+    return h26j01RowListType (printer, d) !== undefined ? d : undefined;
+}
+
+export function installJavaH26j01MapRowLists (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || typeof printer.printArrayPushCall !== 'function'
+        || printer._javaH26j01MapRowListsPatched) {
+        return;
+    }
+    printer._javaH26j01MapRowListsPatched = true;
+    publishJavaDeclaredLocalTypes (printer, (declaration) => h26j01RowListType (printer, declaration));
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        if (h26j01RowListType (printer, declaration) !== undefined) {
+            return `${iden}${H26J01_ROW_TYPE} ${name} = new java.util.ArrayList<java.util.Map<String, Object>>()`;
+        }
+        // `const x = xs[i]` over such a list: the guarded `xs.get(i)` is statically the Map element
+        const read = unwrapParens (declaration.initializer);
+        if (read === undefined || !ts.isElementAccessExpression (read) || h26j01RowListOf (printer, read.expression) === undefined) {
+            return printed;
+        }
+        for (const head of [ `${iden}java.util.Map<String, Object> ${name} = (java.util.Map<String, Object>) `, `${iden}${printer.VAR_TOKEN} ${name} = ` ]) {
+            if (printed.startsWith (head)) {
+                return `${iden}java.util.Map<String, Object> ${name} = ` + printed.slice (head.length);
+            }
+        }
+        return printed;
+    };
+    const upstreamPush = printer.printArrayPushCall.bind (printer);
+    printer.printArrayPushCall = function (node, identation, name = undefined, parsedArg = undefined) {
+        return h26j01RowListOf (printer, node?.expression?.expression) !== undefined
+            ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
+    };
+}

@@ -34,6 +34,7 @@ import { installJavaTypedBaseFields } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaJ8CopyLocals } from './java-local-types.js';
 import { installJavaR84j1StringElementLocals, installJavaR84j1BoxElementLocals } from './java-local-types.js';
+import { installJavaH26j01MapRowLists } from './java-local-types.js';
 import { installJavaR84j2ContainerLocals } from './java-local-types.js';
 import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
@@ -1939,6 +1940,7 @@ class NewTranspiler {
             installJavaJ8CopyLocals,
             installJavaR84j1StringElementLocals,
             installJavaR84j1BoxElementLocals,
+            installJavaH26j01MapRowLists,
             installJavaR84j2ContainerLocals,
             installJavaR84j2GuardedListLocals,
             installJavaR84j2MapConditionalLocals,

@@ -15,6 +15,7 @@ import { installJavaTypedBaseFields } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaJ8CopyLocals } from './java-local-types.js';
 import { installJavaR84j1StringElementLocals, installJavaR84j1BoxElementLocals } from './java-local-types.js';
+import { installJavaH26j01MapRowLists } from './java-local-types.js';
 import { installJavaR84j2ContainerLocals } from './java-local-types.js';
 import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
@@ -208,6 +209,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots, handed,
         installJavaJ8CopyLocals (cachedTranspiler);
         installJavaR84j1StringElementLocals (cachedTranspiler);
         installJavaR84j1BoxElementLocals (cachedTranspiler);
+        installJavaH26j01MapRowLists (cachedTranspiler);
         installJavaR84j2ContainerLocals (cachedTranspiler);
         installJavaR84j2GuardedListLocals (cachedTranspiler);
         installJavaR84j2MapConditionalLocals (cachedTranspiler);
