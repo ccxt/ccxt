@@ -11347,7 +11347,7 @@ function tsSourceMethodDeclarationCount (name) {
                     if (entry.name !== 'test' && entry.name !== 'static') {
                         walk (full);
                     }
-                } else if (entry.name.endsWith ('.ts') && !entry.name.includes ('.nooverloads.')) {
+                } else if (isTsIndexSource (entry.name) && !entry.name.includes ('.nooverloads.')) {
                     const source = ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, false);
                     const visit = (node) => {
                         if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.kind === ts.SyntaxKind.Identifier) {
