@@ -2300,7 +2300,7 @@ class Transpiler {
             }
             // strip TypeScript overload signature lines (body-less declarations ending with ';')
             // they carry no runtime code and the implementation signature below handles all cases
-            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+            while (lines.length > 1 && /^\s*(?:override\s+)?(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
                 lines.shift ()
             }
             // re-strip any blanks/comments left between overloads and the implementation

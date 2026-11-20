@@ -18602,7 +18602,7 @@ function javaIsStringReturnCandidate (printer, member) {
 
 // String candidates callee-first (depth-first over `this.<candidate> (..)` calls), then every other member
 function javaStringReturnsPrintOrder (printer, node) {
-    const members = [ ...node.members ];
+    const members = node.members.filter ((m) => !printer.isOverloadSignature (m));
     const candidates = new Map ();
     for (const member of members) {
         if (javaIsStringReturnCandidate (printer, member) && !candidates.has (member.name.text)) {
@@ -18748,7 +18748,7 @@ export function installJavaStringReturns (transpiler) {
         for (const member of order) {
             printed.set (member, printer.printNode (member, identation + 1));
         }
-        return node.members.map ((member, index) => (member.kind === ts.SyntaxKind.PropertyDeclaration || index === 0
+        return node.members.filter ((m) => !printer.isOverloadSignature (m)).map ((member, index) => (member.kind === ts.SyntaxKind.PropertyDeclaration || index === 0
             ? printed.get (member)
             : '\n'.repeat (printer.NUM_LINES_BETWEEN_CLASS_MEMBERS) + printed.get (member))).join ('\n');
     };

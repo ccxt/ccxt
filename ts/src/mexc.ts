@@ -6247,6 +6247,8 @@ export default class mexc extends Exchange {
         } as Leverage;
     }
 
+    override handleMarginModeAndParams (methodName: string, params: Dict, defaultValue: string): [string, Dict];
+    override handleMarginModeAndParams (methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     override handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: Str = undefined): [Str, Dict] {
         /**
          * @ignore

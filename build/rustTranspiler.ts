@@ -15640,7 +15640,7 @@ impl std::ops::DerefMut for ${coreName} {
         // and `handleOptionAndParams <T>(...)` — without it the `<T>` between the
         // name and `(` defeats the match and the bodyless signature reaches
         // ast-transpiler, which crashes on `node.body.statements` (undefined).
-        const sigRe = /^ {4}(?:async )?[A-Za-z_][A-Za-z0-9_]*\s*(?:<[^>(){};]*>\s*)?\([^;{]*\)\s*:\s*[^;{]+;\s*$/;
+        const sigRe = /^ {4}(?:override )?(?:async )?[A-Za-z_][A-Za-z0-9_]*\s*(?:<[^>(){};]*>\s*)?\([^;{]*\)\s*:\s*[^;{]+;\s*$/;
         return content
             .split('\n')
             .filter((line) => {

@@ -7349,6 +7349,8 @@ export class BaseExchange {
         return [ subType, params ];
     }
 
+    handleMarginModeAndParams (methodName: string, params: Dict, defaultValue: string): [string, Dict];
+    handleMarginModeAndParams (methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: Str = undefined): [Str, Dict] {
         /**
          * @ignore
