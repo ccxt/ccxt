@@ -2506,7 +2506,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances: NullableDict = undefined;
+        let balances: List = [];
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeList (response, 'result', []);
         } else {
@@ -2516,7 +2516,7 @@ export default class xt extends Exchange {
         return this.parseBalanceList (balances);
     }
 
-    parseBalanceList (response: any): Balances {
+    parseBalanceList (response: List): Balances {
         //
         // spot
         //
