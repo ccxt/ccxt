@@ -734,14 +734,47 @@ public partial class blofin : ccxt.blofin
             channel = "orders-algo";
         }
         object orders = await this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted);
-        IDictionary<string, object> first = this.safeDict(orders, 0);
-        string? tradeSymbol = this.safeString(first, "symbol");
+        // every symbol shares one orders cache, so filter by the requested symbols and count
+        // per symbol only when exactly one is requested
+        IList<object> requestedSymbols = null;
+        object countSymbol = null;
+        IList<object> unifiedSymbols = this.marketSymbols(this.toArray(symbols), null, true);
+        if ((unifiedSymbols != null))
+        {
+            int symbolsLength = (unifiedSymbols?.Count ?? 0);
+            if (symbolsLength > 0)
+            {
+                requestedSymbols = unifiedSymbols;
+            }
+            if ((symbolsLength == 1))
+            {
+                countSymbol = (unifiedSymbols != null && 0 < unifiedSymbols.Count ? unifiedSymbols[0] : null);
+            }
+        }
+        object newest = orders;
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, tradeSymbol, limit));
+            if ((countSymbol != null))
+            {
+                limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, countSymbol, limit));
+            } else
+            {
+                // updated orders move to the end of the shared cache, so the newest entries across all
+                // symbols are exactly this read's updates; take them before filtering by symbol
+                object newCount = ccxt.pro.BaseCache.getLimitOf(orders, null, null);
+                if (isEqual(newCount, 0))
+                {
+                    // another watcher already took the count, and a limit of 0 would return the whole cache
+                    newest = new List<object>() {};
+                } else
+                {
+                    newest = this.filterBySinceLimit(this.toArray(orders), null, newCount, "timestamp", true);
+                }
+            }
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
+        IList<object> requested = ((IList<object>)this.filterByArray(newest, "symbol", requestedSymbols, false));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(requested, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -764,13 +797,19 @@ public partial class blofin : ccxt.blofin
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         string? channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
+        List<object> symbols = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             ccxt.Order order = this.parseWsOrder(this.safeDict(data, i, new Dictionary<string, object>() {}));
             orders.append(ccxt.BaseExchange.FromOrder(order));
+            symbols.Add(this.safeString(ccxt.BaseExchange.FromOrder(order), "symbol", ""));
+        }
+        // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
+        {
             if ((channelName != null))
             {
-                client.resolve(orders, ((channelName + ":") + this.safeString(ccxt.BaseExchange.FromOrder(order), "symbol", "")));
+                client.resolve(orders, ((channelName + ":") + (symbols[i])));
             }
             client.resolve(orders, channelName);
         }
@@ -1147,29 +1186,36 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public async virtual Task authenticate(IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        Int64 milliseconds = this.milliseconds();
         string messageHash = "authenticate_hash";
-        string timestamp = milliseconds.ToString();
-        string nonce = ("n_" + timestamp);
-        string auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
-        string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "op", "login" },
-            { "args", new List<object>() {new Dictionary<string, object>() {
+        string marketType = "swap"; // for now
+        IDictionary<string, object> typeUrls = this.safeDict((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType, new Dictionary<string, object>() {});
+        string? url = this.safeString(typeUrls, "private");
+        var client = this.client(url);
+        var future = client.reusableFuture(messageHash);
+        object authenticated = this.safeValue(client.subscriptions, messageHash);
+        if ((authenticated == null))
+        {
+            Int64 milliseconds = this.milliseconds();
+            string timestamp = milliseconds.ToString();
+            string nonce = ("n_" + timestamp);
+            string auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
+            string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
+            Dictionary<string, object> request = new Dictionary<string, object>() {
+                { "op", "login" },
+                { "args", new List<object>() {new Dictionary<string, object>() {
     { "apiKey", this.apiKey },
     { "passphrase", this.password },
     { "timestamp", timestamp },
     { "nonce", nonce },
     { "sign", signature },
 }} },
-        };
-        string marketType = "swap"; // for now
-        IDictionary<string, object> typeUrls = this.safeDict((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType, new Dictionary<string, object>() {});
-        string? url = this.safeString(typeUrls, "private");
-        await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+            };
+            this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+        }
+        return await (future as Exchange.Future);
     }
 }

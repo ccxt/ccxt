@@ -788,7 +788,11 @@ public partial class poloniex : Exchange
                     { "12004", typeof(PermissionDenied) },
                     { "21001", typeof(OperationRejected) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "Invalid Apikey or Signature", typeof(AuthenticationError) },
+                    { "ApiKey not exist", typeof(AuthenticationError) },
+                    { "Illegal of ip", typeof(PermissionDenied) },
+                } },
             } },
         });
     }
@@ -4589,8 +4593,8 @@ public partial class poloniex : Exchange
         {
             string? message = this.safeString2(response, "message", "msg");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;
