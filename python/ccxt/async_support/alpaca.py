@@ -1145,7 +1145,10 @@ class alpaca(Exchange, ImplicitAPI):
         paramsCost = self.omit(params, 'cost') if (cost is not None) else params
         defaultTIF, paramsTimeInForce = self.handle_option_string_and_params(paramsCost, 'createOrder', 'timeInForce')
         # the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request['time_in_force'] = defaultTIF.lower() if (defaultTIF is not None) else defaultTIF
+        if defaultTIF is not None:
+            request['time_in_force'] = defaultTIF.lower()
+        else:
+            request['time_in_force'] = None
         paramsOmitted = self.omit(paramsTimeInForce, ['timeInForce', 'triggerPrice'])
         request['client_order_id'] = self.generate_client_order_id(paramsOmitted)
         order = await self.traderPrivatePostV2Orders(self.extend(request, self.omit(paramsOmitted, ['clientOrderId'])))

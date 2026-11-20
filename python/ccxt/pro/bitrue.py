@@ -382,7 +382,7 @@ class bitrue(ccxt.async_support.bitrue):
         isFutures = (channelKind == 'e')
         market = None
         if isFutures:
-            wsBaseQuote = self.safe_string_lower(parts, 2)
+            wsBaseQuote = self.safe_string_lower(parts, 2, '')
             market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
         else:
             marketId = self.safe_string_upper(parts, 1)
@@ -408,10 +408,8 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def find_swap_market_by_ws_base_quote(self, wsBaseQuote: Str):
-        # typed Str, not string: callers pass safeStringLower's result, a *string in go,
-        # and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
-        # dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
+    def find_swap_market_by_ws_base_quote(self, wsBaseQuote: str):
+        # callers pass safeStringLower (parts, 2, ''), a plain string in every port
         if self.markets is None:
             return None
         markets = self.markets
@@ -538,8 +536,8 @@ class bitrue(ccxt.async_support.bitrue):
         symbolValue = market['symbol']
         if market['swap'] is not True:
             raise NotSupported(self.id + ' unWatchTrades is only supported for swap markets')
-        baseIdLower = self.safe_string_lower(market, 'baseId')
-        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        baseIdLower = self.safe_string_lower(market, 'baseId', '')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId', '')
         wsId = 'e_' + baseIdLower + quoteIdLower
         channel = 'market_' + wsId + '_trade_ticker'
         subscription = {
@@ -571,7 +569,7 @@ class bitrue(ccxt.async_support.bitrue):
         #
         channel = self.safe_string(message, 'channel')
         parts = channel.split('_')
-        wsBaseQuote = self.safe_string_lower(parts, 2)
+        wsBaseQuote = self.safe_string_lower(parts, 2, '')
         market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
         symbol = self.safe_string(market, 'symbol')
         if symbol is None:
@@ -683,8 +681,8 @@ class bitrue(ccxt.async_support.bitrue):
         interval = self.safe_string(futuresTimeframes, timeframe)
         if interval is None:
             raise NotSupported(self.id + ' unWatchOHLCV does not support timeframe ' + timeframe)
-        baseIdLower = self.safe_string_lower(market, 'baseId')
-        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        baseIdLower = self.safe_string_lower(market, 'baseId', '')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId', '')
         wsId = 'e_' + baseIdLower + quoteIdLower
         channel = 'market_' + wsId + '_kline_' + interval
         subscription = {
@@ -714,7 +712,7 @@ class bitrue(ccxt.async_support.bitrue):
         #
         channel = self.safe_string(message, 'channel')
         parts = channel.split('_')
-        wsBaseQuote = self.safe_string_lower(parts, 2)
+        wsBaseQuote = self.safe_string_lower(parts, 2, '')
         market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
         symbol = self.safe_string(market, 'symbol')
         if symbol is None:
@@ -803,7 +801,7 @@ class bitrue(ccxt.async_support.bitrue):
         #
         channel = self.safe_string(message, 'channel')
         parts = channel.split('_')
-        wsBaseQuote = self.safe_string_lower(parts, 2)
+        wsBaseQuote = self.safe_string_lower(parts, 2, '')
         market = self.find_swap_market_by_ws_base_quote(wsBaseQuote)
         symbol = self.safe_string(market, 'symbol')
         if symbol is None:

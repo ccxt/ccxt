@@ -940,9 +940,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         response = self.safe_dict(results, 0)
         midsResponse = results[1]
         balances = self.safe_list(response, 'balances', [])
-        allMids = {}
-        if (not isinstance(midsResponse, str)) and not isinstance(midsResponse, list):
-            allMids = midsResponse
+        allMids = self.info_dict(midsResponse)
         mids = self.safe_dict(allMids, 'mids', allMids)
         positions = []
         for i in range(0, len(balances)):
@@ -1023,8 +1021,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
     def find_outcome_in_market(self, market: Market, sideHint: Str = None) -> dict:
         outcomesList = self.safe_list(market, 'outcomes', [])
-        normalizedHint = sideHint.upper() if (sideHint is not None and sideHint != '') else None
-        if normalizedHint is not None:
+        if sideHint is not None and sideHint != '':
+            normalizedHint = sideHint.upper()
             for i in range(0, len(outcomesList)):
                 oc = self.safe_dict(outcomesList, i, {})
                 ocSymbol = self.safe_string_2(oc, 'outcome', 'symbol', '')

@@ -588,12 +588,11 @@ class bybit(ccxt.async_support.bybit):
         type = 'contract'
         if isSpot:
             type = 'spot'
+        if (updateType != 'snapshot') and (updateType != 'delta'):
+            return
         symbol = None
-        parsed = None
-        if (updateType == 'snapshot'):
-            parsed = self.parse_ticker(data)
-            symbol = self.safe_string(parsed, 'symbol')
-        elif updateType == 'delta':
+        tickerInput = data
+        if updateType == 'delta':
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
@@ -602,9 +601,11 @@ class bybit(ccxt.async_support.bybit):
             # update the info in place
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})
-            merged = self.extend(rawTicker, data)
-            parsed = self.parse_ticker(merged)
-        if (parsed is None) or (symbol is None):
+            tickerInput = self.extend(rawTicker, data)
+        parsed = self.parse_ticker(tickerInput)
+        if updateType == 'snapshot':
+            symbol = self.safe_string(parsed, 'symbol')
+        if symbol is None:
             return
         timestamp = self.safe_integer(message, 'ts')
         parsed['timestamp'] = timestamp
@@ -2190,8 +2191,8 @@ class bybit(ccxt.async_support.bybit):
         if account is not None:
             if self.safe_dict(self.balance, account) is None:
                 self.balance[account] = {}
-            self.balance[account]['info'] = info
             balance = self.safe_dict(self.balance, account, {})
+            balance['info'] = info
             timestamp = self.safe_integer(message, 'ts')
             balance['timestamp'] = timestamp
             balance['datetime'] = self.iso8601(timestamp)

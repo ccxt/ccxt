@@ -1789,7 +1789,7 @@ class pacifica(Exchange, ImplicitAPI):
             ordersToReturn.append(self.safe_order({'info': order, 'status': status, 'symbol': symbol}))
         return ordersToReturn
 
-    def cancel_orders_request(self, ids: list[Str], symbol: Str = None, params: dict = {}) -> dict:
+    def cancel_orders_request(self, ids: list[str], symbol: Str = None, params: dict = {}) -> dict:
         actions = []
         for i in range(0, len(ids)):
             id = self.safe_string(ids, i)
@@ -2371,10 +2371,9 @@ class pacifica(Exchange, ImplicitAPI):
         # return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         sorted = self.sort_by(data, 'history_id', True)
         lastIdx = len(sorted)
-        lastInfo = {}
         if lastIdx > 0:
-            lastInfo = sorted[0]
-        return self.parse_order(lastInfo, market)
+            return self.parse_order(sorted[0], market)
+        return self.parse_order({}, market)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {

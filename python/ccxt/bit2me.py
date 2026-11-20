@@ -439,7 +439,7 @@ class bit2me(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         status = self.safe_string(market, 'marketEnabled')
-        fees = self.fees
+        tradingFees = self.safe_value(self.fees, 'trading')
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -464,8 +464,8 @@ class bit2me(Exchange, ImplicitAPI):
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
+            'taker': self.safe_number(tradingFees, 'taker'),
+            'maker': self.safe_number(tradingFees, 'maker'),
             'precision': {
                 'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
                 'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),

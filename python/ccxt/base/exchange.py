@@ -3251,9 +3251,8 @@ class BaseExchange(object):
  @ignore
         store value under key if key is defined(no-op on None)
         """
-        k = key
-        if k is not None:
-            dict[k] = value
+        if key is not None:
+            dict[key] = value
 
     def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
@@ -3323,9 +3322,9 @@ class BaseExchange(object):
 
     def url_encoder_for_proxy_url(self, targetUrl: str):
         # to be overriden
-        includesQuery = targetUrl.find('?') >= 0
-        finalUrl = self.encode_uri_component(targetUrl) if includesQuery else targetUrl
-        return finalUrl
+        if targetUrl.find('?') >= 0:
+            return self.encode_uri_component(targetUrl)
+        return targetUrl
 
     def check_proxy_settings(self, url: Str = None, method: Str = None, headers: object = None, body: object = None):
         usedProxies = []
@@ -7004,11 +7003,10 @@ class BaseExchange(object):
             result[symbol] = borrowRate
         return result
 
-    def parse_funding_rate_histories(self, response: list, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_funding_rate_histories(self, response: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
-            entry = response[i]
-            rates.append(self.parse_funding_rate_history(entry, market))
+            rates.append(self.parse_funding_rate_history(response[i], market))
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7020,11 +7018,10 @@ class BaseExchange(object):
     def parse_funding_rate(self, contract: dict, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
-    def parse_funding_rates(self, response: list, symbols: Strings = None):
+    def parse_funding_rates(self, response: list[dict], symbols: Strings = None):
         fundingRates = {}
         for i in range(0, len(response)):
-            entry = response[i]
-            parsed = self.parse_funding_rate(entry)
+            parsed = self.parse_funding_rate(response[i])
             if parsed['symbol'] is not None:
                 fundingRates[parsed['symbol']] = parsed
         return self.index_by(self.filter_by_array(fundingRates, 'symbol', symbols, False), 'symbol')
@@ -7032,11 +7029,10 @@ class BaseExchange(object):
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
 
-    def parse_long_short_ratio_history(self, response: list, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_long_short_ratio_history(self, response: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
-            entry = response[i]
-            rates.append(self.parse_long_short_ratio(entry, market))
+            rates.append(self.parse_long_short_ratio(response[i], market))
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7167,8 +7163,7 @@ class BaseExchange(object):
     def parse_open_interests(self, response: list, symbols: Strings = None):
         result = {}
         for i in range(0, len(response)):
-            entry = response[i]
-            parsed = self.parse_open_interest(entry)
+            parsed = self.parse_open_interest(response[i])
             if parsed['symbol'] is not None:
                 result[parsed['symbol']] = parsed
         return self.index_by(self.filter_by_array(result, 'symbol', symbols, False), 'symbol')

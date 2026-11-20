@@ -971,6 +971,8 @@ class indodax(Exchange, ImplicitAPI):
         paramsOmitted = params
         if isMarketBuy:
             paramsOmitted = self.omit(params, 'cost')
+        quoteId = self.safe_string(market, 'quoteId', '')
+        baseId = self.safe_string(market, 'baseId', '')
         if type == 'market':
             if side == 'buy':
                 quoteAmount = None
@@ -984,20 +986,20 @@ class indodax(Exchange, ImplicitAPI):
                     priceString = self.number_to_string(price)
                     costRequest = Precise.string_mul(amountString, priceString)
                     quoteAmount = self.cost_to_precision(symbol, costRequest)
-                request[market['quoteId']] = quoteAmount
+                request[quoteId] = quoteAmount
             else:
                 quantityIsRequired = True
         elif type == 'limit':
             priceIsRequired = True
             quantityIsRequired = True
             if side == 'buy':
-                request[market['quoteId']] = self.parse_to_numeric(self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))))
+                request[quoteId] = self.parse_to_numeric(self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))))
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
             request['price'] = price
         if quantityIsRequired:
-            request[market['baseId']] = self.amount_to_precision(symbol, amount)
+            request[baseId] = self.amount_to_precision(symbol, amount)
         result = self.privatePostTrade(self.extend(request, paramsOmitted))
         data = self.safe_dict(result, 'return', {})
         id = self.safe_string(data, 'order_id')

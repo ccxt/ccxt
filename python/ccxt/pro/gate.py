@@ -1643,10 +1643,11 @@ class gate(ccxt.async_support.gate):
                     left = self.safe_string(info, 'left')
                     parsed['status'] = 'closed' if Precise.string_equals(left, '0') else 'canceled'
             stored.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             market = self.market(symbol)
-            if market['id'] is not None:
-                marketIds[market['id']] = True
+            marketId = self.safe_string(market, 'id')
+            if marketId is not None:
+                marketIds[marketId] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             messageHash = hashPrefix + ':' + keys[i]
@@ -1776,9 +1777,7 @@ class gate(ccxt.async_support.gate):
             newLiquidations.append(liquidation)
             symbol = self.safe_string(liquidation, 'symbol')
             if symbol is not None:
-                symbolLiquidations = self.safe_list(liquidationsBySymbol, symbol)
-                if symbolLiquidations is None:
-                    symbolLiquidations = []
+                symbolLiquidations = self.safe_list(liquidationsBySymbol, symbol, [])
                 symbolLiquidations.append(liquidation)
                 liquidationsBySymbol[symbol] = symbolLiquidations
         symbols = list(liquidationsBySymbol.keys())

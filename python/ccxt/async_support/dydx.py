@@ -1395,9 +1395,13 @@ class dydx(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGoodTillBlockTimeInSeconds, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId'])
         walletAddress = self.get_wallet_address()
         clobPairId = self.safe_integer(marketInfo, 'clobPairId', 0)
-        subaccountIdValue = 0 if (subaccountIdOption is None) else subaccountIdOption
+        subaccountIdValue = 0
+        if subaccountIdOption is not None:
+            subaccountIdValue = subaccountIdOption
         clientOrderIdValue = 0 if (clientOrderId is None) else clientOrderId
-        orderFlagValue = 0 if (orderFlag is None) else orderFlag
+        orderFlagValue = 0
+        if orderFlag is not None:
+            orderFlagValue = orderFlag
         clobPairIdValue = 0 if (clobPairId is None) else clobPairId
         orderId = self.create_order_id_from_parts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
         return [orderId, self.extend(signingPayload, paramsOmitted)]

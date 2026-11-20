@@ -878,7 +878,7 @@ class htx(ccxt.async_support.htx):
             marketCode = self.safe_string_lower(market, 'lowercaseId')
         baseId = None
         if market is not None:
-            baseId = market['baseId']
+            baseId = self.safe_string(market, 'baseId')
         prefix = orderType
         messageHash = prefix
         channel = prefix + '.' + '*'
@@ -917,7 +917,7 @@ class htx(ccxt.async_support.htx):
     def get_v5_linear_channel_and_message_hash(self, topic: Str, market: Market = None, params: dict = {}) -> list[object]:
         contractCode = None
         if market is not None:
-            contractCode = market['id']
+            contractCode = self.safe_string(market, 'id')
         else:
             contractCode = self.safe_string(params, 'contract_code', '*')
         channel = topic
@@ -2658,12 +2658,12 @@ class htx(ccxt.async_support.htx):
         if type == 'spot':
             spotUrls = self.safe_dict(typeUrlsByApi, 'spot', {})
             if isPrivate:
-                hostnameURL = spotUrls['private']
+                hostnameURL = self.safe_string(spotUrls, 'private')
             else:
                 if isFeed:
-                    hostnameURL = spotUrls['feed']
+                    hostnameURL = self.safe_string(spotUrls, 'feed')
                 else:
-                    hostnameURL = spotUrls['public']
+                    hostnameURL = self.safe_string(spotUrls, 'public')
             url = self.implode_params(hostnameURL, hostname)
         else:
             typeUrls = self.safe_dict(typeUrlsByApi, type, {})
@@ -2674,11 +2674,11 @@ class htx(ccxt.async_support.htx):
                 subTypeUrl = self.safe_dict(typeUrls, 'inverse', {})
             if isPrivate:
                 if isV5 and isLinear:
-                    url = self.safe_string(subTypeUrl, 'privateV5', subTypeUrl['private'])
+                    url = self.safe_string_2(subTypeUrl, 'privateV5', 'private')
                 else:
-                    url = subTypeUrl['private']
+                    url = self.safe_string(subTypeUrl, 'private')
             else:
-                url = subTypeUrl['public']
+                url = self.safe_string(subTypeUrl, 'public')
         return url
 
     async def subscribe_public(self, url: Str, symbol: Str, messageHash: Str, method: object = None, params: dict = {}):

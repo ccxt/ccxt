@@ -676,9 +676,9 @@ class bitteam(Exchange, ImplicitAPI):
         fee = None
         withdrawCommissionFixed = self.safe_dict(txLimits, 'withdrawCommissionFixed', {})
         feesByNetworkId = {}
-        blockChain = self.safe_string(currency, 'blockChain')
+        blockChain = self.safe_string(currency, 'blockChain', '')
         # if only one blockChain
-        if (blockChain is not None) and (blockChain != ''):
+        if blockChain != '':
             fee = self.parse_number(withdrawCommissionFixed)
             feesByNetworkId[blockChain] = fee
         else:

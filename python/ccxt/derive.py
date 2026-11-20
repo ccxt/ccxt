@@ -1286,7 +1286,7 @@ class derive(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: list[object], market: Market = None) -> list:
+    def parse_settlements(self, settlements: list[dict], market: Market = None) -> list:
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))

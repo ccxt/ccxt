@@ -990,8 +990,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         if (sideStr == 'buy') and (tokenAddress is not None) and (not skipAllowance):
             await self.ensure_erc20_allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
         skipWaitForReceipt = self.safe_bool(params, 'skipWaitForReceipt', hasPreBroadcastTxHash)
-        txHash = txHashParam
-        if txHash is None:
+        txHash = None
+        if txHashParam is not None:
+            txHash = txHashParam
+        else:
             txHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit)
         if not skipWaitForReceipt:
             await self.wait_for_transaction_receipt(rpcUrl, txHash)
@@ -1296,7 +1298,11 @@ class myriad(PredictionExchange, ImplicitAPI):
         if (requestedStatus == 'open') or (requestedStatus == 'cancelled') or (requestedStatus == 'canceled') or (requestedStatus == 'expired'):
             return []
         traderParam = self.safe_string_2(params, 'trader', 'address')
-        trader = traderParam if (traderParam is not None) else self.wallet_address_or_undefined()
+        trader = None
+        if traderParam is not None:
+            trader = traderParam
+        else:
+            trader = self.wallet_address_or_undefined()
         if trader is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey')
         request = {

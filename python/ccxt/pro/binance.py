@@ -5268,8 +5268,8 @@ class binance(ccxt.async_support.binance):
         accountType = 'option'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
         balance = self.safe_dict(self.balance, accountType, {})
+        balance['info'] = message
         B = self.safe_list(message, 'B', [])
         for i in range(0, len(B)):
             entry = self.safe_dict(B, i)

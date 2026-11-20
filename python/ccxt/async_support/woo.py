@@ -1187,8 +1187,8 @@ class woo(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, '_coin_id')
         code = self.safe_currency_code(currencyId)
-        tokensByNetworkId = self.index_by(rawCurrency['_tokens_by_id'], 'network')
-        chainsByNetworkId = self.index_by(rawCurrency['_networks_by_id'], 'network')
+        tokensByNetworkId = self.index_by(self.safe_list(rawCurrency, '_tokens_by_id', []), 'network')
+        chainsByNetworkId = self.index_by(self.safe_list(rawCurrency, '_networks_by_id', []), 'network')
         keys = list(chainsByNetworkId.keys())
         resultingNetworks = {}
         for j in range(0, len(keys)):

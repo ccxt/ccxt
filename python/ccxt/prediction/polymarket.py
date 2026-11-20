@@ -2114,7 +2114,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             eoaSig = self.sign_message(encoded, self.privateKey)
             # lowercase: intToBase16 emits uppercase hex in some target languages, but the
             # signature is case-insensitive bytes and the rest of the hex is lowercase
-            eoaSignature = '0x' + self.remove0x_prefix(eoaSig['r']) + self.remove0x_prefix(eoaSig['s']) + self.int_to_base16(eoaSig['v'])
+            eoaSignature = '0x' + self.remove0x_prefix(self.safe_string(eoaSig, 'r')) + self.remove0x_prefix(self.safe_string(eoaSig, 's')) + self.int_to_base16(eoaSig['v'])
             return eoaSignature.lower()
         # POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         # ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
@@ -2660,7 +2660,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, messageData)
         sig = self.sign_message(encoded, self.privateKey)
-        return '0x' + self.remove0x_prefix(sig['r']) + self.remove0x_prefix(sig['s']) + self.int_to_base16(sig['v'])
+        return '0x' + self.remove0x_prefix(self.safe_string(sig, 'r')) + self.remove0x_prefix(self.safe_string(sig, 's')) + self.int_to_base16(sig['v'])
 
     async def derive_api_key(self, params: dict = {}) -> dict:
         """

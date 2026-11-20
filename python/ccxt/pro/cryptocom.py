@@ -130,11 +130,15 @@ class cryptocom(ccxt.async_support.cryptocom):
             params['params'] = {}
         bookSubscriptionType, paramsBookSubscriptionType = self.handle_option_string_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, paramsBookSubscriptionType2 = self.handle_option_string_and_params(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
-        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2
+        bookParams = self.safe_dict(paramsBookSubscriptionType2, 'params', {})
+        bookParams['bookSubscriptionType'] = bookSubscriptionType2
+        paramsBookSubscriptionType2['params'] = bookParams
         bookUpdateFrequency, paramsBookUpdateFrequency = self.handle_option_string_and_params(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, paramsBookUpdateFrequency2 = self.handle_option_string_and_params(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
-            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2
+            frequencyParams = self.safe_dict(paramsBookUpdateFrequency2, 'params', {})
+            frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2
+            paramsBookUpdateFrequency2['params'] = frequencyParams
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
@@ -169,11 +173,15 @@ class cryptocom(ccxt.async_support.cryptocom):
             params['params'] = {}
         bookSubscriptionType, paramsBookSubscriptionType = self.handle_option_string_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, paramsBookSubscriptionType2 = self.handle_option_string_and_params(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
-        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2
+        bookParams = self.safe_dict(paramsBookSubscriptionType2, 'params', {})
+        bookParams['bookSubscriptionType'] = bookSubscriptionType2
+        paramsBookSubscriptionType2['params'] = bookParams
         bookUpdateFrequency, paramsBookUpdateFrequency = self.handle_option_string_and_params(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, paramsBookUpdateFrequency2 = self.handle_option_string_and_params(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
-            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2
+            frequencyParams = self.safe_dict(paramsBookUpdateFrequency2, 'params', {})
+            frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2
+            paramsBookUpdateFrequency2['params'] = frequencyParams
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)

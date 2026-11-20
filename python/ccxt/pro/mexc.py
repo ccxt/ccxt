@@ -424,8 +424,11 @@ class mexc(ccxt.async_support.mexc):
         symbolsNormalized = self.market_symbols(symbols, None, True, False, True)
         if symbolsNormalized is None:
             raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
-        markets = self.require_value(self.markets_for_symbols(symbolsNormalized), 'watchBidsAsks() markets is required')
-        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
+        symbolsLength = len(symbolsNormalized)
+        firstMarket = None
+        if symbolsLength > 0:
+            firstMarket = self.market(symbolsNormalized[0])
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
         isSpot = marketType == 'spot'
         if not isSpot:
             raise NotSupported(self.id + ' watchBidsAsks only support spot market')
@@ -1753,8 +1756,11 @@ class mexc(ccxt.async_support.mexc):
         symbolsNormalized = self.market_symbols(symbols, None, True, False, True)
         if symbolsNormalized is None:
             raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
-        markets = self.require_value(self.markets_for_symbols(symbolsNormalized), 'unWatchBidsAsks() markets is required')
-        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
+        symbolsLength = len(symbolsNormalized)
+        firstMarket = None
+        if symbolsLength > 0:
+            firstMarket = self.market(symbolsNormalized[0])
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
         isSpot = marketType == 'spot'
         if not isSpot:
             raise NotSupported(self.id + ' watchBidsAsks only support spot market')

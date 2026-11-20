@@ -1289,10 +1289,9 @@ class okx(ccxt.async_support.okx):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
-        depth = None
-        paramsDepth = None
-        depth, paramsDepth = self.handle_option_string_and_params(params, 'watchOrderBook', 'depth', 'books')
-        limit = self.safe_integer(paramsDepth, 'limit')
+        limit = self.safe_integer(params, 'limit')
+        depthOption = self.handle_option_string_and_params(params, 'watchOrderBook', 'depth', 'books')[0]
+        depth = depthOption
         if limit is not None:
             if limit == 1:
                 depth = 'bbo-tbt'

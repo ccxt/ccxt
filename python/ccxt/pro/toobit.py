@@ -298,15 +298,15 @@ class toobit(ccxt.async_support.toobit):
         messageHashes = []
         timeframes = self.safe_dict(self.options['ws'], 'timeframes', {})
         marketIds = []
-        selectedTimeframe = None
+        selectedTimeframe = ''
         for i in range(0, len(symbolsAndTimeframes)):
             data = self.safe_list(symbolsAndTimeframes, i)
             symbolStr = self.safe_string(data, 0, '')
             market = self.market(symbolStr)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id', '')
             unfiedTimeframe = self.safe_string(data, 1, '1m')
             rawTimeframe = self.safe_string(timeframes, unfiedTimeframe, unfiedTimeframe)
-            if selectedTimeframe is not None and selectedTimeframe != rawTimeframe:
+            if selectedTimeframe != '' and selectedTimeframe != rawTimeframe:
                 raise NotSupported(self.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols')
             else:
                 selectedTimeframe = rawTimeframe

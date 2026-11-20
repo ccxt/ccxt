@@ -1095,7 +1095,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'date': date,
             }, self.safe_dict(tickers, i))
             ticker = self.parse_ticker(rawTicker)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1959,7 +1959,7 @@ class digifinex(Exchange, ImplicitAPI):
         error = self.safe_list(response, 'error', [])
         result = []
         for i in range(0, len(success)):
-            order = success[i]
+            order = self.safe_string(success, i)
             result.append(self.safe_order({
                 'info': order,
                 'id': order,
@@ -1967,7 +1967,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'status': 'canceled',
             }))
         for i in range(0, len(error)):
-            order = error[i]
+            order = self.safe_string(error, i)
             result.append(self.safe_order({
                 'info': order,
                 'id': order,
@@ -2053,7 +2053,7 @@ class digifinex(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrdersForSymbols() requires a symbol for each order')
             market = self.market(symbol)
-            orderMarketType = market['type']
+            orderMarketType = self.safe_string(market, 'type')
             if marketType is None:
                 marketType = orderMarketType
             elif marketType != orderMarketType:
@@ -2068,7 +2068,7 @@ class digifinex(Exchange, ImplicitAPI):
             ordersRequests = []
             for i in range(0, len(ids)):
                 market = self.market(symbols[i])
-                marketId = market['id']
+                marketId = self.safe_string(market, 'id')
                 orderId = ids[i]
                 ordersRequests.append({
                     'instrument_id': marketId,
@@ -3079,7 +3079,7 @@ class digifinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        currencyId = currency['id']
+        currencyId = self.safe_string(currency, 'id')
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
@@ -3776,7 +3776,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string_2(position, 'instrument_id', 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         marginMode = self.safe_string(position, 'margin_mode')
         if marginMode is not None:
             marginMode = 'cross' if (marginMode == 'crossed') else 'isolated'

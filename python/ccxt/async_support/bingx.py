@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
-import numbers
 from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Int, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1302,9 +1301,9 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        ohlcvs = self.safe_value(response, 'data', [])
-        if not isinstance(ohlcvs, list):
-            ohlcvs = [ohlcvs]
+        ohlcvs = self.safe_list(response, 'data', [])
+        if self.safe_list(response, 'data') is None and self.safe_dict(response, 'data') is not None:
+            ohlcvs = [self.safe_dict(response, 'data')]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
@@ -3908,24 +3907,18 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 feeKey = 'settle' if (self.safe_bool(marketResolved, 'inverse', False)) else 'quote'
                 feeCurrencyCode = self.safe_string(marketResolved, feeKey)
-        stopLoss = self.safe_value(orderData, 'stopLoss')
-        stopLossPrice = None
-        if (stopLoss is not None) and (stopLoss != ''):
-            stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopLoss'))
-        if (stopLoss is not None) and ((not isinstance(stopLoss, numbers.Real))) and (stopLoss != ''):
-            #  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if isinstance(stopLoss, str):
-                stopLoss = self.parse_json(stopLoss)
-            stopLossPrice = self.omit_zero(self.safe_string(stopLoss, 'stopPrice'))
-        takeProfit = self.safe_value(orderData, 'takeProfit')
-        takeProfitPrice = None
-        if takeProfit is not None and (takeProfit != ''):
-            takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'takeProfit'))
-        if (takeProfit is not None) and ((not isinstance(takeProfit, numbers.Real))) and (takeProfit != ''):
-            #  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if isinstance(takeProfit, str):
-                takeProfit = self.parse_json(takeProfit)
-            takeProfitPrice = self.omit_zero(self.safe_string(takeProfit, 'stopPrice'))
+        # the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        stopLossString = self.safe_string(orderData, 'stopLoss')
+        stopLossIsDict = self.safe_dict(orderData, 'stopLoss') is not None
+        stopLossPrice = self.omit_zero(self.safe_string(self.safe_dict(orderData, 'stopLoss', {}), 'stopPrice'))
+        if not stopLossIsDict and (stopLossString is not None) and (stopLossString.find('{') == 0):
+            stopLossPrice = self.omit_zero(self.safe_string(self.parse_json(stopLossString), 'stopPrice'))
+        # the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        takeProfitString = self.safe_string(orderData, 'takeProfit')
+        takeProfitIsDict = self.safe_dict(orderData, 'takeProfit') is not None
+        takeProfitPrice = self.omit_zero(self.safe_string(self.safe_dict(orderData, 'takeProfit', {}), 'stopPrice'))
+        if not takeProfitIsDict and (takeProfitString is not None) and (takeProfitString.find('{') == 0):
+            takeProfitPrice = self.omit_zero(self.safe_string(self.parse_json(takeProfitString), 'stopPrice'))
         rawType = self.safe_string_lower_2(orderData, 'type', 'o')
         stopPrice = self.omit_zero(self.safe_string_2(orderData, 'StopPrice', 'stopPrice'))
         triggerPrice = stopPrice

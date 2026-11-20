@@ -1392,8 +1392,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if code is not None:
                     holdingCodes[code] = True
                     cashBalance[code] = newAccount
-            self.balance['cash'] = cashBalance
-            self.balance['cash'] = self.prune_stale_balance_keys(self.balance['cash'], holdingCodes)
+            self.balance['cash'] = self.prune_stale_balance_keys(cashBalance, holdingCodes)
             self.balance['cash'] = self.safe_balance(self.balance['cash'])
             updatedBalance = self.balance['cash']
         if futures is not None:
@@ -1419,8 +1418,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                     futuresSymbols[symbol] = True
                     symbolAccounts[code] = newAccount
                 marginBalance[symbol] = symbolAccounts
-            self.balance['margin'] = marginBalance
-            self.balance['margin'] = self.prune_stale_balance_keys(self.balance['margin'], futuresSymbols)
+            self.balance['margin'] = self.prune_stale_balance_keys(marginBalance, futuresSymbols)
             self.balance['margin'] = self.safe_balance(self.balance['margin'])
             client.resolve(self.balance['margin'], messageHash + ':futures')
             if updatedBalance is None:
@@ -1445,8 +1443,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if code is not None:
                     flexCodes[code] = True
                     flexBalance[code] = newAccount
-            self.balance['flex'] = flexBalance
-            self.balance['flex'] = self.prune_stale_balance_keys(self.balance['flex'], flexCodes)
+            self.balance['flex'] = self.prune_stale_balance_keys(flexBalance, flexCodes)
             self.balance['flex'] = self.safe_balance(self.balance['flex'])
             client.resolve(self.balance['flex'], messageHash + ':flex_futures')
             if updatedBalance is None:

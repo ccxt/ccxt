@@ -235,15 +235,14 @@ class onetrading(ccxt.async_support.onetrading):
             ticker = tickers[i]
             marketId = self.safe_string(ticker, 'instrument')
             symbol = self.safe_symbol(marketId)
-            parsedTicker = self.parse_ws_ticker(ticker)
             timestamp = self.parse8601(datetime)
-            parsedTicker['timestamp'] = timestamp
-            parsedTicker['datetime'] = self.iso8601(timestamp)
+            isoDatetime = self.iso8601(timestamp)
+            parsedTicker = self.parse_ws_ticker(ticker, None, timestamp, isoDatetime)
             self.tickers[symbol] = parsedTicker
             client.resolve(parsedTicker, 'ticker.' + symbol)
         client.resolve(self.tickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+    def parse_ws_ticker(self, ticker: dict, market: Market, timestamp: Int, datetime: Str) -> Ticker:
         #
         #     {
         #         "instrument": "ETH_BTC",
@@ -258,8 +257,8 @@ class onetrading(ccxt.async_support.onetrading):
         marketId = self.safe_string(ticker, 'instrument')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market),
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': None,

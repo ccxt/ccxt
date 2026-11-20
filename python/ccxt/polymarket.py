@@ -2610,7 +2610,7 @@ class polymarket(Exchange, ImplicitAPI):
             envelope['exp'] = exp
         return envelope
 
-    def compact_signable(self, row: list[object]):
+    def compact_signable(self, row: list[object]) -> list[object]:
         """
  @ignore
         removes None entries from a positional signable array, later entries shift left exactly like the official sdk does before hashing

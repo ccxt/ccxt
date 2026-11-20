@@ -366,12 +366,11 @@ class mudrex(Exchange, ImplicitAPI):
             self.load_markets()
         request = {}
         response = self.privateGetFutures(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
         rows = []
-        if isinstance(data, list):
-            rows = self.safe_list(response, 'data', [])
-        else:
-            rows = self.safe_list(data, 'items', [])
+        rows = self.safe_list(response, 'data', [])
+        rowsLength = len(rows)
+        if rowsLength == 0:
+            rows = self.safe_list(self.safe_dict(response, 'data', {}), 'items', [])
         resultTickers = {}
         for i in range(0, len(rows)):
             t = rows[i]

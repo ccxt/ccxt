@@ -1605,7 +1605,7 @@ class bybit(Exchange, ImplicitAPI):
 
     def create_expired_option_market(self, symbol: str) -> MarketInterface:
         # support expired option contracts
-        quote = None
+        quote = 'USDC'
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         expiry = None
@@ -1618,14 +1618,11 @@ class bybit(Exchange, ImplicitAPI):
             if symbolQuoteAndSettle is None:
                 raise ExchangeError(self.id + ' createExpiredOptionMarket() missing symbolQuoteAndSettle')
             splitQuote = symbolQuoteAndSettle.split(':')
-            quoteAndSettle = self.safe_string(splitQuote, 0)
-            quote = quoteAndSettle
+            quote = self.safe_string(splitQuote, 0, '')
         else:
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
             if symbol.endswith('-USDT'):
                 quote = 'USDT'
-            else:
-                quote = 'USDC'
         strike = self.safe_string(optionParts, 2)
         optionType = self.safe_string(optionParts, 3)
         datetime = self.convert_expire_date(expiry)

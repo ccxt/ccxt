@@ -418,9 +418,7 @@ class hollaex(ccxt.async_support.hollaex):
             parts = key.split('_')
             currencyId = self.safe_string(parts, 0)
             code = self.safe_currency_code(currencyId)
-            account = self.account()
-            if (code is not None) and (code in self.balance):
-                account = self.balance[code]
+            account = self.safe_dict(self.balance, code, self.account())
             second = self.safe_string(parts, 1)
             freeOrTotal = 'free' if (second == 'available') else 'total'
             account[freeOrTotal] = self.safe_string(data, key)

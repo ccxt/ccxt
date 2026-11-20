@@ -1151,7 +1151,7 @@ class aster(ccxt.async_support.aster):
             return
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe) is None:
+        if not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]
@@ -1373,8 +1373,8 @@ class aster(ccxt.async_support.aster):
         messageHash = accountType + ':balance'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
         balance = self.safe_dict(self.balance, accountType, {})
+        balance['info'] = message
         messageValue = self.safe_dict(message, 'a', message)
         B = self.safe_list(messageValue, 'B', [])
         wallet = self.safe_string(self.options, 'wallet', 'wb')

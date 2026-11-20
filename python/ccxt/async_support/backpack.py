@@ -671,9 +671,14 @@ class backpack(Exchange, ImplicitAPI):
         stock = self.safe_bool(selection, 0, False)
         query = self.safe_dict(selection, 1, {})
         marketType = self.safe_string(query, 'marketType')
-        requestedTypes = self.safe_list(query, 'marketType', ['SPOT', 'PERP', 'RFQ'])
+        defaultTypes = []
         if marketType is not None:
-            requestedTypes = [marketType]
+            defaultTypes.append(marketType)
+        else:
+            defaultTypes.append('SPOT')
+            defaultTypes.append('PERP')
+            defaultTypes.append('RFQ')
+        requestedTypes = self.safe_list(query, 'marketType', defaultTypes)
         aliases = {'spot': 'SPOT', 'swap': 'PERP', 'stock': 'RFQ'}
         supportedTypes = ['SPOT', 'PERP', 'RFQ']
         marketTypes = []
@@ -2608,7 +2613,7 @@ class backpack(Exchange, ImplicitAPI):
             rfqResponse = await self.privateGetApiV1Rfqs(self.extend(query, {'symbol': market['id'], 'rfqId': id}))
             for i in range(0, len(rfqResponse)):
                 order = self.parse_order(self.safe_dict(rfqResponse, i, {}), market)
-                if order['id'] == id:
+                if self.safe_string(order, 'id') == id:
                     return order
             raise OrderNotFound(self.id + ' fetchOpenOrder() RFQ ' + id + ' not found')
         request = {
@@ -2651,7 +2656,7 @@ class backpack(Exchange, ImplicitAPI):
             response = await self.privateGetWapiV1HistoryOrders(self.extend(query, request))
         for i in range(0, len(response)):
             order = self.parse_order(self.safe_dict(response, i, {}), market)
-            if order['id'] == id:
+            if self.safe_string(order, 'id') == id:
                 return order
         openOrderParams = self.extend(query, {'stock': self.safe_bool(selection, 0, False)})
         return await self.fetch_open_order(id, symbol, openOrderParams)

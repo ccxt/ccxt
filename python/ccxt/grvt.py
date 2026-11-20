@@ -1732,8 +1732,14 @@ class grvt(Exchange, ImplicitAPI):
             fundingAccountId, paramsFunding = self.handle_option_string_and_params(paramsTradingAccountId, 'transfer', 'fundingAccountId')
             if tradingAccountId is None or fundingAccountId is None:
                 raise ArgumentsRequired(self.id + ' transfer(): you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)')
-            fromSubAccount = tradingAccountId if (fromAccount == 'trading') else fundingAccountId
-            toSubAccount = tradingAccountId if (toAccount == 'trading') else fundingAccountId
+            if fromAccount == 'trading':
+                fromSubAccount = tradingAccountId
+            else:
+                fromSubAccount = fundingAccountId
+            if toAccount == 'trading':
+                toSubAccount = tradingAccountId
+            else:
+                toSubAccount = fundingAccountId
             paramsFundingAccountId = paramsFunding
         request = {
             'from_account_id': self.safe_string(paramsFundingAccountId, 'from_account_id', defaultFromAccountId),

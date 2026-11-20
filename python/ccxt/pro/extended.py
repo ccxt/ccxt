@@ -146,7 +146,7 @@ class extended(ccxt.async_support.extended):
                 },
             }
             self.extend_exchange_options(defaultOptions)
-            originalOptions = self.options['ws']['options']
+            originalOptions = self.safe_dict(self.options['ws'], 'options')
             originalHeaders = self.safe_dict(originalOptions, 'headers', {})
             self.options['ws']['options'] = self.extend(self.extend({}, originalOptions), {
                 'headers': self.extend(self.extend({
@@ -747,11 +747,9 @@ class extended(ccxt.async_support.extended):
         symbol = self.safe_string(subscription, 'symbol')
         timeframe = self.safe_string(subscription, 'timeframe', '')
         candleType = self.safe_string(subscription, 'candleType', '')
-        cacheKey = None
-        if candleType == 'trades':
-            cacheKey = timeframe
-        else:
-            cacheKey = timeframe + ':' + candleType
+        cacheKey = timeframe
+        if candleType != 'trades':
+            cacheKey = cacheKey + ':' + candleType
         messageHash = self.safe_string(subscription, 'messageHash')
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], cacheKey)

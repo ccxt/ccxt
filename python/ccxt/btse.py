@@ -2718,7 +2718,8 @@ class btse(Exchange, ImplicitAPI):
         for i in range(0, len(typesList)):
             historyType = self.safe_string(typesList, i, '')
             allowed[historyType] = True
-            allowed[self.capitalize(historyType.lower())] = True
+            capitalizedType = self.capitalize(historyType.lower())
+            allowed[capitalizedType] = True
         rows = []
         for i in range(0, len(rawRows)):
             entry = self.safe_dict(rawRows, i, {})

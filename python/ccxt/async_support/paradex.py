@@ -1186,8 +1186,9 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'results', [])
-        rows = self.filter_loaded_summaries(data) if (request['market'] == 'ALL') else data
-        return self.parse_tickers(rows, symbolsNormalized)
+        if request['market'] == 'ALL':
+            return self.parse_tickers(self.filter_loaded_summaries(data), symbolsNormalized)
+        return self.parse_tickers(data, symbolsNormalized)
 
     def summary_market_id(self, symbols: Strings = None) -> str:
         """
@@ -3406,8 +3407,9 @@ class paradex(Exchange, ImplicitAPI):
         #
         results = self.safe_list(response, 'results', [])
         # the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        rows = self.filter_loaded_summaries(results, 'option') if (request['market'] == 'ALL') else results
-        return self.parse_all_greeks(rows, symbolsNormalized)
+        if request['market'] == 'ALL':
+            return self.parse_all_greeks(self.filter_loaded_summaries(results, 'option'), symbolsNormalized)
+        return self.parse_all_greeks(results, symbolsNormalized)
 
     def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #

@@ -1329,19 +1329,6 @@ class lbank(Exchange, ImplicitAPI):
                 if codeInner is not None:
                     result[codeInner] = account
             return self.safe_balance(result)
-        # from spotPrivatePostSupplementUserInfo
-        isArray = isinstance(data, list)
-        if isArray:
-            for i in range(0, len(data)):
-                item = self.safe_dict(data, i)
-                currencyId = self.safe_string(item, 'coin')
-                codeInner = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(item, 'usableAmt')
-                account['used'] = self.safe_string(item, 'freezeAmt')
-                if codeInner is not None:
-                    result[codeInner] = account
-            return self.safe_balance(result)
         return self.safe_balance(result)
 
     def parse_funding_rate(self, ticker: dict, market: Market = None) -> FundingRate:

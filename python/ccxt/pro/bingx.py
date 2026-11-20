@@ -497,7 +497,7 @@ class bingx(ccxt.async_support.bingx):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data', [])
+        dataList = self.safe_list(message, 'data', [])
         rawHash = self.safe_string(message, 'dataType', '')
         hashParts = rawHash.split('@')
         marketId = self.safe_string(hashParts, 0)
@@ -509,10 +509,10 @@ class bingx(ccxt.async_support.bingx):
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
         trades: list[Trade]
-        if isinstance(data, list):
-            trades = self.parse_trades(data, market)
+        if self.safe_dict(message, 'data') is None:
+            trades = self.parse_trades(dataList, market)
         else:
-            trades = [self.parse_trade(data, market)]
+            trades = [self.parse_trade(self.safe_dict(message, 'data', {}), market)]
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)

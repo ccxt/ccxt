@@ -1106,7 +1106,7 @@ class xt(ccxt.async_support.xt):
         #        }
         #    }
         #
-        data = self.safe_dict(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         if marketId is not None:
             event = self.safe_string(message, 'event', '')

@@ -1260,12 +1260,10 @@ class apex(Exchange, ImplicitAPI):
         return super(apex, self).safe_market(marketId, marketResolved, delimiter, marketType)
 
     def generate_random_client_id_omni(self, _accountId: Str) -> str:
-        accountId = ''
+        suffix = '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
         if (_accountId is not None) and (_accountId != ''):
-            accountId = _accountId
-        else:
-            accountId = str(self.rand_number(12))
-        return 'apexomni-' + accountId + '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
+            return 'apexomni-' + _accountId + suffix
+        return 'apexomni-' + str(self.rand_number(12)) + suffix
 
     def add_hyphen_before_usdt(self, symbol: str) -> str:
         uppercaseSymbol = symbol.upper()

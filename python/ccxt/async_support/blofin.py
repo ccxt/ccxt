@@ -2938,8 +2938,9 @@ class blofin(Exchange, ImplicitAPI):
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
         symbolsNormalized = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbolsNormalized)
         request = {
-            'instId': ','.join(self.market_ids(symbolsNormalized)),
+            'instId': ','.join(marketIds),
             'marginMode': marginMode,
         }
         response = await self.privateGetAccountBatchLeverageInfo(self.extend(request, query))

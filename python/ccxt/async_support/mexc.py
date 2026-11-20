@@ -1079,11 +1079,12 @@ class mexc(Exchange, ImplicitAPI):
         status = None
         updated = None
         if marketType == 'spot':
-            response = await self.spotPublicGetPing(query)
+            spotResponse = await self.spotPublicGetPing(query)
+            response = spotResponse
             #
             #     {}
             #
-            keys = list(response.keys())
+            keys = list(spotResponse.keys())
             length = len(keys)
             status = self.json(response) if (length > 0) else 'ok'
         elif marketType == 'swap':

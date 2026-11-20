@@ -1948,11 +1948,11 @@ class foxbit(Exchange, ImplicitAPI):
                 if i < lastKeyIndex:
                     signatureQuery += '&'
         requestBody = None
-        if method == 'POST' or method == 'PUT':
-            requestBody = self.json(paramsOmitted)
         bodyToSignature = ''
-        if requestBody is not None:
-            bodyToSignature = requestBody
+        if method == 'POST' or method == 'PUT':
+            jsonBody = self.json(paramsOmitted)
+            requestBody = jsonBody
+            bodyToSignature = jsonBody
         headersValue = {
             'Content-Type': 'application/json',
             'X-FB-CLIENT': 'ccxt',

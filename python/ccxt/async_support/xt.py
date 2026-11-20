@@ -2425,7 +2425,7 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        balances = None
+        balances = []
         if (subType is not None) or isContractWallet:
             balances = self.safe_list(response, 'result', [])
         else:
@@ -2433,7 +2433,7 @@ class xt(Exchange, ImplicitAPI):
             balances = self.safe_list(data, 'assets', [])
         return self.parse_balance_list(balances)
 
-    def parse_balance_list(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list) -> Balances:
         #
         # spot
         #

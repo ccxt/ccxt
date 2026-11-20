@@ -3543,12 +3543,12 @@ class kucoin(Exchange, ImplicitAPI):
         paramsRequest: dict
         accountType, paramsRequest = self.handle_option_string_and_params(params, 'fetchDepositAddress', 'accountType', accountType)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
-        accountType = self.safe_string(accountsByType, accountType, accountType)
+        accountId = self.safe_string(accountsByType, accountType, accountType)
         uta = await self.is_uta_enabled()
         uta, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'fetchDepositAddress', 'uta', uta)
-        if accountType == 'contract':
+        if accountId == 'contract':
             return await self.fetch_contract_deposit_address(code, paramsRequest)
-        elif uta or (accountType == 'uta') or (accountType == 'unified'):
+        elif uta or (accountId == 'uta') or (accountId == 'unified'):
             return await super(kucoin, self).fetch_deposit_address(code, self.extend(paramsRequest, {'uta': True}))
         currency = self.currency(code)
         request = {
@@ -7426,8 +7426,8 @@ class kucoin(Exchange, ImplicitAPI):
         paramsRequest = None
         accountType, paramsRequest = self.handle_option_string_and_params(params, 'fetchDeposits', 'accountType', accountType)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
-        accountType = self.safe_string(accountsByType, accountType, accountType)
-        if accountType == 'contract':
+        accountId = self.safe_string(accountsByType, accountType, accountType)
+        if accountId == 'contract':
             return await self.fetch_contract_deposits(code, since, limit, paramsRequest)
         paginate = False
         paginate, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'fetchDeposits', 'paginate', False)
@@ -7569,8 +7569,8 @@ class kucoin(Exchange, ImplicitAPI):
         paramsRequest = None
         accountType, paramsRequest = self.handle_option_string_and_params(params, 'fetchWithdrawals', 'accountType', accountType)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
-        accountType = self.safe_string(accountsByType, accountType, accountType)
-        if accountType == 'contract':
+        accountId = self.safe_string(accountsByType, accountType, accountType)
+        if accountId == 'contract':
             return await self.fetch_contract_withdrawals(code, since, limit, paramsRequest)
         maxLimit = 500
         paginate = False

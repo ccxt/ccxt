@@ -721,7 +721,7 @@ class cex(ccxt.async_support.cex):
         data = self.safe_dict(message, 'data', {})
         isTransaction = self.safe_string(message, 'e') == 'tx'
         orderId = self.safe_string_2(data, 'id', 'order')
-        remains = self.safe_string(data, 'remains')
+        remainsPrecision = self.safe_string(data, 'remains')
         baseId = self.safe_string(data, 'symbol')
         quoteId = self.safe_string(data, 'symbol2')
         pair = self.safe_dict(data, 'pair')
@@ -734,7 +734,7 @@ class cex(ccxt.async_support.cex):
             return
         symbol = base + '/' + quote
         market = self.safe_market(symbol)
-        remains = self.currency_from_precision(base, remains)
+        remains = self.currency_from_precision(base, remainsPrecision)
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -869,7 +869,7 @@ class cex(ccxt.async_support.cex):
             parsedOrder['trades'] = self.parse_ws_trade(order, marketResolved)
         return self.safe_order(parsedOrder, marketResolved)
 
-    def from_precision(self, amount: object, scale: object) -> Str:
+    def from_precision(self, amount: Str, scale: Int) -> Str:
         if amount is None:
             return None
         precise = Precise(amount)
@@ -877,7 +877,7 @@ class cex(ccxt.async_support.cex):
         precise.reduce()
         return str(precise)
 
-    def currency_from_precision(self, currency: str, amount: object) -> Str:
+    def currency_from_precision(self, currency: str, amount: Str) -> Str:
         scale = self.safe_integer(self.currencies[currency], 'precision', 0)
         return self.from_precision(amount, scale)
 

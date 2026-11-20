@@ -4940,13 +4940,15 @@ class coinbase(Exchange, ImplicitAPI):
         # v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         # v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         uri = None
-        if url != '':
-            uri = method + ' ' + url.replace('https://', '')
-            quesPos = uri.find('?')
+        if (url != '') and (method is not None):
+            fullUri = method + ' ' + url.replace('https://', '')
+            quesPos = fullUri.find('?')
             # Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             # Also it's not possible that the question mark is first character, only check > 0 here.
             if quesPos > 0:
-                uri = uri[0:quesPos]
+                uri = fullUri[0:quesPos]
+            else:
+                uri = fullUri
         # eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         nonce = self.random_bytes(16)
         aud = 'retail_rest_api_proxy'

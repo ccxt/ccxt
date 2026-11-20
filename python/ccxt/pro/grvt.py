@@ -504,16 +504,16 @@ class grvt(ccxt.async_support.grvt):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         limitOption, paramsLimitOption = self.handle_option_integer_and_params(paramsChannel, 'watchOrderBook', 'limit', 100)
-        limitResolved = limitOption
+        limitString = str(limitOption)
         paramsLimit = paramsLimitOption
         if limit is not None:
-            limitResolved = limit
+            limitString = str(limit)
             paramsLimit = paramsChannel
         interval, paramsInterval = self.handle_option_integer_and_params(paramsLimit, 'watchOrderBook', 'interval', 500)
         symbolsNormalized = self.market_symbols(symbols)
         extraPart = None
         if isSnapshot:
-            extraPart = str(interval) + '-' + str(limitResolved)
+            extraPart = str(interval) + '-' + limitString
         else:
             extraPart = str(interval)
         rawHashes = []
@@ -638,7 +638,7 @@ class grvt(ccxt.async_support.grvt):
         rawHashes = []
         if symbol is not None:
             market = self.market(symbol)
-            rawHashes.append(subAccountId + '-' + market['id'])
+            rawHashes.append(subAccountId + '-' + self.safe_string(market, 'id', ''))
             messageHashes.append('myTrades::' + market['symbol'])
         else:
             messageHashes.append('myTrades')
@@ -724,7 +724,7 @@ class grvt(ccxt.async_support.grvt):
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
-                rawHashes.append(subAccountId + '-' + market['id'])
+                rawHashes.append(subAccountId + '-' + self.safe_string(market, 'id', ''))
                 messageHashes.append('positions::' + market['symbol'])
         else:
             messageHashes.append('positions')
@@ -805,7 +805,7 @@ class grvt(ccxt.async_support.grvt):
         else:
             market = self.market(symbol)
             messageHashes.append('order::' + market['symbol'])
-            rawHashes.append(subAccountId + '-' + market['id'])
+            rawHashes.append(subAccountId + '-' + self.safe_string(market, 'id', ''))
         request = {
             'stream': 'v1.order',
             'selectors': rawHashes,

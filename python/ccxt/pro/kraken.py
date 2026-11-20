@@ -1555,8 +1555,8 @@ class kraken(ccxt.async_support.kraken):
         if self.balance is None:
             self.balance = {}
         self.balance[type] = self.safe_dict(self.balance, type, {})
-        self.balance[type]['info'] = message
         balance = self.safe_dict(self.balance, type, {})
+        balance['info'] = message
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             currencyId = self.safe_string(data[i], 'asset')

@@ -555,8 +555,9 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def get_currency_name(self, code: str) -> str:
         # temporary fix for transpiler recognition, even though this is in parent class
-        if code in self.options['currencyNames']:
-            return self.options['currencyNames'][code]
+        name = self.safe_string(self.options['currencyNames'], code)
+        if name is not None:
+            return name
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
     def amount_to_precision(self, symbol: Str, amount: object) -> str:
@@ -1153,10 +1154,10 @@ class bitfinex(Exchange, ImplicitAPI):
         fullRequest = self.extend(request, params)
         orderbook = await self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
+        bids = []
+        asks = []
         result = {
             'symbol': market['symbol'],
-            'bids': [],
-            'asks': [],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'nonce': None,
@@ -1168,12 +1169,12 @@ class bitfinex(Exchange, ImplicitAPI):
             price = self.safe_number(order, priceIndex)
             signedAmount = self.safe_string(order, 2)
             amount = Precise.string_abs(signedAmount)
-            side = 'asks'
             if Precise.string_gt(signedAmount, '0'):
-                side = 'bids'
-            result[side].append([price, self.parse_number(amount)])
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
+                bids.append([price, self.parse_number(amount)])
+            else:
+                asks.append([price, self.parse_number(amount)])
+        result['bids'] = self.sort_by(bids, 0, True)
+        result['asks'] = self.sort_by(asks, 0)
         return result
 
     def parse_ticker(self, ticker: list, market: Market = None) -> Ticker:

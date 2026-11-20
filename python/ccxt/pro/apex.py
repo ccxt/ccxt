@@ -419,8 +419,8 @@ class apex(ccxt.async_support.apex):
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_dict(message, 'data', {})
-        symbol = None
         parsed = self.parse_ticker(data)
+        symbol = self.safe_string(parsed, 'symbol')
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
             symbol = self.safe_string(parsed, 'symbol')
@@ -434,6 +434,8 @@ class apex(ccxt.async_support.apex):
             rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
             parsed = self.parse_ticker(merged)
+        else:
+            symbol = None
         timestamp = self.safe_integer_product(message, 'ts', 0.001)
         parsed['timestamp'] = timestamp
         parsed['datetime'] = self.iso8601(timestamp)

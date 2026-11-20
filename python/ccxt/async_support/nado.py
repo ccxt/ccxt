@@ -570,7 +570,8 @@ class nado(Exchange, ImplicitAPI):
                 directionSuffix = 'above'
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18
+            oracleKey = 'oracle_price_' + directionSuffix
+            priceRequirement[oracleKey] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -589,7 +590,8 @@ class nado(Exchange, ImplicitAPI):
                 triggerPrice = takeProfitTriggerPrice
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18
+            oracleKey = 'oracle_price_' + oracleSide
+            priceRequirement[oracleKey] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -2765,7 +2767,8 @@ class nado(Exchange, ImplicitAPI):
                 amount = self.parse_x18(Precise.string_abs(amountString))
             filled = self.parse_x18(Precise.string_abs(archiveFilled))
             costString = self.safe_string(order, 'quote_filled')
-            cost = None if (costString is None) else self.parse_x18(Precise.string_abs(costString))
+            if costString is not None:
+                cost = self.parse_x18(Precise.string_abs(costString))
             if (filled is not None) and (cost is not None):
                 average = Precise.string_div(self.number_to_string(cost), self.number_to_string(filled))
             if (amountString is not None) and (archiveFilled is not None):
@@ -2945,7 +2948,8 @@ class nado(Exchange, ImplicitAPI):
             start = len(paddedLeft) - self.parse_to_int(length)
             return paddedLeft[start:len(paddedLeft)]
         paddedRight = value + zeros
-        return paddedRight[0:length]
+        end = self.parse_to_int(length)
+        return paddedRight[0:end]
 
     def sign_order(self, order: dict, productId: Int, chainId: Str) -> str:
         domain = {

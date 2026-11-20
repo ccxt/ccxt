@@ -962,7 +962,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "more_candles": true
         #    }
         #
-        candles = self.safe_list(response, 'candles')
+        candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limitResolved)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:

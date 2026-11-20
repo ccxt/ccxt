@@ -445,7 +445,9 @@ class opinion(PredictionExchange, ImplicitAPI):
             eventMarketsLength = len(eventMarkets)
             for mi in range(0, eventMarketsLength):
                 m = eventMarkets[mi]
-                self.markets[m['market']] = m
+                marketKey = self.safe_string(m, 'market')
+                if marketKey is not None:
+                    self.markets[marketKey] = m
         self.populate_outcomes()
         return self.apply_event_fetch_params(parsedEvents, params, queries)
 

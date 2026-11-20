@@ -1830,8 +1830,12 @@ class whitebit(Exchange, ImplicitAPI):
             'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        cappedLimit = 1440 if ((limit is None) or (limit > 1440)) else limit
-        limitResolved = cappedLimit if (since is not None) else limit
+        cappedLimit = 1440
+        if (limit is not None) and (limit < 1440):
+            cappedLimit = limit
+        limitResolved = limit
+        if since is not None:
+            limitResolved = cappedLimit
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
         if (since is not None) or (until is not None):

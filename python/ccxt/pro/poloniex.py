@@ -1188,8 +1188,8 @@ class poloniex(ccxt.async_support.poloniex):
             subscription = self.safe_dict(client.subscriptions, messageHash, {})
             limit = self.safe_integer(subscription, 'limit')
             timestamp = self.safe_integer(item, 'ts')
-            asks = self.safe_list(item, 'asks')
-            bids = self.safe_list(item, 'bids')
+            asks = self.safe_list(item, 'asks', [])
+            bids = self.safe_list(item, 'bids', [])
             if snapshot or update:
                 orderbook = self.safe_value(self.orderbooks, symbol)
                 if snapshot and (orderbook is None):

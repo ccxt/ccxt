@@ -2895,9 +2895,10 @@ class deepcoin(Exchange, ImplicitAPI):
             }
             requestBody = None
             if method != 'GET':
-                requestBody = self.json(params)
+                body = self.json(params)
                 privateHeaders['Content-Type'] = 'application/json'
-                payload += requestBody
+                payload += body
+                requestBody = body
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             privateHeaders['DC-ACCESS-SIGN'] = signature
             return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}

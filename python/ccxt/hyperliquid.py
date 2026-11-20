@@ -622,7 +622,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         self.options['hip3TokensByName'] = {}
         markets = []
         for i in range(0, len(promises)):
-            dexName = fetchDexesList[i]
+            dexName = self.safe_string(fetchDexesList, i)
             offset = self.safe_integer(perpDexesOffset, dexName)
             response = self.safe_list(promises, i)
             meta = self.safe_dict(response, 0, {})
@@ -4797,7 +4797,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         response = self.privatePostExchange(self.extend(request, self.omit(params, 'expiresAfter')))
         return response
 
-    def extract_type_from_delta(self, data: list[dict] = []) -> list[dict]:
+    def extract_type_from_delta(self, data: list[dict]) -> list[dict]:
         records = []
         for i in range(0, len(data)):
             record = self.safe_dict(data, i, {})

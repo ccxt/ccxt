@@ -1458,8 +1458,9 @@ class binance(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a wallet
         """
-        if self.safe_dict(self.options, 'wallet') is not None:
-            return self.safe_dict(self.options, 'wallet')
+        cachedWallet = self.safe_dict(self.options, 'wallet')
+        if cachedWallet is not None:
+            return cachedWallet
         walletAddress = self.handle_option_string_and_params(params, methodName, 'walletAddress', self.walletAddress)[0]
         response = await self.sapiPrivateGetWalletList()
         #
