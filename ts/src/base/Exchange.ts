@@ -5930,14 +5930,9 @@ export class BaseExchange {
             }
         }
         // fall back to scanning loaded currencies
-        let currenciesToCheck: (string | Dict | undefined)[] = [];
-        if (currencyCode === undefined) {
-            currenciesToCheck = Object.keys (this.currencies);
-        } else {
-            currenciesToCheck = [ this.safeDict (this.currencies, currencyCode) ];
-        }
-        for (let i = 0; i < currenciesToCheck.length; i++) {
-            const networks = this.safeDict (currenciesToCheck[i], 'networks', {});
+        if (currencyCode !== undefined) {
+            const currencies = [ this.safeDict (this.currencies, currencyCode) ];
+            const networks = this.safeDict (currencies[0], 'networks', {});
             if (unifiedCode in networks) {
                 return this.safeString (networks[unifiedCode], 'id');
             }
