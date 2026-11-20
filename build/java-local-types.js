@@ -10524,6 +10524,14 @@ function concreteWriteInfo (printer, node, depth = 0) {
         || (ts.isArrayLiteralExpression (value) && !literalArrayLiteralIsPlain (value))) {
         return undefined;
     }
+    // `this.safeDict (x, k) as Dict`: the absent default binds the hand-written Map-returning overload
+    if (ts.isAsExpression (value) && ts.isTypeReferenceNode (value.type) && ts.isIdentifier (value.type.typeName)
+        && value.type.typeName.text === 'Dict') {
+        const call = unwrapParens (value.expression);
+        const local = isThisCall (call) && String (call.expression.name.text) === 'safeDict'
+            ? safeDictLocalType (printer, call, 'safeDict') : undefined;
+        return local !== undefined && local.cast === undefined ? { type: JAVA_STRUCTURE_TYPE, cast: '' } : undefined;
+    }
     return accumulatorWriteInfo (printer, value);
 }
 
