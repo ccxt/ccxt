@@ -926,7 +926,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Long timestamp = this.safeInteger(data, "time");
         ((Map<String, Object>)order).put("timestamp", timestamp);
         ((Map<String, Object>)order).put("datetime", this.iso8601(timestamp));
-        order = this.safeOrder((Map<String, Object>) (order), (Map<String, Object>) null);
+        // a fresh map copy: the cached entry is untyped
+        order = this.safeOrder((Map<String, Object>) (this.extend(order, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
         storedOrders.append(order);
         String messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);

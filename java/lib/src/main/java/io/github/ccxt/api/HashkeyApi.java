@@ -708,9 +708,9 @@ public class HashkeyApi extends Exchange
      * Calls the privateDeleteApiV1SpotOpenOrders endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public CompletableFuture<List<Object>>  privateDeleteApiV1SpotOpenOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteApiV1SpotOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1SpotOpenOrders", optionalArgs);
     }

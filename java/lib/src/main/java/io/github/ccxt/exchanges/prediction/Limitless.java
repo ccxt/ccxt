@@ -3684,10 +3684,10 @@ public class Limitless extends LimitlessApi
             {
                 categories = categoriesResponse;
             }
-            List<Object> wanted = new ArrayList<Object>(Arrays.asList());
+            List<String> wanted = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tags).size(); i++)
             {
-                ((List<Object>)wanted).add(((String)(tags == null || i < 0 || i >= ((List<?>)tags).size() ? null : ((List<?>)tags).get(i))).toLowerCase());
+                wanted.add(((String)(tags == null || i < 0 || i >= ((List<?>)tags).size() ? null : ((List<?>)tags).get(i))).toLowerCase());
             }
             List<String> categoryIds = new ArrayList<String>(Arrays.asList());
             Integer categoriesLength = categories.size();
@@ -3699,7 +3699,7 @@ public class Limitless extends LimitlessApi
                 Boolean matched = false;
                 for (var wi = 0; wi < wanted.size(); wi++)
                 {
-                    if (Helpers.getIndexOf(name, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
+                    if ((name == null || wanted == null || wi < 0 || wi >= wanted.size() || wanted.get(wi) == null ? -1 : name.indexOf(wanted.get(wi))) >= 0)
                     {
                         matched = true;
                         break;

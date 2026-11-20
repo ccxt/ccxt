@@ -12036,8 +12036,9 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)input).size(); i++)
         {
             Object entry = (input == null || i < 0 || i >= ((List<?>)input).size() ? null : ((List<?>)input).get(i));
-            String id = this.safeString(entry, "id");
-            if (java.util.Objects.equals(id, null))
+            // safeString treats an empty id as missing, so '' marks an absent id
+            String id = this.safeString(entry, "id", "");
+            if (java.util.Objects.equals(id, ""))
             {
                 String price = this.safeString(entry, "price", "");
                 String amount = this.safeString(entry, "amount", "");
@@ -12052,7 +12053,7 @@ public Map<String, Object> describe()
                 id = (((("t_" + String.valueOf(timestamp)) + "_") + side) + "_");
                 id = (id + (((price + "_") + amount)));
             }
-            if (!java.util.Objects.equals(id, null) && !(uniqueResult.containsKey(id)))
+            if (!(uniqueResult.containsKey(id)))
             {
                 uniqueResult.put(id, entry);
             }

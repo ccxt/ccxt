@@ -2263,11 +2263,11 @@ public class Hyperliquid extends HyperliquidApi
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
             }
-            List<Object> lowerQueries = new ArrayList<Object>(Arrays.asList());
+            List<String> lowerQueries = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < queries.size(); i++)
             {
                 String queryString = ((String)(queries == null || i < 0 || i >= queries.size() ? null : queries.get(i)));
-                ((List<Object>)lowerQueries).add(queryString.toLowerCase());
+                lowerQueries.add(queryString.toLowerCase());
             }
             Integer lowerQueriesLength = lowerQueries.size();
             for (var i = 0; i < marketValues.size(); i++)

@@ -3378,7 +3378,7 @@ public class Hashkey extends HashkeyApi
             {
                 request.put("side", side);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters))).join();

@@ -2016,18 +2016,13 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     public Object buildMessageHash(String action, Map<String, Object> parameters)
     {
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "privateCreateOrder", "actionAndMarketMessageHash");
-            put( "privateUpdateOrder", "actionAndOrderIdMessageHash");
-            put( "privateCancelOrder", "actionAndOrderIdMessageHash");
-            put( "privateGetOrder", "actionAndOrderIdMessageHash");
-            put( "privateGetTrades", "actionAndMarketMessageHash");
-        }};
-        Object method = this.safeValue(methods, action);
         Object messageHash = action;
-        if (!java.util.Objects.equals(method, null))
+        if ((java.util.Objects.equals(action, "privateCreateOrder")) || (java.util.Objects.equals(action, "privateGetTrades")))
         {
-            messageHash = Helpers.callDynamically(this, method, new Object[] {action, parameters});
+            messageHash = this.actionAndMarketMessageHash((String) (action), parameters);
+        } else if ((java.util.Objects.equals(action, "privateUpdateOrder")) || (java.util.Objects.equals(action, "privateCancelOrder")) || (java.util.Objects.equals(action, "privateGetOrder")))
+        {
+            messageHash = this.actionAndOrderIdMessageHash((String) (action), parameters);
         }
         return messageHash;
     }

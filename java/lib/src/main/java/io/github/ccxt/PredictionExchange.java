@@ -303,7 +303,7 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public Object normalizeTagKey(Object tag)
+    public String normalizeTagKey(Object tag)
     {
         // reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
         // "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
@@ -347,14 +347,14 @@ public Map<String, Object> describe()
         {
             return events;
         }
-        List<Object> wanted = new ArrayList<Object>(Arrays.asList());
+        List<String> wanted = new ArrayList<String>(Arrays.asList());
         for (var i = 0; (tagsLength != null && i < tagsLength); i++)
         {
-            Object wantedKey = this.normalizeTagKey(this.safeString(tags, i, ""));
+            String wantedKey = this.normalizeTagKey(this.safeString(tags, i, ""));
             if (!java.util.Objects.equals(wantedKey, ""))
             {
                 // an empty normalized key would substring-match every tag
-                ((List<Object>)wanted).add(wantedKey);
+                wanted.add(wantedKey);
             }
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -376,10 +376,10 @@ public Map<String, Object> describe()
                 }
                 if (!java.util.Objects.equals(tagLabel, null))
                 {
-                    Object tagKey = this.normalizeTagKey(tagLabel);
+                    String tagKey = this.normalizeTagKey(tagLabel);
                     for (var wi = 0; wi < wanted.size(); wi++)
                     {
-                        if (Helpers.getIndexOf(tagKey, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
+                        if ((tagKey == null || wanted == null || wi < 0 || wi >= wanted.size() || wanted.get(wi) == null ? -1 : tagKey.indexOf(wanted.get(wi))) >= 0)
                         {
                             matched = true;
                             break;
