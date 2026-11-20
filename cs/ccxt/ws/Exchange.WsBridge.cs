@@ -106,9 +106,12 @@ public partial class BaseExchange
     {
         if (client.error == null)
         {
-            // server disconnected a working connection
-            client.reset(error ?? new NetworkError("connection closed by remote server"));
+            // server disconnected a working connection. unregister first: reset
+            // runs the callers' continuations inline, and a caller retrying from
+            // its catch must get a fresh client from exchange.client(url), not
+            // this one, which nothing would ever settle again
             this.CleanupClients(client, error);
+            client.reset(error ?? new NetworkError("connection closed by remote server"));
         }
     }
 
@@ -121,7 +124,8 @@ public partial class BaseExchange
     {
         // detach the client that errored, by reference: a reconnect may have
         // installed a healthy replacement under the same url in the meantime.
-        // the client already rejected its futures in onError.
+        // runs before the client rejects its futures (see WebSocketClient.onError
+        // and onClose above), so a caller's inline retry never gets it back.
         // see https://github.com/ccxt/ccxt/issues/30463
         ((ICollection<KeyValuePair<string, WebSocketClient>>)this.clients)
             .Remove(new KeyValuePair<string, WebSocketClient>(client.url, client));
@@ -212,7 +216,22 @@ public partial class BaseExchange
                 (c, message) => routeMessage(c, message),
                 (c) => ping(c),
                 (c, error) => onClose(c, error),
-                (c, error) => onError(c, error),
+                (c, error) =>
+                {
+                    // an override of onError (a venue's or a user's) may throw before
+                    // it reaches base.onError: unregister the errored client anyway,
+                    // or every later watch call reuses it and fails with its old
+                    // error instead of reconnecting. removal is by reference, so the
+                    // second pass after a base.onError that already ran is a no-op
+                    try
+                    {
+                        onError(c, error);
+                    }
+                    finally
+                    {
+                        CleanupClients(c, error);
+                    }
+                },
                 this.verbose, keepAlive, decompressBinary);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });

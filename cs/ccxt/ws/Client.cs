@@ -571,9 +571,9 @@ public partial class BaseExchange
             }
         }
 
-        // mirrors js Client.onError: set the error marker, reset, notify the
-        // exchange. the owner elects one winner when the transport error, a
-        // late onClose and a user Close() race on separate threads.
+        // mirrors js Client.onError: set the error marker, notify the exchange,
+        // reset. the owner elects one winner when the transport error, a late
+        // onClose and a user Close() race on separate threads.
         public void onError(object error)
         {
             var elected = (bool)ask(() =>
@@ -590,13 +590,34 @@ public partial class BaseExchange
                 return;
             }
             this.isConnected = false; // stops PingLoop's while() condition
+            // notify the exchange before settling anything: the callback is the
+            // exchange's virtual onError, which unregisters this client. awaiter
+            // continuations run inline on this thread when connected and the
+            // futures fault below, so a caller retrying from its catch would
+            // otherwise get this retired client back from exchange.client(url)
+            // and never reconnect. js gets the same order for free, its
+            // rejections settle only after onErrorCallback returns.
+            // a throw from the callback must not reach the transport loops
+            // (PingLoop's keepalive timeout would skip its Close(), and nothing
+            // awaits the loops to observe it) nor skip the rejections below,
+            // see https://github.com/ccxt/ccxt/issues/29412
+            try
+            {
+                this.onErrorCallback?.Invoke(this, error);
+            }
+            catch (Exception callbackError)
+            {
+                if (this.verbose)
+                {
+                    Console.WriteLine($"onError callback error: {callbackError}");
+                }
+            }
             if (this.startedConnecting)
             {
                 var connectionError = error as Exception ?? new Exception(error?.ToString() ?? "WebSocket connection failed");
                 this.connected.TrySetException(connectionError);
             }
             this.reset(error);
-            this.onErrorCallback?.Invoke(this, error);
         }
 
         public void onOpen()
@@ -607,10 +628,7 @@ public partial class BaseExchange
             // Awaiters can resume inline in SetResult: publish the ready state first.
             this.connected.SetResult(true);
             // this.clearConnectionTimeout();
-            Task.Run(async () =>
-            {
-                PingLoop();
-            });
+            _ = Task.Run(this.PingLoop);
         }
 
         public Task connect(int backoffDelay = 0)
@@ -652,7 +670,10 @@ public partial class BaseExchange
             }
         }
 
-        public async void PingLoop()
+        // a Task, not async void: an exception that still got past the catch
+        // below would fault this task instead of being rethrown on the thread
+        // pool, where it terminates the host process (ccxt/ccxt#29412)
+        public async Task PingLoop()
         {
             try
             {
