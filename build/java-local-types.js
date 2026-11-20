@@ -17646,8 +17646,10 @@ const JAVA_VENUE_PARAM_TYPES = {
     // a venue-only `string[]` parameter: every caller hands a bare List (literal, safeList, List<Object> local)
     'string[]': 'java.util.List<Object>',
     'Market[]': 'java.util.List<Object>',
+    // a venue-only `Int` parameter: every caller hands a Long (declared Long local, safeInteger/safeTimestamp, null)
+    'Int': 'Long',
 };
-const JAVA_VENUE_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
+const JAVA_VENUE_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/;
 const JAVA_LIB_SOURCE_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
 let javaVenueNameIndexCache;
 
@@ -17786,6 +17788,9 @@ function javaArgumentTypeAgrees (printer, arg, target) {
     if (target === 'Boolean') {
         return javaBooleanArgumentIsTyped (printer, bare);
     }
+    if (target === 'Long') {
+        return javaLongArgumentIsTyped (printer, bare);
+    }
     if (ts.isArrayLiteralExpression (bare)) {
         return !bare.elements.some ((e) => ts.isSpreadElement (e));
     }
@@ -17795,6 +17800,29 @@ function javaArgumentTypeAgrees (printer, arg, target) {
     return ts.isCallExpression (bare) && ts.isPropertyAccessExpression (bare.expression)
         && bare.expression.expression.kind === ts.SyntaxKind.ThisKeyword
         && JAVA_SAFE_LIST_NAMES.has (bare.expression.name.text) && safeListDefaultIsList (printer, bare, bare.expression.name.text);
+}
+
+// a Long slot takes `undefined` (prints null) or a base safeInteger/safeTimestamp call (hand-written `Long` returns)
+const JAVA_LONG_ARGUMENT_BASE_METHODS = new Set ([ 'safeInteger', 'safeInteger2', 'safeTimestamp', 'safeTimestamp2' ]);
+function javaLongArgumentIsTyped (printer, arg, depth = 0) {
+    if (ts.isIdentifier (arg) && arg.text === 'undefined') {
+        return true;
+    }
+    if (ts.isIdentifier (arg) && depth === 0) {
+        // a never-written const local initialised with such a call (prints `Long x = this.safeInteger(..)`)
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve?.();
+        } catch (e) {
+            return false;
+        }
+        return declaration !== undefined && ts.isVariableDeclaration (declaration) && ts.isIdentifier (declaration.name)
+            && declaration.type === undefined && (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) !== 0
+            && declaration.initializer !== undefined && javaLongArgumentIsTyped (printer, unwrapParens (declaration.initializer), 1);
+    }
+    return ts.isCallExpression (arg) && ts.isPropertyAccessExpression (arg.expression)
+        && arg.expression.expression.kind === ts.SyntaxKind.ThisKeyword
+        && JAVA_LONG_ARGUMENT_BASE_METHODS.has (arg.expression.name.text) && resolvesToBaseAccessor (printer, arg, arg.expression.name.text);
 }
 
 // a String parameter must not be the left operand of `+` against a non-literal: Helpers.add(String, Object)
@@ -17912,8 +17940,26 @@ export function installJavaParamTypes (transpiler) {
     // an identifier already declared the slot's type passes bare into a venue-typed parameter slot
     const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
     printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
-        return upstreamTyped (arg, type) || javaSlotArgumentDeclared (printer, arg, type);
+        return upstreamTyped (arg, type) || javaSlotArgumentDeclared (printer, arg, type)
+            || (type === 'Long' && javaVenueLongSlotCall (printer, arg));
     };
+}
+
+// a hand-written `Long` safeInteger/safeTimestamp call passed into a venue-typed Long slot needs no checkcast
+function javaVenueLongSlotCall (printer, arg) {
+    const call = arg?.parent;
+    if (arg === undefined || !ts.isCallExpression (arg) || call === undefined || !ts.isCallExpression (call)
+        || !ts.isPropertyAccessExpression (call.expression) || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword
+        || !javaLongArgumentIsTyped (printer, arg, 1)) {
+        return false;
+    }
+    try {
+        const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
+        const param = method?.parameters?.[call.arguments.indexOf (arg)];
+        return param !== undefined && javaVenueParamType (printer, param) === 'Long';
+    } catch (e) {
+        return false;
+    }
 }
 
 function javaSlotArgumentDeclared (printer, arg, type) {
