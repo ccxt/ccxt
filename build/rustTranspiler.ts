@@ -6283,6 +6283,8 @@ function lendOptionalArgCalls(content: string, lend: Set<string>): string {
 function moveLocalsAtLastUse(content: string, sites?: RegExp): string {
     // comment lines blanked so sample payloads in them cannot unbalance the body scan
     const code = content.replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+    // mention tests skip string literals (a `"symbol"` key is not a use of `symbol`); `{x}` format captures kept
+    const bare = code.replace(/"(?:[^"\\\n]|\\.)*"/g, l => '"' + l.slice(1, -1).replace(/\{\w+[}:]|[^]/g, c => (c.length > 1 ? c : '_')) + '"');
     const fnStarts = [...content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
     // also a whole by-value operand: call/ctor argument, element, `let` rhs, `return` or block tail value,
     // and the receiver of a consuming `.map(` / `.map_or(`
@@ -6298,10 +6300,10 @@ function moveLocalsAtLastUse(content: string, sites?: RegExp): string {
         if (open < 0 || open > pos) continue;
         const close = balancedCloseIndex(code, open + 1);
         const word = new RegExp(`(?<![\\w.])${name}\\b`);
-        const body = content.slice(open + 1, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+        const body = bare.slice(open + 1, pos);
         const divEnd = sites === undefined ? rustDivergingStmtEnd(code, open + 1, pos) : -1;
         const loopEnd = sites === undefined && divEnd < 0 ? rustLoopBodyLetScopeEnd(code, open, pos, name) : undefined;
-        if (sites === undefined ? word.test(code.slice(end, divEnd >= 0 ? divEnd : loopEnd ?? close)) : usedAfterBranch(code, end, close, word)) continue;
+        if (sites === undefined ? word.test(bare.slice(end, divEnd >= 0 ? divEnd : loopEnd ?? close)) : usedAfterBranch(bare, end, close, word)) continue;
         // owned binding: `let [mut] x: T = ` (T not a reference) or untyped `let x = get_arg(`
         let decl: RegExpMatchArray | undefined = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
         // or an owned by-value parameter of this fn (`[mut] x: T`, T not a reference / impl / slice)
