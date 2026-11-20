@@ -20322,6 +20322,11 @@ function int64CounterLocal (csharp, declaration, context) {
             reads++;
             continue;
         }
+        // a request-field value (`{ 'k': n }`, `request['k'] = n`) prints the same digits for the Int32 / Int64 box
+        if (minMaxRequestFieldValue (operand)) {
+            reads++;
+            continue;
+        }
         if (consumer?.kind !== ts.SyntaxKind.BinaryExpression) {
             return undefined;
         }
