@@ -856,7 +856,8 @@ class cex extends \ccxt\async\cex {
         $timestamp = $this->safe_integer($data, 'time');
         $order['timestamp'] = $timestamp;
         $order['datetime'] = $this->iso8601($timestamp);
-        $order = $this->safe_order($order);
+        // a fresh map copy: the cached entry is untyped
+        $order = $this->safe_order($this->extend($order, array()));
         $storedOrders->append($order);
         $messageHash = 'orders:' . $symbol;
         $client->resolve($storedOrders, $messageHash);

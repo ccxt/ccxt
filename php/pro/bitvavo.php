@@ -1815,17 +1815,11 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function build_message_hash(?string $action, $params = array()): ?string {
-        $methods = array(
-            'privateCreateOrder' => array($this, 'action_and_market_message_hash'),
-            'privateUpdateOrder' => array($this, 'action_and_order_id_message_hash'),
-            'privateCancelOrder' => array($this, 'action_and_order_id_message_hash'),
-            'privateGetOrder' => array($this, 'action_and_order_id_message_hash'),
-            'privateGetTrades' => array($this, 'action_and_market_message_hash'),
-        );
-        $method = $this->safe_value($methods, $action);
         $messageHash = $action;
-        if ($method !== null) {
-            $messageHash = $method($action, $params);
+        if (($action === 'privateCreateOrder') || ($action === 'privateGetTrades')) {
+            $messageHash = $this->action_and_market_message_hash($action, $params);
+        } elseif (($action === 'privateUpdateOrder') || ($action === 'privateCancelOrder') || ($action === 'privateGetOrder')) {
+            $messageHash = $this->action_and_order_id_message_hash($action, $params);
         }
         return $messageHash;
     }

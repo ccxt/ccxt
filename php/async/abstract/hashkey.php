@@ -380,7 +380,7 @@ abstract class hashkey extends \ccxt\async\Exchange {
         return $this->request('api/v1/spot/order', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_delete_api_v1_spot_openorders($params = array()) {
         return $this->request('api/v1/spot/openOrders', array('private'), 'DELETE', $params, array("cost" => 5));
@@ -800,7 +800,7 @@ abstract class hashkey extends \ccxt\async\Exchange {
         return $this->request('api/v1/spot/order', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateDeleteApiV1SpotOpenOrders($params = array()) {
         return $this->request('api/v1/spot/openOrders', array('private'), 'DELETE', $params, array("cost" => 5));

@@ -9200,8 +9200,9 @@ class BaseExchange {
         $uniqueResult = array();
         for ($i = 0; $i < count($input); $i++) {
             $entry = $input[$i];
-            $id = $this->safe_string($entry, 'id');
-            if ($id === null) {
+            // safeString treats an empty id as missing, so '' marks an absent id
+            $id = $this->safe_string($entry, 'id', '');
+            if ($id === '') {
                 $price = $this->safe_string($entry, 'price', '');
                 $amount = $this->safe_string($entry, 'amount', '');
                 $timestamp = $this->safe_string($entry, 'timestamp');
@@ -9214,7 +9215,7 @@ class BaseExchange {
                 $id = 't_' . (string) $timestamp . '_' . $side . '_';
                 $id = $id . ($price . '_' . $amount);
             }
-            if ($id !== null && !(is_array($uniqueResult) && array_key_exists($id ?? '', $uniqueResult))) {
+            if (!(is_array($uniqueResult) && array_key_exists($id ?? '', $uniqueResult))) {
                 $uniqueResult[$id] = $entry;
             }
         }
