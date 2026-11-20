@@ -960,6 +960,8 @@ interface ContainerOpProof {
     // No live-subscription tag key can be stored here, so the plain key list
     // equals `object_keys` / `object_values` (which drop the two ws tag keys).
     untagged: boolean;
+    // Owned key lists clone each key (a clone rise): only the borrowed-keys form may fire.
+    borrowOnly?: boolean;
 }
 
 interface ContainerOpFacts {
@@ -1200,6 +1202,7 @@ class ContainerOpProver {
             else {
                 proof.markerFree = proof.markerFree && write.markerFree;
                 proof.untagged = proof.untagged && write.untagged;
+                proof.borrowOnly = proof.borrowOnly === true || write.borrowOnly === true;
             }
             lenSafe = lenSafe && write.markerFree && !CONTAINER_OP_SIDE_WORD.test (raw);
         }
@@ -1314,6 +1317,8 @@ class ContainerOpProver {
         if (containerOpIsCall (e, 'Value::Map')) return lit ('map', !tagged && !e.includes ('__ws_sub'));
         // A copy of the base `networkAliases` Dict: plain string pairs, no marker, no ws tag key.
         if (/^(?:Value::Dict\(self\.networkAliases\.clone\(\)\)|self\.networkAliases\.clone\(\))$/.test (e)) return lit ('map');
+        // Boxed `Option<Dict>` fields (exchange.rs / prediction_exchange.rs): a plain map or Null, never a marker or ws tag.
+        if (/^(?:Value::from\(&self\.(?:exchange\.outcomes|markets|markets_by_id|currencies_by_id|timeframes)\)|self\.(?:exchange\.outcomes|markets|markets_by_id|currencies_by_id|timeframes)\.clone\(\))$/.test (e)) return { ...lit ('map'), borrowOnly: true };
         if (containerOpIsCall (e, 'Value::List') || containerOpIsCall (e, 'Value::Array') || containerOpIsCall (e, 'Value::from')) {
             return e.includes ('vec![') ? lit ('arr') : undefined;
         }
@@ -1330,7 +1335,7 @@ class ContainerOpProver {
             const args = containerOpSplit (e.slice (merge[0].length, -1));
             const first = args.length > 0 ? this.source (args[0], absPos, seen) : undefined;
             if (first === undefined) return undefined;
-            return { kind: first.kind, markerFree: first.markerFree, untagged: first.untagged && !tagged };
+            return { kind: first.kind, markerFree: first.markerFree, untagged: first.untagged && !tagged, borrowOnly: first.borrowOnly };
         }
         // A local alias of another proven local.
         const alias = /^([a-z_][A-Za-z0-9_]*)\.clone\(\)$/.exec (e);
@@ -1536,6 +1541,7 @@ function nativeContainerOps (content: string, onlyFns?: Set<string>): string {
             let kind: ContainerOpKind | undefined;
             let untagged = false;
             let lenSafe = false;
+            let borrowOnly = false;
             const recv = CONTAINER_OP_IDENT_ARG.exec (args[0] ?? '');
             const state = CONTAINER_OP_CLIENT_STATE.exec (args[0] ?? '');
             if (recv !== null) {
@@ -1545,6 +1551,7 @@ function nativeContainerOps (content: string, onlyFns?: Set<string>): string {
                 kind = facts.proof?.kind;
                 untagged = facts.proof?.untagged === true;
                 lenSafe = facts.lenSafe;
+                borrowOnly = facts.proof?.borrowOnly === true;
             } else if (state !== null) {
                 expr = (args[0] ?? '').trim ().slice (1);
                 kind = 'map';
@@ -1569,7 +1576,7 @@ function nativeContainerOps (content: string, onlyFns?: Set<string>): string {
                 if (borrowed !== undefined) { rewrites.push (...borrowed); continue; }
             }
             if ((name === 'object_keys' || name === 'object_values') && args.length === 1
-                && kind === 'map' && untagged) {
+                && kind === 'map' && untagged && !borrowOnly) {
                 const body = name === 'object_keys'
                     ? '__m.keys().map(|__k| Value::Str(__k.clone().into())).collect()'
                     : '__m.values().cloned().collect()';
@@ -1656,6 +1663,13 @@ function nativeContainerOpsSelfTest (): string[] {
     if (nativeContainerOps (fieldMoved).includes ('Vec<&str>')) problems.push ('field keys: moved dict accepted');
     const otherField = field.replace ('self.networkAliases', 'self.options');
     if (nativeContainerOps (otherField) !== otherField) problems.push ('field keys: unlisted field accepted');
+    // A boxed `Option<Dict>` field copy: borrowed keys fire; owned keys (a clone per key) and a moved copy keep the helper.
+    const optField = field.replace ('Value::Dict(self.networkAliases.clone())', 'Value::from(&self.markets)');
+    check ('opt field keys', optField, optField.replace ('let mut ks: Vec<Value> = object_keys(&a).as_array().cloned().unwrap_or_default();', 'let mut ks: Vec<&str> = a.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();').replace ('ks.get(i as usize).and_then(Value::as_str)', 'ks.get(i as usize).copied()'));
+    const optOwned = optField.replace ('let v = a.as_map()', 'g(&a); let v = a.as_map()').replace ('let mut ks: Vec<Value>', 'let ks: Vec<Value>');
+    if (nativeContainerOps (optOwned) !== optOwned) problems.push ('opt field keys: owned key list accepted');
+    const optMoved = optField.replace ('let v = a.as_map()', 'g(a); let v = a.as_map()');
+    if (nativeContainerOps (optMoved).includes ('Vec<&str>')) problems.push ('opt field keys: moved dict accepted');
     // A side marker keeps the helper: the store holds its entries, not the dict.
     const side = fn ('        let mut storedAsks: Value = self.safe_value_k(book.clone(), "asks", &[]);\n        let n: Value = get_array_length(&storedAsks);');
     if (nativeContainerOps (side) !== side) problems.push ('side marker: helper not kept');
