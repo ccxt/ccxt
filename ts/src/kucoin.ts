@@ -1760,22 +1760,23 @@ export default class kucoin extends Exchange {
         if (fetchSpotMarkets) {
             symbolsData = this.safeList (responses[0], 'data', []);
         }
-        let crossIndex = 0;
-        let isolatedIndex = 0;
-        let tickersIndex = 0;
-        let contractIndex = 0;
-        let nextIndex = 0;
+        let crossIndex: int = 0;
+        let isolatedIndex: int = 0;
+        let tickersIndex: int = 0;
+        let contractIndex: int = 0;
+        let nextIndex: int = 0;
         if (fetchSpotMarkets) {
             nextIndex = 1;
         }
         if (requestMarginables) {
             crossIndex = nextIndex;
-            nextIndex = this.sum (nextIndex, 2);
-            isolatedIndex = this.sum (crossIndex, 1);
+            nextIndex = nextIndex + 1;
+            isolatedIndex = nextIndex;
+            nextIndex = nextIndex + 1;
         }
         if (fetchTickersFees) {
             tickersIndex = nextIndex;
-            nextIndex = this.sum (nextIndex, 1);
+            nextIndex = nextIndex + 1;
         }
         if (fetchContractMarkets) {
             contractIndex = nextIndex;
