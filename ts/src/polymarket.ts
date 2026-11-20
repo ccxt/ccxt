@@ -2766,7 +2766,7 @@ export default class polymarket extends Exchange {
      * @param {any[]} row the positional array to compact
      * @returns {any[]} the compacted array
      */
-    compactSignable (row: any[]) {
+    compactSignable (row: any[]): any[] {
         const result = [];
         for (let i = 0; i < row.length; i++) {
             if (row[i] !== undefined) {
