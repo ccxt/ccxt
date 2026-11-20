@@ -3,34 +3,58 @@ package ccxtpro
 import (
 	"testing"
 	"time"
+
+	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
-// TestGrvtHandleErrorMessageRejectsMatchingSubscription pins the crash fix: an
-// error frame must reject the subscription that carried its request id, not
-// escape the read goroutine as a panic.
+// grvtSubscriptions are keyed by the venue's raw selector, but watchers await
+// the message hashes ('ticker::<symbol>'). A test that keys both on the same
+// string would pass even when the reject lands on a key nobody awaits.
+const (
+	btcSubscription = "BTC_USDT_Perp@500"
+	ethSubscription = "ETH_USDT_Perp@500"
+	btcMessageHash  = "ticker::BTC/USDT:USDT"
+	ethMessageHash  = "ticker::ETH/USDT:USDT"
+)
+
+func grvtErrorFrame(id int64) map[string]any {
+	return map[string]any{
+		"jsonrpc": "2.0",
+		"error":   map[string]any{"code": 3030, "message": "interval invalid"},
+		"id":      id,
+		"method":  "subscribe",
+	}
+}
+
+// TestGrvtHandleErrorMessageRejectsMatchingSubscription pins the crash fix and
+// the routing: the frame's request id identifies the subscription, and the
+// reject must reach the message hash the watcher is awaiting - not the raw
+// subscription key. The dead subscription is dropped so a retry re-sends it.
 func TestGrvtHandleErrorMessageRejectsMatchingSubscription(t *testing.T) {
 	ex := NewGrvt(map[string]any{})
 	client := ex.Client("wss://unused.invalid/ws")
-	const hash = "BTC/USDT:USDT@ticker"
-	client.SubscriptionSet(hash, map[string]any{"id": int64(7), "subscription": "BTC/USDT:USDT"})
-	future := client.Future(hash)
+	client.SubscriptionSet(btcSubscription, map[string]any{
+		"id":            int64(7),
+		"messageHashes": []any{btcMessageHash},
+	})
+	future := client.Future(btcMessageHash)
 
-	frame := map[string]any{
-		"jsonrpc": "2.0",
-		"error":   map[string]any{"code": 3030, "message": "interval invalid"},
-		"id":      int64(7),
-		"method":  "subscribe",
-	}
-	if !ex.HandleErrorMessage(client, frame) {
+	if !ex.HandleErrorMessage(client, grvtErrorFrame(7)) {
 		t.Fatal("expected the error frame to be handled")
 	}
 	select {
 	case result := <-future:
 		if result.Err == nil {
-			t.Fatalf("expected the matching subscription to be rejected, got %+v", result)
+			t.Fatalf("expected the watching future to be rejected, got %+v", result)
 		}
 	case <-time.After(2 * time.Second):
-		t.Fatal("matching subscription was not rejected")
+		t.Fatal("watching future was not rejected")
+	}
+	if client.SubscriptionHas(btcSubscription) {
+		t.Fatal("failed subscription should be dropped so a retry re-sends it")
+	}
+	if rejections := client.GetRejections(); len(rejections) != 0 {
+		t.Fatalf("error was stored under a key nobody awaits: %v", rejections)
 	}
 }
 
@@ -40,24 +64,22 @@ func TestGrvtHandleErrorMessageRejectsMatchingSubscription(t *testing.T) {
 func TestGrvtHandleErrorMessageDoesNotRejectUnrelatedFutures(t *testing.T) {
 	ex := NewGrvt(map[string]any{})
 	client := ex.Client("wss://unused.invalid/ws")
-	const failed = "BTC/USDT:USDT@ticker"
-	const unrelated = "ETH/USDT:USDT@book"
-	client.SubscriptionSet(failed, map[string]any{"id": int64(7)})
-	client.SubscriptionSet(unrelated, map[string]any{"id": int64(9)})
-	failedFuture := client.Future(failed)
-	unrelatedFuture := client.Future(unrelated)
+	client.SubscriptionSet(btcSubscription, map[string]any{
+		"id":            int64(7),
+		"messageHashes": []any{btcMessageHash},
+	})
+	client.SubscriptionSet(ethSubscription, map[string]any{
+		"id":            int64(9),
+		"messageHashes": []any{ethMessageHash},
+	})
+	btcFuture := client.Future(btcMessageHash)
+	ethFuture := client.Future(ethMessageHash)
 
-	frame := map[string]any{
-		"jsonrpc": "2.0",
-		"error":   map[string]any{"code": 3030, "message": "interval invalid"},
-		"id":      int64(7),
-		"method":  "subscribe",
-	}
-	if !ex.HandleErrorMessage(client, frame) {
+	if !ex.HandleErrorMessage(client, grvtErrorFrame(7)) {
 		t.Fatal("expected the error frame to be handled")
 	}
 	select {
-	case result := <-failedFuture:
+	case result := <-btcFuture:
 		if result.Err == nil {
 			t.Fatalf("expected the matching subscription to be rejected, got %+v", result)
 		}
@@ -65,9 +87,50 @@ func TestGrvtHandleErrorMessageDoesNotRejectUnrelatedFutures(t *testing.T) {
 		t.Fatal("matching subscription was not rejected")
 	}
 	select {
-	case result := <-unrelatedFuture:
+	case result := <-ethFuture:
 		t.Fatalf("unrelated subscription must stay pending, got %+v", result)
 	case <-time.After(100 * time.Millisecond):
+	}
+	if !client.SubscriptionHas(ethSubscription) {
+		t.Fatal("unrelated subscription must not be dropped")
+	}
+}
+
+// TestGrvtHandleErrorMessageRejectsMultiSymbolSubscriptionOnce covers the
+// shared-id shape: one subscribe request carries every symbol's raw selector,
+// so several subscription keys echo the same request id and each records the
+// same message hashes. The watchers must all be rejected and every dead
+// subscription dropped, without duplicate rejections.
+func TestGrvtHandleErrorMessageRejectsMultiSymbolSubscriptionOnce(t *testing.T) {
+	ex := NewGrvt(map[string]any{})
+	client := ex.Client("wss://unused.invalid/ws")
+	subscription := map[string]any{
+		"id":            int64(7),
+		"messageHashes": []any{btcMessageHash, ethMessageHash},
+	}
+	client.SubscriptionSet(btcSubscription, subscription)
+	client.SubscriptionSet(ethSubscription, subscription)
+	btcFuture := client.Future(btcMessageHash)
+	ethFuture := client.Future(ethMessageHash)
+
+	if !ex.HandleErrorMessage(client, grvtErrorFrame(7)) {
+		t.Fatal("expected the error frame to be handled")
+	}
+	for name, future := range map[string]<-chan ccxt.AsyncResult[any]{"btc": btcFuture, "eth": ethFuture} {
+		select {
+		case result := <-future:
+			if result.Err == nil {
+				t.Fatalf("%s future should be rejected, got %+v", name, result)
+			}
+		case <-time.After(2 * time.Second):
+			t.Fatalf("%s future was not rejected", name)
+		}
+	}
+	if client.SubscriptionHas(btcSubscription) || client.SubscriptionHas(ethSubscription) {
+		t.Fatal("every subscription sharing the failed request id should be dropped")
+	}
+	if rejections := client.GetRejections(); len(rejections) != 0 {
+		t.Fatalf("error was stored under a key nobody awaits: %v", rejections)
 	}
 }
 

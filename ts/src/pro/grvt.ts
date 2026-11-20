@@ -124,9 +124,10 @@ export default class grvt extends grvtRest {
         if (publicOrPrivate) {
             apiPart = 'publicMarket';
         }
-        // the request id is recorded on the subscription so handleErrorMessage can route
-        // an error frame back to the exact subscription it belongs to
-        return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes, { 'id': requestId });
+        // the request id and the message hashes are recorded on the subscription so
+        // handleErrorMessage can route an error frame back to the exact subscription
+        // that caused it and reject the futures the watchers are actually awaiting
+        return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes, { 'id': requestId, 'messageHashes': messageHashes });
     }
 
     override requestId (): int {
@@ -1002,8 +1003,19 @@ export default class grvt extends grvtRest {
                         const subscriptionHash = subscriptionKeys[i];
                         const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
                         if (id === subscriptionId) {
-                            client.reject (e, subscriptionHash);
-                            handled = true;
+                            if (!handled) {
+                                // the subscription key is the venue's raw selector, while the
+                                // watchers await the message hashes recorded at subscribe time;
+                                // a multi-symbol subscribe shares one id across its raw hashes,
+                                // so reject the shared message hashes once
+                                const messageHashes = this.safeList (client.subscriptions[subscriptionHash], 'messageHashes', []);
+                                for (let j = 0; j < messageHashes.length; j++) {
+                                    client.reject (e, messageHashes[j]);
+                                }
+                                handled = true;
+                            }
+                            // the subscription is dead: dropping it lets a retry re-send it
+                            delete client.subscriptions[subscriptionHash];
                         }
                     }
                 }
