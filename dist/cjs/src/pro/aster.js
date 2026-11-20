@@ -1479,6 +1479,7 @@ class aster extends aster$1["default"] {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
+        const balance = this.safeDict(this.balance, accountType, {});
         const messageValue = this.safeDict(message, 'a', message);
         const B = this.safeList(messageValue, 'B', []);
         const wallet = this.safeString(this.options, 'wallet', 'wb');
@@ -1491,13 +1492,13 @@ class aster extends aster$1["default"] {
             account['used'] = this.safeString(entry, 'l');
             account['total'] = this.safeString(entry, wallet);
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger(messageValue, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance(this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve(this.balance[accountType], messageHash);
     }
     /**

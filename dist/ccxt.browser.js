@@ -182662,7 +182662,8 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         }
         let code = currencyId;
         if (currencyId !== undefined) {
-            code = this.commonCurrencyCode(currencyId.toUpperCase());
+            const upperId = currencyId.toUpperCase();
+            code = this.commonCurrencyCode(upperId);
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -182821,7 +182822,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             throw new _errors_js__rspack_import_2.ArgumentsRequired(this.id + ' getSupportedMapping() requires a key argument');
         }
         if (key in mapping) {
-            return mapping[key];
+            return this.safeString(mapping, key, key);
         } else {
             const keys = Object.keys(mapping);
             // "mapping" must stay literal-final and the list must not be introduced with ": ":
@@ -387083,8 +387084,10 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
             const market = this.safeDict(pairs, key);
             const baseId = this.safeString(market, 'pair_base');
             const quoteId = this.safeString(market, 'pair_2');
-            const baseCode = this.commonCurrencyCode(baseId.toUpperCase());
-            const quoteCode = this.commonCurrencyCode(quoteId.toUpperCase());
+            const upperBaseId = baseId.toUpperCase();
+            const upperQuoteId = quoteId.toUpperCase();
+            const baseCode = this.commonCurrencyCode(upperBaseId);
+            const quoteCode = this.commonCurrencyCode(upperQuoteId);
             result.push({
                 'id': this.safeString(market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,
@@ -528427,6 +528430,7 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
+        const balance = this.safeDict(this.balance, accountType, {});
         const messageValue = this.safeDict(message, 'a', message);
         const B = this.safeList(messageValue, 'B', []);
         const wallet = this.safeString(this.options, 'wallet', 'wb');
@@ -528439,13 +528443,13 @@ class aster extends _aster_js__rspack_import_0/* ["default"] */.A {
             account['used'] = this.safeString(entry, 'l');
             account['total'] = this.safeString(entry, wallet);
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger(messageValue, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance(this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve(this.balance[accountType], messageHash);
     }
     /**
@@ -584261,6 +584265,7 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
         }
         this.balance[type] = this.safeDict(this.balance, type, {});
         this.balance[type]['info'] = message;
+        const balance = this.safeDict(this.balance, type, {});
         const data = this.safeList(message, 'data', []);
         for(let i = 0; i < data.length; i++){
             const currencyId = this.safeString(data[i], 'asset');
@@ -584268,9 +584273,9 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
             const account = this.account();
             const eq = this.safeString(data[i], 'balance');
             account['total'] = eq;
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         const channel = this.safeString(message, 'channel');
         client.resolve(this.balance[type], channel);
     }

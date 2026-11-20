@@ -6262,7 +6262,8 @@ export class BaseExchange {
         }
         let code = currencyId;
         if (currencyId !== undefined) {
-            code = this.commonCurrencyCode(currencyId.toUpperCase());
+            const upperId = currencyId.toUpperCase();
+            code = this.commonCurrencyCode(upperId);
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -6419,7 +6420,7 @@ export class BaseExchange {
             throw new ArgumentsRequired(this.id + ' getSupportedMapping() requires a key argument');
         }
         if (key in mapping) {
-            return mapping[key];
+            return this.safeString(mapping, key, key);
         }
         else {
             const keys = Object.keys(mapping);

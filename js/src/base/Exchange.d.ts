@@ -856,7 +856,7 @@ export declare class BaseExchange {
     fetchTransactionFees(codes?: Strings, params?: Dict): Promise<{}>;
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     fetchDepositWithdrawFee(code: string, params?: Dict): Promise<DepositWithdrawFee>;
-    getSupportedMapping(key: Str, mapping?: Dict): any;
+    getSupportedMapping(key: Str, mapping?: Dict): string;
     fetchCrossBorrowRate(code: string, params?: Dict): Promise<CrossBorrowRate>;
     fetchIsolatedBorrowRate(symbol: string, params?: Dict): Promise<IsolatedBorrowRate>;
     requireValue<T>(value: T | undefined, message?: Str): T;
