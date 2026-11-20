@@ -11564,7 +11564,9 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
         const own = (scan.declaration.initializer?.kind === ts.SyntaxKind.CallExpression) ? callReturnType (csharp, scan.declaration.initializer) : undefined;
         // ral-90c4 R1: a null seed (`let x: Str = undefined`) prints `string? x = null;`, also with no cast;
         // every write is checked by the rest of the retype scan, so its box is a string or null
-        if (own !== 'string?' && own !== 'string' && !nullSeedGuardedConcat90c4 (scan.declaration)) {
+        // a split-list element read (`parts[0]`): the box is a string or null off the end of the list
+        const splitElement = (own === undefined) && (elementAccessElementType (csharp, scan.declaration.initializer, scan.context) === 'string');
+        if (own !== 'string?' && own !== 'string' && !splitElement && !nullSeedGuardedConcat90c4 (scan.declaration)) {
             return false;
         }
     }
@@ -20593,6 +20595,20 @@ export function installCsharpNonNullConcat (transpiler) {
     };
     csharp._nonNullConcatPatched = true;
     installCsharpGuardedConcatReads (transpiler);
+    // `parts[1] + r..` over a split list (elementAccessElementType): the element is a string or null,
+    // so add(object, object)'s value is the same null-tested concat csharpObjectStringConcat prints for a local
+    const upstreamObjectConcat = csharp.csharpObjectStringConcat.bind (csharp);
+    csharp.csharpObjectStringConcat = (base, rights) => {
+        const own = upstreamObjectConcat (base, rights);
+        const element = stripParens (base);
+        if (own !== undefined || element?.kind !== ts.SyntaxKind.ElementAccessExpression || element.argumentExpression?.kind !== ts.SyntaxKind.NumericLiteral
+                || elementAccessElementType (csharp, element, undefined) !== 'string' || rights.some ((r) => csharp.csharpEvaluationHasEffects (r))) {
+            return own;
+        }
+        const texts = rights.map ((r) => (csharp.csharpConcatOperandPrintsString (r, 0, true) ? csharp.printNode (r, 0) : '(string)(object)(' + csharp.printNode (r, 0) + ')'));
+        const name = csharp.printNode (element, 0);
+        return '((object)(' + name + ' == null ? null : ' + name + ' + ' + texts.join (' + ') + '))';
+    };
 }
 
 // ===== TS annotations -> C# return / string-parameter types =====
