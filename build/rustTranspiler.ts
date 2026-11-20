@@ -541,6 +541,9 @@ class Proof {
         if (t.startsWith('Value::Null')) return true;
         // a typed builder boxed into a `Value` local proves like the unboxed call
         if (t.startsWith('Value::Dict(self.') && closeParenAt(t, 'Value::Dict'.length) === t.length) return this.srcTagFree(t.slice('Value::Dict('.length, -1), body, region, depth, self);
+        // a typed Dict local boxed into a `Value` proves like that local
+        const boxedDict = t.match(/^Value::Dict\(([a-z][A-Za-z0-9]*)\)$/);
+        if (boxedDict !== null) return boxedDict[1] !== self && this.localTagFree(boxedDict[1], body, region, depth + 1);
         if (/^\(\{\s*let mut m = indexmap::IndexMap::new\(\);[\s\S]*\n\s*m\s*\}\)$/.test(t)) return true;
         const destr = t.match(/^(__destr_tmp\w*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\);/);
         if (destr !== null) return this.destrSlot0Plain(destr[1], body.indexOf(src), body);
@@ -568,7 +571,8 @@ class Proof {
         if (EXTENDERS.has(name)) {
             const arg = firstArg(t);
             if (arg === undefined) return false;
-            const head = arg.trim();
+            // a borrowed or cloned head (`extend(&x, ..)`, `extend(x.clone(), ..)`) proves like the local itself
+            const head = arg.trim().replace(/^&(?=[A-Za-z_])/, '').replace(/^([A-Za-z_][A-Za-z0-9_]*)\.clone\(\)$/, '$1');
             if (INSERT_CHAIN_IDENT.test(head)) return head === self || this.localTagFree(head, body, region, depth + 1);
             return this.srcTagFree(head, body, region, depth + 1);
         }
