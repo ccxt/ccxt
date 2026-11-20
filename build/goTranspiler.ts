@@ -8783,6 +8783,29 @@ function goAppendCopySlot (receiver: string): [string, string] | undefined {
     return undefined;
 }
 
+// `m[*k]` on a local declared `map[string]any{..}` and never rebound in its function: the map is
+// non-nil and the key a string, so the helper's store is the plain index assignment.
+function goAppendNativeMapSlot (lines: string[], at: number, slot: [string, string]): boolean {
+    if (!/^\w+$/.test (slot[0]) || !/^\*\w+$/.test (slot[1])) {
+        return false;
+    }
+    let start = at;
+    while ((start > 0) && !/^func /.test (lines[start])) {
+        start--;
+    }
+    const declared = new RegExp ('^\\s*var ' + slot[0] + ' map\\[string\\]any = map\\[string\\]any\\{');
+    const rebound = new RegExp ('(?:^|[^\\w.])' + slot[0] + ' (?::?=)|&' + slot[0] + '\\b');
+    let found = false;
+    for (let j = start + 1; (j < lines.length) && !/^}/.test (lines[j]); j++) {
+        if (declared.test (lines[j])) {
+            found = !found && (j < at);
+        } else if (rebound.test (lines[j])) {
+            return false;
+        }
+    }
+    return found;
+}
+
 function nativeAppendWriteBack (content: string): string {
     if (content.indexOf ('AppendToArray(&retRes') < 0) {
         return content;
@@ -8806,7 +8829,11 @@ function nativeAppendWriteBack (content: string): string {
         // a ccxtpro file reaches both helpers through the imported ccxt package
         const pkg = /(?:^|[^\w.])ccxt\./.test (decl[3] + lines[k + 1]) ? 'ccxt.' : '';
         out.push (lines[k + 1]);
-        out.push (decl[1] + pkg + 'AddElementToObject(' + slot[0] + ', ' + slot[1] + ', ' + decl[2] + ')');
+        if (goAppendNativeMapSlot (lines, k, slot)) {
+            out.push (decl[1] + slot[0] + '[' + slot[1] + '] = ' + decl[2]);
+        } else {
+            out.push (decl[1] + pkg + 'AddElementToObject(' + slot[0] + ', ' + slot[1] + ', ' + decl[2] + ')');
+        }
         k++;
     }
     return out.join ('\n');
