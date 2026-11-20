@@ -8506,7 +8506,7 @@ export class BaseExchange {
             const responseLength = response.length;
             numEntries = responseLength;
         }
-        const keys = isArray ? [] : (Object.keys (response));
+        const keys = isArray ? [] : Object.keys (response);
         if (!isArray) {
             const keysLength = keys.length;
             numEntries = keysLength;
