@@ -2584,10 +2584,11 @@ public partial class bybit : ccxt.bybit
                 this.balance[(string)account] = new Dictionary<string, object>() {};
             }
             ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["info"] = info;
+            IDictionary<string, object> balance = this.safeDict(this.balance, account, new Dictionary<string, object>() {});
             Int64? timestamp = this.safeInteger(message, "ts");
-            ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["timestamp"] = timestamp;
-            ((IDictionary<string,object>)(this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["datetime"] = this.iso8601(timestamp);
-            this.balance[(string)account] = this.safeBalance((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null));
+            balance["timestamp"] = timestamp;
+            balance["datetime"] = this.iso8601(timestamp);
+            this.balance[(string)account] = this.safeBalance(balance);
             messageHash = ("balances:" + account);
             client.resolve((this.balance != null && account != null && this.balance.ContainsKey(account) ? this.balance[account] : null), messageHash);
         } else

@@ -5583,16 +5583,16 @@ public partial class BaseExchange
         }
     }
 
-    public virtual string? findBroadlyMatchedKey(object broad, object str)
+    public virtual string? findBroadlyMatchedKey(object broad, object errorString)
     {
         // a helper for matching error strings exactly vs broadly
         List<object> keys = new List<object>(((IDictionary<string,object>)broad).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((str != null))
+            if ((errorString != null))
             {
-                if (((string)str).IndexOf(key, StringComparison.Ordinal) >= 0)
+                if (((string)errorString).IndexOf(key, StringComparison.Ordinal) >= 0)
                 {
                     return key;
                 }

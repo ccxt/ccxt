@@ -264,7 +264,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {boolean} true once every channel is unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannels(object url, string topic, IList<object> channels, object subMessageHashes, object symbols, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannels(object url, string topic, IList<object> channels, IList<object> subMessageHashes, object symbols, IDictionary<string, object> parameters = null)
     {
         // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
         parameters ??= new Dictionary<string, object>();
@@ -296,7 +296,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    public async virtual Task<object> unsubscribeChannelsFrom(object url, object topic, IList<object> channels, object subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelsFrom(object url, object topic, IList<object> channels, IList<object> subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? refused = 0;
@@ -330,12 +330,12 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannelAt(object url, object topic, IList<object> channels, object subMessageHashes, object symbols, object index, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelAt(object url, object topic, IList<object> channels, IList<object> subMessageHashes, object symbols, Int64 index, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? channel = ((string)getValue(channels, index));
+        string? channel = ((string)(channels != null && index < channels.Count ? channels[(int)index] : null));
         string? symbol = this.safeString(symbols, index);
-        List<object> hashes = new List<object>() {getValue(subMessageHashes, index)};
+        List<object> hashes = new List<object>() {(subMessageHashes != null && index < subMessageHashes.Count ? subMessageHashes[(int)index] : null)};
         List<object> channelSymbols = new List<object>() {};
         if ((symbol != null))
         {

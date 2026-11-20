@@ -845,36 +845,37 @@ public partial class cex : ccxt.cex
         }
         ccxt.pro.ArrayCache storedOrders = this.orders;
         IDictionary<string, object> ordersBySymbol = this.safeDict((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-        object order = this.safeValue(ordersBySymbol, orderId);
+        IDictionary<string, object> order = this.safeDict(ordersBySymbol, orderId);
         if ((order == null))
         {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             order = this.parseWsOrderUpdate(data, market);
         }
-        ((IDictionary<string,object>)order)["remaining"] = remains;
+        order["remaining"] = remains;
         bool? canceled = this.safeBool(data, "cancel", false);
         if ((canceled == true))
         {
-            ((IDictionary<string,object>)order)["status"] = "canceled";
+            order["status"] = "canceled";
         }
         if (isTransaction)
         {
-            ((IDictionary<string,object>)order)["status"] = "closed";
+            order["status"] = "closed";
         }
         double? fee = this.safeNumber(data, "fee");
         if ((fee != null))
         {
-            ((IDictionary<string,object>)order)["fee"] = new Dictionary<string, object>() {
+            order["fee"] = new Dictionary<string, object>() {
                 { "cost", fee },
                 { "currency", quote },
                 { "rate", null },
             };
         }
         Int64? timestamp = this.safeInteger(data, "time");
-        ((IDictionary<string,object>)order)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)order)["datetime"] = this.iso8601(timestamp);
+        order["timestamp"] = timestamp;
+        order["datetime"] = this.iso8601(timestamp);
         // a fresh map copy: the cached entry is untyped
-        order = ccxt.BaseExchange.FromOrder(this.safeOrder(this.extend(order, new Dictionary<string, object>() {})));
-        storedOrders.append(order);
+        ccxt.Order parsedOrder = this.safeOrder(this.extend(order, new Dictionary<string, object>() {}));
+        storedOrders.append(ccxt.BaseExchange.FromOrder(parsedOrder));
         string messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);
     }
