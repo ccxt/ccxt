@@ -18,7 +18,7 @@ export default class lighter extends Exchange {
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
     preLoadLighterLibrary(params?: Dict): Promise<boolean>;
-    handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [Int, Dict];
+    handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [int, Dict];
     handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<[Int, Dict]>;
     createSubAccount(name: string, params?: Dict): Promise<Dict>;
     createAuth(params?: Dict): Str;

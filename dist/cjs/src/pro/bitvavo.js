@@ -1614,17 +1614,12 @@ class bitvavo extends bitvavo$1["default"] {
         client.resolve(markets, messageHash);
     }
     buildMessageHash(action, params = {}) {
-        const methods = {
-            'privateCreateOrder': this.actionAndMarketMessageHash,
-            'privateUpdateOrder': this.actionAndOrderIdMessageHash,
-            'privateCancelOrder': this.actionAndOrderIdMessageHash,
-            'privateGetOrder': this.actionAndOrderIdMessageHash,
-            'privateGetTrades': this.actionAndMarketMessageHash,
-        };
-        const method = this.safeValue(methods, action);
         let messageHash = action;
-        if (method !== undefined) {
-            messageHash = method.call(this, action, params);
+        if ((action === 'privateCreateOrder') || (action === 'privateGetTrades')) {
+            messageHash = this.actionAndMarketMessageHash(action, params);
+        }
+        else if ((action === 'privateUpdateOrder') || (action === 'privateCancelOrder') || (action === 'privateGetOrder')) {
+            messageHash = this.actionAndOrderIdMessageHash(action, params);
         }
         return messageHash;
     }

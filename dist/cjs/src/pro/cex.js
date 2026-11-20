@@ -795,7 +795,8 @@ class cex extends cex$1["default"] {
         const timestamp = this.safeInteger(data, 'time');
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601(timestamp);
-        order = this.safeOrder(order);
+        // a fresh map copy: the cached entry is untyped
+        order = this.safeOrder(this.extend(order, {}));
         storedOrders.append(order);
         const messageHash = 'orders:' + symbol;
         client.resolve(storedOrders, messageHash);

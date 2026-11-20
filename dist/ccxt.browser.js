@@ -184676,8 +184676,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const uniqueResult = {};
         for(let i = 0; i < input.length; i++){
             const entry = input[i];
-            let id = this.safeString(entry, 'id');
-            if (id === undefined) {
+            // safeString treats an empty id as missing, so '' marks an absent id
+            let id = this.safeString(entry, 'id', '');
+            if (id === '') {
                 const price = this.safeString(entry, 'price', '');
                 const amount = this.safeString(entry, 'amount', '');
                 const timestamp = this.safeString(entry, 'timestamp');
@@ -184690,7 +184691,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 id = 't_' + timestamp.toString() + '_' + side + '_';
                 id = id + (price + '_' + amount);
             }
-            if (id !== undefined && !(id in uniqueResult)) {
+            if (!(id in uniqueResult)) {
                 uniqueResult[id] = entry;
             }
         }
@@ -550586,17 +550587,11 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         client.resolve(markets, messageHash);
     }
     buildMessageHash(action, params = {}) {
-        const methods = {
-            'privateCreateOrder': this.actionAndMarketMessageHash,
-            'privateUpdateOrder': this.actionAndOrderIdMessageHash,
-            'privateCancelOrder': this.actionAndOrderIdMessageHash,
-            'privateGetOrder': this.actionAndOrderIdMessageHash,
-            'privateGetTrades': this.actionAndMarketMessageHash
-        };
-        const method = this.safeValue(methods, action);
         let messageHash = action;
-        if (method !== undefined) {
-            messageHash = method.call(this, action, params);
+        if (action === 'privateCreateOrder' || action === 'privateGetTrades') {
+            messageHash = this.actionAndMarketMessageHash(action, params);
+        } else if (action === 'privateUpdateOrder' || action === 'privateCancelOrder' || action === 'privateGetOrder') {
+            messageHash = this.actionAndOrderIdMessageHash(action, params);
         }
         return messageHash;
     }
@@ -557387,7 +557382,8 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const timestamp = this.safeInteger(data, 'time');
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601(timestamp);
-        order = this.safeOrder(order);
+        // a fresh map copy: the cached entry is untyped
+        order = this.safeOrder(this.extend(order, {}));
         storedOrders.append(order);
         const messageHash = 'orders:' + symbol;
         client.resolve(storedOrders, messageHash);
