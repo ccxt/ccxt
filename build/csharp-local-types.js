@@ -12350,7 +12350,7 @@ function isNullInit (declaration) {
 // a string literal, or a `+` chain the module types `string`: it prints add(string, *) or a
 // native C# concatenation, and both are never null
 function nonNullStringInit (csharp, context, declaration) {
-    if (isStringLiteralInit (declaration)) {
+    if (isStringLiteralInit (declaration) || nonNullStringDefaultCall (csharp, declaration?.initializer, context)) {
         return true;
     }
     const value = stripParens (declaration?.initializer);
@@ -13916,6 +13916,9 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
     // initializer is the interface (the safeDict* family); null-declared locals keep the
     // null-init join's behaviour
     const interfaceInitial = (initial === 'IDictionary<string, object>');
+    // a safeString* initialiser with a non-null string default joins as `string?` but holds a non-null
+    // string until a write that is not a proven `string` lands (the accumulator branch below)
+    let nonNullStringRun = (initial === 'string?') && nonNullStringDefaultCall (csharp, declaration.initializer, context);
     for (const n of (index.identifiers.get (varName) ?? [])) {
         if (n === declaration.name || isNotAUse (n)) {
             continue;
@@ -13978,7 +13981,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // one, so the value is proven from the operands plus the running type.
             written = selfConcatWriteType (csharp, context, declaration, parent.right);
         }
-        if (written === undefined && type === 'string' && !sawNull && nonNullStringInit (csharp, context, declaration)) {
+        if (written === undefined && (type === 'string' || (type === 'string?' && nonNullStringRun)) && !sawNull && nonNullStringInit (csharp, context, declaration)) {
             // the same self-read with a sibling leaf the module cannot name (`x = x + ':' + symbol`) or a
             // conditional over such values (`x = cond ? 'a' + x : x`): the left spine's static type decides the
             // emitted add(...) chain, so the write keeps the literal's non-null string
@@ -14047,6 +14050,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             sawNull = true;
             continue;
         }
+        nonNullStringRun = nonNullStringRun && (written === 'string');
         type = (type === undefined) ? written : joinTypes (type, written, (interfaceInitial && extraEdges === undefined) ? INTERFACE_FIRST_WIDENING_EDGES : extraEdges);
         if (type === undefined) {
             return undefined;
@@ -17599,7 +17603,7 @@ function csharpArgumentType (csharp, argument, expected) {
                     return 'IList<object>'; // a CORE_LIST_ARGS position: its signature already prints the list
                 }
                 const own = csharpParameterDecision (csharp, declaration, expected);
-                return (own === undefined) ? 'object' : own;
+                return own ?? printedSignatureParameterType (csharp, declaration) ?? 'object';
             }
             if (nullSeedParamsSlotShape (declaration)) {
                 return 'object'; // 77c4: typing these locals must not retype a called signature (lane 77c1)
@@ -17626,6 +17630,23 @@ function csharpArgumentType (csharp, argument, expected) {
         return undefined; // no transpilation context: nothing is proven
     }
     return undefined;
+}
+
+// a parameter another hook already prints as a string or dictionary keeps that static type at its reads
+const printedSignatureParameterInProgress = new Set ();
+function printedSignatureParameterType (csharp, declaration) {
+    if (printedSignatureParameterInProgress.has (declaration) || (typeof csharp.printParameterType !== 'function')) {
+        return undefined;
+    }
+    printedSignatureParameterInProgress.add (declaration);
+    try {
+        const printed = csharp.printParameterType (declaration);
+        return [ 'string', 'string?', 'IDictionary<string, object>' ].includes (printed) ? printed : undefined;
+    } catch (e) {
+        return undefined;
+    } finally {
+        printedSignatureParameterInProgress.delete (declaration);
+    }
 }
 
 // assignable() plus the C# constant conversions a literal argument takes for free
@@ -17749,7 +17770,13 @@ function asyncParameterStringAlias (alias, parameter) {
 
 function tsStringTypedArgument (csharp, argument) {
     try {
-        return (argument !== undefined) && (csharp.getChecker ().typeToString (csharp.getChecker ().getTypeAtLocation (argument)) === 'string');
+        if (argument === undefined) {
+            return false;
+        }
+        // a `Str` narrowed by `x === 'lit'` tests is a union of string literals: never undefined
+        const type = csharp.getChecker ().getTypeAtLocation (argument);
+        const arms = ((type.flags & ts.TypeFlags.Union) !== 0) ? [ ...(type.getTypes?.() ?? type.types) ] : [ type ];
+        return (csharp.getChecker ().typeToString (type) === 'string') || arms.every ((arm) => (arm.flags & ts.TypeFlags.StringLiteral) !== 0);
     } catch (e) {
         return false;
     }

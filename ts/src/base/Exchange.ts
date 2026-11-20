@@ -9041,8 +9041,9 @@ export class BaseExchange {
         const uniqueResult: Dict = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            let id = this.safeString (entry, 'id');
-            if (id === undefined) {
+            // safeString treats an empty id as missing, so '' marks an absent id
+            let id: string = this.safeString (entry, 'id', '');
+            if (id === '') {
                 const price = this.safeString (entry, 'price', '');
                 const amount = this.safeString (entry, 'amount', '');
                 const timestamp = this.safeString (entry, 'timestamp');
@@ -9055,7 +9056,7 @@ export class BaseExchange {
                 id = 't_' + timestamp.toString () + '_' + side + '_';
                 id = id + (price + '_' + amount);
             }
-            if (id !== undefined && !(id in uniqueResult)) {
+            if (!(id in uniqueResult)) {
                 uniqueResult[id] = entry;
             }
         }
