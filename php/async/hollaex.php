@@ -368,8 +368,10 @@ class hollaex extends Exchange {
             $market = $this->safe_dict($pairs, $key);
             $baseId = $this->safe_string($market, 'pair_base');
             $quoteId = $this->safe_string($market, 'pair_2');
-            $baseCode = $this->common_currency_code(strtoupper($baseId));
-            $quoteCode = $this->common_currency_code(strtoupper($quoteId));
+            $upperBaseId = strtoupper($baseId);
+            $upperQuoteId = strtoupper($quoteId);
+            $baseCode = $this->common_currency_code($upperBaseId);
+            $quoteCode = $this->common_currency_code($upperQuoteId);
             $result[] = array(
                 'id' => $this->safe_string($market, 'name'),
                 'symbol' => $baseCode . '/' . $quoteCode,

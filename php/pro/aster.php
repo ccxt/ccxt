@@ -1621,6 +1621,7 @@ class aster extends \ccxt\async\aster {
             $this->balance[$accountType] = array();
         }
         $this->balance[$accountType]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $accountType, array());
         $messageValue = $this->safe_dict($message, 'a', $message);
         $B = $this->safe_list($messageValue, 'B', array());
         $wallet = $this->safe_string($this->options, 'wallet', 'wb');
@@ -1633,13 +1634,13 @@ class aster extends \ccxt\async\aster {
             $account['used'] = $this->safe_string($entry, 'l');
             $account['total'] = $this->safe_string($entry, $wallet);
             if ($code !== null) {
-                $this->balance[$accountType][$code] = $account;
+                $balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($messageValue, 'E');
-        $this->balance[$accountType]['timestamp'] = $timestamp;
-        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($balance);
         $client->resolve($this->balance[$accountType], $messageHash);
     }
 

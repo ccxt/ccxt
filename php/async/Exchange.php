@@ -4548,7 +4548,8 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
         $code = $currencyId;
         if ($currencyId !== null) {
-            $code = $this->common_currency_code(strtoupper($currencyId));
+            $upperId = strtoupper($currencyId);
+            $code = $this->common_currency_code($upperId);
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -4742,7 +4743,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             throw new ArgumentsRequired($this->id . ' getSupportedMapping() requires a key argument');
         }
         if (is_array($mapping) && array_key_exists($key ?? '', $mapping)) {
-            return $mapping[$key];
+            return $this->safe_string($mapping, $key, $key);
         } else {
             $keys = is_array($mapping) ? array_keys($mapping) : array();
             // "mapping" must stay literal-final and the list must not be introduced with ": ":

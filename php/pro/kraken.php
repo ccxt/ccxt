@@ -1780,6 +1780,7 @@ class kraken extends \ccxt\async\kraken {
         }
         $this->balance[$type] = $this->safe_dict($this->balance, $type, array());
         $this->balance[$type]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $type, array());
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $currencyId = $this->safe_string($data[$i], 'asset');
@@ -1787,9 +1788,9 @@ class kraken extends \ccxt\async\kraken {
             $account = $this->account();
             $eq = $this->safe_string($data[$i], 'balance');
             $account['total'] = $eq;
-            $this->balance[$type][$code] = $account;
+            $balance[$code] = $account;
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($balance);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($this->balance[$type], $channel);
     }
