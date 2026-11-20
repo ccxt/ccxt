@@ -9085,7 +9085,7 @@ public class Bybit extends BybitApi
                 Pair<String, Map<String, Object>> typeparamsTypeVariable = this.getBybitType("setPositionMode", market, parameters);
                 String type = typeparamsTypeVariable.first();
                 Map<String, Object> paramsType = typeparamsTypeVariable.second();
-                Object tradeMode = null;
+                Integer tradeMode = null;
                 if (java.util.Objects.equals(marginMode, "cross"))
                 {
                     tradeMode = 0;
@@ -9221,7 +9221,7 @@ public class Bybit extends BybitApi
         {
             market = this.market(symbol);
         }
-        Object mode = null;
+        Integer mode = null;
         if (Boolean.TRUE.equals(hedged))
         {
             mode = 3;

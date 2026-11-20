@@ -539,7 +539,7 @@ public class Sxbet extends SxbetApi
             ((List<Object>)queries).add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
         }
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit")));
-        Object rawMarkets = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(eventId, null))
         {
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -568,22 +568,22 @@ public class Sxbet extends SxbetApi
         if ((queriesLength != null && queriesLength > 0))
         {
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-            Integer preFilterLength = ((List<?>)rawMarkets).size();
+            Integer preFilterLength = rawMarkets.size();
             for (var i = 0; (preFilterLength != null && i < preFilterLength); i++)
             {
-                if (this.matchesEventQuery((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), queries))
+                if (this.matchesEventQuery((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), queries))
                 {
-                    ((List<Object>)filtered).add((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i)));
+                    ((List<Object>)filtered).add((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i)));
                 }
             }
             rawMarkets = filtered;
         }
         Map<String, Object> grouped = new HashMap<String, Object>() {{}};
         List<String> order = new ArrayList<String>(Arrays.asList());
-        Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+        Integer rawMarketsLength = rawMarkets.size();
         for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
-            Object raw = (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
+            Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
             String sportXeventId = this.safeString(raw, "sportXeventId");
             if (java.util.Objects.equals(sportXeventId, null))
             {
@@ -639,7 +639,8 @@ public class Sxbet extends SxbetApi
     private Object fetchEventCore(String id, Map<String, Object> parameters)
     {
 
-        List<Object> rawMarkets = (this.fetchRawMarketsPaged(this.extend(new HashMap<String, Object>() {{
+        List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
+        rawMarkets = (this.fetchRawMarketsPaged(this.extend(new HashMap<String, Object>() {{
             put( "sportXeventId", id );
         }}, parameters), (Long) null)).join();
         // enforce the fixture scope client-side — see filterRawMarketsByFixture

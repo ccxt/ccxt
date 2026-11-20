@@ -4787,7 +4787,7 @@ public class Binance extends BinanceApi
             ((List<Object>)promises).add(this.sapiGetMarginAllPairs(parameters));
         }
         List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-        Object responseCurrencies = this.safeValue(results, 0);
+        List<Object> responseCurrencies = this.safeList(results, 0, new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> marginablesById = null;
         if (Boolean.TRUE.equals(fetchMargins))
         {

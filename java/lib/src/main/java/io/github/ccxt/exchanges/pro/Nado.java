@@ -1867,7 +1867,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         Long timestamp = this.parseWsTimestamp(order, "timestamp");
         String id = this.safeString(order, "digest");
         String amountString = this.safeString(order, "amount");
-        Object remaining = null;
+        Double remaining = null;
         if (!java.util.Objects.equals(amountString, null))
         {
             remaining = this.parseX18((String) (amountString));
@@ -1951,7 +1951,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String amountString = this.safeString(position, "amount");
         String vQuoteAmount = this.safeString(position, "v_quote_amount");
         String side = null;
-        Object contracts = null;
+        Double contracts = null;
         Double entryPrice = null;
         if (!java.util.Objects.equals(amountString, null))
         {

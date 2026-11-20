@@ -1281,7 +1281,7 @@ public class Predictfun extends PredictfunApi
             String outcomeHandle = ((marketSymbol + ":") + label);
             Boolean winner = null;
             String outcomeStatus = this.safeString(rawOutcome, "status");
-            Object settleFractionRaw = null;
+            Integer settleFractionRaw = null;
             if (!java.util.Objects.equals(outcomeStatus, null))
             {
                 winner = (java.util.Objects.equals(outcomeStatus, "WON"));
@@ -1294,7 +1294,7 @@ public class Predictfun extends PredictfunApi
                     settleFractionRaw = 0; // todo check
                 }
             }
-            Object settleFraction = settleFractionRaw;
+            Integer settleFraction = settleFractionRaw;
             HashMap<String, Object> j39v1 = new HashMap<String, Object>();
             j39v1.put("id", tokenId);
             j39v1.put("outcomeId", tokenId);

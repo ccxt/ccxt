@@ -3640,12 +3640,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    public CompletableFuture<Object> ensureUserDataStreamWsSubscribeListenToken(Object marketType, Map<String, Object> parameters)
+    public CompletableFuture<Object> ensureUserDataStreamWsSubscribeListenToken(String marketType, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.ensureUserDataStreamWsSubscribeListenTokenCore(marketType, parameters));
     }
 
-    private Object ensureUserDataStreamWsSubscribeListenTokenCore(Object marketType, Map<String, Object> parameters)
+    private Object ensureUserDataStreamWsSubscribeListenTokenCore(String marketType, Map<String, Object> parameters)
     {
 
         Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
@@ -3655,7 +3655,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
         }
-        Map<String, Object> options = this.safeDict(this.options, java.util.Objects.requireNonNullElse(marketType, "margin"), new HashMap<String, Object>() {{}});
+        Map<String, Object> options = this.safeDict(this.options, marketType, new HashMap<String, Object>() {{}});
         Long lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
         Long listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
         Long time = this.milliseconds();
@@ -3666,7 +3666,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // renewal timer re-entry through renewListenToken, so a concurrent caller
             // waits for the leader rather than minting a second listenToken
             Client client = this.client(url);
-            String messageHash = (("authenticate:" + java.util.Objects.requireNonNullElse(marketType, "margin")) + ":listenToken");
+            String messageHash = (("authenticate:" + marketType) + ":listenToken");
             if (client.futures.containsKey(messageHash))
             {
                 // another caller is already fetching, wait for it instead of fetching again
@@ -3714,7 +3714,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
                     put( "id", requestHash );
                     put( "method", "handleUserDataStreamSubscribe");
-                    put( "subscription", java.util.Objects.requireNonNullElse(marketType, "margin") );
+                    put( "subscription", marketType );
                 }};
                 (this.watch(url, requestHash, message, requestHash, subscription)).join();
                 HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
@@ -3724,7 +3724,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 mapLiteral5.put("symbol", symbol);
                 mapLiteral5.put("isIsolated", isIsolated);
                 mapLiteral5.put("validity", validity);
-                Helpers.addElementToObject(this.options, java.util.Objects.requireNonNullElse(marketType, "margin"), this.extend(options, mapLiteral5));
+                this.options.put(marketType, this.extend(options, mapLiteral5));
                 // Schedule token renewal before expiration
                 if (!java.util.Objects.equals(expirationTime, null))
                 {
@@ -3732,7 +3732,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     if ((renewalTime != null && renewalTime > 0))
                     {
                         Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
-                            put( "type", java.util.Objects.requireNonNullElse(marketType, "margin") );
+                            put( "type", marketType );
                         }});
                         this.scheduleCallback(renewalTime, "renewListenToken", extendedParams);
                     }
@@ -3740,7 +3740,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 client.resolve(listenToken, messageHash);
             } catch(Exception e)
             {
-                Helpers.addElementToObject(this.options, java.util.Objects.requireNonNullElse(marketType, "margin"), this.extend(options, new HashMap<String, Object>() {{
+                this.options.put(marketType, this.extend(options, new HashMap<String, Object>() {{
     put( "lastAuthenticatedTime", 0 );
 }}));
                 client.reject(e, messageHash);

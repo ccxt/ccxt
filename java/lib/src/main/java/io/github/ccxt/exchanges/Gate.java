@@ -6085,7 +6085,7 @@ public class Gate extends GateApi
         }
         Object contractAmount = 0;
         String signedAmount = null;
-        Object useGateFuturesDecimalSize = false;
+        Boolean useGateFuturesDecimalSize = false;
         if (java.util.Objects.equals(contract, true))
         {
             Boolean isClose = (Boolean) this.safeBool(query, "close", false);

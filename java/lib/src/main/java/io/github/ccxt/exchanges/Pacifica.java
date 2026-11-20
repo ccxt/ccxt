@@ -936,7 +936,7 @@ public class Pacifica extends PacificaApi
         Boolean linear = null;
         Boolean inverse = null;
         Double contractSize = null;
-        Object minLeverage = null;
+        Integer minLeverage = null;
         Long maxLeverage = null;
         Boolean crossMargin = null;
         Boolean isolatedMargin = null;

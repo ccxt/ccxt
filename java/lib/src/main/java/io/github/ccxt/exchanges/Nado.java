@@ -2827,7 +2827,7 @@ public class Nado extends NadoApi
             }
         }
         String feeString = this.safeString(trade, "fee");
-        Object feeCost = null;
+        Double feeCost = null;
         if (Boolean.TRUE.equals(isArchiveMatch))
         {
             feeCost = this.parseX18(feeString);
@@ -3199,9 +3199,9 @@ public class Nado extends NadoApi
         String markPriceX18 = this.safeString2(risk, "price_x18", "oracle_price_x18");
         String vQuoteBalance = this.safeString(balance, "v_quote_balance");
         String side = null;
-        Object contracts = null;
+        Double contracts = null;
         Double entryPrice = null;
-        Object markPrice = null;
+        Double markPrice = null;
         Double notional = null;
         if (!java.util.Objects.equals(amountString, null))
         {
@@ -3337,11 +3337,11 @@ public class Nado extends NadoApi
         String timeInForce = null;
         Boolean postOnly = null;
         String side = null;
-        Object price = null;
-        Object amount = null;
-        Object filled = null;
-        Object remaining = null;
-        Object cost = null;
+        Double price = null;
+        Double amount = null;
+        Double filled = null;
+        Double remaining = null;
+        Double cost = null;
         String average = null;
         Map<String, Object> fee = null;
         Long lastTradeTimestamp = null;

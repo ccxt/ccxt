@@ -6116,12 +6116,12 @@ public Map<String, Object> describe()
             // if marketType is not filled for this exchange, don't add that in `features`
             if (!(initialFeatures.containsKey(marketType)))
             {
-                Helpers.addElementToObject(this.features, marketType, null);
+                this.features.put(marketType, null);
             } else
             {
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
-                    Helpers.addElementToObject(this.features, marketType, this.featuresMapper(initialFeatures, marketType, (String) null));
+                    this.features.put(marketType, this.featuresMapper(initialFeatures, marketType, (String) null));
                 } else
                 {
                     this.features.put(marketType, new HashMap<String, Object>() {{}});

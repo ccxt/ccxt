@@ -5722,7 +5722,7 @@ public class Phemex extends PhemexApi
         String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         String toId = this.safeString(accountsByType, toAccount, toAccount);
         Object scaledAmmount = this.toEn(amount, this.safeInteger(currency, "valueScale"));
-        Object direction = null;
+        Integer direction = null;
         Map<String, Object> transfer = null;
         if (java.util.Objects.equals(fromId, "spot") && java.util.Objects.equals(toId, "future"))
         {

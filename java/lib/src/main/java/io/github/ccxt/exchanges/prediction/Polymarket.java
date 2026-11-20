@@ -1119,7 +1119,7 @@ public class Polymarket extends PolymarketApi
                 }
                 String outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), (String) (marketSlug), (String) (outcomeLabel));
                 Boolean winnerRaw = null;
-                Object settleFractionRaw = null;
+                Integer settleFractionRaw = null;
                 if (Boolean.TRUE.equals(marketResolved) && (!java.util.Objects.equals(outcomePrice, null)))
                 {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
@@ -1140,7 +1140,7 @@ public class Polymarket extends PolymarketApi
                 // effectively-final copies: Java emits the object literal below as an anonymous
                 // inner class, which cannot capture a reassigned local
                 Boolean winner = winnerRaw;
-                Object settleFraction = settleFractionRaw;
+                Integer settleFraction = settleFractionRaw;
                 HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("outcome", outcomeHandle);
                 j39v1.put("outcomeId", clobTokenId);

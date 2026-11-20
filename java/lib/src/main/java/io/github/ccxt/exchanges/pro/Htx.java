@@ -1125,10 +1125,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public Object getOrderChannelAndMessageHash(String type, String subType, Map<String, Object> market, Map<String, Object> parameters)
     {
-        Object messageHash = null;
-        Object channel = null;
-        String orderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
-        orderType = this.safeString(parameters, "orderType", orderType);
+        String defaultOrderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
+        String orderType = this.safeString(parameters, "orderType", defaultOrderType);
         Map<String, Object> paramsOmitted = this.omit(parameters, "orderType");
         String marketCode = null;
         if (!java.util.Objects.equals(market, null))
@@ -1141,7 +1139,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             baseId = java.util.Objects.toString(market.get("baseId"), null);
         }
         String prefix = orderType;
-        messageHash = prefix;
+        String messageHash = prefix;
+        String channel = ((prefix + ".") + "*");
         if (java.util.Objects.equals(subType, "linear"))
         {
             // USDT Margined Contracts Example: LTC/USDT:USDT
@@ -1154,8 +1153,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             messageHash = marginPrefix;
             if (!java.util.Objects.equals(marketCode, null))
             {
-                messageHash = ((marginPrefix + ".") + marketCode);
-                channel = messageHash;
+                String marketTopic = ((marginPrefix + ".") + marketCode);
+                messageHash = marketTopic;
+                channel = marketTopic;
             } else
             {
                 channel = ((marginPrefix + ".") + "*");
@@ -1165,8 +1165,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // inverse futures Example: BCH/USD:BCH-220408
             if (!java.util.Objects.equals(baseId, null))
             {
-                channel = ((prefix + ".") + baseId.toLowerCase());
-                messageHash = channel;
+                String lowerBaseId = baseId.toLowerCase();
+                String baseTopic = ((prefix + ".") + lowerBaseId);
+                channel = baseTopic;
+                messageHash = baseTopic;
             } else
             {
                 channel = ((prefix + ".") + "*");
@@ -1176,8 +1178,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // inverse swaps: Example: BTC/USD:BTC
             if (!java.util.Objects.equals(marketCode, null))
             {
-                channel = ((prefix + ".") + marketCode);
-                messageHash = channel;
+                String swapTopic = ((prefix + ".") + marketCode);
+                channel = swapTopic;
+                messageHash = swapTopic;
             } else
             {
                 channel = ((prefix + ".") + "*");

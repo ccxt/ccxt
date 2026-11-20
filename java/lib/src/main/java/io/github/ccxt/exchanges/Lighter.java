@@ -1100,8 +1100,8 @@ public class Lighter extends LighterApi
         String timeInForce = this.safeStringLower(paramsOrderExpiry, "timeInForce", "gtt");
         Boolean postOnly = this.isPostOnly(isMarketOrder, (Boolean) (null), paramsOrderExpiry);
         Map<String, Object> paramsOmitted = this.omit(paramsOrderExpiry, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
-        Object orderTypeNum = null;
-        Object timeInForceNum = null;
+        Integer orderTypeNum = null;
+        Integer timeInForceNum = null;
         if (Boolean.TRUE.equals(isMarketOrder))
         {
             orderTypeNum = 1;

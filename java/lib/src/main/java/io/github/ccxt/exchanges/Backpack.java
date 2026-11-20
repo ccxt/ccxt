@@ -1115,7 +1115,7 @@ public class Backpack extends BackpackApi
         Boolean inverse = null;
         String settle = null;
         String settleId = null;
-        Object contractSize = null;
+        Integer contractSize = null;
         if ((java.util.Objects.equals(typeOfMarket, "spot")) || Boolean.TRUE.equals(rfq))
         {
             type = "spot";

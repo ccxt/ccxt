@@ -1661,8 +1661,8 @@ public class Dydx extends DydxApi
         Integer clientMetadata = 0;
         Integer conditionalType = 0;
         String conditionalOrderTriggerSubticks = "0";
-        Object orderFlag = null;
-        Object timeInForceNumber = null;
+        Integer orderFlag = null;
+        Integer timeInForceNumber = null;
         if (java.util.Objects.equals(timeInForce, "FOK"))
         {
             throw new InvalidOrder((this.id + " timeInForce fok has been deprecated")) ;
@@ -1725,7 +1725,7 @@ public class Dydx extends DydxApi
         List<Object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         Long goodTillBlockTimeInSecondsOption = (Long) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(0);
         Map<String, Object> paramsGoodTillBlockTimeInSeconds = (Map<String, Object>) ((List<Object>) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable).get(1);
-        if (java.util.Objects.equals(orderFlag, 0))
+        if ((orderFlag != null && orderFlag == 0))
         {
             if (java.util.Objects.equals(goodTillBlock, null))
             {
@@ -1779,7 +1779,7 @@ public class Dydx extends DydxApi
         Long clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
         Object subaccountIdValue = (((java.util.Objects.equals(subaccountIdOption, null)))) ? 0 : subaccountIdOption;
         Long clientOrderIdValue = (((java.util.Objects.equals(clientOrderId, null)))) ? 0 : clientOrderId;
-        Object orderFlagValue = (((java.util.Objects.equals(orderFlag, null)))) ? 0 : orderFlag;
+        Integer orderFlagValue = (((java.util.Objects.equals(orderFlag, null)))) ? 0 : orderFlag;
         Long clobPairIdValue = (((java.util.Objects.equals(clobPairId, null)))) ? 0 : clobPairId;
         String orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new ArrayList<Object>(Arrays.asList(orderId, this.extend(signingPayload, paramsOmitted)));
