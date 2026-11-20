@@ -536,6 +536,7 @@ class sxbet extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a [prediction $event structure](https://docs.ccxt.com/#/?$id=prediction-$event-structure)
          */
+        $rawMarkets = array();
         $rawMarkets = Async\await($this->fetch_raw_markets_paged($this->extend(array( 'sportXeventId' => $id ), $params), null));
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         $rawMarkets = $this->filter_raw_markets_by_fixture($rawMarkets, $id);

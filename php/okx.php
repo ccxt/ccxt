@@ -6187,27 +6187,44 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_leverage($data, $market);
+        $marketId = null;
+        $rowMarginMode = null;
+        $longLeverage = null;
+        $shortLeverage = null;
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $this->safe_dict($data, $i);
+            $rowMarginMode = $this->safe_string_lower($entry, 'mgnMode');
+            $marketId = $this->safe_string($entry, 'instId');
+            $positionSide = $this->safe_string_lower($entry, 'posSide');
+            $lever = $this->safe_integer($entry, 'lever');
+            if ($positionSide !== 'short') {
+                $longLeverage = $lever;
+            }
+            if ($positionSide !== 'long') {
+                $shortLeverage = $lever;
+            }
+        }
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $rowMarginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
+        );
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
-        $marketId = null;
-        $marginMode = null;
+        $marketId = $this->safe_string($leverage, 'instId');
+        $positionSide = $this->safe_string_lower($leverage, 'posSide');
+        $lever = $this->safe_integer($leverage, 'lever');
+        $marginMode = $this->safe_string_lower($leverage, 'mgnMode');
         $longLeverage = null;
         $shortLeverage = null;
-        for ($i = 0; $i < count($leverage); $i++) {
-            $entry = $this->safe_dict($leverage, $i);
-            $marginMode = $this->safe_string_lower($entry, 'mgnMode');
-            $marketId = $this->safe_string($entry, 'instId');
-            $positionSide = $this->safe_string_lower($entry, 'posSide');
-            if ($positionSide === 'long') {
-                $longLeverage = $this->safe_integer($entry, 'lever');
-            } elseif ($positionSide === 'short') {
-                $shortLeverage = $this->safe_integer($entry, 'lever');
-            } else {
-                $longLeverage = $this->safe_integer($entry, 'lever');
-                $shortLeverage = $this->safe_integer($entry, 'lever');
-            }
+        if ($positionSide !== 'short') {
+            $longLeverage = $lever;
+        }
+        if ($positionSide !== 'long') {
+            $shortLeverage = $lever;
         }
         return array(
             'info' => $leverage,

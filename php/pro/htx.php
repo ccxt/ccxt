@@ -990,10 +990,8 @@ class htx extends \ccxt\async\htx {
     }
 
     public function get_order_channel_and_message_hash(?string $type, ?string $subType, ?array $market = null, $params = array()): array {
-        $messageHash = null;
-        $channel = null;
-        $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
-        $orderType = $this->safe_string($params, 'orderType', $orderType);
+        $defaultOrderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
+        $orderType = $this->safe_string($params, 'orderType', $defaultOrderType);
         $paramsOmitted = $this->omit($params, 'orderType');
         $marketCode = null;
         if ($market !== null) {
@@ -1005,6 +1003,7 @@ class htx extends \ccxt\async\htx {
         }
         $prefix = $orderType;
         $messageHash = $prefix;
+        $channel = $prefix . '.' . '*';
         if ($subType === 'linear') {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             $marginMode = $this->safe_string($paramsOmitted, 'margin', 'cross');
@@ -1014,24 +1013,28 @@ class htx extends \ccxt\async\htx {
             }
             $messageHash = $marginPrefix;
             if ($marketCode !== null) {
-                $messageHash = $marginPrefix . '.' . $marketCode;
-                $channel = $messageHash;
+                $marketTopic = $marginPrefix . '.' . $marketCode;
+                $messageHash = $marketTopic;
+                $channel = $marketTopic;
             } else {
                 $channel = $marginPrefix . '.' . '*';
             }
         } elseif ($type === 'future') {
             // inverse futures Example: BCH/USD:BCH-220408
             if ($baseId !== null) {
-                $channel = $prefix . '.' . strtolower($baseId);
-                $messageHash = $channel;
+                $lowerBaseId = strtolower($baseId);
+                $baseTopic = $prefix . '.' . $lowerBaseId;
+                $channel = $baseTopic;
+                $messageHash = $baseTopic;
             } else {
                 $channel = $prefix . '.' . '*';
             }
         } else {
             // inverse swaps: Example: BTC/USD:BTC
             if ($marketCode !== null) {
-                $channel = $prefix . '.' . $marketCode;
-                $messageHash = $channel;
+                $swapTopic = $prefix . '.' . $marketCode;
+                $channel = $swapTopic;
+                $messageHash = $swapTopic;
             } else {
                 $channel = $prefix . '.' . '*';
             }

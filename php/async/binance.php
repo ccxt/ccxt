@@ -3225,7 +3225,7 @@ class binance extends Exchange {
             $promises[] = $this->sapiGetMarginAllPairs($params);
         }
         $results = Async\await(Promise\all($promises));
-        $responseCurrencies = $this->safe_value($results, 0);
+        $responseCurrencies = $this->safe_list($results, 0, array());
         $marginablesById = null;
         if ($fetchMargins) {
             $responseMarginables = $this->safe_list($results, 1);

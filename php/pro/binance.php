@@ -3138,11 +3138,11 @@ class binance extends \ccxt\async\binance {
         $client->resolve($message, $messageHash);
     }
 
-    public function ensure_user_data_stream_ws_subscribe_listen_token(string $marketType = 'margin', $params = array()) {
+    public function ensure_user_data_stream_ws_subscribe_listen_token(string $marketType, $params = array()) {
         return Async\async(self::do_ensure_user_data_stream_ws_subscribe_listen_token(...))($marketType, $params);
     }
 
-    private function do_ensure_user_data_stream_ws_subscribe_listen_token(string $marketType = 'margin', $params = array()) {
+    private function do_ensure_user_data_stream_ws_subscribe_listen_token(string $marketType, $params = array()) {
         /**
          * subscribes to user data stream using $listenToken (for margin)
          * @param {string} $marketType - the market type ($e->g., 'margin')
