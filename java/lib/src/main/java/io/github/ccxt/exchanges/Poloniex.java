@@ -684,6 +684,7 @@ public class Poloniex extends PoloniexApi
             put( "precisionMode", TICK_SIZE );
             put( "exceptions", new HashMap<String, Object>() {{
                 put( "exact", new HashMap<String, Object>() {{
+                    put( "401", PermissionDenied.class );
                     put( "500", ExchangeNotAvailable.class );
                     put( "603", RequestTimeout.class );
                     put( "601", BadRequest.class );
