@@ -3121,7 +3121,7 @@ export default class deepcoin extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
             const dateTime = this.iso8601 (timestamp);
-            let payload = dateTime + method + '/' + requestPath;
+            let payload: string = dateTime + method + '/' + requestPath;
             const privateHeaders: Dict = {
                 'DC-ACCESS-KEY': this.apiKey,
                 'DC-ACCESS-TIMESTAMP': dateTime,
@@ -3130,9 +3130,10 @@ export default class deepcoin extends Exchange {
             };
             let requestBody: Str = undefined;
             if (method !== 'GET') {
-                requestBody = this.json (params);
+                const body: string = this.json (params);
                 privateHeaders['Content-Type'] = 'application/json';
-                payload += requestBody;
+                payload += body;
+                requestBody = body;
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             privateHeaders['DC-ACCESS-SIGN'] = signature;

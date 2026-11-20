@@ -778,7 +778,7 @@ export default class deepcoin extends deepcoinRest {
         }
         const orderbook = this.orderbooks[symbol];
         const type = this.safeString (message, 't');
-        if (orderbook['timestamp'] === undefined) {
+        if (this.safeInteger (orderbook, 'timestamp') === undefined) {
             if (type === 'f') {
                 // snapshot
                 this.handleOrderBookSnapshot (client, message);
