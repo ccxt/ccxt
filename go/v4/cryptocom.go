@@ -4185,9 +4185,10 @@ func (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) Fundi
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, "t")
-	var fundingTimestamp any = nil
+	var fundingTimestamp *int64 = nil
 	if timestamp != nil {
-		fundingTimestamp = this.ParseToInt(math.Ceil(float64(*timestamp)/3600000)) * 3600000 // end of the next hour
+		fundingTimestampValue := this.ParseToInt(math.Ceil(float64(*timestamp)/3600000)) * 3600000
+		fundingTimestamp = &fundingTimestampValue // end of the next hour
 	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     contract,

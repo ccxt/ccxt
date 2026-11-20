@@ -2457,7 +2457,11 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan AsyncResult[[]any], optionalArgs
 		var uta *int64 = this.SafeInteger(result, "uta")
 		this.Options["enableUnifiedMargin"] = (unified != nil && *unified == 1)
 		this.Options["enableUnifiedAccount"] = (uta != nil && *uta == 1)
-		this.Options["unifiedMarginStatus"] = DerefScalar(this.SafeInteger(accountResult, "unifiedMarginStatus", 6)) // default to uta 2.0 pro if not found
+		if accessed := this.SafeInteger(accountResult, "unifiedMarginStatus", 6); accessed != nil {
+			this.Options["unifiedMarginStatus"] = *accessed
+		} else {
+			this.Options["unifiedMarginStatus"] = nil
+		} // default to uta 2.0 pro if not found
 	}
 
 	ch <- AsyncResult[[]any]{Value: []any{this.Options["enableUnifiedMargin"], this.Options["enableUnifiedAccount"]}}
@@ -3287,12 +3291,13 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 			typeVarStr2 := "future"
 			typeVar = &typeVarStr2
 		}
-		var expiry any = nil
+		var expiry *int64 = nil
 		// some swaps have deliveryTime meaning delisting time
 		if !swap {
 			var deliveryTime *string = this.OmitZero(this.SafeString(market, "deliveryTime"))
 			if deliveryTime != nil {
-				expiry = this.ParseToInt(deliveryTime)
+				expiryValue := this.ParseToInt(deliveryTime)
+				expiry = &expiryValue
 			}
 		}
 		var expiryDatetime *string = this.Iso8601(expiry)

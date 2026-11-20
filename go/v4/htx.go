@@ -2811,7 +2811,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var symbol string = *base + "/" + *quote
-		var expiry any = nil
+		var expiry *int64 = nil
 		if contract {
 			if inverse == true {
 				symbol += ":" + *base
@@ -2819,11 +2819,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 				symbol += ":" + *quote
 			}
 			if future {
-				if derefPtr := this.SafeInteger(market, "delivery_time"); derefPtr != nil {
-					expiry = *derefPtr
-				} else {
-					expiry = nil
-				}
+				expiry = this.SafeInteger(market, "delivery_time")
 				symbol += "-" + this.Yymmdd(expiry)
 			}
 		}
@@ -7828,9 +7824,9 @@ func (this *Htx) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, op
 	//     }
 	//
 	//
-	var result any = nil
+	var result []any = nil
 	if *this.SafeBool(market, "spot", false) {
-		result = this.SafeList(response, "data", []any{})
+		result = this.SafeListSlice(response, "data", []any{})
 	} else {
 		var data []any = SafeListTyped(response, "data")
 		if data != nil {

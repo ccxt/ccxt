@@ -5779,7 +5779,7 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(trade, "id", "trade_id")
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var msString *string = this.SafeString(trade, "create_time_ms")
 	if msString != nil {
 		msString = Precise.StringMul(msString, "1000")
@@ -5790,7 +5790,8 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 		msStringStr := msStringPart
 		msString = &msStringStr
-		timestamp = this.ParseToInt(msString)
+		timestampValue := this.ParseToInt(msString)
+		timestamp = &timestampValue
 	} else {
 		timestamp = this.SafeTimestamp2(trade, "time", "create_time")
 	}
@@ -7364,13 +7365,15 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 			amount = Precise.StringDiv(amount, averageString)
 		}
 	}
-	var timestamp any = nil
-	var lastTradeTimestamp any = nil
+	var timestamp *int64 = nil
+	var lastTradeTimestamp *int64 = nil
 	if timestampStr != nil {
-		timestamp = this.ParseToInt(timestampStr)
+		timestampValue := this.ParseToInt(timestampStr)
+		timestamp = &timestampValue
 	}
 	if lastTradeTimestampStr != nil {
-		lastTradeTimestamp = this.ParseToInt(lastTradeTimestampStr)
+		lastTradeTimestampValue := this.ParseToInt(lastTradeTimestampStr)
+		lastTradeTimestamp = &lastTradeTimestampValue
 	}
 	var initial map[string]any = SafeMapTyped(order, "initial")
 	var reduceOnlyInitial *bool = this.SafeBool(initial, "is_reduce_only")
@@ -10832,11 +10835,13 @@ func (this *Gate) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var typeVar *string = this.SafeString(item, "type")
 	var rawTimestamp *string = this.SafeString(item, "time")
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	if GetLength(rawTimestamp) > 10 {
-		timestamp = ParseInt(rawTimestamp)
+		timestampValue := ParseInt(rawTimestamp)
+		timestamp = &timestampValue
 	} else {
-		timestamp = ParseInt(rawTimestamp) * 1000
+		timestampValue2 := ParseInt(rawTimestamp) * 1000
+		timestamp = &timestampValue2
 	}
 	var balanceString *string = this.SafeString(item, "balance")
 	var changeString *string = this.SafeString(item, "change")

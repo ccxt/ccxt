@@ -1343,9 +1343,9 @@ func (this *Digifinex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	//     }
 	//
 	var timestamp *int64 = nil
-	var orderBook any = nil
+	var orderBook map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
-		orderBook = this.SafeDict(response, "data", map[string]any{})
+		orderBook = this.SafeDictMap(response, "data", map[string]any{})
 		timestamp = this.SafeInteger(orderBook, "timestamp")
 	} else {
 		orderBook = response
@@ -2163,12 +2163,12 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	//         }
 	//     }
 	//
-	var candles any = nil
+	var candles []any = nil
 	if *this.SafeBool(market, "swap", false) {
 		var data map[string]any = SafeMapTyped(response, "data")
-		candles = this.SafeList(data, "candles", []any{})
+		candles = this.SafeListSlice(data, "candles", []any{})
 	} else {
-		candles = this.SafeList(response, "data", []any{})
+		candles = this.SafeListSlice(response, "data", []any{})
 	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
@@ -3886,12 +3886,12 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	//         ]
 	//     }
 	//
-	var ledger any = nil
+	var ledger []any = nil
 	if !isMargin && (marketType != nil && *marketType == "swap") {
-		ledger = this.SafeList(response, "data", []any{})
+		ledger = this.SafeListSlice(response, "data", []any{})
 	} else {
 		var data map[string]any = SafeMapTyped(response, "data")
-		ledger = this.SafeList(data, "finance", []any{})
+		ledger = this.SafeListSlice(data, "finance", []any{})
 	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(ledger, currency, since, limit))}

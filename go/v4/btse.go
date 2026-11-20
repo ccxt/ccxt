@@ -850,17 +850,13 @@ func (this *Btse) ParseMarket(market any) map[string]any {
 	var amountPrecision *string = this.SafeString(market, "minSizeIncrement")
 	var active *bool = this.SafeBool(market, "active")
 	var typeVar string = "spot"
-	var expiry any = nil
+	var expiry *int64 = nil
 	var contractSize *string = nil
 	if !isSpot {
 		symbol += ":" + *quote
 		contractSize = this.SafeString(market, "contractSize")
 		if isFuture {
-			if derefPtr := this.SafeInteger(market, "contractEndTime"); derefPtr != nil {
-				expiry = *derefPtr
-			} else {
-				expiry = nil
-			}
+			expiry = this.SafeInteger(market, "contractEndTime")
 			symbol += "-" + this.Yymmdd(expiry)
 			typeVar = "future"
 		} else {

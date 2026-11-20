@@ -353,7 +353,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")))
 	}
 
-	r1 := <-this.WatchMultipleWrapperAsync(true, channelName, callerMethodName, symbols, paramsChannel)
+	r1 := <-this.WatchMultipleWrapperAsync(true, *channelName, callerMethodName, symbols, paramsChannel)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1271,12 +1271,12 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	var messageHash string = "fundingRate:" + symbol
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Blofin) WatchMultipleWrapperAsync(isPublic bool, channelName any, callerMethodName any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Blofin) WatchMultipleWrapperAsync(isPublic bool, channelName string, callerMethodName any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMultipleWrapperBody(ch, isPublic, channelName, callerMethodName, optionalArgs...)
 	return ch
 }
-func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPublic bool, channelName any, callerMethodName any, optionalArgs ...any) any {
+func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPublic bool, channelName string, callerMethodName any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// underlier method for all watch-multiple symbols
@@ -1300,7 +1300,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 		return nil
 	}()
 	// if ccxt.OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
-	var isOHLCV bool = (ccxt.IsEqual(channelName, "candle"))
+	var isOHLCV bool = (channelName == "candle")
 	var symbolsRaw any = func() any {
 		if isOHLCV {
 			return this.GetListFromObjectValues(symbolsArray, 0)

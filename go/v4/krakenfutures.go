@@ -556,7 +556,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var index bool = (strings.Index(*marketType, " index") >= 0)
 		var linear any = nil
 		var inverse any = nil
-		var expiry any = nil
+		var expiry *int64 = nil
 		if !index {
 			linear = (strings.Index(*marketType, "_vanilla") >= 0)
 			inverse = !(linear == true)
@@ -566,11 +566,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			} else {
 				typeVar = "future"
 			}
-			if derefPtr := this.Parse8601(settleTime); derefPtr != nil {
-				expiry = *derefPtr
-			} else {
-				expiry = nil
-			}
+			expiry = this.Parse8601(settleTime)
 		} else {
 			typeVar = "index"
 		}

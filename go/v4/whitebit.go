@@ -1693,7 +1693,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 			continue
 		}
 		// Find corresponding fee data for this currency
-		var feeData any = nil
+		var feeData map[string]any = nil
 		var feeKeys []string = nil
 		if feesData != nil {
 			feeKeys = make([]string, 0, len(feesData))

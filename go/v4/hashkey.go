@@ -1222,8 +1222,8 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 	var amountPrecisionString *string = this.SafeString(amountFilter, "stepSize")
 	var amountMinLimitString *string = this.SafeString(amountFilter, "minQty")
 	var amountMaxLimitString *string = this.SafeString(amountFilter, "maxQty")
-	var minLeverage any = nil
-	var maxLeverage any = nil
+	var minLeverage *int64 = nil
+	var maxLeverage *int64 = nil
 	if isSwap {
 		amountPrecisionString = Precise.StringDiv(amountPrecisionString, contractSizeString)
 		amountMinLimitString = Precise.StringDiv(amountMinLimitString, contractSizeString)
@@ -1246,8 +1246,10 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 				minInitialMargin = maxInitialMargin
 				maxInitialMargin = initialMarginsSwapped
 			}
-			minLeverage = this.ParseToInt(Precise.StringDiv("1", maxInitialMargin))
-			maxLeverage = this.ParseToInt(Precise.StringDiv("1", minInitialMargin))
+			minLeverageValue := this.ParseToInt(Precise.StringDiv("1", maxInitialMargin))
+			minLeverage = &minLeverageValue
+			maxLeverageValue := this.ParseToInt(Precise.StringDiv("1", minInitialMargin))
+			maxLeverage = &maxLeverageValue
 		}
 	}
 	var tradingFees map[string]any = SafeMapTyped(this.Fees, "trading")

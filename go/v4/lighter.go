@@ -2391,7 +2391,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	var now int64 = this.Milliseconds()
-	var startTs any = nil
+	var startTs *int64 = nil
 	var endTs any = nil
 	if since != nil {
 		startTs = since
@@ -2411,10 +2411,12 @@ func (this *Lighter) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		var span int64 = timeframeMs * *count
 		if until != nil {
 			endTs = until
-			startTs = *until - span
+			startTsValue := *until - span
+			startTs = &startTsValue
 		} else {
 			endTs = now
-			startTs = now - span
+			startTsValue2 := now - span
+			startTs = &startTsValue2
 		}
 	}
 	var request map[string]any = map[string]any{

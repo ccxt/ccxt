@@ -126,12 +126,12 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) string {
 	}
 	return url + "/private" + sandboxSuffix
 }
-func (this *Okx) SubscribeMultipleAsync(access string, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Okx) SubscribeMultipleAsync(access string, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeMultipleBody(ch, access, channel, optionalArgs...)
 	return ch
 }
-func (this *Okx) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], access string, channel any, optionalArgs ...any) any {
+func (this *Okx) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], access string, channel string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -169,7 +169,7 @@ func (this *Okx) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], access str
 		if symbolsNormalized == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribeMultiple() symbols is required"))
 		}
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, "::"), symbolsNormalized[i]))
+		messageHashes = append(messageHashes, channel+"::"+symbolsNormalized[i])
 	}
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -745,7 +745,7 @@ func (this *Okx) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTickers", "channel", "tickers")
 
-	r1 := <-this.SubscribeMultipleAsync("public", channel, symbolsNormalized, paramsChannel)
+	r1 := <-this.SubscribeMultipleAsync("public", *channel, symbolsNormalized, paramsChannel)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -834,7 +834,7 @@ func (this *Okx) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchMarkPrices", "channel", "mark-price")
 
-	r1 := <-this.SubscribeMultipleAsync("public", channel, symbolsNormalized, paramsChannel)
+	r1 := <-this.SubscribeMultipleAsync("public", *channel, symbolsNormalized, paramsChannel)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

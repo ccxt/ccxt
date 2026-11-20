@@ -4955,7 +4955,7 @@ func (this *Paradex) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 		"shortLeverage": this.SafeInteger(leverage, "leverage"),
 	})
 }
-func (this *Paradex) EncodeMarginMode(mode any) *string {
+func (this *Paradex) EncodeMarginMode(mode string) *string {
 	var modes map[string]any = map[string]any{
 		"cross":    "CROSS",
 		"isolated": "ISOLATED",
@@ -5004,7 +5004,7 @@ func (this *Paradex) setLeverageBody(ch chan AsyncResult[map[string]any], levera
 	var request map[string]any = map[string]any{
 		"market":      market["id"],
 		"leverage":    leverage,
-		"margin_type": this.EncodeMarginMode(marginMode),
+		"margin_type": this.EncodeMarginMode(*marginMode),
 	}
 
 	r2 := <-this.PrivatePostAccountMarginMarket(this.Extend(request, paramsMarginMode))

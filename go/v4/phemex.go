@@ -4457,11 +4457,11 @@ func (this *Phemex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//     }
 	// }
 	//
-	var data any = nil
+	var data []any = nil
 	if isUSDTSettled {
-		data = this.SafeList(response, "data", []any{})
+		data = this.SafeListSlice(response, "data", []any{})
 	} else {
-		data = this.SafeList(this.SafeDict(response, "data", map[string]any{}), "rows", []any{})
+		data = this.SafeListSlice(this.SafeDict(response, "data", map[string]any{}), "rows", []any{})
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limitResolved))}
@@ -6673,9 +6673,10 @@ func (this *Phemex) ParseOpenInterest(interest any, optionalArgs ...any) OpenInt
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestampNs *int64 = this.SafeInteger(interest, "timestamp")
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	if timestampNs != nil {
-		timestamp = this.ParseToInt(float64(*timestampNs) / 1000000)
+		timestampValue := this.ParseToInt(float64(*timestampNs) / 1000000)
+		timestamp = &timestampValue
 	}
 	var id *string = this.SafeString(interest, "symbol")
 	return this.SafeOpenInterest(map[string]any{

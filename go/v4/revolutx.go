@@ -1216,7 +1216,7 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	} else if orderType != nil && *orderType == "tpsl" {
 		// a single leg tells us the order type and limit price, with both legs they can differ
-		var leg any = nil
+		var leg map[string]any = nil
 		if (takeProfit != nil) && (stopLoss == nil) {
 			leg = takeProfit
 		} else if (stopLoss != nil) && (takeProfit == nil) {

@@ -4542,9 +4542,9 @@ func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[Order], id string, o
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var userAddress *string = nil
-	var params2 any = nil
+	var params2 map[string]any = nil
 	userAddress = this.SafeString(this.HandlePublicAddress("fetchOrder", params), 0)
-	params2 = this.SafeDict(this.HandlePublicAddress("fetchOrder", params), 1, map[string]any{})
+	params2 = this.SafeDictMap(this.HandlePublicAddress("fetchOrder", params), 1, map[string]any{})
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -4562,7 +4562,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[Order], id string, o
 		"user": userAddress,
 	}
 	if clientOrderId != nil {
-		params2 = this.Omit(params2, "clientOrderId")
+		params2 = this.OmitDict(params2, "clientOrderId")
 		request["oid"] = clientOrderId
 	} else {
 		var isClientOrderId bool = (len(id) >= 34)
@@ -6298,9 +6298,9 @@ func (this *Hyperliquid) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], opt
 		}
 	}
 	var userAddress *string = nil
-	var params2 any = nil
+	var params2 map[string]any = nil
 	userAddress = this.SafeString(this.HandlePublicAddress("fetchLedger", params), 0)
-	params2 = this.SafeDict(this.HandlePublicAddress("fetchLedger", params), 1, map[string]any{})
+	params2 = this.SafeDictMap(this.HandlePublicAddress("fetchLedger", params), 1, map[string]any{})
 	var request map[string]any = map[string]any{
 		"type": "userNonFundingLedgerUpdates",
 		"user": userAddress,
@@ -6311,7 +6311,7 @@ func (this *Hyperliquid) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], opt
 	var until *int64 = this.SafeInteger(params2, "until")
 	if until != nil {
 		request["endTime"] = until
-		params2 = this.Omit(params2, []any{"until"})
+		params2 = this.OmitDict(params2, []any{"until"})
 	}
 
 	r1 := <-this.PublicPostInfo(this.Extend(request, params2))

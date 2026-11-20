@@ -4522,7 +4522,11 @@ func (this *Grvt) HandleErrors(code int64, reason string, url string, method str
 		}
 		var cookie *string = this.SafeString2(headers, "Set-Cookie", "set-cookie")
 		if cookie != nil {
-			this.Options["AuthCookieValue"] = DerefScalar(this.SafeString(strings.Split(*cookie, ";"), 0, ""))
+			if accessed := this.SafeString(strings.Split(*cookie, ";"), 0, ""); accessed != nil {
+				this.Options["AuthCookieValue"] = *accessed
+			} else {
+				this.Options["AuthCookieValue"] = nil
+			}
 		}
 		if (this.SafeString(this.Options, "AuthCookieValue") == nil) || (this.SafeString(this.Options, "AuthAccountId") == nil) {
 			panic(AuthenticationError(this.Id + " signIn() failed to receive auth-cookie or account-id"))

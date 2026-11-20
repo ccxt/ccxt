@@ -2846,7 +2846,11 @@ func (this *Kucoin) loadMigrationStatusBody(ch chan AsyncResult[bool], optionalA
 			panic(r.Err)
 		}
 		var result map[string]any = r.Value
-		this.Options["hf"] = DerefScalar(this.SafeBool(result, "data"))
+		if accessed := this.SafeBool(result, "data"); accessed != nil {
+			this.Options["hf"] = *accessed
+		} else {
+			this.Options["hf"] = nil
+		}
 	}
 
 	ch <- AsyncResult[bool]{Value: true}

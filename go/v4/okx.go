@@ -8382,30 +8382,47 @@ func (this *Okx) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string,
 	//     }
 	//
 	var data []any = this.SafeListSlice(response, "data", []any{})
+	var marketId *string = nil
+	var rowMarginMode *string = nil
+	var longLeverage *int64 = nil
+	var shortLeverage *int64 = nil
+	for i := 0; i < len(data); i++ {
+		var entry map[string]any = SafeMapTyped(data, i)
+		rowMarginMode = this.SafeStringLower(entry, "mgnMode")
+		marketId = this.SafeString(entry, "instId")
+		var positionSide *string = this.SafeStringLower(entry, "posSide")
+		var lever *int64 = this.SafeInteger(entry, "lever")
+		if positionSide == nil || *positionSide != "short" {
+			longLeverage = lever
+		}
+		if positionSide == nil || *positionSide != "long" {
+			shortLeverage = lever
+		}
+	}
 
-	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
+	ch <- AsyncResult[Leverage]{Value: LeverageFromMap(map[string]any{
+		"info":          data,
+		"symbol":        this.SafeSymbol(marketId, market),
+		"marginMode":    rowMarginMode,
+		"longLeverage":  longLeverage,
+		"shortLeverage": shortLeverage,
+	})}
 	return nil
 }
 func (this *Okx) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketId *string = nil
-	var marginMode *string = nil
+	var marketId *string = this.SafeString(leverage, "instId")
+	var positionSide *string = this.SafeStringLower(leverage, "posSide")
+	var lever *int64 = this.SafeInteger(leverage, "lever")
+	var marginMode *string = this.SafeStringLower(leverage, "mgnMode")
 	var longLeverage *int64 = nil
 	var shortLeverage *int64 = nil
-	for i := 0; i < GetArrayLength(leverage); i++ {
-		var entry map[string]any = SafeMapTyped(leverage, i)
-		marginMode = this.SafeStringLower(entry, "mgnMode")
-		marketId = this.SafeString(entry, "instId")
-		var positionSide *string = this.SafeStringLower(entry, "posSide")
-		if positionSide != nil && *positionSide == "long" {
-			longLeverage = this.SafeInteger(entry, "lever")
-		} else if positionSide != nil && *positionSide == "short" {
-			shortLeverage = this.SafeInteger(entry, "lever")
-		} else {
-			longLeverage = this.SafeInteger(entry, "lever")
-			shortLeverage = this.SafeInteger(entry, "lever")
-		}
+	if positionSide == nil || *positionSide != "short" {
+		longLeverage = lever
+	}
+	if positionSide == nil || *positionSide != "long" {
+		shortLeverage = lever
 	}
 	return LeverageFromMap(map[string]any{
 		"info":          leverage,
@@ -8655,11 +8672,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes642515 []any = PositionsToList(r.Value)
-	if retRes642515 == nil {
+	var retRes644215 []any = PositionsToList(r.Value)
+	if retRes644215 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes642515)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes644215)}
 	}
 	return nil
 }

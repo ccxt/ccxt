@@ -1982,13 +1982,29 @@ func (this *Predictfun) SetSandboxMode(enable bool) {
 		// on the way in and taken back on the way out - a round trip through the sandbox then
 		// costs no re-authentication. the sandbox token is not kept: it dies with the switch
 		if enable {
-			this.Options["backupJwtToken"] = ccxt.DerefScalar(this.SafeString(this.Options, "jwtToken"))
-			this.Options["backupJwtTokenExpiresAt"] = ccxt.DerefScalar(this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0))
+			if accessed := this.SafeString(this.Options, "jwtToken"); accessed != nil {
+				this.Options["backupJwtToken"] = *accessed
+			} else {
+				this.Options["backupJwtToken"] = nil
+			}
+			if accessed := this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0); accessed != nil {
+				this.Options["backupJwtTokenExpiresAt"] = *accessed
+			} else {
+				this.Options["backupJwtTokenExpiresAt"] = nil
+			}
 			this.Options["jwtToken"] = nil
 			this.Options["jwtTokenExpiresAt"] = 0
 		} else {
-			this.Options["jwtToken"] = ccxt.DerefScalar(this.SafeString(this.Options, "backupJwtToken"))
-			this.Options["jwtTokenExpiresAt"] = ccxt.DerefScalar(this.SafeInteger(this.Options, "backupJwtTokenExpiresAt", 0))
+			if accessed := this.SafeString(this.Options, "backupJwtToken"); accessed != nil {
+				this.Options["jwtToken"] = *accessed
+			} else {
+				this.Options["jwtToken"] = nil
+			}
+			if accessed := this.SafeInteger(this.Options, "backupJwtTokenExpiresAt", 0); accessed != nil {
+				this.Options["jwtTokenExpiresAt"] = *accessed
+			} else {
+				this.Options["jwtTokenExpiresAt"] = nil
+			}
 			this.Options["backupJwtToken"] = nil
 			this.Options["backupJwtTokenExpiresAt"] = 0
 		}

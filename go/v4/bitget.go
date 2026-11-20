@@ -7586,7 +7586,7 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	marketType, paramsUTA = this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUTA)
 	marginMode, paramsUTA = this.HandleMarginModeAndParams("fetchBalance", paramsUTA)
 	if isStockOrUta {
-		var assets any = nil
+		var assets []any = nil
 		if marketType != nil && *marketType == "funding" {
 
 			r2 := <-this.PrivateUtaGetV3AccountFundingAssets(this.Extend(request, paramsUTA))
@@ -7594,7 +7594,7 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 				panic(r2.Err)
 			}
 			response = r2.Value
-			assets = this.SafeList(response, "data", []any{})
+			assets = this.SafeListSlice(response, "data", []any{})
 		} else {
 
 			r3 := <-this.PrivateUtaGetV3AccountAssets(this.Extend(request, paramsUTA))
@@ -7603,7 +7603,7 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 			}
 			response = r3.Value
 			var results map[string]any = SafeMapTyped(response, "data")
-			assets = this.SafeList(results, "assets", []any{})
+			assets = this.SafeListSlice(results, "assets", []any{})
 		}
 
 		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseUtaBalance(assets, response))}

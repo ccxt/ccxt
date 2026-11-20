@@ -1691,7 +1691,11 @@ func (this *Apex) getAccountIdBody(ch chan AsyncResult[*string]) any {
 			panic(r.Err)
 		}
 		var accountData map[string]any = StructResultMap(r.Value, AccountToMap)
-		this.Options["accountId"] = DerefScalar(this.SafeString(accountData, "id", "0"))
+		if accessed := this.SafeString(accountData, "id", "0"); accessed != nil {
+			this.Options["accountId"] = *accessed
+		} else {
+			this.Options["accountId"] = nil
+		}
 	}
 
 	ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "accountId")}

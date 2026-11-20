@@ -1080,7 +1080,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"loc":     loc,
 	}
 	query = this.Omit(query, []any{"loc", "method"})
-	var ohlcvs any = nil
+	var ohlcvs []any = nil
 	if method == "marketPublicGetV1beta3CryptoLocBars" {
 		if limit != nil {
 			request["limit"] = *limit
@@ -1130,12 +1130,12 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		//     }
 		//
 		var bars map[string]any = this.SafeDictMap(response, "bars", map[string]any{})
-		ohlcvs = this.SafeList(bars, marketId, []any{})
+		ohlcvs = this.SafeListSlice(bars, marketId, []any{})
 		if paginate {
 			// the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
 			var pageToken *string = this.SafeString(response, "next_page_token")
 			for i := 1; int64(i) < paginationCalls; i++ {
-				var ohlcvsLength int = GetArrayLength(ohlcvs)
+				var ohlcvsLength int = len(ohlcvs)
 				if (pageToken == nil) || ((limit != nil) && (int64(ohlcvsLength) >= *limit)) {
 					break
 				}

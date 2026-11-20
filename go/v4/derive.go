@@ -1210,7 +1210,7 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 	var symbol any = *base + "/" + *quote
 	var settleId any = nil
 	var settle *string = nil
-	var expiry any = nil
+	var expiry *int64 = nil
 	var strike *float64 = nil
 	var optionType *string = nil
 	var optionLetter *string = nil

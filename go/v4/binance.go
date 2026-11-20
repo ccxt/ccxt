@@ -4770,7 +4770,7 @@ func (this *Binance) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	var results []any = r.Value
-	var responseCurrencies any = this.SafeValue(results, 0)
+	var responseCurrencies []any = this.SafeListSlice(results, 0, []any{})
 	var marginablesById any = nil
 	if fetchMargins != nil && *fetchMargins {
 		var responseMarginables []any = SafeListTyped(results, 1)
@@ -4780,10 +4780,10 @@ func (this *Binance) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrenciesCustom(responseCurrencies, marginablesById)}
 	return nil
 }
-func (this *Binance) ParseCurrenciesCustom(responseCurrencies any, marginablesById any) map[string]any {
+func (this *Binance) ParseCurrenciesCustom(responseCurrencies []any, marginablesById any) map[string]any {
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(responseCurrencies); i++ {
-		var parsed map[string]any = this.ParseCurrency(GetValue(responseCurrencies, i))
+	for i := 0; i < len(responseCurrencies); i++ {
+		var parsed map[string]any = this.ParseCurrency(responseCurrencies[i])
 		if parsed == nil {
 			panic(ExchangeError(this.Id + " parseCurrenciesCustom() could not resolve parsed"))
 		}
@@ -10586,115 +10586,115 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 			request["startTime"] = untilResolved - int64(oneWeek)
 		}
 	}
-	var response any = nil
+	var response []any = nil
 	if isOptionType {
 
-		r2 := <-this.EapiPrivateGetHistoryOrders(this.Extend(request, paramsPaginate))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.EapiPrivateGetHistoryOrders(this.Extend(request, paramsPaginate))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else if isLinearType {
 		if isPortfolioMargin {
 			if isConditional != nil && *isConditional == true {
 
-				r3 := <-this.PapiGetUmAlgoAllAlgoOrders(this.Extend(request, paramsPaginate))
-				if r3.Err != nil {
-					panic(r3.Err)
+				responseRecv := <-this.PapiGetUmAlgoAllAlgoOrders(this.Extend(request, paramsPaginate))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response = r3.Raw
+				response = responseRecv.Value
 			} else {
 
-				r4 := <-this.PapiGetUmAllOrders(this.Extend(request, paramsPaginate))
-				if r4.Err != nil {
-					panic(r4.Err)
+				responseRecv := <-this.PapiGetUmAllOrders(this.Extend(request, paramsPaginate))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response = r4.Raw
+				response = responseRecv.Value
 			}
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				r5 := <-this.FapiPrivateGetAllAlgoOrders(this.Extend(request, paramsPaginate))
-				if r5.Err != nil {
-					panic(r5.Err)
+				responseRecv := <-this.FapiPrivateGetAllAlgoOrders(this.Extend(request, paramsPaginate))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response = r5.Raw
+				response = responseRecv.Value
 			} else {
 
-				r6 := <-this.FapiPrivateGetAllOrders(this.Extend(request, paramsPaginate))
-				if r6.Err != nil {
-					panic(r6.Err)
+				responseRecv := <-this.FapiPrivateGetAllOrders(this.Extend(request, paramsPaginate))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response = r6.Raw
+				response = responseRecv.Value
 			}
 		}
 	} else if isInverseType {
 		if isPortfolioMargin {
 			if isConditional != nil && *isConditional == true {
 
-				r7 := <-this.PapiGetCmConditionalAllOrders(this.Extend(request, paramsPaginate))
-				if r7.Err != nil {
-					panic(r7.Err)
+				responseRecv := <-this.PapiGetCmConditionalAllOrders(this.Extend(request, paramsPaginate))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response = r7.Raw
+				response = responseRecv.Value
 			} else {
 
-				r8 := <-this.PapiGetCmAllOrders(this.Extend(request, paramsPaginate))
-				if r8.Err != nil {
-					panic(r8.Err)
+				responseRecv := <-this.PapiGetCmAllOrders(this.Extend(request, paramsPaginate))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response = r8.Raw
+				response = responseRecv.Value
 			}
 		} else {
 			if isConditional != nil && *isConditional == true {
 
-				r9 := <-this.DapiPrivateGetAllAlgoOrders(this.Extend(request, paramsPaginate))
-				if r9.Err != nil {
-					panic(r9.Err)
+				responseRecv := <-this.DapiPrivateGetAllAlgoOrders(this.Extend(request, paramsPaginate))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response = r9.Raw
+				response = responseRecv.Value
 			} else {
 
-				r10 := <-this.DapiPrivateGetAllOrders(this.Extend(request, paramsPaginate))
-				if r10.Err != nil {
-					panic(r10.Err)
+				responseRecv := <-this.DapiPrivateGetAllOrders(this.Extend(request, paramsPaginate))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response = r10.Raw
+				response = responseRecv.Value
 			}
 		}
 	} else {
 		if isPortfolioMargin {
 
-			r11 := <-this.PapiGetMarginAllOrders(this.Extend(request, paramsPaginate))
-			if r11.Err != nil {
-				panic(r11.Err)
+			responseRecv := <-this.PapiGetMarginAllOrders(this.Extend(request, paramsPaginate))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r11.Raw
+			response = responseRecv.Value
 		} else if (typeVar != nil && *typeVar == "margin") || (marginMode != nil) {
 			if marginMode != nil && *marginMode == "isolated" {
 				request["isIsolated"] = true
 			}
 
-			r12 := <-this.SapiGetMarginAllOrders(this.Extend(request, paramsPaginate))
-			if r12.Err != nil {
-				panic(r12.Err)
+			responseRecv := <-this.SapiGetMarginAllOrders(this.Extend(request, paramsPaginate))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r12.Raw
+			response = responseRecv.Value
 		} else if stock {
 
-			r13 := <-this.SapiGetEquityOrderHistory(this.Extend(request, paramsPaginate))
-			if r13.Err != nil {
-				panic(r13.Err)
+			r2 := <-this.SapiGetEquityOrderHistory(this.Extend(request, paramsPaginate))
+			if r2.Err != nil {
+				panic(r2.Err)
 			}
-			var equityResponse map[string]any = r13.Value
-			response = this.SafeList(equityResponse, "rows", []any{})
+			var equityResponse map[string]any = r2.Value
+			response = this.SafeListSlice(equityResponse, "rows", []any{})
 		} else {
 
-			r14 := <-this.PrivateGetAllOrders(this.Extend(request, paramsPaginate))
-			if r14.Err != nil {
-				panic(r14.Err)
+			responseRecv := <-this.PrivateGetAllOrders(this.Extend(request, paramsPaginate))
+			if responseRecv.Err != nil {
+				panic(responseRecv.Err)
 			}
-			response = r14.Raw
+			response = responseRecv.Value
 		}
 	}
 

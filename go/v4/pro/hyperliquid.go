@@ -816,7 +816,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("watchMyTrades", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("watchMyTrades", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("watchMyTrades", params), 1, params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -931,7 +931,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("watchMyLiquidationsForSymbols", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("watchMyLiquidationsForSymbols", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("watchMyLiquidationsForSymbols", params), 1, params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1026,7 +1026,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], opt
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only"))
 	}
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("unWatchMyTrades", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("unWatchMyTrades", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("unWatchMyTrades", params), 1, params)
 	var messageHash string = "unsubscribe:myTrades"
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
@@ -1746,7 +1746,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 		}
 	}
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("watchBalance", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("watchBalance", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("watchBalance", params), 1, params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsValue)
 
 	r1 := <-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, paramsMarketType)
@@ -1826,7 +1826,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], opti
 	}
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("unWatchBalance", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("unWatchBalance", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("unWatchBalance", params), 1, params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
 
 	r1 := <-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, paramsMarketType)
@@ -2074,7 +2074,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 		}
 	}
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("watchPositions", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("watchPositions", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("watchPositions", params), 1, params)
 	var topic string = "clearinghouseState"
 	var messageHash string = topic + "::positions"
 	var hasSymbols bool = (symbols != nil) && !this.IsEmpty(symbols)
@@ -2210,7 +2210,7 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], op
 	var messageHash string = "unsubscribe:clearinghouseState"
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("unWatchPositions", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("unWatchPositions", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("unWatchPositions", params), 1, params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -2276,7 +2276,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 		}
 	}
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("watchOrders", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("watchOrders", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("watchOrders", params), 1, params)
 	var market map[string]any = nil
 	var messageHash string = "order"
 	if symbol != nil {
@@ -2364,7 +2364,7 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optio
 	var messageHash string = "unsubscribe:order"
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("unWatchOrders", params), 0)
-	var paramsValue any = this.SafeDict(this.HandlePublicAddress("unWatchOrders", params), 1, params)
+	var paramsValue map[string]any = this.SafeDictMap(this.HandlePublicAddress("unWatchOrders", params), 1, params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{

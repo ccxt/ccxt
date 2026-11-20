@@ -4184,11 +4184,11 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var isStopLoss bool = (stopLossPrice != nil)
 	var isTakeProfit bool = (takeProfitPrice != nil)
 	var timeInForce *string = this.SafeString(params, "timeInForce")
-	var postOnly any = false
+	var postOnly bool = false
 	if timeInForce != nil && *timeInForce == "PO" {
 		postOnly = true
 	} else {
-		postOnly = (*this.SafeBool2(params, "postOnly", "post_only", false))
+		postOnly = *this.SafeBool2(params, "postOnly", "post_only", false)
 	}
 	var endTime *string = this.SafeString(params, "end_time")
 	var stopDirection *string = this.SafeString(params, "stop_direction")

@@ -463,10 +463,11 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) map[string]a
 	}
 	var kstDatetime string = datePart + "-" + datePart2 + "-" + datePart3 + "T" + timePart + ":" + timePart2 + ":" + timePart3
 	// date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var kstTimestamp *int64 = this.Parse8601(kstDatetime)
 	if kstTimestamp != nil {
-		timestamp = *kstTimestamp - 32400000
+		timestampValue := *kstTimestamp - 32400000
+		timestamp = &timestampValue
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
@@ -897,10 +898,11 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	var marketId *string = this.SafeString(trade, "symbol")
 	var datetime *string = this.SafeString(trade, "contDtm")
 	// that date is not UTC iso8601, but exchange's local time, -9hr difference
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var kstTimestamp *int64 = this.Parse8601(datetime)
 	if kstTimestamp != nil {
-		timestamp = *kstTimestamp - 32400000
+		timestampValue := *kstTimestamp - 32400000
+		timestamp = &timestampValue
 	}
 	var sideId *string = this.SafeString(trade, "buySellGb")
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{

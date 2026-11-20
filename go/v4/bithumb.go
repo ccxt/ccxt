@@ -2406,7 +2406,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "twap")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	var data any = nil
+	var data map[string]any = nil
 	if generation == 2 {
 		if twap != nil && *twap {
 			if market != nil {
@@ -2444,7 +2444,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 			//     }
 			//
 			var orders []any = SafeListTyped(response, "orders")
-			data = this.SafeDict(orders, 0, map[string]any{})
+			data = this.SafeDictMap(orders, 0, map[string]any{})
 		} else {
 			var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "client_order_id")
 			var paramsClientOrderId map[string]any
@@ -2533,7 +2533,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		//         }
 		//     }
 		//
-		data = this.SafeDict(response, "data")
+		data = this.SafeDictMap(response, "data")
 	}
 	var orderData map[string]any = map[string]any{
 		"order_id": id,

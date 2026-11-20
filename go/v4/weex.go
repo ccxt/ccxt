@@ -1257,7 +1257,7 @@ func (this *Weex) ParseMarket(market any) map[string]any {
 		return nil
 	}
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var active any = true
+	var active bool = true
 	var symbol string = *base + "/" + *quote
 	var isSpot bool = true
 	var isLinear any = nil
@@ -1273,7 +1273,7 @@ func (this *Weex) ParseMarket(market any) map[string]any {
 			isInverse = true
 		}
 	} else {
-		active = (*this.SafeBool(market, "enableTrade", false))
+		active = *this.SafeBool(market, "enableTrade", false)
 	}
 	var amountPrecision *float64 = this.SafeNumber(market, "stepSize")
 	var pricePrecision *float64 = this.SafeNumber(market, "tickSize")
@@ -4651,7 +4651,7 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var accountType *string = this.SafeString(accountsByType, marketType, marketType)
 	var request map[string]any = map[string]any{}
-	var items any = nil
+	var items []any = nil
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4673,7 +4673,7 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 			panic(r2.Err)
 		}
 		var contractResponse map[string]any = r2.Value
-		items = this.SafeList(contractResponse, "items", []any{})
+		items = this.SafeListSlice(contractResponse, "items", []any{})
 	} else if accountType != nil && *accountType == "funding" {
 		if since != nil {
 			request["startTime"] = *since
@@ -4688,7 +4688,7 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 			panic(r3.Err)
 		}
 		var fundingResponse map[string]any = r3.Value
-		items = this.SafeList(fundingResponse, "items", []any{})
+		items = this.SafeListSlice(fundingResponse, "items", []any{})
 	} else {
 		if since != nil {
 			request["after"] = *since

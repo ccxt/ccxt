@@ -343,11 +343,11 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan ccxt.AsyncResult[[]map[strin
  * @param {string} sportXeventId the fixture id to keep
  * @returns {object[]} the raw markets of that fixture only
  */
-func (this *Sxbet) FilterRawMarketsByFixture(rawMarkets any, sportXeventId any) []any {
+func (this *Sxbet) FilterRawMarketsByFixture(rawMarkets []any, sportXeventId any) []any {
 	var result []any = []any{}
-	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var raw any = ccxt.GetValue(rawMarkets, i)
+		var raw any = rawMarkets[i]
 		if ccxt.IsEqual(this.SafeString(raw, "sportXeventId"), sportXeventId) {
 			result = append(result, raw)
 		}
@@ -673,6 +673,7 @@ func (this *Sxbet) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent]
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var rawMarkets []any = []any{}
 
 	r := <-this.FetchRawMarketsPagedAsync(this.Extend(map[string]any{
 		"sportXeventId": id,
@@ -680,13 +681,14 @@ func (this *Sxbet) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rawMarkets any = nil
-	if r.Value != nil {
+	if r.Value == nil {
+		rawMarkets = nil
+	} else {
 		rawMarkets = ccxt.MapSliceToList(r.Value)
 	}
 	// enforce the fixture scope client-side — see filterRawMarketsByFixture
 	rawMarkets = this.FilterRawMarketsByFixture(rawMarkets, id)
-	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+	var rawMarketsLength int = len(rawMarkets)
 	if rawMarketsLength == 0 {
 		panic(ccxt.BadSymbol(ccxt.Add(this.Id+" fetchEvent() could not find an active fixture ", id)))
 	}
@@ -1846,11 +1848,11 @@ func (this *Sxbet) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrd
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes136215 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes136215 == nil {
+	var retRes136315 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes136315 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes136215)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes136315)}
 	}
 	return nil
 }

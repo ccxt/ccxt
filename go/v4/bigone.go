@@ -1076,7 +1076,7 @@ func (this *Bigone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var data any = nil
+	var data []any = nil
 	if isSpot {
 		if symbolsNormalized != nil {
 			var ids []string = this.MarketIdsStrings(symbolsNormalized)
@@ -1115,7 +1115,7 @@ func (this *Bigone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		//        ]
 		//    }
 		//
-		data = this.SafeList(response, "data", []any{})
+		data = this.SafeListSlice(response, "data", []any{})
 	} else {
 
 		instrumentsRecv := <-this.ContractPublicGetInstruments(paramsMarketType)

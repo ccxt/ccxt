@@ -1243,10 +1243,8 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	_ = market
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var messageHash any = nil
-	var channel any = nil
-	var orderType *string = this.SafeString(this.Options, "orderType", "orders") // orders or matchOrders
-	orderType = this.SafeString(params, "orderType", orderType)
+	var defaultOrderType string = *this.SafeString(this.Options, "orderType", "orders") // orders or matchOrders
+	var orderType string = *this.SafeString(params, "orderType", defaultOrderType)
 	var paramsOmitted map[string]any = this.OmitDict(params, "orderType")
 	var marketCode *string = nil
 	if market != nil {
@@ -1256,38 +1254,42 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	if market != nil {
 		baseId = market["baseId"]
 	}
-	var prefix *string = orderType
-	messageHash = prefix
+	var prefix string = orderType
+	var messageHash string = prefix
+	var channel string = prefix + "." + "*"
 	if ccxt.IsEqual(subType, "linear") {
 		// USDT Margined Contracts Example: LTC/USDT:USDT
 		var marginMode string = *this.SafeString(paramsOmitted, "margin", "cross")
-		var marginPrefix *string = prefix
+		var marginPrefix string = prefix
 		if marginMode == "cross" {
-			marginPrefixStr := *prefix + "_cross"
-			marginPrefix = &marginPrefixStr
+			marginPrefix = prefix + "_cross"
 		}
 		messageHash = marginPrefix
 		if marketCode != nil {
-			messageHash = *marginPrefix + "." + *marketCode
-			channel = messageHash
+			var marketTopic string = marginPrefix + "." + *marketCode
+			messageHash = marketTopic
+			channel = marketTopic
 		} else {
-			channel = *marginPrefix + "." + "*"
+			channel = marginPrefix + "." + "*"
 		}
 	} else if ccxt.IsEqual(typeVar, "future") {
 		// inverse futures Example: BCH/USD:BCH-220408
 		if baseId != nil {
-			channel = *prefix + "." + ccxt.ToLower(baseId)
-			messageHash = channel
+			var lowerBaseId string = ccxt.ToLower(baseId)
+			var baseTopic string = prefix + "." + lowerBaseId
+			channel = baseTopic
+			messageHash = baseTopic
 		} else {
-			channel = *prefix + "." + "*"
+			channel = prefix + "." + "*"
 		}
 	} else {
 		// inverse swaps: Example: BTC/USD:BTC
 		if marketCode != nil {
-			channel = *prefix + "." + *marketCode
-			messageHash = channel
+			var swapTopic string = prefix + "." + *marketCode
+			channel = swapTopic
+			messageHash = swapTopic
 		} else {
-			channel = *prefix + "." + "*"
+			channel = prefix + "." + "*"
 		}
 	}
 	return []any{channel, messageHash}
@@ -2248,13 +2250,13 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes180412 := func() any {
+		retRes180712 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes180412, position)
+		ccxt.AppendToArray(&retRes180712, position)
 		cache.Append(position)
 	}
 	var marginModes []string = nil

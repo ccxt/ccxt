@@ -1874,19 +1874,16 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	symbol = this.SafeString(marketResolved, "symbol")
 	var datetimeString *string = this.SafeString2(trade, "date", "datetime")
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	if datetimeString != nil {
 		if strings.Index(*datetimeString, " ") >= 0 {
 			// iso8601
-			if derefPtr := this.Parse8601(datetimeString); derefPtr != nil {
-				timestamp = *derefPtr
-			} else {
-				timestamp = nil
-			}
+			timestamp = this.Parse8601(datetimeString)
 		} else {
 			// string unix epoch in seconds
 			var seconds int64 = this.ParseToInt(datetimeString)
-			timestamp = seconds * 1000
+			timestampValue := seconds * 1000
+			timestamp = &timestampValue
 		}
 	}
 	// if it is a private trade

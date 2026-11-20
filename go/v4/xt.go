@@ -1799,7 +1799,7 @@ func (this *Xt) ParseMarket(market any) map[string]any {
 	var inverse any = nil
 	var settleId *string = nil
 	var settle *string = nil
-	var expiry any = nil
+	var expiry *int64 = nil
 	var future bool = false
 	var swap bool = false
 	var contract bool = false
@@ -1819,11 +1819,7 @@ func (this *Xt) ParseMarket(market any) map[string]any {
 		inverse = true
 	}
 	if underlyingType != nil {
-		if derefPtr := this.SafeInteger(market, "deliveryDate"); derefPtr != nil {
-			expiry = *derefPtr
-		} else {
-			expiry = nil
-		}
+		expiry = this.SafeInteger(market, "deliveryDate")
 		var productType *string = this.SafeString(market, "productType")
 		if productType == nil || *productType != "perpetual" {
 			symbol = symbol + "-" + this.Yymmdd(expiry)
@@ -1841,9 +1837,9 @@ func (this *Xt) ParseMarket(market any) map[string]any {
 		contract = true
 		spot = false
 	}
-	var isActive any = false
+	var isActive bool = false
 	if contract {
-		isActive = (*this.SafeBool(market, "isOpenApi", false))
+		isActive = *this.SafeBool(market, "isOpenApi", false)
 	} else {
 		if (state != nil && *state == "ONLINE") && (*this.SafeBool(market, "tradingEnabled", false)) && (*this.SafeBool(market, "openapiEnabled", false)) {
 			isActive = true

@@ -4232,7 +4232,11 @@ func (this *Bullish) signInBody(ch chan AsyncResult[any], optionalArgs ...any) a
 	//     }
 	//
 	var token *string = this.SafeString(response, "token")
-	this.Options["authorizer"] = DerefScalar(this.SafeString(response, "authorizer"))
+	if accessed := this.SafeString(response, "authorizer"); accessed != nil {
+		this.Options["authorizer"] = *accessed
+	} else {
+		this.Options["authorizer"] = nil
+	}
 	this.Token = token
 	this.Options["tokenExpires"] = this.Milliseconds() + (1000*60)*60*24 // token expires in 24 hours
 

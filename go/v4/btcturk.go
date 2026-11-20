@@ -921,14 +921,16 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	if since != nil {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
-	var limitResolved any = nil
+	var limitResolved *int64 = nil
 	if limit != nil {
 		limitResolved = limit
 		if *limit > 11000 {
-			limitResolved = 11000 // max 11000 candles diapason can be covered
+			limitResolvedValue := int64(11000)
+			limitResolved = &limitResolvedValue // max 11000 candles diapason can be covered
 		}
 	} else if since == nil {
-		limitResolved = 100 // default value
+		limitResolvedValue2 := int64(100)
+		limitResolved = &limitResolvedValue2 // default value
 	}
 	if (limit != nil) || (since == nil) {
 		if timeframe == "1y" {

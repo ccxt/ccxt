@@ -3132,7 +3132,7 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Or
 	var lastTradeTimestamp *int64 = lastUpdateTimestamp
 	var nativeLastUpdateTimestamp *int64 = nil
 	var orderType *string = this.SafeStringLower(order, "order_type")
-	var reduceOnly any = false
+	var reduceOnly bool = false
 	var fee map[string]any = map[string]any{}
 	if this.IsNativeDeribitCredentials() {
 		lastTradeTimestamp = nil
@@ -3141,7 +3141,7 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Or
 		}
 		nativeLastUpdateTimestamp = lastUpdateTimestamp
 		orderType = this.SafeStringLower2(order, "original_order_type", "order_type")
-		reduceOnly = (*this.SafeBool(order, "reduce_only", false))
+		reduceOnly = *this.SafeBool(order, "reduce_only", false)
 		fee = map[string]any{
 			"cost":     this.SafeNumber(order, "commission"),
 			"currency": this.SafeString(marketResolved, "settle", this.SafeString(marketResolved, "quote")),

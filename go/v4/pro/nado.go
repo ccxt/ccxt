@@ -1027,7 +1027,7 @@ func (this *Nado) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	}
 	var market map[string]any = nil
 	var messageHash string = "orders"
-	var productId any = nil
+	var productId *int64 = nil
 	var symbolResolved *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1036,7 +1036,8 @@ func (this *Nado) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 		if marketSymbol != nil {
 			messageHash += ":" + *marketSymbol
 		}
-		productId = this.ParseToInt(market["id"])
+		productIdValue := this.ParseToInt(market["id"])
+		productId = &productIdValue
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1099,14 +1100,15 @@ func (this *Nado) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalArgs
 	}
 	var market map[string]any = nil
 	var messageHash string = "orders"
-	var productId any = nil
+	var productId *int64 = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		var marketSymbol *string = this.SafeString(market, "symbol")
 		if marketSymbol != nil {
 			messageHash += ":" + *marketSymbol
 		}
-		productId = this.ParseToInt(market["id"])
+		productIdValue := this.ParseToInt(market["id"])
+		productId = &productIdValue
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1166,7 +1168,7 @@ func (this *Nado) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	}
 	var market map[string]any = nil
 	var messageHash string = "myTrades"
-	var productId any = nil
+	var productId *int64 = nil
 	var symbolResolved *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1175,7 +1177,8 @@ func (this *Nado) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 		if marketSymbol != nil {
 			messageHash += ":" + *marketSymbol
 		}
-		productId = this.ParseToInt(market["id"])
+		productIdValue := this.ParseToInt(market["id"])
+		productId = &productIdValue
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchMyTrades", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1238,14 +1241,15 @@ func (this *Nado) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	}
 	var market map[string]any = nil
 	var messageHash string = "myTrades"
-	var productId any = nil
+	var productId *int64 = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		var marketSymbol *string = this.SafeString(market, "symbol")
 		if marketSymbol != nil {
 			messageHash += ":" + *marketSymbol
 		}
-		productId = this.ParseToInt(market["id"])
+		productIdValue := this.ParseToInt(market["id"])
+		productId = &productIdValue
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchMyTrades", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1305,7 +1309,7 @@ func (this *Nado) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHash string = "positions"
-	var productId any = nil
+	var productId *int64 = nil
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
@@ -1314,7 +1318,8 @@ func (this *Nado) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 			if marketSymbol != nil {
 				messageHash += ":" + *marketSymbol
 			}
-			productId = this.ParseToInt(market["id"])
+			productIdValue := this.ParseToInt(market["id"])
+			productId = &productIdValue
 		}
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchPositions", "subaccount", "default")
@@ -1375,7 +1380,7 @@ func (this *Nado) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optionalA
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHash string = "positions"
-	var productId any = nil
+	var productId *int64 = nil
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
@@ -1384,7 +1389,8 @@ func (this *Nado) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optionalA
 			if marketSymbol != nil {
 				messageHash += ":" + *marketSymbol
 			}
-			productId = this.ParseToInt(market["id"])
+			productIdValue := this.ParseToInt(market["id"])
+			productId = &productIdValue
 		}
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchPositions", "subaccount", "default")

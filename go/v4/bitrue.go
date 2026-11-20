@@ -1295,7 +1295,7 @@ func (this *Bitrue) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBalance", nil, paramsMarketType)
 	var response map[string]any = nil
-	var result any = nil
+	var result map[string]any = nil
 	if typeVar != nil && *typeVar == "swap" {
 		if subType != nil && *subType == "inverse" {
 
@@ -1304,7 +1304,7 @@ func (this *Bitrue) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 				panic(r1.Err)
 			}
 			response = r1.Value
-			result = this.SafeDict(response, "data", map[string]any{})
+			result = this.SafeDictMap(response, "data", map[string]any{})
 		} else {
 
 			r2 := <-this.FapiV2PrivateGetAccount(paramsSubType)
@@ -1312,7 +1312,7 @@ func (this *Bitrue) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 				panic(r2.Err)
 			}
 			response = r2.Value
-			result = this.SafeDict(response, "data", map[string]any{})
+			result = this.SafeDictMap(response, "data", map[string]any{})
 		}
 	} else {
 
