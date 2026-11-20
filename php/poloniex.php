@@ -453,6 +453,7 @@ class poloniex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // General
+                    '401' => '\\ccxt\\PermissionDenied', // {"code":401,"message":"Illegal of ip"}
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal System Error
                     '603' => '\\ccxt\\RequestTimeout', // Internal Request Timeout
                     '601' => '\\ccxt\\BadRequest', // Invalid Parameter
