@@ -15967,6 +15967,7 @@ export function installCsharpReceiverTypes (transpiler) {
     }
     csharp._receiverTypesPatched = true;
     csharp.csharpDeclaredReceiverType = (node) => receiverDeclaredType (csharp, node);
+    csharp.csharpDeclaredLocalDictType = (node) => (((node?.kind === ts.SyntaxKind.Identifier) && [ 'Dictionary<string, object>', 'IDictionary<string, object>' ].includes (identifierDeclaredType (csharp, node))) ? identifierDeclaredType (csharp, node) : undefined);
 }
 
 // ===== string-literal equality + null-literal equality =====
