@@ -1887,7 +1887,7 @@ export default class htx extends htxRest {
                     if (marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
                         if ((symbol !== undefined) && (market !== undefined)) {
-                            messageHash += '.' + this.safeString(market, 'id', '');
+                            messageHash = prefix + '.' + this.safeString(market, 'id', '');
                             channel = messageHash;
                         }
                         else {
@@ -1911,7 +1911,7 @@ export default class htx extends htxRest {
             else if (type === 'future') {
                 // inverse futures account
                 if (currencyCode !== undefined) {
-                    messageHash += '.' + this.safeString(currencyCode, 'id', '');
+                    messageHash = prefix + '.' + this.safeString(currencyCode, 'id', '');
                     channel = messageHash;
                 }
                 else {
@@ -1922,7 +1922,7 @@ export default class htx extends htxRest {
             else {
                 // inverse swaps account
                 if (market !== undefined) {
-                    messageHash += '.' + this.safeString(market, 'id', '');
+                    messageHash = prefix + '.' + this.safeString(market, 'id', '');
                     channel = messageHash;
                 }
                 else {

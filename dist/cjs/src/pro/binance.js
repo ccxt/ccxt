@@ -3722,6 +3722,7 @@ class binance extends binance$1["default"] {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
+        const balance = this.safeDict(this.balance, accountType, {});
         const event = this.safeString(message, 'e');
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         const balanceMessage = this.safeDict(message, 'a', message);
@@ -3730,8 +3731,8 @@ class binance extends binance$1["default"] {
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             const delta = this.safeString(message, 'd');
-            if ((code !== undefined) && (code in this.balance[accountType])) {
-                let previousValue = this.safeValue(this.balance[accountType][code], 'free');
+            if ((code !== undefined) && (code in balance)) {
+                let previousValue = this.safeValue(balance[code], 'free');
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString(previousValue);
                 }
@@ -3741,7 +3742,7 @@ class binance extends binance$1["default"] {
                 account['free'] = delta;
             }
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         else {
@@ -3758,14 +3759,14 @@ class binance extends binance$1["default"] {
                 account['used'] = this.safeString(entry, 'l');
                 account['total'] = this.safeString(entry, wallet);
                 if (code !== undefined) {
-                    this.balance[accountType][code] = account;
+                    balance[code] = account;
                 }
             }
         }
         const timestamp = this.safeInteger(balanceMessage, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance(this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve(this.balance[accountType], messageHash);
     }
     getAccountTypeFromSubscriptions(subscriptions) {

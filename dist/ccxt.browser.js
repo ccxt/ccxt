@@ -181076,9 +181076,8 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
     createCcxtTradeId(timestamp = undefined, side = undefined, amount = undefined, price = undefined, takerOrMaker = undefined) {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        let id = undefined;
         if (timestamp !== undefined) {
-            id = this.numberToString(timestamp);
+            let id = this.numberToString(timestamp);
             if (side !== undefined) {
                 id += '-' + side;
             }
@@ -181091,8 +181090,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             if (takerOrMaker !== undefined) {
                 id += '-' + takerOrMaker;
             }
+            return id;
         }
-        return id;
+        return undefined;
     }
     parsedFeeAndFees(container) {
         let fee = this.safeDict(container, 'fee');
@@ -418976,12 +418976,13 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         if (requestMarginables) {
             crossIndex = nextIndex;
-            nextIndex = this.sum(nextIndex, 2);
-            isolatedIndex = this.sum(crossIndex, 1);
+            nextIndex = nextIndex + 1;
+            isolatedIndex = nextIndex;
+            nextIndex = nextIndex + 1;
         }
         if (fetchTickersFees) {
             tickersIndex = nextIndex;
-            nextIndex = this.sum(nextIndex, 1);
+            nextIndex = nextIndex + 1;
         }
         if (fetchContractMarkets) {
             contractIndex = nextIndex;
@@ -522667,7 +522668,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
             'searchIn',
             'limit'
         ]);
-        let rawMarkets;
+        let rawMarkets = [];
         if (eventId !== undefined) {
             rawMarkets = await this.fetchRawMarketsPaged(this.extend({
                 'sportXeventId': eventId
@@ -534794,6 +534795,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
+        const balance = this.safeDict(this.balance, accountType, {});
         const event = this.safeString(message, 'e');
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         const balanceMessage = this.safeDict(message, 'a', message);
@@ -534802,8 +534804,8 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             const delta = this.safeString(message, 'd');
-            if (code !== undefined && code in this.balance[accountType]) {
-                let previousValue = this.safeValue(this.balance[accountType][code], 'free');
+            if (code !== undefined && code in balance) {
+                let previousValue = this.safeValue(balance[code], 'free');
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString(previousValue);
                 }
@@ -534812,7 +534814,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
                 account['free'] = delta;
             }
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         } else {
             const B = this.safeList(balanceMessage, 'B');
@@ -534828,14 +534830,14 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
                 account['used'] = this.safeString(entry, 'l');
                 account['total'] = this.safeString(entry, wallet);
                 if (code !== undefined) {
-                    this.balance[accountType][code] = account;
+                    balance[code] = account;
                 }
             }
         }
         const timestamp = this.safeInteger(balanceMessage, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance(this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve(this.balance[accountType], messageHash);
     }
     getAccountTypeFromSubscriptions(subscriptions) {
@@ -556137,12 +556139,11 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         // is the consistent total, the spot rows fall back to the wallet balance
         account['total'] = this.safeString2(balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
-            if (this.safeDict(this.balance, accountType) === undefined) {
-                this.balance[accountType] = {};
+            const accountBalance = this.safeDict(this.balance, accountType, {});
+            if (code !== undefined) {
+                accountBalance[code] = account;
             }
-            if (accountType !== undefined && code !== undefined) {
-                this.balance[accountType][code] = account;
-            }
+            this.balance[accountType] = accountBalance;
         } else {
             if (code !== undefined) {
                 this.balance[code] = account;
@@ -579302,7 +579303,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
                     if (marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
                         if (symbol !== undefined && market !== undefined) {
-                            messageHash += '.' + this.safeString(market, 'id', '');
+                            messageHash = prefix + '.' + this.safeString(market, 'id', '');
                             channel = messageHash;
                         } else {
                             // subscribe to all
@@ -579322,7 +579323,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             } else if (type === 'future') {
                 // inverse futures account
                 if (currencyCode !== undefined) {
-                    messageHash += '.' + this.safeString(currencyCode, 'id', '');
+                    messageHash = prefix + '.' + this.safeString(currencyCode, 'id', '');
                     channel = messageHash;
                 } else {
                     // subscribe to all
@@ -579331,7 +579332,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             } else {
                 // inverse swaps account
                 if (market !== undefined) {
-                    messageHash += '.' + this.safeString(market, 'id', '');
+                    messageHash = prefix + '.' + this.safeString(market, 'id', '');
                     channel = messageHash;
                 } else {
                     // subscribe to all

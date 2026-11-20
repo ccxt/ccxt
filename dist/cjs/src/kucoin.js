@@ -1769,12 +1769,13 @@ class kucoin extends kucoin$1["default"] {
         }
         if (requestMarginables) {
             crossIndex = nextIndex;
-            nextIndex = this.sum(nextIndex, 2);
-            isolatedIndex = this.sum(crossIndex, 1);
+            nextIndex = nextIndex + 1;
+            isolatedIndex = nextIndex;
+            nextIndex = nextIndex + 1;
         }
         if (fetchTickersFees) {
             tickersIndex = nextIndex;
-            nextIndex = this.sum(nextIndex, 1);
+            nextIndex = nextIndex + 1;
         }
         if (fetchContractMarkets) {
             contractIndex = nextIndex;

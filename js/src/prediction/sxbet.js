@@ -440,7 +440,7 @@ export default class sxbet extends Exchange {
             queries.push(tags[i]);
         }
         const rest = this.omit(params, ['eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit']);
-        let rawMarkets;
+        let rawMarkets = [];
         if (eventId !== undefined) {
             rawMarkets = await this.fetchRawMarketsPaged(this.extend({ 'sportXeventId': eventId }, rest), undefined);
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
