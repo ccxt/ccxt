@@ -1214,7 +1214,7 @@ public partial class whitebit : Exchange
         {
             string? entry = ((string)currencyIds[i]);
             List<object> splitEntry = entry.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
-            object currencyId = (splitEntry != null && 0 < splitEntry.Count ? splitEntry[0] : null);
+            string? currencyId = ((string)(splitEntry != null && 0 < splitEntry.Count ? splitEntry[0] : null));
             IDictionary<string, object> feeInfo = this.safeDict(response, entry);
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && (((codesValue == null)) || (this.inArray(code, codesValue))))

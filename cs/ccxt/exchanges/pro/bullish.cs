@@ -767,12 +767,13 @@ public partial class bullish : ccxt.bullish
             account["total"] = this.safeString(data, "availableQuantity");
             account["used"] = this.safeString(data, "lockedQuantity");
             string? code = this.safeCurrencyCode(assetId);
+            ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))["info"] = message;
+            IDictionary<string, object> deltaBalance = this.safeDict(this.balance, tradingAccountId, new Dictionary<string, object>() {});
             if (((tradingAccountId != null)) && ((code != null)))
             {
-                ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))[(string)code] = account;
+                deltaBalance[(string)code] = account;
             }
-            ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))["info"] = message;
-            this.balance[(string)tradingAccountId] = this.safeBalance((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null));
+            this.balance[(string)tradingAccountId] = this.safeBalance(deltaBalance);
         }
         string messageHash = "balance";
         string tradingAccountIdHash = ("::" + tradingAccountId);

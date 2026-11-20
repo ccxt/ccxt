@@ -3823,7 +3823,7 @@ public partial class hashkey : Exchange
     public virtual List<object> parseOrderSideAndReduceOnly(object unparsed)
     {
         List<object> parts = ((string)unparsed).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-        object side = (parts != null && 0 < parts.Count ? parts[0] : null);
+        string? side = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         string? secondPart = this.safeString(parts, 1);
         if (secondPart == "open")
         {

@@ -1030,8 +1030,6 @@ public partial class bybit : ccxt.bybit
         string? url = await this.getUrlByMarketType((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null), false, "watchOrderBook", parameters);
         object paramsValue = this.cleanParams(parameters);
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-        int defaultLimit = (this.safeBool(market, "option", false) == true) ? 100 : 50;
-        Int64? limitResolved = ((limit == null)) ? defaultLimit : limit;
         if ((limit != null))
         {
             Dictionary<string, object> limits = new Dictionary<string, object>() {
@@ -1045,13 +1043,19 @@ public partial class bybit : ccxt.bybit
                 throw new BadRequest (((((this.id + " watchOrderBookForSymbols(): for ") + this.safeString(market, "type", "")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
             }
         }
+        Int64? limitParam = this.safeInteger(new Dictionary<string, object>() {
+            { "limit", limit },
+        }, "limit");
+        int limitDefault = (this.safeBool(market, "option", false) == true) ? 100 : 50;
+        Int64? limitValue = ((limitParam == null)) ? limitDefault : limitParam;
+        string topicPrefix = (("orderbook." + ((object)limitValue).ToString()) + ".");
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            string? marketId = this.marketId(symbol);
-            string topic = ((("orderbook." + this.numberToString(limitResolved)) + ".") + marketId);
+            string? marketId = this.safeString(this.market(symbol), "id", "");
+            string topic = (topicPrefix + marketId);
             topics.Add(topic);
             string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);
@@ -1507,12 +1511,15 @@ public partial class bybit : ccxt.bybit
         }
         string? url = await this.getUrlByMarketType(symbolResolved, true, method, parameters);
         await this.authenticate(url);
-        Dictionary<string, object> topicByMarket = new Dictionary<string, object>() {
-            { "spot", "ticketInfo" },
-            { "unified", "execution" },
-            { "usdc", "user.openapi.perp.trade" },
-        };
-        string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        string privateType = this.getPrivateType(url);
+        string topic = "execution";
+        if (privateType == "spot")
+        {
+            topic = "ticketInfo";
+        } else if (privateType == "usdc")
+        {
+            topic = "user.openapi.perp.trade";
+        }
         (bool?, IDictionary<string, object>) executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         bool? executionFast = executionFastparamsExecutionFastVariable.Item1;
         IDictionary<string, object> paramsExecutionFast = (executionFastparamsExecutionFastVariable.Item2);
@@ -1557,12 +1564,15 @@ public partial class bybit : ccxt.bybit
         }
         string? url = await this.getUrlByMarketType(symbol, true, method, parameters);
         await this.authenticate(url);
-        Dictionary<string, object> topicByMarket = new Dictionary<string, object>() {
-            { "spot", "ticketInfo" },
-            { "unified", "execution" },
-            { "usdc", "user.openapi.perp.trade" },
-        };
-        string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        string privateType = this.getPrivateType(url);
+        string topic = "execution";
+        if (privateType == "spot")
+        {
+            topic = "ticketInfo";
+        } else if (privateType == "usdc")
+        {
+            topic = "user.openapi.perp.trade";
+        }
         (bool?, IDictionary<string, object>) executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         bool? executionFast = executionFastparamsExecutionFastVariable.Item1;
         IDictionary<string, object> paramsExecutionFast = (executionFastparamsExecutionFastVariable.Item2);
@@ -2013,7 +2023,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88039 && ((hxArr88039 is IList<object>) || (hxArr88039.GetType().IsGenericType && hxArr88039.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88208 && ((hxArr88208 is IList<object>) || (hxArr88208.GetType().IsGenericType && hxArr88208.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2126,12 +2136,19 @@ public partial class bybit : ccxt.bybit
         }
         string? url = await this.getUrlByMarketType(symbolResolved, true, method, parameters);
         await this.authenticate(url);
-        Dictionary<string, object> topicsByMarket = new Dictionary<string, object>() {
-            { "spot", new List<object>() {"order", "stopOrder"} },
-            { "unified", new List<object>() {"order"} },
-            { "usdc", new List<object>() {"user.openapi.perp.order"} },
-        };
-        List<object> topics = this.safeList(topicsByMarket, this.getPrivateType(url), new List<object>() {});
+        string privateType = this.getPrivateType(url);
+        List<object> topics = new List<object>() {};
+        if (privateType == "usdc")
+        {
+            topics.Add("user.openapi.perp.order");
+        } else
+        {
+            topics.Add("order");
+            if (privateType == "spot")
+            {
+                topics.Add("stopOrder");
+            }
+        }
         object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -2167,12 +2184,19 @@ public partial class bybit : ccxt.bybit
         }
         string? url = await this.getUrlByMarketType(symbol, true, method, parameters);
         await this.authenticate(url);
-        Dictionary<string, object> topicsByMarket = new Dictionary<string, object>() {
-            { "spot", new List<object>() {"order", "stopOrder"} },
-            { "unified", new List<object>() {"order"} },
-            { "usdc", new List<object>() {"user.openapi.perp.order"} },
-        };
-        List<object> topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        string privateType = this.getPrivateType(url);
+        List<object> topics = new List<object>() {};
+        if (privateType == "usdc")
+        {
+            topics.Add("user.openapi.perp.order");
+        } else
+        {
+            topics.Add("order");
+            if (privateType == "spot")
+            {
+                topics.Add("stopOrder");
+            }
+        }
         return await this.unWatchTopics(url, "orders", new List<object>() {}, new List<object>() {messageHash}, new List<object>() {subHash}, topics, parameters);
     }
 
@@ -2351,10 +2375,6 @@ public partial class bybit : ccxt.bybit
         bool? isUnifiedAccount = this.safeBool(unified, 1, false);
         string? url = await this.getUrlByMarketType(null, true, method, paramsSubType);
         await this.authenticate(url);
-        Dictionary<string, object> topicByMarket = new Dictionary<string, object>() {
-            { "spot", "outboundAccountInfo" },
-            { "unified", "wallet" },
-        };
         if ((isUnifiedAccount == true))
         {
             // unified account
@@ -2394,7 +2414,17 @@ public partial class bybit : ccxt.bybit
                 }
             }
         }
-        List<object> topics = new List<object> {this.safeString(topicByMarket, this.getPrivateType(url))};
+        string privateType = this.getPrivateType(url);
+        if (privateType == "usdc")
+        {
+            throw new NotSupported ((this.id + " watchBalance() is not supported on the usdc private stream")) ;
+        }
+        string topic = "wallet";
+        if (privateType == "spot")
+        {
+            topic = "outboundAccountInfo";
+        }
+        List<object> topics = new List<object>() {topic};
         return ccxt.BaseExchange.ToBalances(await this.watchTopics(url, new List<object>() {messageHash}, topics, paramsSubType));
     }
 
@@ -2706,8 +2736,8 @@ public partial class bybit : ccxt.bybit
             }
             for (int i = 0; i < topicsLength; i++)
             {
-                object topic = (topics != null && i < topics.Count ? topics[i] : null);
-                if (!((topic is string inOpKey0 && subscribedTopics.ContainsKey(inOpKey0))))
+                string? topic = ((string)(topics != null && i < topics.Count ? topics[i] : null));
+                if (!(((topic != null) && (subscribedTopics?.ContainsKey(topic) == true))))
                 {
                     newTopics.Add(topic);
                 }
