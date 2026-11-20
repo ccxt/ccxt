@@ -1,0 +1,107 @@
+{
+    "exchange": "flyingtulip",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "quote": [
+            {
+                "description": "Aggregate exact-input route with explicit protocol fee",
+                "method": "quote",
+                "url": "https://api.flyingtulip.com/mm/leverage/quote",
+                "input": [
+                    "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
+                    "1000000",
+                    "500",
+                    "open",
+                    100
+                ],
+                "output": "{\"chainId\":146,\"sellToken\":\"0x29219dd400f2Bf60E5a23d13Be72B486D4038894\",\"buyToken\":\"0x50c42dEAcD8Fc9773493ED674b675bE577f2634b\",\"sellAmount\":\"1000000\",\"feeAmount\":\"500\",\"action\":\"open\",\"slippageBps\":100,\"priceQuality\":\"optimal\"}",
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
+            }
+        ],
+        "quoteExactOut": [
+            {
+                "description": "Aggregate exact-output precision above the safe integer range",
+                "method": "quoteExactOut",
+                "url": "https://api.flyingtulip.com/mm/leverage/quote",
+                "input": [
+                    "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
+                    "10000000000000001",
+                    "open",
+                    100
+                ],
+                "output": "{\"chainId\":146,\"mode\":\"exactOut\",\"sellToken\":\"0x29219dd400f2Bf60E5a23d13Be72B486D4038894\",\"buyToken\":\"0x50c42dEAcD8Fc9773493ED674b675bE577f2634b\",\"buyAmount\":\"10000000000000001\",\"action\":\"open\",\"slippageBps\":100,\"priceQuality\":\"optimal\"}",
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Empty account positions null response",
+                "method": "fetchPositions",
+                "url": "https://api.flyingtulip.com/mm/spot/account/positions?chainId=146&address=0x0000000000000000000000000000000000000001",
+                "input": [
+                    null,
+                    {
+                        "address": "0x0000000000000000000000000000000000000001"
+                    }
+                ],
+                "output": null,
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Sonic collateral registry",
+                "method": "fetchCurrencies",
+                "url": "https://api.flyingtulip.com/spot/leverage/assets?chainId=146",
+                "input": [],
+                "output": null,
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Sonic market ticker",
+                "method": "fetchTicker",
+                "url": "https://api.flyingtulip.com/mm/spot/markets-v2?chainId=146",
+                "input": [
+                    "FT/FTUSD"
+                ],
+                "output": null,
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Captured valued executions and explicitly unvalued liquidation",
+                "method": "fetchTrades",
+                "url": "https://api.flyingtulip.com/mm/spot/trades/0555e30da8f98308edb960aa94c0db47230d2b9c-f7d85ec4e7710f71992752eac2111312e73e9c9c?chainId=146&limit=3&before=eyJibG9ja19udW1iZXIiOjc4MjEyMjQwLCJsb2dfaW5kZXgiOjEwMDAwMCwidHhfaGFzaCI6IjB4ZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZiJ9",
+                "input": [
+                    "WBTC/FTUSD",
+                    null,
+                    3,
+                    {
+                        "before": "eyJibG9ja19udW1iZXIiOjc4MjEyMjQwLCJsb2dfaW5kZXgiOjEwMDAwMCwidHhfaGFzaCI6IjB4ZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZiJ9"
+                    }
+                ],
+                "output": null,
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
+            }
+        ]
+    },
+    "outputType": "both"
+}
