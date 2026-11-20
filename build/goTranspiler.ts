@@ -7387,6 +7387,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'ethRpc': [ 1 ], 'getEvent': [ 0 ],
     // account names: every caller passes a typed-wrapper string or a nil-guarded market type
     'convertTypeToAccount': [ 0 ],
+    // `targetUrl: string`; no generated Go caller (the hand-written fetch builds the proxy url itself)
+    'urlEncoderForProxyUrl': [ 0 ],
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go
