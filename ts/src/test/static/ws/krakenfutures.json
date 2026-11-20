@@ -188,6 +188,660 @@
                     }
                 }
             }
+        ],
+        "watchOrders": [
+            {
+                "description": "open_orders reconnect snapshot replaces stale open orders without inventing cancellations",
+                "input": [],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "feed": "open_orders_snapshot",
+                        "account": "test-account",
+                        "orders": [
+                            {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                                "direction": 1,
+                                "reduce_only": true
+                            }
+                        ]
+                    },
+                    {
+                        "feed": "open_orders_snapshot",
+                        "account": "test-account",
+                        "orders": [
+                            {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+                                "direction": 1,
+                                "reduce_only": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                                "direction": 1,
+                                "reduce_only": true
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                            "clientOrderId": null,
+                            "timestamp": 1790000000000,
+                            "datetime": "2026-09-21T14:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "stop",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "stopPrice": 60000,
+                            "triggerPrice": 60000,
+                            "amount": 1,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": null,
+                            "fee": {
+                                "rate": null,
+                                "cost": null,
+                                "currency": null
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "rate": null,
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+                                "direction": 1,
+                                "reduce_only": true
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "id": "566942c8-a3b5-4184-a451-622b09493129",
+                            "clientOrderId": null,
+                            "timestamp": 1790000000000,
+                            "datetime": "2026-09-21T14:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "stop",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "stopPrice": 60000,
+                            "triggerPrice": 60000,
+                            "amount": 1,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": null,
+                            "fee": {
+                                "rate": null,
+                                "cost": null,
+                                "currency": null
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "rate": null,
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "open_orders empty reconnect snapshot removes stale orders before the next snapshot",
+                "input": [],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "feed": "open_orders_snapshot",
+                        "account": "test-account",
+                        "orders": [
+                            {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                                "direction": 1,
+                                "reduce_only": true
+                            }
+                        ]
+                    },
+                    {
+                        "feed": "open_orders_snapshot",
+                        "account": "test-account",
+                        "orders": []
+                    },
+                    {
+                        "feed": "open_orders_snapshot",
+                        "account": "test-account",
+                        "orders": [
+                            {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+                                "direction": 1,
+                                "reduce_only": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                                "direction": 1,
+                                "reduce_only": true
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                            "clientOrderId": null,
+                            "timestamp": 1790000000000,
+                            "datetime": "2026-09-21T14:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "stop",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "stopPrice": 60000,
+                            "triggerPrice": 60000,
+                            "amount": 1,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": null,
+                            "fee": {
+                                "rate": null,
+                                "cost": null,
+                                "currency": null
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "rate": null,
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+                                "direction": 1,
+                                "reduce_only": true
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "id": "566942c8-a3b5-4184-a451-622b09493129",
+                            "clientOrderId": null,
+                            "timestamp": 1790000000000,
+                            "datetime": "2026-09-21T14:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "stop",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "stopPrice": 60000,
+                            "triggerPrice": 60000,
+                            "amount": 1,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": null,
+                            "fee": {
+                                "rate": null,
+                                "cost": null,
+                                "currency": null
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "rate": null,
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "open_orders_verbose reconnect snapshot replaces stale open orders without inventing cancellations",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "verbose": true
+                    }
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "feed": "open_orders_verbose_snapshot",
+                        "account": "test-account",
+                        "orders": [
+                            {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                                "direction": 1,
+                                "reduce_only": true
+                            }
+                        ]
+                    },
+                    {
+                        "feed": "open_orders_verbose_snapshot",
+                        "account": "test-account",
+                        "orders": [
+                            {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+                                "direction": 1,
+                                "reduce_only": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                                "direction": 1,
+                                "reduce_only": true
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                            "clientOrderId": null,
+                            "timestamp": 1790000000000,
+                            "datetime": "2026-09-21T14:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "stop",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "stopPrice": 60000,
+                            "triggerPrice": 60000,
+                            "amount": 1,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": null,
+                            "fee": {
+                                "rate": null,
+                                "cost": null,
+                                "currency": null
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "rate": null,
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+                                "direction": 1,
+                                "reduce_only": true
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "id": "566942c8-a3b5-4184-a451-622b09493129",
+                            "clientOrderId": null,
+                            "timestamp": 1790000000000,
+                            "datetime": "2026-09-21T14:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "stop",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "stopPrice": 60000,
+                            "triggerPrice": 60000,
+                            "amount": 1,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": null,
+                            "fee": {
+                                "rate": null,
+                                "cost": null,
+                                "currency": null
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "rate": null,
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "open_orders_verbose empty reconnect snapshot removes stale orders before the next snapshot",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "verbose": true
+                    }
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "feed": "open_orders_verbose_snapshot",
+                        "account": "test-account",
+                        "orders": [
+                            {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                                "direction": 1,
+                                "reduce_only": true
+                            }
+                        ]
+                    },
+                    {
+                        "feed": "open_orders_verbose_snapshot",
+                        "account": "test-account",
+                        "orders": []
+                    },
+                    {
+                        "feed": "open_orders_verbose_snapshot",
+                        "account": "test-account",
+                        "orders": [
+                            {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+                                "direction": 1,
+                                "reduce_only": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                                "direction": 1,
+                                "reduce_only": true
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "id": "723ba95f-13b7-418b-8fcf-ab7ba6620555",
+                            "clientOrderId": null,
+                            "timestamp": 1790000000000,
+                            "datetime": "2026-09-21T14:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "stop",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "stopPrice": 60000,
+                            "triggerPrice": 60000,
+                            "amount": 1,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": null,
+                            "fee": {
+                                "rate": null,
+                                "cost": null,
+                                "currency": null
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "rate": null,
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "instrument": "PF_XBTUSD",
+                                "time": 1790000000000,
+                                "last_update_time": 1790000000000,
+                                "qty": 1,
+                                "filled": 0,
+                                "limit_price": 0,
+                                "stop_price": 60000,
+                                "type": "stop",
+                                "order_id": "566942c8-a3b5-4184-a451-622b09493129",
+                                "direction": 1,
+                                "reduce_only": true
+                            },
+                            "symbol": "BTC/USD:USD",
+                            "id": "566942c8-a3b5-4184-a451-622b09493129",
+                            "clientOrderId": null,
+                            "timestamp": 1790000000000,
+                            "datetime": "2026-09-21T14:13:20.000Z",
+                            "lastTradeTimestamp": null,
+                            "type": "stop",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "sell",
+                            "price": null,
+                            "stopPrice": 60000,
+                            "triggerPrice": 60000,
+                            "amount": 1,
+                            "cost": null,
+                            "average": null,
+                            "filled": 0,
+                            "remaining": 1,
+                            "status": null,
+                            "fee": {
+                                "rate": null,
+                                "cost": null,
+                                "currency": null
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "rate": null,
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "lastUpdateTimestamp": null,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            }
         ]
     }
 }
