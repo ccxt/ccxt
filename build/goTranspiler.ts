@@ -7288,6 +7288,7 @@ const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
 
 const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = {
     'setSandboxMode': [ 0 ], 'enableDemoTrading': [ 0 ], 'setPositionMode': [ 0 ],
+    'isPostOnly': [ 0 ], 'handlePostOnly': [ 0 ], 'parseTradesHelper': [ 0 ],
 };
 // the PredictionExchange struct field declarations (go/v4/exchange_prediction.go). The prediction caches
 // are declared map[string]any here, and the printer reads exactly the fields declared that way
