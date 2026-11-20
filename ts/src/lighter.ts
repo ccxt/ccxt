@@ -480,7 +480,7 @@ export default class lighter extends Exchange {
         return loaded;
     }
 
-    handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [Int, Dict] {
+    handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [int, Dict] {
         const [ apiKeyIndexOption, paramsApiKeyIndex ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         const apiKeyIndex = this.safeInteger ([ apiKeyIndexOption ], 0);
         if ((apiKeyIndex !== undefined) && (apiKeyIndex >= 4) && (apiKeyIndex <= 254)) {
@@ -956,7 +956,7 @@ export default class lighter extends Exchange {
         const accIndexAndParams = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         const accountIndex: Int = accIndexAndParams[0];
         const apiKeyIndexAndParams = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
-        const apiKeyIndex: Int = apiKeyIndexAndParams[0];
+        const apiKeyIndex: int = apiKeyIndexAndParams[0];
         // before order-req creation, we need to know account status
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
