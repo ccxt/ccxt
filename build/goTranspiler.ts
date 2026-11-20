@@ -16633,6 +16633,13 @@ function goUrlsKeyGuardedSelfTest (ok: SelfTestOk): void {
 
 // the Go type of `name` at line `at`: its nearest enclosing `var name T =`, else a `name map[string]any`
 // parameter of the func; undefined when a closure or a `:=` could rebind it in between
+// `var x T` followed by `if c {` / `x = a` / `} else {` / `x = b` / `}`: the generator's typed ternary store form
+function goJoinedDeclarationType (lines: string[], k: number, name: string): RegExpExecArray | null {
+    const m = new RegExp ('^(\\s*)var ' + name + ' (map\\[string\\]any)$').exec (lines[k]);
+    const store = (j: number) => (lines[j] ?? '').startsWith (m[1] + '\t' + name + ' = ');
+    return ((m !== null) && /^\s*if .* \{$/.test (lines[k + 1] ?? '') && store (k + 2) && (lines[k + 3] === m[1] + '} else {') && store (k + 4)
+        && /^\}(?:\s*\/\/.*)?$/.test ((lines[k + 5] ?? '').substring (m[1].length))) ? m : null;
+}
 function goNearestLocalType (lines: string[], funcStart: number, at: number, name: string): string | undefined {
     const decl = new RegExp ('^(\\s*)var ' + name + ' (map\\[string\\]any|\\S+) = ');
     const rebind = new RegExp ('\\b' + name + '(?:, \\w+)* :=|, ' + name + ' :=|func\\([^)]*\\b' + name + ' ');
@@ -16642,7 +16649,7 @@ function goNearestLocalType (lines: string[], funcStart: number, at: number, nam
         if ((k < at) && (lines[k].trim () !== '')) {
             floor = Math.min (floor, indent (lines[k]));
         }
-        const m = decl.exec (lines[k]);
+        const m = decl.exec (lines[k]) ?? goJoinedDeclarationType (lines, k, name);
         if ((m !== null) && (k < at)) {
             return (m[1].length <= floor) ? m[2] : undefined;
         }
