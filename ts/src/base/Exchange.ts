@@ -8067,9 +8067,7 @@ export class BaseExchange {
     parseBorrowRateHistory (response: any, code: Str, since: Int, limit: Int) {
         const result: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
-            const item = this.safeDict (response, i);
-            const borrowRate = this.parseBorrowRate (item);
-            result.push (borrowRate);
+            result.push (this.parseBorrowRate (this.safeDict (response, i)));
         }
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
@@ -8294,9 +8292,7 @@ export class BaseExchange {
     parseOpenInterestsHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const interest = this.parseOpenInterest (entry, market);
-            interests.push (interest);
+            interests.push (this.parseOpenInterest (response[i], market));
         }
         const sorted = this.sortBy (interests, 'timestamp');
         const symbol = this.safeString (market, 'symbol');
@@ -8582,9 +8578,7 @@ export class BaseExchange {
          */
         const result: Dict[] = [];
         for (let i = 0; i < incomes.length; i++) {
-            const entry = incomes[i];
-            const parsed = this.parseIncome (entry, market);
-            result.push (parsed);
+            result.push (this.parseIncome (incomes[i], market));
         }
         const sorted = this.sortBy (result, 'timestamp');
         const symbol = this.safeString (market, 'symbol');
