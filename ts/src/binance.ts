@@ -4062,7 +4062,7 @@ export default class binance extends Exchange {
     }
 
     parseBalanceList (response: Dict[], type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin: boolean = false, info: any = undefined): Balances {
-        let result: Dict = {
+        const result: Dict = {
             'info': response,
         };
         if (info !== undefined) {
