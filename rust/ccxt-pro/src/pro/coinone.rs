@@ -259,7 +259,7 @@ impl Coinone {
         }  else {
             orderbook.reset0();
         }
-        orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
+        orderbook.set_book_meta("symbol", Value::from(symbol.as_str()));
         let asks: crate::value::List = self.safe_list_k_t(&data, "asks");
         let bids: crate::value::List = self.safe_list_k_t(&data, "bids");
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
@@ -612,8 +612,8 @@ impl Coinone {
             let mut keys: Vec<Value> = Value::Array(methods.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_272: bool = true;
-                while { if !__for_first_272 { i += 1; } __for_first_272 = false; i < (keys.len() as i64) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (keys.len() as i64) } {
                 let key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if Value::Int(topic.as_str().zip(key.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     let method: Option<String> = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);

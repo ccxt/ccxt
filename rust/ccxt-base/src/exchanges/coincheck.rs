@@ -247,8 +247,8 @@ impl crate::exchange::DerivedExchange for Coincheck {
         let codes: Vec<Value> = Value::Array(self.currencies.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i += 1; } __for_first_567 = false; i < (codes.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (codes.len() as i64) } {
             let code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             let currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
@@ -972,8 +972,8 @@ impl Coincheck {
         let mut updated: Option<i64> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_568: bool = true;
-            while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (exchangeStatuses.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (exchangeStatuses.len() as i64) } {
             let exchangeStatus: crate::value::Dict = self.safe_dict_t(&exchangeStatuses, Value::Int(i));
             let rawStatus: Option<String> = self.safe_string_k_opt(&exchangeStatus, "status", &[]);
             if (updated.is_none()) {
@@ -1062,8 +1062,8 @@ impl Coincheck {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (parsedOrders.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (parsedOrders.len() as i64) } {
             result.push(self.extend(parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("open".into()));
@@ -1327,8 +1327,8 @@ impl Coincheck {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_570: bool = true;
-            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let fee: crate::value::Dict = self.safe_dict_t(&fees, Value::from((market).id.as_deref()));

@@ -454,8 +454,8 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         let minWithdraw: Option<f64> = self.safe_number_k(&rawCurrency, "withdrawalMinAmount", &[]).as_f64();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_457: bool = true;
-            while { if !__for_first_457 { j += 1; } __for_first_457 = false; j < (networksArray.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (networksArray.len() as i64) } {
             let mut networkId: Value = networksArray.get(j as usize).cloned().unwrap_or(Value::Null);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_text().as_deref(), code.as_deref());
             if (networkCode.is_some()) {
@@ -822,7 +822,7 @@ impl crate::exchange_generated::ExchangeBase for Bitvavo {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1574,8 +1574,8 @@ impl Bitvavo {
         let feesByCategory: crate::value::Dict = self.safe_dict_k_t(&self.fees, "byCategory");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_456: bool = true;
-            while { if !__for_first_456 { i += 1; } __for_first_456 = false; i < (markets.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (markets.len() as i64) } {
             let mut market: Option<crate::value::Dict> = self.safe_dict_o(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "market", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "base", &[]);
@@ -1856,8 +1856,8 @@ impl Bitvavo {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_458: bool = true;
-            while { if !__for_first_458 { i += 1; } __for_first_458 = false; i < (self.symbols.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (self.symbols.len() as i64) } {
             let symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2069,7 +2069,7 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2080,8 +2080,8 @@ impl Bitvavo {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_459: bool = true;
-            while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (response.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (response.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "symbol", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -2093,9 +2093,9 @@ impl Bitvavo {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2120,7 +2120,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::List = self.private_get_balance(&[&params]).await.unwrap_or_default();
-        return self.parse_balance_list(&response);
+        return Value::Dict(self.parse_balance_list(&response));
         Value::Null
         }).await?))
     }

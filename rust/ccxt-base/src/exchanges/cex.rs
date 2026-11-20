@@ -296,8 +296,8 @@ impl crate::exchange::DerivedExchange for Cex {
         let mut keys: Vec<&str> = response.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_534: bool = true;
-            while { if !__for_first_534 { i += 1; } __for_first_534 = false; i < (keys.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).copied();
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::from(key.as_deref()));
             let code: Option<String> = self.safe_currency_code(key.as_deref(), None);
@@ -432,8 +432,8 @@ impl crate::exchange::DerivedExchange for Cex {
         let mut keys: Vec<Value> = Value::Array(rawNetworks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_531: bool = true;
-            while { if !__for_first_531 { j += 1; } __for_first_531 = false; j < (keys.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (keys.len() as i64) } {
             let networkId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
             let mut rawNetwork: Option<crate::value::Dict> = self.safe_dict_o(&rawNetworks, Value::from(networkId.as_deref()));
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -694,7 +694,7 @@ impl crate::exchange_generated::ExchangeBase for Cex {
                 "fetch_open_order" => crate::types::IntoRaw::into_raw(self.fetch_open_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_status" => self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
+                "fetch_orders_by_status" => Value::Arr(self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -1714,8 +1714,8 @@ impl Cex {
         let mut keys: Vec<&str> = response.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_532: bool = true;
-            while { if !__for_first_532 { i += 1; } __for_first_532 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).copied();
             let mut market: Option<crate::types::Market> = None;
             if useKeyAsId.as_bool() == Some(true) {
@@ -1731,8 +1731,8 @@ impl Cex {
         let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_533: bool = true;
-            while { if !__for_first_533 { i += 1; } __for_first_533 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if !(matches!(symbol.as_deref(), Some(__k) if result.contains_key(__k))) {
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1889,7 +1889,7 @@ impl Cex {
  * @param {int} [params.until] timestamp in ms of the latest entry
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_orders_by_status(&mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_by_status(&mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1972,9 +1972,7 @@ impl Cex {
         //            ...
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_orders(&data, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
-
-    Value::Null
+        return self.parse_orders(&data, market.as_ref(), &[&Value::from(since), &Value::from(limit)]);
 }
 
 /*
@@ -2001,7 +1999,7 @@ impl Cex {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_status("closed", symbol.as_str(), since, limit, &[params]).await;
+        return Value::Arr(self.fetch_orders_by_status("closed", symbol.as_str(), since, limit, &[params]).await);
         Value::Null
         }).await?))
     }
@@ -2030,7 +2028,7 @@ impl Cex {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_status("open", symbol.as_str(), since, limit, &[params]).await;
+        return Value::Arr(self.fetch_orders_by_status("open", symbol.as_str(), since, limit, &[params]).await);
         Value::Null
         }).await?))
     }
@@ -2332,8 +2330,8 @@ impl Cex {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_535: bool = true;
-            while { if !__for_first_535 { i += 1; } __for_first_535 = false; i < (ids.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (ids.len() as i64) } {
             let id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             orders.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

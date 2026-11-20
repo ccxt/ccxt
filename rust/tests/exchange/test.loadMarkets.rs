@@ -24,8 +24,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let marketValues: Value = object_values(&markets);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1606: bool = true;
-        while { if !__for_first_1606 { i += 1; } __for_first_1606 = false; i < (marketValues.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (marketValues.len() as i64) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), marketValues.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
     }
     }
@@ -35,8 +35,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let allMarkets: Vec<Value> = object_values(&get_value(&exchange, &Value::Str("markets".into()))).as_array().cloned().unwrap_or_default();
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1607: bool = true;
-        while { if !__for_first_1607 { i += 1; } __for_first_1607 = false; i < (allMarkets.len() as i64) } {
+        let mut __for_first_1: bool = true;
+        while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (allMarkets.len() as i64) } {
         let market: Value = allMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
         if !exchange.in_array(get_value(&market, &Value::Str("type".into())), collectedTypes.clone()) {
             append_to_array(&mut collectedTypes, get_value(&market, &Value::Str("type".into())));
@@ -45,8 +45,8 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     }
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1608: bool = true;
-        while { if !__for_first_1608 { i += 1; } __for_first_1608 = false; i < (marketTypes.len() as i64) } {
+        let mut __for_first_2: bool = true;
+        while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (marketTypes.len() as i64) } {
         let mType: Value = marketTypes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         if (get_value(&get_value(&exchange, &Value::Str("has".into())), &mType) != Value::Null) && (get_value(&get_value(&exchange, &Value::Str("has".into())), &mType).as_bool() != Some(false)) {
             let skipMarketTypes: Value = Value::Bool((in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".into()))) && (mType.as_str() == Some("option")));

@@ -426,8 +426,8 @@ impl crate::exchange::DerivedExchange for Modetrade {
         let balances: crate::value::List = self.safe_list_k_t(response, "holding");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_970: bool = true;
-            while { if !__for_first_970 { i += 1; } __for_first_970 = false; i < (balances.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]).as_str(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -633,8 +633,8 @@ impl crate::exchange::DerivedExchange for Modetrade {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_964: bool = true;
-            while { if !__for_first_964 { j += 1; } __for_first_964 = false; j < (networks.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (networks.len() as i64) } {
             let network: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             // TODO: transform chain id to human readable name
             let networkId: String = self.safe_string_k(&network, "chain_id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -885,8 +885,8 @@ impl crate::exchange::DerivedExchange for Modetrade {
                         let mut taggedOrders: crate::value::List = std::sync::Arc::new(Vec::new());
                         {
                                                         let mut i: i64 = 0;
-                            let mut __for_first_971: bool = true;
-                            while { if !__for_first_971 { i += 1; } __for_first_971 = false; i < (ordersList.len() as i64) } {
+                            let mut __for_first_7: bool = true;
+                            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (ordersList.len() as i64) } {
                             let __ws_arg_36 = self.safe_dict(&ordersList, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1030,7 +1030,7 @@ impl crate::exchange_generated::ExchangeBase for Modetrade {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "get_asset_history_rows" => self.get_asset_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "get_asset_history_rows" => Value::Arr(self.get_asset_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "get_withdraw_nonce" => self.get_withdraw_nonce(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -2668,8 +2668,8 @@ impl Modetrade {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_965: bool = true;
-            while { if !__for_first_965 { i += 1; } __for_first_965 = false; i < (result.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (result.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_rate_timestamp", &[]).as_i64();
@@ -2788,8 +2788,8 @@ impl Modetrade {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_966: bool = true;
-            while { if !__for_first_966 { i += 1; } __for_first_966 = false; i < (rows.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (rows.len() as i64) } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
@@ -2883,8 +2883,8 @@ impl Modetrade {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_967: bool = true;
-            while { if !__for_first_967 { i += 1; } __for_first_967 = false; i < (rows.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rows.len() as i64) } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
@@ -3050,8 +3050,8 @@ impl Modetrade {
         if (symbols != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_968: bool = true;
-                while { if !__for_first_968 { i += 1; } __for_first_968 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (symbols.len() as i64) } {
                 let symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3484,8 +3484,8 @@ impl Modetrade {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_969: bool = true;
-            while { if !__for_first_969 { i += 1; } __for_first_969 = false; i < (orders.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (marketId.is_none()) {
@@ -4360,7 +4360,7 @@ impl Modetrade {
         }).await?))
     }
 
-    pub async fn get_asset_history_rows(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn get_asset_history_rows(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4417,9 +4417,7 @@ impl Modetrade {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return Value::Arr(rows);
-
-    Value::Null
+        return rows;
 }
 
 
@@ -4459,7 +4457,7 @@ impl Modetrade {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&params]).await.into_list();
+        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&params]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
@@ -4588,7 +4586,7 @@ impl Modetrade {
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
-        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&__ws_arg_32]).await.into_list();
+        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&__ws_arg_32]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));

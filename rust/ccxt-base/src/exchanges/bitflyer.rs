@@ -428,7 +428,7 @@ impl crate::exchange_generated::ExchangeBase for Bitflyer {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_expiry_date" => self.parse_expiry_date(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -951,8 +951,8 @@ impl Bitflyer {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_366: bool = true;
-            while { if !__for_first_366 { i += 1; } __for_first_366 = false; i < (markets.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "product_code", &[]);
             let currencies: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
@@ -1090,7 +1090,7 @@ impl Bitflyer {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1099,8 +1099,8 @@ impl Bitflyer {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_367: bool = true;
-            while { if !__for_first_367 { i += 1; } __for_first_367 = false; i < (response.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (response.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency_code", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1112,9 +1112,9 @@ impl Bitflyer {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1139,7 +1139,7 @@ impl Bitflyer {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::List = self.private_get_getbalance(&[&params]).await.unwrap_or_default();
-        return self.parse_balance_list(&response);
+        return Value::Dict(self.parse_balance_list(&response));
         Value::Null
         }).await?))
     }

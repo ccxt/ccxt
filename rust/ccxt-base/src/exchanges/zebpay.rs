@@ -242,8 +242,8 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let currencyList: crate::value::List = self.safe_list_k_t(response, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1213: bool = true;
-            while { if !__for_first_1213 { i += 1; } __for_first_1213 = false; i < (currencyList.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (currencyList.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&currencyList, Value::Int(i));
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&entry, "total", &[]));
@@ -332,8 +332,8 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let mut withdraw: bool = false;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1209: bool = true;
-            while { if !__for_first_1209 { j += 1; } __for_first_1209 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (chains.len() as i64) } {
             let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -617,9 +617,9 @@ impl crate::exchange_generated::ExchangeBase for Zebpay {
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
+                "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(&args[..]).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_swap_markets" => self.fetch_swap_markets(&args[..]).await,
+                "fetch_swap_markets" => Value::Arr(self.fetch_swap_markets(&args[..]).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -1287,13 +1287,13 @@ impl Zebpay {
         let types: crate::value::List = self.safe_list_k_or(&fetchMarketsOptions, "types", defaultMarkets);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1208: bool = true;
-            while { if !__for_first_1208 { i += 1; } __for_first_1208 = false; i < (types.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (types.len() as i64) } {
             let type_var: String = self.safe_string(&types, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (type_var == "spot") {
-                promisesUnresolved.push(self.fetch_spot_markets(&[params.clone()]).await);
+                promisesUnresolved.push(Value::Arr(self.fetch_spot_markets(&[params.clone()]).await));
             }  else if (type_var == "swap") {
-                promisesUnresolved.push(self.fetch_swap_markets(&[params.clone()]).await);
+                promisesUnresolved.push(Value::Arr(self.fetch_swap_markets(&[params.clone()]).await));
             }  else {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarkets() this.options fetchMarkets \"").into()), type_var).into()), "\" is not a supported market type")));
             }
@@ -1493,8 +1493,8 @@ impl Zebpay {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1210: bool = true;
-            while { if !__for_first_1210 { i += 1; } __for_first_1210 = false; i < (fees.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (fees.len() as i64) } {
             let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None));
             let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {
@@ -2706,7 +2706,7 @@ impl Zebpay {
         }).await?))
     }
 
-    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2735,8 +2735,8 @@ impl Zebpay {
         let markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1211: bool = true;
-            while { if !__for_first_1211 { i += 1; } __for_first_1211 = false; i < (markets.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
@@ -2800,12 +2800,10 @@ impl Zebpay {
             }));
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
-    pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2839,8 +2837,8 @@ impl Zebpay {
         let markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1212: bool = true;
-            while { if !__for_first_1212 { i += 1; } __for_first_1212 = false; i < (markets.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (markets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&markets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
@@ -2893,9 +2891,7 @@ impl Zebpay {
 })]));
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 

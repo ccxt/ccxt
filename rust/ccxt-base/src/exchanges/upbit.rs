@@ -313,8 +313,8 @@ impl crate::exchange::DerivedExchange for Upbit {
             cost = Some("0".to_string());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1151: bool = true;
-                while { if !__for_first_1151 { i += 1; } __for_first_1151 = false; i < numTrades } {
+                let mut __for_first_7: bool = true;
+                while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < numTrades } {
                 let trade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(&trade, "cost", &[])).as_str().map(str::to_owned);
                 if getFeesFromTrades {
@@ -698,7 +698,7 @@ impl crate::exchange_generated::ExchangeBase for Upbit {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "ids_query_strings" => self.ids_query_strings(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1598,7 +1598,7 @@ impl Upbit {
     }
 
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1609,8 +1609,8 @@ impl Upbit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1144: bool = true;
-            while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; i < (response.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (response.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1622,9 +1622,9 @@ impl Upbit {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1650,7 +1650,7 @@ impl Upbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::List = self.private_get_accounts(&[&params]).await.unwrap_or_default();
-        return self.parse_balance_list(&response);
+        return Value::Dict(self.parse_balance_list(&response));
         Value::Null
         }).await?))
     }
@@ -1735,8 +1735,8 @@ impl Upbit {
         let orderbooks: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1145: bool = true;
-            while { if !__for_first_1145 { i += 1; } __for_first_1145 = false; i < (orderbooks.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (orderbooks.len() as i64) } {
             let orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(&orderbooks, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1827,8 +1827,8 @@ impl Upbit {
             let marketSymbols: &crate::value::List = &self.symbols;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1146: bool = true;
-                while { if !__for_first_1146 { i += 1; } __for_first_1146 = false; i < (marketSymbols.len() as i64) } {
+                let mut __for_first_2: bool = true;
+                while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (marketSymbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((marketSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let quoteId: Option<String> = (market).quote_id.as_deref().map(str::to_owned);
                 if !self.in_array(&quoteId, &quoteIds) {
@@ -1840,8 +1840,8 @@ impl Upbit {
             let mut quoteCurrencies: String = "".to_string();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1147: bool = true;
-                while { if !__for_first_1147 { i += 1; } __for_first_1147 = false; i < (sortedQuoteIds.len() as i64) } {
+                let mut __for_first_3: bool = true;
+                while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (sortedQuoteIds.len() as i64) } {
                 if (quoteCurrencies != "") {
                     quoteCurrencies = format!("{}{}", quoteCurrencies, ",");
                 }
@@ -1861,8 +1861,8 @@ impl Upbit {
             let queries: Vec<Value> = self.ids_query_strings(ids.map_or(Value::Null, Value::Arr)).as_array().cloned().unwrap_or_default(); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1148: bool = true;
-                while { if !__for_first_1148 { i += 1; } __for_first_1148 = false; i < (queries.len() as i64) } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (queries.len() as i64) } {
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("markets".to_string(), self.safe_string(&queries, Value::Int(i), &[Value::Str("".into())]));
@@ -1884,8 +1884,8 @@ impl Upbit {
         let mut queries: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1149: bool = true;
-            while { if !__for_first_1149 { i += 1; } __for_first_1149 = false; i < (ids.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (ids.len() as i64) } {
             if (idsString != "") {
                 idsString = format!("{}{}", idsString, ",");
             }
@@ -2089,8 +2089,8 @@ impl Upbit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1150: bool = true;
-            while { if !__for_first_1150 { i += 1; } __for_first_1150 = false; i < (fetchMarketResponse.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (fetchMarketResponse.len() as i64) } {
             let item: Option<crate::value::Dict> = (match fetchMarketResponse.get(i as usize) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
             let mut element: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();

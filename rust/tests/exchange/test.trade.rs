@@ -50,7 +50,7 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
     let emptyAllowedFor: Value = Value::from(vec![Value::Str("fees".into()), Value::Str("fee".into()), Value::Str("symbol".into()), Value::Str("order".into()), Value::Str("id".into()), Value::Str("takerOrMaker".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()), symbol]);
     //
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("side".into()), Value::from(vec![Value::Str("buy".into()), Value::Str("sell".into())])]);
     if isPublicTrade.as_bool() == Some(true) {
@@ -66,8 +66,8 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
         if (entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1564: bool = true;
-                while { if !__for_first_1564 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1564 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&entry, &Value::Str("fees".into()))).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_0 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&entry, &Value::Str("fees".into()))).as_f64().unwrap_or(f64::NAN) } {
                 crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null).clone(), i.clone()]);
             }
             }

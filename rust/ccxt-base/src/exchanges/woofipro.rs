@@ -417,8 +417,8 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let balances: crate::value::List = self.safe_list_k_t(response, "holding");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1190: bool = true;
-            while { if !__for_first_1190 { i += 1; } __for_first_1190 = false; i < (balances.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]).as_str(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -600,8 +600,8 @@ impl crate::exchange::DerivedExchange for Woofipro {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1184: bool = true;
-            while { if !__for_first_1184 { j += 1; } __for_first_1184 = false; j < (networks.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (networks.len() as i64) } {
             let networkEntry: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "chain_id", &[]);
             let mut networkRow: Option<crate::value::Dict> = self.safe_dict_o(&indexedChains, &networkId);
@@ -878,18 +878,29 @@ impl crate::exchange::DerivedExchange for Woofipro {
             if ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT"))) && ((path == "algo/order") || (path == "order") || (path == "batch-order")) {
                 let isSandboxMode: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
                 if !isSandboxMode {
-                    let brokerId: Value = self.safe_string_k(&self.options, "brokerId", &[Value::Str("CCXT".into())]);
+                    let brokerId: String = self.safe_string_k(&self.options, "brokerId", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
                     if (path == "batch-order") {
                         let ordersList: crate::value::List = self.safe_list_k_t(&requestParams, "orders");
+                        let mut taggedOrders: crate::value::List = std::sync::Arc::new(Vec::new());
+                        let mut hasOrders: bool = false;
                         {
                                                         let mut i: i64 = 0;
-                            let mut __for_first_1191: bool = true;
-                            while { if !__for_first_1191 { i += 1; } __for_first_1191 = false; i < (ordersList.len() as i64) } {
-                            add_element_to_object(get_value_mut(requestParams.entry("orders".into()).or_default(), &Value::Int(i)), &Value::Str("order_tag".into()), brokerId.clone());
+                            let mut __for_first_8: bool = true;
+                            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (ordersList.len() as i64) } {
+                            let orderRow: crate::value::Dict = self.extend_t(ordersList.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+                                let mut m = indexmap::IndexMap::new();
+                                    m.insert("order_tag".to_string(), Value::from(brokerId.clone()));
+                                m
+                            })]);
+                            std::sync::Arc::make_mut(&mut taggedOrders).push(Value::Dict(orderRow));
+                            hasOrders = true;
                         }
+                        }
+                        if hasOrders {
+                            requestParams.insert("orders".into(), Value::Arr(taggedOrders));
                         }
                     }  else {
-                        requestParams.insert("order_tag".into(), brokerId);
+                        requestParams.insert("order_tag".into(), Value::from(brokerId));
                     }
                 }
                 requestParams = self.keysort(Value::Map(std::mem::take(&mut requestParams)), &[]).as_map().cloned().unwrap_or_default();
@@ -1012,7 +1023,7 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "get_asset_history_rows" => self.get_asset_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "get_asset_history_rows" => Value::Arr(self.get_asset_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "get_withdraw_nonce" => self.get_withdraw_nonce(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -2422,8 +2433,8 @@ impl Woofipro {
         let indexedChains: crate::value::Dict = self.index_by(Value::Arr(chainRows), Value::Str("chain_id".into()));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1183: bool = true;
-            while { if !__for_first_1183 { i += 1; } __for_first_1183 = false; i < (tokenRows.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (tokenRows.len() as i64) } {
             let token: crate::value::Dict = self.safe_dict_t(&tokenRows, Value::Int(i));
             let parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_currency(self, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2783,8 +2794,8 @@ impl Woofipro {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1185: bool = true;
-            while { if !__for_first_1185 { i += 1; } __for_first_1185 = false; i < (rows.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (rows.len() as i64) } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
@@ -2906,8 +2917,8 @@ impl Woofipro {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1186: bool = true;
-            while { if !__for_first_1186 { i += 1; } __for_first_1186 = false; i < (rows.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rows.len() as i64) } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let marketId: String = self.safe_string_k(&row, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, Some(marketId.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
@@ -3003,8 +3014,8 @@ impl Woofipro {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1187: bool = true;
-            while { if !__for_first_1187 { i += 1; } __for_first_1187 = false; i < (result.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (result.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_rate_timestamp", &[]).as_i64();
@@ -3171,8 +3182,8 @@ impl Woofipro {
         let symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1188: bool = true;
-            while { if !__for_first_1188 { i += 1; } __for_first_1188 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3579,8 +3590,8 @@ impl Woofipro {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1189: bool = true;
-            while { if !__for_first_1189 { i += 1; } __for_first_1189 = false; i < (orders.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -4456,7 +4467,7 @@ impl Woofipro {
         }).await?))
     }
 
-    pub async fn get_asset_history_rows(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn get_asset_history_rows(&mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4513,9 +4524,7 @@ impl Woofipro {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return Value::Arr(rows);
-
-    Value::Null
+        return rows;
 }
 
 
@@ -4553,7 +4562,7 @@ impl Woofipro {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&params]).await.into_list();
+        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&params]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
@@ -4676,7 +4685,7 @@ impl Woofipro {
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
-        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&__ws_arg_32]).await.into_list();
+        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&__ws_arg_32]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));

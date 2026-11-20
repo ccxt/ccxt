@@ -650,7 +650,7 @@ impl crate::exchange_generated::ExchangeBase for Bitopro {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "insert_missing_candles" => self.insert_missing_candles(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_cancel_orders" => Value::Arr(self.parse_cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1480,8 +1480,8 @@ impl Bitopro {
         let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_412: bool = true;
-            while { if !__for_first_412 { i += 1; } __for_first_412 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1616,7 +1616,7 @@ impl Bitopro {
     Value::Null
 }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         //
         //     [{
@@ -1635,8 +1635,8 @@ impl Bitopro {
         let rows: crate::value::List = self.to_array_t(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_413: bool = true;
-            while { if !__for_first_413 { i += 1; } __for_first_413 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (rows.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1653,9 +1653,9 @@ impl Bitopro {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1681,7 +1681,7 @@ impl Bitopro {
         }
         let response: crate::value::Dict = self.private_get_accounts_balance(&[&params]).await.unwrap_or_default();
         let balances: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_balance_list(&balances);
+        return Value::Dict(self.parse_balance_list(&balances));
         Value::Null
         }).await?))
     }
@@ -1822,14 +1822,14 @@ impl Bitopro {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_415: bool = true;
-            while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (dataKeys.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (dataKeys.len() as i64) } {
             let marketId: Option<&str> = dataKeys.get(i as usize).copied();
             let orderIds: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_414: bool = true;
-                while { if !__for_first_414 { j += 1; } __for_first_414 = false; j < (orderIds.len() as i64) } {
+                let mut __for_first_2: bool = true;
+                while { if !__for_first_2 { j += 1; } __for_first_2 = false; j < (orderIds.len() as i64) } {
                 orders.push(Value::Dict(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), orderIds.get(j as usize).cloned().unwrap_or(Value::Null));

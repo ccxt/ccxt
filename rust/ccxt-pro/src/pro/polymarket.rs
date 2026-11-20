@@ -255,8 +255,8 @@ impl Polymarket {
         let mut willSend: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (hashesToCheck.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (hashesToCheck.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             if !(client.has_subscription(&hashesToCheck.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
                 willSend = true;
             }
@@ -507,8 +507,8 @@ impl Polymarket {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_657: bool = true;
-                while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.as_str())).into()));
                 channels.push(Value::Str(format!("{}{}", Value::Str("tickers::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -603,8 +603,8 @@ impl Polymarket {
         let mut channels: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_658: bool = true;
-            while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from((market).symbol.as_str())).into()));
             channels.push(Value::Str(format!("{}{}", Value::Str("bbo::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
@@ -795,8 +795,8 @@ impl Polymarket {
         let mut trades: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < rowsLength } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < rowsLength } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let trade: crate::value::Dict = self.parse_ws_trade(&row, Some(&market));
             trades.append(Value::Dict(trade));
@@ -986,8 +986,8 @@ impl Polymarket {
         let mut ohlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { i += 1; } __for_first_660 = false; i < (rows.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (rows.len() as i64) } {
             let parsed: crate::value::List = self.parse_ohlcv(rows.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_list();
             ohlcv.append(Value::Arr(parsed));
         }
@@ -1146,8 +1146,8 @@ impl Polymarket {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_661: bool = true;
-            while { if !__for_first_661 { i += 1; } __for_first_661 = false; i < rowsLength } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < rowsLength } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_order(Value::Dict(row), None);
             self.orders.append(Value::from(&parsed));
@@ -1161,8 +1161,8 @@ impl Polymarket {
         let symbolKeys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_662: bool = true;
-            while { if !__for_first_662 { i += 1; } __for_first_662 = false; i < (symbolKeys.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (symbolKeys.len() as i64) } {
             let symbol: String = self.safe_string(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", "orders:", symbol).into())));
         }
@@ -1269,8 +1269,8 @@ impl Polymarket {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { i += 1; } __for_first_663 = false; i < rowsLength } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < rowsLength } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_trade(Value::Dict(row), None);
             self.myTrades.append(Value::from(&parsed));
@@ -1284,8 +1284,8 @@ impl Polymarket {
         let symbolKeys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (symbolKeys.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (symbolKeys.len() as i64) } {
             let symbol: String = self.safe_string(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", "myTrades:", symbol).into())));
         }
@@ -1368,8 +1368,8 @@ impl Polymarket {
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (positions.len() as i64) } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (positions.len() as i64) } {
             self.positions.append(positions.get(i as usize).map(crate::Value::from).unwrap_or_default());
         }
         }
@@ -1502,8 +1502,8 @@ impl Polymarket {
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_666: bool = true;
-            while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < (rows.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (rows.len() as i64) } {
             let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let extended: crate::value::Dict = self.extend_t(row, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1596,8 +1596,8 @@ impl Polymarket {
         let mut errorMessage: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (data.len() as i64) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let status: Option<String> = self.safe_string_k_opt(&entry, "status", &[]);
             if (status.as_deref() == Some("err")) {
@@ -1609,8 +1609,8 @@ impl Polymarket {
             let error: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), errorMessage.as_deref().unwrap_or("null")));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_668: bool = true;
-                while { if !__for_first_668 { i += 1; } __for_first_668 = false; i < (messageHashes.len() as i64) } {
+                let mut __for_first_12: bool = true;
+                while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (messageHashes.len() as i64) } {
                 client.reject(error.clone(), &messageHashes.get(i as usize).cloned().unwrap_or(Value::Null));
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
@@ -1657,8 +1657,8 @@ impl Polymarket {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_669: bool = true;
-                while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < (messageHashes.len() as i64) } {
+                let mut __for_first_13: bool = true;
+                while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (messageHashes.len() as i64) } {
                 self.clean_unsubscription(&client, subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null), messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             }
             }

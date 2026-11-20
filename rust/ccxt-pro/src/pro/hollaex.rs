@@ -344,8 +344,8 @@ impl Hollaex {
         let parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_384: bool = true;
-            while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (parsedTrades.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (parsedTrades.len() as i64) } {
             stored.append(self.safe_dict(&parsedTrades, Value::Int(i), &[]));
         }
         }
@@ -445,8 +445,8 @@ impl Hollaex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_385: bool = true;
-            while { if !__for_first_385 { i += 1; } __for_first_385 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (rawTrades.len() as i64) } {
             let trade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_trade(Value::from(&trade), None);
             self.myTrades.append(Value::Dict(parsed));
@@ -463,8 +463,8 @@ impl Hollaex {
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { i += 1; } __for_first_386 = false; i < (keys.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (keys.len() as i64) } {
             let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if (channel.is_some()) {
                 let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null"));
@@ -600,8 +600,8 @@ impl Hollaex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i += 1; } __for_first_387 = false; i < (rawOrders.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawOrders.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_order(Value::from(&order), None);
             self.orders.append(Value::Dict(parsed));
@@ -618,8 +618,8 @@ impl Hollaex {
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { i += 1; } __for_first_388 = false; i < (keys.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (keys.len() as i64) } {
             let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if (channel.is_some()) {
                 let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null"));
@@ -681,8 +681,8 @@ impl Hollaex {
         { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_389: bool = true;
-            while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (keys.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let parts: crate::value::List = crate::value::List::new(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);

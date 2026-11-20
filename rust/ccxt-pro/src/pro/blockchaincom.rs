@@ -265,8 +265,8 @@ impl Blockchaincom {
         let balances: crate::value::List = __pro_message.key_list("balances");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_166: bool = true;
-            while { if !__for_first_166 { i += 1; } __for_first_166 = false; i < (balances.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (balances.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -791,8 +791,8 @@ impl Blockchaincom {
             let mut orders: crate::value::List = __pro_message.key_list("orders");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_167: bool = true;
-                while { if !__for_first_167 { i += 1; } __for_first_167 = false; i < (orders.len() as i64) } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (orders.len() as i64) } {
                 let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
                 let parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None);
                 self.orders.append(Value::Dict(parsedOrder));
@@ -1023,8 +1023,8 @@ impl Blockchaincom {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_168: bool = true;
-            while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (deltas.len() as i64) } {
             self.handle_delta(&mut bookside, deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }

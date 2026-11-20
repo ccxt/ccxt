@@ -343,8 +343,8 @@ impl Bitopro {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_136: bool = true;
-            while { if !__for_first_136 { i += 1; } __for_first_136 = false; i < (trades.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (trades.len() as i64) } {
             let mut trade: Option<crate::value::Dict> = self.safe_dict_o(&trades, Value::Int(i));
             tradesCache.append(trade.map_or(Value::Null, Value::Dict));
         }
@@ -738,8 +738,8 @@ impl Bitopro {
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null)); }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_137: bool = true;
-            while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (currencies.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (currencies.len() as i64) } {
             let currency: Option<String> = self.safe_string_opt(&currencies, Value::Int(i), &[]);
             let balance: crate::value::Dict = self.safe_dict_t(&data, currency.map(Value::from).unwrap_or(Value::Null));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);

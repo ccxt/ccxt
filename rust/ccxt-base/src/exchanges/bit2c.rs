@@ -324,8 +324,8 @@ impl crate::exchange::DerivedExchange for Bit2c {
         let codes: Vec<Value> = Value::Array(self.currencies.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_331: bool = true;
-            while { if !__for_first_331 { i += 1; } __for_first_331 = false; i < (codes.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (codes.len() as i64) } {
             let code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
@@ -1023,8 +1023,8 @@ impl Bit2c {
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_332: bool = true;
-            while { if !__for_first_332 { i += 1; } __for_first_332 = false; i < (rawBids.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (rawBids.len() as i64) } {
             let bidRow: crate::value::List = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let bidAmount: Option<String> = self.safe_string_opt(&bidRow, Value::Int(1), &[]);
             if crate::precise::Precise::stringGt(&bidAmount, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1034,8 +1034,8 @@ impl Bit2c {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_333: bool = true;
-            while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (rawAsks.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (rawAsks.len() as i64) } {
             let askRow: crate::value::List = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let askAmount: Option<String> = self.safe_string_opt(&askRow, Value::Int(1), &[]);
             if crate::precise::Precise::stringGt(&askAmount, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1211,8 +1211,8 @@ impl Bit2c {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_334: bool = true;
-            while { if !__for_first_334 { i += 1; } __for_first_334 = false; i < (keys.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (keys.len() as i64) } {
             let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let mut fee: Option<crate::value::Dict> = self.safe_dict_o(&fees, Value::from(marketId.as_deref()));
@@ -1511,8 +1511,8 @@ impl Bit2c {
         let strParts: Vec<Value> = Value::Array(if let Some(__s) = Some(str_val) { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (strParts.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (strParts.len() as i64) } {
             newString.push_str(&(strParts.get(i as usize).cloned().unwrap_or(Value::Null)).to_string());
         }
         }

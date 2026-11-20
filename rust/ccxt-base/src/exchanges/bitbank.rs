@@ -275,8 +275,8 @@ impl crate::exchange::DerivedExchange for Bitbank {
         let assets: crate::value::List = self.safe_list_k_t(&data, "assets");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_340: bool = true;
-            while { if !__for_first_340 { i += 1; } __for_first_340 = false; i < (assets.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (assets.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1216,8 +1216,8 @@ impl Bitbank {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { i += 1; } __for_first_339 = false; i < (pairs.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (pairs.len() as i64) } {
             let pair: crate::value::Dict = self.safe_dict_t(&pairs, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&pair, "name", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);

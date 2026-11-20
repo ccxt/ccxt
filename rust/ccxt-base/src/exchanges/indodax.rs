@@ -246,8 +246,8 @@ impl crate::exchange::DerivedExchange for Indodax {
         let currencyIds: Vec<Value> = Value::Array(free.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_843: bool = true;
-            while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (currencyIds.len() as i64) } {
             let currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -1007,8 +1007,8 @@ impl Indodax {
         let rawMarkets: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_842: bool = true;
-            while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (rawMarkets.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rawMarkets.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "traded_currency", &[]);
@@ -1262,8 +1262,8 @@ impl Indodax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_844: bool = true;
-            while { if !__for_first_844 { i += 1; } __for_first_844 = false; i < (keys.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let rawTicker: crate::value::Dict = tickers.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
             let marketId: Option<String> = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None });
@@ -1503,8 +1503,8 @@ impl Indodax {
         let mut exchangeOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_845: bool = true;
-            while { if !__for_first_845 { i += 1; } __for_first_845 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             market = Some(self.safe_market(marketId.as_deref(), None, &[]));
@@ -1945,8 +1945,8 @@ impl Indodax {
             let withdrawKeys: Vec<Value> = Value::Array(withdraw.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_846: bool = true;
-                while { if !__for_first_846 { i += 1; } __for_first_846 = false; i < (withdrawKeys.len() as i64) } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (withdrawKeys.len() as i64) } {
                 let key: Option<&str> = withdrawKeys.get(i as usize).and_then(Value::as_str);
                 transactions = self.array_concat_t(Value::Arr(transactions), withdraw.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
@@ -1954,8 +1954,8 @@ impl Indodax {
             let depositKeys: Vec<Value> = Value::Array(deposit.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_847: bool = true;
-                while { if !__for_first_847 { i += 1; } __for_first_847 = false; i < (depositKeys.len() as i64) } {
+                let mut __for_first_5: bool = true;
+                while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (depositKeys.len() as i64) } {
                 let key: Option<&str> = depositKeys.get(i as usize).and_then(Value::as_str);
                 transactions = self.array_concat_t(Value::Arr(transactions), deposit.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
@@ -2105,8 +2105,8 @@ impl Indodax {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_849: bool = true;
-            while { if !__for_first_849 { i += 1; } __for_first_849 = false; i < (addressKeys.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (addressKeys.len() as i64) } {
             let mut marketId: Option<&str> = addressKeys.get(i as usize).and_then(Value::as_str);
             let code: Option<String> = self.safe_currency_code(marketId.as_deref(), None);
             let address: Option<String> = self.safe_string_opt(&addresses, Value::from(marketId.as_deref()), &[]);
@@ -2126,8 +2126,8 @@ impl Indodax {
                         let networkIds: Vec<Value> = Value::Array(if let Some(__s) = networkId.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
-                            let mut __for_first_848: bool = true;
-                            while { if !__for_first_848 { j += 1; } __for_first_848 = false; j < (networkIds.len() as i64) } {
+                            let mut __for_first_6: bool = true;
+                            while { if !__for_first_6 { j += 1; } __for_first_6 = false; j < (networkIds.len() as i64) } {
                             let _netIdTmp: Value = Value::from(self.network_id_to_code(Value::from(networkIds.get(j as usize).cloned().unwrap_or(Value::Null)).as_text().as_deref(), code.as_deref()));
                             if (_netIdTmp != Value::Null) {
                                 if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };

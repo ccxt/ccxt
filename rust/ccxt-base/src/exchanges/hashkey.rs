@@ -721,8 +721,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let balances: crate::value::List = self.safe_list_k_t(balance, "balances");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_731: bool = true;
-            while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (balances.len() as i64) } {
             let balanceEntry: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balanceEntry, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -958,8 +958,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_730: bool = true;
-            while { if !__for_first_730 { j += 1; } __for_first_730 = false; j < (networks.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (networks.len() as i64) } {
             let network: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&network, "chainType", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -1279,8 +1279,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { i += 1; } __for_first_735 = false; i < (riskLimits.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (riskLimits.len() as i64) } {
             let tier: crate::value::Dict = self.safe_dict_t(&riskLimits, Value::Int(i));
             let initialMarginRate: Option<String> = self.safe_string_k_opt(&tier, "initialMargin", &[]);
             tiers.push(Value::Map({
@@ -1398,8 +1398,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
             let result: crate::value::List = self.safe_list_k_t(response, "result"); // for batch methods
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_737: bool = true;
-                while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (result.len() as i64) } {
+                let mut __for_first_7: bool = true;
+                while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (result.len() as i64) } {
                 let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
                 let entryCodeInteger: Option<i64> = self.safe_integer_k(&entry, "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {
@@ -4119,8 +4119,8 @@ impl Hashkey {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (orders.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -4159,8 +4159,8 @@ impl Hashkey {
         let mut responseOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (result.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (result.len() as i64) } {
             let responseEntry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
             let responseOrder: crate::value::Dict = self.safe_dict_k_t(&responseEntry, "order");
             responseOrders.push(Value::Dict(responseOrder));
@@ -4943,8 +4943,8 @@ impl Hashkey {
         let rows: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_734: bool = true;
-            while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (rows.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (rows.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "settleTime", &[]).as_i64();
             rates.push(Value::Map({
@@ -5424,8 +5424,8 @@ impl Hashkey {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_736: bool = true;
-            while { if !__for_first_736 { i += 1; } __for_first_736 = false; i < (data.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.len() as i64) } {
             let fee: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let parsedFee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(&fee, None));
             result.insert(crate::runtime::stringify_param(&(parsedFee.get("symbol").cloned().unwrap_or(Value::Null))), Value::Map(parsedFee));

@@ -315,8 +315,8 @@ impl Bithumb {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_131: bool = true;
-            while { if !__for_first_131 { i += 1; } __for_first_131 = false; i < symbolsLengthDefined } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < symbolsLengthDefined } {
             let symbol: Option<String> = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut streamMarketId: Option<String> = None;
@@ -731,8 +731,8 @@ impl Bithumb {
         let mut asksSnapshot: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_132: bool = true;
-            while { if !__for_first_132 { i += 1; } __for_first_132 = false; i < (units.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (units.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&units, Value::Int(i));
             let bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
             let bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
@@ -895,8 +895,8 @@ impl Bithumb {
         let rawTrades: Vec<Value> = self.safe_list_k(&content, "list", &[Value::from(vec![message])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_133: bool = true;
-            while { if !__for_first_133 { i += 1; } __for_first_133 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (rawTrades.len() as i64) } {
             let rawTrade: crate::value::Dict = self.safe_dict_t(&rawTrades, Value::Int(i));
             let marketId: Option<String> = self.safe_string2_opt(&rawTrade, Value::Str("symbol".into()), Value::Str("code".into()), &[]);
             if (marketId.is_none()) {
@@ -1117,8 +1117,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_134: bool = true;
-            while { if !__for_first_134 { i += 1; } __for_first_134 = false; i < (assets.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (assets.len() as i64) } {
             let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&asset, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1170,8 +1170,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Vec<Value> = Value::Array(subscriptions.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_135: bool = true;
-            while { if !__for_first_135 { i += 1; } __for_first_135 = false; i < (keys.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (keys.len() as i64) } {
             request.push(get_value(&subscriptions, &keys.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }

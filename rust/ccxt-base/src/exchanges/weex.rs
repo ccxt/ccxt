@@ -937,8 +937,8 @@ impl crate::exchange::DerivedExchange for Weex {
         let chains: crate::value::List = self.safe_list_k_t(&rawCurrency, "networkList");
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1152: bool = true;
-            while { if !__for_first_1152 { j += 1; } __for_first_1152 = false; j < (chains.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (chains.len() as i64) } {
             let chain: Option<crate::value::Dict> = self.safe_dict_o(&chains, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -1335,7 +1335,7 @@ impl crate::exchange_generated::ExchangeBase for Weex {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_i64).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "nonce" => self.nonce(),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2818,8 +2818,8 @@ impl Weex {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1153: bool = true;
-            while { if !__for_first_1153 { i += 1; } __for_first_1153 = false; i < (response.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (response.len() as i64) } {
             let rawTicker: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             let marketId: Option<String> = self.safe_string_k_opt(&rawTicker, "symbol", &[]);
@@ -3535,12 +3535,12 @@ impl Weex {
                 response = self.call_method(Value::Str("contract_private_get_capi_v3_account_balance".into()), &[&Value::Dict(paramsMarketType)]).await;
             }
         }
-        return self.parse_balance_list(response);
+        return Value::Dict(self.parse_balance_list(response));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3551,8 +3551,8 @@ impl Weex {
         let balances: crate::value::List = self.safe_list_k_or(&response, "balances", &response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1154: bool = true;
-            while { if !__for_first_1154 { i += 1; } __for_first_1154 = false; i < (balances.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (balances.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "asset", &[]);
             if sandboxMode && (currencyId.as_deref() == Some("SUSDT")) {
@@ -3568,9 +3568,9 @@ impl Weex {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*

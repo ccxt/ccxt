@@ -395,8 +395,8 @@ impl Blofin {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_169: bool = true;
-            while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
             let symbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -634,8 +634,8 @@ impl Blofin {
         let data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_170: bool = true;
-            while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (data.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
             let ticker: crate::value::Dict = self.parse_ws_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -691,8 +691,8 @@ impl Blofin {
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_171: bool = true;
-            while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (symbolsList.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsList.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "bidask:", (market).symbol).into()));
             args.push(Value::Map({
@@ -728,8 +728,8 @@ impl Blofin {
         let data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_172: bool = true;
-            while { if !__for_first_172 { i += 1; } __for_first_172 = false; i < (data.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
             let ticker: crate::value::Dict = self.parse_ws_bid_ask(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -931,8 +931,8 @@ impl Blofin {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_173: bool = true;
-            while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (data.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (data.len() as i64) } {
             let mut candle: Option<crate::value::List> = self.safe_list_o(&data, Value::Int(i));
             let parsed: crate::value::List = self.parse_ohlcv(candle.map_or(Value::Null, Value::Arr), Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
@@ -1016,8 +1016,8 @@ impl Blofin {
         let mut keys: Vec<Value> = Value::Array(parsed.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_174: bool = true;
-            while { if !__for_first_174 { i += 1; } __for_first_174 = false; i < (keys.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if self.in_array(Value::from(key.as_deref()), &reserved) {
                 continue;
@@ -1169,8 +1169,8 @@ impl Blofin {
         let mut symbols: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_175: bool = true;
-            while { if !__for_first_175 { i += 1; } __for_first_175 = false; i < (data.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.len() as i64) } {
             let order: crate::value::Dict = self.parse_ws_order(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -1181,8 +1181,8 @@ impl Blofin {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_176: bool = true;
-            while { if !__for_first_176 { i += 1; } __for_first_176 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbols.len() as i64) } {
             if (channelName.is_some()) {
                 client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), symbols.get(i as usize).cloned().unwrap_or(Value::Null)).into())));
             }
@@ -1255,8 +1255,8 @@ impl Blofin {
         let mut newPositions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_177: bool = true;
-            while { if !__for_first_177 { i += 1; } __for_first_177 = false; i < (data.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
             let position: crate::value::Dict = self.parse_ws_position(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -1380,8 +1380,8 @@ impl Blofin {
         if symbolsLength > 0 {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_178: bool = true;
-                while { if !__for_first_178 { i += 1; } __for_first_178 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_9: bool = true;
+                while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let current: Option<String> = symbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: Option<crate::types::Market> = None;
                 let mut channel: String = channelName.to_string();
@@ -1462,8 +1462,8 @@ impl Blofin {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_179: bool = true;
-            while { if !__for_first_179 { i += 1; } __for_first_179 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbols, Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut channel: String = channelName.to_string();
             if isOHLCV {

@@ -31,15 +31,15 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let emptyAllowedFor: Value = Value::from(vec![Value::Str("nonce".into())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), format, emptyAllowedFor]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".into()), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".into()), symbol]);
     let logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), orderbook.clone());
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     let bids: Value = orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null);
     let bidsLength: i64 = get_array_length(&bids).as_i64().unwrap_or_default();
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1562: bool = true;
-        while { if !__for_first_1562 { i += 1; } __for_first_1562 = false; i < bidsLength } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < bidsLength } {
         let currentBidString: Option<String> = exchange.safe_string_opt(get_value(&bids, &Value::Int(i)), Value::Int(0), &[]);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
             let nextI: Value = Value::Int((i + 1));
@@ -59,8 +59,8 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let asksLength: i64 = get_array_length(&asks).as_i64().unwrap_or_default();
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1563: bool = true;
-        while { if !__for_first_1563 { i += 1; } __for_first_1563 = false; i < asksLength } {
+        let mut __for_first_1: bool = true;
+        while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < asksLength } {
         let currentAskString: Option<String> = exchange.safe_string_opt(get_value(&asks, &Value::Int(i)), Value::Int(0), &[]);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
             let nextI: Value = Value::Int((i + 1));

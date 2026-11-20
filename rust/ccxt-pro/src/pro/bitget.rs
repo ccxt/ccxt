@@ -442,8 +442,8 @@ impl Bitget {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_115: bool = true;
-            while { if !__for_first_115 { i += 1; } __for_first_115 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsList.len() as i64) } {
             let symbol: Option<String> = symbolsList.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let marketInner: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut args: indexmap::IndexMap<String, Value> = ({
@@ -727,8 +727,8 @@ impl Bitget {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_116: bool = true;
-            while { if !__for_first_116 { i += 1; } __for_first_116 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsList.len() as i64) } {
             let symbol: Option<String> = symbolsList.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let marketInner: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut args: indexmap::IndexMap<String, Value> = ({
@@ -1055,8 +1055,8 @@ impl Bitget {
         let data: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_117: bool = true;
-            while { if !__for_first_117 { i += 1; } __for_first_117 = false; i < (data.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
             let parsed: crate::value::List = self.parse_ws_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
             stored.append(Value::Arr(parsed));
         }
@@ -1301,8 +1301,8 @@ impl Bitget {
         let mut paramsCursor: Value = Value::Dict(paramsUta);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_118: bool = true;
-            while { if !__for_first_118 { i += 1; } __for_first_118 = false; i < symbolsLength } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < symbolsLength } {
             let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let instTypeparamsInstTypeVariable = self.get_inst_type(Value::Str("watchOrderBookForSymbols".into()), Some(&market), &[&Value::Bool(isStockOrUta), &paramsCursor]);
@@ -1449,8 +1449,8 @@ impl Bitget {
                 let mut payloadArray: Vec<Value> = Vec::new();
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_119: bool = true;
-                    while { if !__for_first_119 { i += 1; } __for_first_119 = false; (i as f64) < ((25i64) as f64) } {
+                    let mut __for_first_4: bool = true;
+                    while { if !__for_first_4 { i += 1; } __for_first_4 = false; (i as f64) < ((25i64) as f64) } {
                     if i < bidsLength {
                         let bidLevel: crate::value::List = storedBids.level(&Value::Int(i)).into_list();
                         let bidParts: &Value = bidLevel.get(2).unwrap_or(&Value::Null);
@@ -1525,8 +1525,8 @@ impl Bitget {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_120: bool = true;
-            while { if !__for_first_120 { i += 1; } __for_first_120 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (deltas.len() as i64) } {
             self.handle_delta(&mut bookside, deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1607,8 +1607,8 @@ impl Bitget {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_121: bool = true;
-            while { if !__for_first_121 { i += 1; } __for_first_121 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let instTypeparamsInstTypeVariable = self.get_inst_type(Value::Str("watchTradesForSymbols".into()), Some(&market), &[&uta.map_or(Value::Null, Value::Bool), &paramsCursor]);
@@ -1751,8 +1751,8 @@ impl Bitget {
         let length: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_122: bool = true;
-            while { if !__for_first_122 { i += 1; } __for_first_122 = false; i < length } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < length } {
             let index: i64 = (((length - i)) - 1);
             let rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::from(index)).into_dict();
             let parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market));
@@ -2079,8 +2079,8 @@ impl Bitget {
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_123: bool = true;
-            while { if !__for_first_123 { i += 1; } __for_first_123 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (rawPositions.len() as i64) } {
             let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
             let marketId: Option<String> = self.safe_string2_opt(&rawPosition, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]);
@@ -2092,8 +2092,8 @@ impl Bitget {
         let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", instType, ":positions::").into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_124: bool = true;
-            while { if !__for_first_124 { i += 1; } __for_first_124 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (messageHashes.len() as i64) } {
             let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -2489,8 +2489,8 @@ impl Bitget {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_125: bool = true;
-            while { if !__for_first_125 { i += 1; } __for_first_125 = false; i < (data.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (data.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string2_opt(&order, Value::Str("instId".into()), Value::Str("symbol".into()), &[&argInstId]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -2505,8 +2505,8 @@ impl Bitget {
         let mut keys: Vec<Value> = Value::Array(marketSymbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_126: bool = true;
-            while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (keys.len() as i64) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (keys.len() as i64) } {
             let symbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
             if (channel.as_deref() == Some("orders-crossed")) {
@@ -3019,8 +3019,8 @@ impl Bitget {
         let instType: Option<String> = self.safe_string_lower_k_opt(&arg, "instType", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_127: bool = true;
-            while { if !__for_first_127 { i += 1; } __for_first_127 = false; i < length } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < length } {
             let trade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut market: Option<crate::types::Market> = None;
             if (instType.as_deref() == Some("uta")) {
@@ -3232,15 +3232,15 @@ impl Bitget {
         let data: crate::value::List = __pro_message.key_list("data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_129: bool = true;
-            while { if !__for_first_129 { i += 1; } __for_first_129 = false; i < (data.len() as i64) } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (data.len() as i64) } {
             let rawBalance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (instType.as_deref() == Some("uta")) {
                 let coins: crate::value::List = self.safe_list_k_t(&rawBalance, "coin");
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_128: bool = true;
-                    while { if !__for_first_128 { j += 1; } __for_first_128 = false; j < (coins.len() as i64) } {
+                    let mut __for_first_13: bool = true;
+                    while { if !__for_first_13 { j += 1; } __for_first_13 = false; j < (coins.len() as i64) } {
                     let entry: crate::value::Dict = self.safe_dict_t(&coins, Value::Int(j));
                     let currencyId: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
                     let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -3884,8 +3884,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_130: bool = true;
-            while { if !__for_first_130 { i += 1; } __for_first_130 = false; i < (argsList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (argsList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let arg: crate::value::Dict = self.safe_dict_t(&argsList, Value::Int(i));
             let channel: String = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if channel.contains("books") {

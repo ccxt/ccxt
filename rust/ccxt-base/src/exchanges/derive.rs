@@ -918,13 +918,13 @@ impl crate::exchange_generated::ExchangeBase for Derive {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "get_markets_paginated" => self.get_markets_paginated(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "get_markets_paginated" => Value::Arr(self.get_markets_paginated(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "handle_derive_subaccount_id" => { let __t = self.handle_derive_subaccount_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![Value::from(__t.0), Value::Dict(__t.1)]) },
                 "handle_derive_wallet_address" => { let __t = self.handle_derive_wallet_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_borrow_interest" => self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_borrow_rate" => self.parse_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2095,8 +2095,8 @@ impl Derive {
         let mut accounts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i += 1; } __for_first_633 = false; i < (subaccountIds.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (subaccountIds.len() as i64) } {
             let subaccountId: Option<String> = self.safe_string_opt(&subaccountIds, Value::Int(i), &[]);
             accounts.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2289,7 +2289,7 @@ impl Derive {
                 m.insert("instrument_type".to_string(), Value::Str("erc20".into()));
             m
         });
-        let instruments: Option<crate::value::List> = self.get_markets_paginated(Value::Map(request), &[&params]).await.into_opt_list();
+        let instruments: Option<crate::value::List> = Some(self.get_markets_paginated(Value::Map(request), &[&params]).await);
         return self.parse_markets(&instruments);
 
     Value::Null
@@ -2306,7 +2306,7 @@ impl Derive {
                 m.insert("instrument_type".to_string(), Value::Str("perp".into()));
             m
         });
-        let instruments: Option<crate::value::List> = self.get_markets_paginated(Value::Map(request), &[&params]).await.into_opt_list();
+        let instruments: Option<crate::value::List> = Some(self.get_markets_paginated(Value::Map(request), &[&params]).await);
         return self.parse_markets(&instruments);
 
     Value::Null
@@ -2323,7 +2323,7 @@ impl Derive {
                 m.insert("instrument_type".to_string(), Value::Str("option".into()));
             m
         });
-        let instruments: Option<crate::value::List> = self.get_markets_paginated(Value::Map(request), &[&params]).await.into_opt_list();
+        let instruments: Option<crate::value::List> = Some(self.get_markets_paginated(Value::Map(request), &[&params]).await);
         return self.parse_markets(&instruments);
 
     Value::Null
@@ -2338,7 +2338,7 @@ impl Derive {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of raw instrument entries
  */
-    pub async fn get_markets_paginated(&mut self, request: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub async fn get_markets_paginated(&mut self, request: impl Into<crate::Value>, optional_args: &[&Value]) -> crate::value::List {
         let request: Value = request.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -2353,8 +2353,8 @@ impl Derive {
         let paramsOmitted: crate::value::Dict = pageSizeparamsOmittedVariable.1;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_634: bool = true;
-            while { if !__for_first_634 { i += 1; } __for_first_634 = false; matches!(maxPages, Some(__b) if (i as f64) < (__b as f64)) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; matches!(maxPages, Some(__b) if (i as f64) < (__b as f64)) } {
             let requestExtension: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("page".to_string(), Value::Int((i + 1)));
@@ -2375,9 +2375,7 @@ impl Derive {
             }
         }
         }
-        return Value::Arr(allInstruments);
-
-    Value::Null
+        return allInstruments;
 }
 
 
@@ -2838,8 +2836,8 @@ impl Derive {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { i += 1; } __for_first_635 = false; i < (settlements.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (settlements.len() as i64) } {
             result.push(Value::Dict(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market)));
         }
         }
@@ -3031,8 +3029,8 @@ impl Derive {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_636: bool = true;
-            while { if !__for_first_636 { i += 1; } __for_first_636 = false; i < (tradesArray.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (tradesArray.len() as i64) } {
             let mut rawTrade: crate::value::Dict = self.safe_dict_t(&tradesArray, Value::Int(i));
             let isFetchTrades: bool = !(rawTrade.contains_key("order_id"));
             let liquidityRole: Option<String> = self.safe_string_k_opt(&rawTrade, "liquidity_role", &[]);
@@ -3225,8 +3223,8 @@ impl Derive {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_637: bool = true;
-            while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (data.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
             rates.push(Value::Map({
@@ -4779,7 +4777,7 @@ impl Derive {
             let subaccountResponse: crate::value::Dict = self.private_post_get_subaccount(&[&__ws_arg_29]).await.unwrap_or_default();
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             let subaccountResult: crate::value::Dict = self.safe_dict_k_t(&subaccountResponse, "result");
-            return self.parse_balance_list(Value::from(vec![Value::Dict(subaccountResult)]));
+            return Value::Dict(self.parse_balance_list(Value::from(vec![Value::Dict(subaccountResult)])));
         }
         let deriveWalletAddressparamsDeriveWalletAddressVariable = self.handle_derive_wallet_address("fetchBalance", params);
         let deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.0.as_str().map(str::to_owned);
@@ -5040,12 +5038,12 @@ impl Derive {
         //     }
         //
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_balance_list(&result);
+        return Value::Dict(self.parse_balance_list(&result));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5057,15 +5055,15 @@ impl Derive {
         let subaccounts: crate::value::List = self.to_array_t(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_639: bool = true;
-            while { if !__for_first_639 { i += 1; } __for_first_639 = false; i < (subaccounts.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (subaccounts.len() as i64) } {
             let subaccount: crate::value::Dict = self.safe_dict_t(&subaccounts, Value::Int(i));
             usedUsd = crate::precise::Precise::stringSub(&usedUsd, &crate::precise::Precise::stringAdd(&self.safe_string_k(&subaccount, "positions_initial_margin", &[Value::Str("0".into())]), &self.safe_string_k(&subaccount, "open_orders_margin", &[Value::Str("0".into())]))).as_str().map(str::to_owned);
             let collaterals: crate::value::List = self.safe_list_k_t(&subaccount, "collaterals");
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_638: bool = true;
-                while { if !__for_first_638 { j += 1; } __for_first_638 = false; j < (collaterals.len() as i64) } {
+                let mut __for_first_5: bool = true;
+                while { if !__for_first_5 { j += 1; } __for_first_5 = false; j < (collaterals.len() as i64) } {
                 let balance: crate::value::Dict = self.safe_dict_t(&collaterals, Value::Int(j));
                 let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]).as_str(), None);
                 let mut account: Value = self.safe_dict(&result, Value::from(code.as_deref()), &[]);
@@ -5093,9 +5091,9 @@ impl Derive {
             if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&totalUsdc, &used)); }
             result.insert("USDC".into(), usdcAccount.map_or(Value::Null, Value::Dict));
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -5280,8 +5278,8 @@ impl Derive {
         let mut parsed: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_640: bool = true;
-            while { if !__for_first_640 { i += 1; } __for_first_640 = false; i < (transfers.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (transfers.len() as i64) } {
             parsed.push(<Self as crate::exchange::DerivedExchange>::parse_transfer(self, self.safe_dict(&transfers, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5368,8 +5366,8 @@ impl Derive {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_641: bool = true;
-            while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (rows.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (rows.len() as i64) } {
             // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
             rates.push(self.parse_borrow_rate(self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();

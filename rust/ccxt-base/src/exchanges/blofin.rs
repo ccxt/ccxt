@@ -513,8 +513,8 @@ impl crate::exchange::DerivedExchange for Blofin {
         let details: crate::value::List = self.safe_list_k_t(&data, "details");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_464: bool = true;
-            while { if !__for_first_464 { i += 1; } __for_first_464 = false; i < (details.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (details.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&details, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -832,8 +832,8 @@ impl crate::exchange::DerivedExchange for Blofin {
         let chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_467: bool = true;
-            while { if !__for_first_467 { i += 1; } __for_first_467 = false; (i as f64) < chainsLength } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; (i as f64) < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict_o(&chains, Value::Int(i));
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "chain", &[]);
             let networkCode: Value = self.chain_id_to_network_code(networkId.as_deref()).map(Value::from).unwrap_or(Value::Null);
@@ -1086,8 +1086,8 @@ impl crate::exchange::DerivedExchange for Blofin {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_468: bool = true;
-            while { if !__for_first_468 { i += 1; } __for_first_468 = false; (i as f64) < chainsLength } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; (i as f64) < chainsLength } {
             let chain: crate::value::Dict = self.safe_dict_t(&fee, Value::Int(i));
             let networkCode: Option<String> = self.chain_id_to_network_code(self.safe_string_k(&chain, "chain", &[]).as_str());
             if (networkCode.is_none()) {
@@ -2820,8 +2820,8 @@ impl Blofin {
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_463: bool = true;
-            while { if !__for_first_463 { i += 1; } __for_first_463 = false; i < (data.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.len() as i64) } {
             let rate: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&rate, "fundingTime", &[]).as_i64();
             rates.push(Value::Map({
@@ -2933,8 +2933,8 @@ impl Blofin {
         let data: crate::value::List = self.safe_list_k_t(response, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_465: bool = true;
-            while { if !__for_first_465 { i += 1; } __for_first_465 = false; i < (data.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -3360,8 +3360,8 @@ impl Blofin {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_466: bool = true;
-            while { if !__for_first_466 { i += 1; } __for_first_466 = false; i < (orders.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -4006,8 +4006,8 @@ impl Blofin {
         let dataLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_469: bool = true;
-            while { if !__for_first_469 { i += 1; } __for_first_469 = false; (i as f64) < dataLength } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; (i as f64) < dataLength } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (self.safe_string_k(&entry, "depositId", &[]).as_str() == Some(id)) {
                 return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &entry, currency.as_ref());
@@ -4060,8 +4060,8 @@ impl Blofin {
         let dataLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_470: bool = true;
-            while { if !__for_first_470 { i += 1; } __for_first_470 = false; (i as f64) < dataLength } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; (i as f64) < dataLength } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut matches: bool = false;
             if (id.is_some()) {
@@ -4345,8 +4345,8 @@ impl Blofin {
             if (tpslIds != Value::Null) {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_471: bool = true;
-                    while { if !__for_first_471 { i += 1; } __for_first_471 = false; i < (tpslIds.len() as i64) } {
+                    let mut __for_first_8: bool = true;
+                    while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (tpslIds.len() as i64) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tpslId".to_string(), self.safe_string(&tpslIds, Value::Int(i), &[]));
@@ -4358,8 +4358,8 @@ impl Blofin {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_472: bool = true;
-                while { if !__for_first_472 { i += 1; } __for_first_472 = false; i < (orderIds.len() as i64) } {
+                let mut __for_first_9: bool = true;
+                while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (orderIds.len() as i64) } {
                 if (trigger == Some(true)) {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -4380,8 +4380,8 @@ impl Blofin {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_473: bool = true;
-                while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (clientOrderIds.len() as i64) } {
+                let mut __for_first_10: bool = true;
+                while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (clientOrderIds.len() as i64) } {
                 request.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instId".to_string(), Value::from((market).id.as_deref()));

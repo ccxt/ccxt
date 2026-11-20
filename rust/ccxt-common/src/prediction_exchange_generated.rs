@@ -135,8 +135,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut extraNames: String = "".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_186: bool = true;
-            while { if !__for_first_186 { i += 1; } __for_first_186 = false; i < extraScopeParamsLength } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < extraScopeParamsLength } {
             let scopeKey: Value = extraScopeParams.get(i as usize).cloned().unwrap_or(Value::Null);
             if (matches!((&params, &scopeKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return Value::Null;
@@ -169,8 +169,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut filtered: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_187: bool = true;
-                while { if !__for_first_187 { i += 1; } __for_first_187 = false; i < (result.len() as i64) } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (result.len() as i64) } {
                 let event: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
                 let idMatch: bool = (eventId.is_some()) && ((eventId.as_deref() == self.safe_string_k(&event, "id", &[]).as_str()));
                 let slugMatch: bool = (slug.is_some()) && ((slug.as_deref() == self.safe_string_k(&event, "slug", &[]).as_str()));
@@ -205,8 +205,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if (sortKey != Value::Null) {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_188: bool = true;
-                    while { if !__for_first_188 { i += 1; } __for_first_188 = false; i < (result.len() as i64) } {
+                    let mut __for_first_2: bool = true;
+                    while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (result.len() as i64) } {
                     { let __be_tmp = self.safe_number(get_value(&result, &Value::Int(i)), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &Value::Int(i)), &sortKey, __be_tmp); }
                 }
                 }
@@ -239,8 +239,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_189: bool = true;
-            while { if !__for_first_189 { i += 1; } __for_first_189 = false; i < (events.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (events.len() as i64) } {
             let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let isActive: Option<bool> = self.safe_bool_k_opt(&event, "active", &[]);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
@@ -270,16 +270,16 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_191: bool = true;
-            while { if !__for_first_191 { i += 1; } __for_first_191 = false; i < (events.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (events.len() as i64) } {
             let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let title: String = self.safe_string_lower_k(&event, "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let description: String = self.safe_string_lower_k(&event, "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut matched: bool = false;
             {
                                 let mut qi: i64 = 0;
-                let mut __for_first_190: bool = true;
-                while { if !__for_first_190 { qi += 1; } __for_first_190 = false; qi < queriesLength } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { qi += 1; } __for_first_4 = false; qi < queriesLength } {
                 let q: String = self.safe_string(&queries, Value::Int(qi), &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
                 if checkTitle && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), Some(q.as_str())) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                     matched = true;
@@ -314,8 +314,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut pendingSep: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_192: bool = true;
-            while { if !__for_first_192 { i += 1; } __for_first_192 = false; i < (chars.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (chars.len() as i64) } {
             let ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), ch.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 if pendingSep && (s != "") {
@@ -347,8 +347,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut wanted: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_193: bool = true;
-            while { if !__for_first_193 { i += 1; } __for_first_193 = false; i < tagsLength } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < tagsLength } {
             let wantedKey: Option<String> = self.normalize_tag_key(self.safe_string(&tags, Value::Int(i), &[Value::Str("".into())])).as_str().map(str::to_owned);
             if (wantedKey.as_deref() != Some("")) {
                 // an empty normalized key would substring-match every tag
@@ -359,15 +359,15 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_196: bool = true;
-            while { if !__for_first_196 { i += 1; } __for_first_196 = false; i < (events.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (events.len() as i64) } {
             let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
             let eventTags: crate::value::List = self.safe_list_k_t(&event, "tags");
             let mut matched: bool = false;
             {
                                 let mut ti: i64 = 0;
-                let mut __for_first_195: bool = true;
-                while { if !__for_first_195 { ti += 1; } __for_first_195 = false; ti < (eventTags.len() as i64) } {
+                let mut __for_first_9: bool = true;
+                while { if !__for_first_9 { ti += 1; } __for_first_9 = false; ti < (eventTags.len() as i64) } {
                 let tag: Value = eventTags.get(ti as usize).cloned().unwrap_or(Value::Null);
                 let mut tagLabel: Value = Value::Null;
                 if matches!(&tag, Value::Str(_)) {
@@ -379,8 +379,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     let tagKey: Option<String> = self.normalize_tag_key(tagLabel).as_str().map(str::to_owned);
                     {
                                                 let mut wi: i64 = 0;
-                        let mut __for_first_194: bool = true;
-                        while { if !__for_first_194 { wi += 1; } __for_first_194 = false; wi < (wanted.len() as i64) } {
+                        let mut __for_first_8: bool = true;
+                        while { if !__for_first_8 { wi += 1; } __for_first_8 = false; wi < (wanted.len() as i64) } {
                         if ((if let (Some(__h), Some(__n)) = (tagKey.as_deref(), (wanted.get(wi as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                             matched = true;
                             break;
@@ -460,8 +460,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_197: bool = true;
-            while { if !__for_first_197 { i += 1; } __for_first_197 = false; i < (events.len() as i64) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (events.len() as i64) } {
             let event: Value = self.safe_dict(&events, Value::Int(i), &[]);
             let id: Option<String> = self.safe_string_k_opt(&event, "id", &[]);
             let slug: Option<String> = self.safe_string_k_opt(&event, "slug", &[]);
@@ -496,8 +496,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut keys: Vec<Value> = Value::Array(self.pred().events.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_198: bool = true;
-            while { if !__for_first_198 { i += 1; } __for_first_198 = false; i < (keys.len() as i64) } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (keys.len() as i64) } {
             let event: Value = get_value(&self.pred().events, &keys.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut identity: Option<String> = self.safe_string2_opt(&event, Value::Str("id".into()), Value::Str("event".into()), &[&keys.get(i as usize).cloned().unwrap_or(Value::Null)]);
             if !(matches!(identity.as_deref(), Some(__k) if seen.contains_key(__k))) {
@@ -630,7 +630,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 }
 
-    fn shorten_slug(&self, mut slug: Value) -> Value {
+    fn shorten_slug(&self, mut slug: Value) -> String {
         let replacements: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("federal-reserve".to_string(), Value::Str("fed".into()));
@@ -670,8 +670,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut lastDash: bool = true; // start true to drop leading separators
         {
                         let mut i: i64 = 0;
-            let mut __for_first_199: bool = true;
-            while { if !__for_first_199 { i += 1; } __for_first_199 = false; i < (chars.len() as i64) } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (chars.len() as i64) } {
             let ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), ch.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 s = Value::Str(format!("{}{}", s, ch.as_deref().unwrap_or("null")).into());
@@ -685,8 +685,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let replacementKeys: Vec<Value> = Value::Array(replacements.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_200: bool = true;
-            while { if !__for_first_200 { i += 1; } __for_first_200 = false; i < (replacementKeys.len() as i64) } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (replacementKeys.len() as i64) } {
             let replacementKey: Value = replacementKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let replacementValue: Option<String> = self.safe_string_opt(&replacements, &replacementKey, &[]);
             if (replacementValue.is_some()) {
@@ -698,8 +698,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut parts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_201: bool = true;
-            while { if !__for_first_201 { i += 1; } __for_first_201 = false; i < (rawParts.len() as i64) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (rawParts.len() as i64) } {
             let w: Option<String> = rawParts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if ((w.as_deref().unwrap_or_default().chars().count() as i64)) > 0 && !self.in_array(&w, &stopWords) {
                 parts.push(w.map(Value::from).unwrap_or(Value::Null));
@@ -707,9 +707,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         }
         let joined: String = parts.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("_");
-        return Value::from(joined.to_uppercase());
-
-    Value::Null
+        return joined.to_uppercase();
 }
 
     fn slug_to_market_symbol(&self, mut eventSlug: Value, mut marketSlug: Value) -> Value {
@@ -722,12 +720,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
         // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
         // already-unique handles stay clean.
-        let marketPart: Option<String> = self.shorten_slug(marketSlug).as_str().map(str::to_owned);
-        let eventPart: Option<String> = self.shorten_slug(eventSlug).as_str().map(str::to_owned);
-        if (eventPart.is_none()) || (eventPart.as_deref() == Some("")) || (eventPart == marketPart) {
-            return marketPart.map(Value::from).unwrap_or(Value::Null);
+        let marketPart: String = self.shorten_slug(marketSlug);
+        let eventPart: String = self.shorten_slug(eventSlug);
+        if (false) || (eventPart == "") || (eventPart == marketPart) {
+            return Value::from(marketPart);
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", eventPart.as_deref().unwrap_or("null"), "_").into()), marketPart.as_deref().unwrap_or("null")).into());
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", eventPart, "_").into()), marketPart).into());
 
     Value::Null
 }
@@ -746,8 +744,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut pendingSep: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_202: bool = true;
-            while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (chars.len() as i64) } {
+            let mut __for_first_16: bool = true;
+            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (chars.len() as i64) } {
             let ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), ch.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 if pendingSep && (label.as_str() != Some("")) {
@@ -778,8 +776,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut aliased: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_203: bool = true;
-            while { if !__for_first_203 { i += 1; } __for_first_203 = false; i < (marketsList.len() as i64) } {
+            let mut __for_first_17: bool = true;
+            while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (marketsList.len() as i64) } {
             let row: Value = marketsList.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut copy: crate::value::Dict = self.extend_t(Value::Map({
                 let m = indexmap::IndexMap::new();
@@ -796,8 +794,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let marketKeys: Vec<Value> = object_keys(&stored).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_204: bool = true;
-            while { if !__for_first_204 { i += 1; } __for_first_204 = false; i < (marketKeys.len() as i64) } {
+            let mut __for_first_18: bool = true;
+            while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (marketKeys.len() as i64) } {
             let key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             { let __be_tmp = self.omit(self.safe_dict(&stored, key.clone(), &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -830,8 +828,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let outcomesList: crate::value::List = self.safe_list_k_t(market, "outcomes");
         {
                         let mut j: i64 = 0;
-            let mut __for_first_205: bool = true;
-            while { if !__for_first_205 { j += 1; } __for_first_205 = false; j < (outcomesList.len() as i64) } {
+            let mut __for_first_19: bool = true;
+            while { if !__for_first_19 { j += 1; } __for_first_19 = false; j < (outcomesList.len() as i64) } {
             let mut oc: Value = outcomesList.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut ocSymbol: Option<String> = self.safe_string2_opt(&oc, Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
             let ocId: Value = self.safe_string2(&oc, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]);
@@ -888,8 +886,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let marketKeys: Vec<Value> = Value::Array(self.markets.as_deref().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_206: bool = true;
-            while { if !__for_first_206 { i += 1; } __for_first_206 = false; i < (marketKeys.len() as i64) } {
+            let mut __for_first_20: bool = true;
+            while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (marketKeys.len() as i64) } {
             self.index_market_outcomes(self.markets.as_deref().and_then(|__m| marketKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
         }
         }
@@ -908,8 +906,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let marketsLength: i64 = markets.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_207: bool = true;
-            while { if !__for_first_207 { i += 1; } __for_first_207 = false; i < marketsLength } {
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < marketsLength } {
             let m: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let marketHandle: Option<String> = self.safe_string2_opt(&m, Value::Str("market".into()), Value::Str("symbol".into()), &[]);
             if (marketHandle.is_some()) {
@@ -940,8 +938,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut missing: Value = Value::from(vec![]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_208: bool = true;
-                while { if !__for_first_208 { i += 1; } __for_first_208 = false; i < (outcomes.len() as i64) } {
+                let mut __for_first_22: bool = true;
+                while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (outcomes.len() as i64) } {
                 if reload.as_bool() == Some(true) || !(self.has_outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
                     if let Value::Arr(__a) = &mut missing { std::sync::Arc::make_mut(__a).push(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
                 }
@@ -957,8 +955,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 let mut stillMissing: crate::value::List = std::sync::Arc::new(Vec::new());
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_209: bool = true;
-                    while { if !__for_first_209 { i += 1; } __for_first_209 = false; i < missingLength } {
+                    let mut __for_first_23: bool = true;
+                    while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < missingLength } {
                     if !(self.has_outcome((missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
                         std::sync::Arc::make_mut(&mut stillMissing).push(missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                     }
@@ -1000,8 +998,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let outcomeSymbols = outcomeSymbols.as_array().unwrap_or(&__outcomeSymbols_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_210: bool = true;
-            while { if !__for_first_210 { i += 1; } __for_first_210 = false; i < (outcomeSymbols.len() as i64) } {
+            let mut __for_first_24: bool = true;
+            while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (outcomeSymbols.len() as i64) } {
             self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
         }
         }
@@ -1074,8 +1072,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let letters: String = "abcdefghijklmnopqrstuvwxyz".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_212: bool = true;
-            while { if !__for_first_212 { i += 1; } __for_first_212 = false; i < (rawWords.len() as i64) } {
+            let mut __for_first_26: bool = true;
+            while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (rawWords.len() as i64) } {
             let word: Option<String> = rawWords.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
@@ -1086,8 +1084,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let chars: Vec<Value> = self.string_to_chars_array(word.clone().map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
             {
                                 let mut ci: i64 = 0;
-                let mut __for_first_211: bool = true;
-                while { if !__for_first_211 { ci += 1; } __for_first_211 = false; ci < (chars.len() as i64) } {
+                let mut __for_first_25: bool = true;
+                while { if !__for_first_25 { ci += 1; } __for_first_25 = false; ci < (chars.len() as i64) } {
                 if ((if let (Some(__h), Some(__n)) = (Some(letters.as_str()), (chars.get(ci as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                     wordHasLetters = true;
                     break;
@@ -2000,8 +1998,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_213: bool = true;
-                while { if !__for_first_213 { i += 1; } __for_first_213 = false; i < tradesLength } {
+                let mut __for_first_27: bool = true;
+                while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < tradesLength } {
                 let trade: crate::value::Dict = crate::value::KeyRead::read(&&trades, &Value::Int(i)).into_dict();
                 let tradeAmount: Option<String> = self.safe_string_k_opt(&trade, "amount", &[]);
                 if (tradeAmount.is_some()) {
@@ -2335,8 +2333,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_214: bool = true;
-            while { if !__for_first_214 { i += 1; } __for_first_214 = false; i < (rows.len() as i64) } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (rows.len() as i64) } {
             let parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let trade: crate::value::Dict = self.extend_t(parsed, &[&params]);
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(trade));
@@ -2374,8 +2372,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_215: bool = true;
-            while { if !__for_first_215 { i += 1; } __for_first_215 = false; i < (rows.len() as i64) } {
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (rows.len() as i64) } {
             let parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
             let order: crate::value::Dict = self.extend_t(parsed, &[&params]);
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(order));
@@ -2410,8 +2408,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut results: Vec<crate::value::Dict> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_216: bool = true;
-            while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < (rows.len() as i64) } {
+            let mut __for_first_30: bool = true;
+            while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (rows.len() as i64) } {
             let parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), None);
             let position: crate::value::Dict = self.extend_t(parsed, &[&params]);
             results.push(position);
@@ -2527,8 +2525,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut concatenated: String = "".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_217: bool = true;
-            while { if !__for_first_217 { i += 1; } __for_first_217 = false; i < (items.len() as i64) } {
+            let mut __for_first_31: bool = true;
+            while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (items.len() as i64) } {
             concatenated = format!("{}{}", concatenated, self.safe_string(&items, Value::Int(i), &[Value::Str("".into())]));
         }
         }
@@ -2575,8 +2573,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let total: i64 = h.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_218: bool = true;
-            while { if !__for_first_218 { i += 1; } __for_first_218 = false; i < total } {
+            let mut __for_first_32: bool = true;
+            while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < total } {
             if ((match (&(h), i, (match &(Value::Int((i + 1))) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
                 __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
                 __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
@@ -2741,7 +2739,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null)).await,
             "set_events" => <Self as crate::prediction_exchange_generated::PredictionBase>::set_events(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "set_markets" => <Self as crate::prediction_exchange_generated::PredictionBase>::set_markets(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "shorten_slug" => <Self as crate::prediction_exchange_generated::PredictionBase>::shorten_slug(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "shorten_slug" => crate::Value::from(<Self as crate::prediction_exchange_generated::PredictionBase>::shorten_slug(self, args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "sign_evm_transaction" => <Self as crate::prediction_exchange_generated::PredictionBase>::sign_evm_transaction(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "slug_to_market_symbol" => <Self as crate::prediction_exchange_generated::PredictionBase>::slug_to_market_symbol(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "slug_to_outcome_symbol" => <Self as crate::prediction_exchange_generated::PredictionBase>::slug_to_outcome_symbol(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),

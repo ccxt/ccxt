@@ -382,8 +382,8 @@ impl crate::exchange::DerivedExchange for Foxbit {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_679: bool = true;
-            while { if !__for_first_679 { j += 1; } __for_first_679 = false; j < (networks.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (networks.len() as i64) } {
             let network: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&network, "code", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -560,8 +560,8 @@ impl crate::exchange::DerivedExchange for Foxbit {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_683: bool = true;
-                while { if !__for_first_683 { i += 1; } __for_first_683 = false; i < (paramKeys.len() as i64) } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (paramKeys.len() as i64) } {
                 let key: Option<&str> = paramKeys.get(i as usize).and_then(Value::as_str);
                 let value: Option<String> = self.safe_string_opt(&paramsOmitted, Value::from(key.as_deref()), &[]);
                 if (value.is_some()) {
@@ -618,8 +618,8 @@ impl crate::exchange::DerivedExchange for Foxbit {
         if (details.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_684: bool = true;
-                while { if !__for_first_684 { i += 1; } __for_first_684 = false; i < (details.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_5: bool = true;
+                while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (details.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 detailsString = format!("{}{}", Value::Str(format!("{}{}", detailsString, self.safe_string(&details, Value::Int(i), &[Value::Str("".into())])).into()), " ");
             }
             }
@@ -664,7 +664,7 @@ impl crate::exchange_generated::ExchangeBase for Foxbit {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_status" => self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
+                "fetch_orders_by_status" => Value::Arr(self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1531,8 +1531,8 @@ impl Foxbit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_680: bool = true;
-            while { if !__for_first_680 { i += 1; } __for_first_680 = false; i < (data.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "market_symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -1759,8 +1759,8 @@ impl Foxbit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_681: bool = true;
-            while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (accounts.len() as i64) } {
             let account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&account, "currency_symbol", &[]);
             let currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1808,7 +1808,7 @@ impl Foxbit {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_status(Some("ACTIVE"), symbol.as_str(), since, limit, &[params]).await;
+        return Value::Arr(self.fetch_orders_by_status(Some("ACTIVE"), symbol.as_str(), since, limit, &[params]).await);
         Value::Null
         }).await?))
     }
@@ -1837,7 +1837,7 @@ impl Foxbit {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_status(Some("FILLED"), symbol.as_str(), since, limit, &[params]).await;
+        return Value::Arr(self.fetch_orders_by_status(Some("FILLED"), symbol.as_str(), since, limit, &[params]).await);
         Value::Null
         }).await?))
     }
@@ -1855,12 +1855,12 @@ impl Foxbit {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_orders_by_status(Some("CANCELED"), symbol.as_str(), since, limit, &[params]).await;
+        return Value::Arr(self.fetch_orders_by_status(Some("CANCELED"), symbol.as_str(), since, limit, &[params]).await);
         Value::Null
         }).await?))
     }
 
-    pub async fn fetch_orders_by_status(&mut self, status: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_by_status(&mut self, status: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let limit: Value = limit.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1891,9 +1891,7 @@ impl Foxbit {
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.v3_private_get_orders(&[&__ws_arg_4]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_orders(&data, None, &[]));
-
-    Value::Null
+        return self.parse_orders(&data, None, &[]);
 }
 
 /*
@@ -2010,8 +2008,8 @@ impl Foxbit {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_682: bool = true;
-            while { if !__for_first_682 { i += 1; } __for_first_682 = false; i < (orders.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (orders.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

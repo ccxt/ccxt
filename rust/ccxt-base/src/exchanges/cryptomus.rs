@@ -350,8 +350,8 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_606: bool = true;
-            while { if !__for_first_606 { i += 1; } __for_first_606 = false; i < (rawCurrency.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Option<crate::value::Dict> = self.safe_dict_o(&rawCurrency, Value::Int(i));
             // set ID on first loop
             if (id.is_none()) {
@@ -513,7 +513,7 @@ impl crate::exchange_generated::ExchangeBase for Cryptomus {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_fee_tiers" => self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1263,12 +1263,12 @@ impl Cryptomus {
         //     }
         //
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_balance_list(&result);
+        return Value::Dict(self.parse_balance_list(&result));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, balance: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, balance: impl Into<crate::Value>) -> crate::value::Dict {
         let balance: Value = balance.into();
         //
         //     {
@@ -1284,8 +1284,8 @@ impl Cryptomus {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < (balance.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (balance.len() as i64) } {
             let balanceEntry: crate::value::Dict = self.safe_dict_t(&balance, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balanceEntry, "ticker", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1297,9 +1297,9 @@ impl Cryptomus {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1524,8 +1524,8 @@ impl Cryptomus {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_608: bool = true;
-            while { if !__for_first_608 { i += 1; } __for_first_608 = false; i < (result.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (result.len() as i64) } {
             orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, result.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
@@ -1704,8 +1704,8 @@ impl Cryptomus {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_609: bool = true;
-            while { if !__for_first_609 { i += 1; } __for_first_609 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1731,8 +1731,8 @@ impl Cryptomus {
         let mut makerFees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_610: bool = true;
-            while { if !__for_first_610 { i += 1; } __for_first_610 = false; i < (feeTiers.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (feeTiers.len() as i64) } {
             let tier: crate::value::Dict = self.safe_dict_t(&feeTiers, Value::Int(i));
             let turnover: Option<f64> = self.safe_number_k(&tier, "from_turnover", &[]).as_f64();
             let mut taker: Option<String> = self.safe_string_k_opt(&tier, "taker_percent", &[]);

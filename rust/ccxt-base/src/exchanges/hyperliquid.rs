@@ -747,8 +747,8 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
                 let mut nameWithoutU: String = "".to_string();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_800: bool = true;
-                    while { if !__for_first_800 { j += 1; } __for_first_800 = false; j < (parts.len() as i64) } {
+                    let mut __for_first_0: bool = true;
+                    while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (parts.len() as i64) } {
                     nameWithoutU = format!("{}{}", nameWithoutU, parts.get(j as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
@@ -1062,8 +1062,8 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
             let statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_834: bool = true;
-                while { if !__for_first_834 { i += 1; } __for_first_834 = false; i < (statuses.len() as i64) } {
+                let mut __for_first_34: bool = true;
+                while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (statuses.len() as i64) } {
                 let statusError: Option<String> = self.safe_string_k_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
                 if (statusError.is_some()) {
                     message = statusError;
@@ -1160,7 +1160,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
+                "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(&args[..]).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_swap_markets" => self.fetch_swap_markets(&args[..]).await,
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1844,13 +1844,13 @@ impl Hyperliquid {
         let mut rawPromises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_801: bool = true;
-            while { if !__for_first_801 { i += 1; } __for_first_801 = false; i < (types.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (types.len() as i64) } {
             let marketType: Option<String> = self.safe_string_opt(&types, Value::Int(i), &[]);
             if (marketType.as_deref() == Some("swap")) {
                 rawPromises.push(self.fetch_swap_markets(&[params.clone()]).await);
             }  else if (marketType.as_deref() == Some("spot")) {
-                rawPromises.push(self.fetch_spot_markets(&[params.clone()]).await);
+                rawPromises.push(Value::Arr(self.fetch_spot_markets(&[params.clone()]).await));
             }  else if (marketType.as_deref() == Some("hip3")) {
                 rawPromises.push(self.fetch_hip3_markets(&[&params]).await);
             }
@@ -1860,8 +1860,8 @@ impl Hyperliquid {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_802: bool = true;
-            while { if !__for_first_802 { i += 1; } __for_first_802 = false; i < (promises.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (promises.len() as i64) } {
             result = self.array_concat_t(Value::Arr(result), self.safe_list(&promises, Value::Int(i), &[Value::from(vec![])]));
         }
         }
@@ -1914,8 +1914,8 @@ impl Hyperliquid {
         let dexesCount: i64 = Value::Int(fetchDexes.len() as i64).as_i64().unwrap_or_default();
         {
                         let mut i: i64 = 1;
-            let mut __for_first_803: bool = true;
-            while { if !__for_first_803 { i += 1; } __for_first_803 = false; i < dexesCount } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < dexesCount } {
             // builder-deployed perp dexs start at 110000
             let dex: crate::value::Dict = self.safe_dict_t(&fetchDexes, Value::Int(i));
             let secondPart: i64 = (((i * 10000)) - 10000);
@@ -1943,8 +1943,8 @@ impl Hyperliquid {
             let maxIteration: i64 = (maxLimit + 1);
             {
                                 let mut i: i64 = 1;
-                let mut __for_first_804: bool = true;
-                while { if !__for_first_804 { i += 1; } __for_first_804 = false; i < maxIteration } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < maxIteration } {
                 if i >= fetchDexesLength {
                     break;
                 }
@@ -1960,8 +1960,8 @@ impl Hyperliquid {
         let mut rawPromises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_805: bool = true;
-            while { if !__for_first_805 { i += 1; } __for_first_805 = false; i < (fetchDexesList.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (fetchDexesList.len() as i64) } {
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
@@ -1980,8 +1980,8 @@ impl Hyperliquid {
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_807: bool = true;
-            while { if !__for_first_807 { i += 1; } __for_first_807 = false; i < (promises.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (promises.len() as i64) } {
             let dexName: Option<String> = self.safe_string_opt(&fetchDexesList, Value::Int(i), &[]);
             let offset: Option<i64> = self.safe_integer(&perpDexesOffset, Value::from(dexName.as_deref()), &[]).as_i64();
             let response: crate::value::List = self.safe_list_t(&promises, Value::Int(i));
@@ -1992,8 +1992,8 @@ impl Hyperliquid {
             let mut result: Vec<Value> = Vec::new();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_806: bool = true;
-                while { if !__for_first_806 { j += 1; } __for_first_806 = false; j < (universe.len() as i64) } {
+                let mut __for_first_6: bool = true;
+                while { if !__for_first_6 { j += 1; } __for_first_6 = false; j < (universe.len() as i64) } {
                 let __ws_arg_4 = self.safe_dict(&universe, Value::Int(j), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2096,8 +2096,8 @@ impl Hyperliquid {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_808: bool = true;
-            while { if !__for_first_808 { i += 1; } __for_first_808 = false; i < (universe.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (universe.len() as i64) } {
             let __ws_arg_7 = self.safe_dict(&universe, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2177,7 +2177,7 @@ impl Hyperliquid {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2244,8 +2244,8 @@ impl Hyperliquid {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_809: bool = true;
-            while { if !__for_first_809 { i += 1; } __for_first_809 = false; i < (tokens.len() as i64) } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (tokens.len() as i64) } {
             let token: crate::value::Dict = self.safe_dict_t(&tokens, Value::Int(i));
             let tokenIndex: Option<String> = self.safe_string_k_opt(&token, "index", &[]);
             if (tokenIndex.is_some()) {
@@ -2256,8 +2256,8 @@ impl Hyperliquid {
         let mut markets: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_810: bool = true;
-            while { if !__for_first_810 { i += 1; } __for_first_810 = false; i < (meta.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (meta.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&meta, Value::Int(i));
             let index: Option<i64> = self.safe_integer_k(&market, "index", &[]).as_i64();
             let extraData: crate::value::Dict = self.safe_dict_t(&second, index);
@@ -2371,9 +2371,7 @@ impl Hyperliquid {
             markets.push(self.safe_market_structure(&[Value::Map(entry)]));
         }
         }
-        return Value::from(markets);
-
-    Value::Null
+        return std::sync::Arc::new(markets);
 }
 
 
@@ -2477,8 +2475,8 @@ impl Hyperliquid {
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_811: bool = true;
-                while { if !__for_first_811 { i += 1; } __for_first_811 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_11: bool = true;
+                while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
                 let unifiedCode: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "coin", &[]).as_str(), None);
                 let code: Option<String> = (if (isSpot) { self.update_spot_currency_code(unifiedCode.as_deref()) } else { unifiedCode });
@@ -2636,7 +2634,7 @@ impl Hyperliquid {
         if (hip3 == Some(true)) {
             response = self.fetch_hip3_markets(&[&self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await.into_list();
         }  else if (type_var.as_deref() == Some("spot")) {
-            response = self.fetch_spot_markets(&[Value::from(&paramsHip3)]).await.into_list();
+            response = self.fetch_spot_markets(&[Value::from(&paramsHip3)]).await;
         }  else if (type_var.as_deref() == Some("swap")) {
             response = self.fetch_swap_markets(&[Value::from(&paramsHip3)]).await.into_list();
         }  else {
@@ -2649,8 +2647,8 @@ impl Hyperliquid {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_812: bool = true;
-            while { if !__for_first_812 { i += 1; } __for_first_812 = false; i < (response.len() as i64) } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (response.len() as i64) } {
             let market: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             let info: crate::value::Dict = self.safe_dict_k_t(&market, "info");
             let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &info, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()).unwrap_or_default();
@@ -2768,8 +2766,8 @@ impl Hyperliquid {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_813: bool = true;
-            while { if !__for_first_813 { i += 1; } __for_first_813 = false; i < (universe.len() as i64) } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (universe.len() as i64) } {
             let __ws_arg_13 = self.safe_dict(&universe, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3848,8 +3846,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut ordersToBeParsed: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_814: bool = true;
-            while { if !__for_first_814 { i += 1; } __for_first_814 = false; i < (statuses.len() as i64) } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (statuses.len() as i64) } {
             let order: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
             if (order.as_str() == Some("waitingForTrigger")) {
                 ordersToBeParsed.push(Value::Map({
@@ -3979,8 +3977,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let ordersLength: i64 = orders.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_815: bool = true;
-            while { if !__for_first_815 { i += 1; } __for_first_815 = false; i < ordersLength } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < ordersLength } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let clientOrderId: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
@@ -3992,8 +3990,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if hasClientOrderId {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_816: bool = true;
-                while { if !__for_first_816 { i += 1; } __for_first_816 = false; i < ordersLength } {
+                let mut __for_first_16: bool = true;
+                while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < ordersLength } {
                 let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
                 let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
                 let clientOrderId: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
@@ -4009,8 +4007,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut grouping: String = "na".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_817: bool = true;
-            while { if !__for_first_817 { i += 1; } __for_first_817 = false; i < ordersLength } {
+            let mut __for_first_17: bool = true;
+            while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < ordersLength } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4214,8 +4212,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_818: bool = true;
-            while { if !__for_first_818 { i += 1; } __for_first_818 = false; i < (statuses.len() as i64) } {
+            let mut __for_first_18: bool = true;
+            while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (statuses.len() as i64) } {
             let status: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
             orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4351,8 +4349,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             cancelAction.insert("type".into(), Value::Str("cancelByCloid".into()));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_819: bool = true;
-                while { if !__for_first_819 { i += 1; } __for_first_819 = false; (i as f64) < Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_19: bool = true;
+                while { if !__for_first_19 { i += 1; } __for_first_19 = false; (i as f64) < Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), baseId.clone());
@@ -4365,8 +4363,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             cancelAction.insert("type".into(), Value::Str("cancel".into()));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_820: bool = true;
-                while { if !__for_first_820 { i += 1; } __for_first_820 = false; i < (ids.len() as i64) } {
+                let mut __for_first_20: bool = true;
+                while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (ids.len() as i64) } {
                 let o: Value = self.parse_to_numeric(self.safe_string(&ids, Value::Int(i), &[]));
                 std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -4442,8 +4440,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut cancelByCloid: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_821: bool = true;
-            while { if !__for_first_821 { i += 1; } __for_first_821 = false; i < (orders.len() as i64) } {
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (orders.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientOrderId", &[]);
             if (clientOrderId.is_some()) {
@@ -4553,8 +4551,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let ordersLength: i64 = orders.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_822: bool = true;
-            while { if !__for_first_822 { i += 1; } __for_first_822 = false; i < ordersLength } {
+            let mut __for_first_22: bool = true;
+            while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < ordersLength } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let clientOrderId: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
@@ -4566,8 +4564,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if hasClientOrderId {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_823: bool = true;
-                while { if !__for_first_823 { i += 1; } __for_first_823 = false; i < ordersLength } {
+                let mut __for_first_23: bool = true;
+                while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < ordersLength } {
                 let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
                 let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
                 let clientOrderId: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
@@ -4581,8 +4579,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut modifies: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_824: bool = true;
-            while { if !__for_first_824 { i += 1; } __for_first_824 = false; i < ordersLength } {
+            let mut __for_first_24: bool = true;
+            while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < ordersLength } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&rawOrder, "id", &[]);
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
@@ -4932,8 +4930,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_825: bool = true;
-            while { if !__for_first_825 { i += 1; } __for_first_825 = false; i < (fundings.len() as i64) } {
+            let mut __for_first_25: bool = true;
+            while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (fundings.len() as i64) } {
             let entry: Option<crate::value::Dict> = self.safe_dict_o(&fundings, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "time", &[]).as_i64();
             result.push(Value::Map({
@@ -5032,8 +5030,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut orderWithStatus: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_826: bool = true;
-            while { if !__for_first_826 { i += 1; } __for_first_826 = false; i < (rawOrders.len() as i64) } {
+            let mut __for_first_26: bool = true;
+            while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (rawOrders.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
             let mut extendOrder: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -5226,8 +5224,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_827: bool = true;
-            while { if !__for_first_827 { i += 1; } __for_first_827 = false; i < (historicalOrders.len() as i64) } {
+            let mut __for_first_27: bool = true;
+            while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < (historicalOrders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&historicalOrders, Value::Int(i));
             let entry: crate::value::Dict = self.safe_dict_k_or(&rawOrder, "order", Value::from(&rawOrder));
             let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
@@ -5513,8 +5511,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let user: Option<String> = self.safe_string_lower_k_opt(&request, "user", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_828: bool = true;
-            while { if !__for_first_828 { i += 1; } __for_first_828 = false; i < (response.len() as i64) } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (response.len() as i64) } {
             let fill: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let liquidation: crate::value::Dict = self.safe_dict_k_t(&fill, "liquidation");
             // liquidator fills carry the liquidated counterparty here
@@ -5574,8 +5572,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let dexName: Option<String> = self.get_dex_from_hip3_symbol(Some(&firstMarket));
         {
                         let mut i: i64 = 1;
-            let mut __for_first_829: bool = true;
-            while { if !__for_first_829 { i += 1; } __for_first_829 = false; i < symbolsLength } {
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let currentDexName: Option<String> = self.get_dex_from_hip3_symbol(Some(&market));
             if (currentDexName != dexName) {
@@ -5676,8 +5674,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_830: bool = true;
-            while { if !__for_first_830 { i += 1; } __for_first_830 = false; i < (data.len() as i64) } {
+            let mut __for_first_30: bool = true;
+            while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (data.len() as i64) } {
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, data.get(i as usize).cloned().unwrap_or(Value::Null), None).map_or(Value::Null, Value::Dict));
         }
         }
@@ -6502,8 +6500,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_831: bool = true;
-            while { if !__for_first_831 { i += 1; } __for_first_831 = false; i < (records.len() as i64) } {
+            let mut __for_first_31: bool = true;
+            while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (records.len() as i64) } {
             let record: crate::value::Dict = crate::value::KeyRead::read(&&records, &Value::Int(i)).into_dict();
             if (self.safe_string_k(&record, "type", &[]).as_str() == Some("vaultDeposit")) {
                 let delta: crate::value::Dict = self.safe_dict_k_t(&record, "delta");
@@ -6591,8 +6589,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut withdrawals: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_832: bool = true;
-            while { if !__for_first_832 { i += 1; } __for_first_832 = false; i < (records.len() as i64) } {
+            let mut __for_first_32: bool = true;
+            while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < (records.len() as i64) } {
             let record: crate::value::Dict = crate::value::KeyRead::read(&&records, &Value::Int(i)).into_dict();
             if (self.safe_string_k(&record, "type", &[]).as_str() == Some("vaultWithdraw")) {
                 let delta: crate::value::Dict = self.safe_dict_k_t(&record, "delta");
@@ -6669,7 +6667,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let ois: crate::types::OpenInterests = (match self.fetch_open_interests(Some(vec![symbolValue.to_string()]), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let ois: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut openInterest: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(ois), Value::from(symbolValue));
         return openInterest.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -6812,8 +6810,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut records: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_833: bool = true;
-            while { if !__for_first_833 { i += 1; } __for_first_833 = false; i < (data.len() as i64) } {
+            let mut __for_first_33: bool = true;
+            while { if !__for_first_33 { i += 1; } __for_first_33 = false; i < (data.len() as i64) } {
             let mut record: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let delta: indexmap::IndexMap<String, Value> = self.safe_dict_k(&record, "delta", &[Value::Map({
                 let m = indexmap::IndexMap::new();

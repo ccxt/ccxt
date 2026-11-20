@@ -729,8 +729,8 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_562: bool = true;
-            while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (rawNetworks.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rawNetworks.len() as i64) } {
             let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(i));
             let networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "resource_name", &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -1085,7 +1085,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "handle_route_and_params" => crate::Value::Dict(self.handle_route_and_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "is_eddsa_secret" => self.is_eddsa_secret(),
                 "is_native_deribit_credentials" => self.is_native_deribit_credentials(),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2568,8 +2568,8 @@ impl Coinbaseinternational {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_563: bool = true;
-            while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let symbol: Option<String> = self.safe_string_opt(&symbolsResolved, Value::Int(i), &[]);
             if (symbol.is_none()) {
                 continue;
@@ -2699,8 +2699,8 @@ impl Coinbaseinternational {
                 }
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_564: bool = true;
-                    while { if !__for_first_564 { i += 1; } __for_first_564 = false; i < (depths.len() as i64) } {
+                    let mut __for_first_2: bool = true;
+                    while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (depths.len() as i64) } {
                     if limit.as_f64().unwrap_or(f64::NAN) <= Value::from(self.parse_to_int(depths.get(i as usize).cloned().unwrap_or(Value::Null))).as_f64().unwrap_or(f64::NAN) {
                         request.insert("depth".into(), self.safe_integer(&depths, Value::Int(i), &[Value::Int(0)]));
                         break;
@@ -3053,16 +3053,16 @@ impl Coinbaseinternational {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             let summaries: Option<crate::value::List> = self.safe_list_k_o(&result, "summaries");
             if (summaries.is_some()) {
-                return self.parse_balance_list(&summaries);
+                return Value::Dict(self.parse_balance_list(&summaries));
             }
-            return self.parse_balance_list(self.safe_dict_k(&result, "summaries", &[Value::from(vec![])]));
+            return Value::Dict(self.parse_balance_list(self.safe_dict_k(&result, "summaries", &[Value::from(vec![])])));
         }
-        return self.parse_balance_list(&result);
+        return Value::Dict(self.parse_balance_list(&result));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3077,8 +3077,8 @@ impl Coinbaseinternational {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_565: bool = true;
-            while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (summaries.len() as i64) } {
             let data: crate::value::Dict = self.safe_dict_t(&summaries, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
             let currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -3093,9 +3093,9 @@ impl Coinbaseinternational {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -3447,8 +3447,8 @@ impl Coinbaseinternational {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_566: bool = true;
-            while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (logs.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (logs.len() as i64) } {
             let transaction: crate::value::Dict = self.safe_dict_t(&logs, Value::Int(i));
             let transactionType: Option<String> = self.safe_string_k_opt(&transaction, "type", &[]);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {

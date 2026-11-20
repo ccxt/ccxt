@@ -325,8 +325,8 @@ impl crate::exchange::DerivedExchange for Coinone {
         let currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (currencyIds.len() as i64) } {
             let currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::from(currencyId.as_deref()));
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1251,8 +1251,8 @@ impl Coinone {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (tickers.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&tickers, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&entry, "id", &[]);
             let baseId: Option<String> = self.safe_string_upper_k_opt(&entry, "target_currency", &[]);
@@ -1980,8 +1980,8 @@ impl Coinone {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (keys.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let value: Option<String> = self.safe_string_opt(&walletAddress, Value::from(key.as_deref()), &[]);
             if (value.is_none()) || (value.is_none()) || (value.as_deref() == Some("")) || (value.as_deref() == Some("-1")) {

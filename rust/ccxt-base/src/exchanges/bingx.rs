@@ -1014,8 +1014,8 @@ impl crate::exchange::DerivedExchange for Bingx {
         if isContract {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_319: bool = true;
-                while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (contractBalances.len() as i64) } {
+                let mut __for_first_2: bool = true;
+                while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (contractBalances.len() as i64) } {
                 let balance: crate::value::Dict = self.safe_dict_t(&contractBalances, Value::Int(i));
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
                 if (currencyId.is_none()) {
@@ -1034,8 +1034,8 @@ impl crate::exchange::DerivedExchange for Bingx {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_320: bool = true;
-                while { if !__for_first_320 { i += 1; } __for_first_320 = false; i < (spotBalances.len() as i64) } {
+                let mut __for_first_3: bool = true;
+                while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (spotBalances.len() as i64) } {
                 let balance: crate::value::Dict = self.safe_dict_t(&spotBalances, Value::Int(i));
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
                 let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1322,8 +1322,8 @@ impl crate::exchange::DerivedExchange for Bingx {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_317: bool = true;
-            while { if !__for_first_317 { j += 1; } __for_first_317 = false; j < (networkList.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (networkList.len() as i64) } {
             let rawNetwork: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
             let network: Option<String> = self.safe_string_k_opt(&rawNetwork, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(network.as_deref(), code.as_deref());
@@ -1734,8 +1734,8 @@ impl crate::exchange::DerivedExchange for Bingx {
         let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_330: bool = true;
-            while { if !__for_first_330 { i += 1; } __for_first_330 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i += 1; } __for_first_13 = false; (i as f64) < Value::Int(info.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Option<crate::value::Dict> = self.safe_dict_o(&info, Value::Int(i));
             let tierString: Option<String> = self.safe_string_k_opt(&tier, "tier", &[]);
             let tierParts: crate::value::List = crate::value::List::new(if let Some(__s) = tierString.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
@@ -1797,8 +1797,8 @@ impl crate::exchange::DerivedExchange for Bingx {
         if (networksLength != 0) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_323: bool = true;
-                while { if !__for_first_323 { i += 1; } __for_first_323 = false; i < networksLength } {
+                let mut __for_first_6: bool = true;
+                while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < networksLength } {
                 let networkCode: String = self.safe_string(&networkCodes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let network: crate::value::Dict = self.safe_dict_t(&networks, Value::from(networkCode.clone()));
                 networkFees.insert(networkCode, Value::Map({
@@ -5143,8 +5143,8 @@ impl Bingx {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_318: bool = true;
-            while { if !__for_first_318 { i += 1; } __for_first_318 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (rows.len() as i64) } {
             results.push(<Self as crate::exchange::DerivedExchange>::parse_ticker(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(rowMarket.clone()).as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
@@ -6196,8 +6196,8 @@ impl Bingx {
         let mut marketIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_321: bool = true;
-            while { if !__for_first_321 { i += 1; } __for_first_321 = false; i < (orders.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let marketId: String = self.safe_string_k(&rawOrder, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -6644,8 +6644,8 @@ impl Bingx {
         let mut parsedIds: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_322: bool = true;
-            while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < (idsToParse.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (idsToParse.len() as i64) } {
             let id: String = self.safe_string(&idsToParse, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let stringId: String = id;
             std::sync::Arc::make_mut(&mut parsedIds).push(Value::from(stringId));
@@ -8207,8 +8207,8 @@ impl Bingx {
         let responseCodes: Vec<Value> = Value::Array((crate::types::IntoRaw::into_raw(response.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_324: bool = true;
-            while { if !__for_first_324 { i += 1; } __for_first_324 = false; i < (responseCodes.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (responseCodes.len() as i64) } {
             let code: Option<&str> = responseCodes.get(i as usize).and_then(Value::as_str);
             if (codes == Value::Null) || (self.in_array(Value::from(code.as_deref()), codes.clone())) {
                 let entry: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(response.clone()), Value::from(code.as_deref()));
@@ -8301,16 +8301,16 @@ impl Bingx {
         let rawKeysLength: i64 = rawKeys.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_326: bool = true;
-            while { if !__for_first_326 { i += 1; } __for_first_326 = false; i < rawKeysLength } {
-            let key: Option<String> = rawKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < rawKeysLength } {
+            let key: Option<&str> = rawKeys.get(i as usize).and_then(Value::as_str);
             let value: Value = sortedParams.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: String = "[".to_string();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_325: bool = true;
-                    while { if !__for_first_325 { j += 1; } __for_first_325 = false; j < (value.len() as i64) } {
+                    let mut __for_first_8: bool = true;
+                    while { if !__for_first_8 { j += 1; } __for_first_8 = false; j < (value.len() as i64) } {
                     let arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     if j > 0 {
                         arrStr.push_str(",");
@@ -8319,7 +8319,7 @@ impl Bingx {
                 }
                 }
                 arrStr.push_str("]");
-                add_element_to_object(&mut copied, &Value::from(key.as_deref()), Value::from(arrStr));
+                if let Value::Dict(__d) = &mut copied { std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), Value::from(arrStr)); }
             }
         }
         }
@@ -8538,8 +8538,8 @@ impl Bingx {
         let mut positions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_327: bool = true;
-            while { if !__for_first_327 { i += 1; } __for_first_327 = false; i < (success.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (success.len() as i64) } {
             let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("positionId".to_string(), success.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -8900,23 +8900,23 @@ impl Bingx {
 
     pub fn custom_encode(&self, params: impl Into<crate::Value>) -> Option<String> {
         let params: Value = params.into();
-        let sortedParams: Value = self.keysort(params, &[]);
-        let rawKeys: Vec<&str> = sortedParams.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let sortedParams: indexmap::IndexMap<String, Value> = self.keysort(params, &[]).as_map().cloned().unwrap_or_default();
+        let rawKeys: Vec<Value> = Value::Array(sortedParams.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let rawKeysLength: i64 = rawKeys.len() as i64;
         let mut adjustedValue: Value = Value::Null;
         let mut result: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_329: bool = true;
-            while { if !__for_first_329 { i += 1; } __for_first_329 = false; i < rawKeysLength } {
-            let key: Option<&str> = rawKeys.get(i as usize).copied();
-            let mut value: Value = get_value(&sortedParams, key.as_deref());
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < rawKeysLength } {
+            let key: Option<&str> = rawKeys.get(i as usize).and_then(Value::as_str);
+            let mut value: Value = sortedParams.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Null;
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_328: bool = true;
-                    while { if !__for_first_328 { j += 1; } __for_first_328 = false; j < (value.len() as i64) } {
+                    let mut __for_first_11: bool = true;
+                    while { if !__for_first_11 { j += 1; } __for_first_11 = false; j < (value.len() as i64) } {
                     let arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let isString: bool = matches!(&arrayElement, Value::Str(_));
                     if isString {

@@ -695,7 +695,7 @@ impl Bit2me {
         //
         let data: crate::value::Dict = message.key_dict("data");
         let balances: crate::value::List = self.safe_list_k_t(&data, "balance");
-        { let __t = self.parent.parse_balance_list(&balances); self.balance = if let Value::Dict(__m) = __t { __m } else { Default::default() }; }
+        { let __t = Value::Dict(self.parent.parse_balance_list(&balances)); self.balance = if let Value::Dict(__m) = __t { __m } else { Default::default() }; }
         client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
@@ -933,8 +933,8 @@ impl Bit2me {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_100: bool = true;
-            while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < (deleted.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (deleted.len() as i64) } {
             let entry: Value = deleted.get(i as usize).cloned().unwrap_or(Value::Null);
             orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -947,8 +947,8 @@ impl Bit2me {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_101: bool = true;
-            while { if !__for_first_101 { i += 1; } __for_first_101 = false; i < (notDeleted.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (notDeleted.len() as i64) } {
             let entry: Value = notDeleted.get(i as usize).cloned().unwrap_or(Value::Null);
             orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1018,8 +1018,8 @@ impl Bit2me {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_102: bool = true;
-            while { if !__for_first_102 { i += 1; } __for_first_102 = false; i < (ids.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (ids.len() as i64) } {
             orders.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), message.clone());
@@ -1133,8 +1133,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let clientOrderIds: Vec<Value> = Value::Array(pending.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_103: bool = true;
-                while { if !__for_first_103 { i += 1; } __for_first_103 = false; i < (clientOrderIds.len() as i64) } {
+                let mut __for_first_3: bool = true;
+                while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (clientOrderIds.len() as i64) } {
                 let clientOrderId: Option<&str> = clientOrderIds.get(i as usize).and_then(Value::as_str);
                 if is_equal(&pending.get(clientOrderId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &marketId.clone().map(Value::from).unwrap_or(Value::Null)) {
                     self.settle_request(client, Value::Str(format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null")).into()), Value::Null, &[&exception]);
@@ -1174,8 +1174,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let pendingHashes: Vec<Value> = __ch.future_keys();
                     {
                                                 let mut i: i64 = 0;
-                        let mut __for_first_104: bool = true;
-                        while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < (pendingHashes.len() as i64) } {
+                        let mut __for_first_4: bool = true;
+                        while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (pendingHashes.len() as i64) } {
                         let pendingHash: Value = pendingHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                         if (pendingHash.as_str().zip(scopedPrefix.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
                             client.reject(exception.clone(), &pendingHash);

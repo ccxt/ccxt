@@ -498,8 +498,8 @@ impl crate::exchange::DerivedExchange for Grvt {
         let availableBalance: Option<String> = self.safe_string_k_opt(response, "available_balance", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_726: bool = true;
-            while { if !__for_first_726 { i += 1; } __for_first_726 = false; i < (spotBalances.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (spotBalances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&spotBalances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1085,7 +1085,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_until_option_string" => { let __t = self.handle_until_option_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client(&args[..]).await,
-                "internal_fetch_transfers" => self.internal_fetch_transfers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "internal_fetch_transfers" => Value::Arr(self.internal_fetch_transfers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "load_account_infos" => self.load_account_infos().await,
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2310,8 +2310,8 @@ impl Grvt {
         let builderId: Option<String> = self.safe_string_k_opt(&self.options, "builder", &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_725: bool = true;
-            while { if !__for_first_725 { i += 1; } __for_first_725 = false; i < length } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < length } {
             let builderInfo: crate::value::Dict = self.safe_dict_t(&approvedBuilder, Value::Int(i));
             let builderAccountId: Option<String> = self.safe_string_k_opt(&builderInfo, "builder_account_id", &[]);
             if (builderAccountId == builderId) {
@@ -2956,7 +2956,7 @@ if _try_result.is_err() {
         let useTransfersEndpoint: bool = self.safe_bool_k_opt(&self.options, "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).unwrap_or(true);
         if useTransfersEndpoint {
             let __ws_arg_9 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
-            let transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_9, &[&crate::Value::from(currency.as_ref()), &Value::from(since), &Value::from(limit)]).await.into_list();
+            let transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_9, &[&crate::Value::from(currency.as_ref()), &Value::from(since), &Value::from(limit)]).await;
             let transactions: Value = Value::Arr(self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(&transfers, "deposit", &[&Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into())));
             return Value::Arr(self.parse_transactions(transactions, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }  else {
@@ -3034,7 +3034,7 @@ if _try_result.is_err() {
         let useTransfersEndpoint: bool = self.safe_bool_k_opt(&self.options, "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).unwrap_or(true);
         if useTransfersEndpoint {
             let __ws_arg_11 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
-            let transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_11, &[&crate::Value::from(currency.as_ref()), &Value::from(since), &Value::from(limit)]).await.into_list();
+            let transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_11, &[&crate::Value::from(currency.as_ref()), &Value::from(since), &Value::from(limit)]).await;
             let transactions: Value = Value::Arr(self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(&transfers, "withdrawal", &[&Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into())));
             return Value::Arr(self.parse_transactions(transactions, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }  else {
@@ -3071,7 +3071,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub async fn internal_fetch_transfers(&mut self, mut req: Value, optional_args: &[&Value]) -> Value {
+    pub async fn internal_fetch_transfers(&mut self, mut req: Value, optional_args: &[&Value]) -> crate::value::List {
         let currency = get_arg(optional_args, 0, Value::Null);
         let since = get_arg(optional_args, 1, Value::Null);
         let limit = get_arg(optional_args, 2, Value::Null);
@@ -3107,9 +3107,7 @@ if _try_result.is_err() {
         //
         let rows: crate::value::List = self.safe_list_k_t(&response, "result");
         let transfers: crate::value::List = self.parse_transfers(&rows, <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref(), &[since, limit]);
-        return Value::Arr(transfers);
-
-    Value::Null
+        return transfers;
 }
 
 
@@ -3212,8 +3210,8 @@ if _try_result.is_err() {
         let mut nonMatchedResults: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_727: bool = true;
-            while { if !__for_first_727 { i += 1; } __for_first_727 = false; i < (transfers.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (transfers.len() as i64) } {
             let transfer: crate::value::Dict = transfers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let fromAccount: Option<String> = self.safe_string_k_opt(&transfer, "fromAccount", &[&Value::Str("".into())]);
             let toAccount: Option<String> = self.safe_string_k_opt(&transfer, "toAccount", &[&Value::Str("".into())]);
@@ -3714,8 +3712,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut legs: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_728: bool = true;
-            while { if !__for_first_728 { i += 1; } __for_first_728 = false; i < (orderLegs.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (orderLegs.len() as i64) } {
             let leg: crate::value::Dict = self.safe_dict_t(&orderLegs, Value::Int(i));
             let mut market: crate::types::Market = (match self.market((crate::value::KeyRead::key_read(&&leg, "instrument")).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let precisionValue: i64 = self.precision_from_string(self.safe_string_k(crate::value::KeyRead::key_read(&&market, "precision"), "base", &[]));
@@ -3907,8 +3905,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut quoteIds: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_729: bool = true;
-                while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 if !(market).contract {

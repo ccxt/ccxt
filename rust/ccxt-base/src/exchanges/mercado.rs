@@ -232,8 +232,8 @@ impl crate::exchange::DerivedExchange for Mercado {
         let currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_947: bool = true;
-            while { if !__for_first_947 { i += 1; } __for_first_947 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (matches!(currencyId.as_deref(), Some(__k) if balances.contains_key(__k))) {
@@ -896,8 +896,8 @@ impl Mercado {
         let coins: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_946: bool = true;
-            while { if !__for_first_946 { i += 1; } __for_first_946 = false; i < (coins.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (coins.len() as i64) } {
             let coin: String = self.safe_string(&coins, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let baseId: String = coin.clone();
             let quoteId: String = "BRL".to_string();
@@ -1605,13 +1605,13 @@ impl Mercado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { i += 1; } __for_first_949 = false; i < (orders.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (orders.len() as i64) } {
             let trades: crate::value::List = self.safe_list_t(self.safe_dict(&orders, Value::Int(i), &[]), Value::Str("trades".into()));
             {
                                 let mut y: i64 = 0;
-                let mut __for_first_948: bool = true;
-                while { if !__for_first_948 { y += 1; } __for_first_948 = false; y < (trades.len() as i64) } {
+                let mut __for_first_2: bool = true;
+                while { if !__for_first_2 { y += 1; } __for_first_2 = false; y < (trades.len() as i64) } {
                 result.push(trades.get(y as usize).cloned().unwrap_or(Value::Null));
             }
             }

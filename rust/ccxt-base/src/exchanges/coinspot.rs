@@ -182,14 +182,14 @@ impl crate::exchange::DerivedExchange for Coinspot {
             let numRows: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_586: bool = true;
-                while { if !__for_first_586 { i += 1; } __for_first_586 = false; i < numRows } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < numRows } {
                 let currencies: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
                 let currencyIdsList: Vec<Value> = Value::Array(currencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_585: bool = true;
-                    while { if !__for_first_585 { j += 1; } __for_first_585 = false; j < (currencyIdsList.len() as i64) } {
+                    let mut __for_first_0: bool = true;
+                    while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (currencyIdsList.len() as i64) } {
                     let currencyId: Option<&str> = currencyIdsList.get(j as usize).and_then(Value::as_str);
                     let balance: crate::value::Dict = self.safe_dict_t(&currencies, Value::from(currencyId.as_deref()));
                     let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -206,8 +206,8 @@ impl crate::exchange::DerivedExchange for Coinspot {
             let currencyIdsMap: Vec<&str> = balances.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_587: bool = true;
-                while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (currencyIdsMap.len() as i64) } {
+                let mut __for_first_2: bool = true;
+                while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (currencyIdsMap.len() as i64) } {
                 let currencyId: Option<&str> = currencyIdsMap.get(i as usize).copied();
                 let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 let mut account: crate::value::Dict = self.account();
@@ -1306,8 +1306,8 @@ impl Coinspot {
         let ids: Vec<Value> = Value::Array(prices.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_588: bool = true;
-            while { if !__for_first_588 { i += 1; } __for_first_588 = false; i < (ids.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (ids.len() as i64) } {
             let id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(id.as_deref(), None, &[]);
             if (market).spot {
@@ -1440,16 +1440,16 @@ impl Coinspot {
         let mut buyTrades: crate::value::List = self.safe_list_k_t(&response, "buyorders");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_589: bool = true;
-            while { if !__for_first_589 { i += 1; } __for_first_589 = false; i < (buyTrades.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (buyTrades.len() as i64) } {
             if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut buyTrades).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("side".into(), Value::Str("buy".into())); }
         }
         }
         let mut sellTrades: crate::value::List = self.safe_list_k_t(&response, "sellorders");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_590: bool = true;
-            while { if !__for_first_590 { i += 1; } __for_first_590 = false; i < (sellTrades.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (sellTrades.len() as i64) } {
             if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(&mut sellTrades).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("side".into(), Value::Str("sell".into())); }
         }
         }

@@ -1082,8 +1082,8 @@ impl Mudrex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_972: bool = true;
-            while { if !__for_first_972 { i += 1; } __for_first_972 = false; i < (rows.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rows.len() as i64) } {
             let t: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let sym: Option<String> = self.safe_string_k_opt(&t, "symbol", &[]);
             if (sym.is_none()) {
@@ -1156,8 +1156,8 @@ impl Mudrex {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_973: bool = true;
-                while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < numItems } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < numItems } {
                 aggregated.push(items.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -1171,8 +1171,8 @@ impl Mudrex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_974: bool = true;
-            while { if !__for_first_974 { i += 1; } __for_first_974 = false; i < (aggregated.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (aggregated.len() as i64) } {
             result.push(<Self as crate::exchange::DerivedExchange>::parse_market(self, aggregated.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -1654,8 +1654,8 @@ impl Mudrex {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_975: bool = true;
-            while { if !__for_first_975 { i += 1; } __for_first_975 = false; i < (rows.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rows.len() as i64) } {
             orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
@@ -1789,8 +1789,8 @@ impl Mudrex {
         let mut outPos: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_976: bool = true;
-            while { if !__for_first_976 { i += 1; } __for_first_976 = false; i < (rows.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (rows.len() as i64) } {
             let p: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let symRaw: Option<String> = self.safe_string_k_opt(&p, "symbol", &[]);
             let m: crate::types::Market = self.safe_market(symRaw.as_deref(), None, &[]);
@@ -2084,8 +2084,8 @@ impl Mudrex {
             let dataLength: i64 = data.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_977: bool = true;
-                while { if !__for_first_977 { i += 1; } __for_first_977 = false; i < (data.len() as i64) } {
+                let mut __for_first_5: bool = true;
+                while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (data.len() as i64) } {
                 let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
                 allRows.push(Value::from(&entry));
                 if (self.safe_string_k(&entry, "fee_type", &[]).as_str() == Some("TRANSACTION")) {
@@ -2114,8 +2114,8 @@ impl Mudrex {
         let mut transactionKeys: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_978: bool = true;
-            while { if !__for_first_978 { i += 1; } __for_first_978 = false; i < (allRows.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (allRows.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&allRows, Value::Int(i));
             let feeType: Option<String> = self.safe_string_k_opt(&entry, "fee_type", &[]);
             let pairKey: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&entry, "created_at", &[Value::Str("".into())])).into()), ":").into()), self.safe_string_k(&entry, "transaction_amount", &[Value::Str("".into())]));
@@ -2131,13 +2131,13 @@ impl Mudrex {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_980: bool = true;
-            while { if !__for_first_980 { i += 1; } __for_first_980 = false; i < (transactions.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (transactions.len() as i64) } {
             let mut rebate: Option<String> = None;
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_979: bool = true;
-                while { if !__for_first_979 { j += 1; } __for_first_979 = false; j < (rebateKeys.len() as i64) } {
+                let mut __for_first_7: bool = true;
+                while { if !__for_first_7 { j += 1; } __for_first_7 = false; j < (rebateKeys.len() as i64) } {
                 if (rebateKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str()) {
                     rebate = self.safe_string_opt(&rebateAmounts, Value::Int(j), &[]);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

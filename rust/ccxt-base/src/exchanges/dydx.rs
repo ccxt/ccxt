@@ -637,7 +637,7 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
+                "fetch_transactions_helper" => Value::Arr(self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_wallet_address" => self.get_wallet_address(),
@@ -1740,8 +1740,8 @@ impl Dydx {
         let rows: crate::value::List = self.safe_list_k_t(&response, "historicalFunding");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_662: bool = true;
-            while { if !__for_first_662 { i += 1; } __for_first_662 = false; i < (rows.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rows.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&entry, "effectiveAt", &[]));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "ticker", &[]);
@@ -2241,8 +2241,8 @@ impl Dydx {
         let mut c: Option<i64> = self.parse_to_int(m);
         {
                         let mut i: i64 = 1;
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { i += 1; } __for_first_663 = false; matches!(c, Some(__b) if (i as f64) < (__b as f64)) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; matches!(c, Some(__b) if (i as f64) < (__b as f64)) } {
             r = crate::precise::Precise::stringMul(&r, &Value::from(n)).as_str().map(str::to_owned);
         }
         }
@@ -2872,7 +2872,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        let response: crate::value::List = self.fetch_transactions_helper("fetchLedger", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let response: crate::value::List = self.fetch_transactions_helper("fetchLedger", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         return self.parse_ledger(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         Value::Null
         }).await?))
@@ -3104,7 +3104,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        let response: crate::value::List = self.fetch_transactions_helper("fetchTransfers", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let response: crate::value::List = self.fetch_transactions_helper("fetchTransfers", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let transferIn: crate::value::List = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]);
         let transferOut: crate::value::List = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]);
         let rows: crate::value::List = self.array_concat_t(&transferIn, &transferOut);
@@ -3237,7 +3237,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        let response: crate::value::List = self.fetch_transactions_helper("fetchWithdrawals", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let response: crate::value::List = self.fetch_transactions_helper("fetchWithdrawals", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let rows: Value = Value::Arr(self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]));
         return Value::Arr(self.parse_transactions(rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -3277,7 +3277,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        let response: crate::value::List = self.fetch_transactions_helper("fetchDeposits", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let response: crate::value::List = self.fetch_transactions_helper("fetchDeposits", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let rows: Value = Value::Arr(self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]));
         return Value::Arr(self.parse_transactions(rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -3317,7 +3317,7 @@ impl Dydx {
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        let response: crate::value::List = self.fetch_transactions_helper("fetchDepositsWithdrawals", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        let response: crate::value::List = self.fetch_transactions_helper("fetchDepositsWithdrawals", code.as_str(), since, limit, &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
         let withdrawals: crate::value::List = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
         let deposits: crate::value::List = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
         let rows: crate::value::List = self.array_concat_t(&withdrawals, &deposits);
@@ -3326,7 +3326,7 @@ impl Dydx {
         }).await?))
     }
 
-    pub async fn fetch_transactions_helper(&mut self, methodName: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_transactions_helper(&mut self, methodName: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3369,9 +3369,7 @@ impl Dydx {
         // }
         //
         let transfers: crate::value::List = self.safe_list_k_t(&response, "transfers");
-        return Value::Arr(transfers);
-
-    Value::Null
+        return transfers;
 }
 
 /*
@@ -3451,8 +3449,8 @@ impl Dydx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (rows.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (rows.len() as i64) } {
             let account: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let accountId: Option<String> = self.safe_string_k_opt(&account, "subaccountNumber", &[]);
             result.push(Value::Map({

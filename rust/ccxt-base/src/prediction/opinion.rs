@@ -73,8 +73,8 @@ impl crate::exchange::DerivedExchange for Opinion {
         let balancesLength: i64 = balances.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1407: bool = true;
-            while { if !__for_first_1407 { i += 1; } __for_first_1407 = false; i < balancesLength } {
+            let mut __for_first_16: bool = true;
+            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < balancesLength } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let code: String = self.safe_string_k(&balance, "symbol", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string();
             result.insert(code, Value::Map({
@@ -660,8 +660,8 @@ impl Opinion {
         let mut fetchedRawRows: Vec<Value> = Vec::new();
         {
                         let mut page: i64 = 1;
-            let mut __for_first_1393: bool = true;
-            while { if !__for_first_1393 { page += 1; } __for_first_1393 = false; page <= maxPages } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { page += 1; } __for_first_2 = false; page <= maxPages } {
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketType".to_string(), Value::Int(2));
@@ -680,8 +680,8 @@ impl Opinion {
             let total: Option<i64> = self.safe_integer_k(&result, "total", &[]).as_i64();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1392: bool = true;
-                while { if !__for_first_1392 { i += 1; } __for_first_1392 = false; i < rawMarketsLength } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < rawMarketsLength } {
                 let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
                 fetchedRawRows.push(Value::from(&raw));
                 let marketType: Option<i64> = self.safe_integer_k(&raw, "marketType", &[]).as_i64();
@@ -691,8 +691,8 @@ impl Opinion {
                     let childMarketsLength: i64 = childMarkets.len() as i64;
                     {
                                                 let mut ci: i64 = 0;
-                        let mut __for_first_1391: bool = true;
-                        while { if !__for_first_1391 { ci += 1; } __for_first_1391 = false; ci < childMarketsLength } {
+                        let mut __for_first_0: bool = true;
+                        while { if !__for_first_0 { ci += 1; } __for_first_0 = false; ci < childMarketsLength } {
                         flatMarkets.push(childMarkets.get(ci as usize).cloned().unwrap_or(Value::Null));
                     }
                     }
@@ -797,8 +797,8 @@ impl Opinion {
         let mut resolvedOutcome: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1394: bool = true;
-            while { if !__for_first_1394 { i += 1; } __for_first_1394 = false; i < (outcomeLabels.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (outcomeLabels.len() as i64) } {
             let label: Option<String> = self.safe_string_opt(&outcomeLabels, Value::Int(i), &[]);
             let tokenId: Option<String> = self.safe_string_opt(&outcomeTokenIds, Value::Int(i), &[]);
             let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(effectiveEventSlug.clone(), Value::from(slug.as_deref()), label.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
@@ -970,8 +970,8 @@ impl Opinion {
         let mut rawEvents: Vec<Value> = Vec::new();
         {
                         let mut page: i64 = 1;
-            let mut __for_first_1396: bool = true;
-            while { if !__for_first_1396 { page += 1; } __for_first_1396 = false; page <= maxPages } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { page += 1; } __for_first_5 = false; page <= maxPages } {
             let fetchedSoFar: i64 = rawEvents.len() as i64;
             let remaining: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = fetchCap { Some(__l - fetchedSoFar) } else { None })));
             let reqLimit: Option<i64> = (if ((remaining.is_some() && pageLimit.is_some() && remaining < pageLimit)) { remaining } else { pageLimit });
@@ -992,8 +992,8 @@ impl Opinion {
             let pageEventsLength: i64 = pageEvents.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1395: bool = true;
-                while { if !__for_first_1395 { i += 1; } __for_first_1395 = false; i < pageEventsLength } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < pageEventsLength } {
                 rawEvents.push(pageEvents.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -1012,8 +1012,8 @@ impl Opinion {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1398: bool = true;
-            while { if !__for_first_1398 { i += 1; } __for_first_1398 = false; i < rawEventsLength } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < rawEventsLength } {
             let event: crate::value::Dict = self.parse_event(rawEvents.get(i as usize).cloned().unwrap_or(Value::Null));
             parsedEvents.push(Value::from(&event));
             // register the parsed markets so populateOutcomes can index their outcomes
@@ -1021,8 +1021,8 @@ impl Opinion {
             let eventMarketsLength: i64 = eventMarkets.len() as i64;
             {
                                 let mut mi: i64 = 0;
-                let mut __for_first_1397: bool = true;
-                while { if !__for_first_1397 { mi += 1; } __for_first_1397 = false; mi < eventMarketsLength } {
+                let mut __for_first_6: bool = true;
+                while { if !__for_first_6 { mi += 1; } __for_first_6 = false; mi < eventMarketsLength } {
                 let m: Value = eventMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
                 let marketKey: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
                 if (marketKey.is_some()) {
@@ -1187,17 +1187,17 @@ impl Opinion {
         let title: Option<String> = self.safe_string_k_opt(&rawEvent, "marketTitle", &[]);
         let mut eventHandle: Option<String> = None;
         if (title.is_some()) {
-            eventHandle = self.shorten_slug(title.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            eventHandle = Some(self.shorten_slug(title.clone().map(Value::from).unwrap_or(Value::Null)));
         }  else {
-            eventHandle = self.shorten_slug(slug.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            eventHandle = Some(self.shorten_slug(slug.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         let rawChildren: crate::value::List = self.safe_list_k_t(&rawEvent, "childMarkets");
         let rawChildrenLength: i64 = rawChildren.len() as i64;
         let mut marketsList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1399: bool = true;
-            while { if !__for_first_1399 { i += 1; } __for_first_1399 = false; i < rawChildrenLength } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < rawChildrenLength } {
             marketsList.push(self.parse_opinion_market(rawChildren.get(i as usize).cloned().unwrap_or(Value::Null), slug.as_deref()));
         }
         }
@@ -1383,8 +1383,8 @@ impl Opinion {
         let mut promises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1400: bool = true;
-            while { if !__for_first_1400 { i += 1; } __for_first_1400 = false; i < outcomesLength } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < outcomesLength } {
             let outcomeObj: Option<crate::types::Market> = self.outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str());
             let tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
             let __ws_arg_13 = self.extend(Value::Map({
@@ -1408,8 +1408,8 @@ impl Opinion {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1401: bool = true;
-            while { if !__for_first_1401 { i += 1; } __for_first_1401 = false; i < outcomesLength } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < outcomesLength } {
             let outcomeObj: Option<crate::types::Market> = self.outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str());
             let priceIndex: i64 = (i * 2);
             let mut priceResponse: Option<crate::value::Dict> = self.safe_dict_o(&responses, priceIndex);
@@ -1543,8 +1543,8 @@ impl Opinion {
         let historyLength: i64 = history.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1402: bool = true;
-            while { if !__for_first_1402 { i += 1; } __for_first_1402 = false; i < historyLength } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < historyLength } {
             let point: crate::value::Dict = self.safe_dict_t(&history, Value::Int(i));
             let price: Option<f64> = self.safe_number_k(&point, "p", &[]).as_f64();
             let timestamp: Option<i64> = self.safe_timestamp_k(&point, "t", &[]).as_i64();
@@ -1599,8 +1599,8 @@ impl Opinion {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1403: bool = true;
-            while { if !__for_first_1403 { i += 1; } __for_first_1403 = false; i < listLength } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < listLength } {
             let entry: crate::value::Dict = self.safe_dict_t(&list, Value::Int(i));
             let address: Option<String> = self.safe_string_lower_k_opt(&entry, "quoteTokenAddress", &[]);
             if (address.is_some()) {
@@ -1729,8 +1729,8 @@ impl Opinion {
             let mut decimalsCount: Option<i64> = self.parse_to_int(Value::from(decimals));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1404: bool = true;
-                while { if !__for_first_1404 { i += 1; } __for_first_1404 = false; matches!(decimalsCount, Some(__b) if (i as f64) < (__b as f64)) } {
+                let mut __for_first_13: bool = true;
+                while { if !__for_first_13 { i += 1; } __for_first_13 = false; matches!(decimalsCount, Some(__b) if (i as f64) < (__b as f64)) } {
                 decimalsStr = format!("{}{}", decimalsStr, "0");
             }
             }
@@ -2178,8 +2178,8 @@ impl Opinion {
         let tradesLength: i64 = trades.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1405: bool = true;
-            while { if !__for_first_1405 { i += 1; } __for_first_1405 = false; i < tradesLength } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < tradesLength } {
             let mut trade: Option<crate::value::Dict> = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             let tokenId: Option<String> = self.safe_string_k_opt(&trade, "tokenId", &[]);
             let marketId: Option<i64> = self.safe_integer_k(&trade, "marketId", &[]).as_i64();
@@ -2280,8 +2280,8 @@ impl Opinion {
         let rawBalancesLength: i64 = rawBalances.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1406: bool = true;
-            while { if !__for_first_1406 { i += 1; } __for_first_1406 = false; i < rawBalancesLength } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < rawBalancesLength } {
             let mut rawBalance: Option<crate::value::Dict> = rawBalances.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             let quoteTokenAddress: Option<String> = self.safe_string_k_opt(&rawBalance, "quoteToken", &[]);
             let quoteToken: crate::value::Dict = self.load_quote_token(quoteTokenAddress.as_deref()).await.into_dict();
@@ -2352,8 +2352,8 @@ impl Opinion {
         let outcomesList: Option<crate::value::List> = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes }).into_opt_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1408: bool = true;
-            while { if !__for_first_1408 { i += 1; } __for_first_1408 = false; i < (outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_17: bool = true;
+            while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let outcomeObj: Option<crate::types::Market> = self.outcome((outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str());
             let tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
             if (tokenId.is_some()) {
@@ -2364,8 +2364,8 @@ impl Opinion {
         let mut filtered: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1409: bool = true;
-            while { if !__for_first_1409 { i += 1; } __for_first_1409 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_18: bool = true;
+            while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (parsed.len() as i64) } {
             let position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or_default();
             let info: crate::value::Dict = self.safe_dict_k_t(&position, "info");
             let mut tokenId: Option<String> = self.safe_string_k_opt(&info, "tokenId", &[]);
@@ -2679,8 +2679,8 @@ if _try_result.is_err() {
         let marketKeysLength: i64 = marketKeys.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1410: bool = true;
-            while { if !__for_first_1410 { i += 1; } __for_first_1410 = false; i < marketKeysLength } {
+            let mut __for_first_19: bool = true;
+            while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < marketKeysLength } {
             let market: crate::value::Dict = self.safe_dict_t(&self.markets, marketKeys.get(i as usize).cloned().unwrap_or(Value::Null));
             let info: crate::value::Dict = self.safe_dict_k_t(&market, "info");
             if (self.safe_integer_k(&info, "marketId", &[]).as_f64() == marketId.as_f64()) {

@@ -460,8 +460,8 @@ impl Derive {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (symbolsResolved.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsResolved.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsResolved.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -763,8 +763,8 @@ impl Derive {
             let topics: Vec<Value> = Value::Array(status.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_305: bool = true;
-                while { if !__for_first_305 { i += 1; } __for_first_305 = false; i < (topics.len() as i64) } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (topics.len() as i64) } {
                 let topic: Option<String> = topics.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let parsedTopic: crate::value::List = crate::value::List::new(if let Some(__s) = topic.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
                 let suffix: Option<String> = self.safe_string_opt(&parsedTopic, Value::Int(1), &[]);
@@ -866,8 +866,8 @@ impl Derive {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_306: bool = true;
-            while { if !__for_first_306 { i += 1; } __for_first_306 = false; i < (data.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
             let trade: crate::value::Dict = self.parse_trade(get_value(&data, &Value::Int(i)), None);
             tradesArray.append(Value::Dict(trade));
         }
@@ -1058,8 +1058,8 @@ impl Derive {
         let rawOrders: crate::value::List = self.safe_list_k_t(&params, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_307: bool = true;
-            while { if !__for_first_307 { i += 1; } __for_first_307 = false; i < (rawOrders.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawOrders.len() as i64) } {
             let data: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
             let mut parsed: Value = Value::Dict(self.parse_order(Value::Dict(data), None));
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -1226,8 +1226,8 @@ impl Derive {
         let rawTrades: crate::value::List = self.safe_list_k_t(&params, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_308: bool = true;
-            while { if !__for_first_308 { i += 1; } __for_first_308 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (rawTrades.len() as i64) } {
             let trade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None);
             self.myTrades.append(Value::from(&trade));
             client.resolve(Value::from(&self.myTrades), topic.as_deref());
@@ -1430,8 +1430,8 @@ impl Derive {
             let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&subaccountIdKey);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_309: bool = true;
-                while { if !__for_first_309 { i += 1; } __for_first_309 = false; i < (positionsSnapshot.len() as i64) } {
+                let mut __for_first_5: bool = true;
+                while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (positionsSnapshot.len() as i64) } {
                 let mut snapshotPosition: Option<crate::value::Dict> = (match positionsSnapshot.get(i as usize) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
                 cache.append(snapshotPosition.map_or(Value::Null, Value::Dict));
             }
@@ -1551,8 +1551,8 @@ impl Derive {
         let mut positionUpdates: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { i += 1; } __for_first_310 = false; i < (data.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let name: String = self.safe_string_k(&entry, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if name.contains("-") {
@@ -1676,8 +1676,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut matched: bool = false;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_311: bool = true;
-                while { if !__for_first_311 { i += 1; } __for_first_311 = false; i < (subscriptionKeys.len() as i64) } {
+                let mut __for_first_7: bool = true;
+                while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (subscriptionKeys.len() as i64) } {
                 let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, subscriptionKeys.get(i as usize).cloned().unwrap_or(Value::Null));
                 let subscriptionId: Option<String> = self.safe_string_k_opt(&subscription, "id", &[]);
                 if (subscriptionId.is_some()) && (subscriptionId == id) {

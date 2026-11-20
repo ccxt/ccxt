@@ -280,8 +280,8 @@ impl Apex {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1: bool = true;
-            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -340,8 +340,8 @@ impl Apex {
         let length: i64 = trades.len() as i64;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_2: bool = true;
-            while { if !__for_first_2 { j += 1; } __for_first_2 = false; j < length } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < length } {
             let index: i64 = (((length - j)) - 1);
             let parsed: crate::value::Dict = self.parse_ws_trade(self.safe_dict(&trades, index, &[Value::Map({
                 let m = indexmap::IndexMap::new();
@@ -461,8 +461,8 @@ impl Apex {
         let limitValue: i64 = limit.unwrap_or(25);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_3: bool = true;
-            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -494,8 +494,8 @@ impl Apex {
         let mut newTopics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_4: bool = true;
-            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (topics.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (topics.len() as i64) } {
             if !(client.has_subscription(&messageHashes.get(i as usize).cloned().unwrap_or(Value::Null))) {
                 newTopics.push(topics.get(i as usize).cloned().unwrap_or(Value::Null));
             }
@@ -617,8 +617,8 @@ impl Apex {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_5: bool = true;
-            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (deltas.len() as i64) } {
             self.handle_delta(&mut bookside, deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -687,8 +687,8 @@ impl Apex {
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_6: bool = true;
-            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (symbolsNormalized.len() as i64) } {
             let symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -833,8 +833,8 @@ impl Apex {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let data: crate::value::List = self.safe_list_t(&symbolsAndTimeframes, Value::Int(i));
             let symbolString: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -908,8 +908,8 @@ impl Apex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_8: bool = true;
-            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (data.len() as i64) } {
             let parsed: crate::value::List = self.parse_ws_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), None);
             stored.append(Value::Arr(parsed));
         }
@@ -1101,8 +1101,8 @@ impl Apex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (lists.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (lists.len() as i64) } {
             let rawTrade: crate::value::Dict = self.safe_dict_t(&lists, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
@@ -1113,8 +1113,8 @@ impl Apex {
         let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_10: bool = true;
-            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (keys.len() as i64) } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let currentMessageHash: String = format!("{}{}", "myTrades:", key.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.myTrades), currentMessageHash.as_str());
@@ -1166,8 +1166,8 @@ impl Apex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_11: bool = true;
-            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (lists.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (lists.len() as i64) } {
             let parsed: crate::value::Dict = self.parse_order(self.safe_dict(&lists, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -1180,8 +1180,8 @@ impl Apex {
         let symbolsArray: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_12: bool = true;
-            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (symbolsArray.len() as i64) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (symbolsArray.len() as i64) } {
             let orderKey: Option<&str> = symbolsArray.get(i as usize).and_then(Value::as_str);
             let currentMessageHash: String = format!("{}{}", "orders:", orderKey.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.orders), currentMessageHash.as_str());
@@ -1212,13 +1212,13 @@ impl Apex {
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_14: bool = true;
-            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (promises.len() as i64) } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (promises.len() as i64) } {
             let mut positions: Value = promises.get(i as usize).cloned().unwrap_or(Value::Null);
             {
                                 let mut ii: i64 = 0;
-                let mut __for_first_13: bool = true;
-                while { if !__for_first_13 { ii += 1; } __for_first_13 = false; ii < (positions.len() as i64) } {
+                let mut __for_first_12: bool = true;
+                while { if !__for_first_12 { ii += 1; } __for_first_12 = false; ii < (positions.len() as i64) } {
                 self.positions.append(positions.as_array().map(Vec::as_slice).unwrap_or_default().get(ii as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -1264,8 +1264,8 @@ impl Apex {
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_15: bool = true;
-            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (lists.len() as i64) } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (lists.len() as i64) } {
             let rawPosition: crate::value::Dict = self.safe_dict_t(&lists, Value::Int(i));
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
             let side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
@@ -1289,8 +1289,8 @@ impl Apex {
         let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (messageHashes.len() as i64) } {
             let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let parts: crate::value::List = crate::value::List::new(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() });
             let symbolsString: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1477,8 +1477,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Vec<Value> = Value::Array(methods.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_17: bool = true;
-            while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (keys.len() as i64) } {
+            let mut __for_first_16: bool = true;
+            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if ((if let (Some(__h), Some(__n)) = (Some(topic.as_str()), (keys.get(i as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 let method: Option<String> = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);

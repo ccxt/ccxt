@@ -305,5 +305,5 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     // else {
     //    assert!(ccxt::runtime::is_true(&((askString === undefined) && (bidString === undefined))));
     // }
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry, Value::Str("symbol".into()), symbol.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry, Value::Str("symbol".into()), symbol]);
 }

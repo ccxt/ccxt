@@ -385,8 +385,8 @@ impl crate::exchange::DerivedExchange for Alpaca {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (positions.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (positions.len() as i64) } {
             let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             let mut positionSymbol: String = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (positionSymbol == "") {
@@ -667,7 +667,7 @@ impl crate::exchange_generated::ExchangeBase for Alpaca {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or(crate::Value::Null)).await,
+                "fetch_transactions_helper" => Value::Arr(self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or(crate::Value::Null)).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -1964,8 +1964,8 @@ impl Alpaca {
                 let mut pageToken: Option<String> = self.safe_string_k_opt(&response, "next_page_token", &[]);
                 {
                                         let mut i: i64 = 1;
-                    let mut __for_first_219: bool = true;
-                    while { if !__for_first_219 { i += 1; } __for_first_219 = false; matches!(paginationCalls, Some(__b) if (i as f64) < (__b as f64)) } {
+                    let mut __for_first_0: bool = true;
+                    while { if !__for_first_0 { i += 1; } __for_first_0 = false; matches!(paginationCalls, Some(__b) if (i as f64) < (__b as f64)) } {
                     let ohlcvsLength: i64 = ohlcvs.len() as i64;
                     if (pageToken.is_none()) || ((limit.is_some()) && ((limit.is_some() && Some(ohlcvsLength) >= limit))) {
                         break;
@@ -2043,7 +2043,7 @@ impl Alpaca {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let symbolValue: String = self.symbol(symbol.as_str());
-        let tickers: crate::types::Tickers = (match self.fetch_tickers(Some(vec![symbolValue.to_string()]), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue));
         return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -2146,8 +2146,8 @@ impl Alpaca {
         let marketIds: Vec<Value> = Value::Array(snapshots.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&snapshots, Value::from(marketId.as_deref()));
@@ -2909,7 +2909,7 @@ impl Alpaca {
         })).expect("a sync body never awaits")?))
     }
 
-    pub async fn fetch_transactions_helper(&mut self, type_var: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, mut params: Value) -> Value {
+    pub async fn fetch_transactions_helper(&mut self, type_var: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, mut params: Value) -> crate::value::List {
         let type_var: Value = type_var.into();
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2948,8 +2948,8 @@ impl Alpaca {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_221: bool = true;
-                while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (ledger.len() as i64) } {
+                let mut __for_first_2: bool = true;
+                while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (ledger.len() as i64) } {
                 let entry: crate::value::Dict = self.safe_dict_t(&ledger, Value::Int(i));
                 let activityType: Option<String> = self.safe_string_k_opt(&entry, "activity_type", &[]);
                 let amount: Option<String> = self.safe_string_k_opt(&entry, "net_amount", &[]);
@@ -2963,7 +2963,7 @@ impl Alpaca {
                 }
             }
             }
-            return Value::Arr(self.parse_transactions(Value::from(filtered), currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]));
+            return self.parse_transactions(Value::from(filtered), currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]);
         }
         let response: Option<crate::value::List> = self.trader_private_get_v2_wallets_transfers(&[&params]).await;
         //
@@ -2990,8 +2990,8 @@ impl Alpaca {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_222: bool = true;
-            while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (transfers.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (transfers.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&transfers, Value::Int(i));
             let direction: Option<String> = self.safe_string_k_opt(&entry, "direction", &[]);
             if (direction.as_deref() == Some(type_var.as_str().unwrap_or_default().to_string().as_str())) {
@@ -3001,9 +3001,7 @@ impl Alpaca {
             }
         }
         }
-        return Value::Arr(self.parse_transactions(Value::from(results), currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]));
-
-    Value::Null
+        return self.parse_transactions(Value::from(results), currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]);
 }
 
 /*
@@ -3030,7 +3028,7 @@ impl Alpaca {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let transactions: crate::value::List = self.fetch_transactions_helper("BOTH", code.as_str(), since, limit, params).await.into_list();
+        let transactions: crate::value::List = self.fetch_transactions_helper("BOTH", code.as_str(), since, limit, params).await;
         return self.to_array(&transactions);
         Value::Null
         }).await?))
@@ -3060,7 +3058,7 @@ impl Alpaca {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let transactions: crate::value::List = self.fetch_transactions_helper("INCOMING", code.as_str(), since, limit, params).await.into_list();
+        let transactions: crate::value::List = self.fetch_transactions_helper("INCOMING", code.as_str(), since, limit, params).await;
         return self.to_array(&transactions);
         Value::Null
         }).await?))
@@ -3090,7 +3088,7 @@ impl Alpaca {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let transactions: crate::value::List = self.fetch_transactions_helper("OUTGOING", code.as_str(), since, limit, params).await.into_list();
+        let transactions: crate::value::List = self.fetch_transactions_helper("OUTGOING", code.as_str(), since, limit, params).await;
         return self.to_array(&transactions);
         Value::Null
         }).await?))

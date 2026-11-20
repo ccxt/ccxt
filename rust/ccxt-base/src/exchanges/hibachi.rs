@@ -615,7 +615,7 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_status" => self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
+                "fetch_orders_by_status" => Value::Arr(self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -1503,8 +1503,8 @@ impl Hibachi {
         let symbols: &crate::value::List = &self.symbols;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_738: bool = true;
-            while { if !__for_first_738 { i += 1; } __for_first_738 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1708,8 +1708,8 @@ impl Hibachi {
         let mut requestOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_739: bool = true;
-            while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -1737,8 +1737,8 @@ impl Hibachi {
         let responseOrders: crate::value::List = self.safe_list_k_t(&response, "orders");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_740: bool = true;
-            while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (responseOrders.len() as i64) } {
             let responseOrder: crate::value::Dict = self.safe_dict_t(&responseOrders, Value::Int(i));
             ret.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1861,8 +1861,8 @@ impl Hibachi {
         let mut requestOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_741: bool = true;
-            while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (orders.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&rawOrder, "id", &[]);
             let symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
@@ -1891,8 +1891,8 @@ impl Hibachi {
         let responseOrders: crate::value::List = self.safe_list_k_t(&response, "orders");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_742: bool = true;
-            while { if !__for_first_742 { i += 1; } __for_first_742 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (responseOrders.len() as i64) } {
             let responseOrder: crate::value::Dict = self.safe_dict_t(&responseOrders, Value::Int(i));
             ret.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1986,8 +1986,8 @@ impl Hibachi {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_743: bool = true;
-            while { if !__for_first_743 { i += 1; } __for_first_743 = false; i < (ids.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (ids.len() as i64) } {
             let mut orderRequest: crate::value::Dict = self.cancel_order_request(self.safe_string(&ids, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or_default()).into_dict();
             std::sync::Arc::make_mut(&mut orderRequest).insert("action".into(), Value::Str("cancel".into()));
             orders.push(Value::Dict(orderRequest));
@@ -2008,8 +2008,8 @@ impl Hibachi {
         let responseOrders: crate::value::List = self.safe_list_k_t(&response, "orders");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_744: bool = true;
-            while { if !__for_first_744 { i += 1; } __for_first_744 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (responseOrders.len() as i64) } {
             let responseOrder: crate::value::Dict = self.safe_dict_t(&responseOrders, Value::Int(i));
             ret.push(Value::Dict(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2385,7 +2385,7 @@ impl Hibachi {
  * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_orders_by_status(&mut self, status: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_by_status(&mut self, status: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2444,9 +2444,7 @@ impl Hibachi {
         //
         let orders: crate::value::List = self.safe_list_k_t(&response, "orders");
         let parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]);
-        return Value::Arr(self.filter_by_symbol_since_limit(&parsedOrders, symbol, since, limit, &[]));
-
-    Value::Null
+        return self.filter_by_symbol_since_limit(&parsedOrders, symbol, since, limit, &[]);
 }
 
 /*
@@ -2475,7 +2473,7 @@ impl Hibachi {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let orders: crate::value::List = self.fetch_orders_by_status(Some("filled"), symbol.as_str(), since, limit, &[params]).await.into_list();
+        let orders: crate::value::List = self.fetch_orders_by_status(Some("filled"), symbol.as_str(), since, limit, &[params]).await;
         let filtered: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]);
         return Value::Arr(self.filter_by_since_limit(&filtered, since, limit, &[]));
         Value::Null
@@ -2508,7 +2506,7 @@ impl Hibachi {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let orders: crate::value::List = self.fetch_orders_by_status(None, symbol.as_str(), since, limit, &[params]).await.into_list();
+        let orders: crate::value::List = self.fetch_orders_by_status(None, symbol.as_str(), since, limit, &[params]).await;
         let filtered: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("canceled".into()), &[]);
         return Value::Arr(self.filter_by_since_limit(&filtered, since, limit, &[]));
         Value::Null
@@ -3023,8 +3021,8 @@ impl Hibachi {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_745: bool = true;
-            while { if !__for_first_745 { i += 1; } __for_first_745 = false; i < (settlements.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (settlements.len() as i64) } {
             result.push(Value::Dict(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market)));
         }
         }
@@ -3296,8 +3294,8 @@ impl Hibachi {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_746: bool = true;
-            while { if !__for_first_746 { i += 1; } __for_first_746 = false; i < (data.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_product_k(&entry, "fundingTimestamp", Value::Int(1000), &[]).as_i64();
             rates.push(Value::Map({

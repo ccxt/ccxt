@@ -128,8 +128,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetMarginAccount` implicit endpoint.
-    pub async fn sapi_get_margin_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_margin_account".into()), optional_args).await
+    pub async fn sapi_get_margin_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("sapi_get_margin_account", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiGetMarginTransfer` implicit endpoint.
@@ -188,8 +188,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetMarginIsolatedAccount` implicit endpoint.
-    pub async fn sapi_get_margin_isolated_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_margin_isolated_account".into()), optional_args).await
+    pub async fn sapi_get_margin_isolated_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("sapi_get_margin_isolated_account", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiGetMarginIsolatedPair` implicit endpoint.
@@ -653,8 +653,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiGetLendingUnionAccount` implicit endpoint.
-    pub async fn sapi_get_lending_union_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_get_lending_union_account".into()), optional_args).await
+    pub async fn sapi_get_lending_union_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("sapi_get_lending_union_account", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiGetLendingUnionPurchaseRecord` implicit endpoint.
@@ -3103,8 +3103,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateV2GetAccount` implicit endpoint.
-    pub async fn fapi_private_v2_get_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_v2_get_account".into()), optional_args).await
+    pub async fn fapi_private_v2_get_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("fapi_private_v2_get_account", optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateV2GetBalance` implicit endpoint.
@@ -3118,8 +3118,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `fapiPrivateV3GetAccount` implicit endpoint.
-    pub async fn fapi_private_v3_get_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("fapi_private_v3_get_account".into()), optional_args).await
+    pub async fn fapi_private_v3_get_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("fapi_private_v3_get_account", optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateV3GetBalance` implicit endpoint.

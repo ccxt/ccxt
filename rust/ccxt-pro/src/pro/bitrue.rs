@@ -351,8 +351,8 @@ impl Bitrue {
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), balances.clone()); }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_138: bool = true;
-            while { if !__for_first_138 { i += 1; } __for_first_138 = false; i < (balances.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "a", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -675,8 +675,8 @@ impl Bitrue {
         let symbols: Vec<&str> = markets.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_139: bool = true;
-            while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbols.len() as i64) } {
             let symbolId: Option<String> = symbols.get(i as usize).copied().map(str::to_owned);
             let candidate: crate::value::Dict = self.safe_value(&markets, &symbolId, &[]).into_dict();
             if !matches!(self.safe_bool_k(&candidate, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -700,8 +700,8 @@ impl Bitrue {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_140: bool = true;
-            while { if !__for_first_140 { i += 1; } __for_first_140 = false; i < (bidsAsks.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (bidsAsks.len() as i64) } {
             let level: crate::value::List = self.safe_list_t(&bidsAsks, Value::Int(i));
             let price: Option<f64> = self.safe_number(&level, Value::Int(0), &[]).as_f64();
             let rawAmount: Option<f64> = self.safe_number(&level, Value::Int(1), &[]).as_f64();
@@ -925,8 +925,8 @@ if _try_result.is_err() {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_141: bool = true;
-            while { if !__for_first_141 { i += 1; } __for_first_141 = false; i < (data.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
             if (stored.is_none()) {
                 let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 stored = Some(ArrayCache::new(Value::from(limit)));

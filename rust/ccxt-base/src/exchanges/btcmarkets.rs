@@ -570,12 +570,12 @@ impl crate::exchange_generated::ExchangeBase for Btcmarkets {
                 "fetch_ticker2" => self.fetch_ticker2(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_transactions_with_method" => self.fetch_transactions_with_method(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_transactions_with_method" => Value::Arr(self.fetch_transactions_with_method(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1089,7 +1089,7 @@ impl Btcmarkets {
     Value::Null
 }
 
-    pub async fn fetch_transactions_with_method(&mut self, method: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_transactions_with_method(&mut self, method: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1122,9 +1122,7 @@ impl Btcmarkets {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_withdrawals(&[&__ws_arg_2]).await;
         }
-        return Value::Arr(self.parse_transactions(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
-
-    Value::Null
+        return self.parse_transactions(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
 }
 
 /*
@@ -1151,7 +1149,7 @@ impl Btcmarkets {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_transactions_with_method("privateGetTransfers", code.as_str(), since, limit, &[&params]).await;
+        return Value::Arr(self.fetch_transactions_with_method("privateGetTransfers", code.as_str(), since, limit, &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -1180,7 +1178,7 @@ impl Btcmarkets {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_transactions_with_method("privateGetDeposits", code.as_str(), since, limit, &[&params]).await;
+        return Value::Arr(self.fetch_transactions_with_method("privateGetDeposits", code.as_str(), since, limit, &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -1209,7 +1207,7 @@ impl Btcmarkets {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_transactions_with_method("privateGetWithdrawals", code.as_str(), since, limit, &[&params]).await;
+        return Value::Arr(self.fetch_transactions_with_method("privateGetWithdrawals", code.as_str(), since, limit, &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -1287,7 +1285,7 @@ impl Btcmarkets {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1296,8 +1294,8 @@ impl Btcmarkets {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (response.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (response.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "assetName", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -1309,9 +1307,9 @@ impl Btcmarkets {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1336,7 +1334,7 @@ impl Btcmarkets {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::List = self.private_get_accounts_me_balances(&[&params]).await.unwrap_or_default();
-        return self.parse_balance_list(&response);
+        return Value::Dict(self.parse_balance_list(&response));
         Value::Null
         }).await?))
     }
@@ -1668,8 +1666,8 @@ impl Btcmarkets {
         let mut numericIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_477: bool = true;
-            while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (ids.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (ids.len() as i64) } {
             // numericIds[i] = parseInt (ids[i]);
             numericIds.push(Value::from(self.parse_to_int(self.safe_string(&ids, Value::Int(i), &[]))));
         }

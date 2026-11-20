@@ -942,7 +942,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "index_by_stringified_numeric_id" => self.index_by_stringified_numeric_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_histories" => self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "parse_funding_history" => self.parse_funding_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1680,8 +1680,8 @@ impl Extended {
         let mut keys: Vec<&str> = input.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (keys.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).copied();
             let item: crate::value::Dict = self.safe_dict_t(&input, Value::from(key.as_deref()));
             let numericIdString: Option<String> = self.safe_string_k_opt(&item, "numericId", &[]);
@@ -1980,8 +1980,8 @@ impl Extended {
             let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_666: bool = true;
-                while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 std::sync::Arc::make_mut(&mut marketIds).push(Value::from((market).id.as_deref()));
             }
@@ -2014,8 +2014,8 @@ impl Extended {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (data.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
             let marketData: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&marketData, "name", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -2230,8 +2230,8 @@ impl Extended {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_668: bool = true;
-            while { if !__for_first_668 { i += 1; } __for_first_668 = false; i < dataLength } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -2328,8 +2328,8 @@ impl Extended {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < dataLength } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -2388,8 +2388,8 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_670: bool = true;
-            while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < (histories.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (histories.len() as i64) } {
             result.push(self.parse_funding_history(self.safe_dict(&histories, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2563,8 +2563,8 @@ impl Extended {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_671: bool = true;
-            while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < dataLength } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -2704,12 +2704,12 @@ impl Extended {
         //     }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_balance_list(&data);
+        return Value::Dict(self.parse_balance_list(&data));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2718,8 +2718,8 @@ impl Extended {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_672: bool = true;
-            while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < (response.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (response.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -2731,9 +2731,9 @@ impl Extended {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2876,8 +2876,8 @@ impl Extended {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < dataLength } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -2969,8 +2969,8 @@ impl Extended {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_674: bool = true;
-            while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < dataLength } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -3201,8 +3201,8 @@ impl Extended {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_675: bool = true;
-            while { if !__for_first_675 { i += 1; } __for_first_675 = false; i < dataLength } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -3446,8 +3446,8 @@ impl Extended {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_676: bool = true;
-            while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (data.len() as i64) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
             let fee: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_trading_fee(&fee, None);
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -3756,8 +3756,8 @@ impl Extended {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_677: bool = true;
-            while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < dataLength } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -4819,8 +4819,8 @@ impl Extended {
         let dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_678: bool = true;
-            while { if !__for_first_678 { i += 1; } __for_first_678 = false; i < dataLength } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({

@@ -269,8 +269,8 @@ impl crate::exchange::DerivedExchange for Coinmate {
         let currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (currencyIds.len() as i64) } {
             let currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::from(currencyId.as_deref()));
@@ -1188,8 +1188,8 @@ impl Coinmate {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_571: bool = true;
-            while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (data.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "name", &[]);
             let baseId: Option<String> = self.safe_string_k_opt(&market, "firstCurrency", &[]);
@@ -1445,8 +1445,8 @@ impl Coinmate {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (keys.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (keys.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((keys.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&data, keys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let m = indexmap::IndexMap::new();

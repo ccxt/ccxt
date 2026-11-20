@@ -562,8 +562,8 @@ impl crate::exchange::DerivedExchange for Toobit {
         let rawNetworks: crate::value::List = self.safe_list_k_t(&rawCurrency, "chainTypes");
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1137: bool = true;
-            while { if !__for_first_1137 { j += 1; } __for_first_1137 = false; j < (rawNetworks.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (rawNetworks.len() as i64) } {
             let rawNetwork: crate::value::Dict = self.safe_dict_t(&rawNetworks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "chainType", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -910,7 +910,7 @@ impl crate::exchange_generated::ExchangeBase for Toobit {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "parse_balance_list" => self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_bid_ask_custom" => self.parse_bid_ask_custom(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_bids_asks_custom" => self.parse_bids_asks_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2152,8 +2152,8 @@ impl Toobit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1136: bool = true;
-            while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (coins.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (coins.len() as i64) } {
             let coin: crate::value::Dict = self.safe_dict_t(&coins, Value::Int(i));
             let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &coin).into_dict();
             if (true) {
@@ -2327,8 +2327,8 @@ impl Toobit {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1138: bool = true;
-            while { if !__for_first_1138 { i += 1; } __for_first_1138 = false; i < (all.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (all.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&all, Value::Int(i));
             let parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, &market);
             if (parsed != Value::Null) {
@@ -2626,8 +2626,8 @@ impl Toobit {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1139: bool = true;
-            while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (response.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (response.len() as i64) } {
             let ticker: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             let marketId: Option<String> = self.safe_string_k_opt(&ticker, "s", &[]);
             if (marketId.is_some()) && (self.markets_by_id.is_some()) && (matches!((&self.markets_by_id, marketId.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
@@ -2739,8 +2739,8 @@ impl Toobit {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1140: bool = true;
-            while { if !__for_first_1140 { i += 1; } __for_first_1140 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (tickers.len() as i64) } {
             let parsedTicker: crate::value::Dict = self.parse_bid_ask_custom(tickers.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
             let ticker: crate::value::Dict = self.extend_t(parsedTicker, &[&params]);
             results.push(Value::Dict(ticker));
@@ -2901,12 +2901,12 @@ impl Toobit {
         }  else {
             response = self.private_get_api_v1_account(&[]).await;
         }
-        return self.parse_balance_list(response);
+        return Value::Dict(self.parse_balance_list(response));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> crate::value::Dict {
         let response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2918,8 +2918,8 @@ impl Toobit {
         let balances: crate::value::List = self.safe_list_k_or(&response, "balances", &response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1141: bool = true;
-            while { if !__for_first_1141 { i += 1; } __for_first_1141 = false; i < (balances.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "asset", &[]).as_str(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -2931,9 +2931,9 @@ impl Toobit {
             }
         }
         }
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return self.safe_balance(Value::Map(result));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -3560,8 +3560,8 @@ impl Toobit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1142: bool = true;
-            while { if !__for_first_1142 { i += 1; } __for_first_1142 = false; i < (responseList.len() as i64) } {
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (responseList.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), responseList.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -3937,8 +3937,8 @@ impl Toobit {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1143: bool = true;
-            while { if !__for_first_1143 { i += 1; } __for_first_1143 = false; i < (response.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (response.len() as i64) } {
             let __ws_arg_30 = self.parse_transaction_with_type(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m

@@ -399,8 +399,8 @@ impl Independentreserve {
             let mut payload: String = "".to_string();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_420: bool = true;
-                while { if !__for_first_420 { i += 1; } __for_first_420 = false; (i as f64) < ((10i64) as f64) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i += 1; } __for_first_0 = false; (i as f64) < ((10i64) as f64) } {
                 if i < bidsLength {
                     payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(storedBids.level(&Value::Int(i)), Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null)).into()), self.value_to_checksum(self.safe_number(storedBids.level(&Value::Int(i)), Value::Int(1), &[])).map(Value::from).unwrap_or(Value::Null));
                 }
@@ -408,8 +408,8 @@ impl Independentreserve {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_421: bool = true;
-                while { if !__for_first_421 { i += 1; } __for_first_421 = false; (i as f64) < ((10i64) as f64) } {
+                let mut __for_first_1: bool = true;
+                while { if !__for_first_1 { i += 1; } __for_first_1 = false; (i as f64) < ((10i64) as f64) } {
                 if i < asksLength {
                     payload = format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(storedAsks.level(&Value::Int(i)), Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null)).into()), self.value_to_checksum(self.safe_number(storedAsks.level(&Value::Int(i)), Value::Int(1), &[])).map(Value::from).unwrap_or(Value::Null));
                 }
@@ -451,8 +451,8 @@ impl Independentreserve {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_422: bool = true;
-            while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (deltas.len() as i64) } {
             self.handle_delta(&mut bookside, deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }

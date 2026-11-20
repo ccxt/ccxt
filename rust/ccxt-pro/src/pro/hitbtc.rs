@@ -337,8 +337,8 @@ impl Hitbtc {
         if (symbolsNormalized.is_some()) && resolvedPerSymbol {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_367: bool = true;
-                while { if !__for_first_367 { i += 1; } __for_first_367 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let symbolId: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(messageHashPrefix), "::").into()), symbolId.as_deref().unwrap_or("null")).into()));
             }
@@ -387,8 +387,8 @@ impl Hitbtc {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_368: bool = true;
-            while { if !__for_first_368 { i += 1; } __for_first_368 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbols.len() as i64) } {
             let subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(messageHashPrefix), "::").into()), symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             subMessageHashes.push(Value::from(subMessageHash.clone()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()));
@@ -606,8 +606,8 @@ impl Hitbtc {
         let marketIds: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_369: bool = true;
-            while { if !__for_first_369 { i += 1; } __for_first_369 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
@@ -734,8 +734,8 @@ impl Hitbtc {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_370: bool = true;
-                while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_3: bool = true;
+                while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let marketId: Option<String> = self.market_id((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_str().map(str::to_owned);
                 if (marketId.is_some()) {
                     marketIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
@@ -821,8 +821,8 @@ impl Hitbtc {
         let topic: String = "tickers".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_371: bool = true;
-            while { if !__for_first_371 { i += 1; } __for_first_371 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
@@ -987,8 +987,8 @@ impl Hitbtc {
         let topic: String = "bidask".to_string();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_372: bool = true;
-            while { if !__for_first_372 { i += 1; } __for_first_372 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
@@ -1152,8 +1152,8 @@ impl Hitbtc {
         let marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_374: bool = true;
-            while { if !__for_first_374 { i += 1; } __for_first_374 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let tradesLimit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1166,8 +1166,8 @@ impl Hitbtc {
             let trades: Vec<Value> = self.parse_ws_trades(crate::value::KeyRead::read(&&data, &Value::from(marketId)), Some(&market), &[]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_373: bool = true;
-                while { if !__for_first_373 { j += 1; } __for_first_373 = false; j < (trades.len() as i64) } {
+                let mut __for_first_6: bool = true;
+                while { if !__for_first_6 { j += 1; } __for_first_6 = false; j < (trades.len() as i64) } {
                 stored.append(trades.get(j as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -1192,8 +1192,8 @@ impl Hitbtc {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_375: bool = true;
-            while { if !__for_first_375 { i += 1; } __for_first_375 = false; i < (tradesArray.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (tradesArray.len() as i64) } {
             let __ws_arg_2 = Value::Dict(self.parse_ws_trade(tradesArray.get(i as usize).cloned().unwrap_or(Value::Null), market));
             let trade: crate::value::Dict = self.extend_t(__ws_arg_2, &[&params]);
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
@@ -1375,8 +1375,8 @@ impl Hitbtc {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_377: bool = true;
-            while { if !__for_first_377 { i += 1; } __for_first_377 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
@@ -1391,8 +1391,8 @@ impl Hitbtc {
             let rawOhlcvs: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_376: bool = true;
-                while { if !__for_first_376 { j += 1; } __for_first_376 = false; j < (rawOhlcvs.len() as i64) } {
+                let mut __for_first_9: bool = true;
+                while { if !__for_first_9 { j += 1; } __for_first_9 = false; j < (rawOhlcvs.len() as i64) } {
                 let parsed: crate::value::List = self.parse_ws_ohlcv(rawOhlcvs.get(j as usize).cloned().unwrap_or(Value::Null), Some(&market));
                 stored.append(Value::Arr(parsed));
             }
@@ -1536,8 +1536,8 @@ impl Hitbtc {
         if (matches!(&data, Value::Arr(_))) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_378: bool = true;
-                while { if !__for_first_378 { i += 1; } __for_first_378 = false; i < (data.len() as i64) } {
+                let mut __for_first_11: bool = true;
+                while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
                 let order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 self.handle_order_helper(client, &message, order);
             }
@@ -1996,7 +1996,7 @@ impl Hitbtc {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: crate::value::Dict = self.parent.parse_balance_list(&params).into_dict();
+        let mut balance: crate::value::Dict = self.parent.parse_balance_list(&params);
         if (self.balance.is_empty()) {
             self.balance = std::sync::Arc::new({
                 let m = indexmap::IndexMap::new();
@@ -2007,8 +2007,8 @@ impl Hitbtc {
         let mut keys: Vec<Value> = Value::Array(balance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_379: bool = true;
-            while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (keys.len() as i64) } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if self.in_array(Value::from(key.as_deref()), &reserved) {
                 continue;
@@ -2068,8 +2068,8 @@ impl Hitbtc {
             let mut parsedOrders: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_380: bool = true;
-                while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (result.len() as i64) } {
+                let mut __for_first_13: bool = true;
+                while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (result.len() as i64) } {
                 let parsedOrder: crate::value::Dict = self.parse_ws_order(result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), None);
                 std::sync::Arc::make_mut(&mut parsedOrders).push(Value::Dict(parsedOrder));
             }
@@ -2167,8 +2167,8 @@ impl Hitbtc {
         let subscriptionHashes: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (subscriptionHashes.len() as i64) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (subscriptionHashes.len() as i64) } {
             let subscription: Value = get_value(&__ch.subscriptions, &subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null));
             let isUnSubscription: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
             let subscriptionId: Option<String> = self.safe_string_k_opt(&subscription, "id", &[]);
@@ -2177,8 +2177,8 @@ impl Hitbtc {
                 let messageHashes: crate::value::List = self.safe_list_k_t(&subscription, "messageHashes");
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_381: bool = true;
-                    while { if !__for_first_381 { j += 1; } __for_first_381 = false; j < (subMessageHashes.len() as i64) } {
+                    let mut __for_first_14: bool = true;
+                    while { if !__for_first_14 { j += 1; } __for_first_14 = false; j < (subMessageHashes.len() as i64) } {
                     self.clean_unsubscription(client, subMessageHashes.get(j as usize).cloned().unwrap_or(Value::Null), messageHashes.get(j as usize).cloned().unwrap_or(Value::Null), &[]);
                 }
                 }
@@ -2259,8 +2259,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let subscriptionHashes: Vec<Value> = __ch.subscription_keys();
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_383: bool = true;
-                    while { if !__for_first_383 { i += 1; } __for_first_383 = false; i < (subscriptionHashes.len() as i64) } {
+                    let mut __for_first_16: bool = true;
+                    while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (subscriptionHashes.len() as i64) } {
                     let subscriptionHash: Option<String> = subscriptionHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let subscriptionId: Option<String> = self.safe_string_k_opt(__ch.get_subscription(subscriptionHash.as_deref()), "id", &[]);
                     if (subscriptionId.is_some()) && (subscriptionId == id) {

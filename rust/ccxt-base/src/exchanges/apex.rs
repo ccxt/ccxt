@@ -472,14 +472,14 @@ impl crate::exchange::DerivedExchange for Apex {
         let chains: crate::value::List = self.safe_list_k_t(&self.options, "_temp_currencies_chains");
         {
                         let mut j: i64 = 0;
-            let mut __for_first_225: bool = true;
-            while { if !__for_first_225 { j += 1; } __for_first_225 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (chains.len() as i64) } {
             let chain: Option<crate::value::Dict> = self.safe_dict_o(&chains, Value::Int(j));
             let tokens: crate::value::List = self.safe_list_k_t(&chain, "tokens");
             {
                                 let mut f: i64 = 0;
-                let mut __for_first_224: bool = true;
-                while { if !__for_first_224 { f += 1; } __for_first_224 = false; f < (tokens.len() as i64) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { f += 1; } __for_first_0 = false; f < (tokens.len() as i64) } {
                 let token: crate::value::Dict = self.safe_dict_t(&tokens, Value::Int(f));
                 let tokenName: Option<String> = self.safe_string_k_opt(&token, "token", &[]);
                 if (tokenName == currencyId) {
@@ -1882,8 +1882,8 @@ impl Apex {
         let resultList: crate::value::List = self.safe_list_k_t(&data, "historyFunds");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_226: bool = true;
-            while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (resultList.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (resultList.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&resultList, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "fundingTimestamp", &[]).as_i64();
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
@@ -1964,8 +1964,8 @@ impl Apex {
                     let numMarkets: i64 = markets.len() as i64;
                     {
                                                 let mut i: i64 = 0;
-                        let mut __for_first_227: bool = true;
-                        while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < numMarkets } {
+                        let mut __for_first_3: bool = true;
+                        while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < numMarkets } {
                         if (i == 0) && (markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null).as_str() == marketId) {
                             marketResolved = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                         }
@@ -2215,8 +2215,8 @@ impl Apex {
         let numAssets: i64 = assets.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_228: bool = true;
-            while { if !__for_first_228 { i += 1; } __for_first_228 = false; i < numAssets } {
+            let mut __for_first_4: bool = true;
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < numAssets } {
             let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
             if (self.safe_string_k(&asset, "token", &[Value::Str("".into())]).as_str() == code.as_str()) {
                 currency = Value::Dict(asset);

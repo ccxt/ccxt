@@ -566,8 +566,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let balances: crate::value::List = self.safe_list2_t(response, Value::Str("balances".into()), Value::Str("account".into()));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_418: bool = true;
-            while { if !__for_first_418 { i += 1; } __for_first_418 = false; i < (balances.len() as i64) } {
+            let mut __for_first_2: bool = true;
+            while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (balances.len() as i64) } {
             let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let currencyId: Option<String> = self.safe_string2_opt(&balance, Value::Str("asset".into()), Value::Str("marginCoin".into()), &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -639,8 +639,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_416: bool = true;
-            while { if !__for_first_416 { j += 1; } __for_first_416 = false; j < (networkDetails.len() as i64) } {
+            let mut __for_first_0: bool = true;
+            while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (networkDetails.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&networkDetails, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&entry, "chain", &[]);
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
@@ -893,8 +893,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
         if (chainDetailLength != 0) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_420: bool = true;
-                while { if !__for_first_420 { i += 1; } __for_first_420 = false; i < chainDetailLength } {
+                let mut __for_first_4: bool = true;
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < chainDetailLength } {
                 let chainDetail: crate::value::Dict = self.safe_dict_t(&chainDetails, Value::Int(i));
                 let networkId: Option<String> = self.safe_string_k_opt(&chainDetail, "chain", &[]);
                 let currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
@@ -2367,8 +2367,8 @@ impl Bitrue {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_417: bool = true;
-            while { if !__for_first_417 { i += 1; } __for_first_417 = false; i < (types.len() as i64) } {
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (types.len() as i64) } {
             let marketType: Option<String> = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (marketType.as_deref() == Some("spot")) {
                 promisesRaw.push(self.spot_v1_public_get_exchange_info(&[&params]).await);
@@ -2950,8 +2950,8 @@ impl Bitrue {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_419: bool = true;
-            while { if !__for_first_419 { i += 1; } __for_first_419 = false; i < (data.len() as i64) } {
+            let mut __for_first_3: bool = true;
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
             let ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             // skip entries without a symbol: an undefined market id would become a null
             // dictionary key here, which crashes fetchTickers in the C# build
@@ -4137,8 +4137,8 @@ impl Bitrue {
             let byLimit: crate::value::List = config.key_list("byLimit");
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_421: bool = true;
-                while { if !__for_first_421 { i += 1; } __for_first_421 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_5: bool = true;
+                while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (byLimit.len() as i64) } {
                 let entry: crate::value::List = byLimit.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
                 let threshold: Option<i64> = self.safe_integer(&entry, Value::Int(0), &[]).as_i64();
                 if (limit.is_some()) && (threshold.is_some()) && (limit.is_some() && threshold.is_some() && limit <= threshold) {
