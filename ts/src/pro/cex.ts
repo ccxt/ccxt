@@ -2,7 +2,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import cexRest from '../cex.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
@@ -795,9 +795,10 @@ export default class cex extends cexRest {
         }
         const storedOrders = this.orders;
         const ordersBySymbol = this.safeDict (storedOrders.hashmap, symbol, {});
-        let order = this.safeValue (ordersBySymbol, orderId);
+        let order = this.safeDict (ordersBySymbol, orderId);
         if (order === undefined) {
-            order = this.parseWsOrderUpdate (data, market);
+            // market comes from safeMarket, so the parser never takes its undefined returns here
+            order = this.parseWsOrderUpdate (data, market) as Dict;
         }
         order['remaining'] = remains;
         const canceled = this.safeBool (data, 'cancel', false);
@@ -819,13 +820,13 @@ export default class cex extends cexRest {
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601 (timestamp);
         // a fresh map copy: the cached entry is untyped
-        order = this.safeOrder (this.extend (order, {}));
-        storedOrders.append (order);
+        const parsedOrder = this.safeOrder (this.extend (order, {}));
+        storedOrders.append (parsedOrder);
         const messageHash = 'orders:' + symbol;
         client.resolve (storedOrders, messageHash);
     }
 
-    parseWsOrderUpdate (order: Dict, market: Market = undefined) {
+    parseWsOrderUpdate (order: Dict, market: Market = undefined): NullableDict {
         //
         //      {
         //          "id": "150714937",
