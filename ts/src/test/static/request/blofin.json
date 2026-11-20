@@ -3,6 +3,22 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit price and amount",
+                "method": "editOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/amend-order",
+                "input": [
+                    "6000004088597",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    24.5
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"orderId\":\"6000004088597\",\"newSize\":\"0.2\",\"newPrice\":\"24.5\"}"
+            }
+        ],
         "fetchMarkPrice": [
             {
                 "description": "fetch mark price",
