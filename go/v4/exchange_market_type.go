@@ -1,5 +1,7 @@
 package ccxt
 
+import "strconv"
+
 // HandleMarketTypeAndParams is ts/src/base/Exchange.ts handleMarketTypeAndParams with its
 // [string, Dict] tuple spelled as two Go results (the transpiled copy is dropped).
 func (this *BaseExchange) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
@@ -20,9 +22,7 @@ func (this *BaseExchange) HandleMarketTypeAndParams(methodName any, optionalArgs
 	}
 	methodOptions := this.SafeDict(this.Options, methodName)
 	if derefScalar(methodOptions) != nil {
-		if IsString(methodOptions) {
-			return SafeStringPtr(methodOptions), params
-		}
+		// SafeDict answers a dictionary or nil, so the TS string branch cannot fire here
 		if typeFromMethod := this.SafeString2(methodOptions, "defaultType", "type"); typeFromMethod != nil {
 			return typeFromMethod, params
 		}
@@ -100,10 +100,10 @@ func (this *BaseExchange) optionAndParams(params any, methodName any, optionName
 		paramsCallerMethodName = this.Omit(params, "callerMethodName")
 	}
 	value := this.SafeValue2(this.SafeValue(this.Options, callerMethodName), optionName, defaultOptionName)
-	if IsEqual(value, nil) {
+	if derefScalar(value) == nil {
 		value = this.SafeValue2(this.Options, optionName, defaultOptionName)
 	}
-	if IsEqual(value, nil) {
+	if derefScalar(value) == nil {
 		value = defaultValue
 	}
 	return derefScalar(value), paramsCallerMethodName
@@ -307,7 +307,10 @@ func (this *BaseExchange) HandleTriggerPricesAndParams(symbol any, params map[st
 		if omitParams {
 			keysToOmit = append(keysToOmit, keys...)
 		}
-		prices[i] = this.PriceToPrecision(symbol, ParseFloat(price))
+		// a non-numeric price parsed to nil and PriceToPrecision answered nil
+		if parsed, err := strconv.ParseFloat(*price, 64); err == nil {
+			prices[i] = this.PriceToPrecision(symbol, parsed)
+		}
 	}
 	if len(keysToOmit) > 0 {
 		return prices[0], prices[1], prices[2], this.OmitDict(params, keysToOmit)

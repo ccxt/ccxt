@@ -415,19 +415,20 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) *int64 {
 
 // getLimitOwned answers one poll on the owner: it reads the count and flags the deferred reset.
 func (c *ArrayCache) getLimitOwned(symbol any, limit any) *int64 {
-	var newUpdatesValue any = nil
+	var newUpdatesValue *int
 
 	// a typed nil pointer is not == nil, so both arguments must be normalized
 	// or an absent symbol/limit reads as present and truncates the result
 	symbol = derefScalar(symbol)
 	limit = derefScalar(limit)
 	if symbol == nil {
-		newUpdatesValue = c.allNewUpdates
+		allNewUpdates := c.allNewUpdates
+		newUpdatesValue = &allNewUpdates
 		c.clearAllUpdates = true
 	} else {
 		sym := ToString(symbol)
 		if count, found := c.newUpdatesBySymbol[sym]; found {
-			newUpdatesValue = count
+			newUpdatesValue = &count
 		}
 		c.clearUpdatesBySymbol[sym] = true
 	}
@@ -435,9 +436,10 @@ func (c *ArrayCache) getLimitOwned(symbol any, limit any) *int64 {
 	if newUpdatesValue == nil {
 		return Int64PtrTyped(limit)
 	} else if limit != nil {
-		return Int64PtrTyped(MathMin(newUpdatesValue, limit))
+		return Int64PtrTyped(MathMin(*newUpdatesValue, limit))
 	} else {
-		return Int64PtrTyped(newUpdatesValue)
+		count := int64(*newUpdatesValue)
+		return &count
 	}
 }
 
