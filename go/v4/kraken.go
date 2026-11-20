@@ -2955,12 +2955,12 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		"txid": id,
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "cl_ord_id")
-	var paramsOmitted any = func() any {
-		if clientOrderId != nil {
-			return this.Omit(params, []any{"clientOrderId", "cl_ord_id"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOrderId", "cl_ord_id"})
+	} else {
+		paramsOmitted = params
+	}
 	if clientOrderId != nil {
 		request["cl_ord_id"] = *clientOrderId
 		request = this.OmitDict(request, "txid")
@@ -2969,7 +2969,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var postOnly bool
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted)
 	postOnly = postOnlyparamsOmittedVariable[0].(bool)
-	paramsOmitted = postOnlyparamsOmittedVariable[1]
+	paramsOmitted = postOnlyparamsOmittedVariable[1].(map[string]any)
 	if postOnly {
 		request["post_only"] = "true" // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
@@ -2990,7 +2990,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var allTriggerPrices *string = this.SafeStringN(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"})
 	if allTriggerPrices != nil {
 		var offset *string = this.SafeString(paramsOmitted, "offset")
-		paramsOmitted = this.Omit(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
+		paramsOmitted = this.OmitDict(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
 		if offset != nil {
 			request["trigger_price"] = *offset + *allTriggerPrices
 		} else {
@@ -3809,19 +3809,19 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
-	var paramsOmitted any = func() any {
-		if userref != nil {
-			return this.Omit(params, "userref")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if userref != nil {
+		paramsOmitted = this.OmitDict(params, "userref")
+	} else {
+		paramsOmitted = params
+	}
 	if userref != nil {
 		request["userref"] = userref
 	}
 	var clientOrderId *string = this.SafeString(paramsOmitted, "clientOrderId")
 	if clientOrderId != nil {
 		request["cl_ord_id"] = clientOrderId
-		paramsOmitted = this.Omit(paramsOmitted, "clientOrderId")
+		paramsOmitted = this.OmitDict(paramsOmitted, "clientOrderId")
 	}
 	request, paramsOmitted = this.HandleUntilOption("end", request, paramsOmitted)
 

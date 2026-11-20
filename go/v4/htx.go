@@ -7195,12 +7195,12 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (typeVar != nil && *typeVar == "post_only"), params)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
-	var orderType any = func() any {
-		if postOnly {
-			return "post_only"
-		}
-		return typeVar
-	}()
+	var orderType any
+	if postOnly {
+		orderType = "post_only"
+	} else if derefPtr := typeVar; derefPtr != nil {
+		orderType = *derefPtr
+	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("createOrder", market, paramsPostOnly)
 	var query map[string]any = paramsSubType
 	var isLinear bool = (subType != nil && *subType == "linear")
@@ -7328,7 +7328,7 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 			request["client_order_id"] = clientOrderId
 			query = this.OmitDict(query, []any{"clientOrderId"})
 		}
-		if (IsEqual(orderType, "limit")) || (IsEqual(orderType, "ioc")) || (IsEqual(orderType, "fok")) || (IsEqual(orderType, "post_only")) {
+		if (orderType == "limit") || (orderType == "ioc") || (orderType == "fok") || (orderType == "post_only") {
 			if price != nil {
 				request["price"] = this.PriceToPrecision(symbol, price)
 			}
@@ -10057,7 +10057,7 @@ func (this *Htx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 	_ = code
 	var symbol *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 2, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
 	_ = limit

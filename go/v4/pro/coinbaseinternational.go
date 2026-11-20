@@ -2156,13 +2156,13 @@ func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) b
 						// catch block:
 						var requestId *string = this.SafeString(message, "id")
 						var authRequestId *string = this.SafeString(this.Options, "wsAuthRequestId")
-						var messageHash any = func() any {
-							if requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId) {
-								return "authenticated"
-							}
-							return requestId
-						}()
-						if (ccxt.IsEqual(messageHash, "authenticated")) && (client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
+						var messageHash any
+						if requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId) {
+							messageHash = "authenticated"
+						} else if derefPtr := requestId; derefPtr != nil {
+							messageHash = *derefPtr
+						}
+						if (messageHash == "authenticated") && (client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 							// allow the next authenticate () call to retry
 							client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 						}

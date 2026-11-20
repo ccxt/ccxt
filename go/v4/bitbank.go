@@ -780,7 +780,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	// it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -803,12 +803,12 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	if limit != nil {
 		windowMs = (duration * 1000) * *limit
 	}
-	var sinceResolved any = func() any {
-		if since == nil {
-			return this.Milliseconds() - windowMs
-		}
-		return since
-	}()
+	var sinceResolved int64
+	if since == nil {
+		sinceResolved = this.Milliseconds() - windowMs
+	} else {
+		sinceResolved = *since
+	}
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()

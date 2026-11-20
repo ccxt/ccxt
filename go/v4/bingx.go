@@ -5472,7 +5472,7 @@ func (this *Bingx) cancelOrderBody(ch chan AsyncResult[Order], id string, option
 	//    }
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var order any = this.SafeDict(data, "order", data)
+	var order map[string]any = this.SafeDictMap(data, "order", data)
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -5818,7 +5818,7 @@ func (this *Bingx) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 		}
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var order any = this.SafeDict(data, "order", data)
+	var order map[string]any = this.SafeDictMap(data, "order", data)
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil

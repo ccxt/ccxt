@@ -1763,7 +1763,7 @@ func (this *Kalshi) ParseOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	var durationSeconds int64 = *this.SafeInteger(this.Options, "ohlcvCandleDurationSeconds", 0)
 	var timestamp any = endTimestamp
 	if endTimestamp != nil {
-		timestamp = (*endTimestamp - (durationSeconds * 1000))
+		timestamp = *endTimestamp - (durationSeconds * 1000)
 	}
 	return ccxt.OHLCVFromList([]any{timestamp, this.SafeNumber(price, "open_dollars", previous), this.SafeNumber(price, "high_dollars", previous), this.SafeNumber(price, "low_dollars", previous), this.SafeNumber(price, "close_dollars", previous), this.SafeNumber(ohlcv, "volume_fp", 0)})
 }

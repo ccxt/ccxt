@@ -17341,14 +17341,14 @@ func (this *Binance) GetNetworkCodeByNetworkUrl(currencyCode *string, optionalAr
 		var info map[string]any = SafeMapTyped(networks[currentNetworkCode], "info")
 		var siteUrl *string = this.SafeString(info, "contractAddressUrl")
 		// check if url matches the field's value
-		var baseDomain any = this.GetBaseDomainFromUrl(siteUrl)
-		if (siteUrl != nil) && (baseDomain != nil) && StartsWith(depositUrl, baseDomain) {
+		var baseDomain *string = this.GetBaseDomainFromUrl(siteUrl)
+		if (siteUrl != nil) && (baseDomain != nil) && strings.HasPrefix(*depositUrl, *baseDomain) {
 			networkCode = currentNetworkCode
 		}
 	}
 	return networkCode
 }
-func (this *Binance) GetBaseDomainFromUrl(url *string) any {
+func (this *Binance) GetBaseDomainFromUrl(url *string) *string {
 	if url == nil {
 		return nil
 	}
@@ -17361,7 +17361,8 @@ func (this *Binance) GetBaseDomainFromUrl(url *string) any {
 	if domain == nil {
 		return nil
 	}
-	return *scheme + "//" + *domain + "/"
+	retStr := *scheme + "//" + *domain + "/"
+	return &retStr
 }
 func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})

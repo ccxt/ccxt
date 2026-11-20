@@ -1809,9 +1809,10 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	var until *int64 = this.SafeInteger(paramsPaginate, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(paramsPaginate, "endTime", until)
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"endTime", "until"})
-	var sinceResolved any = since
+	var sinceResolved *int64 = since
 	if (endTime != nil) && (since == nil) {
-		sinceResolved = (*endTime - ((limitResolved * 60) * 60 * 1000))
+		sinceResolvedValue := *endTime - ((limitResolved * 60) * 60 * 1000)
+		sinceResolved = &sinceResolvedValue
 	}
 	var request map[string]any = map[string]any{
 		"market":    market["id"],
@@ -1930,9 +1931,10 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(params, "endTime", until)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"endTime", "until"})
-	var sinceResolved any = since
+	var sinceResolved *int64 = since
 	if (endTime != nil) && (since == nil) {
-		sinceResolved = (*endTime - (limitResolved * this.ParseTimeframe(timeframe) * 1000))
+		sinceResolvedValue := *endTime - (limitResolved * this.ParseTimeframe(timeframe) * 1000)
+		sinceResolved = &sinceResolvedValue
 	}
 	var request map[string]any = map[string]any{
 		"market":    market["id"],

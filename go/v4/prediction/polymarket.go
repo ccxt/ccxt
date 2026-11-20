@@ -4863,12 +4863,12 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan ccxt.AsyncResult[ccxt.A
 	// the user channel authenticates inside the subscribe frame, not via HMAC headers
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var apiKey any = func() any {
-		if this.ApiKey != "" {
-			return this.ApiKey
-		}
-		return this.SafeString(this.Options, "l2ApiKey")
-	}()
+	var apiKey any
+	if this.ApiKey != "" {
+		apiKey = this.ApiKey
+	} else if derefPtr := this.SafeString(this.Options, "l2ApiKey"); derefPtr != nil {
+		apiKey = *derefPtr
+	}
 	var secret any = nil
 	if this.Secret != "" {
 		secret = this.Secret
@@ -4879,12 +4879,12 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan ccxt.AsyncResult[ccxt.A
 			secret = nil
 		}
 	}
-	var passphrase any = func() any {
-		if this.Password != "" {
-			return this.Password
-		}
-		return this.SafeString(this.Options, "l2Passphrase")
-	}()
+	var passphrase any
+	if this.Password != "" {
+		passphrase = this.Password
+	} else if derefPtr := this.SafeString(this.Options, "l2Passphrase"); derefPtr != nil {
+		passphrase = *derefPtr
+	}
 	var auth map[string]any = map[string]any{
 		"apiKey":     apiKey,
 		"secret":     secret,

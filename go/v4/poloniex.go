@@ -2721,7 +2721,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		// the request body is a bare list, so there is no room for common params - extend each order with them instead
 		var extendedParams any = this.Extend(orderParams, params)
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": marketInner["id"],
 			"side":   this.SafeStringUpper(rawOrder, "side"),
 		}
@@ -2789,7 +2789,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(results)}
 	return nil
 }
-func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, amount any, request any, optionalArgs ...any) (map[string]any, map[string]any) {
+func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, amount any, request map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {
 	// build the request on a copy: the caller keeps its own dict and reads ours
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price

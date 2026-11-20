@@ -2436,7 +2436,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		}
 		if omitUntil && (until != nil) {
 			if (limit != nil) && (limit == nil || *limit != 0) {
-				request["startTime"] = (*until - (*limit * duration))
+				request["startTime"] = *until - (*limit * duration)
 			} else {
 				var spotWindow int64 = 500 * duration // maxLimit is 500 for spot
 				request["startTime"] = *until - spotWindow
@@ -2477,7 +2477,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			request["end"] = this.ParseToInt(float64(*until) / 1000)
 			if since == nil {
 				if (limit != nil) && (limit == nil || *limit != 0) {
-					request["start"] = this.ParseToInt(float64((*until - (*limit * duration))) / 1000)
+					request["start"] = this.ParseToInt(float64(*until-(*limit*duration)) / 1000)
 				} else {
 					var swapWindow int64 = 2000 * duration // maxLimit is 2000 for swap
 					request["start"] = this.ParseToInt(float64(*until-swapWindow) / 1000)
@@ -3468,7 +3468,7 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, o
 	}
 	var ordersRequests []any = []any{}
 	var symbol *string = nil
-	var paramsLoop any = params
+	var paramsLoop map[string]any = params
 	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")

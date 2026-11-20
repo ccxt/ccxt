@@ -116,7 +116,7 @@ func (this *Bitget) GetInstType(methodName string, market any, optionalArgs ...a
 	_ = params
 	var useProductType bool = (ccxt.IsEqual(market, nil)) || (*this.SafeBool(market, "swap", false)) || (*this.SafeBool(market, "future", false))
 	var instTypeDefault any = "SPOT"
-	var paramsProductType any = params
+	var paramsProductType map[string]any = params
 	if useProductType {
 		var instTypeDefaultPtr *string = nil
 		instTypeDefaultPtr, paramsProductType = this.HandleProductTypeAndParams(market, params)

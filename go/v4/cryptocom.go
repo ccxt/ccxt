@@ -1626,7 +1626,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	var until *int64 = this.SafeInteger(paramsPaginate, "until", now)
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if since != nil {
-		request["start_ts"] = (*since - (duration * 1000))
+		request["start_ts"] = *since - (duration * 1000)
 		if limit != nil {
 			var countLimit int64 = this.ParseToInt(min(*limit, 300))
 			request["end_ts"] = this.Sum(since, (duration*countLimit)*1000)

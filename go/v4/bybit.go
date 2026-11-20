@@ -6796,7 +6796,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orde
 	var ordersRequests []any = []any{}
 	var category any = nil
 	// getBybitType consumes its options from the params threaded through every order
-	var query any = params
+	var query map[string]any = params
 	for i := 0; i < len(orders); i++ {
 		var order map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
@@ -8565,7 +8565,7 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -8607,7 +8607,7 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	if enableUnified != nil && *enableUnified {
 		currencyKey = "currency"
 		if since != nil {
-			request["startTime"] = since
+			request["startTime"] = *since
 		}
 	} else {
 		if since != nil {
@@ -8907,12 +8907,12 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	} else {
 		defaultAccountType = "SPOT"
 	}
-	var accountType any = func() any {
-		if accountTypeOption == nil {
-			return defaultAccountType
-		}
-		return accountTypeOption
-	}()
+	var accountType any
+	if accountTypeOption == nil {
+		accountType = defaultAccountType
+	} else if derefPtr := accountTypeOption; derefPtr != nil {
+		accountType = *derefPtr
+	}
 	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
@@ -13490,7 +13490,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = params
 	var apiName string = api[0]
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -13534,7 +13534,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 				"X-BAPI-RECV-WINDOW": this.SafeString(this.Options, "recvWindow", ""),
 			}
 			if isV3UnifiedMargin || isV3Contract {
-				AddElementToObject(requestHeaders, "X-BAPI-SIGN-TYPE", "2")
+				requestHeaders["X-BAPI-SIGN-TYPE"] = "2"
 			}
 			var query map[string]any = this.Extend(map[string]any{}, params)
 			var queryEncoded string = this.Rawencode(query)
@@ -13594,17 +13594,22 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	if method == "POST" {
 		var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
-		var headersBase any = requestHeaders
-		requestHeaders = func() any {
-			if IsEqual(headersBase, nil) {
-				return map[string]any{}
+		var headersBase map[string]any = requestHeaders
+		if headersBase == nil {
+			requestHeaders = map[string]any{}
+		} else {
+			requestHeaders = headersBase
+		}
+		if requestHeaders != nil {
+			if brokerId != nil {
+				requestHeaders["Referer"] = *brokerId
+			} else {
+				requestHeaders["Referer"] = nil
 			}
-			return headersBase
-		}()
-		AddElementToObject(requestHeaders, "Referer", brokerId)
+		}
 	}
 	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

@@ -4066,7 +4066,11 @@ func (this *Bitget) ParseMarket(market any) map[string]any {
 			typeVarStr2 := "swap"
 			typeVar = &typeVarStr2
 			swap = true
-			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+			if base != nil && quote != nil && settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle
+			} else {
+				symbol = nil
+			}
 		} else if symbolType != nil && *symbolType == "delivery" {
 			expiry = this.SafeInteger(market, "deliveryTime")
 			var expiryIso *string = this.Iso8601(expiry)
@@ -4095,7 +4099,11 @@ func (this *Bitget) ParseMarket(market any) map[string]any {
 			typeVarStr3 := "future"
 			typeVar = &typeVarStr3
 			future = true
-			symbol = Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiryString)
+			if base != nil && quote != nil && settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle + "-" + expiryString
+			} else {
+				symbol = nil
+			}
 		}
 		contract = true
 		inverse = (base == settle || (base != nil && settle != nil && *base == *settle))
@@ -4393,7 +4401,11 @@ func (this *Bitget) ParseUtaMarket(market any, stock bool) map[string]any {
 			typeVarStr2 := "swap"
 			typeVar = &typeVarStr2
 			swap = true
-			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+			if base != nil && quote != nil && settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle
+			} else {
+				symbol = nil
+			}
 		} else if symbolType != nil && *symbolType == "delivery" {
 			expiry = this.SafeInteger(market, "deliveryTime")
 			var expiryIso *string = this.Iso8601(expiry)
@@ -4422,7 +4434,11 @@ func (this *Bitget) ParseUtaMarket(market any, stock bool) map[string]any {
 			typeVarStr3 := "future"
 			typeVar = &typeVarStr3
 			future = true
-			symbol = Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiryString)
+			if base != nil && quote != nil && settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle + "-" + expiryString
+			} else {
+				symbol = nil
+			}
 		}
 		contract = true
 		inverse = (base == settle || (base != nil && settle != nil && *base == *settle))

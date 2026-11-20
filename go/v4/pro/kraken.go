@@ -176,19 +176,35 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 	var offset string = *this.SafeString(paramsPostOnly, "offset", "") // can set this to - for minus
 	var trailingAmountString any = nil
 	if trailingAmount != nil {
-		trailingAmountString = ccxt.Add(offset, this.NumberToString(trailingAmount))
+		if trailingAmountStringPiece := this.NumberToString(trailingAmount); trailingAmountStringPiece != nil {
+			trailingAmountString = offset + *trailingAmountStringPiece
+		} else {
+			trailingAmountString = nil
+		}
 	}
 	var trailingPercentString any = nil
 	if trailingPercent != nil {
-		trailingPercentString = ccxt.Add(offset, this.NumberToString(trailingPercent))
+		if trailingPercentStringPiece := this.NumberToString(trailingPercent); trailingPercentStringPiece != nil {
+			trailingPercentString = offset + *trailingPercentStringPiece
+		} else {
+			trailingPercentString = nil
+		}
 	}
 	var trailingLimitAmountString any = nil
 	if trailingLimitAmount != nil {
-		trailingLimitAmountString = ccxt.Add(offset, this.NumberToString(trailingLimitAmount))
+		if trailingLimitAmountStringPiece := this.NumberToString(trailingLimitAmount); trailingLimitAmountStringPiece != nil {
+			trailingLimitAmountString = offset + *trailingLimitAmountStringPiece
+		} else {
+			trailingLimitAmountString = nil
+		}
 	}
 	var trailingLimitPercentString any = nil
 	if trailingLimitPercent != nil {
-		trailingLimitPercentString = ccxt.Add(offset, this.NumberToString(trailingLimitPercent))
+		if trailingLimitPercentStringPiece := this.NumberToString(trailingLimitPercent); trailingLimitPercentStringPiece != nil {
+			trailingLimitPercentString = offset + *trailingLimitPercentStringPiece
+		} else {
+			trailingLimitPercentString = nil
+		}
 	}
 	var priceType string = "quote"
 	if isTrailingPercentOrder || isTrailingLimitPercentOrder {

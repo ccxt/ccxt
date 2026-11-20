@@ -2528,7 +2528,11 @@ func (this *Weex) ParseFundingRate(contract any, optionalArgs ...any) FundingRat
 	var interval any = nil
 	var collectCycle *string = this.SafeString(contract, "collectCycle")
 	if collectCycle != nil {
-		interval = Add(Precise.StringDiv(collectCycle, "60"), "h")
+		if intervalPiece := Precise.StringDiv(collectCycle, "60"); intervalPiece != nil {
+			interval = *intervalPiece + "h"
+		} else {
+			interval = nil
+		}
 	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     contract,

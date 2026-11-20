@@ -2713,13 +2713,13 @@ func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) ma
 func (this *Hyperliquid) ActionHash(action any, vaultAddress *string, nonce any) any {
 	var dataBinary any = this.Packb(action)
 	var dataHex string = this.BinaryToBase16(dataBinary)
-	var data any = dataHex
-	data = ccxt.Add(data, "00000"+this.IntToBase16(nonce))
+	var data string = dataHex
+	data += "00000" + this.IntToBase16(nonce)
 	if vaultAddress == nil {
-		data = ccxt.Add(data, "00")
+		data += "00"
 	} else {
-		data = ccxt.Add(data, "01")
-		data = ccxt.Add(data, vaultAddress)
+		data += "01"
+		data += *vaultAddress
 	}
 	return this.Hash(this.Base16ToBinary(data), ccxt.Keccak, "binary")
 }

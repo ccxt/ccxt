@@ -649,12 +649,12 @@ func (this *Kucoin) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	}
 	var url *string = r2.Value
 	spotMethod, paramsSpotMethod := this.HandleOptionStringAndParams(paramsUta, "watchTicker", "spotMethod", "/market/snapshot")
-	var method any = func() any {
-		if isFuturesMethod != nil && *isFuturesMethod == true {
-			return "/contractMarket/ticker"
-		}
-		return spotMethod
-	}()
+	var method any
+	if isFuturesMethod != nil && *isFuturesMethod == true {
+		method = "/contractMarket/ticker"
+	} else if derefPtr := spotMethod; derefPtr != nil {
+		method = *derefPtr
+	}
 	var query map[string]any
 	if isFuturesMethod != nil && *isFuturesMethod == true {
 		query = paramsUta
@@ -742,12 +742,12 @@ func (this *Kucoin) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol str
 		}
 		var url *string = r2.Value
 		spotMethod, paramsSpotMethod := this.HandleOptionStringAndParams(paramsUta, "watchTicker", "spotMethod", "/market/snapshot")
-		var method any = func() any {
-			if isFuturesMethod != nil && *isFuturesMethod == true {
-				return "/contractMarket/ticker"
-			}
-			return spotMethod
-		}()
+		var method any
+		if isFuturesMethod != nil && *isFuturesMethod == true {
+			method = "/contractMarket/ticker"
+		} else if derefPtr := spotMethod; derefPtr != nil {
+			method = *derefPtr
+		}
 		var query map[string]any
 		if isFuturesMethod != nil && *isFuturesMethod == true {
 			query = paramsUta
@@ -1058,7 +1058,7 @@ func (this *Kucoin) HandleTicker(client any, message map[string]any) {
 			market = this.SafeMarket(marketId, market, "-")
 		}
 		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-		var rawTicker any = this.SafeDict(data, "data", data)
+		var rawTicker map[string]any = this.SafeDictMap(data, "data", data)
 		var ticker map[string]any = this.ParseSpotOrUtaTicker(rawTicker, market)
 		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Tickers[symbol] = ccxt.TickerFromMap(ticker)

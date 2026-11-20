@@ -118,7 +118,11 @@ func (this *Bitopro) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	if limit == nil {
 		endPart = marketIdValue
 	} else {
-		endPart = ccxt.Add(*marketIdValue+":", this.NumberToString(limit))
+		if endPartPiece := this.NumberToString(limit); endPartPiece != nil {
+			endPart = *marketIdValue + ":" + *endPartPiece
+		} else {
+			endPart = nil
+		}
 	}
 
 	r1 := <-this.WatchPublicAsync("order-books", messageHash, endPart)

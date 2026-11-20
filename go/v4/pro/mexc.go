@@ -879,7 +879,7 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		parsed = this.ParseWsOHLCV(data, market)
 	} else {
 		var d map[string]any = ccxt.SafeDict2Typed(message, "d", "data", map[string]any{})
-		var rawOhlcv any = this.SafeDict(d, "k", d)
+		var rawOhlcv map[string]any = this.SafeDictMap(d, "k", d)
 		var timeframeId *string = this.SafeString2(rawOhlcv, "i", "interval")
 		var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 		timeframe = this.FindTimeframe(timeframeId, timeframes)

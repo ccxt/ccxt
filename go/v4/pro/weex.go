@@ -908,7 +908,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	var firstMarket map[string]any = this.Market(firstSymbol)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var priceType any = "LAST_PRICE"
-	var paramsPriceType any = paramsOmitted
+	var paramsPriceType map[string]any = paramsOmitted
 	if isContract != nil && *isContract == true {
 		var priceTypePtr *string = nil
 		priceTypePtr, paramsPriceType = this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType)
@@ -1021,7 +1021,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 	var firstMarket map[string]any = this.Market(firstSymbol)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var priceType any = "LAST_PRICE"
-	var paramsPriceType any = paramsOmitted
+	var paramsPriceType map[string]any = paramsOmitted
 	if isContract != nil && *isContract == true {
 		var priceTypePtr *string = nil
 		priceTypePtr, paramsPriceType = this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType)

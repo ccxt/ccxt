@@ -1694,7 +1694,7 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 		var symbol *string = this.SafeString(this.Symbols, i, "")
 		var market map[string]any = this.Market(symbol)
 		var category *string = this.SafeString(market["info"], "category")
-		var entry any = this.SafeDict(byCategory, category, fallback)
+		var entry map[string]any = this.SafeDictMap(byCategory, category, fallback)
 		if symbol != nil {
 			result[*symbol] = map[string]any{
 				"info":       entry,
@@ -1739,10 +1739,10 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var isPostOnlyTimeInForce bool = (timeInForce != nil && *timeInForce == "PO")
 	var postOnly any = false
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarketOrder, isPostOnlyTimeInForce, paramsOmitted)
 	postOnly = postOnlyparamsOmittedVariable[0]
-	paramsOmitted = postOnlyparamsOmittedVariable[1]
+	paramsOmitted = postOnlyparamsOmittedVariable[1].(map[string]any)
 	if isMarketOrder {
 		if (timeInForce != nil && *timeInForce == "GTC") || (timeInForce != nil && *timeInForce == "PO") {
 			panic(NotSupported(this.Id + " createOrder() does not support the " + *timeInForce + " timeInForce on market orders"))
@@ -1763,7 +1763,7 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 	var tif string = strings.ToLower(*timeInForce)
 	var reduceOnly *bool = this.SafeBool(paramsOmitted, "reduceOnly", false)
 	var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "c")
-	paramsOmitted = this.Omit(paramsOmitted, []any{"timeInForce", "reduceOnly", "clientOrderId"})
+	paramsOmitted = this.OmitDict(paramsOmitted, []any{"timeInForce", "reduceOnly", "clientOrderId"})
 	var instrumentId int64 = this.ParseToInt(market["id"])
 	var isBuy bool = (IsEqual(side, "buy"))
 	var quantity *string = this.AmountToPrecision(symbol, amount)
@@ -3560,7 +3560,7 @@ func (this *Polymarket) setLeverageBody(ch chan AsyncResult[map[string]any], lev
 	}
 	var market map[string]any = this.Market(symbol)
 	var marginMode *string = nil
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	marginMode, paramsOmitted = this.HandleMarginModeAndParams("setLeverage", paramsOmitted, "cross")
 	var isCross bool = (marginMode == nil || *marginMode != "isolated")
 	var instrumentId int64 = this.ParseToInt(market["id"])

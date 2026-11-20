@@ -1298,7 +1298,7 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) ma
 		retStr := "yes"
 		return &retStr
 	}()
-	var isYes bool = (ccxt.ToLower(rawLabel) != "no")
+	var isYes bool = (strings.ToLower(*rawLabel) != "no")
 	var bidStr *string = nil
 	var askStr *string = nil
 	var bidSizeStr *string = nil
@@ -2628,7 +2628,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	if this.WalletAddress != "" {
 		maker = this.WalletAddress
 	}
-	var paramsValue any = params
+	var paramsValue map[string]any = params
 	maker, paramsValue = this.HandleOptionAndParams(paramsValue, "createOrder", "maker", maker)
 
 	{
@@ -2735,7 +2735,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	// the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
 	var expirationInt *int64 = this.SafeInteger(paramsValue, "expiration")
 	if expirationInt != nil {
-		paramsValue = this.Omit(paramsValue, "expiration")
+		paramsValue = this.OmitDict(paramsValue, "expiration")
 		signRequest["expiration"] = this.NumberToString(expirationInt)
 	} else {
 		signRequest["expiration"] = "0"
@@ -2748,9 +2748,9 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	var postOnly any = false
 	var postOnlyparamsValueVariable []any = this.HandlePostOnly(isMarket, false, paramsValue)
 	postOnly = postOnlyparamsValueVariable[0]
-	paramsValue = postOnlyparamsValueVariable[1]
+	paramsValue = postOnlyparamsValueVariable[1].(map[string]any)
 	var timeInForce *string = this.SafeString(paramsValue, "timeInForce")
-	paramsValue = this.Omit(paramsValue, "timeInForce")
+	paramsValue = this.OmitDict(paramsValue, "timeInForce")
 	if timeInForce == nil {
 		var timeInForceStr string
 		if isMarket {
@@ -2765,7 +2765,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		var createMarketBuyOrderRequiresPrice bool = true
 		createMarketBuyOrderRequiresPrice, paramsValue = this.HandleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber(paramsValue, "cost")
-		paramsValue = this.Omit(paramsValue, "cost")
+		paramsValue = this.OmitDict(paramsValue, "cost")
 		if createMarketBuyOrderRequiresPrice {
 			if (price == nil) && (cost == nil) {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -3183,7 +3183,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var paramsValue any = params
+	var paramsValue map[string]any = params
 	if outcome != nil {
 		var warn any = true
 		warn, paramsValue = this.HandleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)

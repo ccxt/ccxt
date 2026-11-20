@@ -133,8 +133,7 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var market map[string]any = this.Market(symbol)
 	var marketId string = *this.SafeString(market, "id", "")
-	topicStr := "orderbook." + marketId + ".10." + *this.NumberToString(limitResolved)
-	var topic *string = &topicStr
+	var topic string = "orderbook." + marketId + ".10." + *this.NumberToString(limitResolved)
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -148,7 +147,7 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		"params": params,
 	}
 
-	r1 := <-this.WatchPublicAsync(*topic, request, subscription)
+	r1 := <-this.WatchPublicAsync(topic, request, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

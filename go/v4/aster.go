@@ -1804,7 +1804,7 @@ func (this *Aster) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 	if sinceDefined {
 		request["startTime"] = since
 	}
-	var paramsUntil any = params
+	var paramsUntil map[string]any = params
 	if untilDefined {
 		request, paramsUntil = this.HandleUntilOption("endTime", request, params)
 	}

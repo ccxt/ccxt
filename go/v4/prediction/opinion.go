@@ -1414,7 +1414,7 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	// Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
 	// against a differently-cased walletAddress with strict equality would pick the wrong
 	// signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
-	var makerLower string = ccxt.ToLower(maker)
+	var makerLower string = strings.ToLower(*maker)
 	var walletAddressLower string = strings.ToLower(this.WalletAddress)
 	var signatureType int
 	if makerLower == walletAddressLower {

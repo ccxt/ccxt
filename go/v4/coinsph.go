@@ -1428,7 +1428,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	} else if until != nil {
 		request["endTime"] = until
 		// since work properly only when it is "younger" than last "limit" candle
-		request["startTime"] = (*until - ((this.ParseTimeframe(timeframe) * 1000) * (limitResolved - 1)))
+		request["startTime"] = *until - ((this.ParseTimeframe(timeframe) * 1000) * (limitResolved - 1))
 	}
 	request["limit"] = limitResolved
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")

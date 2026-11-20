@@ -2876,7 +2876,11 @@ func (this *Okx) ParseMarket(market any) map[string]any {
 			strikePrice = this.SafeString(market, "stk")
 			optionType = this.SafeString(market, "optType")
 			if expiry != nil {
-				symbol = Add(Add(Add(settledSymbol+"-"+this.Yymmdd(expiry)+"-", strikePrice), "-"), optionType)
+				if strikePrice != nil && optionType != nil {
+					symbol = settledSymbol + "-" + this.Yymmdd(expiry) + "-" + *strikePrice + "-" + *optionType
+				} else {
+					symbol = nil
+				}
 				var optionTypeStr string
 				if optionType != nil && *optionType == "P" {
 					optionTypeStr = "put"
@@ -10475,15 +10479,15 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTier
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var typeVar any = func() any {
-		if *this.SafeBool(market, "spot", false) {
-			return "MARGIN"
-		}
-		return this.ConvertToInstrumentType(market["type"])
-	}()
+	var typeVar any
+	if *this.SafeBool(market, "spot", false) {
+		typeVar = "MARGIN"
+	} else if derefPtr := this.ConvertToInstrumentType(market["type"]); derefPtr != nil {
+		typeVar = *derefPtr
+	}
 	var instFamily *string = this.SafeString(market["info"], "instFamily")
 	if (instFamily == nil) || (instFamily != nil && *instFamily == "") {
-		if !IsEqual(typeVar, "MARGIN") {
+		if typeVar != "MARGIN" {
 			panic(BadRequest(this.Id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for " + symbol))
 		}
 	}
@@ -10495,7 +10499,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTier
 		"tdMode":     marginMode,
 		"instFamily": instFamily,
 	}
-	if IsEqual(typeVar, "MARGIN") {
+	if typeVar == "MARGIN" {
 		request["instId"] = market["id"]
 	}
 

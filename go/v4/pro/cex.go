@@ -988,8 +988,9 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	}
 	var storedOrders ccxt.WsArrayCache = this.Orders
 	var ordersBySymbol map[string]any = storedOrders.(*ccxt.ArrayCache).Hashmap[symbol]
-	var order any = this.SafeValue(ordersBySymbol, orderId)
+	var order any = this.SafeDict(ordersBySymbol, orderId)
 	if ccxt.IsEqual(order, nil) {
+		// market comes from safeMarket, so the parser never takes its undefined returns here
 		order = this.ParseWsOrderUpdate(data, market)
 	}
 	ccxt.AddElementToObject(order, "remaining", remains)
@@ -1012,8 +1013,8 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	ccxt.AddElementToObject(order, "timestamp", timestamp)
 	ccxt.AddElementToObject(order, "datetime", this.Iso8601(timestamp))
 	// a fresh map copy: the cached entry is untyped
-	order = ccxt.OrderToMap(this.SafeOrder(this.Extend(order, map[string]any{})))
-	storedOrders.Append(order)
+	var parsedOrder map[string]any = ccxt.OrderToMap(this.SafeOrder(this.Extend(order, map[string]any{})))
+	storedOrders.Append(parsedOrder)
 	var messageHash string = "orders:" + symbol
 	client.(ccxt.ClientInterface).Resolve(storedOrders, messageHash)
 }

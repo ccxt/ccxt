@@ -2076,15 +2076,15 @@ func (this *Hyperliquid) ActionHash(action any, vaultAddress *string, nonce any,
 	_ = expiresAfter
 	var dataBinary any = this.Packb(action)
 	var dataHex string = this.BinaryToBase16(dataBinary)
-	var data any = dataHex + "00000" + this.IntToBase16(nonce)
+	var data string = dataHex + "00000" + this.IntToBase16(nonce)
 	if vaultAddress == nil {
-		data = Add(data, "00")
+		data += "00"
 	} else {
-		data = Add(data, "01")
-		data = Add(data, vaultAddress)
+		data += "01"
+		data += *vaultAddress
 	}
 	if expiresAfter != nil {
-		data = Add(data, "0000000"+this.IntToBase16(expiresAfter))
+		data += "0000000" + this.IntToBase16(expiresAfter)
 	}
 	return this.Hash(this.Base16ToBinary(data), keccak, "binary")
 }

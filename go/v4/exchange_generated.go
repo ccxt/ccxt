@@ -5866,13 +5866,13 @@ func (this *BaseExchange) ThrowBroadlyMatchedException(broad any, string any, me
 		ThrowDynamicException(GetValue(broad, broadKey), message)
 	}
 }
-func (this *BaseExchange) FindBroadlyMatchedKey(broad any, string any) any {
+func (this *BaseExchange) FindBroadlyMatchedKey(broad any, errorString any) any {
 	// a helper for matching error strings exactly vs broadly
-	var keys any = ObjectKeys(broad)
-	for i := 0; i < GetArrayLength(keys); i++ {
-		var key any = GetValue(keys, i)
-		if !IsEqual(string, nil) {
-			if GetIndexOf(string, key) >= 0 {
+	var keys []string = ObjectKeys(broad)
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if !IsEqual(errorString, nil) {
+			if GetIndexOf(errorString, key) >= 0 {
 				return key
 			}
 		}

@@ -4861,7 +4861,7 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var code *string = this.SafeString2(params, "currency", "code", "USDT")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"currency", "code"})
-	var paramsSettle any = paramsOmitted
+	var paramsSettle map[string]any = paramsOmitted
 	var settle *string = nil
 	var market map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
@@ -7026,7 +7026,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var code *string = this.SafeString2(params, "currency", "code", "USDT")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"currency", "code"})
-	var paramsSettle any = paramsOmitted
+	var paramsSettle map[string]any = paramsOmitted
 	var settle *string = nil
 	var market map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbolsNormalized, 0)

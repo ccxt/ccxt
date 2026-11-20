@@ -925,7 +925,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	if (since != nil) && (until == nil) {
 		request["until"] = this.Sum(since, limitValue*duration)
 	} else if (since == nil) && (until != nil) {
-		request["since"] = (*until - (limitValue * duration))
+		request["since"] = *until - (limitValue * duration)
 	}
 	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {

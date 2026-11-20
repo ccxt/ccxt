@@ -1903,7 +1903,7 @@ func (this *Sxbet) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 	}
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var row any = this.SafeDict(data, "order", data)
+	var row map[string]any = this.SafeDictMap(data, "order", data)
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.ParsePredictionOrder(row, outcomeObj))}
 	return nil

@@ -3632,7 +3632,11 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		var cursor *string = this.SafeString(pagination, "next_starting_after")
 		if (cursor != nil) && (cursor == nil || *cursor != "") {
 			var lastInfo map[string]any = this.SafeDictMap(last, "info", map[string]any{})
-			lastInfo["next_starting_after"] = *cursor
+			if cursor != nil {
+				lastInfo["next_starting_after"] = *cursor
+			} else {
+				lastInfo["next_starting_after"] = nil
+			}
 			AddElementToObject(last, "info", lastInfo)
 			AddElementToObject(ledger, lastIndex, last)
 		}

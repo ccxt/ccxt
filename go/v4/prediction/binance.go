@@ -1495,7 +1495,7 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1859,7 +1859,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -2449,8 +2449,8 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	}
 	// flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
 	for i := 0; i < len(ids); i++ {
-		var key any = ccxt.Add(ccxt.Add("cancelInfoList[", this.NumberToString(i)), "].orderId")
-		ccxt.AddElementToObject(request, key, ids[i])
+		var key string = "cancelInfoList[" + *this.NumberToString(i) + "].orderId"
+		request[key] = ids[i]
 	}
 
 	r2 := <-this.SapiPrivatePostTradeBatchCancel(this.Extend(request, params))

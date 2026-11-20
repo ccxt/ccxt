@@ -6856,12 +6856,12 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id string, op
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId")
-	var paramsOmitted any = func() any {
-		if clientOrderId != nil {
-			return this.Omit(params, []any{"clientOid", "clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOid", "clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
 	} else {
@@ -8438,12 +8438,12 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id string, opt
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId")
-	var paramsOmitted any = func() any {
-		if clientOrderId != nil {
-			return this.Omit(params, []any{"clientOid", "clientOrderId"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOid", "clientOrderId"})
+	} else {
+		paramsOmitted = params
+	}
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
 	} else {
@@ -9550,12 +9550,12 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		return nil
 	}
 	var marketType *string = this.SafeString(paramsRequest, "marketType")
-	var paramsOmitted any = func() any {
-		if marketType != nil {
-			return this.Omit(paramsRequest, "marketType")
-		}
-		return paramsRequest
-	}()
+	var paramsOmitted map[string]any
+	if marketType != nil {
+		paramsOmitted = this.OmitDict(paramsRequest, "marketType")
+	} else {
+		paramsOmitted = paramsRequest
+	}
 	var request map[string]any = map[string]any{}
 	var isContract any = false
 	var market map[string]any = nil
@@ -16015,12 +16015,12 @@ func (this *Kucoin) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		"bizType": "TRANSFER",
 	}
 	var until *int64 = this.SafeInteger(paramsRequest, "until")
-	var paramsOmitted any = func() any {
-		if until != nil {
-			return this.Omit(paramsRequest, "until")
-		}
-		return paramsRequest
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsRequest, "until")
+	} else {
+		paramsOmitted = paramsRequest
+	}
 	if until != nil {
 		request["endAt"] = until
 	}
