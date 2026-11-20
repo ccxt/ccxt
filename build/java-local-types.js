@@ -6395,7 +6395,29 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
 // a whole-statement numeric literal write takes the printed literal's own box (`1` Integer,
 // `1L` Long, `1.5` Double); never inside a ternary, whose other arm may print an `(Object)` cast
 function dataflowPlainWriteType (printer, node, context) {
-    return (node?.kind === ts.SyntaxKind.NumericLiteral) ? literalTypeOfNumericLiteral (printer, node) : dataflowValueType (printer, node, context);
+    return (node?.kind === ts.SyntaxKind.NumericLiteral) ? literalTypeOfNumericLiteral (printer, node) : (dataflowLiteralArmsType (printer, node) ?? dataflowValueType (printer, node, context));
+}
+
+function dataflowSeedIsLongCounter (printer, declaration) {
+    try {
+        return r87j3SumCounter (printer, declaration) === true;
+    } catch (e) {
+        return true; // unknown: keep the base decision
+    }
+}
+
+// `c ? 50 : 500` with two numeric-literal arms of one printed box: neither arm gets an `(Object)` cast
+function dataflowLiteralArmsType (printer, node) {
+    if (node === undefined || !ts.isConditionalExpression (node)) {
+        return undefined;
+    }
+    const a = unwrapParens (node.whenTrue);
+    const b = unwrapParens (node.whenFalse);
+    if (a?.kind !== ts.SyntaxKind.NumericLiteral || b?.kind !== ts.SyntaxKind.NumericLiteral) {
+        return undefined;
+    }
+    const t = literalTypeOfNumericLiteral (printer, a);
+    return (t !== undefined && t === literalTypeOfNumericLiteral (printer, b)) ? t : undefined;
 }
 
 // is `value` the LEFT operand of a `+` / `+=`? (prints `Helpers.add(value, ...)`)
@@ -6657,7 +6679,10 @@ function dataflowLocalTypeOf (printer, declaration, context) {
     // the neutral null, exactly like an `= undefined` one, so the write join and the use scan
     // below decide the type
     const initializer = unwrapParens (declaration.initializer);
-    let javaType = (initializer === undefined) ? 'null' : dataflowValueType (printer, initializer, ctx);
+    // a literal seed counts only on a reassigned `let`; const literals and r87j3 Long counters keep their rules
+    const longCounter = initializer?.kind === ts.SyntaxKind.NumericLiteral
+        && ((declaration.parent.flags & ts.NodeFlags.Const) !== 0 || dataflowSeedIsLongCounter (printer, declaration));
+    let javaType = (initializer === undefined) ? 'null' : (longCounter ? undefined : dataflowPlainWriteType (printer, initializer, ctx));
     if (javaType === undefined) {
         dataflowDebug (`decl ${sourceName}: rejected (unprovable initializer)`);
         return undefined;
