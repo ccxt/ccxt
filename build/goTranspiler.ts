@@ -14301,7 +14301,7 @@ ${constStatements.join('\n')}
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
             // padHexAddress / shortenSlug (: string, no venue override) answer a Go string on every return path
-            const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ], 'NormalizeTagKey': [ 'return s' ] };
+            const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ], 'NormalizeTagKey': [ 'return s' ], 'SlugToMarketSymbol': [ 'return marketPart', 'return eventPart + "_" + marketPart' ], 'SlugToOutcomeSymbol': [ 'return this.SlugToMarketSymbol(eventSlug, marketSlug) + ":" + label' ] };
             fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goJoinStringLocals (goRetypeStringReturns (goGofmtSplicedText (goGofmtNestedParens (goSafeListTypedDefaultReads (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (goChanCarrierPass (guardMultiSendCores (normalizeGoFileHeader (file))))))))))), 'PredictionExchange', stringReturns))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
@@ -14921,6 +14921,7 @@ ${caseStatements.join('\n')}
                 for (let r = 0; r < returns.length; r++) {
                     const expr = returns[r].replace (/^[ \t]*return[ \t]+/, '');
                     const indent = returns[r].substring (0, returns[r].length - returns[r].trimStart ().length);
+                    if (expr.trim () === 'nil') { continue; } // an absent result is already the nil *string
                     wrapped = wrapped.replace (returns[r], indent + 'return SafeStringPtr(' + expr + ')');
                 }
                 // keep the printer's own signature spacing and swap only the result type
@@ -17558,7 +17559,8 @@ function goRetypeStringReturns (content: string, receiver: string, methods: { [n
         const head = new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\(([^)\\n]*)\\) any \\{$', 'm').exec (content);
         if (head === null) { continue; }
         const open = head.index + head[0].length - 1;
-        const close = goMatchingCloseText (content, open);
+        // comments may hold apostrophes: match the brace on the masked text
+        const close = goMatchingCloseText (goTextMaskLiteralsAndComments (content), open);
         const found = (content.slice (open, close).match (/^[ \t]*return\b.*$/gm) ?? []).map ((r) => r.trim ());
         // an expected `return *X` row also accepts the printed `return X` (a `*string` proven non-nil) and derefs it
         const bare = (r: string) => r.replace (/^return \*/, 'return ');
