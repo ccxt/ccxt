@@ -1271,9 +1271,7 @@ export default class bingx extends Exchange {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             const [ timeZone, paramsTimeZone ] = this.handleOptionIntegerAndParams (paramsUntil, 'fetchOHLCV', 'timeZone', 0);
-            if (timeZone !== undefined) {
-                request['timeZone'] = timeZone;
-            }
+            request['timeZone'] = timeZone;
             response = await this.spotV1PublicGetMarketKline (this.extend (request, paramsTimeZone));
         } else {
             if (this.safeBool (market, 'inverse', false)) {
