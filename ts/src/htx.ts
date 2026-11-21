@@ -1947,11 +1947,9 @@ export default class htx extends Exchange {
             const marketLinear: boolean = this.safeBool (market, 'linear', false);
             const marketSymbol: string = this.safeString (market, 'symbol', '');
             // see comment on formats a bit above
-            let constructedId: Str = undefined;
+            let constructedId: string = marketBase + '_' + contractSuffix;
             if (marketLinear) {
                 constructedId = marketBase + '-' + marketQuote + '-' + contractSuffix;
-            } else {
-                constructedId = marketBase + '_' + contractSuffix;
             }
             if (constructedId === symbolOrMarketId) {
                 const futureMarketIdsForSymbolsDict1 = this.safeDict (this.options, 'futureMarketIdsForSymbols', {});

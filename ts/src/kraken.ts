@@ -1519,10 +1519,7 @@ export default class kraken extends Exchange {
             amount = this.safeString (trade, 'vol');
             const tradeFee = this.safeString (trade, 'fee');
             if (tradeFee !== undefined) {
-                let currency: Str = undefined;
-                if (marketResolved !== undefined) {
-                    currency = this.safeString (marketResolved, 'quote');
-                }
+                const currency = this.safeString (marketResolved, 'quote');
                 fee = {
                     'cost': tradeFee,
                     'currency': currency,
@@ -1537,8 +1534,9 @@ export default class kraken extends Exchange {
             price = this.safeString (trade, 'price');
             amount = this.safeString (trade, 'qty');
         }
-        if (marketResolved !== undefined) {
-            symbol = this.safeString (marketResolved, 'symbol');
+        const resolvedSymbol = this.safeString (marketResolved, 'symbol');
+        if (resolvedSymbol !== undefined) {
+            symbol = resolvedSymbol;
         }
         const cost = this.safeString (trade, 'cost');
         const maker = this.safeBool (trade, 'maker');

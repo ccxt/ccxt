@@ -1309,7 +1309,7 @@ export default class mudrex extends Exchange {
                 allRows.push (entry);
                 if (this.safeString (entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if ((market === undefined) || (this.safeString (entry, 'symbol') === market['id'])) {
+                    if ((market === undefined) || (this.safeString (entry, 'symbol') === this.safeString (market, 'id'))) {
                         transactionsCount = transactionsCount + 1;
                     }
                 }
