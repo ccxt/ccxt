@@ -6028,18 +6028,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
         let mut transferMethod: Option<String> = None;
-        let mut query: crate::value::Dict = params.into_dict();
-        { let __destr_tmp = self.handle_option_string_and_params(&query, Value::Str("transfer".into()), Value::Str("method".into()), &[]); transferMethod = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
+        let mut query: Value = params;
+        { let __destr_tmp = self.handle_option_string_and_params(query.clone(), Value::Str("transfer".into()), Value::Str("method".into()), &[]); transferMethod = __destr_tmp.0.as_str().map(str::to_owned); query = Value::Dict(__destr_tmp.1); }
         let mut masterAddress: Option<String> = None;
-        { let __destr_tmp = self.handle_public_address("transfer", Value::from(&query)); masterAddress = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
+        masterAddress = self.safe_string_opt({ let __t = self.handle_public_address("transfer", query.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
+        query = Value::Dict(self.handle_public_address("transfer", query).1);
         let mut useSendAsset: bool = transferMethod.as_deref() == Some("sendAsset");
         if (transferMethod.is_none()) {
             let mut isUnified: Option<bool> = None;
-            { let __destr_tmp = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[&Value::Bool(false), &Value::from(&query)]).await; isUnified = __destr_tmp.0; query = __destr_tmp.1; }
+            { let __destr_tmp = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[&Value::Bool(false), &query]).await; isUnified = __destr_tmp.0; query = Value::Dict(__destr_tmp.1); }
             useSendAsset = (isUnified == Some(true));
         }
         if useSendAsset {
-            let paramsSendAsset: crate::value::Dict = std::sync::Arc::clone(&query);
+            let paramsSendAsset: Value = query;
             let sendAssetCurrency: crate::types::Currency = self.currency(code.as_str());
             let sendAssetCurrencyInfo: crate::value::Dict = self.safe_dict_k_t(&sendAssetCurrency, "info");
             let sendAssetToken: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&sendAssetCurrencyInfo, "name", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&sendAssetCurrencyInfo, "tokenId", &[Value::Str("".into())]));
