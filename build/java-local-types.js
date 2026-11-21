@@ -28030,6 +28030,7 @@ function j02Rewrite (printer, node, receiver, key, rest) {
     }
     const value = rest.slice (printedKey.length + 2);
     const keyType = checker.getTypeAtLocation (key);
+    const h29 = h29j03ListSet (checker, node, receiver, key, keyType, declared, printedKey, value); if (h29 !== undefined) return h29;
     if ((keyType.flags & ts.TypeFlags.NumberLike) !== 0) {
         // List.set: receiver prints List<Object> (or a box), index proven below the size
         const listDeclared = /^(java\.util\.)?(List|ArrayList)<Object>$/.test (declared);
@@ -29241,3 +29242,89 @@ function h29j02LoopExitGuards (lines, from, j, out, guardHolds) {
     }
 }
 // ===== end h29-J02
+
+// ===== h29-J03 List.set on a let list reassigned only before its length snapshot =====
+// `let xs = ..; xs = ..; const n = xs.length; for (let i = 0; i < n; i++) { xs[i] = v; }`: every reassignment
+// sits before the snapshot in the same function, so i < n == xs.size() at the write and List.set is the helper's answer
+function h29j03SnapshotIndex (checker, receiver, index, write) {
+    try {
+        const symbol = checker.getSymbolAtLocation (receiver);
+        const declaration = symbol?.valueDeclaration?.resolve ();
+        const home = declaration !== undefined ? enclosingFunction (declaration) : undefined;
+        const counter = javaFreshMapUnwrap (index);
+        if (home === undefined || home !== enclosingFunction (write) || !ts.isVariableDeclaration (declaration)
+            || (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Let) === 0 || counter === undefined || !ts.isIdentifier (counter)) {
+            return undefined;
+        }
+        const loopDecl = checker.getSymbolAtLocation (counter)?.valueDeclaration?.resolve ();
+        const loop = loopDecl?.parent?.parent;
+        const cond = loop !== undefined && ts.isForStatement (loop) ? javaFreshMapUnwrap (loop.condition) : undefined;
+        const bound = cond !== undefined && ts.isBinaryExpression (cond) && ts.isIdentifier (javaFreshMapUnwrap (cond.right))
+            ? checker.getSymbolAtLocation (javaFreshMapUnwrap (cond.right))?.valueDeclaration?.resolve () : undefined;
+        if (bound === undefined || !ts.isVariableDeclaration (bound) || enclosingFunction (bound) !== home
+            || (ts.getCombinedNodeFlags (bound) & ts.NodeFlags.Const) === 0 || !j02IsLength (checker, bound.initializer, symbol)
+            || bound.getStart () > loop.getStart () || !j02LoopCounter (checker, counter, symbol, write)) {
+            return undefined;
+        }
+        // reassignments: plain `xs = ..` statements ending before the snapshot, never in a nested function
+        let ok = true;
+        const walk = (n) => {
+            if (!ok || n === undefined) {
+                return;
+            }
+            if (ts.isBinaryExpression (n) && n.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (n.left)
+                && checker.getSymbolAtLocation (n.left) === symbol) {
+                ok = ts.isExpressionStatement (n.parent) && n.getEnd () < bound.getStart () && enclosingFunction (n) === home;
+            }
+            n.forEachChild (walk);
+        };
+        walk (home.body);
+        if (!ok) {
+            return undefined;
+        }
+        // every other use passes j02ListStable once the reassignments are set aside
+        const uses = [];
+        const collect = (n) => {
+            if (n === undefined) {
+                return;
+            }
+            if (ts.isIdentifier (n) && n !== declaration.name && checker.getSymbolAtLocation (n) === symbol
+                && !(ts.isBinaryExpression (n.parent) && n.parent.left === n && n.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                uses.push (n);
+            }
+            n.forEachChild (collect);
+        };
+        collect (home.body);
+        for (const n of uses) {
+            const parent = n.parent;
+            if (ts.isPropertyAccessExpression (parent) && parent.expression === n) {
+                // a push only grows the list, so i < n <= size still holds
+                const grand = parent.parent;
+                const ok = parent.name.text === 'length' ? !(ts.isBinaryExpression (grand) && grand.left === parent)
+                    : parent.name.text === 'push' && ts.isCallExpression (grand) && grand.expression === parent;
+                if (!ok) {
+                    return undefined;
+                }
+            } else if (ts.isCallExpression (parent) && parent.arguments.includes (n)) {
+                if (!isThisCall (parent) || !/^(safe|parse|filter|sort|toArray|extend|index|inArray|isEmpty)/.test (parent.expression.name.text)) {
+                    return undefined;
+                }
+            } else if (ts.isArrayLiteralExpression (parent) || ts.isSpreadElement (parent) || writeOnlyPatternTarget (n)) {
+                return undefined;
+            }
+        }
+        return true;
+    } catch (e) {
+        return undefined;
+    }
+}
+// the receiver must already print List<Object>: an Object-declared local would need a read-site cast
+function h29j03ListSet (checker, node, receiver, key, keyType, declared, printedKey, value) {
+    if ((keyType.flags & ts.TypeFlags.NumberLike) === 0 || !/^(java\.util\.)?(List|ArrayList)<Object>$/.test (declared)
+        || !ts.isIdentifier (key) || !checker.isArrayType (checker.getTypeAtLocation (receiver))
+        || h29j03SnapshotIndex (checker, receiver, key, node) !== true) {
+        return undefined;
+    }
+    return `${receiver.text}.set((int) (long) (${printedKey}), ${value})`;
+}
+// ===== end h29-J03
