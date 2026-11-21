@@ -5328,8 +5328,8 @@ export default class hyperliquid extends Exchange {
     }
 
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
-        if (('byType' in config) && ('type' in params)) {
-            const type = params['type'];
+        const type = this.safeString (params, 'type');
+        if (('byType' in config) && (type !== undefined)) {
             const byType = this.safeDict (config, 'byType', {});
             if (type in byType) {
                 return byType[type];

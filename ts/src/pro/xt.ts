@@ -1307,7 +1307,7 @@ export default class xt extends xtRest {
         //
         const marketId = this.safeString (trade, 's');
         let tradeType: Str = 'spot';
-        if ('symbol' in trade) {
+        if (this.safeString (trade, 'symbol') !== undefined) {
             tradeType = 'contract';
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, tradeType);
@@ -1378,7 +1378,7 @@ export default class xt extends xtRest {
         //
         const marketId = this.safeString2 (order, 's', 'symbol');
         let tradeType: Str = 'spot';
-        if ('symbol' in order) {
+        if (this.safeString (order, 'symbol') !== undefined) {
             tradeType = 'contract';
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, tradeType);

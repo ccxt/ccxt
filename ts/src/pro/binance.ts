@@ -1620,7 +1620,7 @@ export default class binance extends binanceRest {
         }
         const marketId = this.safeString (trade, 's');
         let fallbackType: Str = 'spot';
-        if ('ps' in trade) {
+        if (this.safeString (trade, 'ps') !== undefined) {
             fallbackType = 'contract';
         }
         let marketType: Str = fallbackType;
@@ -1631,11 +1631,12 @@ export default class binance extends binanceRest {
         let side = this.safeStringLower (trade, 'S');
         let takerOrMaker: Str = undefined;
         const orderId = this.safeString (trade, 'i');
-        if ('m' in trade) {
+        const isMaker = this.safeBool (trade, 'm');
+        if (isMaker !== undefined) {
             if (side === undefined) {
-                side = (this.safeBool (trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
+                side = isMaker ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = (this.safeBool (trade, 'm', false)) ? 'maker' : 'taker';
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');
@@ -4774,7 +4775,7 @@ export default class binance extends binanceRest {
         const marketId = this.safeString (order, 's');
         // futures user-data events carry the position side field, spot ones do not
         let marketType: Str = 'spot';
-        if ('ps' in order) {
+        if (this.safeString (order, 'ps') !== undefined) {
             marketType = 'contract';
         }
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
@@ -4788,7 +4789,7 @@ export default class binance extends binanceRest {
         } else if (executionType === 'TRADE') {
             lastTradeTimestamp = T;
         }
-        const isAlgoOrder = ('aid' in order); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        const isAlgoOrder = (this.safeString (order, 'aid') !== undefined); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
         if (isAlgoOrder && (timestamp === undefined)) {
             const algoStatus = this.safeString (order, 'X');
             if ((algoStatus === 'NEW') || (algoStatus === 'CANCELED')) {
@@ -4977,7 +4978,7 @@ export default class binance extends binanceRest {
         let messageValue: Dict = message;
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = this.safeDict (message, 'o', message);
-            if ((e === 'ALGO_UPDATE') && !('T' in messageValue)) {
+            if ((e === 'ALGO_UPDATE') && (this.safeInteger (messageValue, 'T') === undefined)) {
                 messageValue['T'] = this.safeInteger (message, 'T'); // keep the outer event time, the algo payload carries no timestamps
             }
         }
@@ -6028,7 +6029,7 @@ export default class binance extends binanceRest {
             //         "A": "2.52500800"
             //     }
             //
-            if (event === undefined && ('a' in messageValue) && ('b' in messageValue)) {
+            if (event === undefined && (this.safeString (messageValue, 'a') !== undefined) && (this.safeString (messageValue, 'b') !== undefined)) {
                 this.handleBidsAsks (client, messageValue);
             }
         } else {

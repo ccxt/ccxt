@@ -1601,10 +1601,11 @@ export default class bingx extends Exchange {
             takeOrMaker = isMaker ? 'maker' : 'taker';
         }
         let amount = isSpotExecution ? this.safeString (trade, 'l') : this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
-        if ((market !== undefined) && (this.safeBool (market, 'swap', false)) && ('volume' in trade)) {
+        const volume = this.safeString (trade, 'volume');
+        if ((market !== undefined) && (this.safeBool (market, 'swap', false)) && (volume !== undefined)) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
-            amount = this.safeString (trade, 'volume');
+            amount = volume;
         }
         let price = isSpotExecution ? this.safeString (trade, 'L') : this.safeStringN (trade, [ 'price', 'p', 'tradePrice' ]);
         if ((market !== undefined) && (this.safeBool (market, 'linear', false)) && (this.safeString (trade, 'x') === 'TRADE')) {
@@ -5880,7 +5881,7 @@ export default class bingx extends Exchange {
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         const rawType = this.safeString (transaction, 'transferType');
         let type: Str = 'withdrawal';
-        if ((rawType === '0') || ('insertTime' in transaction)) {
+        if ((rawType === '0') || (this.safeInteger (transaction, 'insertTime') !== undefined)) {
             type = 'deposit';
         }
         let internal: Bool = undefined;
