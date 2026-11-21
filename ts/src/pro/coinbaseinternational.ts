@@ -939,7 +939,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const currentTimeframe = this.safeString (current, 1);
+            const currentTimeframe = this.safeString (current, 1, '');
             const resolution = this.safeString (this.timeframes, currentTimeframe, currentTimeframe);
             const market = this.market (this.safeString (current, 0));
             channels.push ('chart.trades.' + this.safeString (market, 'id', '') + '.' + resolution);
@@ -993,7 +993,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsAndTimeframesLength = symbolsAndTimeframes.length;
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const timeframe = this.safeString (current, 1);
+            const timeframe = this.safeString (current, 1, '');
             const resolution = this.safeString (this.timeframes, timeframe, timeframe);
             const market = this.market (this.safeString (current, 0));
             channels.push ('chart.trades.' + this.safeString (market, 'id', '') + '.' + resolution);
