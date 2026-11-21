@@ -405,12 +405,11 @@ class mudrex extends Exchange {
         }
         $request = array();
         $response = Async\await($this->privateGetFutures($this->extend($request, $params)));
-        $data = $this->safe_value($response, 'data', array());
         $rows = array();
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $rows = $this->to_array($data);
-        } else {
-            $rows = $this->safe_list($data, 'items', array());
+        $rows = $this->safe_list($response, 'data', array());
+        $rowsLength = count($rows);
+        if ($rowsLength === 0) {
+            $rows = $this->safe_list($this->safe_dict($response, 'data', array()), 'items', array());
         }
         $resultTickers = array();
         for ($i = 0; $i < count($rows); $i++) {

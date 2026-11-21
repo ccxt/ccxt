@@ -1679,7 +1679,7 @@ class bitvavo extends Exchange {
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
-        $operatorId = $this->handle_option_and_params($paramsOmitted, 'editOrder', 'operatorId')[0];
+        list($operatorId) = $this->handle_option_and_params($paramsOmitted, 'editOrder', 'operatorId');
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {
@@ -2639,12 +2639,14 @@ class bitvavo extends Exchange {
             $networkId = $currencyCode;
         }
         $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+        $networkFees = array();
         if ($networkCode !== null) {
-            $result['networks'][$networkCode] = array(
+            $networkFees[$networkCode] = array(
                 'deposit' => $result['deposit'],
                 'withdraw' => $result['withdraw'],
             );
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 
@@ -2747,7 +2749,7 @@ class bitvavo extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }

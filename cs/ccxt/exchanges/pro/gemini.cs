@@ -386,7 +386,7 @@ public partial class gemini : ccxt.gemini
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (timeframe != null))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
         }
         int changesLength = changes.Count;
@@ -825,7 +825,7 @@ public partial class gemini : ccxt.gemini
         return message;
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, IList<object> message)
     {
         //
         //     [
@@ -857,7 +857,7 @@ public partial class gemini : ccxt.gemini
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (message?.Count ?? 0); i++)
         {
             ccxt.Order order = this.parseWsOrder(this.safeValue(message, i));
             orders.append(ccxt.BaseExchange.FromOrder(order));
@@ -959,7 +959,7 @@ public partial class gemini : ccxt.gemini
         throw new ExchangeError (this.json(message)) ;
     }
 
-    public override void handleListMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, IList<object> message)
     {
         this.handleOrder(client, message);
     }
@@ -1092,13 +1092,13 @@ public partial class gemini : ccxt.gemini
         int urlParamsIndex = url.IndexOf("?", StringComparison.Ordinal);
         int urlLength = url.Length;
         int endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
-        string? request = slice(url, startIndex, endIndex);
+        string? request = ((url == null) ? null : url[(int)(startIndex < 0 ? url.Length + startIndex : startIndex)..Math.Min((int)(endIndex < 0 ? url.Length + endIndex : endIndex), url.Length)]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "request", request },
             { "nonce", this.incrementingNonce() },
         };
         string b64 = this.stringToBase64(this.json(payload));
-        string signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384, "hex");
+        string signature = this.hmac(b64, this.secret, sha384, "hex");
         Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {
@@ -1116,8 +1116,8 @@ public partial class gemini : ccxt.gemini
             { "X-GEMINI-PAYLOAD", b64 },
             { "X-GEMINI-SIGNATURE", signature },
         };
-        ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
+        ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = headers;
         this.client(url);
-        ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = originalHeaders;
+        ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = originalHeaders;
     }
 }

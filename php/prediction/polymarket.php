@@ -451,7 +451,7 @@ class polymarket extends Exchange {
                 }
             } else {
                 $optionMaxPages = $this->safe_integer($this->options, 'maxSearchPages', 5);
-                $maxSearchPages = $this->safe_integer($params, 'maxSearchPages', $optionMaxPages);
+                $maxSearchPages = $this->parse_to_int($this->safe_integer($params, 'maxSearchPages', $optionMaxPages));
                 if ($maxSearchPages < $totalPages) {
                     $totalPages = $maxSearchPages;
                 }
@@ -1309,16 +1309,17 @@ class polymarket extends Exchange {
         $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
         $fidelityMin = $this->safe_integer($this->timeframes, $timeframe, 1); // fidelity in minutes
         $nowS = $this->seconds();
-        $endS = $nowS;
+        $startS = $this->parse_to_int(0);
+        $endS = $this->parse_to_int($nowS);
         if ($since !== null) {
             $startS = $this->parse_to_int($since / 1000);
             if ($limit !== null) {
-                $endBound = $this->sum($startS, $limit * $fidelityMin * 60);
+                $endBound = $this->parse_to_int($this->sum($startS, $limit * $fidelityMin * 60));
                 $endS = ($endBound < $nowS) ? $endBound : $nowS;
             }
         } else {
             $barCount = ($limit !== null) ? $limit : 100;
-            $startS = $nowS - ($barCount * $fidelityMin * 60);
+            $startS = $this->parse_to_int($nowS - ($barCount * $fidelityMin * 60));
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -1327,9 +1328,9 @@ class polymarket extends Exchange {
         $maxWindow = $this->safe_integer($this->options, 'maxPricesHistoryWindow', 1296000);
         if (($endS - $startS) > $maxWindow) {
             if ($since !== null) {
-                $endS = $this->sum($startS, $maxWindow);
+                $endS = $this->parse_to_int($this->sum($startS, $maxWindow));
             } else {
-                $startS = $endS - $maxWindow;
+                $startS = $this->parse_to_int($endS - $maxWindow);
             }
         }
         $request = array(
@@ -2376,7 +2377,7 @@ class polymarket extends Exchange {
             $eoaSig = $this->sign_message($encoded, $this->privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            $eoaSignature = '0x' . $this->remove0x_prefix($eoaSig['r']) . $this->remove0x_prefix($eoaSig['s']) . $this->int_to_base16($eoaSig['v']);
+            $eoaSignature = '0x' . $this->remove0x_prefix($this->safe_string($eoaSig, 'r')) . $this->remove0x_prefix($this->safe_string($eoaSig, 's')) . $this->int_to_base16($eoaSig['v']);
             return strtolower($eoaSignature);
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -2959,8 +2960,8 @@ class polymarket extends Exchange {
     public function sign_hash(string $hash, string $privateKey): array {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         return array(
@@ -2997,7 +2998,7 @@ class polymarket extends Exchange {
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $messageData);
         $sig = $this->sign_message($encoded, $this->privateKey);
-        return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
+        return '0x' . $this->remove0x_prefix($this->safe_string($sig, 'r')) . $this->remove0x_prefix($this->safe_string($sig, 's')) . $this->int_to_base16($sig['v']);
     }
 
     public function derive_api_key($params = array()): PromiseInterface {

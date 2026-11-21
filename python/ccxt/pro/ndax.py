@@ -520,7 +520,7 @@ class ndax(ccxt.async_support.ndax):
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:
-                method(client, message, subscription)
+                self.handle_order_book_subscription(client, message, subscription)
 
     def handle_message(self, client: Client, message: dict):
         #

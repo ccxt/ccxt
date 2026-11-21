@@ -3163,10 +3163,12 @@ class coinbaseinternational extends Exchange {
          */
         $uri = null;
         if (($url !== null) && ($method !== null)) {
-            $uri = $method . ' ' . str_replace('https://', '', $url);
-            $quesPos = mb_strpos($uri, '?');
+            $fullUri = $method . ' ' . str_replace('https://', '', $url);
+            $quesPos = mb_strpos($fullUri, '?');
             if ($quesPos > 0) {
-                $uri = mb_substr($uri, 0, $quesPos - 0);
+                $uri = mb_substr($fullUri, 0, $quesPos - 0);
+            } else {
+                $uri = $fullUri;
             }
         }
         $nonce = $this->random_bytes(16);

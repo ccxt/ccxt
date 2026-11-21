@@ -237,11 +237,8 @@ class bithumb(ccxt.async_support.bithumb):
         marketId = self.safe_string_2(tickerMessage, 'symbol', 'code')
         if marketId is None:
             return
-        symbol = None
-        if isGenerationTwo:
-            symbol = self.safe_symbol(marketId, None, '-')
-        else:
-            symbol = self.safe_symbol(marketId, None, '_')
+        delimiter = '-' if isGenerationTwo else '_'
+        symbol = self.safe_symbol(marketId, None, delimiter)
         if symbol is None:
             return
         ticker = self.parse_ws_ticker(tickerMessage)

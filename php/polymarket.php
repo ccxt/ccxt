@@ -2587,15 +2587,15 @@ class polymarket extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey): string {
+    public function sign_hash(string $hash, ?string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $sVal = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $sVal = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($sVal, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey): string {
+    public function sign_message(mixed $message, ?string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), $privateKey);
     }
 
@@ -2684,7 +2684,7 @@ class polymarket extends Exchange {
             if ($expires === null) {
                 return $credentials;
             }
-            $refreshAfter = $expires - $margin;
+            $refreshAfter = $this->parse_to_int($expires - $margin);
             if ($this->milliseconds() < $refreshAfter) {
                 return $credentials;
             }
@@ -2741,7 +2741,7 @@ class polymarket extends Exchange {
         return $envelope;
     }
 
-    public function compact_signable(array $row) {
+    public function compact_signable(array $row): array {
         /**
          * @ignore
          * removes null entries from a positional signable array, later entries shift left exactly like the official sdk does before hashing
@@ -2789,7 +2789,7 @@ class polymarket extends Exchange {
         return $result;
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, $config = array()) {
         if ($path === 'account/orders') {
             return (is_array($params) && array_key_exists('order_id' ?? '', $params)) ? 1 : 10;
         }

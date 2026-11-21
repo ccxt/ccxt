@@ -143,7 +143,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 	}))}
 	return nil
 }
-func (this *Kucoinfutures) ParseTransferType(transferType any) *string {
+func (this *Kucoinfutures) ParseTransferType(transferType string) *string {
 	var transferTypes map[string]any = map[string]any{
 		"spot":    "TRADE",
 		"funding": "MAIN",

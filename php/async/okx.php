@@ -2792,9 +2792,9 @@ class okx extends Exchange {
         if ($isMarkOrIndex) {
             $requestMaxLimit = 100;
         }
-        $limitResolved = 100;
+        $limitResolved = $this->parse_to_int(100);
         if ($limit !== null) {
-            $limitResolved = min($limit, $requestMaxLimit);
+            $limitResolved = $this->parse_to_int(min($limit, $requestMaxLimit));
         }
         $duration = $this->parse_timeframe($timeframe);
         $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -2850,7 +2850,7 @@ class okx extends Exchange {
         } else {
             if ($isHistoryCandles) {
                 if ($limitIsUndefined && ($limitResolved === 100)) {
-                    $limitResolved = 300;
+                    $limitResolved = $this->parse_to_int(300);
                     $request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
                 }
                 $response = Async\await($this->publicGetMarketHistoryCandles($this->extend($request, $paramsType)));
@@ -3422,21 +3422,22 @@ class okx extends Exchange {
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
                     list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($orderParams, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    $notional = $this->safe_number_2($paramsRequiresPrice, 'cost', 'sz');
+                    $notionalParam = $this->safe_number_2($paramsRequiresPrice, 'cost', 'sz');
+                    $notional = $notionalParam;
                     $orderParams = $this->omit($paramsRequiresPrice, array( 'cost', 'sz' ));
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
-                            if ($notional === null) {
+                            if ($notionalParam === null) {
                                 $amountString = $this->number_to_string($amount);
                                 $priceString = $this->number_to_string($price);
                                 $quoteAmount = Precise::string_mul($amountString, $priceString);
                                 $notional = $this->parse_number($quoteAmount);
                             }
-                        } elseif ($notional === null) {
+                        } elseif ($notionalParam === null) {
                             throw new InvalidOrder($this->id . " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
-                        $notional = ($notional === null) ? $amount : $notional;
+                        $notional = ($notionalParam === null) ? $amount : $notionalParam;
                     }
                     $request['sz'] = $this->cost_to_precision($symbol, $notional);
                 }
@@ -3716,11 +3717,16 @@ class okx extends Exchange {
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
-            if ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
-            }
             $type = $this->safe_string($rawOrder, 'type', '');
             $side = $this->safe_string($rawOrder, 'side');
+            if (($marketId === null) || ($side === null)) {
+                // a missing side is the createOrderRequest () error
+                $reason = ' requires a side argument';
+                if ($marketId === null) {
+                    $reason = ' createOrders() requires a symbol for each order';
+                }
+                throw new ArgumentsRequired($this->id . $reason);
+            }
             $amount = $this->safe_number($rawOrder, 'amount');
             $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
@@ -6358,27 +6364,44 @@ class okx extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_leverage($data, $market);
+        $marketId = null;
+        $rowMarginMode = null;
+        $longLeverage = null;
+        $shortLeverage = null;
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $this->safe_dict($data, $i);
+            $rowMarginMode = $this->safe_string_lower($entry, 'mgnMode');
+            $marketId = $this->safe_string($entry, 'instId');
+            $positionSide = $this->safe_string_lower($entry, 'posSide');
+            $lever = $this->safe_integer($entry, 'lever');
+            if ($positionSide !== 'short') {
+                $longLeverage = $lever;
+            }
+            if ($positionSide !== 'long') {
+                $shortLeverage = $lever;
+            }
+        }
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $rowMarginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
+        );
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
-        $marketId = null;
-        $marginMode = null;
+        $marketId = $this->safe_string($leverage, 'instId');
+        $positionSide = $this->safe_string_lower($leverage, 'posSide');
+        $lever = $this->safe_integer($leverage, 'lever');
+        $marginMode = $this->safe_string_lower($leverage, 'mgnMode');
         $longLeverage = null;
         $shortLeverage = null;
-        for ($i = 0; $i < count($leverage); $i++) {
-            $entry = $this->safe_dict($leverage, $i);
-            $marginMode = $this->safe_string_lower($entry, 'mgnMode');
-            $marketId = $this->safe_string($entry, 'instId');
-            $positionSide = $this->safe_string_lower($entry, 'posSide');
-            if ($positionSide === 'long') {
-                $longLeverage = $this->safe_integer($entry, 'lever');
-            } elseif ($positionSide === 'short') {
-                $shortLeverage = $this->safe_integer($entry, 'lever');
-            } else {
-                $longLeverage = $this->safe_integer($entry, 'lever');
-                $shortLeverage = $this->safe_integer($entry, 'lever');
-            }
+        if ($positionSide !== 'short') {
+            $longLeverage = $lever;
+        }
+        if ($positionSide !== 'long') {
+            $shortLeverage = $lever;
         }
         return array(
             'info' => $leverage,
@@ -8461,7 +8484,10 @@ class okx extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true);
         $market = null;
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         $marketType = null;
         $paramsSubType = array();
@@ -8840,9 +8866,13 @@ class okx extends Exchange {
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
                 }
+                $feeEntry = $this->safe_dict($depositWithdrawFees, $code, array());
                 if ($currencyId !== null) {
-                    $depositWithdrawFees[$code]['info'][$currencyId] = $feeInfo;
+                    $feeEntryInfo = $this->safe_dict($feeEntry, 'info', array());
+                    $feeEntryInfo[$currencyId] = $feeInfo;
+                    $feeEntry['info'] = $feeEntryInfo;
                 }
+                $depositWithdrawFees[$code] = $feeEntry;
                 $chain = $this->safe_string($feeInfo, 'chain');
                 if ($chain === null) {
                     continue;
@@ -8860,10 +8890,13 @@ class okx extends Exchange {
                 );
                 $networkCode = $this->network_id_to_code($networkId, $code);
                 if ($networkCode !== null) {
-                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                    $feeEntryNetworks = $this->safe_dict($feeEntry, 'networks', array());
+                    $feeEntryNetworks[$networkCode] = array(
                         'withdraw' => $withdrawResult,
                         'deposit' => $depositResult,
                     );
+                    $feeEntry['networks'] = $feeEntryNetworks;
+                    $depositWithdrawFees[$code] = $feeEntry;
                 }
             }
         }
@@ -9757,8 +9790,7 @@ class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        $rows = $this->safe_list($response, 'data', array());
-        return $this->parse_conversions($rows, $code, 'baseCcy', 'quoteCcy', $since, $limit);
+        return $this->parse_conversions($this->safe_list($response, 'data', array()), $code, 'baseCcy', 'quoteCcy', $since, $limit);
     }
 
     public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
@@ -9944,11 +9976,11 @@ class okx extends Exchange {
         return null;
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()): PromiseInterface {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_margin_adjustment_history(...))($symbol, $type, $since, $limit, $params);
     }
 
-    private function do_fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()) {
+    private function do_fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          *

@@ -442,9 +442,9 @@ class lighter(Exchange, ImplicitAPI):
             })
 
     def get_lighter_private_key(self, strAccountIndex: str, strApiKeyIndex: str):
-        auths = self.safe_dict(self.options, 'auths')
-        accountAuths = self.safe_dict(auths, strAccountIndex)
-        apiKeyAuths = self.safe_dict(accountAuths, strApiKeyIndex)
+        auths = self.safe_dict(self.options, 'auths', {})
+        accountAuths = self.safe_dict(auths, strAccountIndex, {})
+        apiKeyAuths = self.safe_dict(accountAuths, strApiKeyIndex, {})
         return self.safe_string(apiKeyAuths, 'lighterPrivateKey')
 
     async def pre_load_lighter_library(self, params: dict = {}) -> bool:
@@ -515,7 +515,7 @@ class lighter(Exchange, ImplicitAPI):
             # }
             #
             subAccounts = self.safe_list(res, 'sub_accounts')
-            if isinstance(subAccounts, list):
+            if subAccounts is not None:
                 account = self.safe_dict(subAccounts, 0)
                 if account is None:
                     raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter')
@@ -552,9 +552,9 @@ class lighter(Exchange, ImplicitAPI):
         if accountIndex is None:
             res = self.handle_option_and_params_2({}, 'createAuth', 'accountIndex', 'account_index')
             accountIndex = self.safe_string(res, 0)
-        auths = self.safe_dict(self.options, 'auths')
-        accountAuths = self.safe_dict(auths, accountIndex)
-        cachedAuth = self.safe_dict(accountAuths, apiKeyIndex)
+        auths = self.safe_dict(self.options, 'auths', {})
+        accountAuths = self.safe_dict(auths, accountIndex, {})
+        cachedAuth = self.safe_dict(accountAuths, apiKeyIndex, {})
         cachedDeadline = self.safe_integer(cachedAuth, 'deadline')
         minimumRemaining = self.safe_integer(self.options, 'authDeadlineMinimumRemaining', 60)
         if (cachedDeadline is not None) and (minimumRemaining is not None) and (cachedDeadline - minimumRemaining >= self.seconds()):
@@ -597,8 +597,8 @@ class lighter(Exchange, ImplicitAPI):
     def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
@@ -905,9 +905,9 @@ class lighter(Exchange, ImplicitAPI):
             for i in range(0, totalOrderRequests):
                 if self.safe_integer(orderRequests[i], 'order_expiry') == -1:
                     orderRequests[i]['order_expiry'] = groupOrderExpiry
-        order = None
-        if totalOrderRequests > 0:
-            order = orderRequests[0]
+        if totalOrderRequests < 1:
+            raise InvalidOrder(self.id + ' createOrder() built no order request')
+        order = orderRequests[0]
         # the nonce could be updated
         if self.safe_integer(order, 'nonce') is None:
             order['nonce'] = await self.fetch_nonce(accountIndex, apiKeyIndex)
@@ -1783,11 +1783,11 @@ class lighter(Exchange, ImplicitAPI):
         result = {'info': response}
         accounts = self.safe_list(response, 'accounts', [])
         for i in range(0, len(accounts)):
-            account = self.safe_dict(accounts, i)
+            account = self.safe_dict(accounts, i, {})
             if type == 'spot':
                 assets = self.safe_list(account, 'assets', [])
                 for j in range(0, len(assets)):
-                    asset = self.safe_dict(assets, j)
+                    asset = self.safe_dict(assets, j, {})
                     codeId = self.safe_string(asset, 'symbol')
                     code = self.safe_currency_code(codeId)
                     balance = self.extend(self.account(), self.safe_dict(result, code, {}))
@@ -1893,7 +1893,7 @@ class lighter(Exchange, ImplicitAPI):
         allPositions = []
         accounts = self.safe_list(response, 'accounts', [])
         for i in range(0, len(accounts)):
-            account = self.safe_dict(accounts, i)
+            account = self.safe_dict(accounts, i, {})
             positions = self.safe_list(account, 'positions', [])
             for j in range(0, len(positions)):
                 allPositions.append(positions[j])

@@ -18,7 +18,9 @@ declare function safeTimestamp(o: safeInputType, k: NullableIndexType, $default?
 declare function safeValue(o: safeInputType, k: NullableIndexType, $default?: any): any;
 declare function safeString(o: safeInputType, k: NullableIndexType, $default: string): string;
 declare function safeString(o: safeInputType, k: NullableIndexType, $default?: string): Str;
+declare function safeStringLower(o: safeInputType, k: NullableIndexType, $default: string): string;
 declare function safeStringLower(o: safeInputType, k: NullableIndexType, $default?: string): Str;
+declare function safeStringUpper(o: safeInputType, k: NullableIndexType, $default: string): string;
 declare function safeStringUpper(o: safeInputType, k: NullableIndexType, $default?: string): Str;
 declare function safeFloat2(o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: number): Num;
 declare function safeInteger2(o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default: number): number;

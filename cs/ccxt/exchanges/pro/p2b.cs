@@ -228,7 +228,7 @@ public partial class p2b : ccxt.p2b
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))
         {
@@ -315,7 +315,7 @@ public partial class p2b : ccxt.p2b
         string? timeframe = this.findTimeframe(channel, timeframes);
         string? symbol = this.safeString(market, "symbol");
         IList<object> parsed = this.parseOHLCV(data, market);
-        this.ohlcvs[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((symbol != null))
         {
@@ -323,7 +323,7 @@ public partial class p2b : ccxt.p2b
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
             stored.append(parsed);
             if ((channel != null))
@@ -370,7 +370,7 @@ public partial class p2b : ccxt.p2b
         }
         for (int i = 0; i < trades.Count; i++)
         {
-            object item = trades[i];
+            IDictionary<string, object> item = ((IDictionary<string, object>)trades[i]);
             ccxt.Trade trade = this.parseTrade(item, market);
             tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         }

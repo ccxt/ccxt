@@ -636,7 +636,7 @@ declare abstract class binance extends _binance {
     eapiPublicGetTrades(params?: {}): Promise<List>;
     eapiPublicGetHistoricalTrades(params?: {}): Promise<List>;
     eapiPublicGetExerciseHistory(params?: {}): Promise<List>;
-    eapiPublicGetOpenInterest(params?: {}): Promise<Dict>;
+    eapiPublicGetOpenInterest(params?: {}): Promise<List>;
     eapiPrivateGetAccount(params?: {}): Promise<Dict>;
     eapiPrivateGetPosition(params?: {}): Promise<List>;
     eapiPrivateGetOpenOrders(params?: {}): Promise<List>;

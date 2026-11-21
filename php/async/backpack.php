@@ -554,9 +554,7 @@ class backpack extends Exchange {
          * @param {boolean} [$params->stock] return tokenized $stock assets only
          * @return {array} an associative dictionary of $currencies
          */
-        $selection = $this->handle_stock_params('fetchCurrencies', $params);
-        $stock = $this->safe_bool($selection, 0, false);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stock, $query) = $this->handle_option_bool_and_params($params, 'fetchCurrencies', 'stock', false);
         $response = Async\await($this->publicGetApiV1Assets($query));
         //
         //     [
@@ -678,14 +676,17 @@ class backpack extends Exchange {
         if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
-        $selection = $this->handle_stock_params('fetchMarkets', $params);
-        $stock = $this->safe_bool($selection, 0, false);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stock, $query) = $this->handle_option_bool_and_params($params, 'fetchMarkets', 'stock', false);
         $marketType = $this->safe_string($query, 'marketType');
-        $requestedTypes = $this->safe_list($query, 'marketType', array( 'SPOT', 'PERP', 'RFQ' ));
+        $defaultTypes = array();
         if ($marketType !== null) {
-            $requestedTypes = array( $marketType );
+            $defaultTypes[] = $marketType;
+        } else {
+            $defaultTypes[] = 'SPOT';
+            $defaultTypes[] = 'PERP';
+            $defaultTypes[] = 'RFQ';
         }
+        $requestedTypes = $this->safe_list($query, 'marketType', $defaultTypes);
         $aliases = array( 'spot' => 'SPOT', 'swap' => 'PERP', 'stock' => 'RFQ' );
         $supportedTypes = array( 'SPOT', 'PERP', 'RFQ' );
         $marketTypes = array();
@@ -1435,9 +1436,7 @@ class backpack extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $selection = $this->handle_stock_params('fetchTickers', $params);
-        $stockOnly = $this->safe_bool($selection, 0, false);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stockOnly, $query) = $this->handle_option_bool_and_params($params, 'fetchTickers', 'stock', false);
         $source = $this->safe_string($query, 'source', 'Venue');
         $symbolsLength = 0;
         if ($symbols !== null) {
@@ -1669,7 +1668,6 @@ class backpack extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $maxLimit = 2000;
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $duration = $this->parse_timeframe($timeframe) * 1000;
@@ -1680,11 +1678,11 @@ class backpack extends Exchange {
             $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
         }
         $defaultLimit = 100;
-        $limitResolved = $limit;
-        if ($limitResolved !== null) {
-            $limitResolved = min($limitResolved, $maxLimit);
+        $windowLimit = ($limit === null) ? $defaultLimit : min($limit, 2000);
+        $limitResolved = null;
+        if ($limit !== null) {
+            $limitResolved = $windowLimit;
         }
-        $windowLimit = ($limitResolved === null) ? $defaultLimit : $limitResolved;
         $now = $this->milliseconds();
         $startTime = $since;
         $untilValue = $until;
@@ -2202,9 +2200,7 @@ class backpack extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $selection = $this->handle_stock_params('fetchBalance', $params);
-        $stock = $this->safe_bool($selection, 0, false);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stock, $query) = $this->handle_option_bool_and_params($params, 'fetchBalance', 'stock', false);
         $response = Async\await($this->privateGetApiV1Capital($query));
         if ($stock) {
             $securities = $this->safe_list($this->options, 'securities');
@@ -2757,13 +2753,11 @@ class backpack extends Exchange {
          * @param {boolean} [$params->stock] selects tokenized $stock spot execution for all $orders, otherwise inferred per symbol
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $selection = $this->handle_stock_params('createOrders', $params);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stock, $query) = $this->handle_option_bool_and_params($params, 'createOrders', 'stock', false);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $ordersRequests = array();
-        $stock = $this->safe_bool($selection, 0, false);
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
@@ -2976,7 +2970,7 @@ class backpack extends Exchange {
             $rfqResponse = Async\await($this->privateGetApiV1Rfqs($this->extend($query, array( 'symbol' => $market['id'], 'rfqId' => $id ))));
             for ($i = 0; $i < count($rfqResponse); $i++) {
                 $order = $this->parse_order($this->safe_dict($rfqResponse, $i, array()), $market);
-                if ($order['id'] === $id) {
+                if ($this->safe_string($order, 'id') === $id) {
                     return $order;
                 }
             }
@@ -3030,7 +3024,7 @@ class backpack extends Exchange {
         }
         for ($i = 0; $i < count($response); $i++) {
             $order = $this->parse_order($this->safe_dict($response, $i, array()), $market);
-            if ($order['id'] === $id) {
+            if ($this->safe_string($order, 'id') === $id) {
                 return $order;
             }
         }

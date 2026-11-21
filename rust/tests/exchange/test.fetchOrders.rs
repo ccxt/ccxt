@@ -10,19 +10,19 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchOrders(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchOrders".into());
-    let mut orders: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_orders", vec![symbol.clone()]).await;
+    let method: Value = Value::Str("fetchOrders".into());
+    let orders: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_orders", vec![symbol.clone()]).await;
     assert!(ccxt::runtime::is_true(&((matches!(&orders, Value::Arr(_))))));
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), orders.clone(), symbol.clone()]);
-    let mut now: Value = Value::Int(exchange.milliseconds());
+    let now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1596: bool = true;
-        while { if !__for_first_1596 { i += 1; } __for_first_1596 = false; i < (orders.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (orders.len() as i64) } {
         testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), orders.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol, orders]);
     return Value::Bool(true);
 
     Value::Null

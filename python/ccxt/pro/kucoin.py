@@ -1561,7 +1561,7 @@ class kucoin(ccxt.async_support.kucoin):
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer_2(data, 'sequenceEnd', 'timestamp')
             if nonce is None:
-                cacheLength = len(orderbook.cache)
+                cacheLength = self.parse_to_int(len(orderbook.cache))
                 subscriptions = list(client.subscriptions.keys())
                 subscription = None
                 for i in range(0, len(subscriptions)):
@@ -1570,7 +1570,7 @@ class kucoin(ccxt.async_support.kucoin):
                         subscription = client.subscriptions[key]
                         break
                 limit = self.safe_integer(subscription, 'limit')
-                snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
+                snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 5))
                 if cacheLength == snapshotDelay:
                     self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
                 (orderbook.cache).append(data)
@@ -1619,10 +1619,10 @@ class kucoin(ccxt.async_support.kucoin):
             nonce = self.safe_integer(orderbook, 'nonce')
             deltaEnd = self.safe_integer(data, 'C')
             if nonce is None:
-                cacheLength = len(orderbook.cache)
+                cacheLength = self.parse_to_int(len(orderbook.cache))
                 subscription = self.safe_dict(client.subscriptions, messageHash, {})
                 limit = self.safe_integer(subscription, 'limit')
-                snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 5)
+                snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 5))
                 utaParams = {
                     'uta': True,
                 }
@@ -1739,8 +1739,8 @@ class kucoin(ccxt.async_support.kucoin):
         subscription = self.safe_dict(client.subscriptions, subscriptionHash)
         del client.subscriptions[id]
         method = self.safe_value(subscription, 'method')
-        if method is not None:
-            method(client, message, subscription)
+        if (subscription is not None) and (method is not None):
+            self.handle_order_book_subscription(client, message, subscription)
         isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
         if isUnSub:
             messageHashes = self.safe_list(subscription, 'messageHashes', [])
@@ -2580,10 +2580,11 @@ class kucoin(ccxt.async_support.kucoin):
         if uniformType is not None:
             if not (uniformType in self.balance):
                 self.balance[uniformType] = {}
-            self.balance[uniformType]['info'] = data
+            balance = self.safe_dict(self.balance, uniformType, {})
+            balance['info'] = data
             timestamp = self.safe_integer_2(data, 'time', 'timestamp')
-            self.balance[uniformType]['timestamp'] = timestamp
-            self.balance[uniformType]['datetime'] = self.iso8601(timestamp)
+            balance['timestamp'] = timestamp
+            balance['datetime'] = self.iso8601(timestamp)
             code = self.safe_currency_code(currencyId)
             account = self.account()
             used = self.safe_string_2(data, 'hold', 'holdBalance')
@@ -2594,8 +2595,8 @@ class kucoin(ccxt.async_support.kucoin):
             account['used'] = used
             account['total'] = self.safe_string(data, 'total')
             if code is not None:
-                self.balance[uniformType][code] = account
-            self.balance[uniformType] = self.safe_balance(self.balance[uniformType])
+                balance[code] = account
+            self.balance[uniformType] = self.safe_balance(balance)
             client.resolve(self.balance[uniformType], uniformType + ':balance')
 
     def handle_uta_balance(self, client: Client, message: dict):
@@ -2620,17 +2621,18 @@ class kucoin(ccxt.async_support.kucoin):
         code = self.safe_currency_code(currencyId)
         if not (type in self.balance):
             self.balance[type] = {}
-        self.balance[type]['info'] = data
+        balance = self.safe_dict(self.balance, type, {})
+        balance['info'] = data
         timestamp = self.safe_integer_product(data, 'U', 0.000001)
-        self.balance[type]['timestamp'] = timestamp
-        self.balance[type]['datetime'] = self.iso8601(timestamp)
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
         account = self.account()
         account['free'] = self.safe_string(data, 'a')
         account['used'] = self.safe_string(data, 'h')
         account['total'] = self.safe_string(data, 'b')
         if code is not None:
-            self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+            balance[code] = account
+        self.balance[type] = self.safe_balance(balance)
         messageHash = type + ':balance'
         client.resolve(self.balance[type], messageHash)
 

@@ -3182,9 +3182,9 @@ func (this *Binance) EapiPublicGetExerciseHistory(args ...any) <-chan EndpointRe
 	return Fetch2Result[[]any](this, "exerciseHistory", []string{"eapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(3)})
 }
 
-// EapiPublicGetOpenInterest returns a channel that yields a JSON object.
-func (this *Binance) EapiPublicGetOpenInterest(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "openInterest", []string{"eapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(3)})
+// EapiPublicGetOpenInterest returns a channel that yields a JSON array.
+func (this *Binance) EapiPublicGetOpenInterest(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "openInterest", []string{"eapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(3)})
 }
 
 // EapiPrivateGetAccount returns a channel that yields a JSON object.

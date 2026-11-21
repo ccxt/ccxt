@@ -157,13 +157,13 @@ public partial class hashkey : ccxt.hashkey
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe))))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = new ArrayCacheByTimestamp(limit);
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.TryGetValue(timeframe, out var ohlcvsValue2) ? ohlcvsValue2 : null));
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> candle = this.safeDict(data, i, new Dictionary<string, object>() {});
@@ -699,7 +699,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         string? listenKey = await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized == null))
@@ -896,6 +896,7 @@ public partial class hashkey : ccxt.hashkey
             this.balance[type] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
+        IDictionary<string, object> balance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
         string? currencyId = this.safeString(balanceUpdate, "a");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> account = this.account();
@@ -903,9 +904,9 @@ public partial class hashkey : ccxt.hashkey
         account["used"] = this.safeString(balanceUpdate, "l");
         if ((code != null))
         {
-            ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
+            balance[(string)code] = account;
         }
-        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        this.balance[type] = this.safeBalance(balance);
         string messageHash = ("balance:" + type);
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
     }
@@ -995,7 +996,7 @@ public partial class hashkey : ccxt.hashkey
         }
     }
 
-    public override void handleListMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, IList<object> message)
     {
         this.handleStreamMessage(client, this.safeDict(message, 0, new Dictionary<string, object>() {}));
     }

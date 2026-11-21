@@ -119,12 +119,12 @@ func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		var hasContractSize bool = (contractSizeString != nil) && ccxt.Precise.StringGt(contractSizeString, "0")
 		var hasMm bool = (maintenanceMarginString != nil) && ccxt.Precise.StringGt(maintenanceMarginString, "0")
 		if hasEntryMargin && hasEntryPrice && hasLiqPrice && hasContracts && hasContractSize && hasMm {
-			var symbolForMarket any = func() any {
-				if symbol != nil {
-					return symbol
-				}
-				return exchange.SafeString(entry, "symbol")
-			}()
+			var symbolForMarket any
+			if symbol != nil {
+				symbolForMarket = symbol
+			} else {
+				symbolForMarket = exchange.SafeString(entry, "symbol")
+			}
 			var market any = nil
 			if (symbolForMarket != nil) && (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbolForMarket)) {
 				market = exchange.Market(symbolForMarket)

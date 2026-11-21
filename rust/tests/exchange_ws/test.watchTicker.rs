@@ -10,15 +10,15 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchTicker(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchTicker".into());
+    let method: Value = Value::Str("watchTicker".into());
     let mut now: i64 = exchange.milliseconds();
-    let mut ends: i64 = (now + 15000);
-    let mut maxIdleTime: i64 = 5000;
+    let ends: i64 = (now + 15000);
+    let maxIdleTime: i64 = 5000;
     let mut idle: bool = false;
     while (now < ends) && !idle {
         let mut response: Value = Value::Null;
         let mut success: bool = true;
-        let mut startTime: i64 = exchange.milliseconds();
+        let startTime: i64 = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_ticker", vec![symbol.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;

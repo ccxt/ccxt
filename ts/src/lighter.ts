@@ -447,9 +447,9 @@ export default class lighter extends Exchange {
     }
 
     getLighterPrivateKey (strAccountIndex: string, strApiKeyIndex: string) {
-        const auths = this.safeDict (this.options, 'auths');
-        const accountAuths = this.safeDict (auths, strAccountIndex);
-        const apiKeyAuths = this.safeDict (accountAuths, strApiKeyIndex);
+        const auths = this.safeDict (this.options, 'auths', {});
+        const accountAuths = this.safeDict (auths, strAccountIndex, {});
+        const apiKeyAuths = this.safeDict (accountAuths, strApiKeyIndex, {});
         return this.safeString (apiKeyAuths, 'lighterPrivateKey');
     }
 
@@ -480,7 +480,7 @@ export default class lighter extends Exchange {
         return loaded;
     }
 
-    handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [Int, Dict] {
+    handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [int, Dict] {
         const [ apiKeyIndexOption, paramsApiKeyIndex ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         const apiKeyIndex = this.safeInteger ([ apiKeyIndexOption ], 0);
         if ((apiKeyIndex !== undefined) && (apiKeyIndex >= 4) && (apiKeyIndex <= 254)) {
@@ -492,7 +492,7 @@ export default class lighter extends Exchange {
         return [ defaultApiKeyIndex, paramsApiKeyIndex ];
     }
 
-    async handleAccountIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): Promise<[Int, Dict]> {
+    async handleAccountIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): Promise<[int, Dict]> {
         const [ accountIndexOption, paramsAccountIndex ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         let accountIndex: Int = accountIndexOption;
         if (accountIndex === undefined) {
@@ -531,7 +531,7 @@ export default class lighter extends Exchange {
             // }
             //
             const subAccounts = this.safeList (res, 'sub_accounts');
-            if (Array.isArray (subAccounts)) {
+            if (subAccounts !== undefined) {
                 const account = this.safeDict (subAccounts, 0);
                 if (account === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter');
@@ -575,9 +575,9 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeString (res, 0);
         }
-        const auths = this.safeDict (this.options, 'auths');
-        const accountAuths = this.safeDict (auths, accountIndex);
-        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex);
+        const auths = this.safeDict (this.options, 'auths', {});
+        const accountAuths = this.safeDict (auths, accountIndex, {});
+        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex, {});
         const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
         const minimumRemaining = this.safeInteger (this.options, 'authDeadlineMinimumRemaining', 60);
         if ((cachedDeadline !== undefined) && (minimumRemaining !== undefined) && (cachedDeadline - minimumRemaining >= this.seconds ())) {
@@ -629,8 +629,8 @@ export default class lighter extends Exchange {
     signHash (hash: string, privateKey: string): string {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString (signature, 'r', '');
+        const s = this.safeString (signature, 's', '');
         const v = this.intToBase16 (this.sum (27, signature['v']));
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
@@ -954,9 +954,9 @@ export default class lighter extends Exchange {
         }
         // non-destructively get values from opts/params
         const accIndexAndParams = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
-        const accountIndex: Int = accIndexAndParams[0];
+        const accountIndex: int = accIndexAndParams[0];
         const apiKeyIndexAndParams = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
-        const apiKeyIndex: Int = apiKeyIndexAndParams[0];
+        const apiKeyIndex: int = apiKeyIndexAndParams[0];
         // before order-req creation, we need to know account status
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
@@ -982,13 +982,13 @@ export default class lighter extends Exchange {
                 }
             }
         }
-        let order: NullableDict = undefined;
-        if (totalOrderRequests > 0) {
-            order = orderRequests[0];
+        if (totalOrderRequests < 1) {
+            throw new InvalidOrder (this.id + ' createOrder() built no order request');
         }
+        const order: Dict = orderRequests[0];
         // the nonce could be updated
         if (this.safeInteger (order, 'nonce') === undefined) {
-            (order as Dict)['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
+            order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
         }
         let txType: Str = undefined;
         let txInfo: Dict;
@@ -1909,11 +1909,11 @@ export default class lighter extends Exchange {
         const result: Dict = { 'info': response };
         const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
-            const account = this.safeDict (accounts, i);
+            const account = this.safeDict (accounts, i, {});
             if (type === 'spot') {
                 const assets: Dict[] = this.safeList (account, 'assets', []);
                 for (let j = 0; j < assets.length; j++) {
-                    const asset = this.safeDict (assets, j);
+                    const asset = this.safeDict (assets, j, {});
                     const codeId = this.safeString (asset, 'symbol');
                     const code = this.safeCurrencyCode (codeId);
                     const balance = this.extend (this.account (), this.safeDict (result, code, {}));
@@ -2026,7 +2026,7 @@ export default class lighter extends Exchange {
         const allPositions: List = [];
         const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
-            const account = this.safeDict (accounts, i);
+            const account = this.safeDict (accounts, i, {});
             const positions = this.safeList (account, 'positions', []);
             for (let j = 0; j < positions.length; j++) {
                 allPositions.push (positions[j]);

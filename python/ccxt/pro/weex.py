@@ -137,7 +137,9 @@ class weex(ccxt.async_support.weex):
         timestamp = str(self.nonce())
         payload = timestamp + '/v3/ws/private'
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-        originalHeaders = self.safe_dict(self.options['ws']['options'], 'headers')
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsInnerOptions = self.safe_dict(wsOptions, 'options', {})
+        originalHeaders = self.safe_dict(wsInnerOptions, 'headers', {})
         userAgent = self.safe_string(originalHeaders, 'User-Agent', 'ccxt')
         extendedOptions = {
             'ws': {
@@ -332,10 +334,8 @@ class weex(ccxt.async_support.weex):
         timestamp = self.safe_integer(ticker, 'C')
         close = self.safe_string(ticker, 'c')
         symbol = None
-        if market is None:
-            symbol = None
-        else:
-            symbol = market['symbol']
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -519,10 +519,8 @@ class weex(ccxt.async_support.weex):
         #
         timestamp = self.safe_integer(trade, 'T')
         symbol = None
-        if market is None:
-            symbol = None
-        else:
-            symbol = market['symbol']
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
         isBuyerMaker = self.safe_bool(trade, 'm')  # m is the isBuyerMaker flag of the REST trades, true means the taker sold
         side = None
         takerOrMaker = None
@@ -563,7 +561,8 @@ class weex(ccxt.async_support.weex):
             'callerMethodName': 'watchOHLCV',
         })
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, extendedParams)
-        return result[symbol][timeframe]
+        bySymbol = result[symbol]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -1006,7 +1005,7 @@ class weex(ccxt.async_support.weex):
         if market is None:
             return
         ticker = self.parse_ws_bid_ask(message, market)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         if symbol is not None:
             self.bidsasks[symbol] = ticker
         messageHash = 'bidask::' + symbol
@@ -1015,10 +1014,8 @@ class weex(ccxt.async_support.weex):
     def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(message, 'E')
         symbol = None
-        if market is None:
-            symbol = None
-        else:
-            symbol = market['symbol']
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1623,9 +1620,8 @@ class weex(ccxt.async_support.weex):
         if url.find('contract') >= 0:
             accountType = 'swap'
         messageHash = accountType + ':balance'
-        if not (accountType in self.balance):
-            self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
+        balance = self.safe_dict(self.balance, accountType, {})
+        balance['info'] = message
         balanceUpdates = self.safe_list(message, 'd', [])
         for i in range(0, len(balanceUpdates)):
             entry = self.safe_dict(balanceUpdates, i)
@@ -1636,11 +1632,11 @@ class weex(ccxt.async_support.weex):
             account['used'] = self.safe_string(entry, 'frozen')
             account['total'] = self.safe_string_2(entry, 'equity', 'legacyAmount')
             if code is not None:
-                self.balance[accountType][code] = account
+                balance[code] = account
         timestamp = self.safe_integer(message, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
+        self.balance[accountType] = self.safe_balance(balance)
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:

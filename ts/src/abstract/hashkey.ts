@@ -257,7 +257,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('api/v1/spot/order', [ 'private' ], 'DELETE', params, { 'cost': 1 });
     }
 
-    privateDeleteApiV1SpotOpenOrders (params = {}): Promise<List> {
+    privateDeleteApiV1SpotOpenOrders (params = {}): Promise<Dict> {
         return this.request ('api/v1/spot/openOrders', [ 'private' ], 'DELETE', params, { 'cost': 5 });
     }
 

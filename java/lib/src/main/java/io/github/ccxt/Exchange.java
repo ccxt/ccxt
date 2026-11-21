@@ -52,9 +52,9 @@ public class Exchange extends BaseExchange implements TypedSurface {
      * instead of using the transpiled CompletableFuture version.
      */
     @SuppressWarnings("unchecked")
-    public void loadOrderBook(Client client, Object messageHash, Object symbol, Object limit, Object params) {
+    public void loadOrderBook(Client client, Object messageHash, String symbol, Object limit, Object params) {
         try {
-            if (!((java.util.function.BiPredicate<Object, Object>) (hx4J44v0A, hx4J44v0B) -> { if (hx4J44v0A == null || hx4J44v0B == null) { return false; } if (hx4J44v0A instanceof java.util.List<?> hx4J44v0l) { return hx4J44v0l.contains(hx4J44v0B); } if (hx4J44v0A instanceof java.util.Map<?, ?> hx4J44v0m) { return hx4J44v0B instanceof String && hx4J44v0m.containsKey(hx4J44v0B); } return false; }).test(this.orderbooks, symbol)) {
+            if (symbol == null || !this.orderbooks.containsKey(symbol)) {
                 client.reject(new ExchangeError(this.id + " loadOrderBook() orderbook is not initiated"), messageHash);
                 return;
             }
@@ -62,7 +62,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
             int tries = 0;
             Exception error = null;
             try {
-                io.github.ccxt.ws.WsOrderBook stored = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+                io.github.ccxt.ws.WsOrderBook stored = this.orderbooks.get(symbol);
                 while (tries < maxRetries) {
                     java.util.List<Object> cache = (java.util.List<Object>) (stored == null ? null : stored.get("cache"));
                     Object orderBook = this.fetchRestOrderBookSafe(symbol, (Long) (switch ((Object) limit) { case null -> (Long) null; case Long hx4J42l -> hx4J42l; case Number hx4J42n -> Long.valueOf(hx4J42n.longValue()); case Object hx4J42o -> throw new ClassCastException("ccxt: expected a number, got " + hx4J42o.getClass().getName()); }), params != null ? (switch ((Object) params) { case java.util.Map<?, ?> hx4J42m -> (java.util.Map<String, Object>) hx4J42m; case Object hx4J42p -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J42p.getClass().getName()); }) : new java.util.HashMap<String, Object>()).join();
@@ -92,15 +92,15 @@ public class Exchange extends BaseExchange implements TypedSurface {
                 client.error = error; // onClose must not treat this as a server disconnect
             }
             client.close();
-            ((Map<String, Object>) this.clients).remove(client.url, client);
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.clients.remove(client.url, client);
+            this.orderbooks.put(symbol, this.orderBook());
         } catch (Exception e) {
             client.reject(e, messageHash);
         }
     }
 
     /** Overload for 3-arg calls (without limit and params). */
-    public void loadOrderBook(Client client, Object messageHash, Object symbol) {
+    public void loadOrderBook(Client client, Object messageHash, String symbol) {
         loadOrderBook(client, messageHash, symbol, null, null);
     }
 
@@ -137,27 +137,29 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<List<Position>> fetchPositionHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name exchange#fetchPositionHistory
-             * @description fetches the history of margin added or reduced from contract isolated positions
-             * @param {string} [symbol] unified market symbol
-             * @param {int} [since] timestamp in ms of the position
-             * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-             * @param {object} params extra parameters specific to the exchange api endpoint
-             * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-             */
-            if (!java.util.Objects.equals(this.has.get("fetchPositionsHistory"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsHistory"), false))
-            {
-                return (this.fetchPositionsHistory(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchPositionHistory () is not supported yet")) ;
-            }
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+         */
+        if (!java.util.Objects.equals(this.has.get("fetchPositionsHistory"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsHistory"), false))
+        {
+            return (this.fetchPositionsHistory(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
+        } else
+        {
+            throw new NotSupported((this.id + " fetchPositionHistory () is not supported yet")) ;
+        }
 
     }
 
@@ -219,28 +221,30 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Ticker> fetchMarkPrice(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarkPriceCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarkPriceCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchMarkPrices"), null) && !java.util.Objects.equals(this.has.get("fetchMarkPrices"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchMarkPrices"), null) && !java.util.Objects.equals(this.has.get("fetchMarkPrices"), false))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolResolved = (String) market.get("symbol");
+            Tickers tickers = (this.fetchMarkPrices(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
+            Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
+            if (java.util.Objects.equals(ticker, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) market.get("symbol");
-                Tickers tickers = (this.fetchMarkPrices(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
-                if (java.util.Objects.equals(ticker, null))
-                {
-                    throw new NullResponse(((this.id + " fetchMarkPrices() could not find a ticker for ") + symbolResolved)) ;
-                } else
-                {
-                    return ticker;
-                }
+                throw new NullResponse(((this.id + " fetchMarkPrices() could not find a ticker for ") + symbolResolved)) ;
             } else
             {
-                throw new NotSupported((this.id + " fetchMarkPrices() is not supported yet")) ;
+                return ticker;
             }
-        }).thenApply(Ticker::new);
+        } else
+        {
+            throw new NotSupported((this.id + " fetchMarkPrices() is not supported yet")) ;
+        }
 
     }
 
@@ -316,122 +320,138 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Order> createLimitBuyOrderWs(String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createLimitBuyOrderWsCore(symbol, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createLimitBuyOrderWsCore(String symbol, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.createOrderWs(symbol, "limit", "buy", amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrderWs(symbol, "limit", "buy", amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createLimitOrderWs(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createLimitOrderWsCore(symbol, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createLimitOrderWsCore(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.createOrderWs(symbol, "limit", (String) (side), amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrderWs(symbol, "limit", (String) (side), amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createLimitSellOrderWs(String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createLimitSellOrderWsCore(symbol, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createLimitSellOrderWsCore(String symbol, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.createOrderWs(symbol, "limit", "sell", amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrderWs(symbol, "limit", "sell", amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createMarketBuyOrderWs(String symbol, Object amount, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWsCore(symbol, amount, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketBuyOrderWsCore(String symbol, Object amount, Map<String, Object> parameters)
+    {
 
-            return (this.createOrderWs(symbol, "market", "buy", amount, (Object) null, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrderWs(symbol, "market", "buy", amount, (Object) null, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createMarketOrderWithCostWs(String symbol, String side, Object cost, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostWsCore(symbol, side, cost, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketOrderWithCostWsCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createMarketOrderWithCostWs
-             * @description create a market order by providing the symbol, side and cost
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} cost how much you want to trade in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCostWs"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCostWs"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCostWs"), false))))
-            {
-                return (this.createOrderWs(symbol, "market", (String) (side), cost, 1, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createMarketOrderWithCostWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createMarketOrderWithCostWs
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCostWs"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCostWs"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCostWs"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCostWs"), false))))
+        {
+            return (this.createOrderWs(symbol, "market", (String) (side), cost, 1, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createMarketOrderWithCostWs() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createMarketOrderWs(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketOrderWsCore(symbol, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketOrderWsCore(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.createOrderWs(symbol, "market", (String) (side), amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrderWs(symbol, "market", (String) (side), amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createMarketSellOrderWs(String symbol, Object amount, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWsCore(symbol, amount, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketSellOrderWsCore(String symbol, Object amount, Map<String, Object> parameters)
+    {
 
-            return (this.createOrderWs(symbol, "market", "sell", amount, (Object) null, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrderWs(symbol, "market", "sell", amount, (Object) null, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createOrderWithTakeProfitAndStopLossWs(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderWithTakeProfitAndStopLossWsCore(symbol, type, side, amount, price, takeProfit, stopLoss, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderWithTakeProfitAndStopLossWsCore(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createOrderWithTakeProfitAndStopLossWs
-             * @description create an order with a stop loss or take profit attached (type 3)
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} [takeProfit] the take profit price, in units of the quote currency
-             * @param {float} [stopLoss] the stop loss price, in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
-             * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
-             * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-             * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-             * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
-             * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
-             * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
-             * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
-            if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), false))
-            {
-                return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
-            }
-            throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createOrderWithTakeProfitAndStopLossWs
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
+        if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), false))
+        {
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+        }
+        throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
 
     }
 
@@ -451,292 +471,316 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Order> createPostOnlyOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createPostOnlyOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createPostOnlyOrderWsCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createPostOnlyOrderWs"), null) || java.util.Objects.equals(this.has.get("createPostOnlyOrderWs"), false))
-            {
-                throw new NotSupported((this.id + " createPostOnlyOrderWs() is not supported yet")) ;
-            }
-            Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "postOnly", true );
-            }});
-            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createPostOnlyOrderWs"), null) || java.util.Objects.equals(this.has.get("createPostOnlyOrderWs"), false))
+        {
+            throw new NotSupported((this.id + " createPostOnlyOrderWs() is not supported yet")) ;
+        }
+        Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "postOnly", true );
+        }});
+        return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, query)).join();
 
     }
 
     public CompletableFuture<Order> createReduceOnlyOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createReduceOnlyOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createReduceOnlyOrderWsCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createReduceOnlyOrderWs"), null) || java.util.Objects.equals(this.has.get("createReduceOnlyOrderWs"), false))
-            {
-                throw new NotSupported((this.id + " createReduceOnlyOrderWs() is not supported yet")) ;
-            }
-            Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "reduceOnly", true );
-            }});
-            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createReduceOnlyOrderWs"), null) || java.util.Objects.equals(this.has.get("createReduceOnlyOrderWs"), false))
+        {
+            throw new NotSupported((this.id + " createReduceOnlyOrderWs() is not supported yet")) ;
+        }
+        Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "reduceOnly", true );
+        }});
+        return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, query)).join();
 
     }
 
     public CompletableFuture<Order> createStopLimitOrderWs(String symbol, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createStopLimitOrderWsCore(symbol, side, amount, price, triggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createStopLimitOrderWsCore(String symbol, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createStopLimitOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopLimitOrderWs"), false))
-            {
-                throw new NotSupported((this.id + " createStopLimitOrderWs() is not supported yet")) ;
-            }
-            Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "stopPrice", triggerPrice );
-            }});
-            return (this.createOrderWs(symbol, "limit", (String) (side), amount, price, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createStopLimitOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopLimitOrderWs"), false))
+        {
+            throw new NotSupported((this.id + " createStopLimitOrderWs() is not supported yet")) ;
+        }
+        Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "stopPrice", triggerPrice );
+        }});
+        return (this.createOrderWs(symbol, "limit", (String) (side), amount, price, query)).join();
 
     }
 
     public CompletableFuture<Order> createStopLossOrderWs(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createStopLossOrderWsCore(symbol, type, side, amount, price, stopLossPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createStopLossOrderWsCore(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createStopLossOrderWs
-             * @description create a trigger stop loss order (type 2)
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(stopLossPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " createStopLossOrderWs() requires a stopLossPrice argument")) ;
-            }
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("stopLossPrice", stopLossPrice);
-            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral1);
-            if (!java.util.Objects.equals(this.has.get("createStopLossOrderWs"), null) && !java.util.Objects.equals(this.has.get("createStopLossOrderWs"), false))
-            {
-                return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
-            }
-            throw new NotSupported((this.id + " createStopLossOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createStopLossOrderWs
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(stopLossPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createStopLossOrderWs() requires a stopLossPrice argument")) ;
+        }
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("stopLossPrice", stopLossPrice);
+        Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral1);
+        if (!java.util.Objects.equals(this.has.get("createStopLossOrderWs"), null) && !java.util.Objects.equals(this.has.get("createStopLossOrderWs"), false))
+        {
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
+        }
+        throw new NotSupported((this.id + " createStopLossOrderWs() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createStopMarketOrderWs(String symbol, String side, Object amount, Object triggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createStopMarketOrderWsCore(symbol, side, amount, triggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createStopMarketOrderWsCore(String symbol, String side, Object amount, Object triggerPrice, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createStopMarketOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopMarketOrderWs"), false))
-            {
-                throw new NotSupported((this.id + " createStopMarketOrderWs() is not supported yet")) ;
-            }
-            Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "stopPrice", triggerPrice );
-            }});
-            return (this.createOrderWs(symbol, "market", (String) (side), amount, (Object) null, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createStopMarketOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopMarketOrderWs"), false))
+        {
+            throw new NotSupported((this.id + " createStopMarketOrderWs() is not supported yet")) ;
+        }
+        Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "stopPrice", triggerPrice );
+        }});
+        return (this.createOrderWs(symbol, "market", (String) (side), amount, (Object) null, query)).join();
 
     }
 
     public CompletableFuture<Order> createStopOrderWs(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createStopOrderWsCore(symbol, type, side, amount, price, triggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createStopOrderWsCore(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createStopOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopOrderWs"), false))
-            {
-                throw new NotSupported((this.id + " createStopOrderWs() is not supported yet")) ;
-            }
-            if (java.util.Objects.equals(triggerPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " createStopOrderWs() requires a stopPrice argument")) ;
-            }
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("stopPrice", triggerPrice);
-            Map<String, Object> query = this.extend(parameters, mapLiteral2);
-            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createStopOrderWs"), null) || java.util.Objects.equals(this.has.get("createStopOrderWs"), false))
+        {
+            throw new NotSupported((this.id + " createStopOrderWs() is not supported yet")) ;
+        }
+        if (java.util.Objects.equals(triggerPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createStopOrderWs() requires a stopPrice argument")) ;
+        }
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("stopPrice", triggerPrice);
+        Map<String, Object> query = this.extend(parameters, mapLiteral2);
+        return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, query)).join();
 
     }
 
     public CompletableFuture<Order> createTakeProfitOrderWs(String symbol, String type, String side, Object amount, Object price, Object takeProfitPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTakeProfitOrderWsCore(symbol, type, side, amount, price, takeProfitPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTakeProfitOrderWsCore(String symbol, String type, String side, Object amount, Object price, Object takeProfitPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createTakeProfitOrderWs
-             * @description create a trigger take profit order (type 2)
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(takeProfitPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
-            }
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("takeProfitPrice", takeProfitPrice);
-            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral3);
-            if (!java.util.Objects.equals(this.has.get("createTakeProfitOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTakeProfitOrderWs"), false))
-            {
-                return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
-            }
-            throw new NotSupported((this.id + " createTakeProfitOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createTakeProfitOrderWs
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(takeProfitPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
+        }
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("takeProfitPrice", takeProfitPrice);
+        Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral3);
+        if (!java.util.Objects.equals(this.has.get("createTakeProfitOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTakeProfitOrderWs"), false))
+        {
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
+        }
+        throw new NotSupported((this.id + " createTakeProfitOrderWs() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createTrailingAmountOrderWs(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTrailingAmountOrderWsCore(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTrailingAmountOrderWsCore(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createTrailingAmountOrderWs
-             * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-             * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-             * @param {float} trailingAmount the quote amount to trail away from the current market price
-             * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(trailingAmount, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
-            }
-            parameters.put("trailingAmount", trailingAmount);
-            if (!java.util.Objects.equals(trailingTriggerPrice, null))
-            {
-                parameters.put("trailingTriggerPrice", trailingTriggerPrice);
-            }
-            if (!java.util.Objects.equals(this.has.get("createTrailingAmountOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTrailingAmountOrderWs"), false))
-            {
-                return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createTrailingAmountOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createTrailingAmountOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(trailingAmount, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
+        }
+        parameters.put("trailingAmount", trailingAmount);
+        if (!java.util.Objects.equals(trailingTriggerPrice, null))
+        {
+            parameters.put("trailingTriggerPrice", trailingTriggerPrice);
+        }
+        if (!java.util.Objects.equals(this.has.get("createTrailingAmountOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTrailingAmountOrderWs"), false))
+        {
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createTrailingAmountOrderWs() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createTrailingPercentOrderWs(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTrailingPercentOrderWsCore(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTrailingPercentOrderWsCore(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createTrailingPercentOrderWs
-             * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-             * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-             * @param {float} trailingPercent the percent to trail away from the current market price
-             * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(trailingPercent, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
-            }
-            parameters.put("trailingPercent", trailingPercent);
-            if (!java.util.Objects.equals(trailingTriggerPrice, null))
-            {
-                parameters.put("trailingTriggerPrice", trailingTriggerPrice);
-            }
-            if (!java.util.Objects.equals(this.has.get("createTrailingPercentOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTrailingPercentOrderWs"), false))
-            {
-                return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createTrailingPercentOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createTrailingPercentOrderWs
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(trailingPercent, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
+        }
+        parameters.put("trailingPercent", trailingPercent);
+        if (!java.util.Objects.equals(trailingTriggerPrice, null))
+        {
+            parameters.put("trailingTriggerPrice", trailingTriggerPrice);
+        }
+        if (!java.util.Objects.equals(this.has.get("createTrailingPercentOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTrailingPercentOrderWs"), false))
+        {
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createTrailingPercentOrderWs() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createTriggerOrderWs(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTriggerOrderWsCore(symbol, type, side, amount, price, triggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTriggerOrderWsCore(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createTriggerOrderWs
-             * @description create a trigger stop order (type 1)
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(triggerPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTriggerOrderWs() requires a triggerPrice argument")) ;
-            }
-            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-            mapLiteral4.put("triggerPrice", triggerPrice);
-            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral4);
-            if (!java.util.Objects.equals(this.has.get("createTriggerOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTriggerOrderWs"), false))
-            {
-                return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
-            }
-            throw new NotSupported((this.id + " createTriggerOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createTriggerOrderWs
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(triggerPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTriggerOrderWs() requires a triggerPrice argument")) ;
+        }
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("triggerPrice", triggerPrice);
+        Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral4);
+        if (!java.util.Objects.equals(this.has.get("createTriggerOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTriggerOrderWs"), false))
+        {
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
+        }
+        throw new NotSupported((this.id + " createTriggerOrderWs() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderWsCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderWsCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            (this.cancelOrderWs(id, symbol, new HashMap<String, Object>() {{}})).join();
-            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        (this.cancelOrderWs(id, symbol, new HashMap<String, Object>() {{}})).join();
+        return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<List<Order>> fetchClosedOrdersWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersWsCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersWsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchOrdersWs"), null) && !java.util.Objects.equals(this.has.get("fetchOrdersWs"), false))
-            {
-                List<Order> orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
-                return this.filterBy(orders, "status", "closed");
-            }
-            throw new NotSupported((this.id + " fetchClosedOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(this.has.get("fetchOrdersWs"), null) && !java.util.Objects.equals(this.has.get("fetchOrdersWs"), false))
+        {
+            List<Order> orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
+            return this.filterBy(orders, "status", "closed");
+        }
+        throw new NotSupported((this.id + " fetchClosedOrdersWs() is not supported yet")) ;
 
     }
 
@@ -749,16 +793,18 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<List<Order>> fetchOpenOrdersWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersWsCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersWsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchOrdersWs"), null) && !java.util.Objects.equals(this.has.get("fetchOrdersWs"), false))
-            {
-                List<Order> orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
-                return this.filterBy(orders, "status", "open");
-            }
-            throw new NotSupported((this.id + " fetchOpenOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(this.has.get("fetchOrdersWs"), null) && !java.util.Objects.equals(this.has.get("fetchOrdersWs"), false))
+        {
+            List<Order> orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
+            return this.filterBy(orders, "status", "open");
+        }
+        throw new NotSupported((this.id + " fetchOpenOrdersWs() is not supported yet")) ;
 
     }
 
@@ -799,28 +845,30 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Ticker> fetchTickerWs(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerWsCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerWsCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchTickersWs"), null) && !java.util.Objects.equals(this.has.get("fetchTickersWs"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchTickersWs"), null) && !java.util.Objects.equals(this.has.get("fetchTickersWs"), false))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolResolved = (String) market.get("symbol");
+            Tickers tickers = (this.fetchTickersWs(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
+            Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
+            if (java.util.Objects.equals(ticker, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) market.get("symbol");
-                Tickers tickers = (this.fetchTickersWs(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
-                if (java.util.Objects.equals(ticker, null))
-                {
-                    throw new NullResponse(((this.id + " fetchTickerWs() could not find a ticker for ") + symbolResolved)) ;
-                } else
-                {
-                    return ticker;
-                }
+                throw new NullResponse(((this.id + " fetchTickerWs() could not find a ticker for ") + symbolResolved)) ;
             } else
             {
-                throw new NotSupported((this.id + " fetchTickerWs() is not supported yet")) ;
+                return ticker;
             }
-        }).thenApply(Ticker::new);
+        } else
+        {
+            throw new NotSupported((this.id + " fetchTickerWs() is not supported yet")) ;
+        }
 
     }
 
@@ -837,6 +885,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTradesWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
+
 
 
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -862,26 +911,30 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Object> fetchRestOrderBookSafe(Object symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRestOrderBookSafeCore(symbol, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchRestOrderBookSafeCore(Object symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            Object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "maxRetries", 3);
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, fetchSnapshotMaxRetries); i++)
+        List<Object> fetchSnapshotMaxRetriesfetchParamsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "maxRetries", 3L);
+        Long fetchSnapshotMaxRetries = (Long) ((List<Object>) fetchSnapshotMaxRetriesfetchParamsVariable).get(0);
+        Map<String, Object> fetchParams = (Map<String, Object>) ((List<Object>) fetchSnapshotMaxRetriesfetchParamsVariable).get(1);
+        for (var i = 0; (fetchSnapshotMaxRetries != null && i < fetchSnapshotMaxRetries); i++)
+        {
+            try
             {
-                try
+                OrderBook orderBook = (this.fetchOrderBook(symbol, limit, fetchParams)).join();
+                return orderBook;
+            } catch(Exception e)
+            {
+                if (Helpers.isEqual(((((long) i) + 1L)), fetchSnapshotMaxRetries))
                 {
-                    OrderBook orderBook = (this.fetchOrderBook(symbol, limit, parameters)).join();
-                    return orderBook;
-                } catch(Exception e)
-                {
-                    if (Helpers.isEqual(((((long) i) + 1L)), fetchSnapshotMaxRetries))
-                    {
-                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
-                    }
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
             }
-            return null;
-        });
+        }
+        return null;
 
     }
 
@@ -894,87 +947,101 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenInterestCore(symbol, parameters)).thenApply(OpenInterest::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenInterestCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchOpenInterests"), null) && !java.util.Objects.equals(this.has.get("fetchOpenInterests"), false))
-            {
-                OpenInterests openInterests = (this.fetchOpenInterests(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-                Map<String, Object> openInterest = this.safeDict(openInterests, symbol, null);
-                return openInterest;
-            } else
-            {
-                throw new NotSupported((this.id + " fetchOpenInterest() is not supported yet")) ;
-            }
-        }).thenApply(OpenInterest::new);
+        if (!java.util.Objects.equals(this.has.get("fetchOpenInterests"), null) && !java.util.Objects.equals(this.has.get("fetchOpenInterests"), false))
+        {
+            OpenInterests openInterests = (this.fetchOpenInterests(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+            Map<String, Object> openInterest = this.safeDict(openInterests, symbol, null);
+            return openInterest;
+        } else
+        {
+            throw new NotSupported((this.id + " fetchOpenInterest() is not supported yet")) ;
+        }
 
     }
 
     public CompletableFuture<OrderBook> fetchL2OrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchL2OrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchL2OrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            OrderBook orderbook = (this.fetchOrderBook(symbol, limit, parameters)).join();
-            return this.extend(orderbook, new HashMap<String, Object>() {{
-                put( "asks", Exchange.this.sortBy(Exchange.this.aggregate(((Map<String, Object>)orderbook).get("asks")), 0) );
-                put( "bids", Exchange.this.sortBy(Exchange.this.aggregate(((Map<String, Object>)orderbook).get("bids")), 0, true) );
-            }});
-        }).thenApply(OrderBook::new);
+        OrderBook orderbook = (this.fetchOrderBook(symbol, limit, parameters)).join();
+        return this.extend(orderbook, new HashMap<String, Object>() {{
+            put( "asks", Exchange.this.sortBy(Exchange.this.aggregate(((Map<String, Object>)orderbook).get("asks")), 0) );
+            put( "bids", Exchange.this.sortBy(Exchange.this.aggregate(((Map<String, Object>)orderbook).get("bids")), 0, true) );
+        }});
 
     }
 
     public CompletableFuture<Order> editLimitBuyOrder(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editLimitBuyOrderCore(id, symbol, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editLimitBuyOrderCore(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.editLimitOrder(id, symbol, "buy", amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.editLimitOrder(id, symbol, "buy", amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> editLimitSellOrder(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editLimitSellOrderCore(id, symbol, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editLimitSellOrderCore(String id, String symbol, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.editLimitOrder(id, symbol, "sell", amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.editLimitOrder(id, symbol, "sell", amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> editLimitOrder(String id, String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editLimitOrderCore(id, symbol, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editLimitOrderCore(String id, String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.editOrder(id, symbol, "limit", (String) (side), amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.editOrder(id, symbol, "limit", (String) (side), amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            (this.cancelOrder(id, symbol, new HashMap<String, Object>() {{}})).join();
-            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        (this.cancelOrder(id, symbol, new HashMap<String, Object>() {{}})).join();
+        return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> editOrderWithClientOrderId(Object clientOrderId, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderWithClientOrderIdCore(clientOrderId, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderWithClientOrderIdCore(Object clientOrderId, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "clientOrderId", clientOrderId );
-            }});
-            return (this.editOrder("", symbol, (String) (type), (String) (side), amount, price, extendedParams)).join();
-        }).thenApply(Order::new);
+        Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "clientOrderId", clientOrderId );
+        }});
+        return (this.editOrder("", symbol, (String) (type), (String) (side), amount, price, extendedParams)).join();
 
     }
 
@@ -994,11 +1061,13 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<List<Position>> watchPositionForSymbols(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchPositionForSymbolsCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchPositionForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            return (this.watchPositions(symbols, since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return (this.watchPositions(symbols, since, limit, parameters)).join();
 
     }
 
@@ -1011,28 +1080,30 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchTickers"), null) && !java.util.Objects.equals(this.has.get("fetchTickers"), false))
+        if (!java.util.Objects.equals(this.has.get("fetchTickers"), null) && !java.util.Objects.equals(this.has.get("fetchTickers"), false))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolResolved = (String) market.get("symbol");
+            Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
+            Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
+            if (java.util.Objects.equals(ticker, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-                Map<String, Object> market = this.market(symbol);
-                String symbolResolved = (String) market.get("symbol");
-                Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
-                if (java.util.Objects.equals(ticker, null))
-                {
-                    throw new NullResponse(((this.id + " fetchTickers() could not find a ticker for ") + symbolResolved)) ;
-                } else
-                {
-                    return ticker;
-                }
+                throw new NullResponse(((this.id + " fetchTickers() could not find a ticker for ") + symbolResolved)) ;
             } else
             {
-                throw new NotSupported((this.id + " fetchTicker() is not supported yet")) ;
+                return ticker;
             }
-        }).thenApply(Ticker::new);
+        } else
+        {
+            throw new NotSupported((this.id + " fetchTicker() is not supported yet")) ;
+        }
 
     }
 
@@ -1075,37 +1146,43 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
      */
     public CompletableFuture<Order> fetchOrderWithClientOrderId(Object clientOrderId, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderWithClientOrderIdCore(clientOrderId, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderWithClientOrderIdCore(Object clientOrderId, String symbol, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "clientOrderId", clientOrderId );
-            }});
-            return (this.fetchOrder("", symbol, extendedParams)).join();
-        }).thenApply(Order::new);
+        Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "clientOrderId", clientOrderId );
+        }});
+        return (this.fetchOrder("", symbol, extendedParams)).join();
 
     }
 
     public CompletableFuture<String> fetchOrderStatus(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderStatusCore(id, symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private String fetchOrderStatusCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            // TODO: TypeScript: change method signature by replacing
-            // Promise<string> with Promise<Order['status']>.
-            Order order = (this.fetchOrder(id, symbol, parameters)).join();
-            return this.safeString(order, "status");
-        });
+        // TODO: TypeScript: change method signature by replacing
+        // Promise<string> with Promise<Order['status']>.
+        Order order = (this.fetchOrder(id, symbol, parameters)).join();
+        return this.safeString(order, "status");
 
     }
 
     public CompletableFuture<Order> fetchUnifiedOrder(Object order, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchUnifiedOrderCore(order, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchUnifiedOrderCore(Object order, Map<String, Object> parameters)
+    {
 
-            return (this.fetchOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), parameters)).join();
-        }).thenApply(Order::new);
+        return (this.fetchOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), parameters)).join();
 
     }
 
@@ -1118,284 +1195,302 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTrailingAmountOrderCore(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTrailingAmountOrderCore(String symbol, String type, String side, Object amount, Object price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createTrailingAmountOrder
-             * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-             * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-             * @param {float} trailingAmount the quote amount to trail away from the current market price
-             * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(trailingAmount, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTrailingAmountOrder() requires a trailingAmount argument")) ;
-            }
-            parameters.put("trailingAmount", trailingAmount);
-            if (!java.util.Objects.equals(trailingTriggerPrice, null))
-            {
-                parameters.put("trailingTriggerPrice", trailingTriggerPrice);
-            }
-            if (!java.util.Objects.equals(this.has.get("createTrailingAmountOrder"), null) && !java.util.Objects.equals(this.has.get("createTrailingAmountOrder"), false))
-            {
-                return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createTrailingAmountOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createTrailingAmountOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingAmount the quote amount to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(trailingAmount, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTrailingAmountOrder() requires a trailingAmount argument")) ;
+        }
+        parameters.put("trailingAmount", trailingAmount);
+        if (!java.util.Objects.equals(trailingTriggerPrice, null))
+        {
+            parameters.put("trailingTriggerPrice", trailingTriggerPrice);
+        }
+        if (!java.util.Objects.equals(this.has.get("createTrailingAmountOrder"), null) && !java.util.Objects.equals(this.has.get("createTrailingAmountOrder"), false))
+        {
+            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createTrailingAmountOrder() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTrailingPercentOrderCore(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Object amount, Object price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createTrailingPercentOrder
-             * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-             * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-             * @param {float} trailingPercent the percent to trail away from the current market price
-             * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(trailingPercent, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
-            }
-            parameters.put("trailingPercent", trailingPercent);
-            if (!java.util.Objects.equals(trailingTriggerPrice, null))
-            {
-                parameters.put("trailingTriggerPrice", trailingTriggerPrice);
-            }
-            if (!java.util.Objects.equals(this.has.get("createTrailingPercentOrder"), null) && !java.util.Objects.equals(this.has.get("createTrailingPercentOrder"), false))
-            {
-                return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createTrailingPercentOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createTrailingPercentOrder
+         * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+         * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+         * @param {float} trailingPercent the percent to trail away from the current market price
+         * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(trailingPercent, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
+        }
+        parameters.put("trailingPercent", trailingPercent);
+        if (!java.util.Objects.equals(trailingTriggerPrice, null))
+        {
+            parameters.put("trailingTriggerPrice", trailingTriggerPrice);
+        }
+        if (!java.util.Objects.equals(this.has.get("createTrailingPercentOrder"), null) && !java.util.Objects.equals(this.has.get("createTrailingPercentOrder"), false))
+        {
+            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createTrailingPercentOrder() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Object cost, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketOrderWithCostCore(symbol, side, cost, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketOrderWithCostCore(String symbol, String side, Object cost, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createMarketOrderWithCost
-             * @description create a market order by providing the symbol, side and cost
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} cost how much you want to trade in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false))))
-            {
-                return (this.createOrder(symbol, "market", (String) (side), cost, 1, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createMarketOrderWithCost() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if ((!java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketOrderWithCost"), false)) || ((!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)) && (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false))))
+        {
+            return (this.createOrder(symbol, "market", (String) (side), cost, 1, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createMarketOrderWithCost() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketBuyOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createMarketBuyOrderWithCost
-             * @description create a market buy order by providing the symbol and cost
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {float} cost how much you want to trade in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if ((java.util.Objects.equals(this.options.get("createMarketBuyOrderRequiresPrice"), true)) || (!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)))
-            {
-                return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if ((java.util.Objects.equals(this.options.get("createMarketBuyOrderRequiresPrice"), true)) || (!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)))
+        {
+            return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketSellOrderWithCostCore(symbol, cost, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketSellOrderWithCostCore(String symbol, Object cost, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createMarketSellOrderWithCost
-             * @description create a market sell order by providing the symbol and cost
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {float} cost how much you want to trade in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if ((java.util.Objects.equals(this.options.get("createMarketSellOrderRequiresPrice"), true)) || (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false)))
-            {
-                return (this.createOrder(symbol, "market", "sell", cost, 1, parameters)).join();
-            }
-            throw new NotSupported((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if ((java.util.Objects.equals(this.options.get("createMarketSellOrderRequiresPrice"), true)) || (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false)))
+        {
+            return (this.createOrder(symbol, "market", "sell", cost, 1, parameters)).join();
+        }
+        throw new NotSupported((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createTriggerOrder(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTriggerOrderCore(symbol, type, side, amount, price, triggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTriggerOrderCore(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createTriggerOrder
-             * @description create a trigger stop order (type 1)
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(triggerPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTriggerOrder() requires a triggerPrice argument")) ;
-            }
-            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-            mapLiteral5.put("triggerPrice", triggerPrice);
-            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral5);
-            if (!java.util.Objects.equals(this.has.get("createTriggerOrder"), null) && !java.util.Objects.equals(this.has.get("createTriggerOrder"), false))
-            {
-                return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
-            }
-            throw new NotSupported((this.id + " createTriggerOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createTriggerOrder
+         * @description create a trigger stop order (type 1)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(triggerPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTriggerOrder() requires a triggerPrice argument")) ;
+        }
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("triggerPrice", triggerPrice);
+        Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral5);
+        if (!java.util.Objects.equals(this.has.get("createTriggerOrder"), null) && !java.util.Objects.equals(this.has.get("createTriggerOrder"), false))
+        {
+            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
+        }
+        throw new NotSupported((this.id + " createTriggerOrder() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createStopLossOrder(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createStopLossOrderCore(symbol, type, side, amount, price, stopLossPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createStopLossOrderCore(String symbol, String type, String side, Object amount, Object price, Object stopLossPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createStopLossOrder
-             * @description create a trigger stop loss order (type 2)
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(stopLossPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " createStopLossOrder() requires a stopLossPrice argument")) ;
-            }
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("stopLossPrice", stopLossPrice);
-            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral6);
-            if (!java.util.Objects.equals(this.has.get("createStopLossOrder"), null) && !java.util.Objects.equals(this.has.get("createStopLossOrder"), false))
-            {
-                return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
-            }
-            throw new NotSupported((this.id + " createStopLossOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createStopLossOrder
+         * @description create a trigger stop loss order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(stopLossPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createStopLossOrder() requires a stopLossPrice argument")) ;
+        }
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("stopLossPrice", stopLossPrice);
+        Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral6);
+        if (!java.util.Objects.equals(this.has.get("createStopLossOrder"), null) && !java.util.Objects.equals(this.has.get("createStopLossOrder"), false))
+        {
+            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
+        }
+        throw new NotSupported((this.id + " createStopLossOrder() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createTakeProfitOrder(String symbol, String type, String side, Object amount, Object price, Object takeProfitPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createTakeProfitOrderCore(symbol, type, side, amount, price, takeProfitPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createTakeProfitOrderCore(String symbol, String type, String side, Object amount, Object price, Object takeProfitPrice, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createTakeProfitOrder
-             * @description create a trigger take profit order (type 2)
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            if (java.util.Objects.equals(takeProfitPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
-            }
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("takeProfitPrice", takeProfitPrice);
-            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral7);
-            if (!java.util.Objects.equals(this.has.get("createTakeProfitOrder"), null) && !java.util.Objects.equals(this.has.get("createTakeProfitOrder"), false))
-            {
-                return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
-            }
-            throw new NotSupported((this.id + " createTakeProfitOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createTakeProfitOrder
+         * @description create a trigger take profit order (type 2)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        if (java.util.Objects.equals(takeProfitPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
+        }
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("takeProfitPrice", takeProfitPrice);
+        Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral7);
+        if (!java.util.Objects.equals(this.has.get("createTakeProfitOrder"), null) && !java.util.Objects.equals(this.has.get("createTakeProfitOrder"), false))
+        {
+            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
+        }
+        throw new NotSupported((this.id + " createTakeProfitOrder() is not supported yet")) ;
 
     }
 
     public CompletableFuture<Order> createOrderWithTakeProfitAndStopLoss(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderWithTakeProfitAndStopLossCore(symbol, type, side, amount, price, takeProfit, stopLoss, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderWithTakeProfitAndStopLossCore(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters)
+    {
 
-            /**
-             * @method
-             * @name createOrderWithTakeProfitAndStopLoss
-             * @description create an order with a stop loss or take profit attached (type 3)
-             * @param {string} symbol unified symbol of the market to create an order in
-             * @param {string} type 'market' or 'limit'
-             * @param {string} side 'buy' or 'sell'
-             * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} [takeProfit] the take profit price, in units of the quote currency
-             * @param {float} [stopLoss] the stop loss price, in units of the quote currency
-             * @param {object} [params] extra parameters specific to the exchange API endpoint
-             * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
-             * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
-             * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-             * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-             * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
-             * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
-             * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
-             * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-             * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-             */
-            Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
-            if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), false))
-            {
-                return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
-            }
-            throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
-        }).thenApply(Order::new);
+        /**
+         * @method
+         * @name createOrderWithTakeProfitAndStopLoss
+         * @description create an order with a stop loss or take profit attached (type 3)
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+         * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {float} [takeProfit] the take profit price, in units of the quote currency
+         * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+         */
+        Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
+        if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), false))
+        {
+            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
+        }
+        throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
 
     }
 
@@ -1424,14 +1519,16 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
      */
     public CompletableFuture<Order> cancelOrderWithClientOrderId(Object clientOrderId, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderWithClientOrderIdCore(clientOrderId, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderWithClientOrderIdCore(Object clientOrderId, String symbol, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "clientOrderId", clientOrderId );
-            }});
-            return (this.cancelOrder("", symbol, extendedParams)).join();
-        }).thenApply(Order::new);
+        Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "clientOrderId", clientOrderId );
+        }});
+        return (this.cancelOrder("", symbol, extendedParams)).join();
 
     }
 
@@ -1453,14 +1550,16 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
      */
     public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIds(Object clientOrderIds, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersWithClientOrderIdsCore(clientOrderIds, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrdersWithClientOrderIdsCore(Object clientOrderIds, String symbol, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "clientOrderIds", clientOrderIds );
-            }});
-            return (this.cancelOrders(new ArrayList<Object>(Arrays.asList()), symbol, extendedParams)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Map<String, Object> extendedParams = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "clientOrderIds", clientOrderIds );
+        }});
+        return (this.cancelOrders(new ArrayList<Object>(Arrays.asList()), symbol, extendedParams)).join();
 
     }
 
@@ -1473,25 +1572,29 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Order> cancelUnifiedOrder(Object order, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelUnifiedOrderCore(order, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelUnifiedOrderCore(Object order, Map<String, Object> parameters)
+    {
 
-            return (this.cancelOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), parameters)).join();
-        }).thenApply(Order::new);
+        return (this.cancelOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), parameters)).join();
 
     }
 
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if ((!java.util.Objects.equals(this.has.get("fetchOpenOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOpenOrders"), false)) && (!java.util.Objects.equals(this.has.get("fetchClosedOrders"), null) && !java.util.Objects.equals(this.has.get("fetchClosedOrders"), false)))
-            {
-                throw new NotSupported((this.id + " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
-            }
-            throw new NotSupported((this.id + " fetchOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if ((!java.util.Objects.equals(this.has.get("fetchOpenOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOpenOrders"), false)) && (!java.util.Objects.equals(this.has.get("fetchClosedOrders"), null) && !java.util.Objects.equals(this.has.get("fetchClosedOrders"), false)))
+        {
+            throw new NotSupported((this.id + " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")) ;
+        }
+        throw new NotSupported((this.id + " fetchOrders() is not supported yet")) ;
 
     }
 
@@ -1511,31 +1614,35 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOrders"), false))
-            {
-                List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
-                return this.filterBy(orders, "status", "open");
-            }
-            throw new NotSupported((this.id + " fetchOpenOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(this.has.get("fetchOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOrders"), false))
+        {
+            List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+            return this.filterBy(orders, "status", "open");
+        }
+        throw new NotSupported((this.id + " fetchOpenOrders() is not supported yet")) ;
 
     }
 
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(this.has.get("fetchOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOrders"), false))
-            {
-                List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
-                return this.filterBy(orders, "status", "closed");
-            }
-            throw new NotSupported((this.id + " fetchClosedOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(this.has.get("fetchOrders"), null) && !java.util.Objects.equals(this.has.get("fetchOrders"), false))
+        {
+            List<Order> orders = (this.fetchOrders(symbol, since, limit, parameters)).join();
+            return this.filterBy(orders, "status", "closed");
+        }
+        throw new NotSupported((this.id + " fetchClosedOrders() is not supported yet")) ;
 
     }
 
@@ -1562,166 +1669,190 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     public CompletableFuture<Order> createLimitOrder(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createLimitOrderCore(symbol, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createLimitOrderCore(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.createOrder(symbol, "limit", (String) (side), amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrder(symbol, "limit", (String) (side), amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createMarketOrder(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketOrderCore(symbol, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketOrderCore(String symbol, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.createOrder(symbol, "market", (String) (side), amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrder(symbol, "market", (String) (side), amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createLimitBuyOrder(String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createLimitBuyOrderCore(symbol, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createLimitBuyOrderCore(String symbol, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.createOrder(symbol, "limit", "buy", amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrder(symbol, "limit", "buy", amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createLimitSellOrder(String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createLimitSellOrderCore(symbol, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createLimitSellOrderCore(String symbol, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            return (this.createOrder(symbol, "limit", "sell", amount, price, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrder(symbol, "limit", "sell", amount, price, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createMarketBuyOrder(String symbol, Object amount, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketBuyOrderCore(symbol, amount, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketBuyOrderCore(String symbol, Object amount, Map<String, Object> parameters)
+    {
 
-            return (this.createOrder(symbol, "market", "buy", amount, (Object) null, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrder(symbol, "market", "buy", amount, (Object) null, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createMarketSellOrder(String symbol, Object amount, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createMarketSellOrderCore(symbol, amount, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createMarketSellOrderCore(String symbol, Object amount, Map<String, Object> parameters)
+    {
 
-            return (this.createOrder(symbol, "market", "sell", amount, (Object) null, parameters)).join();
-        }).thenApply(Order::new);
+        return (this.createOrder(symbol, "market", "sell", amount, (Object) null, parameters)).join();
 
     }
 
     public CompletableFuture<Order> createPostOnlyOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createPostOnlyOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createPostOnlyOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createPostOnlyOrder"), null) || java.util.Objects.equals(this.has.get("createPostOnlyOrder"), false))
-            {
-                throw new NotSupported((this.id + " createPostOnlyOrder() is not supported yet")) ;
-            }
-            Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "postOnly", true );
-            }});
-            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createPostOnlyOrder"), null) || java.util.Objects.equals(this.has.get("createPostOnlyOrder"), false))
+        {
+            throw new NotSupported((this.id + " createPostOnlyOrder() is not supported yet")) ;
+        }
+        Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "postOnly", true );
+        }});
+        return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, query)).join();
 
     }
 
     public CompletableFuture<Order> createReduceOnlyOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createReduceOnlyOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createReduceOnlyOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createReduceOnlyOrder"), null) || java.util.Objects.equals(this.has.get("createReduceOnlyOrder"), false))
-            {
-                throw new NotSupported((this.id + " createReduceOnlyOrder() is not supported yet")) ;
-            }
-            Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "reduceOnly", true );
-            }});
-            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createReduceOnlyOrder"), null) || java.util.Objects.equals(this.has.get("createReduceOnlyOrder"), false))
+        {
+            throw new NotSupported((this.id + " createReduceOnlyOrder() is not supported yet")) ;
+        }
+        Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "reduceOnly", true );
+        }});
+        return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, query)).join();
 
     }
 
     public CompletableFuture<Order> createStopOrder(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createStopOrderCore(symbol, type, side, amount, price, triggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createStopOrderCore(String symbol, String type, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createStopOrder"), null) || java.util.Objects.equals(this.has.get("createStopOrder"), false))
-            {
-                throw new NotSupported((this.id + " createStopOrder() is not supported yet")) ;
-            }
-            if (java.util.Objects.equals(triggerPrice, null))
-            {
-                throw new ArgumentsRequired((this.id + " create_stop_order() requires a stopPrice argument")) ;
-            }
-            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-            mapLiteral8.put("stopPrice", triggerPrice);
-            Map<String, Object> query = this.extend(parameters, mapLiteral8);
-            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createStopOrder"), null) || java.util.Objects.equals(this.has.get("createStopOrder"), false))
+        {
+            throw new NotSupported((this.id + " createStopOrder() is not supported yet")) ;
+        }
+        if (java.util.Objects.equals(triggerPrice, null))
+        {
+            throw new ArgumentsRequired((this.id + " create_stop_order() requires a stopPrice argument")) ;
+        }
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("stopPrice", triggerPrice);
+        Map<String, Object> query = this.extend(parameters, mapLiteral8);
+        return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, query)).join();
 
     }
 
     public CompletableFuture<Order> createStopLimitOrder(String symbol, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createStopLimitOrderCore(symbol, side, amount, price, triggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createStopLimitOrderCore(String symbol, String side, Object amount, Object price, Object triggerPrice, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createStopLimitOrder"), null) || java.util.Objects.equals(this.has.get("createStopLimitOrder"), false))
-            {
-                throw new NotSupported((this.id + " createStopLimitOrder() is not supported yet")) ;
-            }
-            Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "stopPrice", triggerPrice );
-            }});
-            return (this.createOrder(symbol, "limit", (String) (side), amount, price, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createStopLimitOrder"), null) || java.util.Objects.equals(this.has.get("createStopLimitOrder"), false))
+        {
+            throw new NotSupported((this.id + " createStopLimitOrder() is not supported yet")) ;
+        }
+        Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "stopPrice", triggerPrice );
+        }});
+        return (this.createOrder(symbol, "limit", (String) (side), amount, price, query)).join();
 
     }
 
     public CompletableFuture<Order> createStopMarketOrder(String symbol, String side, Object amount, Object triggerPrice, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createStopMarketOrderCore(symbol, side, amount, triggerPrice, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createStopMarketOrderCore(String symbol, String side, Object amount, Object triggerPrice, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("createStopMarketOrder"), null) || java.util.Objects.equals(this.has.get("createStopMarketOrder"), false))
-            {
-                throw new NotSupported((this.id + " createStopMarketOrder() is not supported yet")) ;
-            }
-            Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "stopPrice", triggerPrice );
-            }});
-            return (this.createOrder(symbol, "market", (String) (side), amount, (Object) null, query)).join();
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.has.get("createStopMarketOrder"), null) || java.util.Objects.equals(this.has.get("createStopMarketOrder"), false))
+        {
+            throw new NotSupported((this.id + " createStopMarketOrder() is not supported yet")) ;
+        }
+        Map<String, Object> query = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "stopPrice", triggerPrice );
+        }});
+        return (this.createOrder(symbol, "market", (String) (side), amount, (Object) null, query)).join();
 
     }
 
     public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradingFeeCore(symbol, parameters)).thenApply(TradingFeeInterface::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradingFeeCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.has.get("fetchTradingFees"), null) || java.util.Objects.equals(this.has.get("fetchTradingFees"), false))
-            {
-                throw new NotSupported((this.id + " fetchTradingFee() is not supported yet")) ;
-            }
-            TradingFees fees = (this.fetchTradingFees(parameters)).join();
-            Map<String, Object> fee = this.safeDict(fees, symbol, null);
-            return fee;
-        }).thenApply(TradingFeeInterface::new);
+        if (java.util.Objects.equals(this.has.get("fetchTradingFees"), null) || java.util.Objects.equals(this.has.get("fetchTradingFees"), false))
+        {
+            throw new NotSupported((this.id + " fetchTradingFee() is not supported yet")) ;
+        }
+        TradingFees fees = (this.fetchTradingFees(parameters)).join();
+        Map<String, Object> fee = this.safeDict(fees, symbol, null);
+        return fee;
 
     }
 }

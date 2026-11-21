@@ -10,13 +10,13 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMarketLeverageTiers(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMarketLeverageTiers".into());
-    let mut tiers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_market_leverage_tiers", vec![symbol.clone()]).await;
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tiers.clone(), symbol.clone()]);
+    let method: Value = Value::Str("fetchMarketLeverageTiers".into());
+    let tiers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_market_leverage_tiers", vec![symbol.clone()]).await;
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), tiers.clone(), symbol]);
     {
                 let mut j: i64 = 0;
-        let mut __for_first_1584: bool = true;
-        while { if !__for_first_1584 { j += 1; } __for_first_1584 = false; j < (tiers.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (tiers.len() as i64) } {
         testLeverageTier(exchange.clone(), skippedProperties.clone(), method.clone(), tiers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
     }
     }

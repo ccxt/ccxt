@@ -1339,14 +1339,15 @@ class aster(Exchange, ImplicitAPI):
         untilDefined = ('until' in params)
         if sinceDefined:
             request['startTime'] = since
+        paramsUntil = params
         if untilDefined:
-            request = self.handle_until_option('endTime', request, params)
+            request, paramsUntil = self.handle_until_option('endTime', request, params)
         # use historical endpoint for targeted requests
         if sinceDefined:
             if self.safe_bool(market, 'swap', False):
-                response = self.fapiPublicGetV3AggTrades(self.extend(request, params))
+                response = self.fapiPublicGetV3AggTrades(self.extend(request, paramsUntil))
             else:
-                response = self.sapiPublicGetV3AggTrades(self.extend(request, params))
+                response = self.sapiPublicGetV3AggTrades(self.extend(request, paramsUntil))
             #
             # both FAPI and SAPI have same response format
             #
@@ -1364,9 +1365,9 @@ class aster(Exchange, ImplicitAPI):
             #
         else:
             if self.safe_bool(market, 'swap', False):
-                response = self.fapiPublicGetV3Trades(self.extend(request, params))
+                response = self.fapiPublicGetV3Trades(self.extend(request, paramsUntil))
             else:
-                response = self.sapiPublicGetV3Trades(self.extend(request, params))
+                response = self.sapiPublicGetV3Trades(self.extend(request, paramsUntil))
             #
             # SAPI & FAPI have only one field difference
             #
@@ -3114,7 +3115,7 @@ class aster(Exchange, ImplicitAPI):
             'marginMode': self.safe_string_lower(marginMode, 'marginType'),
         }
 
-    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}) -> list[MarginModification]:
+    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
 
@@ -3886,7 +3887,9 @@ class aster(Exchange, ImplicitAPI):
                     floorValue = self.safe_string(bracket, 'notionalFloor')
                     maintenanceMarginPercentage = self.safe_string(bracket, 'maintMarginRatio')
                     result.append([floorValue, maintenanceMarginPercentage])
-                self.options['leverageBrackets'][symbol] = result
+                leverageBracketsDict = self.safe_dict(self.options, 'leverageBrackets', {})
+                leverageBracketsDict[symbol] = result
+                self.options['leverageBrackets'] = leverageBracketsDict
         return self.options['leverageBrackets']
 
     def keccak_message(self, message: object) -> str:
@@ -4074,8 +4077,8 @@ class aster(Exchange, ImplicitAPI):
     def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 

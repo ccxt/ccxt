@@ -1265,8 +1265,9 @@ class toobit extends Exchange {
             }
         } elseif (($since !== null) && ($limit !== null)) {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            $duration = $this->parse_timeframe($timeframe) * 1000;
-            $request['endTime'] = min($this->sum($since, $duration * $limit) - 1, $this->milliseconds());
+            $durationMs = $this->parse_timeframe($timeframe) * 1000;
+            // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            $request['endTime'] = min($since - (1 - $durationMs * $limit), $this->milliseconds());
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2857,7 +2858,7 @@ class toobit extends Exchange {
         $transactType = ($type === 'deposits') ? 'deposit' : 'withdrawal';
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $results[] = $this->extend($this->parse_transaction_with_type($response[$i], $currency, $transactType), $paramsUntil);
+            $results[] = $this->extend($this->parse_transaction_with_type($this->safe_dict($response, $i, array()), $currency, $transactType), $paramsUntil);
         }
         $sorted = $this->sort_by($results, 'timestamp');
         $currencyCode = ($currency !== null) ? $currency['code'] : null;

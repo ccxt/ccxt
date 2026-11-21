@@ -14,7 +14,7 @@ pub fn testDeepExtend() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut obj1: Value = Value::Map({
+    let obj1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]));
@@ -44,7 +44,7 @@ pub fn testDeepExtend() {
             m.insert("other1".to_string(), Value::Str("x".into()));
         m
     });
-    let mut obj2: Value = Value::Map({
+    let obj2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
@@ -75,8 +75,8 @@ pub fn testDeepExtend() {
         m
     });
     // deepExtend
-    let mut deepExtended: Value = exchange.deep_extend(obj1, &[obj2.clone()]);
-    let mut compareTo: Value = Value::Map({
+    let deepExtended: Value = exchange.deep_extend(obj1, &[obj2]);
+    let compareTo: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
@@ -110,5 +110,5 @@ pub fn testDeepExtend() {
     });
     // todo: results are different across langs.
     // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testDeepExtend".into()).clone(), deepExtended.clone(), compareTo.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testDeepExtend".into()), deepExtended, compareTo]);
 }

@@ -123,8 +123,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public override object ping(WebSocketClient client)
     {
         Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
-        bool isPrivateClient = (isEqual(client.url, this.getWsUrl(true)));
-        if (isPrivateClient && ((refreshAt != null)) && ((refreshAt == null || this.milliseconds() >= refreshAt)))
+        bool isPrivateClient = ((client.url == this.getWsUrl(true)));
+        if (isPrivateClient && ((refreshAt != null)) && (this.milliseconds() >= refreshAt.Value))
         {
             // re-authenticate in-band before the session expires, also while no watch call is pending
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
@@ -173,7 +173,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the subscription result
      */
-    public async virtual Task<object> subscribe(object channels, object messageHashes, bool? isPrivate = null, object parameters = null)
+    public async virtual Task<object> subscribe(IList<object> channels, IList<object> messageHashes, bool? isPrivate = null, object parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -199,7 +199,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             { "id", this.requestId() },
         };
         Dictionary<string, object> extendedRequest = this.deepExtend(request, paramsResolved);
-        int channelsLength = getArrayLength(channels);
+        int channelsLength = channels?.Count ?? 0;
         if ((channelsLength == 1))
         {
             return await this.watch(url, this.safeString(messageHashes, 0, ""), extendedRequest, this.safeString(channels, 0, ""), extendedRequest);
@@ -220,7 +220,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {boolean} true when unsubscription has been requested
      */
-    public async virtual Task<object> unSubscribe(object channels, bool? isPrivate = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribe(IList<object> channels, bool? isPrivate = null, IDictionary<string, object> parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -234,7 +234,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.authenticate();
         }
         List<object> unWatchMessageHashes = new List<object>() {};
-        int channelsLength = getArrayLength(channels);
+        int channelsLength = channels?.Count ?? 0;
         for (int i = 0; i < channelsLength; i++)
         {
             unWatchMessageHashes.Add(("unsubscribe:" + this.safeString(channels, i, "")));
@@ -436,7 +436,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
         (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
@@ -495,13 +495,14 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel");
-        object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+        List<object> dataList = this.safeList(parameters, "data");
         IList<object> orders = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(data));
+            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(dataList));
         } else
         {
+            object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
             orders = new List<object> {ccxt.BaseExchange.FromOrder(this.parseOrder(data))};
         }
         int ordersLength = (orders?.Count ?? 0);
@@ -534,7 +535,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsResolved = this.marketSymbols(symbols);
         (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
@@ -1053,7 +1054,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         string? symbolResolved = this.symbol(symbol);
         Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolResolved != null && ohlcvs.ContainsKey(symbolResolved) ? ohlcvs[symbolResolved] : null), timeframeVar));
+
+        return ccxt.BaseExchange.ToOHLCVList((ohlcvs != null && symbolResolved != null && ohlcvs.ContainsKey(symbolResolved) && ohlcvs[symbolResolved] != null && timeframeVar != null && ohlcvs[symbolResolved].ContainsKey(timeframeVar) ? ohlcvs[symbolResolved][timeframeVar] : null));
     }
 
     /**
@@ -1074,7 +1076,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49708 && ((hxArr49708 is IList<object>) || (hxArr49708.GetType().IsGenericType && hxArr49708.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }
@@ -1173,9 +1175,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         if ((this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.TryGetValue(timeframe, out var ohlcvsValue1) ? ohlcvsValue1 : null));
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         List<object> parsed = this.parseWsOHLCV(data, market);
         stored.append(parsed);
@@ -1229,7 +1231,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
         (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
@@ -1583,7 +1585,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         } catch(Exception e)
@@ -1722,7 +1724,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         if ((future != null))
         {
             Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
-            if (((refreshAt != null)) && ((refreshAt == null || this.milliseconds() >= refreshAt)) && !((client.futures != null && client.futures.ContainsKey(messageHash))))
+            if (((refreshAt != null)) && (this.milliseconds() >= refreshAt.Value) && !((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 future = null;
@@ -2190,7 +2192,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsResolved = this.marketSymbols(symbols);
         object result = await this.requestWs("private/get_positions", paramsResolved, true);
         IList<object> positions = this.parsePositions(result);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(positions, "symbol", symbolsResolved));

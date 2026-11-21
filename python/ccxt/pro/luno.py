@@ -416,7 +416,6 @@ class luno(ccxt.async_support.luno):
             # the subscription was dropped after a sequence gap, ignore the
             # frames still arriving until the client resubscribes
             return
-        handlers = [self.handle_order_book, self.handle_trades]
-        for j in range(0, len(handlers)):
-            handler = handlers[j]
-            handler(client, message, subscriptions[0])
+        subscription = self.safe_dict(subscriptions, 0, {})
+        self.handle_order_book(client, message, subscription)
+        self.handle_trades(client, message, subscription)

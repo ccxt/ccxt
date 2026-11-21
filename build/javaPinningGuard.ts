@@ -32,6 +32,8 @@ function isNonBlockingGet (code: string, body: string, at: number): boolean {
     return m !== null && NON_BLOCKING_GET.test(m[1]);
 }
 
+const rel = (f: string) => path.relative(process.cwd(), f);
+
 interface Violation { file: string; line: number; kind: string; owner: string }
 
 // Blank out comments and string/char literals, preserving newlines so line numbers survive.
@@ -112,7 +114,7 @@ function scanFile (file: string): { violations: Violation[]; regions: number } {
     const violations: Violation[] = [];
     const regions = syncRegions(code);
     for (const [start, end, owner] of regions) {
-        if (LIST) console.log(`${path.relative(process.cwd(), file)}:${lineOf(code, start)}-${lineOf(code, end)}  ${owner}`);
+        if (LIST) console.log(`${rel(file)}:${lineOf(code, start)}-${lineOf(code, end)}  ${owner}`);
         const body = code.slice(start, end);
         for (const [kind, re] of BLOCKING) {
             const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
@@ -136,7 +138,6 @@ function walk (dir: string, out: string[] = []): string[] {
 }
 
 const files = walk(ROOT);
-let total = 0;
 let regionCount = 0;
 const all: Violation[] = [];
 for (const f of files) {
@@ -144,8 +145,7 @@ for (const f of files) {
     regionCount += regions;
     all.push(...violations);
 }
-total = all.length;
-const rel = (f: string) => path.relative(process.cwd(), f);
+const total = all.length;
 if (total > 0) {
     console.error(`javaPinningGuard: ${total} blocking call(s) inside synchronized regions (virtual-thread pinning risk):`);
     for (const v of all) {

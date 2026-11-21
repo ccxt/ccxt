@@ -186,7 +186,7 @@ class gate(ccxt.async_support.gate):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_place'
         url = self.get_url_by_market(market)
@@ -210,8 +210,11 @@ class gate(ccxt.async_support.gate):
         if self.markets is None:
             await self.load_markets()
         request = self.createOrdersRequest(orders, params)
-        firstOrder = orders[0]
-        market = self.market(firstOrder['symbol'])
+        symbol = None
+        for i in range(0, len(orders)):
+            if i == 0:
+                symbol = self.safe_string(orders[i], 'symbol')
+        market = self.market(symbol)
         if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' createOrdersWs is not supported for swap markets')
         # todo add swap support
@@ -238,11 +241,7 @@ class gate(ccxt.async_support.gate):
             raise ArgumentsRequired(self.id + ' cancelAllOrdersWs() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
-        market = None
-        if symbol is None:
-            market = None
-        else:
-            market = self.market(symbol)
+        market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_cancel_cp'
@@ -438,14 +437,15 @@ class gate(ccxt.async_support.gate):
         messageType = self.get_type_by_market(market)
         messageHash = 'orderbook' + ':' + symbolValue
         # max 100 atm, max 50 for options
-        defaultLimit = 100
+        limitResolved = self.parse_to_int(100)
         if (self.safe_bool(market, 'spot', False)) or (messageType == 'options'):
-            defaultLimit = 50
-        limitResolved = defaultLimit if (limit is None) else limit
+            limitResolved = self.parse_to_int(50)
+        if limit is not None:
+            limitResolved = self.parse_to_int(limit)
         if self.safe_bool(market, 'spot', False):
             # the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             maxSpotLimit = self.parse_to_int(self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000))
-            limitResolved = min(limitResolved, maxSpotLimit)
+            limitResolved = self.parse_to_int(min(limitResolved, maxSpotLimit))
         payload = []
         channel = ''
         if isEuUrl:
@@ -490,11 +490,12 @@ class gate(ccxt.async_support.gate):
         interval = intervalDefault
         intervalOption, paramsInterval = self.handle_option_string_and_params(params, 'watchOrderBook', 'interval', interval)
         messageType = self.get_type_by_market(market)
-        limit = self.safe_integer(paramsInterval, 'limit')
-        if limit is None:
-            limit = 50 if (self.safe_bool(market, 'spot', False)) else 100  # max 100 atm
-            if messageType == 'options':
-                limit = 50  # max 50 for options
+        limitParam = self.safe_integer(paramsInterval, 'limit')
+        limit = self.parse_to_int(50 if (self.safe_bool(market, 'spot', False)) else 100)  # max 100 atm
+        if messageType == 'options':
+            limit = self.parse_to_int(50)  # max 50 for options
+        if limitParam is not None:
+            limit = self.parse_to_int(limitParam)
         payload = []
         channel = ''
         if isEuUrl:
@@ -1005,7 +1006,7 @@ class gate(ccxt.async_support.gate):
         # todo add options support
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.candlesticks'
@@ -1035,7 +1036,7 @@ class gate(ccxt.async_support.gate):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.candlesticks'
@@ -1123,7 +1124,7 @@ class gate(ccxt.async_support.gate):
                     self.safe_number(ohlcv, 'c'),
                     self.safe_number(ohlcv, 'a'),
                 ]
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -1560,9 +1561,9 @@ class gate(ccxt.async_support.gate):
             messageHash = 'triggerOrders'
         payload = ['!' + 'all']
         if market is not None:
-            messageHash += ':' + market['id']
-            mid = market['id']
+            mid = self.safe_string(market, 'id')
             if mid is not None:
+                messageHash += ':' + mid
                 payload = [mid]
         subType = None
         subType, query = self.handle_sub_type_and_params('watchOrders', market, query)
@@ -1645,10 +1646,11 @@ class gate(ccxt.async_support.gate):
                     left = self.safe_string(info, 'left')
                     parsed['status'] = 'closed' if Precise.string_equals(left, '0') else 'canceled'
             stored.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             market = self.market(symbol)
-            if market['id'] is not None:
-                marketIds[market['id']] = True
+            marketId = self.safe_string(market, 'id')
+            if marketId is not None:
+                marketIds[marketId] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             messageHash = hashPrefix + ':' + keys[i]
@@ -1778,9 +1780,7 @@ class gate(ccxt.async_support.gate):
             newLiquidations.append(liquidation)
             symbol = self.safe_string(liquidation, 'symbol')
             if symbol is not None:
-                symbolLiquidations = self.safe_list(liquidationsBySymbol, symbol)
-                if symbolLiquidations is None:
-                    symbolLiquidations = []
+                symbolLiquidations = self.safe_list(liquidationsBySymbol, symbol, [])
                 symbolLiquidations.append(liquidation)
                 liquidationsBySymbol[symbol] = symbolLiquidations
         symbols = list(liquidationsBySymbol.keys())
@@ -2128,13 +2128,12 @@ class gate(ccxt.async_support.gate):
     def get_url_by_market(self, market: object) -> str:
         if self.safe_bool(market, 'contract', False):
             settleKey = 'usdt' if (self.safe_bool(market, 'linear', False)) else 'btc'
-            return self.safe_string(self.urls['api'][market['type']], settleKey, '')
-        else:
-            return self.safe_string(self.urls['api'], market['type'], '')
+            contractUrl = self.safe_string(self.urls['api'][market['type']], settleKey, '')
+            return contractUrl
+        spotUrl = self.safe_string(self.urls['api'], market['type'], '')
+        return spotUrl
 
-    def get_type_by_market(self, market: Market) -> Str:
-        if market is None:
-            return None
+    def get_type_by_market(self, market: Market) -> str:
         if self.safe_bool(market, 'spot', False):
             return 'spot'
         elif self.safe_bool(market, 'option', False):
@@ -2150,19 +2149,17 @@ class gate(ccxt.async_support.gate):
             return self.safe_string(self.urls['api'], type)
 
     def get_market_type_by_url(self, url: str) -> str:
-        findBy = {
-            'op-': 'option',
-            '/ws/options/': 'option',
-            'delivery': 'future',
-            'fx': 'swap',
-            '/ws/futures/': 'swap',
-        }
-        keys = list(findBy.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            value = findBy[key]
-            if url.find(key) >= 0:
-                return value
+        # same order as the url table: delivery urls also contain 'fx'
+        if url.find('op-') >= 0:
+            return 'option'
+        if url.find('/ws/options/') >= 0:
+            return 'option'
+        if url.find('delivery') >= 0:
+            return 'future'
+        if url.find('fx') >= 0:
+            return 'swap'
+        if url.find('/ws/futures/') >= 0:
+            return 'swap'
         return 'spot'
 
     def request_id(self) -> int:

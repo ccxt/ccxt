@@ -2466,14 +2466,14 @@ class polymarket(Exchange, ImplicitAPI):
     def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object) -> str:
+    def sign_hash(self, hash: str, privateKey: Str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        sVal = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        sVal = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + sVal.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: object) -> str:
+    def sign_message(self, message: object, privateKey: Str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey)
 
     async def create_proxy_credentials(self, params: dict = {}) -> dict:
@@ -2559,7 +2559,7 @@ class polymarket(Exchange, ImplicitAPI):
             margin = self.safe_integer(self.options, 'proxyRefreshMargin', 3600000)
             if expires is None:
                 return credentials
-            refreshAfter = expires - margin
+            refreshAfter = self.parse_to_int(expires - margin)
             if self.milliseconds() < refreshAfter:
                 return credentials
         return await self.create_proxy_credentials(params)
@@ -2611,7 +2611,7 @@ class polymarket(Exchange, ImplicitAPI):
             envelope['exp'] = exp
         return envelope
 
-    def compact_signable(self, row: list[object]):
+    def compact_signable(self, row: list[object]) -> list[object]:
         """
  @ignore
         removes None entries from a positional signable array, later entries shift left exactly like the official sdk does before hashing

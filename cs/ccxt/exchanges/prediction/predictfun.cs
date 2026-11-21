@@ -371,7 +371,7 @@ public partial class predictfun : PredictionExchange
         {
             this.markets = this.createSafeDictionary();
         }
-        object rawTopics = new List<object>() {};
+        IList<object> rawTopics = new List<object>() {};
         if ((slug != null))
         {
             Dictionary<string, object> response = await this.predictfunGetV1CategoriesSlug(this.extend(new Dictionary<string, object>() {
@@ -564,8 +564,8 @@ public partial class predictfun : PredictionExchange
             //
             List<object> data = this.safeList(rawTopicsResponse, "data", new List<object>() {});
             rawTopics = this.arrayConcat(rawTopics, data);
-            int topicsLength = getArrayLength(rawTopics);
-            while ((topicsLength < fetchCap))
+            int topicsLength = (rawTopics?.Count ?? 0);
+            while (topicsLength < fetchCap)
             {
                 string? nextPageToken = this.safeString(rawTopicsResponse, "cursor");
                 if ((nextPageToken == null))
@@ -576,24 +576,24 @@ public partial class predictfun : PredictionExchange
                 rawTopicsResponse = await this.predictfunGetV1Categories(extendedRequest);
                 data = this.safeList(rawTopicsResponse, "data", new List<object>() {});
                 rawTopics = this.arrayConcat(rawTopics, data);
-                topicsLength = getArrayLength(rawTopics);
+                topicsLength = (rawTopics?.Count ?? 0);
             }
             if (((fetchCap == null || topicsLength > fetchCap)))
             {
                 rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
             }
         }
-        int rawTopicsLength = getArrayLength(rawTopics);
+        int rawTopicsLength = (rawTopics?.Count ?? 0);
         List<object> result = new List<object>() {};
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
+            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
             result.Add(parsedEvent);
             List<object> parsedMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
             int parsedMarketsLength = parsedMarkets.Count;
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
-                object m = (parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null);
+                IDictionary<string, object> m = ((IDictionary<string, object>)(parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null));
                 // prediction market rows are keyed by the unified 'market' handle
                 string? handle = this.safeString(m, "market");
                 if ((handle != null))
@@ -635,7 +635,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    public async virtual Task<object> fetchRawTopicsByQueries(IList<object> queries, IDictionary<string, object>? parameters = null)
+    public async virtual Task<List<object>> fetchRawTopicsByQueries(IList<object> queries, IDictionary<string, object>? parameters = null)
     {
         // always ask for the venue's maximum page size - this is the per-type page size of the
         // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which
@@ -1036,26 +1036,39 @@ public partial class predictfun : PredictionExchange
         string digits = "0123456789";
         List<object> chars = this.stringToCharsArray(text);
         string stripped = "";
-        for (Int64 i = 0; i < (chars?.Count ?? 0); i++)
+        string? prevCh = "";
+        // a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        bool pendingComma = false;
+        for (int i = 0; i < (chars?.Count ?? 0); i++)
         {
-            string? ch = ((string)(chars != null && i < chars.Count ? chars[(int)i] : null));
-            bool keep = true;
-            if (ch == "$")
+            string? ch = ((string)chars[i]);
+            bool isDigit = (digits.IndexOf(ch, StringComparison.Ordinal) >= 0);
+            if (pendingComma && !isDigit)
             {
-                keep = false;
-            } else if (ch == ",")
+                stripped = (stripped + ",");
+            }
+            pendingComma = false;
+            if (ch == ",")
             {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                bool prevIsDigit = (i > 0) && (digits.IndexOf(((string)(chars != null && (i - 1) < chars.Count ? chars[(int)(i - 1)] : null)), StringComparison.Ordinal) >= 0);
-                bool nextIsDigit = ((((i + 1)) < (chars?.Count ?? 0))) && (digits.IndexOf(((string)(chars != null && (i + 1) < chars.Count ? chars[(int)(i + 1)] : null)), StringComparison.Ordinal) >= 0);
-                keep = !(prevIsDigit && nextIsDigit);
-            }
-            if (keep)
+                if ((i > 0) && (digits.IndexOf(prevCh, StringComparison.Ordinal) >= 0))
+                {
+                    pendingComma = true;
+                } else
+                {
+                    stripped = (stripped + ch);
+                }
+            } else if (ch != "$")
             {
                 stripped = (stripped + ch);
             }
+            prevCh = ch;
+        }
+        if (pendingComma)
+        {
+            stripped = (stripped + ",");
         }
         return stripped;
     }
@@ -1070,14 +1083,14 @@ public partial class predictfun : PredictionExchange
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    public virtual string? titleForMarketSymbol(string? topicSlug, string? title, object marketCount = null)
+    public virtual string? titleForMarketSymbol(string? topicSlug, string? title, Int64? marketCount = null)
     {
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
         // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
         // returning the slug makes slugToMarketSymbol collapse the two halves into one part.
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
-        if ((isEqual(marketCount, 1)) && ((topicSlug != null)))
+        if (((marketCount == 1)) && ((topicSlug != null)))
         {
             return ((string?)((object)(topicSlug)));
         }
@@ -1765,7 +1778,7 @@ public partial class predictfun : PredictionExchange
         // it carries rather than from the outcome the caller asked for
         IDictionary<string, object> partyOutcome = this.safeDict(party, "outcome", new Dictionary<string, object>() {});
         string? tokenId = this.safeString(partyOutcome, "onChainId");
-        object outcomeObj = this.outcomeForToken(tokenId, market);
+        IDictionary<string, object> outcomeObj = this.outcomeForToken(tokenId, market);
         string? role = this.safeString(party, "role");
         // a resting maker fills at its own price, so the party price is the execution price for
         // that leg. the taker's party price is only its limit: the settlement records what it
@@ -1870,11 +1883,11 @@ public partial class predictfun : PredictionExchange
      */
     public virtual string? hashMessage(string message)
     {
-        string? binaryMessage = this.encode(message);
+        string? binaryMessage = message;
         int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, "Ethereum Signed Message:", newline, this.numberToString(binaryMessageLength));
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
@@ -1891,8 +1904,8 @@ public partial class predictfun : PredictionExchange
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        string? rRaw = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? sRaw = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? rRaw = this.safeString(signature, "r", "");
+        string? sRaw = this.safeString(signature, "s", "");
         string r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         string s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
@@ -1924,7 +1937,7 @@ public partial class predictfun : PredictionExchange
         Int64? expiresAt = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
         // a token outlives its window silently: the venue answers 401 on every order action once
         // it lapses, so re-issue before that rather than after the first failure
-        if (((cached != null)) && ((now < expiresAt)))
+        if (((cached != null)) && (now < expiresAt))
         {
             return cached;
         }
@@ -2256,7 +2269,7 @@ public partial class predictfun : PredictionExchange
         if ((outcomes != null))
         {
             outcomesLength = outcomes?.Count ?? 0;
-            await this.loadOutcomes(this.toArray(outcomes));
+            await this.loadOutcomes(outcomes);
         }
         string? address = this.safeString(parameters, "address");
         Dictionary<string, object> response = null;
@@ -2306,7 +2319,7 @@ public partial class predictfun : PredictionExchange
         List<object> parsed = this.parsePredictionPositions(rows);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         Dictionary<string, object> wanted = new Dictionary<string, object>() {};
-        IList<object> wantedOutcomes = this.toArray(outcomes);
+        IList<object> wantedOutcomes = outcomes;
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(this.safeString(wantedOutcomes, i));
@@ -2367,7 +2380,7 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> rawOutcome = this.safeDict(position, "outcome", new Dictionary<string, object>() {});
         IDictionary<string, object> rawMarket = this.safeDict(position, "market", new Dictionary<string, object>() {});
         string? tokenId = this.safeString(rawOutcome, "onChainId");
-        object outcomeObj = this.outcomeForToken(tokenId, market);
+        IDictionary<string, object> outcomeObj = this.outcomeForToken(tokenId, market);
         // shares are collateral wei, the usd figures come back already scaled
         string? contracts = Precise.stringDiv(this.safeString(position, "amount"), "1000000000000000000");
         string? entryPrice = this.safeString(position, "averageBuyPriceUsd");
@@ -2758,7 +2771,7 @@ public partial class predictfun : PredictionExchange
         string? topLevelHash = this.safeString2(order, "hash", "orderHash");
         string? orderHash = this.safeString(data, "hash", topLevelHash);
         string? tokenId = this.safeString(data, "tokenId");
-        object outcomeObj = this.outcomeForToken(tokenId, market);
+        IDictionary<string, object> outcomeObj = this.outcomeForToken(tokenId, market);
         // the contract order carries the economics: a buy offers collateral for shares while a
         // sell offers shares for collateral, so which leg is the size depends on the side
         string? rawSide = this.safeString(data, "side");
@@ -2885,7 +2898,7 @@ public partial class predictfun : PredictionExchange
             this.options["jwtTokenExpiresAt"] = 0;
         }
         string? error = this.safeString(response, "error");
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
         if ((code == 400))
@@ -3278,8 +3291,11 @@ public partial class predictfun : PredictionExchange
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
         }
-        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
-        if ((this.safeString(subscription, "topic") == "walletEvents"))
+        List<object> messageHashes = new List<object>() {};
+        if ((this.safeString(subscription, "topic") != "walletEvents"))
+        {
+            messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        } else
         {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
@@ -3620,7 +3636,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [market] the outcome the caller asked about
      * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
      */
-    public virtual object outcomeForToken(string? tokenId, object market = null)
+    public virtual IDictionary<string, object> outcomeForToken(string? tokenId, object market = null)
     {
         // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
         // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
@@ -3654,7 +3670,7 @@ public partial class predictfun : PredictionExchange
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
-            object outcomeObj = getValue(cached, (handles != null && i < handles.Count ? handles[i] : null));
+            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3666_32) ? cachedValue3666_32 : null);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             if ((this.safeString(info, "marketId") == marketId))
             {

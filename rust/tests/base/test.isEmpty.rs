@@ -9,7 +9,7 @@ use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbol
 use ccxt::exchange_generated::ExchangeBase;
 
 pub fn testIsEmpty() {
-    let mut exchange = crate::tests_support::make_exchange(Value::Map({
+    let exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
@@ -17,7 +17,7 @@ pub fn testIsEmpty() {
     assert!(ccxt::runtime::is_true(&(exchange.is_empty(Value::Null))));
     assert!(ccxt::runtime::is_true(&(exchange.is_empty(Value::Null))));
     assert!(ccxt::runtime::is_true(&(exchange.is_empty(Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     })))));
     assert!(ccxt::runtime::is_true(&(exchange.is_empty(Value::from(vec![])))));

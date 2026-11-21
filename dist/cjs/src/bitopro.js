@@ -955,7 +955,7 @@ class bitopro extends bitopro$1["default"] {
             const candle = this.safeList(candles, i, []);
             if (candle[0] === timestamp) {
                 result.push(candle);
-                i = this.sum(i, 1);
+                i = i + 1;
             }
             else {
                 // set open, high, low to close

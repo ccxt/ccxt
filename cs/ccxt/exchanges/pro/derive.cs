@@ -53,7 +53,8 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        options[(string)url] = newValue;
+        this.options["requestId"] = options;
         return newValue;
     }
 
@@ -728,7 +729,7 @@ public partial class derive : ccxt.derive
         List<object> rawOrders = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            object data = rawOrders[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)rawOrders[i]);
             Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(data));
             string? symbol = this.safeString(parsed, "symbol");
             string? orderId = this.safeString(parsed, "id");
@@ -1000,7 +1001,7 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, true);
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, true);
         (bool?, IDictionary<string, object>) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
         IDictionary<string, object> paramsSnapshot = (fetchSnapshotparamsSnapshotVariable.Item2);
@@ -1195,7 +1196,7 @@ public partial class derive : ccxt.derive
             if ((errorCode != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 throw new ExchangeError (feedback) ;
             }
             return false;

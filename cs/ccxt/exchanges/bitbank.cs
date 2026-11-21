@@ -632,7 +632,7 @@ public partial class bitbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; i++)
         {
-            object pair = pairs[i];
+            IDictionary<string, object> pair = ((IDictionary<string, object>)pairs[i]);
             string? marketId = this.safeString(pair, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeString(market, "symbol", "");
@@ -1255,7 +1255,7 @@ public partial class bitbank : Exchange
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "ACCESS-KEY", this.apiKey },
-                { "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
+                { "ACCESS-SIGNATURE", this.hmac(auth, this.secret, sha256) },
             };
             if (isTimeWindow)
             {
@@ -1354,7 +1354,7 @@ public partial class bitbank : Exchange
             };
             string? codeError = this.safeString(data, "code");
             string? message = this.safeString(errorMessages, codeError, "Error");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, message);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, message);
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;

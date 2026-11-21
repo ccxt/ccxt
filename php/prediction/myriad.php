@@ -278,8 +278,7 @@ class myriad extends Exchange {
                 'state' => $state,
                 'limit' => $limit,
             ), $rest)));
-            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $found = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+            $found = $this->safe_list($response, 'data', array());
             for ($j = 0; $j < count($found); $j++) {
                 $raw = $found[$j];
                 $networkId = $this->safe_string($raw, 'networkId', '');
@@ -329,8 +328,7 @@ class myriad extends Exchange {
                 'page' => $page,
                 'trading_model' => $tradingModel,
             ), $rest)));
-            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $rawMarkets = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+            $rawMarkets = $this->safe_list($response, 'data', array());
             $rawMarketsLength = count($rawMarkets);
             if ($rawMarketsLength === 0) {
                 break;
@@ -468,8 +466,7 @@ class myriad extends Exchange {
                 'keyword' => $q,
                 'limit' => $limit,
             ), $rest)));
-            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $found = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+            $found = $this->safe_list($response, 'data', array());
             for ($j = 0; $j < count($found); $j++) {
                 $raw = $found[$j];
                 $questionId = $this->safe_string($raw, 'id');
@@ -511,8 +508,7 @@ class myriad extends Exchange {
                 $request['state'] = $state;
             }
             $response = Async\await($this->myriadPublicGetQuestions($this->extend($request, $rest)));
-            $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-            $rawQuestions = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+            $rawQuestions = $this->safe_list($response, 'data', array());
             $rawQuestionsLength = count($rawQuestions);
             if ($rawQuestionsLength === 0) {
                 break;
@@ -1139,8 +1135,10 @@ class myriad extends Exchange {
             Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
         }
         $skipWaitForReceipt = $this->safe_bool($params, 'skipWaitForReceipt', $hasPreBroadcastTxHash);
-        $txHash = $txHashParam;
-        if ($txHash === null) {
+        $txHash = null;
+        if ($txHashParam !== null) {
+            $txHash = $txHashParam;
+        } else {
             $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
         }
         if (!$skipWaitForReceipt) {
@@ -1193,8 +1191,8 @@ class myriad extends Exchange {
         $encoded = $this->eth_encode_structured_data($domain, $types, $message);
         $digest = $this->hash($encoded, 'keccak', 'hex');
         $signature = $this->ecdsa($digest, $this->remove0x_prefix($this->privateKey), 'secp256k1', null);
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         $v = $this->sum(27, $signature['v']);
@@ -1486,7 +1484,12 @@ class myriad extends Exchange {
             return array();
         }
         $traderParam = $this->safe_string_2($params, 'trader', 'address');
-        $trader = ($traderParam !== null) ? $traderParam : $this->wallet_address_or_undefined();
+        $trader = null;
+        if ($traderParam !== null) {
+            $trader = $traderParam;
+        } else {
+            $trader = $this->wallet_address_or_undefined();
+        }
         if ($trader === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -3031,8 +3034,7 @@ class myriad extends Exchange {
         //         ]
         //     }
         //
-        $responseIsArray = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)));
-        $rows = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
+        $rows = $this->safe_list($response, 'data', array());
         $trades = array();
         for ($i = 0; $i < count($rows); $i++) {
             $row = $this->safe_dict($rows, $i);

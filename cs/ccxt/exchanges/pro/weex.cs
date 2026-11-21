@@ -155,8 +155,10 @@ public partial class weex : ccxt.weex
         }
         string timestamp = this.nonce().ToString();
         string payload = (timestamp + "/v3/ws/private");
-        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
-        IDictionary<string, object> originalHeaders = this.safeDict(getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"), "headers");
+        string signature = this.hmac(payload, this.secret, sha256, "base64");
+        IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsInnerOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
+        IDictionary<string, object> originalHeaders = this.safeDict(wsInnerOptions, "headers", new Dictionary<string, object>() {});
         string? userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
         Dictionary<string, object> extendedOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
@@ -383,12 +385,9 @@ public partial class weex : ccxt.weex
         Int64? timestamp = this.safeInteger(ticker, "C");
         string? close = this.safeString(ticker, "c");
         string? symbol = null;
-        if ((market == null))
+        if ((market != null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = this.safeString(market, "symbol");
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -453,7 +452,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string topic = "trade";
@@ -606,12 +605,9 @@ public partial class weex : ccxt.weex
         //
         Int64? timestamp = this.safeInteger(trade, "T");
         string? symbol = null;
-        if ((market == null))
+        if ((market != null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = this.safeString(market, "symbol");
         }
         bool? isBuyerMaker = this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         string? side = null;
@@ -659,8 +655,9 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "callerMethodName", "watchOHLCV" },
         });
-        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, extendedParams));
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, extendedParams);
+
+        return ccxt.BaseExchange.ToOHLCVList((result != null && symbol != null && result.ContainsKey(symbol) && result[symbol] != null && timeframeVar != null && result[symbol].ContainsKey(timeframeVar) ? result[symbol][timeframeVar] : null));
     }
 
     /**
@@ -861,7 +858,7 @@ public partial class weex : ccxt.weex
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (timeframe != null))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
         }
         for (int i = 0; i < data.Count; i++)
@@ -935,7 +932,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
@@ -1210,7 +1207,7 @@ public partial class weex : ccxt.weex
             return;
         }
         Dictionary<string, object> ticker = this.parseWsBidAsk(message, market);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol");
         if ((symbol != null))
         {
             this.bidsasks[(string)symbol] = ticker;
@@ -1223,12 +1220,9 @@ public partial class weex : ccxt.weex
     {
         Int64? timestamp = this.safeInteger(message, "E");
         string? symbol = null;
-        if ((market == null))
+        if ((market != null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = this.safeString(market, "symbol");
         }
         return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1961,11 +1955,8 @@ public partial class weex : ccxt.weex
             accountType = "swap";
         }
         string messageHash = (accountType + ":balance");
-        if (!((this.balance != null && this.balance.ContainsKey(accountType))))
-        {
-            this.balance[accountType] = new Dictionary<string, object>() {};
-        }
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
+        IDictionary<string, object> balance = this.safeDict(this.balance, accountType, new Dictionary<string, object>() {});
+        balance["info"] = message;
         List<object> balanceUpdates = this.safeList(message, "d", new List<object>() {});
         for (int i = 0; i < balanceUpdates.Count; i++)
         {
@@ -1978,13 +1969,13 @@ public partial class weex : ccxt.weex
             account["total"] = this.safeString2(entry, "equity", "legacyAmount");
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
+                balance[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(message, "E");
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        balance["timestamp"] = timestamp;
+        balance["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 
@@ -2010,7 +2001,7 @@ public partial class weex : ccxt.weex
         string url = (this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "contract", "") + "/private");
         this.authenticate(url);
         var client = this.client(url);
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true);
         string messageHash = "positions";
         string subscriptionHash = messageHash;
         if ((symbolsNormalized != null))
@@ -2024,7 +2015,7 @@ public partial class weex : ccxt.weex
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters);
         if (this.newUpdates)
@@ -2246,7 +2237,7 @@ public partial class weex : ccxt.weex
             string feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), msg, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, msg, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception error)

@@ -309,7 +309,7 @@ export default class foxbit extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     parseTransactionStatus(status: Str): Str;
-    parseTransaction(transaction: any, currency?: Currency, since?: Int, limit?: Int): Transaction;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;

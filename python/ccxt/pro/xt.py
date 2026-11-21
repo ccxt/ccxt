@@ -1106,7 +1106,7 @@ class xt(ccxt.async_support.xt):
         #        }
         #    }
         #
-        data = self.safe_dict(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         if marketId is not None:
             event = self.safe_string(message, 'event', '')
@@ -1127,8 +1127,8 @@ class xt(ccxt.async_support.xt):
             orderbook = self.orderbooks[symbol]
             nonce = self.safe_integer(orderbook, 'nonce')
             if nonce is None:
-                cacheLength = len(orderbook.cache)
-                snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
+                cacheLength = self.parse_to_int(len(orderbook.cache))
+                snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 25))
                 if cacheLength == snapshotDelay:
                     self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
                 orderbook.cache.append(data)

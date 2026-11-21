@@ -3090,9 +3090,10 @@ class deepcoin extends deepcoin$1["default"] {
             };
             let requestBody = undefined;
             if (method !== 'GET') {
-                requestBody = this.json(params);
+                const body = this.json(params);
                 privateHeaders['Content-Type'] = 'application/json';
-                payload += requestBody;
+                payload += body;
+                requestBody = body;
             }
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             privateHeaders['DC-ACCESS-SIGN'] = signature;
@@ -3110,12 +3111,10 @@ class deepcoin extends deepcoin$1["default"] {
         if ((msg !== undefined) && (msg === '') && (sMsg !== undefined)) {
             msg = sMsg;
         }
-        const errorList = this.safeList(data, 'errorList');
-        if (errorList !== undefined) {
-            for (let i = 0; i < errorList.length; i++) {
-                const entry = this.safeDict(errorList, i, {});
-                errorCode = this.safeString(entry, 'errorCode');
-            }
+        const errorList = this.safeList(data, 'errorList', []);
+        for (let i = 0; i < errorList.length; i++) {
+            const entry = this.safeDict(errorList, i, {});
+            errorCode = this.safeString(entry, 'errorCode');
         }
         const feedback = this.id + ' ' + body;
         if ((sCode === undefined) && (errorCode !== undefined)) {

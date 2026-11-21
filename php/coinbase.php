@@ -2034,10 +2034,14 @@ class coinbase extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             if ($code !== null) {
-                $this->options['networks'][$code] = strtolower($name);
+                $networksDict1 = $this->safe_dict($this->options, 'networks', array());
+                $networksDict1[$code] = strtolower($name);
+                $this->options['networks'] = $networksDict1;
             }
             if ($code !== null) {
-                $this->options['networksById'][$code] = strtolower($name);
+                $networksByIdDict2 = $this->safe_dict($this->options, 'networksById', array());
+                $networksByIdDict2[$code] = strtolower($name);
+                $this->options['networksById'] = $networksByIdDict2;
             }
             $type = 'fiat';
             if ($assetId !== null) {
@@ -2411,8 +2415,8 @@ class coinbase extends Exchange {
         $ask = $this->safe_number($ticker, 'ask');
         $bidVolume = null;
         $askVolume = null;
-        if ((is_array($ticker) && array_key_exists('bids' ?? '', $ticker))) {
-            $bids = $this->safe_list($ticker, 'bids', array());
+        $bids = $this->safe_list($ticker, 'bids');
+        if ($bids !== null) {
             $asks = $this->safe_list($ticker, 'asks', array());
             $firstBid = $this->safe_dict($bids, 0, array());
             $firstAsk = $this->safe_dict($asks, 0, array());
@@ -2687,7 +2691,9 @@ class coinbase extends Exchange {
             $pagination = $this->safe_dict($response, 'pagination', array());
             $cursor = $this->safe_string($pagination, 'next_starting_after');
             if (($cursor !== null) && ($cursor !== '')) {
-                $last['info']['next_starting_after'] = $cursor;
+                $lastInfo = $this->safe_dict($last, 'info', array());
+                $lastInfo['next_starting_after'] = $cursor;
+                $last['info'] = $lastInfo;
                 $ledger[$lastIndex] = $last;
             }
         }
@@ -3442,7 +3448,12 @@ class coinbase extends Exchange {
             $amount = $this->safe_string($target, 'base_size');
             $postOnly = $this->safe_bool($target, 'post_only');
         } elseif ($isStop) {
-            $stopTarget = ($stopLimitGTC !== null) ? $stopLimitGTC : $stopLimitGTD;
+            $stopTarget = null;
+            if ($stopLimitGTC !== null) {
+                $stopTarget = $stopLimitGTC;
+            } else {
+                $stopTarget = $stopLimitGTD;
+            }
             $price = $this->safe_string($stopTarget, 'limit_price');
             $amount = $this->safe_string($stopTarget, 'base_size');
             $postOnly = $this->safe_bool($stopTarget, 'post_only');
@@ -5236,13 +5247,15 @@ class coinbase extends Exchange {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         $uri = null;
-        if ($url !== '') {
-            $uri = $method . ' ' . str_replace('https://', '', $url);
-            $quesPos = mb_strpos($uri, '?');
+        if (($url !== '') && ($method !== null)) {
+            $fullUri = $method . ' ' . str_replace('https://', '', $url);
+            $quesPos = mb_strpos($fullUri, '?');
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if ($quesPos > 0) {
-                $uri = mb_substr($uri, 0, $quesPos - 0);
+                $uri = mb_substr($fullUri, 0, $quesPos - 0);
+            } else {
+                $uri = $fullUri;
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}

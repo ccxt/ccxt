@@ -1106,9 +1106,9 @@ class phemex extends Exchange {
         $products = $this->safe_list($v2ProductsData, 'products', array());
         $perpetualProductsV2 = $this->safe_list($v2ProductsData, 'perpProductsV2', array());
         $products = $this->array_concat($products, $perpetualProductsV2);
-        $riskLimits = $this->safe_list($v2ProductsData, 'riskLimits', array());
+        $riskLimitsV1 = $this->safe_list($v2ProductsData, 'riskLimits', array());
         $riskLimitsV2 = $this->safe_list($v2ProductsData, 'riskLimitsV2', array());
-        $riskLimits = $this->array_concat($riskLimits, $riskLimitsV2);
+        $riskLimits = $this->array_concat($riskLimitsV1, $riskLimitsV2);
         $currencies = $this->safe_list($v2ProductsData, 'currencies', array());
         $riskLimitsById = $this->index_by($riskLimits, 'symbol');
         $v1ProductsById = $this->index_by($v1ProductsData, 'symbol');
@@ -1310,7 +1310,7 @@ class phemex extends Exchange {
         }
         $stringN = $this->number_to_string($n);
         $precise = new Precise($stringN);
-        $precise->decimals = $this->sum($precise->decimals, $scale * -1);
+        $precise->decimals = $this->sum($precise->decimals, $this->parse_to_int($scale * -1));
         $precise->reduce();
         $preciseString = (string) $precise;
         return $this->parse_to_numeric($preciseString);
@@ -1335,7 +1335,7 @@ class phemex extends Exchange {
             return null;
         }
         $precise = new Precise($en);
-        $precise->decimals = $this->sum($precise->decimals, $scale);
+        $precise->decimals = $this->sum($precise->decimals, $this->parse_to_int($scale));
         $precise->reduce();
         return (string) $precise;
     }
@@ -1536,12 +1536,13 @@ class phemex extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         $last = $this->from_ep($this->safe_string_2($ticker, 'lastEp', 'closeRp'), $marketResolved);
         $quoteVolume = $this->from_er($this->safe_string_2($ticker, 'turnoverEv', 'turnoverRv'), $marketResolved);
-        $baseVolume = $this->safe_string($ticker, 'volume');
-        if ($baseVolume === null) {
+        $volume = $this->safe_string($ticker, 'volume');
+        $baseVolume = $volume;
+        if ($volume === null) {
             $baseVolume = $this->from_ev($this->safe_string_2($ticker, 'volumeEv', 'volumeRq'), $marketResolved);
         }
         $open = $this->from_ep($this->safe_string($ticker, 'openEp'), $marketResolved);
@@ -1918,7 +1919,7 @@ class phemex extends Exchange {
         $feeCurrencyCode = null;
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $orderId = null;
         $takerOrMaker = null;
         if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
@@ -2416,7 +2417,7 @@ class phemex extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->from_ep($this->safe_string($order, 'priceEp'), $marketResolved);
         $amount = $this->from_ev($this->safe_string($order, 'baseQtyEv'), $marketResolved);
         $remaining = $this->omit_zero($this->from_ev($this->safe_string($order, 'leavesBaseQtyEv'), $marketResolved));
@@ -2584,8 +2585,9 @@ class phemex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->parse_order_side($this->safe_string_lower($order, 'side'));
         $type = $this->parse_order_type($this->safe_string($order, 'orderType'));
-        $price = $this->safe_string($order, 'priceRp');
-        if ($price === null) {
+        $priceRp = $this->safe_string($order, 'priceRp');
+        $price = $priceRp;
+        if ($priceRp === null) {
             $price = $this->from_ep($this->safe_string($order, 'priceEp'), $marketResolved);
         }
         $amount = $this->safe_number_2($order, 'orderQty', 'orderQtyRq');
@@ -3320,13 +3322,13 @@ class phemex extends Exchange {
             }
             throw $e;
         }
-        $data = $this->safe_value($response, 'data', array());
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            return $this->parse_orders($data, $market, $since, $limit);
-        } else {
-            $rows = $this->safe_list($data, 'rows', array());
-            return $this->parse_orders($rows, $market, $since, $limit);
+        $dataList = $this->safe_list($response, 'data');
+        if ($dataList !== null) {
+            return $this->parse_orders($dataList, $market, $since, $limit);
         }
+        $dataDict = $this->safe_dict($response, 'data');
+        $rows = $this->safe_list($dataDict, 'rows', array());
+        return $this->parse_orders($rows, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3407,13 +3409,13 @@ class phemex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            return $this->parse_orders($data, $market, $since, $limit);
-        } else {
-            $rows = $this->safe_list($data, 'rows', array());
-            return $this->parse_orders($rows, $market, $since, $limit);
+        $dataList = $this->safe_list($response, 'data');
+        if ($dataList !== null) {
+            return $this->parse_orders($dataList, $market, $since, $limit);
         }
+        $dataDict = $this->safe_dict($response, 'data');
+        $rows = $this->safe_list($dataDict, 'rows', array());
+        return $this->parse_orders($rows, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -4149,7 +4151,7 @@ class phemex extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $collateral = $this->safe_string_2($position, 'positionMargin', 'positionMarginRv');
         $notionalString = $this->safe_string_2($position, 'value', 'valueRv');
         $maintenanceMarginPercentageString = $this->safe_string_2($position, 'maintMarginReq', 'maintMarginReqRr');
@@ -5149,7 +5151,7 @@ class phemex extends Exchange {
         $stableCoins = $this->safe_list($this->options, 'stableCoins', array());
         if ($networkId === null) {
             if (!($this->in_array($code, $stableCoins))) {
-                $networkId = $currency['id'];
+                $networkId = $this->safe_string($currency, 'id', $currency['id']);
             } else {
                 throw new ArgumentsRequired($this->id . ' withdraw () requires an extra argument params["network"]');
             }

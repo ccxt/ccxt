@@ -1310,10 +1310,14 @@ class bullish(Exchange, ImplicitAPI):
         while(errors <= maxRetries):
             try:
                 if method == 'fetchOHLCV':
+                    if symbol is None:
+                        raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
                     return await self.fetch_ohlcv(symbol, timeframe, since, limit, paramsOmitted)
                 elif method == 'fetchFundingRateHistory':
                     return await self.fetch_funding_rate_history(symbol, since, limit, paramsOmitted)
                 else:
+                    if symbol is None:
+                        raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
                     return await self.fetch_trades(symbol, since, limit, paramsOmitted)
             except Exception as e:
                 if isinstance(e, RateLimitExceeded):
@@ -2377,10 +2381,10 @@ class bullish(Exchange, ImplicitAPI):
         request = {
             'tradingAccountId': tradingAccountId,
         }
-        response = None
         code = self.safe_string(params, 'code')
         if code is not None:
-            request['symbol'] = self.currency(code)['id']
+            currency = self.currency(code)
+            request['symbol'] = currency['id']
             response = await self.privateGetV1AccountsAssetSymbol(self.extend(request, params))
             return self.parse_balance_for_single_currency(response, code)
         else:

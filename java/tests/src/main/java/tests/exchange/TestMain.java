@@ -1143,7 +1143,7 @@ public class TestMain extends BaseTest
                         String marketPart = (String) Helpers.GetValue(handleParts, 0);
                         Object lowerPart = marketPart.toLowerCase();
                         String dedashed = (lowerPart == null ? null : ((String)lowerPart).replace("-", " "));
-                        eventQuery = Helpers.replaceAll(dedashed, (String)"_", (String)" ");
+                        eventQuery = (dedashed == null ? null : ((String)dedashed).replace("_", " "));
                     }
                     Map<String, Object> eventParams = new HashMap<String, Object>() {{}};
                     if (!java.util.Objects.equals(eventQuery, null))
@@ -1999,8 +1999,8 @@ public class TestMain extends BaseTest
             }
         } else if ((!java.util.Objects.equals(storedOutput, null)) && (!java.util.Objects.equals(newOutput, null)) && (storedOutput instanceof List) && ((newOutput instanceof List)))
         {
-            Object storedArrayLength = ((List<?>)storedOutput).size();
-            Object newArrayLength = ((List<?>)newOutput).size();
+            Integer storedArrayLength = ((List<?>)storedOutput).size();
+            Integer newArrayLength = ((List<?>)newOutput).size();
             this.AssertStaticError(java.util.Objects.equals(storedArrayLength, newArrayLength), "output length mismatch", storedOutput, newOutput, (Object) null);
             for (var i = 0; i < ((List<?>)storedOutput).size(); i++)
             {
@@ -2568,10 +2568,10 @@ public class TestMain extends BaseTest
         // exclude them per entry without touching the response skipKeys
         Object sentSkipKeys = exchange.safeList(data, "sentSkipKeys", new ArrayList<Object>(Arrays.asList()));
         Object sentMessages = getWsSentMessages(exchange, (String) (url));
-        Object sentLength = Helpers.getArrayLength(sentMessages);
-        Object expectedLength = Helpers.getArrayLength(expectedSent);
-        Assert(Helpers.isEqual(sentLength, expectedLength), ((((("sent ws messages count mismatch: sent " + String.valueOf(sentLength)) + ", expected ") + String.valueOf(expectedLength)) + " ") + jsonStringify(sentMessages)));
-        for (var i = 0; Helpers.isLessThan(i, expectedLength); i++)
+        Integer sentLength = Helpers.getArrayLength(sentMessages);
+        Integer expectedLength = Helpers.getArrayLength(expectedSent);
+        Assert(java.util.Objects.equals(sentLength, expectedLength), ((((("sent ws messages count mismatch: sent " + String.valueOf(sentLength)) + ", expected ") + String.valueOf(expectedLength)) + " ") + jsonStringify(sentMessages)));
+        for (var i = 0; (expectedLength != null && i < expectedLength); i++)
         {
             Object unifiedSent = jsonParse(jsonStringify(Helpers.GetValue(sentMessages, i)));
             this.AssertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, Helpers.GetValue(expectedSent, i));

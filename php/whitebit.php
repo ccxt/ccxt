@@ -928,7 +928,10 @@ class whitebit extends Exchange {
                 if ($depositWithdrawFee === null) {
                     $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
                 }
-                $depositWithdrawFees[$code]['info'][$entry] = $feeInfo;
+                $feeEntry = $this->safe_dict($depositWithdrawFees, $code, array());
+                $feeEntryInfo = $this->safe_dict($feeEntry, 'info', array());
+                $feeEntryInfo[$entry] = $feeInfo;
+                $feeEntry['info'] = $feeEntryInfo;
                 $networkId = $this->safe_string($splitEntry, 1);
                 $withdraw = $this->safe_dict($feeInfo, 'withdraw');
                 $deposit = $this->safe_dict($feeInfo, 'deposit');
@@ -943,18 +946,20 @@ class whitebit extends Exchange {
                     'percentage' => ($depositFee !== null) ? false : null,
                 );
                 if ($networkId !== null) {
-                    $networkLength = count($networkId);
-                    $networkCode = $this->network_id_to_code(mb_substr($networkId, 1, $networkLength - 1 - 1), $code);
+                    $networkCode = $this->network_id_to_code(mb_substr($networkId, 1, -1 - 1), $code);
                     if ($networkCode !== null) {
-                        $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                        $feeEntryNetworks = $this->safe_dict($feeEntry, 'networks', array());
+                        $feeEntryNetworks[$networkCode] = array(
                             'withdraw' => $withdrawResult,
                             'deposit' => $depositResult,
                         );
+                        $feeEntry['networks'] = $feeEntryNetworks;
                     }
                 } else {
-                    $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
-                    $depositWithdrawFees[$code]['deposit'] = $depositResult;
+                    $feeEntry['withdraw'] = $withdrawResult;
+                    $feeEntry['deposit'] = $depositResult;
                 }
+                $depositWithdrawFees[$code] = $feeEntry;
             }
         }
         $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
@@ -1897,8 +1902,14 @@ class whitebit extends Exchange {
             'market' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $cappedLimit = (($limit === null) || ($limit > 1440)) ? 1440 : $limit;
-        $limitResolved = ($since !== null) ? $cappedLimit : $limit;
+        $cappedLimit = 1440;
+        if (($limit !== null) && ($limit < 1440)) {
+            $cappedLimit = $limit;
+        }
+        $limitResolved = $limit;
+        if ($since !== null) {
+            $limitResolved = $cappedLimit;
+        }
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
         if (($since !== null) || ($until !== null)) {
@@ -1908,12 +1919,12 @@ class whitebit extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $endTime = null;
             if ($until !== null) {
-                $endTime = $this->sum($this->parse_to_int($until / 1000), $duration);
+                $endTime = $this->parse_to_int($this->sum($this->parse_to_int($until / 1000), $duration));
             }
             if ($since !== null) {
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $rangeEnd = $this->sum($start, $duration * $cappedLimit);
+                $rangeEnd = $this->parse_to_int($this->sum($start, $duration * $cappedLimit));
                 if (($endTime === null) || ($rangeEnd < $endTime)) {
                     $endTime = $rangeEnd;
                 }

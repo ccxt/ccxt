@@ -73,7 +73,8 @@ class modetrade extends modetrade$1["default"] {
         const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     async watchPublic(messageHash, message) {
@@ -556,7 +557,7 @@ class modetrade extends modetrade$1["default"] {
         //
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString2(trade, 'executedPrice', 'price');
         const amount = this.safeString2(trade, 'executedQuantity', 'size');
         const cost = Precise["default"].stringMul(price, amount);
@@ -835,7 +836,7 @@ class modetrade extends modetrade$1["default"] {
         const orderId = this.safeString(order, 'orderId');
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(order, 'timestamp');
         const fee = {
             'cost': this.safeString(order, 'totalFee'),
@@ -1004,7 +1005,7 @@ class modetrade extends modetrade$1["default"] {
         const messageHash = 'myTrades';
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         const trade = this.parseWsTrade(message, market);
         let trades = this.myTrades;
         if (trades === undefined) {

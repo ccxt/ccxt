@@ -314,8 +314,8 @@ func (this *Bitvavo) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0025"),
 				"maker":      this.ParseNumber("0.0015"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.0002")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0001")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}},
+					"taker": []any{[]any{0.0, 0.0025}, []any{100000.0, 0.0020}, []any{250000.0, 0.0018}, []any{500000.0, 0.0016}, []any{1000000.0, 0.0014}, []any{2500000.0, 0.0012}, []any{5000000.0, 0.0010}, []any{10000000.0, 0.0008}, []any{25000000.0, 0.0004}, []any{100000000.0, 0.0002}},
+					"maker": []any{[]any{0.0, 0.0015}, []any{100000.0, 0.0010}, []any{250000.0, 0.0009}, []any{500000.0, 0.0008}, []any{1000000.0, 0.0005}, []any{2500000.0, 0.0003}, []any{5000000.0, 0.0001}, []any{10000000.0, 0.0}, []any{25000000.0, 0.0}, []any{100000000.0, 0.0}},
 				},
 			},
 			"byCategory": map[string]any{
@@ -585,8 +585,12 @@ func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 }
 func (this *Bitvavo) ParseMarkets(markets any) []any {
 	var result []any = []any{}
-	var defaultFees map[string]any = this.SafeDictMap(this.Fees, "trading", map[string]any{})
-	var feesByCategory map[string]any = SafeMapTyped(this.Fees, "byCategory")
+	var defaultFees map[string]any
+	defaultFees, _ = this.Fees["trading"].(map[string]any)
+	if defaultFees == nil {
+		defaultFees = map[string]any{}
+	}
+	var feesByCategory, _ = this.Fees["byCategory"].(map[string]any)
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market map[string]any = SafeMapTyped(markets, i)
 		var id *string = this.SafeString(market, "market")
@@ -599,7 +603,7 @@ func (this *Bitvavo) ParseMarkets(markets any) []any {
 		}
 		var status *string = this.SafeString(market, "status")
 		var feeCategory *string = this.SafeString(market, "feeCategory")
-		var fees any = this.SafeDict(feesByCategory, feeCategory, defaultFees)
+		var fees map[string]any = this.SafeDictMap(feesByCategory, feeCategory, defaultFees)
 		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"symbol":         *base + "/" + *quote,
@@ -786,6 +790,10 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
+	var ternaryStr68120 string = "crypto"
+	if isFiat {
+		ternaryStr68120 = "fiat"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
 		"id":        id,
@@ -797,12 +805,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 		"networks":  networks,
 		"fee":       withdrawFee,
 		"precision": nil,
-		"type": func() string {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"type":      ternaryStr68120,
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,
@@ -998,12 +1001,12 @@ func (this *Bitvavo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitvavo) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bitvavo) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1042,7 +1045,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
@@ -1135,12 +1138,13 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var taker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker *string = nil
 	if taker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
-			if taker != nil && *taker {
-				return "taker"
-			}
-			return "maker"
-		}())
+		var takerOrMakerStr string
+		if taker != nil && *taker {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
+		takerOrMaker = &takerOrMakerStr
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
@@ -1294,7 +1298,7 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(response, market)}
 	return nil
 }
-func (this *Bitvavo) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Bitvavo) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return TradingFeeInterfaceFromMap(map[string]any{
@@ -1336,12 +1340,15 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if limit != nil {
-		request["depth"] = limit
+		request["depth"] = *limit
 	}
 
 	r1 := <-this.PublicGetMarketBook(this.Extend(request, params))
@@ -1365,7 +1372,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	//         ]
 	//     }
 	//
-	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"])
+	var orderbook map[string]any = this.ParseOrderBook(response, market.Symbol)
 	orderbook["nonce"] = this.SafeInteger(response, "nonce")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
@@ -1386,31 +1393,34 @@ func (this *Bitvavo) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	_ = market
 	return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 }
-func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) FetchOHLCVRequest(symbol *string, optionalArgs ...any) map[string]any {
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":   market["id"],
+		"market":   nil,
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if since != nil {
 		// https://github.com/ccxt/ccxt/issues/9227
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["start"] = since
+		request["start"] = *since
 		var sinceLimit int64
 		if limit == nil {
 			sinceLimit = 1440
 		} else {
 			sinceLimit = min(*limit, 1440)
 		}
-		request["end"] = this.Sum(since, (sinceLimit*duration)*1000)
+		request["end"] = *since + (sinceLimit*duration)*1000
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1440) // default 1440, max 1440
@@ -1474,7 +1484,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 		return nil
 	}
-	var request map[string]any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
+	var request map[string]any = this.FetchOHLCVRequest(&symbol, timeframe, since, limit, paramsPaginate)
 
 	responseRecv := <-this.PublicGetMarketCandles(request)
 	if responseRecv.Err != nil {
@@ -1492,13 +1502,13 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit))}
 	return nil
 }
-func (this *Bitvavo) ParseBalanceList(response any) map[string]any {
+func (this *Bitvavo) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -1603,7 +1613,11 @@ func (this *Bitvavo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	//         "maxItems": 0
 	//     }
 	//
-	var accounts []any = SafeListTypedDefault(response, "items", []any{})
+	var accounts []any
+	accounts, _ = response["items"].([]any)
+	if accounts == nil {
+		accounts = []any{}
+	}
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts))}
 	return nil
@@ -1666,10 +1680,13 @@ func (this *Bitvavo) transferBody(ch chan AsyncResult[TransferEntry], code strin
 		panic(ArgumentsRequired(this.Id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)"))
 	}
 	var request map[string]any = map[string]any{
-		"subaccountId": subaccountId,
+		"subaccountId": nil,
 		"direction":    direction,
 		"symbol":       currency["id"],
 		"amount":       this.CurrencyToPrecision(code, amount),
+	}
+	if subaccountId != nil {
+		request["subaccountId"] = *subaccountId
 	}
 
 	r1 := <-this.PrivatePostSubaccountsTransfers(this.Extend(request, this.Omit(params, "subaccountId")))
@@ -1741,10 +1758,10 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a subaccountId parameter"))
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 
@@ -1772,7 +1789,11 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//         "limit": 25
 	//     }
 	//
-	var items []any = SafeListTypedDefault(response, "items", []any{})
+	var items []any
+	items, _ = response["items"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(items, currency, since, limit))}
 	return nil
@@ -1854,11 +1875,13 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var fromAccount *string = nil
 	var toAccount *string = nil
 	if direction != nil && *direction == "masterToSub" {
-		fromAccount = SafeStringPtr("master")
+		fromAccountStr := "master"
+		fromAccount = &fromAccountStr
 		toAccount = subaccountId
 	} else if direction != nil && *direction == "subToMaster" {
 		fromAccount = subaccountId
-		toAccount = SafeStringPtr("master")
+		toAccountStr := "master"
+		toAccount = &toAccountStr
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "createdAt")
 	if timestamp == nil {
@@ -1903,16 +1926,19 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"symbol": currency["id"],
+		"symbol": nil,
+	}
+	if currency.Id != nil {
+		request["symbol"] = *currency.Id
 	}
 
-	r1 := <-this.PrivateGetDeposit(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetDeposit(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
@@ -1924,7 +1950,7 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	this.CheckAddress(address)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": code,
 		"network":  nil,
 		"address":  address,
@@ -1987,22 +2013,20 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 		if stopLossPrice != nil {
 			triggerPrice = stopLossPrice
 		}
-		request["orderType"] = func() string {
-			if isMarketOrder {
-				return "stopLoss"
-			}
-			return "stopLossLimit"
-		}()
+		if isMarketOrder {
+			request["orderType"] = "stopLoss"
+		} else {
+			request["orderType"] = "stopLossLimit"
+		}
 	} else if isTakeProfit {
 		if takeProfitPrice != nil {
 			triggerPrice = takeProfitPrice
 		}
-		request["orderType"] = func() string {
-			if isMarketOrder {
-				return "takeProfit"
-			}
-			return "takeProfitLimit"
-		}()
+		if isMarketOrder {
+			request["orderType"] = "takeProfit"
+		} else {
+			request["orderType"] = "takeProfitLimit"
+		}
 	}
 	if triggerPrice != nil {
 		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -2015,9 +2039,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 	if postOnly {
 		request["postOnly"] = true
 	}
-	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
-	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
-	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
+	operatorId, paramsOperatorId := this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2129,7 +2151,7 @@ func (this *Bitvavo) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bitvavo) EditOrderRequest(id string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) EditOrderRequest(id string, symbol string, typeVar string, side string, optionalArgs ...any) map[string]any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -2137,7 +2159,7 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol any, typeVar any, side a
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var amountRemaining *float64 = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"})
@@ -2161,13 +2183,16 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol any, typeVar any, side a
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var operatorId any = GetValue(this.HandleOptionAndParams(paramsOmitted, "editOrder", "operatorId"), 0)
+	operatorId, _ := this.HandleOptionAndParams(paramsOmitted, "editOrder", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
-	request["market"] = market["id"]
+	request["market"] = nil
+	if market.Id != nil {
+		request["market"] = *market.Id
+	}
 	return request
 }
 
@@ -2185,12 +2210,12 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol any, typeVar any, side a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitvavo) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitvavo) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2218,7 +2243,7 @@ func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) CancelOrderRequest(id *string, optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2226,17 +2251,18 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) map[string]
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
-	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
-	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
+	operatorId, paramsOperatorId := this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2275,7 +2301,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CancelOrderRequest(id, symbol, params)
+	var request map[string]any = this.CancelOrderRequest(&id, symbol, params)
 
 	r1 := <-this.PrivateDeleteOrder(request)
 	if r1.Err != nil {
@@ -2326,9 +2352,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		market = this.Market(symbol)
 		request["market"] = market["id"]
 	}
-	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
-	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
-	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
+	operatorId, paramsOperatorId := this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {
@@ -2386,21 +2410,22 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 		}
 	}
 	codGroupId, paramsCodGroupId := this.HandleOptionIntegerAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
+	var expiryAfterSecondsValue int64
+	if timeout > 0 {
+		expiryAfterSecondsValue = this.ParseToInt(float64(timeout) / 1000)
+	} else {
+		expiryAfterSecondsValue = int64(0)
+	}
 	var request map[string]any = map[string]any{
-		"codGroupId": codGroupId,
-		"expiryAfterSeconds": func() any {
-			if timeout > 0 {
-				return this.ParseToInt(float64(timeout) / 1000)
-			}
-			return 0
-		}(),
+		"codGroupId":         codGroupId,
+		"expiryAfterSeconds": expiryAfterSecondsValue,
 	}
 
 	r1 := <-this.PrivatePostCancelOrdersAfter(this.Extend(request, paramsCodGroupId))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -2499,21 +2524,24 @@ func (this *Bitvavo) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 500, max 1000
+		request["limit"] = *limit // default 500, max 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	return this.Extend(requestUntil, paramsUntil)
@@ -2802,7 +2830,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var rawTrades []any = SafeListTypedDefault(order, "fills", []any{})
+	var rawTrades []any = this.SafeListSlice(order, "fills", []any{})
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly *bool = this.SafeBool(order, "postOnly")
 	// https://github.com/ccxt/ccxt/issues/8489
@@ -2833,21 +2861,24 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) Order {
 func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 500, max 1000
+		request["limit"] = *limit // default 500, max 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	return this.Extend(requestUntil, paramsUntil)
@@ -2979,7 +3010,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 		currency = this.Currency(code)
 	}
 	if since != nil {
-		request["fromDate"] = since
+		request["fromDate"] = *since
 	}
 	if limit != nil {
 		request["maxItems"] = min(*limit, 100)
@@ -3014,7 +3045,11 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//         "maxItems": 100
 	//     }
 	//
-	var items []any = SafeListTypedDefault(response, "items", []any{})
+	var items []any
+	items, _ = response["items"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(items, currency, since, limit))}
 	return nil
@@ -3075,16 +3110,19 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 		"fee":              fee,
 	}, currencyResolved)
 }
-func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optionalArgs ...any) map[string]any {
-	tag := GetArg(optionalArgs, 0, nil)
+func (this *Bitvavo) WithdrawRequest(code *string, amount any, address *string, optionalArgs ...any) map[string]any {
+	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"symbol":  currency["id"],
+		"symbol":  nil,
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
+	}
+	if currency.Id != nil {
+		request["symbol"] = *currency.Id
 	}
 	if tag != nil {
 		request["paymentId"] = tag
@@ -3104,12 +3142,12 @@ func (this *Bitvavo) WithdrawRequest(code any, amount any, address any, optional
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitvavo) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bitvavo) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3131,7 +3169,7 @@ func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var request map[string]any = this.WithdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
+	var request map[string]any = this.WithdrawRequest(&code, amount, &address, tagWithdrawTag, paramsWithdrawTag)
 
 	r1 := <-this.PrivatePostWithdrawal(request)
 	if r1.Err != nil {
@@ -3152,9 +3190,9 @@ func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string,
 func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any {
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3165,10 +3203,10 @@ func (this *Bitvavo) FetchWithdrawalsRequest(optionalArgs ...any) map[string]any
 		request["symbol"] = currency["id"]
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 500, max 1000
+		request["limit"] = *limit // default 500, max 1000
 	}
 	return this.Extend(request, params)
 }
@@ -3241,9 +3279,9 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) map[string]any {
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -3254,10 +3292,10 @@ func (this *Bitvavo) FetchDepositsRequest(optionalArgs ...any) map[string]any {
 		request["symbol"] = currency["id"]
 	}
 	if since != nil {
-		request["start"] = since
+		request["start"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit // default 500, max 1000
+		request["limit"] = *limit // default 500, max 1000
 	}
 	return this.Extend(request, params)
 }
@@ -3460,12 +3498,14 @@ func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[s
 		networkId = currencyCode
 	}
 	var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
+	var networkFees map[string]any = map[string]any{}
 	if networkCode != nil {
-		AddElementToObject(result["networks"], networkCode, map[string]any{
+		networkFees[*networkCode] = map[string]any{
 			"deposit":  result["deposit"],
 			"withdraw": result["withdraw"],
-		})
+		}
 	}
+	result["networks"] = networkFees
 	return result
 }
 
@@ -3550,7 +3590,8 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 		if !getOrDelete {
 			if !this.IsEmpty(query) {
 				payload = this.Json(query)
-				requestBody = SafeStringPtr(payload)
+				requestBodyStr := payload
+				requestBody = &requestBodyStr
 			}
 		}
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
@@ -3574,12 +3615,16 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
-	return map[string]any{
+	var literal273415 map[string]any = map[string]any{
 		"url":     fullUrl,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal273415["body"] = *requestBody
+	}
+	return literal273415
 }
 func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

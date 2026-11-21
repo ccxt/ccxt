@@ -1967,9 +1967,13 @@ class coinbase(Exchange, ImplicitAPI):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             if code is not None:
-                self.options['networks'][code] = name.lower()
+                networksDict1 = self.safe_dict(self.options, 'networks', {})
+                networksDict1[code] = name.lower()
+                self.options['networks'] = networksDict1
             if code is not None:
-                self.options['networksById'][code] = name.lower()
+                networksByIdDict2 = self.safe_dict(self.options, 'networksById', {})
+                networksByIdDict2[code] = name.lower()
+                self.options['networksById'] = networksByIdDict2
             type = 'fiat'
             if assetId is not None:
                 type = 'crypto'
@@ -2315,8 +2319,8 @@ class coinbase(Exchange, ImplicitAPI):
         ask = self.safe_number(ticker, 'ask')
         bidVolume = None
         askVolume = None
-        if ('bids' in ticker):
-            bids = self.safe_list(ticker, 'bids', [])
+        bids = self.safe_list(ticker, 'bids')
+        if bids is not None:
             asks = self.safe_list(ticker, 'asks', [])
             firstBid = self.safe_dict(bids, 0, {})
             firstAsk = self.safe_dict(asks, 0, {})
@@ -2570,7 +2574,9 @@ class coinbase(Exchange, ImplicitAPI):
             pagination = self.safe_dict(response, 'pagination', {})
             cursor = self.safe_string(pagination, 'next_starting_after')
             if (cursor is not None) and (cursor != ''):
-                last['info']['next_starting_after'] = cursor
+                lastInfo = self.safe_dict(last, 'info', {})
+                lastInfo['next_starting_after'] = cursor
+                last['info'] = lastInfo
                 ledger[lastIndex] = last
         return self.to_array(ledger)
 
@@ -3276,7 +3282,11 @@ class coinbase(Exchange, ImplicitAPI):
             amount = self.safe_string(target, 'base_size')
             postOnly = self.safe_bool(target, 'post_only')
         elif isStop:
-            stopTarget = stopLimitGTC if (stopLimitGTC is not None) else stopLimitGTD
+            stopTarget = None
+            if stopLimitGTC is not None:
+                stopTarget = stopLimitGTC
+            else:
+                stopTarget = stopLimitGTD
             price = self.safe_string(stopTarget, 'limit_price')
             amount = self.safe_string(stopTarget, 'base_size')
             postOnly = self.safe_bool(stopTarget, 'post_only')
@@ -4934,13 +4944,15 @@ class coinbase(Exchange, ImplicitAPI):
         # v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         # v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         uri = None
-        if url != '':
-            uri = method + ' ' + url.replace('https://', '')
-            quesPos = uri.find('?')
+        if (url != '') and (method is not None):
+            fullUri = method + ' ' + url.replace('https://', '')
+            quesPos = fullUri.find('?')
             # Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             # Also it's not possible that the question mark is first character, only check > 0 here.
             if quesPos > 0:
-                uri = uri[0:quesPos]
+                uri = fullUri[0:quesPos]
+            else:
+                uri = fullUri
         # eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         nonce = self.random_bytes(16)
         aud = 'retail_rest_api_proxy'

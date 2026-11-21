@@ -130,7 +130,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const length = symbolsValue.length;
         if (length === 1) {
-            const market = this.market(marketIds[0]);
+            const market = this.market(symbolsValue[0]);
             messageHash += ':' + market['symbol'];
         }
         subscribe['product_ids'] = marketIds;
@@ -1457,6 +1457,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             this.balance['cash']['timestamp'] = timestamp;
             this.balance['cash']['datetime'] = this.iso8601(timestamp);
             const holdingCodes = {};
+            const cashBalance = this.safeDict(this.balance, 'cash', {});
             for (let i = 0; i < holdingKeys.length; i++) {
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode(key);
@@ -1464,10 +1465,10 @@ class krakenfutures extends krakenfutures$1["default"] {
                 newAccount['total'] = this.safeString(holding, key);
                 if (code !== undefined) {
                     holdingCodes[code] = true;
-                    this.balance['cash'][code] = newAccount;
+                    cashBalance[code] = newAccount;
                 }
             }
-            this.balance['cash'] = this.pruneStaleBalanceKeys(this.balance['cash'], holdingCodes);
+            this.balance['cash'] = this.pruneStaleBalanceKeys(cashBalance, holdingCodes);
             this.balance['cash'] = this.safeBalance(this.balance['cash']);
             updatedBalance = this.balance['cash'];
         }
@@ -1478,6 +1479,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             this.balance['margin']['timestamp'] = timestamp;
             this.balance['margin']['datetime'] = this.iso8601(timestamp);
             const futuresSymbols = {};
+            const marginBalance = this.safeDict(this.balance, 'margin', {});
             for (let i = 0; i < futuresKeys.length; i++) {
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol(key);
@@ -1493,9 +1495,9 @@ class krakenfutures extends krakenfutures$1["default"] {
                     futuresSymbols[symbol] = true;
                     symbolAccounts[code] = newAccount;
                 }
-                this.balance['margin'][symbol] = symbolAccounts;
+                marginBalance[symbol] = symbolAccounts;
             }
-            this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
+            this.balance['margin'] = this.pruneStaleBalanceKeys(marginBalance, futuresSymbols);
             this.balance['margin'] = this.safeBalance(this.balance['margin']);
             client.resolve(this.balance['margin'], messageHash + ':futures');
             if (updatedBalance === undefined) {
@@ -1510,6 +1512,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             this.balance['flex']['timestamp'] = timestamp;
             this.balance['flex']['datetime'] = this.iso8601(timestamp);
             const flexCodes = {};
+            const flexBalance = this.safeDict(this.balance, 'flex', {});
             for (let i = 0; i < flexFuturesKeys.length; i++) {
                 const key = flexFuturesKeys[i];
                 const flexFuture = this.safeDict(flexFutureCurrencies, key);
@@ -1520,10 +1523,10 @@ class krakenfutures extends krakenfutures$1["default"] {
                 newAccount['total'] = this.safeString(flexFuture, 'quantity');
                 if (code !== undefined) {
                     flexCodes[code] = true;
-                    this.balance['flex'][code] = newAccount;
+                    flexBalance[code] = newAccount;
                 }
             }
-            this.balance['flex'] = this.pruneStaleBalanceKeys(this.balance['flex'], flexCodes);
+            this.balance['flex'] = this.pruneStaleBalanceKeys(flexBalance, flexCodes);
             this.balance['flex'] = this.safeBalance(this.balance['flex']);
             client.resolve(this.balance['flex'], messageHash + ':flex_futures');
             if (updatedBalance === undefined) {

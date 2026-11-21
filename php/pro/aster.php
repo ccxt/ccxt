@@ -1178,7 +1178,8 @@ class aster extends \ccxt\async\aster {
         }
         $symbolValue = $this->safe_symbol($symbol);
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbolValue][$timeframe];
+        $bySymbol = $result[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {
@@ -1355,7 +1356,7 @@ class aster extends \ccxt\async\aster {
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if ($this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe) === null) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -1423,8 +1424,12 @@ class aster extends \ccxt\async\aster {
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
-                $this->options['listenKey'][$type] = $listenKey;
-                $this->options['lastAuthenticatedTime'][$type] = $time;
+                $listenKeys = $this->safe_dict($this->options, 'listenKey', array());
+                $listenKeys[$type] = $listenKey;
+                $this->options['listenKey'] = $listenKeys;
+                $lastAuthenticatedTimes = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
+                $lastAuthenticatedTimes[$type] = $time;
+                $this->options['lastAuthenticatedTime'] = $lastAuthenticatedTimes;
                 $keepAliveParams = $this->extend(array( 'type' => $type ), $params);
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $keepAliveParams);
                 // settle the flight: client.resolve () removes the future from
@@ -1466,7 +1471,9 @@ class aster extends \ccxt\async\aster {
                 $client->reject($error, $messageHash);
             }
             $this->options['listenKey'][$type] = null;
-            $this->options['lastAuthenticatedTime'][$type] = 0;
+            $lastAuthenticatedTimes = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
+            $lastAuthenticatedTimes[$type] = 0;
+            $this->options['lastAuthenticatedTime'] = $lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -1613,7 +1620,8 @@ class aster extends \ccxt\async\aster {
         if ($this->balance[$accountType] === null) {
             $this->balance[$accountType] = array();
         }
-        $this->balance[$accountType]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $accountType, array());
+        $balance['info'] = $message;
         $messageValue = $this->safe_dict($message, 'a', $message);
         $B = $this->safe_list($messageValue, 'B', array());
         $wallet = $this->safe_string($this->options, 'wallet', 'wb');
@@ -1626,13 +1634,13 @@ class aster extends \ccxt\async\aster {
             $account['used'] = $this->safe_string($entry, 'l');
             $account['total'] = $this->safe_string($entry, $wallet);
             if ($code !== null) {
-                $this->balance[$accountType][$code] = $account;
+                $balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($messageValue, 'E');
-        $this->balance[$accountType]['timestamp'] = $timestamp;
-        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($balance);
         $client->resolve($this->balance[$accountType], $messageHash);
     }
 
@@ -1968,27 +1976,42 @@ class aster extends \ccxt\async\aster {
                         // accumulate order fees
                         $fees = $this->safe_list($order, 'fees', array());
                         $fee = $this->safe_dict($order, 'fee');
+                        $tradeFeeCurrency = $this->safe_string($tradeFee, 'currency');
+                        $tradeFeeCost = $this->safe_number($tradeFee, 'cost');
                         if (!$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
+                            $newFees = array();
                             for ($i = 0; $i < count($fees); $i++) {
-                                $orderFee = $fees[$i];
-                                if ($this->safe_string($orderFee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
-                                    $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
-                                    $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
-                                    $order['fees'][$i]['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
+                                $orderFee = $this->extend(array(), $fees[$i]);
+                                if ($insertNewFeeCurrency && $this->safe_string($orderFee, 'currency') === $tradeFeeCurrency) {
+                                    $feeCost = $this->sum($tradeFeeCost, $this->safe_number($orderFee, 'cost'));
+                                    $feeCostString = $this->currency_to_precision($tradeFeeCurrency, $feeCost);
+                                    if ($feeCostString !== null) {
+                                        $orderFee['cost'] = floatval($feeCostString);
+                                    } else {
+                                        $orderFee['cost'] = null;
+                                    }
                                     $insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                $newFees[] = $orderFee;
                             }
                             if ($insertNewFeeCurrency) {
-                                $order['fees'][] = $tradeFee;
+                                $newFees[] = $tradeFee;
                             }
+                            $order['fees'] = $newFees;
                         } elseif ($fee !== null) {
-                            if ($this->safe_string($fee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
-                                $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
-                                $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
-                                $order['fee']['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
-                            } elseif ($this->safe_string($fee, 'currency') === null) {
+                            $feeCurrency = $this->safe_string($fee, 'currency');
+                            if ($feeCurrency === $tradeFeeCurrency) {
+                                $feeCost = $this->sum($this->safe_number($fee, 'cost'), $tradeFeeCost);
+                                $feeCostString = $this->currency_to_precision($tradeFeeCurrency, $feeCost);
+                                $newFee = $this->extend(array(), $fee);
+                                if ($feeCostString !== null) {
+                                    $newFee['cost'] = floatval($feeCostString);
+                                } else {
+                                    $newFee['cost'] = null;
+                                }
+                                $order['fee'] = $newFee;
+                            } elseif ($feeCurrency === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
                                 $order['fees'] = array( $fee, $tradeFee );

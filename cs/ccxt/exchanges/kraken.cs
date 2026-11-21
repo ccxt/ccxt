@@ -114,8 +114,8 @@ public partial class kraken : Exchange
                     { "taker", this.parseNumber("0.0026") },
                     { "maker", this.parseNumber("0.0016") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0026")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0024")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0022")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0001")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.0026}, new List<object> {50000.0, 0.0024}, new List<object> {100000.0, 0.0022}, new List<object> {250000.0, 0.0020}, new List<object> {500000.0, 0.0018}, new List<object> {1000000.0, 0.0016}, new List<object> {2500000.0, 0.0014}, new List<object> {5000000.0, 0.0012}, new List<object> {10000000.0, 0.0001}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0016}, new List<object> {50000.0, 0.0014}, new List<object> {100000.0, 0.0012}, new List<object> {250000.0, 0.0010}, new List<object> {500000.0, 0.0008}, new List<object> {1000000.0, 0.0006}, new List<object> {2500000.0, 0.0004}, new List<object> {5000000.0, 0.0002}, new List<object> {10000000.0, 0.0}} },
                     } },
                 } },
             } },
@@ -1039,7 +1039,7 @@ public partial class kraken : Exchange
             List<object> parts = ((string)currencyId).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
             string? firstPart = this.safeString(parts, 0);
             string? secondPart = this.safeString(parts, 1);
-            return ((string?)((object)(add(add(base.safeCurrencyCode(firstPart, currency), "."), secondPart))));
+            return ((string?)((object)(((base.safeCurrencyCode(firstPart, currency) + ".") + secondPart))));
         }
         return ((string?)((object)(base.safeCurrencyCode(currencyId, currency))));
     }
@@ -1252,7 +1252,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
             List<object> marketIds = new List<object>() {};
@@ -2107,7 +2107,9 @@ public partial class kraken : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
         };
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null))[(string)id] = market;
+        IDictionary<string, object> delistedMarketsByIdDict = this.safeDict(this.options, "delistedMarketsById", new Dictionary<string, object>() {});
+        delistedMarketsByIdDict[(string)id] = market;
+        this.options["delistedMarketsById"] = delistedMarketsByIdDict;
         return market;
     }
 
@@ -2272,11 +2274,12 @@ public partial class kraken : Exchange
             {
                 descriptionType = (part4 == null ? null : part4 + " " + part5); // eg. stop loss, take profit, trailing stop
             }
-            if (descriptionType == "stop loss" || descriptionType == "take profit")
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if ((part4 == "stop" && part5 == "loss") || (part4 == "take" && part5 == "profit"))
             {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
-            } else if (descriptionType == "limit")
+            } else if (part4 == "limit")
             {
                 price = this.safeString(parts, 5);
             }
@@ -2441,7 +2444,7 @@ public partial class kraken : Exchange
         }, marketResolved);
     }
 
-    public virtual List<object> orderRequest(string? method, string? symbol, string? type, IDictionary<string, object> request, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public virtual List<object> orderRequest(string method, string? symbol, string? type, IDictionary<string, object> request, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2713,7 +2716,7 @@ public partial class kraken : Exchange
             { "trades", true },
             { "txid", id },
         };
-        object query = parameters;
+        IDictionary<string, object> query = parameters;
         if ((clientOrderId != null))
         {
             request["userref"] = clientOrderId;
@@ -2971,7 +2974,7 @@ public partial class kraken : Exchange
         {
             market = this.market(symbol);
         }
-        IList<object> tradesList = this.toArray(trades);
+        IList<object> tradesList = (trades == null ? null : new List<object>(trades.Values));
         return this.parseTrades(tradesList, market, since, limit);
     }
 
@@ -3454,14 +3457,14 @@ public partial class kraken : Exchange
         };
     }
 
-    public virtual object parseTransactionsByType(string? type, object transactions, string code = null, Int64? since = null, Int64? limit = null)
+    public virtual object parseTransactionsByType(string type, IList<object> transactions, string code = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(transactions); i++)
+        for (int i = 0; i < (transactions?.Count ?? 0); i++)
         {
             Dictionary<string, object> transaction = this.parseTransaction(this.extend(new Dictionary<string, object>() {
                 { "type", type },
-            }, getValue(transactions, i)));
+            }, (transactions != null && i < transactions.Count ? transactions[i] : null)));
             result.Add(transaction);
         }
         return this.filterByCurrencySinceLimit(result,code, since, limit);
@@ -3636,14 +3639,14 @@ public partial class kraken : Exchange
         //        }
         //     }
         //
-        object rawWithdrawals = null;
+        List<object> rawWithdrawals = new List<object>() {};
         object result = this.safeValue(response, "result");
         if (!((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             rawWithdrawals = this.addPaginationCursorToResult(result);
         } else
         {
-            rawWithdrawals = result;
+            rawWithdrawals = this.safeList(response, "result", new List<object>() {});
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactionsByType("withdrawal", rawWithdrawals,code, since, limit));
     }
@@ -3944,7 +3947,7 @@ public partial class kraken : Exchange
         //         ]
         //     }
         //
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> result = this.safeList(response, "result");
         IList<object> results = this.parsePositions(result, symbolsNormalized);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbolsNormalized));
@@ -4145,9 +4148,9 @@ public partial class kraken : Exchange
                     { "nonce", nonce },
                 }, parameters));
             }
-            string? auth = this.encode((nonce + bodySigned));
+            string? auth = (nonce + bodySigned);
             byte[] hash = ((byte[])this.hash(auth, sha256, "binary"));
-            string? binary = this.encode(url);
+            string? binary = url;
             byte[] binhash = this.binaryConcat(binary, hash);
             byte[] secret = this.base64ToBinary(this.secret);
             string signature = this.hmac(binhash, secret, sha512, "base64");
@@ -4220,7 +4223,7 @@ public partial class kraken : Exchange
                         for (int i = 0; i < numErrors; i++)
                         {
                             object error = (errors != null && i < errors.Count ? errors[i] : null);
-                            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, message);
+                            this.throwExactlyMatchedException(this.exceptionsExact, error, message);
                             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, message);
                         }
                         throw new ExchangeError (message) ;
@@ -4239,7 +4242,7 @@ public partial class kraken : Exchange
                             string? error = this.safeString(order, "error");
                             if ((error != null))
                             {
-                                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, message);
+                                this.throwExactlyMatchedException(this.exceptionsExact, error, message);
                                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, message);
                                 throw new ExchangeError (message) ;
                             }

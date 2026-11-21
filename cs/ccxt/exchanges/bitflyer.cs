@@ -366,12 +366,12 @@ public partial class bitflyer : Exchange
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        List<object> markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
-        markets = this.arrayConcat(markets, this.toArray(eu_markets));
+        List<object> markets = this.arrayConcat(jp_markets, us_markets);
+        markets = this.arrayConcat(markets, eu_markets);
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "product_code");
             List<object> currencies = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? marketType = this.safeString(market, "market_type");
@@ -1080,7 +1080,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", this.marketIds(this.toArray(symbols)) },
+            { "product_code", this.marketIds(symbols) },
         };
         List<object> response = await this.privateGetGetpositions(this.extend(request, parameters));
         //
@@ -1448,7 +1448,7 @@ public partial class bitflyer : Exchange
             headersSigned = new Dictionary<string, object>() {
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-TIMESTAMP", nonce },
-                { "ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
+                { "ACCESS-SIGN", this.hmac(auth, this.secret, sha256) },
                 { "Content-Type", "application/json" },
             };
         }
@@ -1474,7 +1474,7 @@ public partial class bitflyer : Exchange
         string? statusCode = this.safeString(response, "status");
         if ((errorMessage != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), statusCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, statusCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

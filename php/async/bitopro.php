@@ -999,7 +999,7 @@ class bitopro extends Exchange {
             $candle = $this->safe_list($candles, $i, array());
             if ($candle[0] === $timestamp) {
                 $result[] = $candle;
-                $i = $this->sum($i, 1);
+                $i = $i + 1;
             } else {
                 // set open, high, low to close
                 $closeValue = $this->safe_value($copyFrom, 4);

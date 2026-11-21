@@ -151,7 +151,7 @@ class paradex extends paradex$1["default"] {
      * @returns {object} the reply
      */
     async sendRequest(url, request, subscribeHash = undefined) {
-        const requestHash = 'request:' + this.safeString(request, 'id');
+        const requestHash = 'request:' + this.safeString(request, 'id', '');
         const subscription = {
             'id': request['id'],
             'messageHashes': [requestHash],
@@ -749,7 +749,7 @@ class paradex extends paradex$1["default"] {
         if (symbolsLength === 0) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        const [deltasOption, paramsDeltas] = this.handleOptionAndParams(params, 'watchOrderBook', 'deltas', false);
+        const [deltasOption, paramsDeltas] = this.handleOptionBoolAndParams(params, 'watchOrderBook', 'deltas', false);
         const deltas = (deltasOption === true) || ((limit !== undefined) && (limit > 15));
         const url = this.getWsUrl();
         // an unwatch in flight decides which feed each market is on once acknowledged
@@ -818,7 +818,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const [deltasOption, paramsDeltas] = this.handleOptionAndParams(params, 'watchOrderBook', 'deltas', false);
+        const [deltasOption, paramsDeltas] = this.handleOptionBoolAndParams(params, 'watchOrderBook', 'deltas', false);
         const url = this.getWsUrl();
         const client = this.client(url);
         const channels = [];
@@ -987,7 +987,7 @@ class paradex extends paradex$1["default"] {
         // the whole connection
         const unsubscribe = this.unsubscribeRequest(channel);
         const subscribe = this.subscribeRequest(channel);
-        const unsubscribeHash = 'request:' + this.safeString(unsubscribe, 'id');
+        const unsubscribeHash = 'request:' + this.safeString(unsubscribe, 'id', '');
         client.subscriptions[unsubscribeHash] = {
             'id': unsubscribe['id'],
             'messageHashes': [],
@@ -1117,7 +1117,8 @@ class paradex extends paradex$1["default"] {
         const subMessageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.market(symbol)['id'];
+            const market = this.market(symbol);
+            const marketId = market['id'];
             marketIds.push(marketId);
             subscribeHashes.push(channel + '.' + marketId);
             subMessageHashes.push(channel + '.' + symbol);
@@ -1132,14 +1133,14 @@ class paradex extends paradex$1["default"] {
             return true;
         }
         // the markets left in the scoped subscription once these are removed
-        let remaining = 0;
+        let othersRemain = false;
         const keys = Object.keys(client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             if ((keys[i].indexOf(channel + '.') === 0) && !this.inArray(keys[i], subscribeHashes)) {
-                remaining = remaining + 1;
+                othersRemain = true;
             }
         }
-        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && (remaining === 0))) {
+        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && !othersRemain)) {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             const channelSubscription = {
                 'topic': 'ticker',
@@ -1185,7 +1186,8 @@ class paradex extends paradex$1["default"] {
         const channel = 'markets_summary';
         const pendingHashes = [channel, channel + ':scoped'];
         for (let i = 0; i < symbols.length; i++) {
-            pendingHashes.push(channel + '.' + this.market(symbols[i])['id']);
+            const market = this.market(symbols[i]);
+            pendingHashes.push(channel + '.' + market['id']);
         }
         await this.waitForPendingUnsubscribe(url, pendingHashes);
         const client = this.client(url);
@@ -1201,7 +1203,8 @@ class paradex extends paradex$1["default"] {
         const missingHashes = [];
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.market(symbols[i])['id'];
+            const market = this.market(symbols[i]);
+            const marketId = market['id'];
             const subscribeHash = channel + '.' + marketId;
             subscribeHashes.push(subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {

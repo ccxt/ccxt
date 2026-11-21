@@ -259,8 +259,9 @@ class bit2me(ccxt.async_support.bit2me):
         unifiedSymbol = None
         if symbol is not None:
             market = self.market(symbol)
-            unifiedSymbol = market['symbol']
-            messageHash = messageHash + ':' + unifiedSymbol
+            marketSymbol = self.safe_string(market, 'symbol', '')
+            messageHash = 'orders:' + marketSymbol
+            unifiedSymbol = marketSymbol
         orders = await self.subscribe_private('my-orders', messageHash, params)
         finalLimit = limit
         if self.newUpdates:
@@ -301,7 +302,7 @@ class bit2me(ccxt.async_support.bit2me):
         orders = self.orders
         orders.append(order)
         client.resolve(orders, 'orders')
-        client.resolve(orders, 'orders:' + order['symbol'])
+        client.resolve(orders, 'orders:' + self.safe_string(order, 'symbol', ''))
 
     def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -381,8 +382,9 @@ class bit2me(ccxt.async_support.bit2me):
         unifiedSymbol = None
         if symbol is not None:
             market = self.market(symbol)
-            unifiedSymbol = market['symbol']
-            messageHash = messageHash + ':' + unifiedSymbol
+            marketSymbol = self.safe_string(market, 'symbol', '')
+            messageHash = 'myTrades:' + marketSymbol
+            unifiedSymbol = marketSymbol
         trades = await self.subscribe_private('my-trades', messageHash, params)
         finalLimit = limit
         if self.newUpdates:
@@ -418,7 +420,7 @@ class bit2me(ccxt.async_support.bit2me):
         myTrades = self.myTrades
         myTrades.append(trade)
         client.resolve(myTrades, 'myTrades')
-        client.resolve(myTrades, 'myTrades:' + trade['symbol'])
+        client.resolve(myTrades, 'myTrades:' + self.safe_string(trade, 'symbol', ''))
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -581,7 +583,7 @@ class bit2me(ccxt.async_support.bit2me):
             'symbol': market['symbol'],
             'status': self.parse_order_status(self.safe_string(data, 'status')),
         }, market)
-        self.settle_request(client, 'canceled-order:' + orderId, order)
+        self.settle_request(client, 'canceled-order:' + self.safe_string(data, 'orderId', ''), order)
 
     async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
         """
@@ -664,7 +666,7 @@ class bit2me(ccxt.async_support.bit2me):
             'symbol': market['id'],
         }
         url = self.urls['api']['ws']
-        messageHash = 'canceled-all-orders:' + market['id']
+        messageHash = 'canceled-all-orders:' + self.safe_string(market, 'id', '')
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
     def handle_cancel_all_orders(self, client: Client, message: dict):
@@ -686,11 +688,11 @@ class bit2me(ccxt.async_support.bit2me):
         for i in range(0, len(ids)):
             orders.append(self.safe_order({
                 'info': message,
-                'id': ids[i],
-                'symbol': market['symbol'],
+                'id': self.safe_string(ids, i),
+                'symbol': self.safe_string(market, 'symbol'),
                 'status': 'canceled',
             }, market))
-        self.settle_request(client, 'canceled-all-orders:' + marketId, orders)
+        self.settle_request(client, 'canceled-all-orders:' + self.safe_string(message, 'symbol', ''), orders)
 
     async def authenticate(self, params={}):
         """
@@ -770,11 +772,11 @@ class bit2me(ccxt.async_support.bit2me):
                     self.settle_request(client, 'added-order:' + clientOrderId, None, exception)
                     self.options['pendingWsOrders'] = self.omit(self.options['pendingWsOrders'], clientOrderId)
         elif event == 'canceled-order':
-            self.settle_request(client, 'canceled-order:' + self.safe_string(message, 'orderId'), None, exception)
+            self.settle_request(client, 'canceled-order:' + self.safe_string(message, 'orderId', ''), None, exception)
         elif event == 'canceled-orders':
             self.settle_request(client, 'canceled-orders', None, exception)
         elif event == 'canceled-all-orders':
-            self.settle_request(client, 'canceled-all-orders:' + self.safe_string(message, 'symbol'), None, exception)
+            self.settle_request(client, 'canceled-all-orders:' + self.safe_string(message, 'symbol', ''), None, exception)
         elif event == 'subscribe':
             # a refused subscription names the channel and the symbol it was asked for
             subscription = self.safe_dict(message, 'subscription', {})

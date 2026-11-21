@@ -835,7 +835,7 @@ public partial class gemini : Exchange
             string? cell3 = this.safeString(cells, 3, "");
             string pricePrecisionString = cell3.Replace("<td>", (string)"");
             List<object> pricePrecisionParts = pricePrecisionString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
-            string? quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
+            string? quoteId = this.safeStringLower(pricePrecisionParts, 1, ((marketId == null) ? null : marketId[(int)(startingIndex < 0 ? marketId.Length + startingIndex : startingIndex)..Math.Min((int)(idLength < 0 ? marketId.Length + idLength : idLength), marketId.Length)]));
             string? baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.Replace(quoteId, (string)""));
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
@@ -1374,7 +1374,7 @@ public partial class gemini : Exchange
         string? quote = null;
         if (((marketId != null)) && ((marketResolved == null)))
         {
-            int idLength = (marketId.Length - 0);
+            int idLength = marketId.Length;
             if ((idLength == 7))
             {
                 baseId = ((marketId == null) ? null : marketId.Substring(0, Math.Min(4, marketId.Length)));
@@ -1458,7 +1458,7 @@ public partial class gemini : Exchange
         //         },
         //     ]
         //
-        Dictionary<string, object> result = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response, this.toArray(symbols)));
+        Dictionary<string, object> result = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response, symbols));
         List<object> brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }
@@ -2435,7 +2435,7 @@ public partial class gemini : Exchange
             }, query);
             string payload = this.json(request);
             payload = this.stringToBase64(payload);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+            string signature = this.hmac(payload, this.secret, sha384);
             headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "text/plain" },
                 { "X-GEMINI-APIKEY", this.apiKey },
@@ -2492,8 +2492,8 @@ public partial class gemini : Exchange
             string? reasonInner = this.safeString(response, "reason");
             string? message = this.safeString(response, "message");
             string feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), reasonInner, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, reasonInner, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

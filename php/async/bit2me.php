@@ -440,7 +440,7 @@ class bit2me extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $status = $this->safe_string($market, 'marketEnabled');
-        $fees = $this->fees;
+        $tradingFees = $this->safe_value($this->fees, 'trading');
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -465,8 +465,8 @@ class bit2me extends Exchange {
             'expiryDatetime' => null,
             'strike' => null,
             'optionType' => null,
-            'taker' => $fees['trading']['taker'],
-            'maker' => $fees['trading']['maker'],
+            'taker' => $this->safe_number($tradingFees, 'taker'),
+            'maker' => $this->safe_number($tradingFees, 'maker'),
             'precision' => array(
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
                 'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),

@@ -3135,17 +3135,15 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let response = undefined;
-        let order: NullableDict = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         if (clientOrderId !== undefined) {
             const request: Dict = {
                 'externalId': clientOrderId,
             };
-            response = await this.v1PrivateGetUserOrdersExternalExternalId (this.extend (request, paramsOmitted));
-            const data = this.safeList (response, 'data', []);
-            order = this.safeDict (data, 0, {});
+            const response = await this.v1PrivateGetUserOrdersExternalExternalId (this.extend (request, paramsOmitted));
+            const data: Dict[] = this.safeList (response, 'data', []);
+            return this.parseOrder (this.safeDict (data, 0, {}), market);
         } else {
             if (id === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument');
@@ -3153,10 +3151,10 @@ export default class extended extends Exchange {
             const request: Dict = {
                 'id': id,
             };
-            response = await this.v1PrivateGetUserOrdersId (this.extend (request, paramsOmitted));
-            order = this.safeDict (response, 'data', {});
+            const response = await this.v1PrivateGetUserOrdersId (this.extend (request, paramsOmitted));
+            const order: Dict = this.safeDict (response, 'data', {});
+            return this.parseOrder (order, market);
         }
-        return this.parseOrder (order, market);
     }
 
     /**

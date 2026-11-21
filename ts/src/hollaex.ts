@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, NullableList, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -362,8 +362,10 @@ export default class hollaex extends Exchange {
             const market = this.safeDict (pairs, key);
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
-            const baseCode = this.commonCurrencyCode ((baseId as string).toUpperCase ());
-            const quoteCode = this.commonCurrencyCode ((quoteId as string).toUpperCase ());
+            const upperBaseId = (baseId as string).toUpperCase ();
+            const upperQuoteId = (quoteId as string).toUpperCase ();
+            const baseCode = this.commonCurrencyCode (upperBaseId);
+            const quoteCode = this.commonCurrencyCode (upperQuoteId);
             result.push ({
                 'id': this.safeString (market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,
@@ -1620,12 +1622,10 @@ export default class hollaex extends Exchange {
         //     }
         //
         const wallet = this.safeList (response, 'wallet', []);
-        let addresses: NullableList = undefined;
         if (network === undefined) {
-            addresses = wallet;
-        } else {
-            addresses = this.filterBy (wallet, 'network', this.networkCodeToId (network));
+            return this.parseDepositAddresses (wallet, codes, false) as DepositAddress[];
         }
+        const addresses = this.filterBy (wallet, 'network', this.networkCodeToId (network));
         return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 

@@ -905,8 +905,8 @@ public partial class poloniex : Exchange
             // so end the window at the start of the limit-th candle from the first one at or after since
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
             Int64? firstCandle = (this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)since / duration)))) * duration);
-            object endTimeByLimit = this.sum(firstCandle, (duration * ((limit - 1))));
-            requestUntil[keyEnd] = mathMin(endTimeByLimit, this.milliseconds());
+            Int64 endTimeByLimit = this.sum(firstCandle, (duration * ((limit - 1))));
+            requestUntil[keyEnd] = Math.Min(endTimeByLimit, this.milliseconds());
         }
         if ((this.safeBool(market, "contract", false) == true))
         {
@@ -1380,7 +1380,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, false);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -3751,7 +3751,7 @@ public partial class poloniex : Exchange
         IList<object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
         IList<object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
         List<object> transactions = this.arrayConcat(depositTransactions, withdrawalTransactions);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.toArray(this.sortBy(transactions, "timestamp")),code, since, limit));
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"),code, since, limit));
     }
 
     /**
@@ -4289,7 +4289,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.swapPrivateGetV3TradePositionOpens(parameters);
         //
         //    {
@@ -4368,7 +4368,7 @@ public partial class poloniex : Exchange
         string? leverage = this.safeString(position, "lever");
         string? initialMargin = this.safeString(position, "im");
         string? notional = Precise.stringMul(leverage, initialMargin);
-        object positionMargin = null;
+        string? positionMargin = null;
         string? collateral = null;
         if (marginMode == "isolated")
         {
@@ -4563,7 +4563,7 @@ public partial class poloniex : Exchange
                 { "Content-Type", "application/json" },
                 { "key", this.apiKey },
                 { "signTimestamp", timestamp },
-                { "signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64") },
+                { "signature", this.hmac(auth, this.secret, sha256, "base64") },
             };
         }
         string? bodyResolved = bodyJson;
@@ -4594,7 +4594,7 @@ public partial class poloniex : Exchange
             string? message = this.safeString2(response, "message", "msg");
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

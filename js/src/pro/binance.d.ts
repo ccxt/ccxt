@@ -196,7 +196,7 @@ export default class binance extends binanceRest {
     };
     requestId(url: string): int;
     isSpotUrl(client: Client): boolean;
-    stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): Str;
+    stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): string;
     getWsUrl(type: string, category: string): string;
     getFutureWsCategory(channel: Str): string;
     getPrivateWsUrl(type: Str, listenKey: Str): string;
@@ -723,7 +723,7 @@ export default class binance extends binanceRest {
      * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    ensureUserDataStreamWsSubscribeListenToken(marketType?: string, params?: Dict): Promise<void>;
+    ensureUserDataStreamWsSubscribeListenToken(marketType: string, params?: Dict): Promise<void>;
     renewListenToken(params?: Dict): Promise<void>;
     authenticate(params?: Dict): Promise<void>;
     keepAliveListenKey(params?: Dict): Promise<void>;

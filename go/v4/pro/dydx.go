@@ -180,8 +180,8 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "id")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
-	var rawTrades []any = ccxt.SafeListTypedDefault(content, "trades", []any{})
+	var content, _ = message["contents"].(map[string]any)
+	var rawTrades []any = this.SafeListSlice(content, "trades", []any{})
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -356,14 +356,14 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "id")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
+	var content, _ = message["contents"].(map[string]any)
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if orderbook == nil {
 		orderbook = this.OrderBook()
 	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	var asks []any = ccxt.SafeListTypedDefault(content, "asks", []any{})
-	var bids []any = ccxt.SafeListTypedDefault(content, "bids", []any{})
+	orderbook.SetSymbol(symbol)
+	var asks []any = this.SafeListSlice(content, "asks", []any{})
+	var bids []any = this.SafeListSlice(content, "bids", []any{})
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	orderbook.SetNonce(this.SafeInteger(message, "message_id"))
@@ -559,7 +559,7 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(part, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
+	var content, _ = message["contents"].(map[string]any)
 	var candles []any = ccxt.SafeListTyped(content, "candles")
 	var messageHash string = "ohlcv:" + symbol
 	var ohlcv any = this.SafeDict(candles, 0, content)

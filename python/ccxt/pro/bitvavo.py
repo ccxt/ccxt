@@ -178,7 +178,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             marketId = self.safe_string(data, 'market')
             market = self.safe_market(marketId, None, '-')
             ticker = self.parse_ticker(data, market)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             self.tickers[symbol] = ticker
             result.append(ticker)
             if event is not None:
@@ -265,7 +265,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         name = 'trades'
         messageHash = name + '@' + self.safe_string(message, 'market', '')
         trade = self.parse_trade(message, market)
@@ -374,9 +374,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         name = 'candles'
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = name + '@' + self.safe_string(market, 'id', '') + '_' + interval
         url = self.safe_string(self.urls['api'], 'ws')
@@ -433,13 +433,13 @@ class bitvavo(ccxt.async_support.bitvavo):
         name = 'candles'
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         interval = self.safe_string(message, 'interval', '')
         # use a reverse lookup in a static map instead
         timeframe = self.find_timeframe(interval)
         messageHash = name + '@' + self.safe_string(message, 'market', '') + '_' + interval
         candles = self.safe_list(message, 'candle', [])
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -567,7 +567,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         name = 'book'
         messageHash = name + '@' + self.safe_string(market, 'id', '')
         url = self.safe_string(self.urls['api'], 'ws')
@@ -729,7 +729,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         event = self.safe_string(message, 'event', '')
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         messageHash = event + '@' + self.safe_string(message, 'market', '')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -910,8 +910,8 @@ class bitvavo(ccxt.async_support.bitvavo):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        marketId = market['id']
+        symbolValue = self.safe_string(market, 'symbol')
+        marketId = self.safe_string(market, 'id')
         url = self.safe_string(self.urls['api'], 'ws')
         name = 'account'
         messageHash = 'order:' + symbolValue
@@ -945,8 +945,8 @@ class bitvavo(ccxt.async_support.bitvavo):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        marketId = market['id']
+        symbolValue = self.safe_string(market, 'symbol')
+        marketId = self.safe_string(market, 'id')
         url = self.safe_string(self.urls['api'], 'ws')
         name = 'account'
         messageHash = 'myTrades:' + symbolValue
@@ -1522,17 +1522,11 @@ class bitvavo(ccxt.async_support.bitvavo):
         client.resolve(markets, messageHash)
 
     def build_message_hash(self, action: Str, params: dict = {}) -> Str:
-        methods = {
-            'privateCreateOrder': self.action_and_market_message_hash,
-            'privateUpdateOrder': self.action_and_order_id_message_hash,
-            'privateCancelOrder': self.action_and_order_id_message_hash,
-            'privateGetOrder': self.action_and_order_id_message_hash,
-            'privateGetTrades': self.action_and_market_message_hash,
-        }
-        method = self.safe_value(methods, action)
         messageHash = action
-        if method is not None:
-            messageHash = method(action, params)
+        if (action == 'privateCreateOrder') or (action == 'privateGetTrades'):
+            messageHash = self.action_and_market_message_hash(action, params)
+        elif (action == 'privateUpdateOrder') or (action == 'privateCancelOrder') or (action == 'privateGetOrder'):
+            messageHash = self.action_and_order_id_message_hash(action, params)
         return messageHash
 
     def action_and_market_message_hash(self, action: str, params: dict = {}) -> str:
@@ -1569,7 +1563,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         messageHash = 'order:' + symbol
         order = self.parse_order(message, market)
         if self.orders is None:
@@ -1597,7 +1591,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         messageHash = 'myTrades:' + symbol
         trade = self.parse_trade(message, market)
         if self.myTrades is None:

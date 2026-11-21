@@ -82,7 +82,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    public virtual Dictionary<string, object> sendSubscription(object action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
+    public virtual Dictionary<string, object> sendSubscription(string action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
     {
         context ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -485,14 +485,14 @@ public partial class polymarket : ccxt.polymarket
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        object data = this.safeValue(message, "data");
+        List<object> dataList = this.safeList(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            rows = ((List<object>)data);
+            rows = dataList;
         } else
         {
-            rows.Add(data);
+            rows.Add(this.safeValue(message, "data"));
         }
         int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
@@ -669,13 +669,13 @@ public partial class polymarket : ccxt.polymarket
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe))))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.TryGetValue(timeframe, out var ohlcvsValue2) ? ohlcvsValue2 : null));
         for (int i = 0; i < rows.Count; i++)
         {
             IList<object> parsed = this.parseOHLCV(rows[i], market);
@@ -790,7 +790,7 @@ public partial class polymarket : ccxt.polymarket
         //
         object data = this.safeValue(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((data is IList<object> hxList33504))
         {
             rows = ((List<object>)data);
         } else
@@ -894,14 +894,14 @@ public partial class polymarket : ccxt.polymarket
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data");
+        List<object> dataList = this.safeList(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            rows = ((List<object>)data);
+            rows = dataList;
         } else
         {
-            rows.Add(data);
+            rows.Add(this.safeValue(message, "data"));
         }
         int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
@@ -951,7 +951,7 @@ public partial class polymarket : ccxt.polymarket
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         var client = this.client(url);
         this.setPositionsCache(client, symbolsNormalized);
@@ -962,7 +962,7 @@ public partial class polymarket : ccxt.polymarket
             // the portfolio channel pushes one snapshot at subscribe time and
             // then only on changes, so the first call hydrates over rest
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         List<object> subscribeHashes = new List<object>() {"portfolio"};
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"portfolio"}, new List<object>() {"positions"}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
@@ -1282,9 +1282,9 @@ public partial class polymarket : ccxt.polymarket
                     string? timeframe = this.safeString(pending, "timeframe");
                     if (((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
                     {
-                        if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+                        if ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow3) && ohlcvsRow3 != null && timeframe != null && ohlcvsRow3.ContainsKey(timeframe)))
                         {
-                            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
                         }
                     }
                 }

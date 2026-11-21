@@ -1065,11 +1065,12 @@ export default class mexc extends Exchange {
         let status: Str = undefined;
         let updated: Int = undefined;
         if (marketType === 'spot') {
-            response = await this.spotPublicGetPing (query);
+            const spotResponse: Dict = await this.spotPublicGetPing (query);
+            response = spotResponse;
             //
             //     {}
             //
-            const keys = Object.keys (response);
+            const keys = Object.keys (spotResponse);
             const length = keys.length;
             status = (length > 0) ? this.json (response) : 'ok';
         } else if (marketType === 'swap') {
@@ -1696,7 +1697,7 @@ export default class mexc extends Exchange {
         let orderId: Str = undefined;
         let symbol: Str = undefined;
         let fee: FeeString = undefined;
-        const type = undefined;
+        const type: Str = undefined;
         let side: Str = undefined;
         let takerOrMaker: Str = undefined;
         let priceString: Str = undefined;
@@ -1704,7 +1705,8 @@ export default class mexc extends Exchange {
         let costString: Str = undefined;
         let marketResolved: Market = undefined;
         // if swap
-        if ('v' in trade) {
+        const swapVolume = this.safeString (trade, 'v');
+        if (swapVolume !== undefined) {
             //
             // swap: fetchTrades
             //
@@ -1782,7 +1784,8 @@ export default class mexc extends Exchange {
             priceString = this.safeString2 (trade, 'price', 'p');
             orderId = this.safeString (trade, 'orderId');
             // if swap
-            if ('positionMode' in trade) {
+            const positionMode = this.safeString (trade, 'positionMode');
+            if (positionMode !== undefined) {
                 timestamp = this.safeInteger (trade, 'timestamp');
                 amountString = this.safeString (trade, 'vol');
                 side = this.parseContractOrderSide (this.safeString (trade, 'side'));
@@ -3721,12 +3724,7 @@ export default class mexc extends Exchange {
                 'clientOrderId': this.safeString (order, 'newClientOrderId'),
             });
         }
-        let id: Str = undefined;
-        if (typeof order === 'string') {
-            id = order;
-        } else {
-            id = this.safeString2 (order, 'orderId', 'id');
-        }
+        const id = this.safeString2 (order, 'orderId', 'id');
         let timeInForce = this.parseOrderTimeInForce (this.safeString (order, 'timeInForce'));
         const typeRaw = this.safeString (order, 'type');
         if (timeInForce === undefined) {
@@ -5630,7 +5628,6 @@ export default class mexc extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        let resultList: Dict[] = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -5660,14 +5657,14 @@ export default class mexc extends Exchange {
             //     ],
             //     "total": 1
             // }
-            resultList = this.safeList (response, 'rows', []);
+            return this.parseTransfers (this.safeList (response, 'rows', []), currency, since, limit);
         } else if (marketType === 'swap') {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
             const response = await this.contractPrivateGetAccountTransferRecord (this.extend (request, paramsToAccountType));
             const data = this.safeDict (response, 'data');
-            resultList = this.safeValue (data, 'resultList');
+            return this.parseTransfers (this.safeList (data, 'resultList', []), currency, since, limit);
             //
             //     {
             //         "success": true,
@@ -5693,7 +5690,7 @@ export default class mexc extends Exchange {
             //     }
             //
         }
-        return this.parseTransfers (resultList, currency, since, limit);
+        return this.parseTransfers ([], currency, since, limit);
     }
 
     /**
@@ -6149,12 +6146,13 @@ export default class mexc extends Exchange {
         //
         const networkList: Dict[] = this.safeList (fee, 'networkList', []);
         const result = this.depositWithdrawFee (fee);
+        const networks: Dict = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = this.safeDict (networkList, j);
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': this.safeNumber (networkEntry, 'withdrawFee'),
                         'percentage': undefined,
@@ -6166,6 +6164,7 @@ export default class mexc extends Exchange {
                 };
             }
         }
+        result['networks'] = networks;
         return this.assignDefaultDepositWithdrawFees (result);
     }
 
@@ -6217,16 +6216,17 @@ export default class mexc extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
-        return this.parseLeverage (data, market);
+        const data: Dict[] = this.safeList (response, 'data', []);
+        return this.parseLeverageList (data, market);
     }
 
-    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    parseLeverageList (leverages: Dict[], market: Market = undefined): Leverage {
         let marginMode: Str = undefined;
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
-        for (let i = 0; i < (leverage as List).length; i++) {
-            const entry = this.safeDict (leverage, i);
+        const numLeverages = leverages.length;
+        for (let i = 0; i < numLeverages; i++) {
+            const entry = this.safeDict (leverages, i);
             const openType = this.safeInteger (entry, 'openType');
             const positionType = this.safeInteger (entry, 'positionType');
             if (positionType === 1) {
@@ -6237,7 +6237,7 @@ export default class mexc extends Exchange {
             marginMode = (openType === 1) ? 'isolated' : 'cross';
         }
         return {
-            'info': leverage,
+            'info': leverages,
             'symbol': this.safeString (market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
@@ -6245,6 +6245,19 @@ export default class mexc extends Exchange {
         } as Leverage;
     }
 
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        // setMarginMode answers { success, code }: no per-side leverage rows to read
+        return {
+            'info': leverage,
+            'symbol': this.safeString (market, 'symbol'),
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined,
+        } as Leverage;
+    }
+
+    override handleMarginModeAndParams (methodName: string, params: Dict, defaultValue: string): [string, Dict];
+    override handleMarginModeAndParams (methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     override handleMarginModeAndParams (methodName: string, params: Dict = {}, defaultValue: Str = undefined): [Str, Dict] {
         /**
          * @ignore

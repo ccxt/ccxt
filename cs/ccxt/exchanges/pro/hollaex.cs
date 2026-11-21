@@ -150,13 +150,13 @@ public partial class hollaex : ccxt.hollaex
         string? symbolValue = this.safeString(market, "symbol", "");
         string? marketId = this.safeString(market, "id", "");
         string messageHash = (("trade" + ":") + marketId);
-        object trades = await this.watchPublic(messageHash, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPublic(messageHash, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -492,14 +492,10 @@ public partial class hollaex : ccxt.hollaex
             List<object> parts = key.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? currencyId = this.safeString(parts, 0);
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
-            if (((code != null)) && (((code != null) && (this.balance != null && this.balance.ContainsKey(code)))))
-            {
-                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
-            }
+            IDictionary<string, object> account = this.safeDict(this.balance, code, this.account());
             string? second = this.safeString(parts, 1);
             string freeOrTotal = (second == "available") ? "free" : "total";
-            ((IDictionary<string,object>)account)[freeOrTotal] = this.safeString(data, key);
+            account[(string)freeOrTotal] = this.safeString(data, key);
             if ((code != null))
             {
                 this.balance[(string)code] = account;
@@ -537,7 +533,7 @@ public partial class hollaex : ccxt.hollaex
         }
         string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         string auth = (("CONNECT" + "/stream") + expires);
-        string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+        string signature = this.hmac(auth, this.secret, sha256);
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "api-key", this.apiKey },
             { "api-signature", signature },
@@ -564,7 +560,7 @@ public partial class hollaex : ccxt.hollaex
             if ((error != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), this.safeString(message, "error"), feedback);
+                this.throwExactlyMatchedException(this.exceptionsWsExact, this.safeString(message, "error"), feedback);
             }
         } catch(Exception e)
         {

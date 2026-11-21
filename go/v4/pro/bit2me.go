@@ -76,14 +76,17 @@ func (this *Bit2me) subscribePublicBody(ch chan ccxt.AsyncResult[any], name stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"event":  "subscribe",
-		"symbol": market["id"],
+		"symbol": nil,
 		"subscription": map[string]any{
 			"name": name,
 		},
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
@@ -104,12 +107,12 @@ func (this *Bit2me) subscribePublicBody(ch chan ccxt.AsyncResult[any], name stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the resolved value of the subscription
  */
-func (this *Bit2me) SubscribePrivateAsync(name string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bit2me) SubscribePrivateAsync(name string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, name, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Bit2me) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name string, messageHash any, optionalArgs ...any) any {
+func (this *Bit2me) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name string, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -124,7 +127,7 @@ func (this *Bit2me) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"subscription": map[string]any{
@@ -167,10 +170,10 @@ func (this *Bit2me) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var messageHash string = "orderbook:" + market.Symbol
 
-	r1 := <-this.SubscribePublicAsync("order-book", symbol, *messageHash, params)
+	r1 := <-this.SubscribePublicAsync("order-book", symbol, messageHash, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -194,10 +197,17 @@ func (this *Bit2me) HandleOrderBook(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(message, "symbol")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var timestamp *int64 = this.SafeInteger(data, "nonce")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1)
 	snapshot["nonce"] = timestamp
@@ -241,17 +251,17 @@ func (this *Bit2me) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("trades:" + market["symbol"].(string))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var messageHash string = "trades:" + market.Symbol
 
-	r1 := <-this.SubscribePublicAsync("public-trades", symbol, *messageHash, params)
+	r1 := <-this.SubscribePublicAsync("public-trades", symbol, messageHash, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var finalLimit *int64 = limit
 	if this.NewUpdates {
-		finalLimit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
+		finalLimit = ccxt.ToGetsLimit(trades).GetLimit(market.Symbol, limit)
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, finalLimit, "timestamp", true))}
@@ -273,7 +283,11 @@ func (this *Bit2me) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var trade map[string]any = this.ParseWsTrade(data, market)
 	if !(symbol != nil && this.Trades[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -322,12 +336,13 @@ func (this *Bit2me) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = ccxt.SafeStringPtr(func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}())
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var rawFee map[string]any = ccxt.SafeMapTyped(trade, "fee")
@@ -392,12 +407,13 @@ func (this *Bit2me) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var messageHash any = "orders"
-	var unifiedSymbol any = nil
+	var messageHash string = "orders"
+	var unifiedSymbol *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		unifiedSymbol = market["symbol"]
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), unifiedSymbol)
+		var marketSymbol *string = this.SafeString(market, "symbol", "")
+		messageHash = "orders:" + *marketSymbol
+		unifiedSymbol = marketSymbol
 	}
 
 	r1 := <-this.SubscribePrivateAsync("my-orders", messageHash, params)
@@ -439,7 +455,11 @@ func (this *Bit2me) HandleOrder(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var order map[string]any = this.ParseWsOrder(data)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -448,7 +468,7 @@ func (this *Bit2me) HandleOrder(client any, message map[string]any) {
 	var orders ccxt.WsArrayCache = this.Orders
 	orders.Append(order)
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
-	client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add("orders:", order["symbol"]))
+	client.(ccxt.ClientInterface).Resolve(orders, "orders:"+*this.SafeString(order, "symbol", ""))
 }
 func (this *Bit2me) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
@@ -547,12 +567,13 @@ func (this *Bit2me) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var messageHash any = "myTrades"
-	var unifiedSymbol any = nil
+	var messageHash string = "myTrades"
+	var unifiedSymbol *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		unifiedSymbol = market["symbol"]
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), unifiedSymbol)
+		var marketSymbol *string = this.SafeString(market, "symbol", "")
+		messageHash = "myTrades:" + *marketSymbol
+		unifiedSymbol = marketSymbol
 	}
 
 	r1 := <-this.SubscribePrivateAsync("my-trades", messageHash, params)
@@ -589,7 +610,11 @@ func (this *Bit2me) HandleMyTrade(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var trade map[string]any = this.ParseWsTrade(data)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -598,7 +623,7 @@ func (this *Bit2me) HandleMyTrade(client any, message map[string]any) {
 	var myTrades ccxt.WsArrayCache = this.MyTrades
 	myTrades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(myTrades, "myTrades")
-	client.(ccxt.ClientInterface).Resolve(myTrades, ccxt.Add("myTrades:", trade["symbol"]))
+	client.(ccxt.ClientInterface).Resolve(myTrades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
 }
 
 /**
@@ -640,8 +665,8 @@ func (this *Bit2me) HandleBalance(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var balances []any = ccxt.SafeListTypedDefault(data, "balance", []any{})
+	var data, _ = message["data"].(map[string]any)
+	var balances []any = this.SafeListSlice(data, "balance", []any{})
 	this.Balance = this.ParseBalanceList(balances)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
@@ -697,10 +722,16 @@ func (this *Bit2me) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	request["type"] = orderType
 	request["clientOrderId"] = clientOrderId
 	// the response carries no request id, it is matched by the client order id, and an error only by the symbol
-	var pending map[string]any = this.SafeDictMap(this.Options, "pendingWsOrders", map[string]any{})
-	ccxt.AddElementToObject(pending, clientOrderId, market["id"])
+	var pending map[string]any
+	pending, _ = this.Options["pendingWsOrders"].(map[string]any)
+	if pending == nil {
+		pending = map[string]any{}
+	}
+	if clientOrderId != nil {
+		pending[*clientOrderId] = market["id"]
+	}
 	this.Options["pendingWsOrders"] = pending
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "added-order:" + *clientOrderId
 
 	r2 := <-this.Watch(url, messageHash, request, messageHash)
@@ -721,7 +752,7 @@ func (this *Bit2me) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
  * @param {object} result the value to resolve with
  * @param {object} [error] when set the command is rejected with it instead
  */
-func (this *Bit2me) SettleRequest(client any, messageHash any, result any, optionalArgs ...any) {
+func (this *Bit2me) SettleRequest(client any, messageHash string, result any, optionalArgs ...any) {
 	error := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = error
 	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
@@ -761,11 +792,19 @@ func (this *Bit2me) HandleCreateOrder(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 	var clientOrderId *string = this.SafeString(data, "clientOrderId")
 	if clientOrderId != nil {
-		var pending map[string]any = this.SafeDictMap(this.Options, "pendingWsOrders", map[string]any{})
+		var pending map[string]any
+		pending, _ = this.Options["pendingWsOrders"].(map[string]any)
+		if pending == nil {
+			pending = map[string]any{}
+		}
 		this.Options["pendingWsOrders"] = this.Omit(pending, clientOrderId)
 		this.SettleRequest(client, "added-order:"+*clientOrderId, order)
 	}
@@ -807,7 +846,7 @@ func (this *Bit2me) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 		"event":   "cancel-order",
 		"orderId": id,
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "canceled-order:" + id
 
 	r2 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
@@ -828,7 +867,7 @@ func (this *Bit2me) HandleCancelOrder(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var orderId *string = this.SafeString(data, "orderId")
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
@@ -838,7 +877,7 @@ func (this *Bit2me) HandleCancelOrder(client any, message map[string]any) {
 		"symbol": market["symbol"],
 		"status": this.ParseOrderStatus(this.SafeString(data, "status")),
 	}, market))
-	this.SettleRequest(client, ccxt.Add("canceled-order:", orderId), order)
+	this.SettleRequest(client, "canceled-order:"+*this.SafeString(data, "orderId", ""), order)
 }
 
 /**
@@ -851,12 +890,12 @@ func (this *Bit2me) HandleCancelOrder(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure), orders the exchange refused to cancel keep an undefined status and carry the reason in info
  */
-func (this *Bit2me) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+func (this *Bit2me) CancelOrdersWsAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Bit2me) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
+func (this *Bit2me) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -877,7 +916,7 @@ func (this *Bit2me) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], i
 		"event":    "cancel-orders",
 		"ordersId": ids,
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "canceled-orders"
 
 	r2 := <-this.WatchList(url, messageHash, this.Extend(request, params), messageHash)
@@ -906,12 +945,12 @@ func (this *Bit2me) HandleCancelOrders(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var deleted []any = ccxt.SafeListTyped(data, "ordersDeleted")
-	var notDeleted []any = ccxt.SafeListTyped(data, "ordersNotDeletedReasons")
+	var data, _ = message["data"].(map[string]any)
+	var deleted, _ = data["ordersDeleted"].([]any)
+	var notDeleted, _ = data["ordersNotDeletedReasons"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(deleted); i++ {
-		var entry any = ccxt.DerefScalar(deleted[i])
+		var entry any = deleted[i]
 		orders = append(orders, ccxt.OrderToMap(this.SafeOrder(map[string]any{
 			"info":   entry,
 			"id":     this.SafeString(entry, "id"),
@@ -919,7 +958,7 @@ func (this *Bit2me) HandleCancelOrders(client any, message map[string]any) {
 		})))
 	}
 	for i := 0; i < len(notDeleted); i++ {
-		var entry any = ccxt.DerefScalar(notDeleted[i])
+		var entry any = notDeleted[i]
 		orders = append(orders, ccxt.OrderToMap(this.SafeOrder(map[string]any{
 			"info":   entry,
 			"id":     this.SafeString(entry, "id"),
@@ -969,8 +1008,8 @@ func (this *Bit2me) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order]
 		"event":  "cancel-all-orders",
 		"symbol": market["id"],
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("canceled-all-orders:", market["id"]))
+	var url *string = this.UrlsApiStrings["ws"]
+	var messageHash string = "canceled-all-orders:" + *this.SafeString(market, "id", "")
 
 	r2 := <-this.WatchList(url, messageHash, this.Extend(request, params), messageHash)
 	if r2.Err != nil {
@@ -992,18 +1031,18 @@ func (this *Bit2me) HandleCancelAllOrders(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var ids []any = ccxt.SafeListTyped(data, "cancelledOrders")
+	var data, _ = message["data"].(map[string]any)
+	var ids, _ = data["cancelledOrders"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(ids); i++ {
 		orders = append(orders, ccxt.OrderToMap(this.SafeOrder(map[string]any{
 			"info":   message,
-			"id":     ccxt.DerefScalar(ids[i]),
-			"symbol": market["symbol"],
+			"id":     this.SafeString(ids, i),
+			"symbol": this.SafeString(market, "symbol"),
 			"status": "canceled",
 		}, market)))
 	}
-	this.SettleRequest(client, ccxt.Add("canceled-all-orders:", marketId), orders)
+	this.SettleRequest(client, "canceled-all-orders:"+*this.SafeString(message, "symbol", ""), orders)
 }
 
 /**
@@ -1024,7 +1063,7 @@ func (this *Bit2me) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var url *string = this.UrlsApiStrings["ws"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -1040,7 +1079,7 @@ func (this *Bit2me) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		//
 		//     { "accessToken": { "token": "header.payload.signature", "expirationTime": 1794378427 } }
 		//
-		var accessToken map[string]any = ccxt.SafeMapTyped(response, "accessToken")
+		var accessToken, _ = response["accessToken"].(map[string]any)
 		var request map[string]any = map[string]any{
 			"event": "authenticate",
 			"token": this.SafeString(accessToken, "token"),
@@ -1083,7 +1122,7 @@ func (this *Bit2me) HandleAuthenticate(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Bit2me) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bit2me) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
 	//
 	//     { "event": "subscribe", "symbol": "BTC/USDC", "subscription": { "name": "order-book" }, "result": "subscribed" }
 	//     { "event": "unsubscribe" }
@@ -1096,7 +1135,7 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 	//     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
 	//
 	var event *string = this.SafeString(message, "event")
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	var code *string = this.SafeString(error, "code")
 	var errorMessage *string = this.SafeString(error, "message")
 	var feedback string = this.Id + " " + this.Json(message)
@@ -1127,7 +1166,11 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 	if event != nil && *event == "added-order" {
 		// the error carries no client order id, reject every order of the symbol still waiting for a response
 		var marketId *string = this.SafeString(message, "symbol")
-		var pending map[string]any = this.SafeDictMap(this.Options, "pendingWsOrders", map[string]any{})
+		var pending map[string]any
+		pending, _ = this.Options["pendingWsOrders"].(map[string]any)
+		if pending == nil {
+			pending = map[string]any{}
+		}
 		var clientOrderIds []string = nil
 		if pending != nil {
 			clientOrderIds = make([]string, 0, len(pending))
@@ -1137,20 +1180,20 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 		}
 		for i := 0; i < len(clientOrderIds); i++ {
 			var clientOrderId string = clientOrderIds[i]
-			if ccxt.IsEqual(ccxt.GetValue(pending, clientOrderId), marketId) {
+			if ccxt.IsEqual(pending[clientOrderId], marketId) {
 				this.SettleRequest(client, "added-order:"+clientOrderId, nil, exception)
 				this.Options["pendingWsOrders"] = this.Omit(this.Options["pendingWsOrders"], clientOrderId)
 			}
 		}
 	} else if event != nil && *event == "canceled-order" {
-		this.SettleRequest(client, ccxt.Add("canceled-order:", this.SafeString(message, "orderId")), nil, exception)
+		this.SettleRequest(client, "canceled-order:"+*this.SafeString(message, "orderId", ""), nil, exception)
 	} else if event != nil && *event == "canceled-orders" {
 		this.SettleRequest(client, "canceled-orders", nil, exception)
 	} else if event != nil && *event == "canceled-all-orders" {
-		this.SettleRequest(client, ccxt.Add("canceled-all-orders:", this.SafeString(message, "symbol")), nil, exception)
+		this.SettleRequest(client, "canceled-all-orders:"+*this.SafeString(message, "symbol", ""), nil, exception)
 	} else if event != nil && *event == "subscribe" {
 		// a refused subscription names the channel and the symbol it was asked for
-		var subscription map[string]any = ccxt.SafeMapTyped(message, "subscription")
+		var subscription, _ = message["subscription"].(map[string]any)
 		var name *string = this.SafeString(subscription, "name")
 		var marketId *string = this.SafeString(message, "symbol")
 		var symbol *string = this.SafeSymbol(marketId)

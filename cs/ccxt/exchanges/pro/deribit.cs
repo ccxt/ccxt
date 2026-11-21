@@ -866,13 +866,14 @@ public partial class deribit : ccxt.deribit
         }
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
-        object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+        List<object> dataList = this.safeList(parameters, "data");
         IList<object> orders = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(data));
+            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(dataList));
         } else
         {
+            object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
             ccxt.Order order = this.parseOrder(data);
             orders = new List<object>() {ccxt.BaseExchange.FromOrder(order)};
         }
@@ -907,7 +908,8 @@ public partial class deribit : ccxt.deribit
         }
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolValue != null && ohlcvs.ContainsKey(symbolValue) ? ohlcvs[symbolValue] : null), timeframeVar));
+
+        return ccxt.BaseExchange.ToOHLCVList((ohlcvs != null && symbolValue != null && ohlcvs.ContainsKey(symbolValue) && ohlcvs[symbolValue] != null && timeframeVar != null && ohlcvs[symbolValue].ContainsKey(timeframeVar) ? ohlcvs[symbolValue][timeframeVar] : null));
     }
 
     /**
@@ -925,7 +927,7 @@ public partial class deribit : ccxt.deribit
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39727 && ((hxArr39727 is IList<object>) || (hxArr39727.GetType().IsGenericType && hxArr39727.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -976,14 +978,14 @@ public partial class deribit : ccxt.deribit
         if ((this.safeDict((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), unifiedTimeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), unifiedTimeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && unifiedTimeframe != null && ohlcvsRow1.TryGetValue(unifiedTimeframe, out var ohlcvsValue1) ? ohlcvsValue1 : null));
         IDictionary<string, object> ohlcv = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         // data contains a single OHLCV candle
         List<object> parsed = this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
-        ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = stored;
+        (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)unifiedTimeframe] = stored;
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         string messageHash = ((("chart.trades|" + symbol) + "|") + this.safeString(parts, 3, ""));
         client.resolve(resolveData, messageHash);
@@ -1005,7 +1007,7 @@ public partial class deribit : ccxt.deribit
         return new List<object> {this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
-    public async virtual Task<object> watchMultipleWrapper(string channelName, object channelDescriptor, object symbolsArray = null, object parameters = null)
+    public async virtual Task<object> watchMultipleWrapper(string channelName, object channelDescriptor, IList<object> symbolsArray = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1022,7 +1024,7 @@ public partial class deribit : ccxt.deribit
         {
             throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
         }
-        for (int i = 0; i < getArrayLength(symbolsArray); i++)
+        for (int i = 0; i < (symbolsArray?.Count ?? 0); i++)
         {
             if ((symbolsArray == null))
             {
@@ -1203,7 +1205,7 @@ public partial class deribit : ccxt.deribit
             this.checkRequiredCredentials();
             Int64 requestId = this.requestId();
             string lineBreak = "\n"; // eslint-disable-line quotes
-            string signature = this.hmac(this.encode((((timeString + lineBreak) + nonce) + lineBreak)), this.encode(this.secret), sha256);
+            string signature = this.hmac((((timeString + lineBreak) + nonce) + lineBreak), this.secret, sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "jsonrpc", "2.0" },
                 { "id", requestId },

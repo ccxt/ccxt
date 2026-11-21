@@ -543,8 +543,8 @@ fn with_base<F, R>(f: F) -> R where F: FnOnce(&mut BaseCore) -> R {
 }
 
 pub trait ExchangeOps {
-    fn safe_value(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_string(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_value(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
+    fn safe_string(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_bool(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
     fn safe_dict(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
     fn safe_list(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
@@ -555,14 +555,14 @@ pub trait ExchangeOps {
     fn deepExtend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn index_by(&self, arr: Value, key: Value) -> Value;
     fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
-    fn number_to_string(&self, n: Value) -> Option<String>;
+    fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> ccxt::value::List;
+    fn number_to_string(&self, n: impl ccxt::value::ScalarArg) -> Option<String>;
     fn base16_to_binary(&self, s: Value, optional_args: &[Value]) -> ccxt::value::Bytes;
     fn precision_from_string(&self, s: Value) -> i64;
     fn parse_precision(&self, optional_args: &[Value]) -> Value;
     fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
-    fn parse_to_int(&self, n: Value) -> Option<i64>;
-    fn parse_to_numeric(&self, n: Value) -> Value;
+    fn parse_to_int(&self, n: impl ccxt::value::ScalarArg) -> Option<i64>;
+    fn parse_to_numeric(&self, n: impl ccxt::value::ScalarArg) -> Value;
     fn is_round_number(&self, n: Value) -> Value;
     fn sum(&self, optional_args: &[Value]) -> Value;
     fn convert_to_safe_dictionary(&self, v: Value) -> Value;
@@ -570,13 +570,13 @@ pub trait ExchangeOps {
     fn set_sandbox_mode(&self, enabled: Value);
     fn extend_exchange_options(&mut self, options: Value) -> Value;
     fn check_required_credentials(&self, optional_args: &[Value]) -> Value;
-    fn parse_number(&self, n: Value, optional_args: &[Value]) -> Value;
+    fn parse_number(&self, n: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_number(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
-    fn safe_integer(&self, d: impl KeyRead, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_integer(&self, d: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[Value]) -> Value;
     fn safe_string_n(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Value;
     /// `Option<String>` twins of `safe_string` / `safe_string_n` (the base `_opt` readers: same lookup and
     /// default rules, `None` where the boxed reader yields `Null`).
-    fn safe_string_opt(&self, obj: impl KeyRead, key: Value, optional_args: &[Value]) -> Option<String>;
+    fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, optional_args: &[&dyn ccxt::value::ScalarArg]) -> Option<String>;
     fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, optional_args: &[Value]) -> Option<String>;
     fn omit(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value;
     fn omit_zero(&self, s: Value) -> Option<String>;
@@ -586,8 +586,8 @@ pub trait ExchangeOps {
     /// `_redundant_exchange` slot. Mutates the Value-map keyed by `key`.
     fn set_property(&mut self, redundant_exchange: Value, key: Value, value: Value);
     fn get_fetch_cache(&mut self) -> Value;
-    fn parse_timeframe(&self, tf: Value) -> i64;
-    fn iso8601(&self, ts: Value) -> Value;
+    fn parse_timeframe(&self, tf: impl ccxt::value::ScalarArg) -> i64;
+    fn iso8601(&self, ts: impl ccxt::value::ScalarArg) -> Value;
     fn milliseconds(&self) -> i64;
     fn get_ccxt_version(&self) -> Value;
     fn safeString(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
@@ -599,8 +599,8 @@ pub trait ExchangeOps {
 }
 
 impl ExchangeOps for Value {
-    fn safe_value(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_value(obj, key, o)) }
-    fn safe_string(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string(obj, key, o)) }
+    fn safe_value(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.safe_value(obj, key, o)) }
+    fn safe_string(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.safe_string(obj, key, o)) }
     fn safe_bool(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_bool(d, key, o)) }
     fn safe_dict(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_dict(d, key, o)) }
     fn safe_list(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_list(d, key, o)) }
@@ -609,16 +609,16 @@ impl ExchangeOps for Value {
     fn in_array(&self, needle: Value, haystack: Value) -> bool { with_base(|e| e.in_array(needle, haystack)) }
     fn deep_extend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
-    fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
-    fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
-    fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
-    fn number_to_string(&self, n: Value) -> Option<String> { with_base(|e| e.number_to_string(n)) }
+    fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| Value::Dict(e.index_by(arr, key))) }
+    fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| Value::Dict(e.group_by(arr, key, o))) }
+    fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> ccxt::value::List { with_base(|e| e.filter_by(arr, key, value, o)) }
+    fn number_to_string(&self, n: impl ccxt::value::ScalarArg) -> Option<String> { with_base(|e| e.number_to_string(n)) }
     fn base16_to_binary(&self, s: Value, o: &[Value]) -> ccxt::value::Bytes { with_base(|e| e.base16_to_binary(s, o)) }
     fn precision_from_string(&self, s: Value) -> i64 { with_base(|e| e.precision_from_string(s)) }
     fn parse_precision(&self, o: &[Value]) -> Value { with_base(|e| e.parse_precision(o)) }
     fn sort_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.sort_by(arr, key, o)) }
-    fn parse_to_int(&self, n: Value) -> Option<i64> { with_base(|e| e.parse_to_int(n)) }
-    fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
+    fn parse_to_int(&self, n: impl ccxt::value::ScalarArg) -> Option<i64> { with_base(|e| e.parse_to_int(n)) }
+    fn parse_to_numeric(&self, n: impl ccxt::value::ScalarArg) -> Value { with_base(|e| e.parse_to_numeric(n)) }
     fn is_round_number(&self, n: Value) -> Value { with_base(|e| e.is_round_number(n)) }
     fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }
     fn convert_to_safe_dictionary(&self, v: Value) -> Value { v }
@@ -652,17 +652,17 @@ impl ExchangeOps for Value {
         merged
     }
     fn check_required_credentials(&self, _optional_args: &[Value]) -> Value { Value::Bool(true) }
-    fn parse_number(&self, n: Value, o: &[Value]) -> Value { with_base(|e| e.parse_number(n, o)) }
+    fn parse_number(&self, n: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.parse_number(n, o)) }
     fn safe_number(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_number(d, key, o)) }
-    fn safe_integer(&self, d: impl KeyRead, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
+    fn safe_integer(&self, d: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
     fn safe_string_n(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
-    fn safe_string_opt(&self, obj: impl KeyRead, key: Value, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_opt(obj, key, o)) }
+    fn safe_string_opt(&self, obj: impl KeyRead, key: impl ccxt::value::ScalarArg, o: &[&dyn ccxt::value::ScalarArg]) -> Option<String> { with_base(|e| e.safe_string_opt(obj, key, o)) }
     fn safe_string_n_opt(&self, d: impl KeyRead, keys: Value, o: &[Value]) -> Option<String> { with_base(|e| e.safe_string_n_opt(d, keys, o)) }
     fn omit(&self, obj: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.omit(obj, keys, o)) }
     fn omit_zero(&self, s: Value)                -> Option<String> { with_base(|e| e.omit_zero(s)) }
     fn array_concat(&self, a: Value, b: Value)   -> Value { with_base(|e| e.array_concat(a, b)) }
-    fn parse_timeframe(&self, tf: Value)         -> i64 { with_base(|e| e.parse_timeframe(tf)) }
-    fn iso8601(&self, ts: Value)                 -> Value { with_base(|e| e.iso8601(ts)) }
+    fn parse_timeframe(&self, tf: impl ccxt::value::ScalarArg) -> i64 { with_base(|e| e.parse_timeframe(tf)) }
+    fn iso8601(&self, ts: impl ccxt::value::ScalarArg) -> Value { with_base(|e| e.iso8601(ts)) }
     fn milliseconds(&self)                        -> i64 { with_base(|e| e.milliseconds()) }
     fn get_ccxt_version(&self)                     -> Value { with_base(|e| e.get_ccxt_version()) }
     /// Set a field on the exchange Value-map by key. The

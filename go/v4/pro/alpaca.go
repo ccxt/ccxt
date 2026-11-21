@@ -107,7 +107,8 @@ func (this *Alpaca) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("ticker:" + market["symbol"].(string))
+	messageHashStr := "ticker:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"quotes": []any{market["id"]},
@@ -369,8 +370,8 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
 		orderbook.Reset(snapshot)
 	} else {
-		var asks []any = ccxt.SafeListTypedDefault(message, "a", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})
+		var asks []any = this.SafeListSlice(message, "a", []any{})
+		var bids []any = this.SafeListSlice(message, "b", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -661,8 +662,12 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 	//        }
 	//      }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawOrder map[string]any = this.SafeDictMap(data, "order", map[string]any{})
+	var data, _ = message["data"].(map[string]any)
+	var rawOrder map[string]any
+	rawOrder, _ = data["order"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -722,12 +727,16 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 	//        }
 	//      }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var event *string = this.SafeString(data, "event")
 	if (event == nil || *event != "fill") && (event == nil || *event != "partial_fill") {
 		return
 	}
-	var rawOrder map[string]any = this.SafeDictMap(data, "order", map[string]any{})
+	var rawOrder map[string]any
+	rawOrder, _ = data["order"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 	var myTrades ccxt.WsArrayCache = this.MyTrades
 	if myTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -797,35 +806,35 @@ func (this *Alpaca) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 		return strings.Index(*typeVar, "limit")
 	}() >= 0 {
 		// might be limit or stop-limit
-		typeVar = ccxt.SafeStringPtr("limit")
+		typeVarStr := "limit"
+		typeVar = &typeVarStr
+	}
+	var ternaryStr62328 string = "maker"
+	if typeVar != nil && *typeVar == "market" {
+		ternaryStr62328 = "taker"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
-		"id":        this.SafeString(trade, "i"),
-		"info":      trade,
-		"timestamp": this.Parse8601(datetime),
-		"datetime":  datetime,
-		"symbol":    this.SafeSymbol(marketId, nil, "/"),
-		"order":     this.SafeString(trade, "id"),
-		"type":      typeVar,
-		"side":      this.SafeString(trade, "side"),
-		"takerOrMaker": func() string {
-			if typeVar != nil && *typeVar == "market" {
-				return "taker"
-			}
-			return "maker"
-		}(),
-		"price":  this.SafeString(trade, "filled_avg_price"),
-		"amount": this.SafeString(trade, "filled_qty"),
-		"cost":   nil,
-		"fee":    nil,
+		"id":           this.SafeString(trade, "i"),
+		"info":         trade,
+		"timestamp":    this.Parse8601(datetime),
+		"datetime":     datetime,
+		"symbol":       this.SafeSymbol(marketId, nil, "/"),
+		"order":        this.SafeString(trade, "id"),
+		"type":         typeVar,
+		"side":         this.SafeString(trade, "side"),
+		"takerOrMaker": ternaryStr62328,
+		"price":        this.SafeString(trade, "filled_avg_price"),
+		"amount":       this.SafeString(trade, "filled_qty"),
+		"cost":         nil,
+		"fee":          nil,
 	}, market))
 }
-func (this *Alpaca) AuthenticateAsync(url *string, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+func (this *Alpaca) AuthenticateAsync(url any, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, url, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url *string, optionalArgs ...any) any {
+func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -896,9 +905,9 @@ func (this *Alpaca) HandleConnected(client any, message any) any {
 	//
 	return message
 }
-func (this *Alpaca) HandleCryptoMessage(client any, message any) {
-	for i := 0; i < ccxt.GetArrayLength(message); i++ {
-		var data any = ccxt.GetValue(message, i)
+func (this *Alpaca) HandleCryptoMessage(client any, message []any) {
+	for i := 0; i < len(message); i++ {
+		var data any = message[i]
 		var T *string = this.SafeString(data, "T")
 		var msg *string = this.SafeString(data, "msg")
 		if T != nil && *T == "subscription" {
@@ -941,7 +950,7 @@ func (this *Alpaca) HandleTradingMessage(client any, message map[string]any) {
 func (this *Alpaca) HandleMessage(client any, message map[string]any) {
 	this.HandleTradingMessage(client, message)
 }
-func (this *Alpaca) HandleListMessage(client any, message any) {
+func (this *Alpaca) HandleListMessage(client any, message []any) {
 	this.HandleCryptoMessage(client, message)
 }
 func (this *Alpaca) HandleAuthenticate(client any, message any) {

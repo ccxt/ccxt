@@ -1331,7 +1331,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < (networkList?.Count ?? 0); j++)
         {
-            object rawNetwork = networkList[j];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)networkList[j]);
             string? network = this.safeString(rawNetwork, "network");
             string? networkCode = this.networkIdToCode(network, code);
             Dictionary<string, object> limits = new Dictionary<string, object>() {
@@ -1672,7 +1672,7 @@ public partial class bingx : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        Int64 requestLimit = ((limit == null)) ? 500 : Math.Min(limit.Value, maxLimit);
+        Int64? requestLimit = this.parseToInt(((limit == null)) ? 500 : Math.Min(limit.Value, maxLimit));
         if ((since != null))
         {
             request["startTime"] = Math.Max((since.Value - 1), 0);
@@ -1690,7 +1690,7 @@ public partial class bingx : Exchange
             {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                endTime = mathMin(until, this.sum(since, (duration * requestLimit)));
+                endTime = Math.Min(until.Value, this.sum(since, (duration * requestLimit)));
             }
             request["endTime"] = endTime;
         } else if ((this.safeBool(market, "inverse", false) == true) && ((since != null)))
@@ -1764,10 +1764,10 @@ public partial class bingx : Exchange
         //        ]
         //    }
         //
-        object ohlcvs = this.safeValue(response, "data", new List<object>() {});
-        if (!((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> ohlcvs = this.safeList(response, "data", new List<object>() {});
+        if ((this.safeList(response, "data") == null) && (this.safeDict(response, "data") != null))
         {
-            ohlcvs = new List<object>() {ohlcvs};
+            ohlcvs = new List<object> {this.safeDict(response, "data")};
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
     }
@@ -2751,7 +2751,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2807,7 +2807,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -2901,7 +2901,7 @@ public partial class bingx : Exchange
         {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType));
         }
-        if ((((response != null && response.ContainsKey("data") ? response["data"] : null) is IList<object>) || ((response != null && response.ContainsKey("data") ? response["data"] : null).GetType().IsGenericType && (response != null && response.ContainsKey("data") ? response["data"] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((((response != null && response.ContainsKey("data") ? response["data"] : null)) is var hxArr112287 && ((hxArr112287 is IList<object>) || (hxArr112287.GetType().IsGenericType && hxArr112287.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             return this.parseTicker(this.safeDict((response != null && response.ContainsKey("data") ? response["data"] : null), 0, new Dictionary<string, object>() {}), market);
         }
@@ -2926,7 +2926,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
             string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -3375,7 +3375,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         (bool?, IDictionary<string, object>) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
         bool? standard = standardparamsStandardVariable.Item1;
         IDictionary<string, object> paramsStandard = (standardparamsStandardVariable.Item2);
@@ -3541,7 +3541,7 @@ public partial class bingx : Exchange
         }
         string? initialMarginString = this.safeString(position, "initialMargin");
         string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");
-        object collateralString = null;
+        string? collateralString = null;
         if (marginMode == "isolated")
         {
             collateralString = this.omitZero(this.safeString(position, "margin"));
@@ -4147,20 +4147,21 @@ public partial class bingx : Exchange
             result = data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        Dictionary<string, object> fixedMembers = new Dictionary<string, object>() {};
         IDictionary<string, object> stopLossDict = this.safeDict(result, "stopLoss");
         string? stopLoss = this.safeString(result, "stopLoss");
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if (((stopLossDict == null)) && ((stopLoss != null)) && ((stopLoss.IndexOf("{", StringComparison.Ordinal) == 0)))
         {
-            ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
+            fixedMembers["stopLoss"] = this.parseJson(stopLoss);
         }
         string? takeProfit = this.safeString(result, "takeProfit");
         if (((takeProfit != null)) && ((takeProfit.IndexOf("{", StringComparison.Ordinal) == 0)))
         {
-            ((IDictionary<string,object>)result)["takeProfit"] = this.parseJson(takeProfit);
+            fixedMembers["takeProfit"] = this.parseJson(takeProfit);
         }
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(result, fixedMembers), market);
     }
 
     /**
@@ -4636,35 +4637,21 @@ public partial class bingx : Exchange
                 feeCurrencyCode = this.safeString(marketResolved, feeKey);
             }
         }
-        object stopLoss = this.safeValue(orderData, "stopLoss");
-        object stopLossPrice = null;
-        if (((stopLoss != null)) && (!(stopLoss is "")))
+        // the venue sends stopLoss as a dict, as stringified json or as a number (no price)
+        string? stopLossString = this.safeString(orderData, "stopLoss");
+        bool stopLossIsDict = (this.safeDict(orderData, "stopLoss") != null);
+        object stopLossPrice = this.omitZero(this.safeString(this.safeDict(orderData, "stopLoss", new Dictionary<string, object>() {}), "stopPrice"));
+        if (!stopLossIsDict && ((stopLossString != null)) && ((stopLossString.IndexOf("{", StringComparison.Ordinal) == 0)))
         {
-            stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopLoss"));
+            stopLossPrice = this.omitZero(this.safeString(this.parseJson(stopLossString), "stopPrice"));
         }
-        if (((stopLoss != null)) && (!(stopLoss is Int64 || stopLoss is int || stopLoss is float || stopLoss is double)) && (!(stopLoss is "")))
+        // the venue sends takeProfit as a dict, as stringified json or as a number (no price)
+        string? takeProfitString = this.safeString(orderData, "takeProfit");
+        bool takeProfitIsDict = (this.safeDict(orderData, "takeProfit") != null);
+        object takeProfitPrice = this.omitZero(this.safeString(this.safeDict(orderData, "takeProfit", new Dictionary<string, object>() {}), "stopPrice"));
+        if (!takeProfitIsDict && ((takeProfitString != null)) && ((takeProfitString.IndexOf("{", StringComparison.Ordinal) == 0)))
         {
-            //  stopLoss: '{"stopPrice":50,"workingType":"MARK_PRICE","type":"STOP_MARKET","quantity":1}',
-            if ((stopLoss is string))
-            {
-                stopLoss = this.parseJson(stopLoss);
-            }
-            stopLossPrice = this.omitZero(this.safeString(stopLoss, "stopPrice"));
-        }
-        object takeProfit = this.safeValue(orderData, "takeProfit");
-        object takeProfitPrice = null;
-        if ((takeProfit != null) && (!(takeProfit is "")))
-        {
-            takeProfitPrice = this.omitZero(this.safeString(takeProfit, "takeProfit"));
-        }
-        if (((takeProfit != null)) && (!(takeProfit is Int64 || takeProfit is int || takeProfit is float || takeProfit is double)) && (!(takeProfit is "")))
-        {
-            //  takeProfit: '{"stopPrice":150,"workingType":"MARK_PRICE","type":"TAKE_PROFIT_MARKET","quantity":1}',
-            if ((takeProfit is string))
-            {
-                takeProfit = this.parseJson(takeProfit);
-            }
-            takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
+            takeProfitPrice = this.omitZero(this.safeString(this.parseJson(takeProfitString), "stopPrice"));
         }
         string rawType = this.safeStringLower2(orderData, "type", "o");
         string? stopPrice = ((string)this.omitZero(this.safeString2(orderData, "StopPrice", "stopPrice")));
@@ -6629,13 +6616,14 @@ public partial class bingx : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
+        Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
         if ((networksLength != 0))
         {
             for (int i = 0; i < networksLength; i++)
             {
                 string? networkCode = this.safeString(networkCodes, i, "");
                 IDictionary<string, object> network = this.safeDict(networks, networkCode);
-                ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                networkFees[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
@@ -6654,6 +6642,7 @@ public partial class bingx : Exchange
                 }
             }
         }
+        result["networks"] = networkFees;
         return result;
     }
 
@@ -6825,42 +6814,14 @@ public partial class bingx : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchMyLiquidations", market, paramsUntil);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        Dictionary<string, object> response = null;
-        List<object> liquidations = null;
+        IDictionary<string, object> response = null;
+        string key = "data";
         if ((subType == "inverse"))
         {
             response = await this.cswapV1PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
-            //
-            //     {
-            //         "code": 0,
-            //         "msg": "",
-            //         "timestamp": 1721280071678,
-            //         "data": [
-            //             {
-            //                 "orderId": "string",
-            //                 "symbol": "string",
-            //                 "type": "string",
-            //                 "side": "string",
-            //                 "positionSide": "string",
-            //                 "price": "string",
-            //                 "quantity": "float64",
-            //                 "stopPrice": "string",
-            //                 "workingType": "string",
-            //                 "status": "string",
-            //                 "time": "int64",
-            //                 "avgPrice": "string",
-            //                 "executedQty": "string",
-            //                 "profit": "string",
-            //                 "commission": "string",
-            //                 "updateTime": "string"
-            //             }
-            //         ]
-            //     }
-            //
-            liquidations = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            response = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
+            Dictionary<string, object> swapResponse = await this.swapV2PrivateGetTradeForceOrders(this.extend(requestUntil, paramsSubType));
             //
             //     {
             //         "code": 0,
@@ -6890,9 +6851,10 @@ public partial class bingx : Exchange
             //         }
             //     }
             //
-            IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            liquidations = this.safeList(data, "orders", new List<object>() {});
+            response = this.safeDict(swapResponse, "data", new Dictionary<string, object>() {});
+            key = "orders";
         }
+        List<object> liquidations = this.safeList(response, key, new List<object>() {});
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(liquidations, market, since, limit));
     }
 
@@ -7235,7 +7197,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
         string? marginType = this.safeStringLower(marginMode, "marginType");
@@ -7243,11 +7205,11 @@ public partial class bingx : Exchange
         {
             marginType = "cross";
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },
             { "marginMode", marginType },
-        };
+        })));
     }
 
     /**
@@ -7552,7 +7514,7 @@ public partial class bingx : Exchange
                 encodeRequest = this.rawencode(parsedParams, true);
             }
             string? encodeRequestSafe = ((encodeRequest == null)) ? "" : encodeRequest;
-            string signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256);
+            string signature = this.hmac(encodeRequestSafe, this.secret, sha256);
             requestHeaders = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },
                 { "X-SOURCE-KEY", this.safeString(this.options, "broker", "CCXT") },
@@ -7613,8 +7575,8 @@ public partial class bingx : Exchange
                 message = transferErrorMsg;
             }
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

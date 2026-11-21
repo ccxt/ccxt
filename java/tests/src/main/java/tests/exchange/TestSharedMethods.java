@@ -85,8 +85,8 @@ public class TestSharedMethods extends BaseTest {
         if ((format instanceof List))
         {
             Assert((entry instanceof List), ("entry is not an array" + logText));
-            Object realLength = ((List<?>)entry).size();
-            Object expectedLength = ((List<?>)format).size();
+            Integer realLength = ((List<?>)entry).size();
+            Integer expectedLength = ((List<?>)format).size();
             Assert(java.util.Objects.equals(realLength, expectedLength), (("entry length is not equal to expected length of " + String.valueOf(expectedLength)) + logText));
             for (var i = 0; i < ((List<?>)format).size(); i++)
             {

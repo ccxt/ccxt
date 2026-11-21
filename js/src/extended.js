@@ -3083,17 +3083,15 @@ export default class extended extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let response = undefined;
-        let order = undefined;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
         const paramsOmitted = this.omit(params, ['clientOrderId', 'client_id']);
         if (clientOrderId !== undefined) {
             const request = {
                 'externalId': clientOrderId,
             };
-            response = await this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted));
+            const response = await this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted));
             const data = this.safeList(response, 'data', []);
-            order = this.safeDict(data, 0, {});
+            return this.parseOrder(this.safeDict(data, 0, {}), market);
         }
         else {
             if (id === undefined) {
@@ -3102,10 +3100,10 @@ export default class extended extends Exchange {
             const request = {
                 'id': id,
             };
-            response = await this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted));
-            order = this.safeDict(response, 'data', {});
+            const response = await this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted));
+            const order = this.safeDict(response, 'data', {});
+            return this.parseOrder(order, market);
         }
-        return this.parseOrder(order, market);
     }
     /**
      * @method

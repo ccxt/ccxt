@@ -548,9 +548,9 @@ public partial class lighter : Exchange
 
     public virtual object getLighterPrivateKey(string? strAccountIndex, string? strApiKeyIndex)
     {
-        IDictionary<string, object> auths = this.safeDict(this.options, "auths");
-        IDictionary<string, object> accountAuths = this.safeDict(auths, strAccountIndex);
-        IDictionary<string, object> apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex);
+        IDictionary<string, object> auths = this.safeDict(this.options, "auths", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountAuths = this.safeDict(auths, strAccountIndex, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex, new Dictionary<string, object>() {});
         return this.safeString(apiKeyAuths, "lighterPrivateKey");
     }
 
@@ -593,7 +593,7 @@ public partial class lighter : Exchange
         var apiKeyIndexOption = apiKeyIndexOptionparamsApiKeyIndexVariable[0];
         var paramsApiKeyIndex = apiKeyIndexOptionparamsApiKeyIndexVariable[1];
         Int64? apiKeyIndex = this.safeInteger(new List<object>() {apiKeyIndexOption}, 0);
-        if (((apiKeyIndex != null)) && ((apiKeyIndex >= 4)) && ((apiKeyIndex == null || apiKeyIndex <= 254)))
+        if (((apiKeyIndex != null)) && (apiKeyIndex >= 4) && (apiKeyIndex.Value <= 254))
         {
             return new List<object> {this.parseToInt(apiKeyIndex), paramsApiKeyIndex};
         }
@@ -651,7 +651,7 @@ public partial class lighter : Exchange
             // }
             //
             List<object> subAccounts = this.safeList(res, "sub_accounts");
-            if (((subAccounts is IList<object>) || (subAccounts.GetType().IsGenericType && subAccounts.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((subAccounts != null))
             {
                 IDictionary<string, object> account = this.safeDict(subAccounts, 0);
                 if ((account == null))
@@ -709,12 +709,12 @@ public partial class lighter : Exchange
             List<object> res = this.handleOptionAndParams2(new Dictionary<string, object>() {}, "createAuth", "accountIndex", "account_index");
             accountIndex = this.safeString(res, 0);
         }
-        IDictionary<string, object> auths = this.safeDict(this.options, "auths");
-        IDictionary<string, object> accountAuths = this.safeDict(auths, accountIndex);
-        IDictionary<string, object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
+        IDictionary<string, object> auths = this.safeDict(this.options, "auths", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountAuths = this.safeDict(auths, accountIndex, new Dictionary<string, object>() {});
+        IDictionary<string, object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex, new Dictionary<string, object>() {});
         Int64? cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         Int64? minimumRemaining = this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60);
-        if (((cachedDeadline != null)) && ((minimumRemaining != null)) && (isGreaterThanOrEqual((cachedDeadline - minimumRemaining), this.seconds())))
+        if (((cachedDeadline != null)) && ((minimumRemaining != null)) && (((cachedDeadline - minimumRemaining) >= this.seconds())))
         {
             return this.safeString(cachedAuth, "token");
         }
@@ -750,11 +750,11 @@ public partial class lighter : Exchange
         {
             return "1";
         }
-        if ((c > 100))
+        if (c > 100)
         {
             throw new BadRequest ((this.id + " pow() requires m < 100.")) ;
         }
-        for (int i = 1; (i < c); i++)
+        for (int i = 1; i < c; i++)
         {
             r = Precise.stringMul(r, n);
         }
@@ -767,7 +767,7 @@ public partial class lighter : Exchange
         int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, "Ethereum Signed Message:", newline, this.numberToString(binaryMessageLength));
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
@@ -775,8 +775,8 @@ public partial class lighter : Exchange
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
-        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? r = this.safeString(signature, "r", "");
+        string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
@@ -1222,15 +1222,15 @@ public partial class lighter : Exchange
                 }
             }
         }
-        object order = null;
-        if (totalOrderRequests > 0)
+        if (totalOrderRequests < 1)
         {
-            order = (orderRequests != null && 0 < orderRequests.Count ? orderRequests[0] : null);
+            throw new InvalidOrder ((this.id + " createOrder() built no order request")) ;
         }
+        Dictionary<string, object> order = ((Dictionary<string, object>)(orderRequests != null && 0 < orderRequests.Count ? orderRequests[0] : null));
         // the nonce could be updated
         if ((this.safeInteger(order, "nonce") == null))
         {
-            ((IDictionary<string,object>)order)["nonce"] = await this.FetchNonce(accountIndex, apiKeyIndex);
+            order["nonce"] = await this.FetchNonce(accountIndex, apiKeyIndex);
         }
         object txType = null;
         object txInfo = null;
@@ -1524,7 +1524,7 @@ public partial class lighter : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "market_id");
             string? type = this.safeString(market, "market_type");
             if (type == "perp")
@@ -1941,7 +1941,7 @@ public partial class lighter : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetOrderBookDetails(parameters);
         List<object> spotTickers = this.safeList(response, "spot_order_book_details", new List<object>() {});
         List<object> swapTickers = this.safeList(response, "order_book_details", new List<object>() {});
@@ -2000,8 +2000,8 @@ public partial class lighter : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"until"});
         Int64 now = this.milliseconds();
-        object startTs = null;
-        object endTs = null;
+        Int64? startTs = null;
+        Int64? endTs = null;
         if ((since != null))
         {
             startTs = since;
@@ -2221,13 +2221,13 @@ public partial class lighter : Exchange
         List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
         for (int i = 0; i < accounts.Count; i++)
         {
-            IDictionary<string, object> account = this.safeDict(accounts, i);
+            IDictionary<string, object> account = this.safeDict(accounts, i, new Dictionary<string, object>() {});
             if (type == "spot")
             {
                 List<object> assets = this.safeList(account, "assets", new List<object>() {});
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    IDictionary<string, object> asset = this.safeDict(assets, j);
+                    IDictionary<string, object> asset = this.safeDict(assets, j, new Dictionary<string, object>() {});
                     string? codeId = this.safeString(asset, "symbol");
                     string? code = this.safeCurrencyCode(codeId);
                     Dictionary<string, object> balance = this.extend(this.account(), this.safeDict(result, code, new Dictionary<string, object>() {}));
@@ -2350,14 +2350,14 @@ public partial class lighter : Exchange
         List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
         for (int i = 0; i < accounts.Count; i++)
         {
-            IDictionary<string, object> account = this.safeDict(accounts, i);
+            IDictionary<string, object> account = this.safeDict(accounts, i, new Dictionary<string, object>() {});
             List<object> positions = this.safeList(account, "positions", new List<object>() {});
             for (int j = 0; j < positions.Count; j++)
             {
                 allPositions.Add(positions[j]);
             }
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, symbols));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -2400,7 +2400,7 @@ public partial class lighter : Exchange
         if ((imfStr != null))
         {
             Int64? imf = this.parseToInt(imfStr);
-            if ((imf > 0))
+            if (imf > 0)
             {
                 leverage = ((double)100 / imf);
             }
@@ -4093,7 +4093,7 @@ public partial class lighter : Exchange
         {
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

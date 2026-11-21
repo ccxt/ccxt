@@ -399,11 +399,12 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.orders = ArrayCacheBySymbolById(limit)
         params = self.safe_dict(message, 'params', {})
         channel = self.safe_string(params, 'channel')
-        data = self.safe_value(params, 'data', {})
+        dataList = self.safe_list(params, 'data')
         orders = []
-        if isinstance(data, list):
-            orders = self.parse_orders(data)
+        if dataList is not None:
+            orders = self.parse_orders(dataList)
         else:
+            data = self.safe_value(params, 'data', {})
             orders = [self.parse_order(data)]
         ordersLength = len(orders)
         for i in range(0, ordersLength):
@@ -823,7 +824,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             await self.load_markets()
         symbolResolved = self.symbol(symbol)
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbolResolved, timeframe]], since, limit, paramsResolved)
-        return ohlcvs[symbolResolved][timeframe]
+        bySymbol = ohlcvs[symbolResolved]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """

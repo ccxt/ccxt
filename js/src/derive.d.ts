@@ -127,7 +127,7 @@ export default class derive extends Exchange {
      */
     fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     parseSettlement(settlement: Dict, market?: Market): Dict;
-    parseSettlements(settlements: any[], market?: Market): List;
+    parseSettlements(settlements: Dict[], market?: Market): List;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method

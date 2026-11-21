@@ -2185,12 +2185,13 @@ class blofin(Exchange, ImplicitAPI):
         #
         result = self.deposit_withdraw_fee(fee)
         chainsLength = len(fee)
+        networkFees = {}
         for i in range(0, chainsLength):
             chain = self.safe_dict(fee, i)
             networkCode = self.chain_id_to_network_code(self.safe_string(chain, 'chain'))
             if networkCode is None:
                 continue
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'withdraw': {
                     'fee': self.safe_number(chain, 'withdrawFee'),
                     'percentage': False,
@@ -2200,6 +2201,7 @@ class blofin(Exchange, ImplicitAPI):
                     'percentage': None,
                 },
             }
+        result['networks'] = networkFees
         if chainsLength == 1:
             # a single network means the currency-level fee is unambiguous
             networks = self.safe_dict(result, 'networks', {})
@@ -2585,22 +2587,21 @@ class blofin(Exchange, ImplicitAPI):
         if trigger is True:
             method = 'privatePostTradeCancelTpsl'
         if clientOrderIds is None:
-            orderIds = self.parse_ids(ids)
             if tpslIds is not None:
                 for i in range(0, len(tpslIds)):
                     request.append({
                         'tpslId': self.safe_string(tpslIds, i),
                         'instId': market['id'],
                     })
-            for i in range(0, len(orderIds)):
+            for i in range(0, len(ids)):
                 if trigger is True:
                     request.append({
-                        'tpslId': self.safe_string(orderIds, i),
+                        'tpslId': self.safe_string(ids, i),
                         'instId': market['id'],
                     })
                 else:
                     request.append({
-                        'orderId': self.safe_string(orderIds, i),
+                        'orderId': self.safe_string(ids, i),
                         'instId': market['id'],
                     })
         else:
@@ -2723,7 +2724,7 @@ class blofin(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             symbolsLength = len(symbols)
-            if symbolsLength == 0:
+            if symbolsLength > 0:
                 market = self.market(symbols[0])
                 request['instId'] = market['id']
         if limit is not None:
@@ -2936,8 +2937,9 @@ class blofin(Exchange, ImplicitAPI):
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
         symbolsNormalized = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbolsNormalized)
         request = {
-            'instId': ','.join(self.market_ids(symbolsNormalized)),
+            'instId': ','.join(marketIds),
             'marginMode': marginMode,
         }
         response = self.privateGetAccountBatchLeverageInfo(self.extend(request, query))

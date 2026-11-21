@@ -361,7 +361,7 @@ public class Hollaex extends HollaexApi
                 }} );
             }} );
             put( "options", new HashMap<String, Object>() {{
-                put( "api-expires", Hollaex.this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(Hollaex.this.parseToInt(Hollaex.this.timeout), 1000)) );
+                put( "api-expires", Hollaex.this.parseToInt((((double) Hollaex.this.parseToInt(Hollaex.this.timeout)) / ((double) 1000))) );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "btc" );
                     put( "ERC20", "eth" );
@@ -393,117 +393,121 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicGetConstants(parameters)).join();
-            //
-            //     {
-            //         "coins": {
-            //             "xmr": {
-            //                 "id": 7,
-            //                 "fullname": "Monero",
-            //                 "symbol": "xmr",
-            //                 "active": true,
-            //                 "allow_deposit": true,
-            //                 "allow_withdrawal": true,
-            //                 "withdrawal_fee": 0.02,
-            //                 "min": 0.001,
-            //                 "max": 100000,
-            //                 "increment_unit": 0.001,
-            //                 "deposit_limits": { '1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0 },
-            //                 "withdrawal_limits": { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1 },
-            //                 "created_at": "2019-12-09T07:14:02.720Z",
-            //                 "updated_at": "2020-01-16T12:12:53.162Z"
-            //             },
-            //             // ...
-            //         },
-            //         "pairs": {
-            //             "btc-usdt": {
-            //                 "id": 2,
-            //                 "name": "btc-usdt",
-            //                 "pair_base": "btc",
-            //                 "pair_2": "usdt",
-            //                 "taker_fees": { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0 },
-            //                 "maker_fees": { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0 },
-            //                 "min_size": 0.0001,
-            //                 "max_size": 1000,
-            //                 "min_price": 100,
-            //                 "max_price": 100000,
-            //                 "increment_size": 0.0001,
-            //                 "increment_price": 0.05,
-            //                 "active": true,
-            //                 "created_at": "2019-12-09T07:15:54.537Z",
-            //                 "updated_at": "2019-12-09T07:15:54.537Z"
-            //             },
-            //         },
-            //         "config": { tiers: 10 },
-            //         "status": true
-            //     }
-            //
-            Map<String, Object> pairs = this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
-            List<String> keys = new ArrayList<String>(pairs.keySet());
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < keys.size(); i++)
-            {
-                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Map<String, Object> market = this.safeDict(pairs, key, null);
-                String baseId = this.safeString(market, "pair_base");
-                String quoteId = this.safeString(market, "pair_2");
-                Object baseCode = this.commonCurrencyCode(baseId.toUpperCase());
-                Object quoteCode = this.commonCurrencyCode(quoteId.toUpperCase());
-                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", this.safeString(market, "name"));
-                j39v1.put("symbol", ((baseCode + "/") + quoteCode));
-                j39v1.put("base", baseCode);
-                j39v1.put("quote", quoteCode);
-                j39v1.put("settle", null);
-                j39v1.put("baseId", baseId);
-                j39v1.put("quoteId", quoteId);
-                j39v1.put("settleId", null);
-                j39v1.put("type", "spot");
-                j39v1.put("spot", true);
-                j39v1.put("margin", false);
-                j39v1.put("swap", false);
-                j39v1.put("future", false);
-                j39v1.put("option", false);
-                j39v1.put("active", this.safeBool(market, "active", (Object) null));
-                j39v1.put("contract", false);
-                j39v1.put("linear", null);
-                j39v1.put("inverse", null);
-                j39v1.put("contractSize", null);
-                j39v1.put("expiry", null);
-                j39v1.put("expiryDatetime", null);
-                j39v1.put("strike", null);
-                j39v1.put("optionType", null);
-                j39v1.put("precision", new HashMap<String, Object>() {{
-                        put( "amount", Hollaex.this.safeNumber(market, "increment_size", (Object) null) );
-                        put( "price", Hollaex.this.safeNumber(market, "increment_price", (Object) null) );
-                    }});
-                j39v1.put("limits", new HashMap<String, Object>() {{
-                        put( "leverage", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                        put( "amount", new HashMap<String, Object>() {{
-                            put( "min", Hollaex.this.safeNumber(market, "min_size", (Object) null) );
-                            put( "max", Hollaex.this.safeNumber(market, "max_size", (Object) null) );
-                        }} );
-                        put( "price", new HashMap<String, Object>() {{
-                            put( "min", Hollaex.this.safeNumber(market, "min_price", (Object) null) );
-                            put( "max", Hollaex.this.safeNumber(market, "max_price", (Object) null) );
-                        }} );
-                        put( "cost", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                    }});
-                j39v1.put("created", this.parse8601(this.safeString(market, "created_at")));
-                j39v1.put("info", market);
-                ((List<Object>)result).add(j39v1);
-            }
-            return result;
-        });
+        Map<String, Object> response = (this.publicGetConstants(parameters)).join();
+        //
+        //     {
+        //         "coins": {
+        //             "xmr": {
+        //                 "id": 7,
+        //                 "fullname": "Monero",
+        //                 "symbol": "xmr",
+        //                 "active": true,
+        //                 "allow_deposit": true,
+        //                 "allow_withdrawal": true,
+        //                 "withdrawal_fee": 0.02,
+        //                 "min": 0.001,
+        //                 "max": 100000,
+        //                 "increment_unit": 0.001,
+        //                 "deposit_limits": { '1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0 },
+        //                 "withdrawal_limits": { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1 },
+        //                 "created_at": "2019-12-09T07:14:02.720Z",
+        //                 "updated_at": "2020-01-16T12:12:53.162Z"
+        //             },
+        //             // ...
+        //         },
+        //         "pairs": {
+        //             "btc-usdt": {
+        //                 "id": 2,
+        //                 "name": "btc-usdt",
+        //                 "pair_base": "btc",
+        //                 "pair_2": "usdt",
+        //                 "taker_fees": { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0 },
+        //                 "maker_fees": { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0 },
+        //                 "min_size": 0.0001,
+        //                 "max_size": 1000,
+        //                 "min_price": 100,
+        //                 "max_price": 100000,
+        //                 "increment_size": 0.0001,
+        //                 "increment_price": 0.05,
+        //                 "active": true,
+        //                 "created_at": "2019-12-09T07:15:54.537Z",
+        //                 "updated_at": "2019-12-09T07:15:54.537Z"
+        //             },
+        //         },
+        //         "config": { tiers: 10 },
+        //         "status": true
+        //     }
+        //
+        Map<String, Object> pairs = this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
+        List<String> keys = new ArrayList<String>(pairs.keySet());
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < keys.size(); i++)
+        {
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            Map<String, Object> market = this.safeDict(pairs, key, null);
+            String baseId = this.safeString(market, "pair_base");
+            String quoteId = this.safeString(market, "pair_2");
+            String upperBaseId = baseId.toUpperCase();
+            String upperQuoteId = quoteId.toUpperCase();
+            String baseCode = this.commonCurrencyCode(upperBaseId);
+            String quoteCode = this.commonCurrencyCode(upperQuoteId);
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", this.safeString(market, "name"));
+            j39v1.put("symbol", ((baseCode + "/") + quoteCode));
+            j39v1.put("base", baseCode);
+            j39v1.put("quote", quoteCode);
+            j39v1.put("settle", null);
+            j39v1.put("baseId", baseId);
+            j39v1.put("quoteId", quoteId);
+            j39v1.put("settleId", null);
+            j39v1.put("type", "spot");
+            j39v1.put("spot", true);
+            j39v1.put("margin", false);
+            j39v1.put("swap", false);
+            j39v1.put("future", false);
+            j39v1.put("option", false);
+            j39v1.put("active", this.safeBool(market, "active", (Object) null));
+            j39v1.put("contract", false);
+            j39v1.put("linear", null);
+            j39v1.put("inverse", null);
+            j39v1.put("contractSize", null);
+            j39v1.put("expiry", null);
+            j39v1.put("expiryDatetime", null);
+            j39v1.put("strike", null);
+            j39v1.put("optionType", null);
+            j39v1.put("precision", new HashMap<String, Object>() {{
+                    put( "amount", Hollaex.this.safeNumber(market, "increment_size", (Object) null) );
+                    put( "price", Hollaex.this.safeNumber(market, "increment_price", (Object) null) );
+                }});
+            j39v1.put("limits", new HashMap<String, Object>() {{
+                    put( "leverage", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                    put( "amount", new HashMap<String, Object>() {{
+                        put( "min", Hollaex.this.safeNumber(market, "min_size", (Object) null) );
+                        put( "max", Hollaex.this.safeNumber(market, "max_size", (Object) null) );
+                    }} );
+                    put( "price", new HashMap<String, Object>() {{
+                        put( "min", Hollaex.this.safeNumber(market, "min_price", (Object) null) );
+                        put( "max", Hollaex.this.safeNumber(market, "max_price", (Object) null) );
+                    }} );
+                    put( "cost", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                }});
+            j39v1.put("created", this.parse8601(this.safeString(market, "created_at")));
+            j39v1.put("info", market);
+            ((List<Object>)result).add(j39v1);
+        }
+        return result;
 
     }
 
@@ -517,80 +521,82 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicGetConstants(parameters)).join();
-            //
-            //    {
-            //        "coins": {
-            //            "usdt": {
-            //                "id": "6",
-            //                "fullname": "USD Tether",
-            //                "symbol": "usdt",
-            //                "active": true,
-            //                "verified": true,
-            //                "allow_deposit": true,
-            //                "allow_withdrawal": true,
-            //                "withdrawal_fee": "20",
-            //                "min": "1",
-            //                "max": "10000000",
-            //                "increment_unit": "0.0001",
-            //                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
-            //                "code": "usdt",
-            //                "is_public": true,
-            //                "meta": {
-            //                    "color": "#27a17a",
-            //                    "website": "https://tether.to",
-            //                    "explorer": "https://blockchair.com/tether",
-            //                    "decimal_points": "6"
-            //                },
-            //                "estimated_price": "1",
-            //                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
-            //                "type": "blockchain",
-            //                "network": "eth,trx,bnb,matic",
-            //                "standard": "",
-            //                "issuer": "HollaEx",
-            //                "withdrawal_fees": {
-            //                    "bnb": {
-            //                        "value": "0.8",
-            //                        "active": true,
-            //                        "symbol": "usdt"
-            //                    },
-            //                    "eth": {
-            //                        "value": "1.5",
-            //                        "active": true,
-            //                        "symbol": "usdt"
-            //                    },
-            //                    "trx": {
-            //                        "value": "4",
-            //                        "active": true,
-            //                        "symbol": "usdt"
-            //                    },
-            //                    "matic": {
-            //                        "value": "0.3",
-            //                        "active": true,
-            //                        "symbol": "usdt"
-            //                    }
-            //                },
-            //                "display_name": null,
-            //                "deposit_fees": null,
-            //                "is_risky": false,
-            //                "market_cap": "144568098696.29",
-            //                "category": "stable",
-            //                "created_at": "2019-08-09T10:45:43.367Z",
-            //                "updated_at": "2025-03-25T17:12:37.970Z",
-            //                "created_by": "168",
-            //                "owner_id": "1"
-            //            },
-            //         },
-            //         "network":"https://api.hollaex.network"
-            //     }
-            //
-            Map<String, Object> coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
-            List<Object> values = new ArrayList<Object>(coins.values());
-            return this.parseCurrencies(values);
-        });
+        Map<String, Object> response = (this.publicGetConstants(parameters)).join();
+        //
+        //    {
+        //        "coins": {
+        //            "usdt": {
+        //                "id": "6",
+        //                "fullname": "USD Tether",
+        //                "symbol": "usdt",
+        //                "active": true,
+        //                "verified": true,
+        //                "allow_deposit": true,
+        //                "allow_withdrawal": true,
+        //                "withdrawal_fee": "20",
+        //                "min": "1",
+        //                "max": "10000000",
+        //                "increment_unit": "0.0001",
+        //                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+        //                "code": "usdt",
+        //                "is_public": true,
+        //                "meta": {
+        //                    "color": "#27a17a",
+        //                    "website": "https://tether.to",
+        //                    "explorer": "https://blockchair.com/tether",
+        //                    "decimal_points": "6"
+        //                },
+        //                "estimated_price": "1",
+        //                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+        //                "type": "blockchain",
+        //                "network": "eth,trx,bnb,matic",
+        //                "standard": "",
+        //                "issuer": "HollaEx",
+        //                "withdrawal_fees": {
+        //                    "bnb": {
+        //                        "value": "0.8",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "eth": {
+        //                        "value": "1.5",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "trx": {
+        //                        "value": "4",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    },
+        //                    "matic": {
+        //                        "value": "0.3",
+        //                        "active": true,
+        //                        "symbol": "usdt"
+        //                    }
+        //                },
+        //                "display_name": null,
+        //                "deposit_fees": null,
+        //                "is_risky": false,
+        //                "market_cap": "144568098696.29",
+        //                "category": "stable",
+        //                "created_at": "2019-08-09T10:45:43.367Z",
+        //                "updated_at": "2025-03-25T17:12:37.970Z",
+        //                "created_by": "168",
+        //                "owner_id": "1"
+        //            },
+        //         },
+        //         "network":"https://api.hollaex.network"
+        //     }
+        //
+        Map<String, Object> coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
+        List<Object> values = new ArrayList<Object>(coins.values());
+        return this.parseCurrencies(values);
 
     }
 
@@ -671,26 +677,28 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBooksCore(symbols, limit, parameters)).thenApply(OrderBooks::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBooksCore(List<String> symbols, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> marketIds = new ArrayList<String>(response.keySet());
-            for (var i = 0; i < marketIds.size(); i++)
-            {
-                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                Map<String, Object> orderbook = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
-                String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
-                Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-                result.put(symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bids", "asks", 0, 1, 2));
-            }
-            return result;
-        }).thenApply(OrderBooks::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        List<String> marketIds = new ArrayList<String>(response.keySet());
+        for (var i = 0; i < marketIds.size(); i++)
+        {
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            Map<String, Object> orderbook = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
+            String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
+            Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
+            result.put(symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bids", "asks", 0, 1, 2));
+        }
+        return result;
 
     }
 
@@ -706,41 +714,43 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "btc-usdt": {
-            //             "bids": [
-            //                 [ 8836.4, 1.022 ],
-            //                 [ 8800, 0.0668 ],
-            //                 [ 8797.75, 0.2398 ],
-            //             ],
-            //             "asks": [
-            //                 [ 8839.35, 1.5334 ],
-            //                 [ 8852.6, 0.0579 ],
-            //                 [ 8860.45, 0.1815 ],
-            //             ],
-            //             "timestamp": "2020-03-03T02:27:25.147Z"
-            //         },
-            //         "eth-usdt": {},
-            //         // ...
-            //     }
-            //
-            Map<String, Object> orderbook = this.safeDict(response, market.get("id"), null);
-            Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-            return this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "btc-usdt": {
+        //             "bids": [
+        //                 [ 8836.4, 1.022 ],
+        //                 [ 8800, 0.0668 ],
+        //                 [ 8797.75, 0.2398 ],
+        //             ],
+        //             "asks": [
+        //                 [ 8839.35, 1.5334 ],
+        //                 [ 8852.6, 0.0579 ],
+        //                 [ 8860.45, 0.1815 ],
+        //             ],
+        //             "timestamp": "2020-03-03T02:27:25.147Z"
+        //         },
+        //         "eth-usdt": {},
+        //         // ...
+        //     }
+        //
+        Map<String, Object> orderbook = this.safeDict(response, market.get("id"), null);
+        Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
+        return this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
 
     }
 
@@ -755,31 +765,33 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "open": 8615.55,
-            //         "close": 8841.05,
-            //         "high": 8921.1,
-            //         "low": 8607,
-            //         "last": 8841.05,
-            //         "volume": 20.2802,
-            //         "timestamp": "2020-03-03T03:11:18.965Z"
-            //     }
-            //
-            return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "open": 8615.55,
+        //         "close": 8841.05,
+        //         "high": 8921.1,
+        //         "low": 8607,
+        //         "last": 8841.05,
+        //         "volume": 20.2802,
+        //         "timestamp": "2020-03-03T03:11:18.965Z"
+        //     }
+        //
+        return this.parseTicker(response, market);
 
     }
 
@@ -794,32 +806,34 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            //
-            //     {
-            //         "bch-usdt": {
-            //             "time": "2020-03-02T04:29:45.011Z",
-            //             "open": 341.65,
-            //             "close":337.9,
-            //             "high":341.65,
-            //             "low":337.3,
-            //             "last":337.9,
-            //             "volume":0.054,
-            //             "symbol":"bch-usdt"
-            //         },
-            //         // ...
-            //     }
-            //
-            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(Tickers::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+        Map<String, Object> response = (this.publicGetTickers(parameters)).join();
+        //
+        //     {
+        //         "bch-usdt": {
+        //             "time": "2020-03-02T04:29:45.011Z",
+        //             "open": 341.65,
+        //             "close":337.9,
+        //             "high":341.65,
+        //             "low":337.3,
+        //             "last":337.9,
+        //             "volume":0.054,
+        //             "symbol":"bch-usdt"
+        //         },
+        //         // ...
+        //     }
+        //
+        return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
 
@@ -909,34 +923,36 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "btc-usdt": [
-            //             {
-            //                 "size": 0.5,
-            //                 "price": 8830,
-            //                 "side": "buy",
-            //                 "timestamp": "2020-03-03T04:44:33.034Z"
-            //             },
-            //             // ...
-            //         ]
-            //     }
-            //
-            List<Object> trades = this.safeList(response, market.get("id"), new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "btc-usdt": [
+        //             {
+        //                 "size": 0.5,
+        //                 "price": 8830,
+        //                 "side": "buy",
+        //                 "timestamp": "2020-03-03T04:44:33.034Z"
+        //             },
+        //             // ...
+        //         ]
+        //     }
+        //
+        List<Object> trades = this.safeList(response, market.get("id"), new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1012,65 +1028,67 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradingFeesCore(parameters)).thenApply(TradingFees::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradingFeesCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.publicGetTiers(parameters)).join();
-            //
-            //     {
-            //         "1": {
-            //             "id": "1",
-            //             "name": "Silver",
-            //             "icon": '',
-            //             "description": "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
-            //             "deposit_limit": "0",
-            //             "withdrawal_limit": "1000",
-            //             "fees": {
-            //                 "maker": {
-            //                     'eth-btc': "0.1",
-            //                     'ada-usdt': "0.1",
-            //                     ...
-            //                 },
-            //                 "taker": {
-            //                     'eth-btc': "0.1",
-            //                     'ada-usdt': "0.1",
-            //                     ...
-            //                 }
-            //             },
-            //             "note": "<ul>\n<li>Login and verify email</li>\n</ul>\n",
-            //             "created_at": "2021-03-22T03:51:39.129Z",
-            //             "updated_at": "2021-11-01T02:51:56.214Z"
-            //         },
-            //         ...
-            //     }
-            //
-            Map<String, Object> firstTier = this.safeDict(response, "1", new HashMap<String, Object>() {{}});
-            Map<String, Object> fees = this.safeDict(firstTier, "fees", new HashMap<String, Object>() {{}});
-            Map<String, Object> makerFees = this.safeDict(fees, "maker", new HashMap<String, Object>() {{}});
-            Map<String, Object> takerFees = this.safeDict(fees, "taker", new HashMap<String, Object>() {{}});
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<String> symbols = this.symbols;
-            for (var i = 0; i < symbols.size(); i++)
-            {
-                String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Map<String, Object> market = this.market(symbol);
-                String makerString = this.safeString(makerFees, market.get("id"));
-                String takerString = this.safeString(takerFees, market.get("id"));
-                result.put(symbol, new HashMap<String, Object>() {{
-        put( "info", fees );
-        put( "symbol", symbol );
-        put( "maker", Hollaex.this.parseNumber(Precise.stringDiv(makerString, "100")) );
-        put( "taker", Hollaex.this.parseNumber(Precise.stringDiv(takerString, "100")) );
-        put( "percentage", true );
-        put( "tierBased", true );
-    }});
-            }
-            return result;
-        }).thenApply(TradingFees::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.publicGetTiers(parameters)).join();
+        //
+        //     {
+        //         "1": {
+        //             "id": "1",
+        //             "name": "Silver",
+        //             "icon": '',
+        //             "description": "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
+        //             "deposit_limit": "0",
+        //             "withdrawal_limit": "1000",
+        //             "fees": {
+        //                 "maker": {
+        //                     'eth-btc': "0.1",
+        //                     'ada-usdt': "0.1",
+        //                     ...
+        //                 },
+        //                 "taker": {
+        //                     'eth-btc': "0.1",
+        //                     'ada-usdt': "0.1",
+        //                     ...
+        //                 }
+        //             },
+        //             "note": "<ul>\n<li>Login and verify email</li>\n</ul>\n",
+        //             "created_at": "2021-03-22T03:51:39.129Z",
+        //             "updated_at": "2021-11-01T02:51:56.214Z"
+        //         },
+        //         ...
+        //     }
+        //
+        Map<String, Object> firstTier = this.safeDict(response, "1", new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = this.safeDict(firstTier, "fees", new HashMap<String, Object>() {{}});
+        Map<String, Object> makerFees = this.safeDict(fees, "maker", new HashMap<String, Object>() {{}});
+        Map<String, Object> takerFees = this.safeDict(fees, "taker", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        List<String> symbols = this.symbols;
+        for (var i = 0; i < symbols.size(); i++)
+        {
+            String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            Map<String, Object> market = this.market(symbol);
+            String makerString = this.safeString(makerFees, market.get("id"));
+            String takerString = this.safeString(takerFees, market.get("id"));
+            result.put(symbol, new HashMap<String, Object>() {{
+    put( "info", fees );
+    put( "symbol", symbol );
+    put( "maker", Hollaex.this.parseNumber(Precise.stringDiv(makerString, "100")) );
+    put( "taker", Hollaex.this.parseNumber(Precise.stringDiv(takerString, "100")) );
+    put( "percentage", true );
+    put( "tierBased", true );
+}});
+        }
+        return result;
 
     }
 
@@ -1089,56 +1107,58 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-                put( "resolution", Hollaex.this.safeString(Hollaex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
-            }};
-            Boolean paginate = false;
-            Long maxLimit = 500L;
-            Pair<Boolean, Map<String, Object>> paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", paginate);
-            Boolean paginateOption = paginateOptionparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateOptionparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginateOption))
-            {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
-            }
-            Long now = this.milliseconds();
-            // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-            Long until = this.safeInteger(paramsPaginate, "until", now);
-            Long timeDelta = ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * ((long) maxLimit)) * 1000L);
-            if (java.util.Objects.equals(since, null))
-            {
-                request.put("from", this.parseToInt((((double) ((until - timeDelta))) / ((double) 1000)))); // convert to seconds
-            } else
-            {
-                request.put("from", this.parseToInt((((double) since) / ((double) 1000)))); // convert to seconds
-            }
-            request.put("to", this.parseToInt((((double) until) / ((double) 1000)))); // convert to seconds
-            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "until");
-            List<Object> response = (this.publicGetChart(this.extend(request, paramsOmitted))).join();
-            //
-            //     [
-            //         {
-            //             "time":"2020-03-02T20:00:00.000Z",
-            //             "close":8872.1,
-            //             "high":8872.1,
-            //             "low":8858.6,
-            //             "open":8858.6,
-            //             "symbol":"btc-usdt",
-            //             "volume":1.2922
-            //         },
-            //     ]
-            //
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+            put( "resolution", Hollaex.this.safeString(Hollaex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+        }};
+        Boolean paginate = false;
+        Long maxLimit = 500L;
+        Pair<Boolean, Map<String, Object>> paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", paginate);
+        Boolean paginateOption = paginateOptionparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateOptionparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginateOption))
+        {
+            return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
+        }
+        Long now = this.milliseconds();
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        Long until = this.safeInteger(paramsPaginate, "until", now);
+        Long timeDelta = ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * ((long) maxLimit)) * 1000L);
+        if (java.util.Objects.equals(since, null))
+        {
+            request.put("from", this.parseToInt((((double) ((until - timeDelta))) / ((double) 1000)))); // convert to seconds
+        } else
+        {
+            request.put("from", this.parseToInt((((double) since) / ((double) 1000)))); // convert to seconds
+        }
+        request.put("to", this.parseToInt((((double) until) / ((double) 1000)))); // convert to seconds
+        Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "until");
+        List<Object> response = (this.publicGetChart(this.extend(request, paramsOmitted))).join();
+        //
+        //     [
+        //         {
+        //             "time":"2020-03-02T20:00:00.000Z",
+        //             "close":8872.1,
+        //             "high":8872.1,
+        //             "low":8858.6,
+        //             "open":8858.6,
+        //             "symbol":"btc-usdt",
+        //             "volume":1.2922
+        //         },
+        //     ]
+        //
+        return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
@@ -1170,8 +1190,8 @@ public class Hollaex extends HollaexApi
         {
             throw new ExchangeError((this.id + " currencies not loaded")) ;
         }
-        Object currenciesById = this.currencies_by_id;
-        List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)currenciesById).keySet());
+        Map<String, Object> currenciesById = this.currencies_by_id;
+        List<String> currencyIds = new ArrayList<String>(currenciesById.keySet());
         for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = this.safeString(currencyIds, i, "");
@@ -1197,28 +1217,30 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.privateGetUserBalance(parameters)).join();
-            //
-            //     {
-            //         "updated_at": "2020-03-02T22:27:38.428Z",
-            //         "btc_balance": 0,
-            //         "btc_pending": 0,
-            //         "btc_available": 0,
-            //         "eth_balance": 0,
-            //         "eth_pending": 0,
-            //         "eth_available": 0,
-            //         // ...
-            //     }
-            //
-            return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.privateGetUserBalance(parameters)).join();
+        //
+        //     {
+        //         "updated_at": "2020-03-02T22:27:38.428Z",
+        //         "btc_balance": 0,
+        //         "btc_pending": 0,
+        //         "btc_available": 0,
+        //         "eth_balance": 0,
+        //         "eth_pending": 0,
+        //         "eth_available": 0,
+        //         // ...
+        //     }
+        //
+        return this.parseBalance(response);
 
     }
 
@@ -1234,43 +1256,45 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrderCore(id, symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }};
-            Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "id": "string",
-            //         "side": "sell",
-            //         "symbol": "xht-usdt",
-            //         "size": 0.1,
-            //         "filled": 0,
-            //         "stop": null,
-            //         "fee": 0,
-            //         "fee_coin": "usdt",
-            //         "type": "limit",
-            //         "price": 1.09,
-            //         "status": "new",
-            //         "created_by": 116,
-            //         "created_at": "2021-02-17T02:32:38.910Z",
-            //         "updated_at": "2021-02-17T02:32:38.910Z",
-            //         "User": {
-            //             "id": 116,
-            //             "email": "fight@club.com",
-            //             "username": "narrator",
-            //             "exchange_id": 176
-            //         }
-            //     }
-            //
-            return this.parseOrder(response, (Map<String, Object>) null);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }};
+        Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "id": "string",
+        //         "side": "sell",
+        //         "symbol": "xht-usdt",
+        //         "size": 0.1,
+        //         "filled": 0,
+        //         "stop": null,
+        //         "fee": 0,
+        //         "fee_coin": "usdt",
+        //         "type": "limit",
+        //         "price": 1.09,
+        //         "status": "new",
+        //         "created_by": 116,
+        //         "created_at": "2021-02-17T02:32:38.910Z",
+        //         "updated_at": "2021-02-17T02:32:38.910Z",
+        //         "User": {
+        //             "id": 116,
+        //             "email": "fight@club.com",
+        //             "username": "narrator",
+        //             "exchange_id": 176
+        //         }
+        //     }
+        //
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -1287,14 +1311,16 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "open", true );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "open", true );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -1311,14 +1337,16 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "open", false );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "open", false );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -1334,45 +1362,47 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }};
-            Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
-            //             {
-            //                 "id": "string",
-            //                 "side": "sell",
-            //                 "symbol": "xht-usdt",
-            //                 "size": 0.1,
-            //                 "filled": 0,
-            //                 "stop": null,
-            //                 "fee": 0,
-            //                 "fee_coin": "usdt",
-            //                 "type": "limit",
-            //                 "price": 1.09,
-            //                 "status": "new",
-            //                 "created_by": 116,
-            //                 "created_at": "2021-02-17T02:32:38.910Z",
-            //                 "updated_at": "2021-02-17T02:32:38.910Z",
-            //                 "User": {
-            //                     "id": 116,
-            //                     "email": "fight@club.com",
-            //                     "username": "narrator",
-            //                     "exchange_id": 176
-            //                 }
-            //             }
-            if (java.util.Objects.equals(response, null))
-            {
-                throw new OrderNotFound(((this.id + " fetchOrder() could not find order id ") + id)) ;
-            }
-            return this.parseOrder(response, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }};
+        Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
+        //             {
+        //                 "id": "string",
+        //                 "side": "sell",
+        //                 "symbol": "xht-usdt",
+        //                 "size": 0.1,
+        //                 "filled": 0,
+        //                 "stop": null,
+        //                 "fee": 0,
+        //                 "fee_coin": "usdt",
+        //                 "type": "limit",
+        //                 "price": 1.09,
+        //                 "status": "new",
+        //                 "created_by": 116,
+        //                 "created_at": "2021-02-17T02:32:38.910Z",
+        //                 "updated_at": "2021-02-17T02:32:38.910Z",
+        //                 "User": {
+        //                     "id": 116,
+        //                     "email": "fight@club.com",
+        //                     "username": "narrator",
+        //                     "exchange_id": 176
+        //                 }
+        //             }
+        if (java.util.Objects.equals(response, null))
+        {
+            throw new OrderNotFound(((this.id + " fetchOrder() could not find order id ") + id)) ;
+        }
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -1389,61 +1419,63 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_date", this.iso8601(since));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit); // default 50, max 100
-            }
-            Map<String, Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "count": 1,
-            //         "data": [
-            //             {
-            //                 "id": "string",
-            //                 "side": "sell",
-            //                 "symbol": "xht-usdt",
-            //                 "size": 0.1,
-            //                 "filled": 0,
-            //                 "stop": null,
-            //                 "fee": 0,
-            //                 "fee_coin": "usdt",
-            //                 "type": "limit",
-            //                 "price": 1.09,
-            //                 "status": "new",
-            //                 "created_by": 116,
-            //                 "created_at": "2021-02-17T02:32:38.910Z",
-            //                 "updated_at": "2021-02-17T02:32:38.910Z",
-            //                 "User": {
-            //                     "id": 116,
-            //                     "email": "fight@club.com",
-            //                     "username": "narrator",
-            //                     "exchange_id": 176
-            //                 }
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("symbol", market.get("id"));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_date", this.iso8601(since));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit); // default 50, max 100
+        }
+        Map<String, Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": "string",
+        //                 "side": "sell",
+        //                 "symbol": "xht-usdt",
+        //                 "size": 0.1,
+        //                 "filled": 0,
+        //                 "stop": null,
+        //                 "fee": 0,
+        //                 "fee_coin": "usdt",
+        //                 "type": "limit",
+        //                 "price": 1.09,
+        //                 "status": "new",
+        //                 "created_by": 116,
+        //                 "created_at": "2021-02-17T02:32:38.910Z",
+        //                 "updated_at": "2021-02-17T02:32:38.910Z",
+        //                 "User": {
+        //                     "id": 116,
+        //                     "email": "fight@club.com",
+        //                     "username": "narrator",
+        //                     "exchange_id": 176
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1542,65 +1574,67 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("symbol", market.get("id"));
-            request.put("side", side);
-            request.put("size", this.amountToPrecision(symbol, amount));
-            request.put("type", type);
-            Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop")), (Object) null);
-            Map<String, Object> meta = this.safeDict(parameters, "meta", new HashMap<String, Object>() {{}});
-            Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
-            Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-            Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
-            if (!Boolean.TRUE.equals(isMarketOrder))
-            {
-                request.put("price", this.priceToPrecision(symbol, price));
-            }
-            if (!java.util.Objects.equals(triggerPrice, null))
-            {
-                request.put("stop", this.priceToPrecision(symbol, triggerPrice));
-            }
-            if (Boolean.TRUE.equals(postOnly))
-            {
-                request.put("meta", new HashMap<String, Object>() {{
-        put( "post_only", true );
-    }});
-            }
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop")));
-            Map<String, Object> response = (this.privatePostOrder(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "fee": 0,
-            //         "meta": {},
-            //         "symbol": "xht-usdt",
-            //         "side": "sell",
-            //         "size": 0.1,
-            //         "type": "limit",
-            //         "price": 1,
-            //         "fee_structure": {
-            //             "maker": 0.2,
-            //             "taker": 0.2
-            //         },
-            //         "fee_coin": "usdt",
-            //         "id": "string",
-            //         "created_by": 116,
-            //         "filled": 0,
-            //         "status": "new",
-            //         "updated_at": "2021-02-17T03:03:19.231Z",
-            //         "created_at": "2021-02-17T03:03:19.231Z",
-            //         "stop": null
-            //     }
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", side);
+        request.put("size", this.amountToPrecision(symbol, amount));
+        request.put("type", type);
+        Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop")), (Object) null);
+        Map<String, Object> meta = this.safeDict(parameters, "meta", new HashMap<String, Object>() {{}});
+        Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
+        Boolean isMarketOrder = java.util.Objects.equals(type, "market");
+        Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
+        if (!Boolean.TRUE.equals(isMarketOrder))
+        {
+            request.put("price", this.priceToPrecision(symbol, price));
+        }
+        if (!java.util.Objects.equals(triggerPrice, null))
+        {
+            request.put("stop", this.priceToPrecision(symbol, triggerPrice));
+        }
+        if (Boolean.TRUE.equals(postOnly))
+        {
+            request.put("meta", new HashMap<String, Object>() {{
+    put( "post_only", true );
+}});
+        }
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop")));
+        Map<String, Object> response = (this.privatePostOrder(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "fee": 0,
+        //         "meta": {},
+        //         "symbol": "xht-usdt",
+        //         "side": "sell",
+        //         "size": 0.1,
+        //         "type": "limit",
+        //         "price": 1,
+        //         "fee_structure": {
+        //             "maker": 0.2,
+        //             "taker": 0.2
+        //         },
+        //         "fee_coin": "usdt",
+        //         "id": "string",
+        //         "created_by": 116,
+        //         "filled": 0,
+        //         "status": "new",
+        //         "updated_at": "2021-02-17T03:03:19.231Z",
+        //         "created_at": "2021-02-17T03:03:19.231Z",
+        //         "stop": null
+        //     }
+        //
+        return this.parseOrder(response, market);
 
     }
 
@@ -1616,32 +1650,34 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }};
-            Map<String, Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "title": "string",
-            //         "symbol": "xht-usdt",
-            //         "side": "sell",
-            //         "size": 1,
-            //         "type": "limit",
-            //         "price": 0.1,
-            //         "id": "string",
-            //         "created_by": 34,
-            //         "filled": 0
-            //     }
-            //
-            return this.parseOrder(response, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }};
+        Map<String, Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "title": "string",
+        //         "symbol": "xht-usdt",
+        //         "side": "sell",
+        //         "size": 1,
+        //         "type": "limit",
+        //         "price": 0.1,
+        //         "id": "string",
+        //         "created_by": 34,
+        //         "filled": 0
+        //     }
+        //
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -1656,39 +1692,41 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = null;
-            market = this.market(symbol);
-            request.put("symbol", market.get("id"));
-            List<Object> response = (this.privateDeleteOrderAll(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         {
-            //             "title": "string",
-            //             "symbol": "xht-usdt",
-            //             "side": "sell",
-            //             "size": 1,
-            //             "type": "limit",
-            //             "price": 0.1,
-            //             "id": "string",
-            //             "created_by": 34,
-            //             "filled": 0
-            //         }
-            //     ]
-            //
-            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> market = null;
+        market = this.market(symbol);
+        request.put("symbol", market.get("id"));
+        List<Object> response = (this.privateDeleteOrderAll(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         {
+        //             "title": "string",
+        //             "symbol": "xht-usdt",
+        //             "side": "sell",
+        //             "size": 1,
+        //             "type": "limit",
+        //             "price": 0.1,
+        //             "id": "string",
+        //             "created_by": 34,
+        //             "filled": 0
+        //         }
+        //     ]
+        //
+        return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1705,47 +1743,49 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("symbol", market.get("id"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit); // default 50, max 100
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_date", this.iso8601(since));
-            }
-            Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "count": 1,
-            //         "data": [
-            //             {
-            //                 "side": "buy",
-            //                 "symbol": "eth-usdt",
-            //                 "size": 0.086,
-            //                 "price": 226.19,
-            //                 "timestamp": "2020-03-03T08:03:55.459Z",
-            //                 "fee": 0.1
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("symbol", market.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit); // default 50, max 100
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_date", this.iso8601(since));
+        }
+        Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "side": "buy",
+        //                 "symbol": "eth-usdt",
+        //                 "size": 0.086,
+        //                 "price": 226.19,
+        //                 "timestamp": "2020-03-03T08:03:55.459Z",
+        //                 "fee": 0.1
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1795,72 +1835,71 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositAddressesCore(codes, parameters)).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositAddressesCore(Object codes, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String network = this.safeString(parameters, "network");
-            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
-            Map<String, Object> response = (this.privateGetUser(paramsOmitted)).join();
-            //
-            //     {
-            //         "id":620,
-            //         "email":"igor.kroitor@gmail.com",
-            //         "full_name":"",
-            //         "gender":false,
-            //         "nationality":"",
-            //         "dob":null,
-            //         "phone_number":"",
-            //         "address":{"city":"","address":"","country":"","postal_code":""},
-            //         "id_data":{"note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""},
-            //         "bank_account":[],
-            //         "crypto_wallet":{},
-            //         "verification_level":1,
-            //         "email_verified":true,
-            //         "otp_enabled":true,
-            //         "activated":true,
-            //         "username":"igor.kroitor",
-            //         "affiliation_code":"QSWA6G",
-            //         "settings":{
-            //             "chat":{"set_username":false},
-            //             "risk":{"popup_warning":false,"order_portfolio_percentage":20},
-            //             "audio":{"public_trade":false,"order_completed":true,"order_partially_completed":true},
-            //             "language":"en",
-            //             "interface":{"theme":"white","order_book_levels":10},
-            //             "notification":{"popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true}
-            //         },
-            //         "affiliation_rate":0,
-            //         "network_id":10620,
-            //         "discount":0,
-            //         "created_at":"2021-03-24T02:37:57.379Z",
-            //         "updated_at":"2021-03-24T02:37:57.379Z",
-            //         "balance":{
-            //             "btc_balance":0,
-            //             "btc_available":0,
-            //             "eth_balance":0.000914,
-            //             "eth_available":0.000914,
-            //             "updated_at":"2020-03-04T04:03:27.174Z
-            //         "},
-            //         "wallet":[
-            //             {"currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"},
-            //             {"currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z"}
-            //         ]
-            //     }
-            //
-            List<Object> wallet = this.safeList(response, "wallet", new ArrayList<Object>(Arrays.asList()));
-            List<Object> addresses = null;
-            if (java.util.Objects.equals(network, null))
-            {
-                addresses = wallet;
-            } else
-            {
-                addresses = this.filterBy(wallet, "network", this.networkCodeToId(network, (String) null));
-            }
-            return this.parseDepositAddresses(addresses, codes, false, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String network = this.safeString(parameters, "network");
+        Map<String, Object> paramsOmitted = this.omit(parameters, "network");
+        Map<String, Object> response = (this.privateGetUser(paramsOmitted)).join();
+        //
+        //     {
+        //         "id":620,
+        //         "email":"igor.kroitor@gmail.com",
+        //         "full_name":"",
+        //         "gender":false,
+        //         "nationality":"",
+        //         "dob":null,
+        //         "phone_number":"",
+        //         "address":{"city":"","address":"","country":"","postal_code":""},
+        //         "id_data":{"note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""},
+        //         "bank_account":[],
+        //         "crypto_wallet":{},
+        //         "verification_level":1,
+        //         "email_verified":true,
+        //         "otp_enabled":true,
+        //         "activated":true,
+        //         "username":"igor.kroitor",
+        //         "affiliation_code":"QSWA6G",
+        //         "settings":{
+        //             "chat":{"set_username":false},
+        //             "risk":{"popup_warning":false,"order_portfolio_percentage":20},
+        //             "audio":{"public_trade":false,"order_completed":true,"order_partially_completed":true},
+        //             "language":"en",
+        //             "interface":{"theme":"white","order_book_levels":10},
+        //             "notification":{"popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true}
+        //         },
+        //         "affiliation_rate":0,
+        //         "network_id":10620,
+        //         "discount":0,
+        //         "created_at":"2021-03-24T02:37:57.379Z",
+        //         "updated_at":"2021-03-24T02:37:57.379Z",
+        //         "balance":{
+        //             "btc_balance":0,
+        //             "btc_available":0,
+        //             "eth_balance":0.000914,
+        //             "eth_available":0.000914,
+        //             "updated_at":"2020-03-04T04:03:27.174Z
+        //         "},
+        //         "wallet":[
+        //             {"currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"},
+        //             {"currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z"}
+        //         ]
+        //     }
+        //
+        List<Object> wallet = this.safeList(response, "wallet", new ArrayList<Object>(Arrays.asList()));
+        if (java.util.Objects.equals(network, null))
+        {
+            return this.parseDepositAddresses(wallet, codes, false, new HashMap<String, Object>() {{}});
+        }
+        List<Object> addresses = this.filterBy(wallet, "network", this.networkCodeToId(network, (String) null));
+        return this.parseDepositAddresses(addresses, codes, false, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1877,55 +1916,57 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-                request.put("currency", currency.get("id"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit); // default 50, max 100
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_date", this.iso8601(since));
-            }
-            Map<String, Object> response = (this.privateGetUserDeposits(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "count": 1,
-            //         "data": [
-            //             {
-            //                 "id": 539,
-            //                 "amount": 20,
-            //                 "fee": 0,
-            //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-            //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-            //                 "status": true,
-            //                 "dismissed": false,
-            //                 "rejected": false,
-            //                 "description": "",
-            //                 "type": "deposit",
-            //                 "currency": "usdt",
-            //                 "created_at": "2020-03-03T07:56:36.198Z",
-            //                 "updated_at": "2020-03-03T08:00:05.674Z",
-            //                 "user_id": 620
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency((String) (code));
+            request.put("currency", currency.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit); // default 50, max 100
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_date", this.iso8601(since));
+        }
+        Map<String, Object> response = (this.privateGetUserDeposits(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": 539,
+        //                 "amount": 20,
+        //                 "fee": 0,
+        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status": true,
+        //                 "dismissed": false,
+        //                 "rejected": false,
+        //                 "description": "",
+        //                 "type": "deposit",
+        //                 "currency": "usdt",
+        //                 "created_at": "2020-03-03T07:56:36.198Z",
+        //                 "updated_at": "2020-03-03T08:00:05.674Z",
+        //                 "user_id": 620
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1941,50 +1982,52 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalCore(id, code, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalCore(String id, String code, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "transaction_id", id );
-            }};
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-                request.put("currency", currency.get("id"));
-            }
-            Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "count": 1,
-            //         "data": [
-            //             {
-            //                 "id": 539,
-            //                 "amount": 20,
-            //                 "fee": 0,
-            //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-            //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-            //                 "status": true,
-            //                 "dismissed": false,
-            //                 "rejected": false,
-            //                 "description": "",
-            //                 "type": "withdrawal",
-            //                 "currency": "usdt",
-            //                 "created_at": "2020-03-03T07:56:36.198Z",
-            //                 "updated_at": "2020-03-03T08:00:05.674Z",
-            //                 "user_id": 620
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> transaction = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTransaction(transaction, currency);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "transaction_id", id );
+        }};
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency((String) (code));
+            request.put("currency", currency.get("id"));
+        }
+        Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": 539,
+        //                 "amount": 20,
+        //                 "fee": 0,
+        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status": true,
+        //                 "dismissed": false,
+        //                 "rejected": false,
+        //                 "description": "",
+        //                 "type": "withdrawal",
+        //                 "currency": "usdt",
+        //                 "created_at": "2020-03-03T07:56:36.198Z",
+        //                 "updated_at": "2020-03-03T08:00:05.674Z",
+        //                 "user_id": 620
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> transaction = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        return this.parseTransaction(transaction, currency);
 
     }
 
@@ -2001,55 +2044,57 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> currency = null;
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-                request.put("currency", currency.get("id"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit); // default 50, max 100
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_date", this.iso8601(since));
-            }
-            Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "count": 1,
-            //         "data": [
-            //             {
-            //                 "id": 539,
-            //                 "amount": 20,
-            //                 "fee": 0,
-            //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-            //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-            //                 "status": true,
-            //                 "dismissed": false,
-            //                 "rejected": false,
-            //                 "description": "",
-            //                 "type": "withdrawal",
-            //                 "currency": "usdt",
-            //                 "created_at": "2020-03-03T07:56:36.198Z",
-            //                 "updated_at": "2020-03-03T08:00:05.674Z",
-            //                 "user_id": 620
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> currency = null;
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency((String) (code));
+            request.put("currency", currency.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit); // default 50, max 100
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_date", this.iso8601(since));
+        }
+        Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": 539,
+        //                 "amount": 20,
+        //                 "fee": 0,
+        //                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status": true,
+        //                 "dismissed": false,
+        //                 "rejected": false,
+        //                 "description": "",
+        //                 "type": "withdrawal",
+        //                 "currency": "usdt",
+        //                 "created_at": "2020-03-03T07:56:36.198Z",
+        //                 "updated_at": "2020-03-03T08:00:05.674Z",
+        //                 "user_id": 620
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2178,46 +2223,48 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
+    {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
-            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address, code, tagWithdrawTag);
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            String addressWithTag = address;
-            if (!java.util.Objects.equals(tagWithdrawTag, null))
-            {
-                addressWithTag = ((address + ":") + tagWithdrawTag);
-            }
-            String network = this.safeString(paramsWithdrawTag, "network");
-            if (java.util.Objects.equals(network, null))
-            {
-                throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("currency", currency.get("id"));
-            request.put("amount", amount);
-            request.put("address", addressWithTag);
-            request.put("network", this.networkCodeToId(network, code));
-            Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, this.omit(paramsWithdrawTag, "network")))).join();
-            //
-            //     {
-            //         "message": "Withdrawal request is in the queue and will be processed.",
-            //         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
-            //         "amount": 1,
-            //         "currency": "xht",
-            //         "fee": 0,
-            //         "fee_coin": "xht"
-            //     }
-            //
-            return this.parseTransaction(response, currency);
-        }).thenApply(Transaction::new);
+        List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+        String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+        Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+        this.checkAddress(address, code, tagWithdrawTag);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency((String) (code));
+        String addressWithTag = address;
+        if (!java.util.Objects.equals(tagWithdrawTag, null))
+        {
+            addressWithTag = ((address + ":") + tagWithdrawTag);
+        }
+        String network = this.safeString(paramsWithdrawTag, "network");
+        if (java.util.Objects.equals(network, null))
+        {
+            throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("currency", currency.get("id"));
+        request.put("amount", amount);
+        request.put("address", addressWithTag);
+        request.put("network", this.networkCodeToId(network, code));
+        Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, this.omit(paramsWithdrawTag, "network")))).join();
+        //
+        //     {
+        //         "message": "Withdrawal request is in the queue and will be processed.",
+        //         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        //         "amount": 1,
+        //         "currency": "xht",
+        //         "fee": 0,
+        //         "fee_coin": "xht"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
 
     }
 
@@ -2312,48 +2359,50 @@ public class Hollaex extends HollaexApi
      */
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositWithdrawFeesCore(codes, parameters)).thenApply(DepositWithdrawFees::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositWithdrawFeesCore(Object codes, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicGetConstants(parameters)).join();
-            //
-            //     {
-            //         "coins":{
-            //             "bch":{
-            //                 "id":4,
-            //                 "fullname":"Bitcoin Cash",
-            //                 "symbol":"bch",
-            //                 "active":true,
-            //                 "verified":true,
-            //                 "allow_deposit":true,
-            //                 "allow_withdrawal":true,
-            //                 "withdrawal_fee":0.0001,
-            //                 "min":0.001,
-            //                 "max":100000,
-            //                 "increment_unit":0.001,
-            //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-            //                 "code":"bch",
-            //                 "is_public":true,
-            //                 "meta":{},
-            //                 "estimated_price":null,
-            //                 "description":null,
-            //                 "type":"blockchain",
-            //                 "network":null,
-            //                 "standard":null,
-            //                 "issuer":"HollaEx",
-            //                 "withdrawal_fees":null,
-            //                 "created_at":"2019-08-09T10:45:43.367Z",
-            //                 "updated_at":"2021-12-13T03:08:32.372Z",
-            //                 "created_by":1,
-            //                 "owner_id":1
-            //             },
-            //         },
-            //         "network":"https://api.hollaex.network"
-            //     }
-            //
-            Map<String, Object> coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
-            return this.parseDepositWithdrawFees(coins, codes, "symbol");
-        }).thenApply(DepositWithdrawFees::new);
+        Map<String, Object> response = (this.publicGetConstants(parameters)).join();
+        //
+        //     {
+        //         "coins":{
+        //             "bch":{
+        //                 "id":4,
+        //                 "fullname":"Bitcoin Cash",
+        //                 "symbol":"bch",
+        //                 "active":true,
+        //                 "verified":true,
+        //                 "allow_deposit":true,
+        //                 "allow_withdrawal":true,
+        //                 "withdrawal_fee":0.0001,
+        //                 "min":0.001,
+        //                 "max":100000,
+        //                 "increment_unit":0.001,
+        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //                 "code":"bch",
+        //                 "is_public":true,
+        //                 "meta":{},
+        //                 "estimated_price":null,
+        //                 "description":null,
+        //                 "type":"blockchain",
+        //                 "network":null,
+        //                 "standard":null,
+        //                 "issuer":"HollaEx",
+        //                 "withdrawal_fees":null,
+        //                 "created_at":"2019-08-09T10:45:43.367Z",
+        //                 "updated_at":"2021-12-13T03:08:32.372Z",
+        //                 "created_by":1,
+        //                 "owner_id":1
+        //             },
+        //         },
+        //         "network":"https://api.hollaex.network"
+        //     }
+        //
+        Map<String, Object> coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
+        return this.parseDepositWithdrawFees(coins, codes, "symbol");
 
     }
 
@@ -2397,7 +2446,7 @@ public class Hollaex extends HollaexApi
                     auth = (auth + requestBody);
                 }
             }
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             requestHeaders.put("api-signature", signature);
         }
         String bodyResult = requestBody;

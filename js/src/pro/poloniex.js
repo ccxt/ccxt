@@ -1037,12 +1037,14 @@ export default class poloniex extends poloniexRest {
                         previousOrder['average'] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                     }
                     previousOrder['cost'] = this.parseNumber(totalCost);
-                    if (previousOrder['filled'] !== undefined) {
+                    const previousOrderFilledRaw = this.safeString(previousOrder, 'filled');
+                    if (previousOrderFilledRaw !== undefined) {
                         const tradeAmount = this.numberToString(trade['amount']);
                         let previousOrderFilled = this.numberToString(previousOrder['filled']);
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         previousOrder['filled'] = previousOrderFilled;
-                        if (previousOrder['amount'] !== undefined) {
+                        const previousOrderAmountRaw = this.safeString(previousOrder, 'amount');
+                        if (previousOrderAmountRaw !== undefined) {
                             const previousOrderAmount = this.numberToString(previousOrder['amount']);
                             previousOrder['remaining'] = this.parseNumber(Precise.stringSub(previousOrderAmount, previousOrderFilled));
                         }
@@ -1263,8 +1265,8 @@ export default class poloniex extends poloniexRest {
             const subscription = this.safeDict(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');
             const timestamp = this.safeInteger(item, 'ts');
-            const asks = this.safeList(item, 'asks');
-            const bids = this.safeList(item, 'bids');
+            const asks = this.safeList(item, 'asks', []);
+            const bids = this.safeList(item, 'bids', []);
             if (snapshot || update) {
                 let orderbook = this.safeValue(this.orderbooks, symbol);
                 if (snapshot && (orderbook === undefined)) {

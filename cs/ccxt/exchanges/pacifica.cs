@@ -1197,7 +1197,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> settingsBySymbol = new Dictionary<string, object>() {};
         for (int i = 0; i < settingsLen; i++)
         {
-            object setting = (settings != null && i < settings.Count ? settings[i] : null);
+            IDictionary<string, object> setting = ((IDictionary<string, object>)(settings != null && i < settings.Count ? settings[i] : null));
             string? marketId = this.safeString(setting, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -1476,27 +1476,26 @@ public partial class pacifica : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", tf },
         };
-        object sinceValue = since;
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_time", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        if ((this.safeInteger(requestUntil, "end_time") == null))
+        Int64? untilEnd = this.safeInteger(requestUntil, "end_time");
+        Int64? startTime = this.parseToInt((nowMs - (limitValue * duration)));
+        if ((untilEnd != null))
         {
-            if ((sinceValue == null))
-            {
-                sinceValue = (nowMs - (limitValue * duration));
-            }
-            Int64? windowEnd = this.parseToInt(this.sum(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(sinceValue, 1), (limitValue * duration)));
-            Int64? until = ((windowEnd > nowMs)) ? nowMs : windowEnd;
-            requestUntil["end_time"] = until;
-        } else
-        {
-            if ((sinceValue == null))
-            {
-                sinceValue = subtract(GetValue(requestUntil, "end_time"), (limitValue * duration));
-            }
+            startTime = this.parseToInt((untilEnd - (limitValue * duration)));
         }
-        requestUntil["start_time"] = sinceValue;
+        if ((since != null))
+        {
+            startTime = this.parseToInt(since);
+        }
+        if ((untilEnd == null))
+        {
+            Int64? windowEnd = this.parseToInt(this.sum((startTime - 1), (limitValue * duration)));
+            Int64? until = (windowEnd > nowMs) ? nowMs : windowEnd;
+            requestUntil["end_time"] = until;
+        }
+        requestUntil["start_time"] = startTime;
         Dictionary<string, object> response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {
@@ -2478,7 +2477,7 @@ public partial class pacifica : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "created_at");
             result.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2508,7 +2507,7 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetInfoPrices(parameters);
         //
         //  {
@@ -2535,7 +2534,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object info = data[i];
+            IDictionary<string, object> info = ((IDictionary<string, object>)data[i]);
             ccxt.Ticker ticker = this.parseTicker(info);
             string? symbol = ticker.symbol;
             if ((symbol != null))
@@ -2883,12 +2882,11 @@ public partial class pacifica : Exchange
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         List<object> sorted = this.sortBy(data, "history_id", true);
         int lastIdx = (sorted?.Count ?? 0);
-        object lastInfo = new Dictionary<string, object>() {};
         if (lastIdx > 0)
         {
-            lastInfo = (sorted != null && 0 < sorted.Count ? sorted[0] : null);
+            return this.parseOrder((sorted != null && 0 < sorted.Count ? sorted[0] : null), market);
         }
-        return this.parseOrder(lastInfo, market);
+        return this.parseOrder(new Dictionary<string, object>() {}, market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -3116,7 +3114,7 @@ public partial class pacifica : Exchange
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchPositions", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
         IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
@@ -4190,9 +4188,9 @@ public partial class pacifica : Exchange
         if ((error == true) || nonEmptyMessage)
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorId, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorId, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback); // documented message prefixes are more specific than the http-status echo
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             Int64? statusCode = this.parseToInt(code);
             string codeAsString = ((object)code).ToString();
             if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
@@ -4248,7 +4246,7 @@ public partial class pacifica : Exchange
         };
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         string? cost = this.safeString(config, "cost", "1");
@@ -4311,7 +4309,7 @@ public partial class pacifica : Exchange
     public virtual string? signMessage(IDictionary<string, object> header, IDictionary<string, object> payload, object privateKey)
     {
         string? message = this.prepareMessage(header, payload);
-        string? messageBytes = this.encode(message);
+        string? messageBytes = message;
         byte[] secretBytes = this.base58ToBinary(privateKey);
         object seed = this.arraySlice(secretBytes, 0, 32);
         string signatureBase64 = eddsa(messageBytes, seed, ed25519);
@@ -4358,7 +4356,8 @@ public partial class pacifica : Exchange
         (string?, IDictionary<string, object>) agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams(paramsExpiryWindow, "postActionRequest", "agentAddress");
         string? agentAddress = agentAddressparamsAgentAddressVariable.Item1;
         IDictionary<string, object> paramsAgentAddress = (agentAddressparamsAgentAddressVariable.Item2);
-        string? originAddress = ((string)getValue(this.handleOriginAndSingleAddress("postActionRequest", paramsAgentAddress), 0));
+        IList<object> originAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("postActionRequest", paramsAgentAddress);
+        string? originAddress = (string)originAddressVariable[0];
         if ((originAddress == null))
         {
             throw new ArgumentsRequired ((((this.id + " action: ") + operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;

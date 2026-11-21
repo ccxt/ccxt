@@ -330,6 +330,14 @@ Below are key notes on how to keep the JS code transpileable.
 Use the linter `npm run lint js/your-exchange-implementation.js` before you build. It will cover many (but not all) the issues,
 so manual checking will still be required if transpilation fails.
 
+#### Transpile-safety lint rules (`ccxt-safe`)
+
+`npm run lint` also runs the local `ccxt-safe` ESLint plugin (`eslint-rules/`) on `ts/src/*.ts`, `ts/src/pro/*.ts`, `ts/src/prediction/*.ts`, `ts/src/base/Exchange.ts` and `ts/src/base/PredictionExchange.ts`. Each rule is ratcheted per file by `eslint-rules/baseline/<rule>.json`: a file may keep its existing findings, but adding one more fails the lint. After removing findings, lower the baseline with `node -r ./build/use-typescript6.cjs eslint-rules/baseline/update.mjs <rule>`. Rule tests: `node -r ./build/use-typescript6.cjs --test eslint-rules/tests/*.test.mjs`.
+
+| rule | rejects | write instead |
+|------|---------|---------------|
+| `no-safe-value` | `this.safeValue`, `this.safeValue2`, `this.safeValueN` | `safeDict` / `safeList` / `safeString` / `safeInteger` / `safeNumber` / `safeBool` with a default |
+
 If you see a `[TypeError] Cannot read property '1' of null` exception or any other transpilation error when you `npm run build`, check if your code satisfies the following rules:
 
 - don't put empty lines inside your methods

@@ -831,7 +831,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object market = response[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)response[i]);
             string? id = this.safeString2(market, "symbol", "instrument_id");
             string? baseId = this.safeString2(market, "base_asset", "base_currency");
             string? quoteId = this.safeString2(market, "quote_asset", "quote_currency");
@@ -951,7 +951,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "market");
             if ((id == null))
             {
@@ -1047,7 +1047,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(rows, i);
@@ -1257,7 +1257,7 @@ public partial class digifinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? first = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
         if ((first != null))
@@ -2401,9 +2401,9 @@ public partial class digifinex : Exchange
         List<object> success = this.safeList(response, "success", new List<object>() {});
         List<object> error = this.safeList(response, "error", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (success?.Count ?? 0); i++)
+        for (int i = 0; i < success.Count; i++)
         {
-            object order = success[i];
+            string? order = this.safeString(success, i);
             result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
@@ -2411,9 +2411,9 @@ public partial class digifinex : Exchange
                 { "status", "canceled" },
             })));
         }
-        for (int i = 0; i < (error?.Count ?? 0); i++)
+        for (int i = 0; i < error.Count; i++)
         {
-            object order = error[i];
+            string? order = this.safeString(error, i);
             result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },
@@ -2525,7 +2525,7 @@ public partial class digifinex : Exchange
                 throw new ArgumentsRequired ((this.id + " cancelOrdersForSymbols() requires a symbol for each order")) ;
             }
             Dictionary<string, object> market = this.market(symbol);
-            string? orderMarketType = ((string)(market.ContainsKey("type") ? market["type"] : null));
+            string? orderMarketType = this.safeString(market, "type");
             if ((marketType == null))
             {
                 marketType = orderMarketType;
@@ -2548,7 +2548,7 @@ public partial class digifinex : Exchange
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
                 Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
-                string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+                string? marketId = this.safeString(market, "id");
                 string? orderId = ((string)ids[i]);
                 ordersRequests.Add(new Dictionary<string, object>() {
                     { "instrument_id", marketId },
@@ -2686,7 +2686,7 @@ public partial class digifinex : Exchange
         Int64? timestamp = null;
         Int64? lastTradeTimestamp = null;
         string? timeInForce = null;
-        object type = null;
+        string? type = null;
         bool? reduceOnly = null;
         object side = this.safeString(order, "type");
         string? sideRaw = this.safeString(order, "type");
@@ -2747,7 +2747,7 @@ public partial class digifinex : Exchange
                 if (numParts > 1)
                 {
                     side = (parts != null && 0 < parts.Count ? parts[0] : null);
-                    type = (parts != null && 1 < parts.Count ? parts[1] : null);
+                    type = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
                 } else
                 {
                     type = "limit";
@@ -3780,7 +3780,7 @@ public partial class digifinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string? currencyId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
+        string? currencyId = this.safeString(currency, "id");
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -4245,7 +4245,7 @@ public partial class digifinex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(data, "instrument_id");
             string? symbolInner = this.safeSymbol(marketId);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -4338,7 +4338,7 @@ public partial class digifinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         string? marketType = null;
@@ -4352,7 +4352,10 @@ public partial class digifinex : Exchange
                 {
                     throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                if ((symbolsLength == 1))
+                {
+                    symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                }
             } else
             {
                 symbol = symbolsNormalized;
@@ -4616,7 +4619,7 @@ public partial class digifinex : Exchange
         //
         string? marketId = this.safeString2(position, "instrument_id", "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? marginMode = this.safeString(position, "margin_mode");
         if ((marginMode != null))
         {
@@ -5389,7 +5392,7 @@ public partial class digifinex : Exchange
                 nonce = this.seconds().ToString();
                 auth = urlencoded;
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             if ((method == "GET"))
             {
                 if ((urlencoded != ""))

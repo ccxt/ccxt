@@ -1479,7 +1479,7 @@ class coinsph extends coinsph$1["default"] {
         }
         request['newOrderRespType'] = newOrderRespType;
         const paramsRequest = this.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        let response = {};
+        let response = undefined;
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));
         }

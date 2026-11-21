@@ -459,7 +459,7 @@ public partial class bit2me : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? status = this.safeString(market, "marketEnabled");
-        IDictionary<string, object> fees = this.fees;
+        object tradingFees = this.safeValue(this.fees, "trading");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", (bs == null ? null : bs + "/" + quote) },
@@ -484,8 +484,8 @@ public partial class bit2me : Exchange
             { "expiryDatetime", null },
             { "strike", null },
             { "optionType", null },
-            { "taker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "taker") },
-            { "maker", getValue((fees != null && fees.ContainsKey("trading") ? fees["trading"] : null), "maker") },
+            { "taker", this.safeNumber(tradingFees, "taker") },
+            { "maker", this.safeNumber(tradingFees, "maker") },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "amountPrecision"))) },
                 { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
@@ -675,7 +675,7 @@ public partial class bit2me : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> marketSymbols = this.marketSymbols(this.toArray(symbols));
+        IList<object> marketSymbols = this.marketSymbols(symbols);
         List<object> response = await this.publicGetV2TradingTickers(parameters);
         //
         //     [
@@ -1049,14 +1049,14 @@ public partial class bit2me : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object wallet = getValue(response, i);
+            IDictionary<string, object> wallet = ((IDictionary<string, object>)(response != null && i < response.Count ? response[i] : null));
             string? currencyId = this.safeString(wallet, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2015,8 +2015,8 @@ public partial class bit2me : Exchange
                 }
                 message = message + (":" + requestBody);
             }
-            byte[] digest = ((byte[])this.hash(this.encode(message), sha256, "binary"));
-            string signature = this.hmac(digest, this.encode(this.secret), sha512, "base64");
+            byte[] digest = ((byte[])this.hash(message, sha256, "binary"));
+            string signature = this.hmac(digest, this.secret, sha512, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "x-api-key", this.apiKey },
                 { "x-nonce", nonce },
@@ -2062,10 +2062,10 @@ public partial class bit2me : Exchange
         {
             string? message = this.safeStringN(response, new List<object>() {"message", "description", "error"});
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), payloadCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, payloadCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

@@ -368,8 +368,12 @@ func (this *Btcturk) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//        ],
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var markets []any = SafeListTypedDefault(data, "symbols", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var markets []any
+	markets, _ = data["symbols"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -451,15 +455,16 @@ func (this *Btcturk) ParseMarket(entry any) map[string]any {
 		"info":    entry,
 	})
 }
-func (this *Btcturk) ParseBalance(response any) map[string]any {
-	var data []any = SafeListTyped(response, "data")
+func (this *Btcturk) ParseBalance(response map[string]any) map[string]any {
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -554,9 +559,12 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pairSymbol": market["id"],
+		"pairSymbol": nil,
+	}
+	if market.Id != nil {
+		request["pairSymbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetOrderbook(this.Extend(request, params))
@@ -575,10 +583,14 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	//         ]
 	//       }
 	//     }
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", 0, 1))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market.Symbol, timestamp, "bids", "asks", 0, 1))}
 	return nil
 }
 func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -678,7 +690,8 @@ func (this *Btcturk) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = SafeListTyped(response, "data")
+	var tickers []any
+	tickers, _ = response["data"].([]any)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
@@ -715,10 +728,10 @@ func (this *Btcturk) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbol)
+	var tickers map[string]Ticker = r1.Value
+	var ticker Ticker = tickers[symbol]
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -797,12 +810,12 @@ func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Btcturk) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Btcturk) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -824,7 +837,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"pairSymbol": market["id"],
 	}
 	if limit != nil {
-		request["last"] = limit
+		request["last"] = *limit
 	}
 
 	r1 := <-this.PublicGetTrades(this.Extend(request, params))
@@ -849,10 +862,11 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//       ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var dataList []any = []any{}
 	if data != nil {
-		dataList = ArrayTyped(data)
+		dataList = data
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(dataList, market, since, limit))}
@@ -921,14 +935,16 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	if since != nil {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
-	var limitResolved any = nil
+	var limitResolved *int64 = nil
 	if limit != nil {
 		limitResolved = limit
 		if *limit > 11000 {
-			limitResolved = 11000 // max 11000 candles diapason can be covered
+			limitResolvedValue := int64(11000)
+			limitResolved = &limitResolvedValue // max 11000 candles diapason can be covered
 		}
 	} else if since == nil {
-		limitResolved = 100 // default value
+		limitResolvedValue2 := int64(100)
+		limitResolved = &limitResolvedValue2 // default value
 	}
 	if (limit != nil) || (since == nil) {
 		if timeframe == "1y" {
@@ -993,12 +1009,18 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//        ]
 	//    }
 	//
-	var timestamp []any = SafeListTyped(response, "t")
-	var high []any = SafeListTyped(response, "h")
-	var open []any = SafeListTyped(response, "o")
-	var low []any = SafeListTyped(response, "l")
-	var close []any = SafeListTyped(response, "c")
-	var volume []any = SafeListTyped(response, "v")
+	var timestamp []any
+	timestamp, _ = response["t"].([]any)
+	var high []any
+	high, _ = response["h"].([]any)
+	var open []any
+	open, _ = response["o"].([]any)
+	var low []any
+	low, _ = response["l"].([]any)
+	var close []any
+	close, _ = response["c"].([]any)
+	var volume []any
+	volume, _ = response["v"].([]any)
 	var rows []any = []any{}
 	for i := 0; i < len(timestamp); i++ {
 		rows = append(rows, map[string]any{
@@ -1087,7 +1109,11 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -1184,9 +1210,17 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var bids []any = SafeListTypedDefault(data, "bids", []any{})
-	var asks []any = SafeListTypedDefault(data, "asks", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var bids []any
+	bids, _ = data["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
+	var asks []any
+	asks, _ = data["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.ArrayConcat(bids, asks), market, since, limit))}
 	return nil
@@ -1232,7 +1266,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	}
 	if limit != nil {
 		// default 100 max 1000
-		request["last"] = limit
+		request["last"] = *limit
 	}
 	if since != nil {
 		request["startTime"] = math.Floor(float64(*since) / 1000)
@@ -1263,7 +1297,8 @@ func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//     }
 	//   ]
 	// }
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -1411,10 +1446,11 @@ func (this *Btcturk) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//       "code": "0"
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var dataList []any = []any{}
 	if data != nil {
-		dataList = ArrayTyped(data)
+		dataList = data
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(dataList, market, since, limit))}
@@ -1446,11 +1482,12 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query
 		}
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
 	if isQueryMethod {
 		requestBody = nil
 	} else {
-		requestBody = this.Json(params)
+		jsonText := this.Json(params)
+		requestBody = &jsonText
 	}
 	var privateHeaders map[string]any = nil
 	if apiName == "private" {
@@ -1465,12 +1502,16 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) map[string]any {
 			"Content-Type": "application/json",
 		}
 	}
-	return map[string]any{
+	var literal114315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": privateHeaders,
 	}
+	if requestBody != nil {
+		literal114315["body"] = *requestBody
+	}
+	return literal114315
 }
 func (this *Btcturk) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var errorCode string = *this.SafeString(response, "code", "0")

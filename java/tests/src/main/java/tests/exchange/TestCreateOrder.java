@@ -309,7 +309,7 @@ public class TestCreateOrder extends BaseTest {
         }
         // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
         Object amountPrecision = exchange.safeNumber(market.get("precision"), "amount", (Object) null);
-        Boolean isTickSizePrecision = Helpers.isEqual(exchange.precisionMode, 4);
+        Boolean isTickSizePrecision = (exchange.precisionMode == 4);
         if (java.util.Objects.equals(amountPrecision, null))
         {
             amountPrecision = 1e-15; // todo: revise this for better way in future

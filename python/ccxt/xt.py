@@ -1770,7 +1770,9 @@ class xt(Exchange, ImplicitAPI):
         market = None
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         request = {}
         response = None
         type, paramsMarketType = self.handle_market_type_and_params('fetchTickers', market, params)
@@ -1855,7 +1857,9 @@ class xt(Exchange, ImplicitAPI):
         request = {}
         market = None
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         type, paramsMarketType = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchBidsAsks', market, paramsMarketType)
         isInverse = (subType == 'inverse')
@@ -2420,7 +2424,7 @@ class xt(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        balances = None
+        balances = []
         if (subType is not None) or isContractWallet:
             balances = self.safe_list(response, 'result', [])
         else:
@@ -2428,7 +2432,7 @@ class xt(Exchange, ImplicitAPI):
             balances = self.safe_list(data, 'assets', [])
         return self.parse_balance_list(balances)
 
-    def parse_balance_list(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list) -> Balances:
         #
         # spot
         #
@@ -2626,7 +2630,7 @@ class xt(Exchange, ImplicitAPI):
             if reduceOnly:
                 requestType = 'LONG'
             request['positionSide'] = requestType
-        response = {}
+        response = None
         triggerPrice = self.safe_number_2(paramsOmitted4, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_number_2(paramsOmitted4, 'stopLoss', 'triggerStopPrice')
         takeProfit = self.safe_number_2(paramsOmitted4, 'takeProfit', 'triggerProfitPrice')
@@ -3500,8 +3504,9 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         isContractResponse = ((subType is not None) or (type == 'swap') or (type == 'future'))
-        order = response if isContractResponse else self.safe_dict(response, 'result', {})
-        return self.parse_order(order, market)
+        if isContractResponse:
+            return self.parse_order(response, market)
+        return self.parse_order(self.safe_dict(response, 'result', {}), market)
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -5470,8 +5475,9 @@ class xt(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        result = response if (self.safe_bool(market, 'swap', False)) else self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        if self.safe_bool(market, 'swap', False):
+            return self.parse_order(response, market)
+        return self.parse_order(self.safe_dict(response, 'result', {}), market)
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #

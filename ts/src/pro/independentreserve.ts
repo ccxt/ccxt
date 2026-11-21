@@ -269,11 +269,10 @@ export default class independentreserve extends independentreserveRest {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        let result: any = this.decimalToPrecision (value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = result.replace ('.', '');
+        const padded: string = this.decimalToPrecision (value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
+        const digits = padded.replace ('.', '');
         // remove leading zeros
-        result = this.parseNumber (result);
-        result = this.numberToString (result);
+        const result: string = this.numberToString (this.parseNumber (digits));
         return result;
     }
 

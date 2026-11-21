@@ -132,9 +132,9 @@ public partial class BaseTest
             Assert((isEqual(exchangeProp(exchange, "apiKey"), null)) || (isEqual(exchangeProp(exchange, "apiKey"), "")), "apiKey should be empty string");
             Assert((isEqual(exchange.secret, null)) || (isEqual(exchange.secret, "")), "secret should be empty string");
             Assert((isEqual(exchange.uid, null)) || (isEqual(exchange.uid, "")), "uid should be empty string");
-            Assert(isEqual(exchange.login, null), "login should be empty string");
+            Assert((isEqual(exchange.login, null)) || (isEqual(exchange.login, "")), "login should be empty string");
             Assert((isEqual(exchange.password, null)) || (isEqual(exchange.password, "")), "password should be empty string");
-            Assert(isEqual(exchange.twofa, null), "twofa should be undefined");
+            Assert((isEqual(exchange.twofa, null)) || (isEqual(exchange.twofa, "")), "twofa should be undefined");
             Assert((isEqual(exchangeProp(exchange, "privateKey"), null)) || (isEqual(exchangeProp(exchange, "privateKey"), "")), "privateKey should be empty string");
             Assert((isEqual(exchangeProp(exchange, "walletAddress"), null)) || (isEqual(exchangeProp(exchange, "walletAddress"), "")), "walletAddress should be empty string");
             Assert(isEqual(exchange.token, null), "token should be empty string");

@@ -3177,8 +3177,6 @@ class BaseExchange(object):
         :returns dict | None:
         """
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
-        if value is None:
-            return defaultValue
         if self.is_dictionary(value):
             return value
         return defaultValue
@@ -3190,8 +3188,6 @@ class BaseExchange(object):
         :returns dict | None:
         """
         value = self.safe_value(dictionaryOrList, key, defaultValue)
-        if value is None:
-            return defaultValue
         if self.is_dictionary(value):
             return value
         return defaultValue
@@ -3237,6 +3233,17 @@ class BaseExchange(object):
             return value2
         return defaultValue
 
+    def safe_string_list(self, dictionaryOrList: object, keys: list[NullableIndexType]):
+        """
+ @ignore
+        a value that is a string or a list of strings by API contract, read as a list(a string becomes a one-element list)
+        :returns str[]|None:
+        """
+        str = self.safe_string_n(dictionaryOrList, keys)
+        if str is not None:
+            return [str]
+        return self.safe_list_n(dictionaryOrList, keys)
+
     def safe_list(self, dictionaryOrList: object, key: NullableIndexType, defaultValue: list = None):
         """
  @ignore
@@ -3255,9 +3262,8 @@ class BaseExchange(object):
  @ignore
         store value under key if key is defined(no-op on None)
         """
-        k = key
-        if k is not None:
-            dict[k] = value
+        if key is not None:
+            dict[key] = value
 
     def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
@@ -3327,9 +3333,9 @@ class BaseExchange(object):
 
     def url_encoder_for_proxy_url(self, targetUrl: str):
         # to be overriden
-        includesQuery = targetUrl.find('?') >= 0
-        finalUrl = self.encode_uri_component(targetUrl) if includesQuery else targetUrl
-        return finalUrl
+        if targetUrl.find('?') >= 0:
+            return self.encode_uri_component(targetUrl)
+        return targetUrl
 
     def check_proxy_settings(self, url: Str = None, method: Str = None, headers: object = None, body: object = None):
         usedProxies = []
@@ -3656,8 +3662,6 @@ class BaseExchange(object):
         raise NotSupported(self.id + ' parseTransaction() is not supported yet')
 
     def parse_transfer(self, transfer: dict, currency: Currency = None):
-        if transfer is None:
-            raise NotSupported(self.id + ' parseTransfer() is not supported yet')
         raise NotSupported(self.id + ' parseTransfer() is not supported yet')
 
     def parse_account(self, account: dict):
@@ -3764,7 +3768,7 @@ class BaseExchange(object):
     def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchLongShortRatioHistory() is not supported yet')
 
-    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}):
+    def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches the history of margin added or reduced from contract isolated positions
         :param str [symbol]: unified market symbol
@@ -3864,7 +3868,7 @@ class BaseExchange(object):
         targets = list(fallbacks.keys())
         for i in range(0, len(targets)):
             target = targets[i]
-            source = fallbacks[target]
+            source = self.safe_string(fallbacks, target, '')
             sourceDefined = (source in self.has) and (self.has[source] is not None)
             targetDefined = (target in self.has) and (self.has[target] is not None)
             if sourceDefined and not targetDefined:
@@ -3923,38 +3927,43 @@ class BaseExchange(object):
                 if marketType == 'spot':
                     self.features[marketType] = self.features_mapper(initialFeatures, marketType)
                 else:
-                    self.features[marketType] = {}
+                    subTypeFeatures = {}
                     for j in range(0, len(subTypes)):
                         subType = subTypes[j]
-                        self.features[marketType][subType] = self.features_mapper(initialFeatures, marketType, subType)
+                        subTypeFeatures[subType] = self.features_mapper(initialFeatures, marketType, subType)
+                    self.features[marketType] = subTypeFeatures
 
     def features_mapper(self, initialFeatures: dict, marketType: Str, subType: Str = None):
-        featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
-        # if exchange does not have that market-type (eg. future>inverse)
-        if featuresObj is None:
-            return None
+        featuresObj = self.safe_dict(initialFeatures, marketType)
+        if subType is not None:
+            featuresObj = self.safe_dict(featuresObj, subType)
         extendsStr = self.safe_string(featuresObj, 'extends')
         if extendsStr is not None:
             featuresObj = self.omit(featuresObj, 'extends')
             extendObj = self.features_mapper(initialFeatures, extendsStr)
             featuresObj = self.deep_extend(extendObj, featuresObj)
+        # if exchange does not have that market-type (eg. future>inverse)
+        if featuresObj is None:
+            return None
         #
         # ### corrections ###
         #
         # createOrder
         if 'createOrder' in featuresObj:
-            value = self.safe_dict(featuresObj['createOrder'], 'attachedStopLossTakeProfit')
-            featuresObj['createOrder']['stopLoss'] = value
-            featuresObj['createOrder']['takeProfit'] = value
+            createOrder = self.extend({}, featuresObj['createOrder'])
+            value = self.safe_dict(createOrder, 'attachedStopLossTakeProfit')
+            createOrder['stopLoss'] = value
+            createOrder['takeProfit'] = value
             if marketType == 'spot':
                 # default 'hedged': false
-                featuresObj['createOrder']['hedged'] = False
+                createOrder['hedged'] = False
                 # default 'leverage': false
-                if not ('leverage' in featuresObj['createOrder']):
-                    featuresObj['createOrder']['leverage'] = False
+                if not ('leverage' in createOrder):
+                    createOrder['leverage'] = False
             # default 'GTC' to true
-            if self.safe_bool(featuresObj['createOrder']['timeInForce'], 'GTC') is None:
-                featuresObj['createOrder']['timeInForce']['GTC'] = True
+            if self.safe_bool(createOrder['timeInForce'], 'GTC') is None:
+                createOrder['timeInForce']['GTC'] = True
+            featuresObj['createOrder'] = createOrder
         # other methods
         keys = list(featuresObj.keys())
         for i in range(0, len(keys)):
@@ -3996,7 +4005,7 @@ class BaseExchange(object):
         # if marketType (e.g. 'option') does not exist in features
         if not (marketType in self.features):
             return defaultValue  # unsupported marketType, check "exchange.features" for details
-        methodsContainer = self.features[marketType]
+        methodsContainer = self.safe_dict(self.features, marketType)
         # if marketType dict undefined
         if methodsContainer is None:
             return defaultValue
@@ -4006,21 +4015,25 @@ class BaseExchange(object):
         else:
             if not (subType in methodsContainer):
                 return defaultValue  # unsupported subType, check "exchange.features" for details
-            methodsContainer = methodsContainer[subType]
+            methodsContainer = self.safe_dict(methodsContainer, subType)
             # if subType dict undefined
             if methodsContainer is None:
                 return defaultValue
         # if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if methodName is None:
-            return defaultValue if (defaultValue is not None) else methodsContainer
+            if defaultValue is not None:
+                return defaultValue
+            return methodsContainer
         if not (methodName in methodsContainer):
             return defaultValue  # unsupported method, check "exchange.features" for details');
-        methodDict = methodsContainer[methodName]
-        if methodDict is None:
-            return defaultValue
         # if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if paramName is None:
-            return defaultValue if (defaultValue is not None) else methodDict
+            if defaultValue is not None:
+                return defaultValue
+            return methodsContainer[methodName]
+        methodDict = self.safe_dict(methodsContainer, methodName)
+        if methodDict is None:
+            return defaultValue
         splited = paramName.split('.')  # can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         parentKey = splited[0]
         subKey = self.safe_string(splited, 1)
@@ -4037,7 +4050,7 @@ class BaseExchange(object):
             # throw an exception for unsupported subKey
             if not (subKey in methodDict[parentKey]):
                 return defaultValue  # unsupported subKey, check "exchange.features" for details
-            return methodDict[parentKey][subKey]
+            return self.safe_value(dictionary, subKey)
 
     def orderbook_checksum_message(self, symbol: Str):
         if symbol is None:
@@ -4458,39 +4471,36 @@ class BaseExchange(object):
         trades = []
         isTriggerOrSLTpOrder = ((self.safe_string(orderDict, 'triggerPrice') is not None or (self.safe_string(orderDict, 'stopLossPrice') is not None)) or (self.safe_string(orderDict, 'takeProfitPrice') is not None))
         if parseFilled or parseCost or shouldParseFees:
-            rawTrades = self.safe_value(orderDict, 'trades', trades)
             # const oldNumber = this.number;
             # we parse trades as strings here!
             # i don't think this is needed anymore
             # (this as any).number = String;
-            firstTrade = self.safe_dict(rawTrades, 0)
+            firstTrade = self.safe_dict(self.safe_value(orderDict, 'trades'), 0)
             # parse trades if they haven't already been parsed
             tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
             if not tradesAreParsed:
-                trades = self.parse_trades(rawTrades, market)
+                trades = self.parse_trades(self.safe_value(orderDict, 'trades', []), market)
             else:
-                trades = rawTrades
+                trades = self.safe_list(orderDict, 'trades', [])
             # this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
-            tradesLength = 0
-            isArray = isinstance(trades, list)
-            if isArray:
-                tradesLength = len(trades)
-            if isArray and (tradesLength > 0):
-                # move properties that are defined in trades up into the order
-                if parseSymbol:
-                    orderDict['symbol'] = trades[0]['symbol']
-                if parseSide:
-                    orderDict['side'] = trades[0]['side']
-                if self.safe_string(orderDict, 'type') is None:
-                    orderDict['type'] = trades[0]['type']
-                if self.safe_string(orderDict, 'id') is None:
-                    orderDict['id'] = trades[0]['order']
+            tradesLength = len(trades)
+            if tradesLength > 0:
                 if parseFilled:
                     filled = '0'
                 if parseCost:
                     cost = '0'
                 for i in range(0, len(trades)):
                     trade = trades[i]
+                    if i == 0:
+                        # move properties that are defined in trades up into the order
+                        if parseSymbol:
+                            orderDict['symbol'] = trade['symbol']
+                        if parseSide:
+                            orderDict['side'] = trade['side']
+                        if self.safe_string(orderDict, 'type') is None:
+                            orderDict['type'] = trade['type']
+                        if self.safe_string(orderDict, 'id') is None:
+                            orderDict['id'] = trade['order']
                     tradeAmount = self.safe_string(trade, 'amount')
                     if parseFilled and (tradeAmount is not None):
                         filled = Precise.string_add(filled, tradeAmount)
@@ -4523,9 +4533,7 @@ class BaseExchange(object):
                 reducedFees = []
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
-                reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
-                if 'rate' in reducedFees[i]:
-                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
+                reducedFees[i] = self.parse_fee_numeric(reducedFees[i])
             if not parseFee and (reducedLength == 0):
                 # copy fee to avoid modification by reference
                 feeCopy = self.deep_extend(fee)
@@ -4785,7 +4793,6 @@ class BaseExchange(object):
 
     def create_ccxt_trade_id(self, timestamp: Int = None, side: Str = None, amount: Str = None, price: Str = None, takerOrMaker: Str = None):
         # this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        id = None
         if timestamp is not None:
             id = self.number_to_string(timestamp)
             if side is not None:
@@ -4796,7 +4803,8 @@ class BaseExchange(object):
                 id += '-' + price
             if takerOrMaker is not None:
                 id += '-' + takerOrMaker
-        return id
+            return id
+        return None
 
     def parsed_fee_and_fees(self, container: object):
         fee = self.safe_dict(container, 'fee')
@@ -4863,7 +4871,7 @@ class BaseExchange(object):
             result.append(itemWithKey)
         return result
 
-    def invert_flat_string_dictionary(self, dict: object):
+    def invert_flat_string_dictionary(self, dict: dict):
         reversed = {}
         keys = list(dict.keys())
         for i in range(0, len(keys)):
@@ -5102,19 +5110,20 @@ class BaseExchange(object):
         result[close] = []
         result[volume] = []
         for i in range(0, len(ohlcvs)):
-            ts = ohlcvs[i][0] if ms else self.parse_to_int(ohlcvs[i][0] / 1000)
+            ohlcv = ohlcvs[i]
+            ts = ohlcv[0] if ms else self.parse_to_int(ohlcvs[i][0] / 1000)
             resultTimestamp = result[timestamp]
             resultTimestamp.append(ts)
             resultOpen = result[open]
-            resultOpen.append(ohlcvs[i][1])
+            resultOpen.append(ohlcv[1])
             resultHigh = result[high]
-            resultHigh.append(ohlcvs[i][2])
+            resultHigh.append(ohlcv[2])
             resultLow = result[low]
-            resultLow.append(ohlcvs[i][3])
+            resultLow.append(ohlcv[3])
             resultClose = result[close]
-            resultClose.append(ohlcvs[i][4])
+            resultClose.append(ohlcv[4])
             resultVolume = result[volume]
-            resultVolume.append(ohlcvs[i][5])
+            resultVolume.append(ohlcv[5])
         return result
 
     def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
@@ -5207,12 +5216,10 @@ class BaseExchange(object):
         if symbols is None:
             if not allowEmpty:
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
-            return symbols
+            return None
         symbolsLength = len(symbols)
-        if symbolsLength == 0:
-            if not allowEmpty:
-                raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
-            return symbols
+        if (symbolsLength == 0) and not allowEmpty:
+            raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
         result = []
         marketType = None
         isLinearSubType = None
@@ -5334,13 +5341,9 @@ class BaseExchange(object):
             if (aliases[alias] == unifiedCode) and (alias in networkIdsByCodes):
                 return networkIdsByCodes[alias]
         # fall back to scanning loaded currencies
-        currenciesToCheck = []
-        if currencyCode is None:
-            currenciesToCheck = list(self.currencies.keys())
-        else:
-            currenciesToCheck = [self.safe_dict(self.currencies, currencyCode)]
-        for i in range(0, len(currenciesToCheck)):
-            networks = self.safe_dict(currenciesToCheck[i], 'networks', {})
+        if currencyCode is not None:
+            currencies = [self.safe_dict(self.currencies, currencyCode)]
+            networks = self.safe_dict(currencies[0], 'networks', {})
             if unifiedCode in networks:
                 return self.safe_string(networks[unifiedCode], 'id')
         return networkCode
@@ -5795,7 +5798,7 @@ class BaseExchange(object):
         transactionsArray = self.to_array(transactions)
         result = []
         for i in range(0, len(transactionsArray)):
-            transaction = self.extend(self.parse_transaction(transactionsArray[i], currency), params)
+            transaction = self.extend(self.parse_transaction(self.safe_dict(transactionsArray, i, {}), currency), params)
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
@@ -5863,7 +5866,7 @@ class BaseExchange(object):
     def market_id(self, symbol: Str):
         market = self.market(symbol)
         if market is not None:
-            return market['id']
+            return self.safe_string(market, 'id')
         return symbol
 
     def symbol(self, symbol: Str):
@@ -6001,7 +6004,8 @@ class BaseExchange(object):
                 self.set_last_request(request)
                 response = self.fetch(request['url'], request['method'], request['headers'], request['body'])
                 if fetchData is not None:
-                    fetchData['response']['body'] = response
+                    responseData = {'body': response}
+                    fetchData['response'] = responseData
                     self.add_fetch_cache(fetchData)
                 return response
             except Exception as e:
@@ -6137,7 +6141,8 @@ class BaseExchange(object):
             return self.currencies_by_id[currencyId]
         code = currencyId
         if currencyId is not None:
-            code = self.common_currency_code(currencyId.upper())
+            upperId = currencyId.upper()
+            code = self.common_currency_code(upperId)
         return self.safe_currency_structure({
             'id': currencyId,
             'code': code,
@@ -6267,7 +6272,7 @@ class BaseExchange(object):
         if key is None:
             raise ArgumentsRequired(self.id + ' getSupportedMapping() requires a key argument')
         if key in mapping:
-            return mapping[key]
+            return self.safe_string(mapping, key, key)
         else:
             keys = list(mapping.keys())
             # "mapping" must stay literal-final and the list must not be introduced with ": ":
@@ -6440,13 +6445,13 @@ class BaseExchange(object):
         if broadKey is not None:
             raise broad[broadKey](message)
 
-    def find_broadly_matched_key(self, broad: dict, string: Str):
+    def find_broadly_matched_key(self, broad: dict, errorString: Str):
         # a helper for matching error strings exactly vs broadly
         keys = list(broad.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if string is not None:  # #issues/12698
-                if string.find(key) >= 0:
+            if errorString is not None:  # #issues/12698
+                if errorString.find(key) >= 0:
                     return key
         return None
 
@@ -6752,24 +6757,26 @@ class BaseExchange(object):
         if price is None:
             return None
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol')
         result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
         if result == '0':
             pricePrecision = self.number_to_string(market['precision']['price'])
             if pricePrecision is None:
-                raise BadSymbol(self.id + ' priceToPrecision() market ' + market['symbol'] + ' has no price precision')
-            raise InvalidOrder(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + pricePrecision)
+                raise BadSymbol(self.id + ' priceToPrecision() market ' + marketSymbol + ' has no price precision')
+            raise InvalidOrder(self.id + ' price of ' + marketSymbol + ' must be greater than minimum price precision of ' + pricePrecision)
         return result
 
     def amount_to_precision(self, symbol: Str, amount: object):
         if amount is None:
             return None
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol')
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
             amountPrecision = self.number_to_string(market['precision']['amount'])
             if amountPrecision is None:
-                raise BadSymbol(self.id + ' amountToPrecision() market ' + market['symbol'] + ' has no amount precision')
-            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + amountPrecision)
+                raise BadSymbol(self.id + ' amountToPrecision() market ' + marketSymbol + ' has no amount precision')
+            raise InvalidOrder(self.id + ' amount of ' + marketSymbol + ' must be greater than minimum amount precision of ' + amountPrecision)
         return result
 
     def fee_to_precision(self, symbol: Str, fee: object):
@@ -6821,6 +6828,8 @@ class BaseExchange(object):
         if precision is None:
             return None
         precisionNumber = int(precision)
+        if precisionNumber is None:
+            return None
         if precisionNumber == 0:
             return '1'
         if precisionNumber > 0:
@@ -6850,6 +6859,8 @@ class BaseExchange(object):
             if positivePrecisionString is None:
                 return None
             positivePrecision = int(positivePrecisionString)
+            if positivePrecision is None:
+                return None
             parsedPrecision = '1'
             for i in range(0, positivePrecision - 1):
                 parsedPrecision = parsedPrecision + '0'
@@ -6914,16 +6925,23 @@ class BaseExchange(object):
         #         ...
         #     ]
         #
-        results = []
         if isinstance(pricesData, list):
-            for i in range(0, len(pricesData)):
-                results.append(self.extend(self.parse_last_price(pricesData[i]), params))
-        else:
-            marketIds = list(pricesData.keys())
-            for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
-                market = self.safe_market(marketId)
-                results.append(self.extend(self.parse_last_price(pricesData[marketId], market), params))
+            return self.parse_last_prices_list(pricesData, symbols, params)
+        return self.parse_last_prices_dict(pricesData, symbols, params)
+
+    def parse_last_prices_list(self, pricesData: list[dict], symbols: Strings = None, params: dict = {}):
+        results = []
+        for i in range(0, len(pricesData)):
+            results.append(self.extend(self.parse_last_price(pricesData[i]), params))
+        return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
+
+    def parse_last_prices_dict(self, pricesData: dict, symbols: Strings = None, params: dict = {}):
+        results = []
+        marketIds = list(pricesData.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            results.append(self.extend(self.parse_last_price(pricesData[marketId], market), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}):
@@ -6949,16 +6967,23 @@ class BaseExchange(object):
         #         ...
         #     ]
         #
-        results = []
         if isinstance(tickers, list):
-            for i in range(0, len(tickers)):
-                results.append(self.extend(self.parse_ticker(tickers[i]), params))
-        else:
-            marketIds = list(tickers.keys())
-            for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
-                market = self.safe_market(marketId)
-                results.append(self.extend(self.parse_ticker(tickers[marketId], market), params))
+            return self.parse_tickers_list(tickers, symbols, params)
+        return self.parse_tickers_dict(tickers, symbols, params)
+
+    def parse_tickers_list(self, tickers: list[dict], symbols: Strings = None, params: dict = {}):
+        results = []
+        for i in range(0, len(tickers)):
+            results.append(self.extend(self.parse_ticker(tickers[i]), params))
+        return self.filter_by_array_tickers(results, 'symbol', self.market_symbols(symbols))
+
+    def parse_tickers_dict(self, tickers: dict, symbols: Strings = None, params: dict = {}):
+        results = []
+        marketIds = list(tickers.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            results.append(self.extend(self.parse_ticker(tickers[marketId], market), params))
         return self.filter_by_array_tickers(results, 'symbol', self.market_symbols(symbols))
 
     def parse_deposit_addresses(self, addresses: list, codes: Strings = None, indexed=True, params: dict = {}):
@@ -6985,9 +7010,7 @@ class BaseExchange(object):
     def parse_borrow_rate_history(self, response: object, code: Str, since: Int, limit: Int):
         result = []
         for i in range(0, len(response)):
-            item = self.safe_dict(response, i)
-            borrowRate = self.parse_borrow_rate(item)
-            result.append(borrowRate)
+            result.append(self.parse_borrow_rate(self.safe_dict(response, i)))
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
@@ -7000,11 +7023,10 @@ class BaseExchange(object):
             result[symbol] = borrowRate
         return result
 
-    def parse_funding_rate_histories(self, response: list, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_funding_rate_histories(self, response: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
-            entry = response[i]
-            rates.append(self.parse_funding_rate_history(entry, market))
+            rates.append(self.parse_funding_rate_history(response[i], market))
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7016,23 +7038,22 @@ class BaseExchange(object):
     def parse_funding_rate(self, contract: dict, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
-    def parse_funding_rates(self, response: list, symbols: Strings = None):
+    def parse_funding_rates(self, response: list[dict], symbols: Strings = None):
         fundingRates = {}
         for i in range(0, len(response)):
-            entry = response[i]
-            parsed = self.parse_funding_rate(entry)
-            if parsed['symbol'] is not None:
-                fundingRates[parsed['symbol']] = parsed
+            parsed = self.parse_funding_rate(response[i])
+            symbol = self.safe_string(parsed, 'symbol')
+            if symbol is not None:
+                fundingRates[symbol] = parsed
         return self.index_by(self.filter_by_array(fundingRates, 'symbol', symbols, False), 'symbol')
 
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
 
-    def parse_long_short_ratio_history(self, response: list, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_long_short_ratio_history(self, response: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
-            entry = response[i]
-            rates.append(self.parse_long_short_ratio(entry, market))
+            rates.append(self.parse_long_short_ratio(response[i], market))
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7163,18 +7184,16 @@ class BaseExchange(object):
     def parse_open_interests(self, response: list, symbols: Strings = None):
         result = {}
         for i in range(0, len(response)):
-            entry = response[i]
-            parsed = self.parse_open_interest(entry)
-            if parsed['symbol'] is not None:
-                result[parsed['symbol']] = parsed
+            parsed = self.parse_open_interest(response[i])
+            symbol = self.safe_string(parsed, 'symbol')
+            if symbol is not None:
+                result[symbol] = parsed
         return self.index_by(self.filter_by_array(result, 'symbol', symbols, False), 'symbol')
 
     def parse_open_interests_history(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
         interests = []
         for i in range(0, len(response)):
-            entry = response[i]
-            interest = self.parse_open_interest(entry, market)
-            interests.append(interest)
+            interests.append(self.parse_open_interest(response[i], market))
         sorted = self.sort_by(interests, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7279,7 +7298,7 @@ class BaseExchange(object):
             return exchangeValue
         return None
 
-    def convert_type_to_account(self, account: object):
+    def convert_type_to_account(self, account: str):
         """
  @ignore
  Must add accountsByType to self.options to use self method
@@ -7289,12 +7308,12 @@ class BaseExchange(object):
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         lowercaseAccount = account.lower()
         if lowercaseAccount in accountsByType:
-            return accountsByType[lowercaseAccount]
+            return self.safe_string(accountsByType, lowercaseAccount, account)
         markets = self.markets
         marketsById = self.markets_by_id
         if ((markets is not None) and (account in markets)) or ((marketsById is not None) and (account in marketsById)):
             market = self.market(account)
-            return market['id']
+            return self.safe_string(market, 'id', account)
         else:
             return account
 
@@ -7337,15 +7356,27 @@ class BaseExchange(object):
         """
         depositWithdrawFees = {}
         isArray = isinstance(response, list)
-        responseKeys = response
+        dictResponse = {}
+        numEntries = 0
+        if isArray:
+            responseLength = len(response)
+            numEntries = responseLength
+        else:
+            dictResponse = response
+        keys = list(dictResponse.keys())
         if not isArray:
-            responseKeys = list(response.keys())
-        for i in range(0, len(responseKeys)):
-            entry = responseKeys[i]
-            dictionary = entry if isArray else response[entry]
-            currencyId = entry
+            keysLength = len(keys)
+            numEntries = keysLength
+        for i in range(0, numEntries):
+            dictionary = None
+            currencyId = None
             if isArray:
-                currencyId = None if (currencyIdKey is None) else self.safe_string(dictionary, currencyIdKey)
+                dictionary = response[i]
+                if currencyIdKey is not None:
+                    currencyId = self.safe_string(dictionary, currencyIdKey)
+            else:
+                currencyId = keys[i]
+                dictionary = response[currencyId]
             currency = self.safe_currency(currencyId)
             code = self.safe_string(currency, 'code')
             if (codes is None) or (self.in_array(code, codes)):
@@ -7379,22 +7410,19 @@ class BaseExchange(object):
         """
         networkKeys = list(fee['networks'].keys())
         numNetworks = len(networkKeys)
-        if numNetworks == 1:
-            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw']
-            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit']
-            return fee
         currencyCode = self.safe_string(currency, 'code')
         for i in range(0, numNetworks):
             network = networkKeys[i]
-            if network == currencyCode:
-                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
-                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
+            if (numNetworks == 1) or (network == currencyCode):
+                networkFee = self.safe_dict(fee['networks'], networkKeys[i], {})
+                fee['withdraw'] = networkFee['withdraw']
+                fee['deposit'] = networkFee['deposit']
         return fee
 
     def parse_income(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseIncome () is not supported yet')
 
-    def parse_incomes(self, incomes: object, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_incomes(self, incomes: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         """
  @ignore
         parses funding fee info from exchange response
@@ -7406,9 +7434,7 @@ class BaseExchange(object):
         """
         result = []
         for i in range(0, len(incomes)):
-            entry = incomes[i]
-            parsed = self.parse_income(entry, market)
-            result.append(parsed)
+            result.append(self.parse_income(incomes[i], market))
         sorted = self.sort_by(result, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7473,14 +7499,15 @@ class BaseExchange(object):
 
     def create_ohlcv_object(self, symbol: str, timeframe: str, data: list[list]):
         res = {}
-        res[symbol] = {}
-        res[symbol][timeframe] = data
+        inner = {}
+        inner[timeframe] = data
+        res[symbol] = inner
         return res
 
     def handle_max_entries_per_request_and_params(self, method: str, maxEntriesPerRequest: Int = None, params: dict = {}):
-        newMaxEntriesPerRequest, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(params, method, 'maxEntriesPerRequest')
-        maxEntriesPerRequestOption = newMaxEntriesPerRequest if (newMaxEntriesPerRequest is not None) else maxEntriesPerRequest
-        maxEntriesPerRequestResolved = 1000 if (maxEntriesPerRequestOption is None) else maxEntriesPerRequestOption  # default to 1000
+        # the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+        maxEntriesPerRequestDefault = 1000 if (maxEntriesPerRequest is None) else maxEntriesPerRequest
+        maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(params, method, 'maxEntriesPerRequest', maxEntriesPerRequestDefault)
         return [maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest]
 
     def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):
@@ -7508,7 +7535,7 @@ class BaseExchange(object):
                     response = getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
+                        backwardMessage = 'Dynamic pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
@@ -7530,7 +7557,7 @@ class BaseExchange(object):
                     response = getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
+                        forwardMessage = 'Dynamic pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
@@ -7722,8 +7749,7 @@ class BaseExchange(object):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + 1)
-                    incrementalMessage = 'Incremental pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength)
+                    incrementalMessage = 'Incremental pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
                     shouldBreak = True
@@ -7766,8 +7792,9 @@ class BaseExchange(object):
         uniqueResult = {}
         for i in range(0, len(input)):
             entry = input[i]
-            id = self.safe_string(entry, 'id')
-            if id is None:
+            # safeString treats an empty id as missing, so '' marks an absent id
+            id = self.safe_string(entry, 'id', '')
+            if id == '':
                 price = self.safe_string(entry, 'price', '')
                 amount = self.safe_string(entry, 'amount', '')
                 timestamp = self.safe_string(entry, 'timestamp')
@@ -7778,7 +7805,7 @@ class BaseExchange(object):
                 # optional parts are empty when absent, separators keep positions distinct
                 id = 't_' + str(timestamp) + '_' + side + '_'
                 id = id + (price + '_' + amount)
-            if id is not None and not (id in uniqueResult):
+            if not (id in uniqueResult):
                 uniqueResult[id] = entry
         values = list(uniqueResult.values())
         return values
@@ -7829,8 +7856,7 @@ class BaseExchange(object):
         """
         result = []
         for i in range(0, len(liquidations)):
-            entry = liquidations[i]
-            parsed = self.parse_liquidation(entry, market)
+            parsed = self.parse_liquidation(liquidations[i], market)
             result.append(parsed)
         sorted = self.sort_by(result, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
@@ -7843,30 +7869,36 @@ class BaseExchange(object):
         #
         # the value of greeks is either a dict or a list
         #
-        results = []
         if isinstance(greeks, list):
-            for i in range(0, len(greeks)):
-                results.append(self.extend(self.parse_greeks(greeks[i]), params))
-        else:
-            marketIds = list(greeks.keys())
-            for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
-                market = self.safe_market(marketId)
-                results.append(self.extend(self.parse_greeks(greeks[marketId], market), params))
+            return self.parse_all_greeks_list(greeks, symbols, params)
+        return self.parse_all_greeks_dict(greeks, symbols, params)
+
+    def parse_all_greeks_list(self, greeks: list[dict], symbols: Strings = None, params: dict = {}):
+        results = []
+        for i in range(0, len(greeks)):
+            results.append(self.extend(self.parse_greeks(greeks[i]), params))
+        return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
+
+    def parse_all_greeks_dict(self, greeks: dict, symbols: Strings = None, params: dict = {}):
+        results = []
+        marketIds = list(greeks.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            results.append(self.extend(self.parse_greeks(greeks[marketId], market), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption () is not supported yet')
 
-    def parse_option_chain(self, response: list[object], currencyKey: Str = None, symbolKey: Str = None):
+    def parse_option_chain(self, response: list[dict], currencyKey: Str = None, symbolKey: Str = None):
         optionStructures = {}
         for i in range(0, len(response)):
-            info = response[i]
-            currencyId = None if (currencyKey is None) else self.safe_string(info, currencyKey)
+            currencyId = None if (currencyKey is None) else self.safe_string(response[i], currencyKey)
             currency = self.safe_currency(currencyId)
-            marketId = None if (symbolKey is None) else self.safe_string(info, symbolKey)
+            marketId = None if (symbolKey is None) else self.safe_string(response[i], symbolKey)
             market = self.safe_market(marketId, None, None, 'option')
-            optionStructures[market['symbol']] = self.parse_option(info, currency, market)
+            optionStructures[market['symbol']] = self.parse_option(response[i], currency, market)
         return optionStructures
 
     def parse_margin_modes(self, response: list[object], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):
@@ -8017,16 +8049,15 @@ class BaseExchange(object):
             raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
 
-    def parse_margin_modifications(self, response: list[object] | None, symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):
+    def parse_margin_modifications(self, response: list[dict], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType | None = None):
         marginModifications = []
         if response is None:
             return marginModifications
         for i in range(0, len(response)):
-            info = response[i]
-            marketId = None if (symbolKey is None) else self.safe_string(info, symbolKey)
+            marketId = None if (symbolKey is None) else self.safe_string(response[i], symbolKey)
             market = self.safe_market(marketId, None, None, marketType)
             if (symbols is None) or self.in_array(market['symbol'], symbols):
-                marginModifications.append(self.parse_margin_modification(info, market))
+                marginModifications.append(self.parse_margin_modification(response[i], market))
         return marginModifications
 
     def fetch_transfer(self, id: str, code: Str = None, params: dict = {}):
@@ -8601,10 +8632,10 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     def fetch_rest_order_book_safe(self, symbol: object, limit: Int = None, params: dict = {}):
-        fetchSnapshotMaxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
+        fetchSnapshotMaxRetries, fetchParams = self.handle_option_integer_and_params(params, 'watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
-                orderBook = self.fetch_order_book(symbol, limit, params)
+                orderBook = self.fetch_order_book(symbol, limit, fetchParams)
                 return orderBook
             except Exception as e:
                 if (i + 1) == fetchSnapshotMaxRetries:

@@ -449,8 +449,8 @@ public partial class coinsph : Exchange
                     { "maker", this.parseNumber("0.0025") },
                     { "taker", this.parseNumber("0.003") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0027")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0024")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("2500000000"), this.parseNumber("0.0005")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0022")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000000"), this.parseNumber("0.0005")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.003}, new List<object> {500000.0, 0.0027}, new List<object> {1000000.0, 0.0024}, new List<object> {2500000.0, 0.002}, new List<object> {5000000.0, 0.0018}, new List<object> {10000000.0, 0.0015}, new List<object> {100000000.0, 0.0012}, new List<object> {500000000.0, 0.0009}, new List<object> {1000000000.0, 0.0007}, new List<object> {2500000000.0, 0.0005}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0025}, new List<object> {500000.0, 0.0022}, new List<object> {1000000.0, 0.0018}, new List<object> {2500000.0, 0.0015}, new List<object> {5000000.0, 0.0012}, new List<object> {10000000.0, 0.001}, new List<object> {100000000.0, 0.0008}, new List<object> {500000000.0, 0.0007}, new List<object> {1000000000.0, 0.0006}, new List<object> {2500000000.0, 0.0005}} },
                     } },
                 } },
             } },
@@ -763,7 +763,7 @@ public partial class coinsph : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkList.Count; j++)
         {
-            object networkItem = networkList[j];
+            IDictionary<string, object> networkItem = ((IDictionary<string, object>)networkList[j]);
             string? network = this.safeString(networkItem, "network");
             string? networkCode = this.networkIdToCode(network, code);
             if ((networkCode != null))
@@ -807,11 +807,11 @@ public partial class coinsph : Exchange
         });
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        bool hasSymbolParam = (inOp(parameters, "symbol"));
-        bool hasSymbolsParam = (inOp(parameters, "symbols"));
+        bool hasSymbolParam = ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbol")));
+        bool hasSymbolsParam = ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbols")));
         Int64? limit = this.safeInteger(parameters, "limit");
         if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !hasSymbolParam)
         {
@@ -828,7 +828,7 @@ public partial class coinsph : Exchange
             {
                 object entry = byNumberOfSymbols[i];
                 Int64? threshold = this.safeInteger(entry, 0);
-                if (!(threshold == null) && (threshold == null || symbolsAmount >= threshold))
+                if (!(threshold == null) && symbolsAmount >= threshold.Value)
                 {
                     return this.safeInteger(entry, 1);
                 }
@@ -840,7 +840,7 @@ public partial class coinsph : Exchange
             {
                 object entry = byLimit[i];
                 Int64? threshold = this.safeInteger(entry, 0);
-                if (!(threshold == null) && (threshold == null || limit >= threshold))
+                if (!(threshold == null) && limit.Value >= threshold.Value)
                 {
                     return this.safeInteger(entry, 1);
                 }
@@ -957,7 +957,7 @@ public partial class coinsph : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -1071,7 +1071,7 @@ public partial class coinsph : Exchange
         {
             tickers = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols), parameters));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols, parameters));
     }
 
     /**
@@ -1276,9 +1276,9 @@ public partial class coinsph : Exchange
                 request["endTime"] = until;
             } else
             {
-                object endTimeByLimit = this.sum(since, ((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1))));
+                Int64 endTimeByLimit = this.sum(since, ((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1))));
                 Int64 now = this.milliseconds();
-                request["endTime"] = mathMin(endTimeByLimit, now);
+                request["endTime"] = Math.Min(endTimeByLimit, now);
             }
         } else if ((until != null))
         {
@@ -1306,7 +1306,7 @@ public partial class coinsph : Exchange
         //         ]
         //     ]
         //
-        IList<object> ohlcvs = this.toArray(response);
+        IList<object> ohlcvs = response;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
@@ -1685,7 +1685,7 @@ public partial class coinsph : Exchange
         }
         request["newOrderRespType"] = newOrderRespType;
         object paramsRequest = this.omit(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
-        Dictionary<string, object> response = new Dictionary<string, object>() {};
+        Dictionary<string, object> response = null;
         if ((testOrder == true))
         {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));
@@ -2141,7 +2141,7 @@ public partial class coinsph : Exchange
         //     ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> fees = this.toArray(response);
+        IList<object> fees = response;
         for (int i = 0; i < (fees?.Count ?? 0); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
@@ -2549,7 +2549,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null) is IList<object>) || ((query != null && key != null && query.ContainsKey(key) ? query[key] : null).GetType().IsGenericType && (query != null && key != null && query.ContainsKey(key) ? query[key] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr111999 && ((hxArr111999 is IList<object>) || (hxArr111999.GetType().IsGenericType && hxArr111999.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {
@@ -2608,7 +2608,7 @@ public partial class coinsph : Exchange
                 }
             }
             string? signedQuery = this.urlEncodeQuery(query);
-            string signature = this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256);
+            string signature = this.hmac(signedQuery, this.secret, sha256);
             url = ((((((apiUrl + "/") + endpoint) + "?") + signedQuery) + "&signature=") + signature);
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "X-COINS-APIKEY", this.apiKey },
@@ -2644,7 +2644,7 @@ public partial class coinsph : Exchange
         {
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

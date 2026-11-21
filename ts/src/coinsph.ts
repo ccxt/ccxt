@@ -677,7 +677,7 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
         const hasSymbolParam = ('symbol' in params);
         const hasSymbolsParam = ('symbols' in params);
         const limit = this.safeInteger (params, 'limit');
@@ -1478,7 +1478,7 @@ export default class coinsph extends Exchange {
         }
         request['newOrderRespType'] = newOrderRespType;
         const paramsRequest: Dict = this.omit (paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        let response: Dict = {};
+        let response: NullableDict = undefined;
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest (this.extend (request, paramsRequest));
         } else {

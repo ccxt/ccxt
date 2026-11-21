@@ -147,7 +147,7 @@ class paradex(ccxt.async_support.paradex):
         :param str [subscribeHash]: the subscription the request opens, the request id when None
         :returns dict: the reply
         """
-        requestHash = 'request:' + self.safe_string(request, 'id')
+        requestHash = 'request:' + self.safe_string(request, 'id', '')
         subscription = {
             'id': request['id'],
             'messageHashes': [requestHash],
@@ -243,7 +243,7 @@ class paradex(ccxt.async_support.paradex):
                 raise e
         return True
 
-    async def unsubscribe_channels_from(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], start: float, params: dict = {}) -> object:
+    async def unsubscribe_channels_from(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], start: int, params: dict = {}) -> object:
         """
  @ignore
         unsubscribes from the channels from an index on, after one was refused, their errors are dropped as the first one is thrown
@@ -265,7 +265,7 @@ class paradex(ccxt.async_support.paradex):
                     refused = refused + 1
         return refused
 
-    async def unsubscribe_channel_at(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], index: float, params: dict = {}) -> object:
+    async def unsubscribe_channel_at(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], index: int, params: dict = {}) -> object:
         """
  @ignore
         unsubscribes from one channel of a list, the reply forgets its subscription and rejects its watchers, the liquidations of a market with its trades
@@ -680,7 +680,7 @@ class paradex(ccxt.async_support.paradex):
         symbolsLength = len(symbolsNormalized)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
-        deltasOption, paramsDeltas = self.handle_option_and_params(params, 'watchOrderBook', 'deltas', False)
+        deltasOption, paramsDeltas = self.handle_option_bool_and_params(params, 'watchOrderBook', 'deltas', False)
         deltas = (deltasOption is True) or ((limit is not None) and (limit > 15))
         url = self.get_ws_url()
         # an unwatch in flight decides which feed each market is on once acknowledged
@@ -744,7 +744,7 @@ class paradex(ccxt.async_support.paradex):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
-        deltasOption, paramsDeltas = self.handle_option_and_params(params, 'watchOrderBook', 'deltas', False)
+        deltasOption, paramsDeltas = self.handle_option_bool_and_params(params, 'watchOrderBook', 'deltas', False)
         url = self.get_ws_url()
         client = self.client(url)
         channels = []
@@ -898,7 +898,7 @@ class paradex(ccxt.async_support.paradex):
         # the whole connection
         unsubscribe = self.unsubscribe_request(channel)
         subscribe = self.subscribe_request(channel)
-        unsubscribeHash = 'request:' + self.safe_string(unsubscribe, 'id')
+        unsubscribeHash = 'request:' + self.safe_string(unsubscribe, 'id', '')
         client.subscriptions[unsubscribeHash] = {
             'id': unsubscribe['id'],
             'messageHashes': [],
@@ -1015,7 +1015,8 @@ class paradex(ccxt.async_support.paradex):
         subMessageHashes = []
         for i in range(0, symbolsLength):
             symbol = (symbolsNormalized)[i]
-            marketId = self.market(symbol)['id']
+            market = self.market(symbol)
+            marketId = market['id']
             marketIds.append(marketId)
             subscribeHashes.append(channel + '.' + marketId)
             subMessageHashes.append(channel + '.' + symbol)
@@ -1027,12 +1028,12 @@ class paradex(ccxt.async_support.paradex):
             self.clean_cache({'topic': 'ticker', 'symbols': tickerSymbols})
             return True
         # the markets left in the scoped subscription once these are removed
-        remaining = 0
+        othersRemain = False
         keys = list(client.subscriptions.keys())
         for i in range(0, len(keys)):
             if (keys[i].find(channel + '.') == 0) and not self.in_array(keys[i], subscribeHashes):
-                remaining = remaining + 1
-        if (symbolsLength == 0) or ((scopedHash in client.subscriptions) and (remaining == 0)):
+                othersRemain = True
+        if (symbolsLength == 0) or ((scopedHash in client.subscriptions) and not othersRemain):
             # a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             channelSubscription = {
                 'topic': 'ticker',
@@ -1077,7 +1078,8 @@ class paradex(ccxt.async_support.paradex):
         channel = 'markets_summary'
         pendingHashes = [channel, channel + ':scoped']
         for i in range(0, len(symbols)):
-            pendingHashes.append(channel + '.' + self.market(symbols[i])['id'])
+            market = self.market(symbols[i])
+            pendingHashes.append(channel + '.' + market['id'])
         await self.wait_for_pending_unsubscribe(url, pendingHashes)
         client = self.client(url)
         if channel in client.subscriptions:
@@ -1091,7 +1093,8 @@ class paradex(ccxt.async_support.paradex):
         missingHashes = []
         # messageHashes[i] is the hash the summaries of symbols[i] resolve
         for i in range(0, len(symbols)):
-            marketId = self.market(symbols[i])['id']
+            market = self.market(symbols[i])
+            marketId = market['id']
             subscribeHash = channel + '.' + marketId
             subscribeHashes.append(subscribeHash)
             if not (subscribeHash in client.subscriptions):

@@ -10,28 +10,28 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchPositions".into());
-    let mut now: Value = Value::Int(exchange.milliseconds());
+    let method: Value = Value::Str("fetchPositions".into());
+    let now: Value = Value::Int(exchange.milliseconds());
     // without symbol
-    let mut positions: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![]).await;
+    let positions: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), positions.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1597: bool = true;
-        while { if !__for_first_1597 { i += 1; } __for_first_1597 = false; i < (positions.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (positions.len() as i64) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Null, now.clone());
     }
     }
     // testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
     // with symbol
-    let mut positionsForSymbol: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![Value::from(vec![symbol.clone()])]).await;
+    let positionsForSymbol: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![Value::from(vec![symbol.clone()])]).await;
     assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbol, Value::Arr(_))))));
-    let mut positionsForSymbolLength: i64 = positionsForSymbol.len() as i64;
+    let positionsForSymbolLength: i64 = positionsForSymbol.len() as i64;
     assert!(ccxt::runtime::is_true(&((positionsForSymbolLength <= 4))));
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1598: bool = true;
-        while { if !__for_first_1598 { i += 1; } __for_first_1598 = false; i < (positionsForSymbol.len() as i64) } {
+        let mut __for_first_1: bool = true;
+        while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (positionsForSymbol.len() as i64) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbol.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }

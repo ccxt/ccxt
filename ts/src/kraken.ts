@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { IndexType, Dictionary, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
+import type { IndexType, Dictionary, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1902,7 +1902,9 @@ export default class kraken extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
         };
-        this.options['delistedMarketsById'][id] = market;
+        const delistedMarketsByIdDict = this.safeDict (this.options, 'delistedMarketsById', {});
+        delistedMarketsByIdDict[id] = market;
+        this.options['delistedMarketsById'] = delistedMarketsByIdDict;
         return market;
     }
 
@@ -2060,10 +2062,11 @@ export default class kraken extends Exchange {
             } else {
                 descriptionType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
             }
-            if (descriptionType === 'stop loss' || descriptionType === 'take profit') {
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if ((part4 === 'stop' && part5 === 'loss') || (part4 === 'take' && part5 === 'profit')) {
                 triggerPrice = this.safeString (parts, 6);
                 price = this.safeString (parts, 9);
-            } else if (descriptionType === 'limit') {
+            } else if (part4 === 'limit') {
                 price = this.safeString (parts, 5);
             }
         }
@@ -3111,7 +3114,7 @@ export default class kraken extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionsByType (type: string, transactions: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined): Transaction[] {
+    parseTransactionsByType (type: string, transactions: Dict[], code: Str = undefined, since: Int = undefined, limit: Int = undefined): Transaction[] {
         const result: List = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = this.parseTransaction (this.extend ({
@@ -3274,12 +3277,12 @@ export default class kraken extends Exchange {
         //        }
         //     }
         //
-        let rawWithdrawals: NullableList = undefined;
+        let rawWithdrawals: any[] = [];
         const result = this.safeValue (response, 'result');
         if (!Array.isArray (result)) {
             rawWithdrawals = this.addPaginationCursorToResult (result);
         } else {
-            rawWithdrawals = result;
+            rawWithdrawals = this.safeList (response, 'result', []);
         }
         return this.parseTransactionsByType ('withdrawal', rawWithdrawals, code, since, limit);
     }

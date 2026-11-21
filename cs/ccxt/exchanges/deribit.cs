@@ -1241,7 +1241,7 @@ public partial class deribit : Exchange
             List<object> instrumentsResult = this.safeList(instrumentsResponses[i], "result", new List<object>() {});
             for (int k = 0; k < instrumentsResult.Count; k++)
             {
-                object market = instrumentsResult[k];
+                IDictionary<string, object> market = ((IDictionary<string, object>)instrumentsResult[k]);
                 string? kind = this.safeString(market, "kind");
                 bool isSpot = (kind == "spot");
                 string? id = this.safeString(market, "instrument_name");
@@ -1716,7 +1716,7 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? code = this.safeString2(parameters, "code", "currency");
         string? type = null;
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"code"});
@@ -1844,7 +1844,11 @@ public partial class deribit : Exchange
         int defaultLimit = 1000;
         Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
         Int64? limitResolved = (((since == null)) && ((limit == null))) ? defaultLimit : limit;
-        object sinceResolved = ((since == null)) ? null : mathMax((since - 1), 0);
+        object sinceResolved = null;
+        if ((since != null))
+        {
+            sinceResolved = mathMax((since - 1), 0);
+        }
         if ((since == null))
         {
             request["start_timestamp"] = (now - ((((windowLimit - 1)) * duration) * 1000));
@@ -2140,7 +2144,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> optionFee = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            object feeEntry = fees[i];
+            IDictionary<string, object> feeEntry = ((IDictionary<string, object>)fees[i]);
             string? instrumentType = this.safeString(feeEntry, "instrument_type");
             if (instrumentType == "future")
             {
@@ -2685,7 +2689,7 @@ public partial class deribit : Exchange
         }
         string? trailingAmount = this.safeString2(parameters, "trailingAmount", "trigger_offset");
         bool isTrailingAmountOrder = (trailingAmount != null);
-        object paramsOmitted = parameters;
+        IDictionary<string, object> paramsOmitted = parameters;
         if (isTrailingAmountOrder)
         {
             paramsOmitted = this.omit(parameters, "trigger_offset");
@@ -3379,7 +3383,7 @@ public partial class deribit : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result");
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbols));
     }
 
     /**
@@ -3417,10 +3421,10 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        return ccxt.BaseExchange.ToDictList(this.parseVolatilityHistory(response));
+        return this.parseVolatilityHistory(response);
     }
 
-    public virtual List<object> parseVolatilityHistory(IDictionary<string, object> volatility)
+    public virtual List<Dictionary<string, object>> parseVolatilityHistory(IDictionary<string, object> volatility)
     {
         //
         //     {
@@ -3437,7 +3441,7 @@ public partial class deribit : Exchange
         //     }
         //
         List<object> volatilityResult = this.safeList(volatility, "result", new List<object>() {});
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < volatilityResult.Count; i++)
         {
             Int64? timestamp = this.safeInteger(volatilityResult[i], 0);
@@ -4554,7 +4558,7 @@ public partial class deribit : Exchange
             }
             string requestData = (((((method + "\n") + request) + "\n") + requestBody) + "\n"); // eslint-disable-line quotes
             string auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
             };

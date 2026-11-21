@@ -310,7 +310,8 @@ class toobit extends \ccxt\async\toobit {
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbol][$timeframe];
+        $bySymbol = $result[$symbol];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -337,15 +338,15 @@ class toobit extends \ccxt\async\toobit {
         $messageHashes = array();
         $timeframes = $this->safe_dict($this->options['ws'], 'timeframes', array());
         $marketIds = array();
-        $selectedTimeframe = null;
+        $selectedTimeframe = '';
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolStr = $this->safe_string($data, 0, '');
             $market = $this->market($symbolStr);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
             $unfiedTimeframe = $this->safe_string($data, 1, '1m');
             $rawTimeframe = $this->safe_string($timeframes, $unfiedTimeframe, $unfiedTimeframe);
-            if ($selectedTimeframe !== null && $selectedTimeframe !== $rawTimeframe) {
+            if ($selectedTimeframe !== '' && $selectedTimeframe !== $rawTimeframe) {
                 throw new NotSupported($this->id . ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             } else {
                 $selectedTimeframe = $rawTimeframe;
@@ -830,8 +831,9 @@ class toobit extends \ccxt\async\toobit {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $this->safe_list($message, 'B', array());
-        $this->balance[$type]['timestamp'] = $timestamp;
-        $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
+        $typeBalance = $this->safe_dict($this->balance, $type, array());
+        $typeBalance['timestamp'] = $timestamp;
+        $typeBalance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'a');
@@ -841,10 +843,10 @@ class toobit extends \ccxt\async\toobit {
             $account['used'] = $this->safe_string($balance, 'l');
             $account['free'] = $this->safe_string($balance, 'f');
             if ($code !== null) {
-                $this->balance[$type][$code] = $account;
+                $typeBalance[$code] = $account;
             }
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($typeBalance);
         $client->resolve($this->balance[$type], $type . ':balance');
     }
 

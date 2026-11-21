@@ -102,7 +102,9 @@ export default class bullish extends bullishRest {
         const cookies = {
             'JWT_COOKIE': token,
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict(this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const id = this.requestId().toString();
         const message = {
             'jsonrpc': '2.0',
@@ -667,11 +669,12 @@ export default class bullish extends bullishRest {
             const data = this.safeList(message, 'data', []);
             const parsed = this.parseBalanceList(data);
             const parsedKeys = Object.keys(parsed);
+            const balance = this.safeDict(this.balance, tradingAccountId, {});
             for (let i = 0; i < parsedKeys.length; i++) {
                 const parsedKey = parsedKeys[i];
-                this.balance[tradingAccountId][parsedKey] = parsed[parsedKey];
+                balance[parsedKey] = parsed[parsedKey];
             }
-            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
+            this.balance[tradingAccountId] = this.safeBalance(balance);
         }
         else {
             const data = this.safeDict(message, 'data', {});
@@ -680,11 +683,12 @@ export default class bullish extends bullishRest {
             account['total'] = this.safeString(data, 'availableQuantity');
             account['used'] = this.safeString(data, 'lockedQuantity');
             const code = this.safeCurrencyCode(assetId);
-            if ((tradingAccountId !== undefined) && (code !== undefined)) {
-                this.balance[tradingAccountId][code] = account;
-            }
             this.balance[tradingAccountId]['info'] = message;
-            this.balance[tradingAccountId] = this.safeBalance(this.balance[tradingAccountId]);
+            const deltaBalance = this.safeDict(this.balance, tradingAccountId, {});
+            if ((tradingAccountId !== undefined) && (code !== undefined)) {
+                deltaBalance[code] = account;
+            }
+            this.balance[tradingAccountId] = this.safeBalance(deltaBalance);
         }
         const messageHash = 'balance';
         const tradingAccountIdHash = '::' + tradingAccountId;

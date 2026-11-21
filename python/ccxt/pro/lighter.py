@@ -1023,7 +1023,7 @@ class lighter(ccxt.async_support.lighter):
             assetIds = list(assets.keys())
             for i in range(0, len(assetIds)):
                 assetId = assetIds[i]
-                asset = self.safe_dict(assets, assetId)
+                asset = self.safe_dict(assets, assetId, {})
                 codeId = self.safe_string(asset, 'symbol')
                 code = self.safe_currency_code(codeId)
                 account = self.account()
@@ -1105,7 +1105,8 @@ class lighter(ccxt.async_support.lighter):
         options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
@@ -1224,7 +1225,7 @@ class lighter(ccxt.async_support.lighter):
         #
         #     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         #
-        id = self.safe_string(message, 'id')
+        id = self.safe_string(message, 'id', '')
         client.resolve(message, 'jsonapi/sendtx:' + id)
 
     def handle_orders(self, client: Client, message: dict) -> bool:
@@ -1443,8 +1444,8 @@ class lighter(ccxt.async_support.lighter):
             for i in range(0, len(subscriptionHashes)):
                 subscriptionHash = subscriptionHashes[i]
                 if subscriptionHash.startswith('ticker'):
-                    subscription = self.safe_dict(client.subscriptions, subscriptionHash)
-                    subscriptionParams = self.safe_dict(subscription, 'params')
+                    subscription = self.safe_dict(client.subscriptions, subscriptionHash, {})
+                    subscriptionParams = self.safe_dict(subscription, 'params', {})
                     subscribedChannel = self.safe_string(subscriptionParams, 'channel')
                     if subscribedChannel == 'market_stats/all':
                         del client.subscriptions[subscriptionHash]

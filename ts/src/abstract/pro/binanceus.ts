@@ -2757,7 +2757,7 @@ abstract class binance extends _binance {
         return this.request ('exerciseHistory', [ 'eapiPublic' ], 'GET', params, { 'cost': 3 });
     }
 
-    override eapiPublicGetOpenInterest (params = {}): Promise<Dict> {
+    override eapiPublicGetOpenInterest (params = {}): Promise<List> {
         return this.request ('openInterest', [ 'eapiPublic' ], 'GET', params, { 'cost': 3 });
     }
 

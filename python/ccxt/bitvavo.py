@@ -2492,11 +2492,13 @@ class bitvavo(Exchange, ImplicitAPI):
         if networkId == 'Mainnet':
             networkId = currencyCode
         networkCode = self.network_id_to_code(networkId, currencyCode)
+        networkFees = {}
         if networkCode is not None:
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'deposit': result['deposit'],
                 'withdraw': result['withdraw'],
             }
+        result['networks'] = networkFees
         return result
 
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -2585,7 +2587,7 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_integer(config, 'cost', 1)

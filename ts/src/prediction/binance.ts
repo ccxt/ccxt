@@ -154,7 +154,7 @@ export default class binance extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        const queries = this.parseSearchQueries (params) as any[];
+        const queries = this.parseSearchQueries (params);
         const queriesLength = queries.length;
         if (queriesLength > 0) {
             const eventParams = this.omit (params, [ 'limit' ]);
@@ -214,7 +214,7 @@ export default class binance extends Exchange {
         let offset: int = 0;
         while (true) {
             const collectedLength = collected.length;
-            const remaining = maxTopicsResolved - collectedLength;
+            const remaining = this.parseToInt (maxTopicsResolved - collectedLength);
             const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
@@ -372,7 +372,7 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        let rawTopics: List = [];
+        let rawTopics: Dict[] = [];
         if (allQueriesLength > 0) {
             rawTopics = await this.fetchEventsByQuery (allQueries, fetchCap, rest);
         } else if (eventId !== undefined) {
@@ -990,12 +990,8 @@ export default class binance extends Exchange {
             const marketId = this.safeString (order, 'marketId');
             const outcome = this.safeStringUpper (order, 'outcome');
             const market = this.safeMarket (marketId);
-            let outcomeName = this.safeString (market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome (outcomeName);
+            const marketName = this.safeString (market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome (marketName + ':' + outcome);
         }
         const side = this.safeStringLower (order, 'side');
         const timestamp = this.safeInteger (order, 'createTime');
@@ -1081,7 +1077,7 @@ export default class binance extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             outcomeObj = this.outcome (outcome);
-            const market = this.market (outcomeObj['market']);
+            const market = this.market (this.safeString (outcomeObj, 'market'));
             request['marketId'] = market['id'];
         }
         if (limit !== undefined) {
@@ -1326,7 +1322,7 @@ export default class binance extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             outcomeObj = this.outcome (outcome);
-            const market = this.market (outcomeObj['market']);
+            const market = this.market (this.safeString (outcomeObj, 'market'));
             request['marketTopicId'] = market['info']['marketTopicId'];
         }
         const wallet = await this.fetchWallet ('fetchOrders', params);
@@ -1355,12 +1351,8 @@ export default class binance extends Exchange {
             const marketId = this.safeString (position, 'marketId');
             const outcome = this.safeStringUpper (position, 'outcomeName');
             const market = this.safeMarket (marketId);
-            let outcomeName = this.safeString (market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome (outcomeName);
+            const marketName = this.safeString (market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome (marketName + ':' + outcome);
         }
         const timestamp = this.safeInteger (position, 'createdTime');
         const totalCost = this.parseNumber (this.safeString (position, 'totalCost'));
@@ -1529,12 +1521,8 @@ export default class binance extends Exchange {
             const marketId = this.safeString (trade, 'marketId');
             const outcome = this.safeStringUpper (trade, 'outcome');
             const market = this.safeMarket (marketId);
-            let outcomeName = this.safeString (market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
-            outcomeObjResolved = this.safeOutcome (outcomeName);
+            const marketName = this.safeString (market, 'market', marketId);
+            outcomeObjResolved = this.safeOutcome (marketName + ':' + outcome);
         }
         const timestamp = this.safeInteger (trade, 'createTime');
         const filled = this.safeString (trade, 'filledShareQty');
@@ -1581,8 +1569,9 @@ export default class binance extends Exchange {
      * @returns {object} a wallet
      */
     async fetchWallet (methodName: string, params: Dict = {}): Promise<NullableDict> {
-        if (this.safeDict (this.options, 'wallet') !== undefined) {
-            return this.safeDict (this.options, 'wallet');
+        const cachedWallet = this.safeDict (this.options, 'wallet');
+        if (cachedWallet !== undefined) {
+            return cachedWallet;
         }
         const walletAddress = this.handleOptionStringAndParams (params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList ();

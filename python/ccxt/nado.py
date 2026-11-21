@@ -563,13 +563,14 @@ class nado(Exchange, ImplicitAPI):
         isTriggerOrder = isStopOrder or isStopLossOrder or isTakeProfitOrder
         if isStopOrder:
             # the final omit drops triggerDirection from the request
-            triggerDirection = self.safe_string(self.handle_trigger_direction_and_params(paramsRecvWindow), 0)
+            triggerDirection = self.handle_trigger_direction_and_params(paramsRecvWindow)[0]
             directionSuffix = 'below'
             if triggerDirection == 'ascending':
                 directionSuffix = 'above'
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18
+            oracleKey = 'oracle_price_' + directionSuffix
+            priceRequirement[oracleKey] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -588,7 +589,8 @@ class nado(Exchange, ImplicitAPI):
                 triggerPrice = takeProfitTriggerPrice
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18
+            oracleKey = 'oracle_price_' + oracleSide
+            priceRequirement[oracleKey] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -2764,7 +2766,8 @@ class nado(Exchange, ImplicitAPI):
                 amount = self.parse_x18(Precise.string_abs(amountString))
             filled = self.parse_x18(Precise.string_abs(archiveFilled))
             costString = self.safe_string(order, 'quote_filled')
-            cost = None if (costString is None) else self.parse_x18(Precise.string_abs(costString))
+            if costString is not None:
+                cost = self.parse_x18(Precise.string_abs(costString))
             if (filled is not None) and (cost is not None):
                 average = Precise.string_div(self.number_to_string(cost), self.number_to_string(filled))
             if (amountString is not None) and (archiveFilled is not None):
@@ -2944,7 +2947,8 @@ class nado(Exchange, ImplicitAPI):
             start = len(paddedLeft) - self.parse_to_int(length)
             return paddedLeft[start:len(paddedLeft)]
         paddedRight = value + zeros
-        return paddedRight[0:length]
+        end = self.parse_to_int(length)
+        return paddedRight[0:end]
 
     def sign_order(self, order: dict, productId: Int, chainId: Str) -> str:
         domain = {
@@ -3033,14 +3037,16 @@ class nado(Exchange, ImplicitAPI):
             return marketId[0:-5]
         return marketId
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         # the gateway weighs a query by its 'type' param, the archive by the query key of the
         # body, and every archive weight grows with the number of rows requested
-        if ('byType' in config) and ('type' in params):
-            queryType = params['type']
+        if 'byType' in config:
             byType = config['byType']
-            if queryType in byType:
-                return byType[queryType]
+            queryType = self.safe_string(params, 'type')
+            if queryType is not None:
+                typeCost = self.safe_integer(byType, queryType)
+                if typeCost is not None:
+                    return typeCost
         byQuery = self.safe_dict(config, 'byQuery')
         if byQuery is not None:
             queryNames = list(byQuery.keys())

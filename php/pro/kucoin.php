@@ -1806,7 +1806,7 @@ class kucoin extends \ccxt\async\kucoin {
             $nonce = $this->safe_integer($orderbook, 'nonce');
             $deltaEnd = $this->safe_integer_2($data, 'sequenceEnd', 'timestamp');
             if ($nonce === null) {
-                $cacheLength = count($orderbook->cache);
+                $cacheLength = $this->parse_to_int(strlen($orderbook->cache));
                 $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
                 $subscription = null;
                 for ($i = 0; $i < count($subscriptions); $i++) {
@@ -1817,7 +1817,7 @@ class kucoin extends \ccxt\async\kucoin {
                     }
                 }
                 $limit = $this->safe_integer($subscription, 'limit');
-                $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
+                $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 5));
                 if ($cacheLength === $snapshotDelay) {
                     $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
                 }
@@ -1871,10 +1871,10 @@ class kucoin extends \ccxt\async\kucoin {
             $nonce = $this->safe_integer($orderbook, 'nonce');
             $deltaEnd = $this->safe_integer($data, 'C');
             if ($nonce === null) {
-                $cacheLength = count($orderbook->cache);
+                $cacheLength = $this->parse_to_int(strlen($orderbook->cache));
                 $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
-                $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
+                $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 5));
                 $utaParams = array(
                     'uta' => true,
                 );
@@ -2013,8 +2013,8 @@ class kucoin extends \ccxt\async\kucoin {
         $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
         unset($client->subscriptions[$id]);
         $method = $this->safe_value($subscription, 'method');
-        if ($method !== null) {
-            $method($client, $message, $subscription);
+        if (($subscription !== null) && ($method !== null)) {
+            $this->handle_order_book_subscription($client, $message, $subscription);
         }
         $isUnSub = $this->safe_bool($subscription, 'unsubscribe', false);
         if ($isUnSub) {
@@ -2944,10 +2944,11 @@ class kucoin extends \ccxt\async\kucoin {
             if (!(is_array($this->balance) && array_key_exists($uniformType ?? '', $this->balance))) {
                 $this->balance[$uniformType] = array();
             }
-            $this->balance[$uniformType]['info'] = $data;
+            $balance = $this->safe_dict($this->balance, $uniformType, array());
+            $balance['info'] = $data;
             $timestamp = $this->safe_integer_2($data, 'time', 'timestamp');
-            $this->balance[$uniformType]['timestamp'] = $timestamp;
-            $this->balance[$uniformType]['datetime'] = $this->iso8601($timestamp);
+            $balance['timestamp'] = $timestamp;
+            $balance['datetime'] = $this->iso8601($timestamp);
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $used = $this->safe_string_2($data, 'hold', 'holdBalance');
@@ -2959,9 +2960,9 @@ class kucoin extends \ccxt\async\kucoin {
             $account['used'] = $used;
             $account['total'] = $this->safe_string($data, 'total');
             if ($code !== null) {
-                $this->balance[$uniformType][$code] = $account;
+                $balance[$code] = $account;
             }
-            $this->balance[$uniformType] = $this->safe_balance($this->balance[$uniformType]);
+            $this->balance[$uniformType] = $this->safe_balance($balance);
             $client->resolve($this->balance[$uniformType], $uniformType . ':balance');
         }
     }
@@ -2989,18 +2990,19 @@ class kucoin extends \ccxt\async\kucoin {
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
-        $this->balance[$type]['info'] = $data;
+        $balance = $this->safe_dict($this->balance, $type, array());
+        $balance['info'] = $data;
         $timestamp = $this->safe_integer_product($data, 'U', 0.000001);
-        $this->balance[$type]['timestamp'] = $timestamp;
-        $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
         $account = $this->account();
         $account['free'] = $this->safe_string($data, 'a');
         $account['used'] = $this->safe_string($data, 'h');
         $account['total'] = $this->safe_string($data, 'b');
         if ($code !== null) {
-            $this->balance[$type][$code] = $account;
+            $balance[$code] = $account;
         }
-        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
+        $this->balance[$type] = $this->safe_balance($balance);
         $messageHash = $type . ':balance';
         $client->resolve($this->balance[$type], $messageHash);
     }

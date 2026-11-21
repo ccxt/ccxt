@@ -10,15 +10,15 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchTrades(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchTrades".into());
+    let method: Value = Value::Str("watchTrades".into());
     let mut now: Value = Value::Int(exchange.milliseconds());
-    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    let mut maxIdleTime: Value = Value::Int(5000);
+    let ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+    let maxIdleTime: Value = Value::Int(5000);
     let mut idle: bool = false;
     while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !idle {
         let mut response: Value = Value::from(vec![]);
         let mut success: bool = true;
-        let mut startTime: Value = Value::Int(exchange.milliseconds());
+        let startTime: Value = Value::Int(exchange.milliseconds());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_trades", vec![symbol.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -33,8 +33,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone()]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1617: bool = true;
-                while { if !__for_first_1617 { i += 1; } __for_first_1617 = false; i < (response.len() as i64) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (response.len() as i64) } {
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), Value::Bool(true));
             }
             }

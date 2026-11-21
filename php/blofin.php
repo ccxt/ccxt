@@ -2315,13 +2315,14 @@ class blofin extends Exchange {
         //
         $result = $this->deposit_withdraw_fee($fee);
         $chainsLength = count($fee);
+        $networkFees = array();
         for ($i = 0; $i < $chainsLength; $i++) {
             $chain = $this->safe_dict($fee, $i);
             $networkCode = $this->chain_id_to_network_code($this->safe_string($chain, 'chain'));
             if ($networkCode === null) {
                 continue;
             }
-            $result['networks'][$networkCode] = array(
+            $networkFees[$networkCode] = array(
                 'withdraw' => array(
                     'fee' => $this->safe_number($chain, 'withdrawFee'),
                     'percentage' => false,
@@ -2332,6 +2333,7 @@ class blofin extends Exchange {
                 ),
             );
         }
+        $result['networks'] = $networkFees;
         if ($chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
             $networks = $this->safe_dict($result, 'networks', array());
@@ -2752,7 +2754,6 @@ class blofin extends Exchange {
             $method = 'privatePostTradeCancelTpsl';
         }
         if ($clientOrderIds === null) {
-            $orderIds = $this->parse_ids($ids);
             if ($tpslIds !== null) {
                 for ($i = 0; $i < count($tpslIds); $i++) {
                     $request[] = array(
@@ -2761,15 +2762,15 @@ class blofin extends Exchange {
                     );
                 }
             }
-            for ($i = 0; $i < count($orderIds); $i++) {
+            for ($i = 0; $i < count($ids); $i++) {
                 if ($trigger === true) {
                     $request[] = array(
-                        'tpslId' => $this->safe_string($orderIds, $i),
+                        'tpslId' => $this->safe_string($ids, $i),
                         'instId' => $market['id'],
                     );
                 } else {
                     $request[] = array(
-                        'orderId' => $this->safe_string($orderIds, $i),
+                        'orderId' => $this->safe_string($ids, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -2906,7 +2907,7 @@ class blofin extends Exchange {
         $market = null;
         if ($symbols !== null) {
             $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
+            if ($symbolsLength > 0) {
                 $market = $this->market($symbols[0]);
                 $request['instId'] = $market['id'];
             }
@@ -3138,8 +3139,9 @@ class blofin extends Exchange {
             throw new BadRequest($this->id . ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         $symbolsNormalized = $this->market_symbols($symbols);
+        $marketIds = $this->market_ids($symbolsNormalized);
         $request = array(
-            'instId' => implode(',', $this->market_ids($symbolsNormalized)),
+            'instId' => implode(',', $marketIds),
             'marginMode' => $marginMode,
         );
         $response = $this->privateGetAccountBatchLeverageInfo($this->extend($request, $query));

@@ -130,11 +130,15 @@ class cryptocom(ccxt.async_support.cryptocom):
             params['params'] = {}
         bookSubscriptionType, paramsBookSubscriptionType = self.handle_option_string_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, paramsBookSubscriptionType2 = self.handle_option_string_and_params(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
-        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2
+        bookParams = self.safe_dict(paramsBookSubscriptionType2, 'params', {})
+        bookParams['bookSubscriptionType'] = bookSubscriptionType2
+        paramsBookSubscriptionType2['params'] = bookParams
         bookUpdateFrequency, paramsBookUpdateFrequency = self.handle_option_string_and_params(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, paramsBookUpdateFrequency2 = self.handle_option_string_and_params(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
-            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2
+            frequencyParams = self.safe_dict(paramsBookUpdateFrequency2, 'params', {})
+            frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2
+            paramsBookUpdateFrequency2['params'] = frequencyParams
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
@@ -169,11 +173,15 @@ class cryptocom(ccxt.async_support.cryptocom):
             params['params'] = {}
         bookSubscriptionType, paramsBookSubscriptionType = self.handle_option_string_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
         bookSubscriptionType2, paramsBookSubscriptionType2 = self.handle_option_string_and_params(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
-        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2
+        bookParams = self.safe_dict(paramsBookSubscriptionType2, 'params', {})
+        bookParams['bookSubscriptionType'] = bookSubscriptionType2
+        paramsBookSubscriptionType2['params'] = bookParams
         bookUpdateFrequency, paramsBookUpdateFrequency = self.handle_option_string_and_params(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, paramsBookUpdateFrequency2 = self.handle_option_string_and_params(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
         if bookUpdateFrequency2 is not None:
-            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2
+            frequencyParams = self.safe_dict(paramsBookUpdateFrequency2, 'params', {})
+            frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2
+            paramsBookUpdateFrequency2['params'] = frequencyParams
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
@@ -1116,13 +1124,14 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.markets is None:
             await self.load_markets()
         market = None
-        request = {
-            'method': 'private/cancel-all-orders',
-            'params': self.extend({}, params),
-        }
+        requestParams = self.extend({}, params)
         if symbol is not None:
             market = self.market(symbol)
-            request['params']['instrument_name'] = market['id']
+            requestParams['instrument_name'] = market['id']
+        request = {
+            'method': 'private/cancel-all-orders',
+            'params': requestParams,
+        }
         messageHash = self.incrementing_nonce()
         return await self.watch_private_request(messageHash, request)
 
@@ -1248,7 +1257,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             'user.balance': self.handle_balance,
             'user.position_balance': self.handle_positions,
         }
-        result = self.safe_value_2(message, 'result', 'info')
+        result = self.safe_dict_2(message, 'result', 'info', {})
         channel = self.safe_string(result, 'channel')
         if (channel is not None) and channel.find('user.trade') > -1:
             # channel might be user.trade.BTC_USDT

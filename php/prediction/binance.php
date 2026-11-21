@@ -227,7 +227,7 @@ class binance extends Exchange {
         $offset = 0;
         while (true) {
             $collectedLength = count($collected);
-            $remaining = $maxTopicsResolved - $collectedLength;
+            $remaining = $this->parse_to_int($maxTopicsResolved - $collectedLength);
             $reqLimit = ($remaining < $pageLimit) ? $remaining : $pageLimit;
             if ($reqLimit <= 0) {
                 break;
@@ -1027,12 +1027,8 @@ class binance extends Exchange {
             $marketId = $this->safe_string($order, 'marketId');
             $outcome = $this->safe_string_upper($order, 'outcome');
             $market = $this->safe_market($marketId);
-            $outcomeName = $this->safe_string($market, 'market');
-            if ($outcomeName === null) {
-                $outcomeName = $marketId;
-            }
-            $outcomeName .= ':' . $outcome;
-            $outcomeObjResolved = $this->safe_outcome($outcomeName);
+            $marketName = $this->safe_string($market, 'market', $marketId);
+            $outcomeObjResolved = $this->safe_outcome($marketName . ':' . $outcome);
         }
         $side = $this->safe_string_lower($order, 'side');
         $timestamp = $this->safe_integer($order, 'createTime');
@@ -1122,7 +1118,7 @@ class binance extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $market = $this->market($outcomeObj['market']);
+            $market = $this->market($this->safe_string($outcomeObj, 'market'));
             $request['marketId'] = $market['id'];
         }
         if ($limit !== null) {
@@ -1379,7 +1375,7 @@ class binance extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $market = $this->market($outcomeObj['market']);
+            $market = $this->market($this->safe_string($outcomeObj, 'market'));
             $request['marketTopicId'] = $market['info']['marketTopicId'];
         }
         $wallet = Async\await($this->fetch_wallet('fetchOrders', $params));
@@ -1406,12 +1402,8 @@ class binance extends Exchange {
             $marketId = $this->safe_string($position, 'marketId');
             $outcome = $this->safe_string_upper($position, 'outcomeName');
             $market = $this->safe_market($marketId);
-            $outcomeName = $this->safe_string($market, 'market');
-            if ($outcomeName === null) {
-                $outcomeName = $marketId;
-            }
-            $outcomeName .= ':' . $outcome;
-            $outcomeObjResolved = $this->safe_outcome($outcomeName);
+            $marketName = $this->safe_string($market, 'market', $marketId);
+            $outcomeObjResolved = $this->safe_outcome($marketName . ':' . $outcome);
         }
         $timestamp = $this->safe_integer($position, 'createdTime');
         $totalCost = $this->parse_number($this->safe_string($position, 'totalCost'));
@@ -1582,12 +1574,8 @@ class binance extends Exchange {
             $marketId = $this->safe_string($trade, 'marketId');
             $outcome = $this->safe_string_upper($trade, 'outcome');
             $market = $this->safe_market($marketId);
-            $outcomeName = $this->safe_string($market, 'market');
-            if ($outcomeName === null) {
-                $outcomeName = $marketId;
-            }
-            $outcomeName .= ':' . $outcome;
-            $outcomeObjResolved = $this->safe_outcome($outcomeName);
+            $marketName = $this->safe_string($market, 'market', $marketId);
+            $outcomeObjResolved = $this->safe_outcome($marketName . ':' . $outcome);
         }
         $timestamp = $this->safe_integer($trade, 'createTime');
         $filled = $this->safe_string($trade, 'filledShareQty');
@@ -1638,8 +1626,9 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a wallet
          */
-        if ($this->safe_dict($this->options, 'wallet') !== null) {
-            return $this->safe_dict($this->options, 'wallet');
+        $cachedWallet = $this->safe_dict($this->options, 'wallet');
+        if ($cachedWallet !== null) {
+            return $cachedWallet;
         }
         $walletAddress = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress)[0];
         $response = Async\await($this->sapiPrivateGetWalletList());

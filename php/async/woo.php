@@ -943,7 +943,7 @@ class woo extends Exchange {
         //         "isMaker": 0
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
+        $isFromFetchOrder = ($this->safe_string($trade, 'id') !== null);
         $timestampString = $this->safe_string_2($trade, 'executed_timestamp', 'executedTimestamp');
         $timestamp = null;
         if ($timestampString !== null) {
@@ -1235,8 +1235,8 @@ class woo extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $currencyId = $this->safe_string($rawCurrency, '_coin_id');
         $code = $this->safe_currency_code($currencyId);
-        $tokensByNetworkId = $this->index_by($rawCurrency['_tokens_by_id'], 'network');
-        $chainsByNetworkId = $this->index_by($rawCurrency['_networks_by_id'], 'network');
+        $tokensByNetworkId = $this->index_by($this->safe_list($rawCurrency, '_tokens_by_id', array()), 'network');
+        $chainsByNetworkId = $this->index_by($this->safe_list($rawCurrency, '_networks_by_id', array()), 'network');
         $keys = is_array($chainsByNetworkId) ? array_keys($chainsByNetworkId) : array();
         $resultingNetworks = array();
         for ($j = 0; $j < count($keys); $j++) {

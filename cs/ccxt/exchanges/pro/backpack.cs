@@ -93,21 +93,21 @@ public partial class backpack : ccxt.backpack
      * @param {object} params local parameters
      * @returns {string} venue market id
      */
-    public virtual string? wsVenueMarketId(object methodName, IDictionary<string, object> market, IDictionary<string, object> parameters)
+    public virtual string? wsVenueMarketId(string methodName, IDictionary<string, object> market, IDictionary<string, object> parameters)
     {
         if ((market == null))
         {
-            throw new BadSymbol ((((this.id + " ") + (methodName)) + "() requires a market")) ;
+            throw new BadSymbol ((((this.id + " ") + methodName) + "() requires a market")) ;
         }
         this.handleStockParams(methodName, parameters, market);
         string? source = this.safeString(parameters, "source", "Venue");
         if ((source == "External") || ((this.safeString(market, "executionModel") == "rfq")) || ((this.safeString((market != null && market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ")))
         {
-            throw new NotSupported ((((this.id + " ") + (methodName)) + "() requires a venue order-book market; provider and RFQ streams are not documented for this method")) ;
+            throw new NotSupported ((((this.id + " ") + methodName) + "() requires a venue order-book market; provider and RFQ streams are not documented for this method")) ;
         }
         if (source != "Venue")
         {
-            throw new BadRequest ((((this.id + " ") + (methodName)) + "() source must be Venue")) ;
+            throw new BadRequest ((((this.id + " ") + methodName) + "() source must be Venue")) ;
         }
         return ((string?)((object)((market != null && market.ContainsKey("id") ? market["id"] : null))));
     }
@@ -268,7 +268,7 @@ public partial class backpack : ccxt.backpack
         return this.filterByArray(this.tickers, "symbol", symbolsResolved);
     }
 
-    public async virtual Task<object> watchPublic(object topics, object messageHashes, object parameters = null, bool? unwatch = null)
+    public async virtual Task<object> watchPublic(object topics, IList<object> messageHashes, object parameters = null, bool? unwatch = null)
     {
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
@@ -297,7 +297,7 @@ public partial class backpack : ccxt.backpack
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> watchPrivate(object topics, object messageHashes, object parameters = null, bool? unwatch = null)
+    public async virtual Task<object> watchPrivate(object topics, IList<object> messageHashes, object parameters = null, bool? unwatch = null)
     {
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
@@ -316,7 +316,7 @@ public partial class backpack : ccxt.backpack
         string payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
         byte[] secretBytes = this.base64ToBinary(this.secret);
         object seed = this.arraySlice(secretBytes, 0, 32);
-        string signature = eddsa(this.encode(payload), seed, ed25519);
+        string signature = eddsa(payload, seed, ed25519);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", topics },
@@ -331,11 +331,11 @@ public partial class backpack : ccxt.backpack
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public virtual void handleUnsubscriptions(object url, object messageHashes, object message)
+    public virtual void handleUnsubscriptions(object url, IList<object> messageHashes, object message)
     {
         var client = this.client(url);
         this.watchMultiple(url, messageHashes, message, messageHashes);
-        for (int i = 0; i < getArrayLength(messageHashes); i++)
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = this.safeString(messageHashes, i, "");
             string subMessageHash = messageHash.Replace("unsubscribe:", (string)"");
@@ -361,9 +361,9 @@ public partial class backpack : ccxt.backpack
                 string? timeframe = this.safeString(splitHashes, 3);
                 if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
                 {
-                    if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+                    if ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe)))
                     {
-                        ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                        (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
                     }
                 }
             } else if ((messageHash?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
@@ -398,7 +398,7 @@ public partial class backpack : ccxt.backpack
                 {
                     string symbol = messageHash.Replace("unsubscribe:orders:", (string)"");
                     ccxt.pro.ArrayCache cache = this.orders;
-                    if (((this.orders != null)) && (inOp(cache, symbol)))
+                    if (((this.orders != null)) && ((cache != null && cache.Contains(symbol))))
                     {
                         ((IDictionary<string,object>)cache).Remove(symbol);
                     }
@@ -785,8 +785,9 @@ public partial class backpack : ccxt.backpack
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCV", parameters);
-        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, query));
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, query);
+
+        return ccxt.BaseExchange.ToOHLCVList((result != null && symbol != null && result.ContainsKey(symbol) && result[symbol] != null && timeframeVar != null && result[symbol].ContainsKey(timeframeVar) ? result[symbol][timeframeVar] : null));
     }
 
     /**
@@ -828,7 +829,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr35751 && ((hxArr35751 is IList<object>) || (hxArr35751.GetType().IsGenericType && hxArr35751.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -877,7 +878,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr38249 && ((hxArr38249 is IList<object>) || (hxArr38249.GetType().IsGenericType && hxArr38249.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -932,13 +933,13 @@ public partial class backpack : ccxt.backpack
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.ContainsKey(timeframe))))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow3) && ohlcvsRow3 != null && timeframe != null && ohlcvsRow3.TryGetValue(timeframe, out var ohlcvsValue3) ? ohlcvsValue3 : null));
         List<object> parsed = this.parseWsOHLCV(data);
         ohlcv.append(parsed);
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);
@@ -1025,7 +1026,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -1233,7 +1234,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -1335,20 +1336,21 @@ public partial class backpack : ccxt.backpack
         string messageHash = ("orderbook:" + symbol);
         if ((nonce == null))
         {
-            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+            int cacheSize = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+            Int64? cacheLength = this.parseToInt(cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             Dictionary<string, object> market = this.market(symbol);
             bool isStockMarket = ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)) || (((marketId != null)) && ((marketId.IndexOf(".US_", StringComparison.Ordinal) >= 0) || (marketId.IndexOf(".HK_", StringComparison.Ordinal) >= 0)));
             int defaultSnapshotDelay = isStockMarket ? 0 : 10;
-            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay);
-            if (isEqual(cacheLength, snapshotDelay))
+            Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay));
+            if ((cacheLength == snapshotDelay))
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
             }
             return;
-        } else if (((deltaNonce != null)) && ((nonce != null && (deltaNonce == null || nonce > deltaNonce))))
+        } else if (((deltaNonce != null)) && (nonce.Value > deltaNonce.Value))
         {
             return;
         }
@@ -1409,7 +1411,7 @@ public partial class backpack : ccxt.backpack
             {
                 return cacheLength;
             }
-            if ((((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if (((nonce >= (deltaStart - 1))) && (nonce.Value < deltaEnd.Value))
             {
                 return i;
             }
@@ -1836,7 +1838,7 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         if ((symbolsNormalized != null))

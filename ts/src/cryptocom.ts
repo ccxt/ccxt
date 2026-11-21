@@ -1723,7 +1723,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result as Dict);
     }
 
-    editOrderRequest (id: Str, symbol: string, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    editOrderRequest (id: Str, symbol: string, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const request: Dict = {};
         if (id !== undefined) {
             request['order_id'] = id;
@@ -3316,7 +3316,9 @@ export default class cryptocom extends Exchange {
                 if (symbolsLength > 1) {
                     throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbolsNormalized[0];
+                if (symbolsLength === 1) {
+                    symbol = symbolsNormalized[0];
+                }
             } else {
                 symbol = symbolsNormalized;
             }

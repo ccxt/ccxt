@@ -265,7 +265,7 @@ public partial class ndax : ccxt.ndax
         {
             limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -322,7 +322,7 @@ public partial class ndax : ccxt.ndax
                 {
                     Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                     stored = new ArrayCacheByTimestamp(limit);
-                    ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                    (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
                 }
                 int length = (stored?.Count ?? 0);
                 object previous = this.safeValue(stored, (length - 1));
@@ -335,7 +335,7 @@ public partial class ndax : ccxt.ndax
                     if ((parsedHigh != null))
                     {
                         high = parsedHigh;
-                        if (((previousHigh != null)) && ((previousHigh != null && (parsedHigh == null || previousHigh > parsedHigh))))
+                        if (((previousHigh != null)) && (previousHigh.Value > parsedHigh.Value))
                         {
                             high = previousHigh;
                         }
@@ -346,7 +346,7 @@ public partial class ndax : ccxt.ndax
                     if ((parsedLow != null))
                     {
                         low = parsedLow;
-                        if (((previousLow != null)) && ((parsedLow != null && (previousLow == null || parsedLow > previousLow))))
+                        if (((previousLow != null)) && (parsedLow.Value > previousLow.Value))
                         {
                             low = previousLow;
                         }
@@ -541,7 +541,7 @@ public partial class ndax : ccxt.ndax
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
     {
         //
         //     {
@@ -606,7 +606,7 @@ public partial class ndax : ccxt.ndax
             object method = this.safeValue(subscription, "method");
             if ((method != null))
             {
-                DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+                this.handleOrderBookSubscription(client, message, subscription);
             }
         }
     }

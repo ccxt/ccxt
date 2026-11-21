@@ -1524,12 +1524,20 @@ public partial class bullish : Exchange
             {
                 if ((method is "fetchOHLCV"))
                 {
+                    if ((symbol == null))
+                    {
+                        throw new ArgumentsRequired ((this.id + " market() requires a symbol argument")) ;
+                    }
                     return ccxt.BaseExchange.FromOHLCVList(await this.FetchOHLCV(symbol,timeframe, since, limit, paramsOmitted));
                 } else if ((method is "fetchFundingRateHistory"))
                 {
                     return ccxt.BaseExchange.FromFundingRateHistoryList(await this.FetchFundingRateHistory(symbol, since, limit, paramsOmitted));
                 } else
                 {
+                    if ((symbol == null))
+                    {
+                        throw new ArgumentsRequired ((this.id + " market() requires a symbol argument")) ;
+                    }
                     return ccxt.BaseExchange.FromTradeList(await this.FetchTrades(symbol, since, limit, paramsOmitted));
                 }
             } catch(Exception e)
@@ -1589,7 +1597,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Int64? untilParam = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
-        object until = null;
+        Int64? until = null;
         if ((untilParam != null))
         {
             until = untilParam;
@@ -1627,7 +1635,7 @@ public partial class bullish : Exchange
         //         }, ...
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1693,10 +1701,10 @@ public partial class bullish : Exchange
         //     ]
         //
         List<object> rates = new List<object>() {};
-        IList<object> result = this.toArray(response);
+        IList<object> result = response;
         for (int i = 0; i < (result?.Count ?? 0); i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? datetime = this.safeString(entry, "updatedAtDatetime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -1706,7 +1714,7 @@ public partial class bullish : Exchange
                 { "datetime", datetime },
             });
         }
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(this.toArray(this.sortBy(rates, "timestamp")), this.safeString(market, "symbol"), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), this.safeString(market, "symbol"), since, limit));
     }
 
     /**
@@ -2593,7 +2601,7 @@ public partial class bullish : Exchange
         if ((tradingAccountId == null))
         {
             List<object> response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
-            IList<object> accounts = this.toArray(response);
+            IList<object> accounts = response;
             for (int i = 0; i < (accounts?.Count ?? 0); i++)
             {
                 IDictionary<string, object> account = this.safeDict(accounts, i);
@@ -2746,7 +2754,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        IList<object> safeResponse = this.toArray(response);
+        IList<object> safeResponse = response;
         int length = (safeResponse?.Count ?? 0);
         IDictionary<string, object> data = this.safeDict(safeResponse, 0, new Dictionary<string, object>() {});
         (string?, object) networkAndParams = this.handleNetworkCodeAndParams(parameters);
@@ -2817,16 +2825,16 @@ public partial class bullish : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tradingAccountId", tradingAccountId },
         };
-        object response = null;
         string? code = this.safeString(parameters, "code");
         if ((code != null))
         {
-            request["symbol"] = getValue(this.currency(code), "id");
-            response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters));
+            Dictionary<string, object> currency = this.currency(code);
+            request["symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            Dictionary<string, object> response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters));
             return ccxt.BaseExchange.ToBalances(this.parseBalanceForSingleCurrency(response,code));
         } else
         {
-            response = await this.privateGetV1AccountsAsset(this.extend(request, parameters));
+            List<object> response = await this.privateGetV1AccountsAsset(this.extend(request, parameters));
             //
             //     [
             //         {
@@ -2847,7 +2855,7 @@ public partial class bullish : Exchange
         }
     }
 
-    public virtual object parseBalanceForSingleCurrency(object response, string code)
+    public virtual object parseBalanceForSingleCurrency(IDictionary<string, object> response, string code)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -2921,7 +2929,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(this.parsePositions(response, this.toArray(symbols)), "symbol", symbols));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(this.parsePositions(response, symbols), "symbol", symbols));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -3214,7 +3222,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(response,code, since, limit));
+        return this.parseBorrowRateHistory(response,code, since, limit);
     }
 
     public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
@@ -3386,7 +3394,7 @@ public partial class bullish : Exchange
             if ((method == "GET"))
             {
                 string payload = ((((timestamp + nonce) + method) + "/trading-api/") + path);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+                string signature = this.hmac(payload, this.secret, sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
                     { "BX-NONCE", nonce },
@@ -3396,7 +3404,7 @@ public partial class bullish : Exchange
             {
                 requestBody = this.json(parameters);
                 string payload = (((((timestamp + nonce) + method) + "/trading-api/") + path) + requestBody);
-                string signature = this.hmac(this.encode(this.hash(this.encode(payload), sha256, "hex")), this.encode(this.secret), sha256, "hex");
+                string signature = this.hmac(this.encode(this.hash(payload, sha256, "hex")), this.secret, sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
                     { "BX-NONCE", nonce },
@@ -3513,9 +3521,9 @@ public partial class bullish : Exchange
                 message = type;
             }
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

@@ -219,6 +219,13 @@ func (this *BaseExchange) ToArray(a any) []any {
 	if slice, ok := a.([]any); ok {
 		return slice
 	}
+	if rows, ok := a.([][]any); ok {
+		outList := make([]any, len(rows))
+		for i, row := range rows {
+			outList[i] = row
+		}
+		return outList
+	}
 
 	// Check if `a` implements IArrayCache interface (handles all cache types)
 	if cache, ok := a.(IArrayCache); ok {

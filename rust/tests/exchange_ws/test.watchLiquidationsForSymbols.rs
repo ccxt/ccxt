@@ -10,34 +10,34 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchLiquidationsForSymbols".into());
+    let method: Value = Value::Str("watchLiquidationsForSymbols".into());
     // we have to skip some exchanges here due to the frequency of trading
-    let mut skippedExchanges: Value = Value::from(vec![]);
+    let skippedExchanges: Value = Value::from(vec![]);
     if exchange.in_array(get_value(&exchange, &Value::Str("id".into())), skippedExchanges) {
-        let mut m1: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), "() test skipped").into()));
+        let m1: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), "() test skipped").into()));
         println_val(&m1);
         return Value::Bool(false);
     }
     if (get_value(&get_value(&exchange, &Value::Str("has".into())), &method) == Value::Null) || (get_value(&get_value(&exchange, &Value::Str("has".into())), &method).as_bool() == Some(false)) {
-        let mut m2: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " does not support ").into()), method).into()), "() method").into()));
+        let m2: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " does not support ").into()), method).into()), "() method").into()));
         println_val(&m2);
         return Value::Bool(false);
     }
     let mut response: Value = Value::Null;
     let mut now: Value = date_now();
-    let mut ends: Value = (match (&(now), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+    let ends: Value = (match (&(now), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_liquidations_for_symbols", vec![Value::from(vec![symbol.clone()])]).await;
             now = date_now();
-            let mut isArray: Value = Value::Bool(matches!(&response, Value::Arr(_)));
+            let isArray: Value = Value::Bool(matches!(&response, Value::Arr(_)));
             assert!(ccxt::runtime::is_true(&(isArray)));
-            let mut m3: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), "() returned ").into()), Value::Int(response.len() as i64)).into()), " liquidations").into()));
+            let m3: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), "() returned ").into()), Value::Int(response.len() as i64)).into()), " liquidations").into()));
             println_val(&m3);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1609: bool = true;
-                while { if !__for_first_1609 { i += 1; } __for_first_1609 = false; i < (response.len() as i64) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (response.len() as i64) } {
                 testLiquidation(exchange.clone(), skippedProperties.clone(), method.clone(), response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone());
             }
             }

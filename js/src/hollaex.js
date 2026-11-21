@@ -362,8 +362,10 @@ export default class hollaex extends Exchange {
             const market = this.safeDict(pairs, key);
             const baseId = this.safeString(market, 'pair_base');
             const quoteId = this.safeString(market, 'pair_2');
-            const baseCode = this.commonCurrencyCode(baseId.toUpperCase());
-            const quoteCode = this.commonCurrencyCode(quoteId.toUpperCase());
+            const upperBaseId = baseId.toUpperCase();
+            const upperQuoteId = quoteId.toUpperCase();
+            const baseCode = this.commonCurrencyCode(upperBaseId);
+            const quoteCode = this.commonCurrencyCode(upperQuoteId);
             result.push({
                 'id': this.safeString(market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,
@@ -1593,13 +1595,10 @@ export default class hollaex extends Exchange {
         //     }
         //
         const wallet = this.safeList(response, 'wallet', []);
-        let addresses = undefined;
         if (network === undefined) {
-            addresses = wallet;
+            return this.parseDepositAddresses(wallet, codes, false);
         }
-        else {
-            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
-        }
+        const addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         return this.parseDepositAddresses(addresses, codes, false);
     }
     /**

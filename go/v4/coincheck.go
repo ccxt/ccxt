@@ -352,7 +352,7 @@ func (this *Coincheck) Describe() map[string]any {
 		},
 	})
 }
-func (this *Coincheck) ParseBalance(response any) map[string]any {
+func (this *Coincheck) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -365,8 +365,8 @@ func (this *Coincheck) ParseBalance(response any) map[string]any {
 	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
-		var currency map[string]any = this.Currency(code)
-		var currencyId *string = SafeStringPtr(currency["id"])
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		var currencyId *string = currency.Id
 		var free *string = this.SafeString(response, currencyId)
 		if free != nil {
 			var account map[string]any = this.Account()
@@ -398,11 +398,11 @@ func (this *Coincheck) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetExchangeStatus(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetExchangeStatus(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "exchange_status": [
@@ -419,11 +419,12 @@ func (this *Coincheck) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 	//         ]
 	//     }
 	//
-	var exchangeStatuses []any = SafeListTyped(response, "exchange_status")
+	var exchangeStatuses []any
+	exchangeStatuses, _ = response["exchange_status"].([]any)
 	var status string = "ok"
 	var updated *int64 = nil
 	for i := 0; i < len(exchangeStatuses); i++ {
-		var exchangeStatus map[string]any = SafeMapTyped(exchangeStatuses, i)
+		var exchangeStatus, _ = exchangeStatuses[i].(map[string]any)
 		var rawStatus *string = this.SafeString(exchangeStatus, "status")
 		if updated == nil {
 			updated = this.SafeTimestamp(exchangeStatus, "timestamp")
@@ -438,7 +439,7 @@ func (this *Coincheck) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 		"updated": updated,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -524,7 +525,11 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var rawOrders []any = SafeListTypedDefault(response, "orders", []any{})
+	var rawOrders []any
+	rawOrders, _ = response["orders"].([]any)
+	if rawOrders == nil {
+		rawOrders = []any{}
+	}
 	var parsedOrders []any = ArrayTyped(this.ParseOrders(rawOrders, market, since, limit))
 	var result []any = []any{}
 	for i := 0; i < len(parsedOrders); i++ {
@@ -616,9 +621,12 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetOrderBooks(this.Extend(request, params))
@@ -627,7 +635,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"]))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol))}
 	return nil
 }
 func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -775,9 +783,11 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var liquidity *string = this.SafeString(trade, "liquidity")
 	if liquidity != nil {
 		if liquidity != nil && *liquidity == "T" {
-			takerOrMaker = SafeStringPtr("taker")
+			takerOrMakerStr := "taker"
+			takerOrMaker = &takerOrMakerStr
 		} else if liquidity != nil && *liquidity == "M" {
-			takerOrMaker = SafeStringPtr("maker")
+			takerOrMakerStr2 := "maker"
+			takerOrMaker = &takerOrMakerStr2
 		}
 		var funds map[string]any = SafeMapTyped(trade, "funds")
 		amountString = this.SafeString(funds, baseId)
@@ -792,21 +802,34 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 		amountString = this.SafeString(trade, "amount")
 		side = this.SafeString(trade, "order_type")
 	}
-	return this.SafeTrade(map[string]any{
+	var literal59131 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"datetime":     this.Iso8601(timestamp),
 		"timestamp":    timestamp,
 		"symbol":       symbol,
 		"type":         nil,
-		"side":         side,
-		"order":        orderId,
+		"side":         nil,
+		"order":        nil,
 		"takerOrMaker": takerOrMaker,
 		"price":        priceString,
-		"amount":       amountString,
-		"cost":         costString,
+		"amount":       nil,
+		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if side != nil {
+		literal59131["side"] = *side
+	}
+	if orderId != nil {
+		literal59131["order"] = *orderId
+	}
+	if amountString != nil {
+		literal59131["amount"] = *amountString
+	}
+	if costString != nil {
+		literal59131["cost"] = *costString
+	}
+	return this.SafeTrade(literal59131, marketResolved)
 }
 
 /**
@@ -846,7 +869,7 @@ func (this *Coincheck) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetExchangeOrdersTransactionsPagination(this.Extend(request, params))
@@ -876,7 +899,11 @@ func (this *Coincheck) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	//                  ]
 	//      }
 	//
-	var transactions []any = SafeListTypedDefault(response, "data", []any{})
+	var transactions []any
+	transactions, _ = response["data"].([]any)
+	if transactions == nil {
+		transactions = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(transactions, market, since, limit))}
 	return nil
@@ -893,12 +920,12 @@ func (this *Coincheck) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coincheck) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Coincheck) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -919,7 +946,7 @@ func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 		"pair": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PublicGetTrades(this.Extend(request, params))
@@ -937,7 +964,11 @@ func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	//          "created_at": "2021-12-08T14:10:33.000Z"
 	//      }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -993,7 +1024,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	//         }
 	//     }
 	//
-	var fees map[string]any = SafeMapTyped(response, "exchange_fees")
+	var fees, _ = response["exchange_fees"].(map[string]any)
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	if symbols == nil {
@@ -1072,16 +1103,16 @@ func (this *Coincheck) createOrderBody(ch chan AsyncResult[Order], symbol string
 		request["amount"] = amount
 	}
 
-	r1 := <-this.PrivatePostExchangeOrders(this.Extend(request, this.Omit(params, "cost")))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostExchangeOrders(this.Extend(request, this.Omit(params, "cost")))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	var id *string = this.SafeString(response, "id")
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"id":   id,
-		"info": response,
+		"info": responseReply.Raw,
 	}, market)}
 	return nil
 }
@@ -1169,7 +1200,7 @@ func (this *Coincheck) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetDepositMoney(this.Extend(request, params))
@@ -1200,7 +1231,11 @@ func (this *Coincheck) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	//     }
 	//   ]
 	// }
-	var data []any = SafeListTypedDefault(response, "deposits", []any{})
+	var data []any
+	data, _ = response["deposits"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": "deposit",
@@ -1248,7 +1283,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetWithdraws(this.Extend(request, params))
@@ -1277,7 +1312,11 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	//     }
 	//   ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": "withdrawal",
@@ -1375,7 +1414,7 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = params
 	var apiName string = api[0]
 	var bodySigned *string = nil
-	var headersSigned any = nil
+	var headersSigned map[string]any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1399,7 +1438,8 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			if hasQuery {
 				queryString = this.Urlencode(this.Keysort(query))
-				bodySigned = SafeStringPtr(queryString)
+				bodySignedStr := queryString
+				bodySigned = &bodySignedStr
 			}
 		}
 		var auth string = nonce + url + queryString
@@ -1410,7 +1450,7 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) map[string]any {
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
 		}
 	}
-	var headersResolved any = headersSigned
+	var headersResolved map[string]any = headersSigned
 	var bodyResolved *string = bodySigned
 	return map[string]any{
 		"url":     url,

@@ -690,7 +690,7 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         $hasSymbolParam = (is_array($params) && array_key_exists('symbol' ?? '', $params));
         $hasSymbolsParam = (is_array($params) && array_key_exists('symbols' ?? '', $params));
         $limit = $this->safe_integer($params, 'limit');
@@ -1539,7 +1539,7 @@ class coinsph extends Exchange {
         }
         $request['newOrderRespType'] = $newOrderRespType;
         $paramsRequest = $this->omit($paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        $response = array();
+        $response = null;
         if ($testOrder) {
             $response = Async\await($this->privatePostOpenapiV1OrderTest($this->extend($request, $paramsRequest)));
         } else {

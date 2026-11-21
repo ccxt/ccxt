@@ -1645,7 +1645,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
-    def edit_order_request(self, id: Str, symbol: str, amount: Num, price: Num = None, params: dict = {}) -> dict:
+    def edit_order_request(self, id: Str, symbol: str, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         request = {}
         if id is not None:
             request['order_id'] = id
@@ -3121,7 +3121,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 symbolsLength = len(symbolsNormalized)
                 if symbolsLength > 1:
                     raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-                symbol = symbolsNormalized[0]
+                if symbolsLength == 1:
+                    symbol = symbolsNormalized[0]
             else:
                 symbol = symbolsNormalized
             market = self.market(symbol)

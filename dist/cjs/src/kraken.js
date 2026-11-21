@@ -1879,7 +1879,9 @@ class kraken extends kraken$1["default"] {
             'baseId': baseId,
             'quoteId': quoteId,
         };
-        this.options['delistedMarketsById'][id] = market;
+        const delistedMarketsByIdDict = this.safeDict(this.options, 'delistedMarketsById', {});
+        delistedMarketsByIdDict[id] = market;
+        this.options['delistedMarketsById'] = delistedMarketsByIdDict;
         return market;
     }
     parseOrderStatus(status) {
@@ -2036,11 +2038,12 @@ class kraken extends kraken$1["default"] {
             else {
                 descriptionType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
             }
-            if (descriptionType === 'stop loss' || descriptionType === 'take profit') {
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if ((part4 === 'stop' && part5 === 'loss') || (part4 === 'take' && part5 === 'profit')) {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
             }
-            else if (descriptionType === 'limit') {
+            else if (part4 === 'limit') {
                 price = this.safeString(parts, 5);
             }
         }
@@ -3251,13 +3254,13 @@ class kraken extends kraken$1["default"] {
         //        }
         //     }
         //
-        let rawWithdrawals = undefined;
+        let rawWithdrawals = [];
         const result = this.safeValue(response, 'result');
         if (!Array.isArray(result)) {
             rawWithdrawals = this.addPaginationCursorToResult(result);
         }
         else {
-            rawWithdrawals = result;
+            rawWithdrawals = this.safeList(response, 'result', []);
         }
         return this.parseTransactionsByType('withdrawal', rawWithdrawals, code, since, limit);
     }

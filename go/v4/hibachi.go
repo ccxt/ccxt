@@ -451,7 +451,11 @@ func (this *Hibachi) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//     "underlyingDecimals": 9,
 	//     "underlyingSymbol": "ETH"
 	// },
-	var rows []any = SafeListTypedDefault(response, "futureContracts", []any{})
+	var rows []any
+	rows, _ = response["futureContracts"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(rows))}
 	return nil
@@ -508,7 +512,7 @@ func (this *Hibachi) HardcodedCurrencies() any {
 	}
 	return result
 }
-func (this *Hibachi) ParseBalance(response any) map[string]any {
+func (this *Hibachi) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -647,7 +651,8 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if id == nil {
 		// public trades
 		side = this.SafeStringLower(trade, "takerSide")
-		takerOrMaker = SafeStringPtr("taker")
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr
 	} else {
 		// private trades
 		side = this.SafeStringLower(trade, "side")
@@ -662,21 +667,31 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
 			orderId = this.SafeString(trade, "askOrderId")
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal58031 map[string]any = map[string]any{
 		"id":           id,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
-		"side":         side,
+		"side":         nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         cost,
-		"order":        orderId,
+		"order":        nil,
 		"takerOrMaker": takerOrMaker,
-		"type":         orderType,
+		"type":         nil,
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved)
+	}
+	if side != nil {
+		literal58031["side"] = *side
+	}
+	if orderId != nil {
+		literal58031["order"] = *orderId
+	}
+	if orderType != nil {
+		literal58031["type"] = *orderType
+	}
+	return this.SafeTrade(literal58031, marketResolved)
 }
 
 /**
@@ -690,12 +705,12 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of recent [trade structures]
  */
-func (this *Hibachi) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Hibachi) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Hibachi) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -733,10 +748,14 @@ func (this *Hibachi) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//     ]
 	// }
 	//
-	var trades any = this.SafeList(response, "trades", []any{})
+	var trades []any
+	trades, _ = response["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 	var tradesList []any = []any{}
 	if trades != nil {
-		tradesList = ArrayTyped(trades)
+		tradesList = trades
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market))}
@@ -779,7 +798,7 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var pricesResponsestatsResponseVariable []any = ListTyped(r1.Value)
+	var pricesResponsestatsResponseVariable []any = r1.Value
 	pricesResponse := pricesResponsestatsResponseVariable[0]
 	statsResponse := pricesResponsestatsResponseVariable[1]
 	// {
@@ -809,12 +828,13 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	return nil
 }
 func (this *Hibachi) ParseOrderStatus(status *string) *string {
-	var uppercaseStatus *string = func() *string {
-		if status == nil {
-			return nil
-		}
-		return SafeStringPtr(strings.ToUpper(*status))
-	}()
+	var uppercaseStatus *string
+	if status == nil {
+		uppercaseStatus = nil
+	} else {
+		retStr := strings.ToUpper(*status)
+		uppercaseStatus = &retStr
+	}
 	var statuses map[string]any = map[string]any{
 		"PENDING":           "open",
 		"CHILD_PENDING":     "open",
@@ -839,9 +859,11 @@ func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) Order {
 	var rawSide *string = this.SafeString(order, "side")
 	var side *string = nil
 	if rawSide != nil && *rawSide == "BID" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if rawSide != nil && *rawSide == "ASK" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var amount *string = this.SafeString(order, "totalQuantity")
 	var remaining *string = this.SafeString(order, "availableQuantity")
@@ -976,11 +998,11 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		"accountId": this.GetAccountId(),
 	}
 
-	r1 := <-this.PrivateGetTradeAccountInfo(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetTradeAccountInfo(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//    {
 	//        "tradeMakerFeeRate": "0.00000000",
 	//        "tradeTakerFeeRate": "0.00020000"
@@ -992,7 +1014,7 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
-			"info":       response,
+			"info":       responseReply.Raw,
 			"symbol":     symbol,
 			"maker":      makerFeeRate,
 			"taker":      takerFeeRate,
@@ -1003,13 +1025,13 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Hibachi) OrderMessage(market map[string]any, nonce int64, feeRate any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hibachi) OrderMessage(market map[string]any, nonce int64, feeRate any, typeVar string, side string, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var sideInternal int = 0
-	if IsEqual(side, "sell") {
+	if side == "sell" {
 		sideInternal = 0
-	} else if IsEqual(side, "buy") {
+	} else if side == "buy" {
 		sideInternal = 1
 	}
 	// Converting them to internal representation:
@@ -1042,7 +1064,7 @@ func (this *Hibachi) OrderMessage(market map[string]any, nonce int64, feeRate an
 	var feeRatePadded string = (strings.Repeat("0", max(16-len(feeRateInternal16), 0)) + feeRateInternal16)[max(len(feeRateInternal16)-16, 0):]
 	var encodedFeeRate []byte = this.Base16ToBinary(feeRatePadded)
 	var encodedPrice []byte = this.BinaryConcat()
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		var priceStr *string = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
 		var priceInternal *string = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), "1e"+*this.SafeString(info, "settlementDecimals", "")), underlying), one, 0)
 		var price16 string = this.IntToBase16(this.ParseToInt(priceInternal))
@@ -1067,18 +1089,18 @@ func (this *Hibachi) CreateOrderRequest(nonce int64, symbol *string, typeVar *st
 	var market map[string]any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", this.SafeNumber(this.Options, "defaultTakerFee", 0.00045))
 	var makerFee *float64 = this.SafeNumber(market, "maker", this.SafeNumber(this.Options, "defaultMakerFee", 0.00015))
-	var takerFeeValue float64 = func() float64 {
-		if takerFee == nil {
-			return 0
-		}
-		return *takerFee
-	}()
-	var makerFeeValue float64 = func() float64 {
-		if makerFee == nil {
-			return 0
-		}
-		return *makerFee
-	}()
+	var takerFeeValue float64
+	if takerFee == nil {
+		takerFeeValue = 0
+	} else {
+		takerFeeValue = *takerFee
+	}
+	var makerFeeValue float64
+	if makerFee == nil {
+		makerFeeValue = 0
+	} else {
+		makerFeeValue = *makerFee
+	}
 	var feeRate *float64 = this.ParseNumber(Precise.StringMax(this.NumberToString(takerFeeValue), this.NumberToString(makerFeeValue)))
 	var sideInternal string = ""
 	if side != nil && *side == "sell" {
@@ -1094,7 +1116,7 @@ func (this *Hibachi) CreateOrderRequest(nonce int64, symbol *string, typeVar *st
 			priceInternal = nil
 		}
 	}
-	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
+	var message any = this.OrderMessage(market, nonce, feeRate, *typeVar, *side, amount, price)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"symbol":         this.SafeString(market, "id"),
@@ -1187,12 +1209,12 @@ func (this *Hibachi) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hibachi) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1208,7 +1230,7 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	var nonce int64 = this.ParseToInt(nonceValue)
 	var requestOrders []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -1246,24 +1268,24 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(ret)}
 	return nil
 }
-func (this *Hibachi) EditOrderRequest(nonce int64, id *string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
+func (this *Hibachi) EditOrderRequest(nonce int64, id *string, symbol *string, typeVar *string, side *string, optionalArgs ...any) map[string]any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", 0)
 	var makerFee *float64 = this.SafeNumber(market, "maker", 0)
 	var feeRate *float64 = this.ParseNumber(Precise.StringMax(this.NumberToString(takerFee), this.NumberToString(makerFee)))
-	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
+	var message any = this.OrderMessage(market, nonce, feeRate, *typeVar, *side, amount, price)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"orderId":         id,
@@ -1290,12 +1312,12 @@ func (this *Hibachi) EditOrderRequest(nonce int64, id *string, symbol any, typeV
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hibachi) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1312,7 +1334,7 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		}
 	}
 	var nonce int64 = this.IncrementingNonce()
-	var request map[string]any = this.EditOrderRequest(nonce, &id, symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(nonce, &id, &symbol, &typeVar, &side, amount, price, params)
 	request["accountId"] = this.GetAccountId()
 
 	r1 := <-this.PrivatePutTradeOrder(request)
@@ -1340,12 +1362,12 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) EditOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hibachi) EditOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.editOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1360,8 +1382,8 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	var nonceValue int64 = this.IncrementingNonce()
 	var nonce int64 = this.ParseToInt(nonceValue)
 	var requestOrders []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+	for i := 0; i < len(orders); i++ {
+		var rawOrder map[string]any = orders[i]
 		var id *string = this.SafeString(rawOrder, "id")
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
@@ -1479,7 +1501,7 @@ func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	_ = params
 	var orders []any = []any{}
 	for i := 0; i < len(ids); i++ {
-		var orderRequest map[string]any = this.CancelOrderRequest(*this.SafeString(ids, i, ""))
+		var orderRequest map[string]any = this.CancelOrderRequest(ids[i])
 		orderRequest["action"] = "cancel"
 		orders = append(orders, orderRequest)
 	}
@@ -1608,17 +1630,17 @@ func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees *float64, address
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hibachi) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Hibachi) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Hibachi) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var withdrawAddress string = Slice(address, int64(-40), nil)
+	var withdrawAddress string = address[max(len(address)-40, 0):]
 	// Get the withdraw fees
 
 	r := <-this.PublicGetMarketExchangeInfo(params)
@@ -1635,7 +1657,7 @@ func (this *Hibachi) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	//          "withdrawalFees": "0.012050"
 	//    },
 	// }
-	var feeConfig map[string]any = SafeMapTyped(exchangeInfo, "feeConfig")
+	var feeConfig, _ = exchangeInfo["feeConfig"].(map[string]any)
 	var maxFees *float64 = this.SafeNumber(feeConfig, "withdrawalFees")
 	// Generate the signature
 	var message any = this.EncodeWithdrawMessage(amount, maxFees, withdrawAddress)
@@ -1696,8 +1718,8 @@ func (this *Hibachi) SignMessage(message any, privateKey string) string {
 		return this.Hmac(message, this.Encode(privateKey), sha256, "hex")
 	} else {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
-		var hash any = this.Hash(message, sha256, "hex")
-		var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+		var hash string = this.HashString(message, sha256, "hex")
+		var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 		var r string = *this.SafeString(signature, "r", "")
 		var s string = *this.SafeString(signature, "s", "")
 		var v string = this.IntToBase16(signature["v"])
@@ -1734,9 +1756,12 @@ func (this *Hibachi) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetMarketDataOrderbook(this.Extend(request, params))
@@ -1858,10 +1883,11 @@ func (this *Hibachi) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//     ]
 	// }
 	//
-	var trades []any = SafeListTyped(response, "trades")
+	var trades []any
+	trades, _ = response["trades"].([]any)
 	var tradesList []any = []any{}
 	if trades != nil {
-		tradesList = ArrayTyped(trades)
+		tradesList = trades
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, since, limit, params))}
@@ -2015,7 +2041,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], statu
 		request["status"] = status
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrdersByStatus", "until")
 	var until *int64 = nil
@@ -2058,7 +2084,11 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], statu
 	//         ]
 	//     }
 	//
-	var orders []any = SafeListTypedDefault(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	var parsedOrders []any = this.ParseOrders(orders, market)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit))}
@@ -2184,13 +2214,13 @@ func (this *Hibachi) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var timeframeValue string = *this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": timeframeValue,
 	}
 	if since != nil {
-		request["fromMs"] = since
+		request["fromMs"] = *since
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOHLCV", "until")
 	var until *int64 = nil
@@ -2220,7 +2250,11 @@ func (this *Hibachi) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//     }
 	//   ]
 	//
-	var klines []any = SafeListTypedDefault(response, "klines", []any{})
+	var klines []any
+	klines, _ = response["klines"].([]any)
+	if klines == nil {
+		klines = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(klines, market, timeframeValue, since, limit))}
 	return nil
@@ -2306,7 +2340,11 @@ func (this *Hibachi) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	//     ],
 	//   }
 	//
-	var data []any = SafeListTypedDefault(response, "positions", []any{})
+	var data []any
+	data, _ = response["positions"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, symbolsNormalized))}
 	return nil
@@ -2326,8 +2364,11 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var side *string = this.SafeStringLower(position, "direction")
 	var quantity *string = this.SafeString(position, "quantity")
 	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")
@@ -2457,7 +2498,8 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 	if transactionType == nil {
 		// response from TradeAccountTradingHistory
 		timestamp = this.SafeIntegerProduct(item, "timestamp", 1000)
-		typeVar = SafeStringPtr("trade")
+		typeVarStr := "trade"
+		typeVar = &typeVarStr
 		var amountStr *string = this.SafeString(item, "realizedPnl")
 		if Precise.StringLt(amountStr, "0") {
 			direction = "out"
@@ -2470,17 +2512,17 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 			"currency": "USDT",
 			"cost":     this.SafeNumber(item, "fee"),
 		}
-		status = SafeStringPtr("ok")
+		statusStr := "ok"
+		status = &statusStr
 	} else {
 		// response from CapitalHistory
 		timestamp = this.SafeIntegerProduct(item, "timestampSec", 1000)
 		amount = this.SafeNumber(item, "quantity")
-		direction = func() string {
-			if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "transfer-in") {
-				return "in"
-			}
-			return "out"
-		}()
+		if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "transfer-in") {
+			direction = "in"
+		} else {
+			direction = "out"
+		}
 		typeVar = this.ParseTransactionType(transactionType)
 		status = this.ParseTransactionStatus(this.SafeString(item, "status"))
 		if transactionType != nil && *transactionType == "transfer-in" {
@@ -2547,14 +2589,13 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
-	var rawPromises []any = []any{this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params))}
 
-	r1 := <-promiseAll(rawPromises)
+	r1 := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params)))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var promises []any = ListTyped(r1.Value)
-	var responseCapitalHistory map[string]any = SafeMapTyped(promises, 0)
+	var promises []map[string]any = r1.Value
+	var responseCapitalHistory map[string]any = promises[0]
 	//
 	// {
 	//     "transactions": [
@@ -2608,8 +2649,8 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//     ]
 	// }
 	//
-	var rowsCapitalHistory []any = SafeListTypedDefault(responseCapitalHistory, "transactions", []any{})
-	var responseTradingHistory map[string]any = SafeMapTyped(promises, 1)
+	var rowsCapitalHistory []any = this.SafeListSlice(responseCapitalHistory, "transactions", []any{})
+	var responseTradingHistory map[string]any = promises[1]
 	//
 	// {
 	//     "tradingHistory": [
@@ -2636,7 +2677,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//     ]
 	// }
 	//
-	var rowsTradingHistory []any = SafeListTypedDefault(responseTradingHistory, "tradingHistory", []any{})
+	var rowsTradingHistory []any = this.SafeListSlice(responseTradingHistory, "tradingHistory", []any{})
 	var rows []any = this.ArrayConcat(rowsCapitalHistory, rowsTradingHistory)
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}
@@ -2668,17 +2709,17 @@ func (this *Hibachi) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"accountId": this.GetAccountId(),
 	}
 
-	r := <-this.PrivateGetCapitalDepositInfo(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PrivateGetCapitalDepositInfo(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 
 	// {
 	//     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
 	// }
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": "USDT",
 		"network":  "ARBITRUM",
 		"address":  this.SafeString(response, "depositAddressEvm"),
@@ -2787,7 +2828,11 @@ func (this *Hibachi) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	//         },
 	//     ]
 	// }
-	var transactions []any = SafeListTypedDefault(response, "transactions", []any{})
+	var transactions []any
+	transactions, _ = response["transactions"].([]any)
+	if transactions == nil {
+		transactions = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit, params))}
 	return nil
@@ -2899,7 +2944,7 @@ func (this *Hibachi) ParseSettlements(settlements []any, optionalArgs ...any) []
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(DerefScalar(settlements[i]), market))
+		result = append(result, this.ParseSettlement(settlements[i], market))
 	}
 	return result
 }
@@ -2951,7 +2996,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[stri
 		request["startTime"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchMySettlementHistory", "until")
 	var until *int64 = nil
@@ -2983,7 +3028,11 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[stri
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "settlements", []any{})
+	var data []any
+	data, _ = response["settlements"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var settlements []any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
@@ -3054,11 +3103,11 @@ func (this *Hibachi) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 		"symbol": market["id"],
 	}
 
-	r1 := <-this.PublicGetMarketDataOpenInterest(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PublicGetMarketDataOpenInterest(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//   { "totalQuantity" : "2.3299770166" }
 	//
@@ -3070,7 +3119,7 @@ func (this *Hibachi) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 		"openInterestValue":  nil,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
-		"info":               response,
+		"info":               responseReply.Raw,
 	}, market)}
 	return nil
 }
@@ -3125,7 +3174,11 @@ func (this *Hibachi) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 	//     "tradePrice": "2372.746570"
 	// }
 	//
-	var funding map[string]any = this.SafeDictMap(response, "fundingRateEstimation", map[string]any{})
+	var funding map[string]any
+	funding, _ = response["fundingRateEstimation"].(map[string]any)
+	if funding == nil {
+		funding = map[string]any{}
+	}
 	var timestamp int64 = this.Milliseconds()
 	var nextFundingTimestamp *int64 = this.SafeIntegerProduct(funding, "nextFundingTimestamp", 1000)
 
@@ -3186,9 +3239,12 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetMarketDataFundingRates(this.Extend(request, params))
@@ -3412,7 +3468,7 @@ func (this *Hibachi) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -3465,7 +3521,7 @@ func (this *Hibachi) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.EditOrdersAsync(orders, opts.Params)
+	r := <-this.EditOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

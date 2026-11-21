@@ -1309,7 +1309,7 @@ public partial class aster : Exchange
         List<object> fapiRowsFiltered = new List<object>() {};
         for (int i = 0; i < fapiRows.Count; i++)
         {
-            object market = fapiRows[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)fapiRows[i]);
             // tmp skip some markets with base = undefined
             if ((this.safeString(market, "baseAsset") != null))
             {
@@ -1553,7 +1553,7 @@ public partial class aster : Exchange
                 response = await this.sapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
@@ -1683,42 +1683,45 @@ public partial class aster : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = Math.Min(limit.Value, 1000);
+            request["limit"] = Math.Min(limit.Value, 1000);
         }
         List<object> response = null;
         bool sinceDefined = (since != null);
         bool untilDefined = (parameters.ContainsKey("until"));
         if (sinceDefined)
         {
-            ((IDictionary<string,object>)request)["startTime"] = since;
+            request["startTime"] = since;
         }
+        object paramsUntil = parameters;
         if (untilDefined)
         {
-            request = this.handleUntilOption("endTime", request, parameters);
+            IList<object> requestparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
+            request = (Dictionary<string, object>)requestparamsUntilVariable[0];
+            paramsUntil = requestparamsUntilVariable[1];
         }
         // use historical endpoint for targeted requests
         if (sinceDefined)
         {
             if ((this.safeBool(market, "swap", false) == true))
             {
-                response = await this.fapiPublicGetV3AggTrades(this.extend(request, parameters));
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             } else
             {
-                response = await this.sapiPublicGetV3AggTrades(this.extend(request, parameters));
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
         } else
         {
             if ((this.safeBool(market, "swap", false) == true))
             {
-                response = await this.fapiPublicGetV3Trades(this.extend(request, parameters));
+                response = await this.fapiPublicGetV3Trades(this.extend(request, paramsUntil));
             } else
             {
-                response = await this.sapiPublicGetV3Trades(this.extend(request, parameters));
+                response = await this.sapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
         }
         return this.parseTrades(response, market, since, limit);
@@ -2023,7 +2026,7 @@ public partial class aster : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -2114,7 +2117,7 @@ public partial class aster : Exchange
         {
             throw new NullResponse ((this.id + " fetchLastPrices() returned empty response")) ;
         }
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
@@ -2167,7 +2170,7 @@ public partial class aster : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -2468,7 +2471,7 @@ public partial class aster : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(rows, i);
@@ -3619,7 +3622,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(this.toArray(response)), symbols, "symbol"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(response, symbols, "symbol"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -3706,10 +3709,10 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(this.toArray(response)), symbols, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(response, symbols, "symbol", "swap"));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3732,11 +3735,11 @@ public partial class aster : Exchange
         //
         string? marketId = this.safeString(marginMode, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "swap");
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(marketResolved, "symbol") },
             { "marginMode", this.safeStringLower(marginMode, "marginType") },
-        };
+        })));
     }
 
     /**
@@ -3795,7 +3798,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        List<object> modifications = this.parseMarginModifications(this.toArray(this.toArray(response)));
+        List<object> modifications = this.parseMarginModifications(response);
         return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 
@@ -4321,7 +4324,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        IList<object> rawPositions = this.toArray(response);
+        IList<object> rawPositions = response;
         List<object> result = new List<object>() {};
         for (int i = 0; i < (rawPositions?.Count ?? 0); i++)
         {
@@ -4332,7 +4335,7 @@ public partial class aster : Exchange
                 result.Add(this.parsePositionRisk(rawPosition));
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -4644,7 +4647,7 @@ public partial class aster : Exchange
         Dictionary<string, object> response = await this.fapiPrivateGetV4Account(parameters);
         bool? filterClosed = this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false).Item1;
         List<object> result = this.parseAccountPositions(response, filterClosed);
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -4683,7 +4686,7 @@ public partial class aster : Exchange
             //                ...
             //
             this.options["leverageBrackets"] = this.createSafeDictionary();
-            IList<object> entries = this.toArray(response);
+            IList<object> entries = response;
             for (int i = 0; i < (entries?.Count ?? 0); i++)
             {
                 IDictionary<string, object> entry = this.safeDict(entries, i);
@@ -4698,7 +4701,9 @@ public partial class aster : Exchange
                     string? maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                     result.Add(new List<object>() {floorValue, maintenanceMarginPercentage});
                 }
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("leverageBrackets") ? this.options["leverageBrackets"] : null))[(string)symbol] = result;
+                IDictionary<string, object> leverageBracketsDict = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
+                leverageBracketsDict[(string)symbol] = result;
+                this.options["leverageBrackets"] = leverageBracketsDict;
             }
         }
         return (this.options != null && this.options.ContainsKey("leverageBrackets") ? this.options["leverageBrackets"] : null);
@@ -4932,7 +4937,7 @@ public partial class aster : Exchange
         int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
-        byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
+        byte[] prefix = this.binaryConcat(x19, "Ethereum Signed Message:", newline, this.numberToString(binaryMessageLength));
         return ((string?)((object)(("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"))))));
     }
 
@@ -4940,8 +4945,8 @@ public partial class aster : Exchange
     {
         this.checkRequiredCredentials();
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
-        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? r = this.safeString(signature, "r", "");
+        string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
@@ -4972,7 +4977,7 @@ public partial class aster : Exchange
             string? zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Int64? v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
             string? walletAddress = this.safeString(this.options, "cachedWalletAddress");
-            string privateKeyHash = ((string)this.hash(this.encode(this.privateKey), keccak, "hex"));
+            string privateKeyHash = ((string)this.hash(this.privateKey, keccak, "hex"));
             string? cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
             if (((walletAddress == null)) || ((cachedPrivateKeyHash != privateKeyHash)))
             {
@@ -5154,7 +5159,7 @@ public partial class aster : Exchange
         //        }
         //    ]
         //
-        IList<object> approvedBuilders = this.toArray(result);
+        IList<object> approvedBuilders = result;
         int length = (approvedBuilders?.Count ?? 0);
         bool found = false;
         string? builderAddress = this.safeString(this.options, "builder");
@@ -5215,8 +5220,8 @@ public partial class aster : Exchange
         if ((codeError != null) && codeError != "200")
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

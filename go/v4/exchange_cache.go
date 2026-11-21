@@ -19,6 +19,7 @@ package ccxt
 
 import (
 	"fmt"
+	"strconv"
 )
 
 // ArrayCacheInterface is the value a ws list stream resolves: one of the caches, or a plain list.
@@ -358,7 +359,8 @@ func (c *ArrayCache) appendOwned(item any) {
 		// share an order id (binance uses per-symbol id sequences), and matching on
 		// id alone would move the wrong row, see ccxt/ccxt#26092
 		for i, v := range c.Data {
-			if (GetValue(v, "id") == GetValue(item, "id")) && (GetValue(v, keyField) == GetValue(item, keyField)) {
+			row, isRow := v.(map[string]any)
+			if isRow && cacheKeyOf(row, "id") == id && cacheKeyOf(row, keyField) == symbol {
 				// remove from current position
 				c.Data = append(c.Data[:i], c.Data[i+1:]...)
 				// append to the end
@@ -414,19 +416,20 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) *int64 {
 
 // getLimitOwned answers one poll on the owner: it reads the count and flags the deferred reset.
 func (c *ArrayCache) getLimitOwned(symbol any, limit any) *int64 {
-	var newUpdatesValue any = nil
+	var newUpdatesValue *int
 
 	// a typed nil pointer is not == nil, so both arguments must be normalized
 	// or an absent symbol/limit reads as present and truncates the result
 	symbol = derefScalar(symbol)
 	limit = derefScalar(limit)
 	if symbol == nil {
-		newUpdatesValue = c.allNewUpdates
+		allNewUpdates := c.allNewUpdates
+		newUpdatesValue = &allNewUpdates
 		c.clearAllUpdates = true
 	} else {
 		sym := ToString(symbol)
 		if count, found := c.newUpdatesBySymbol[sym]; found {
-			newUpdatesValue = count
+			newUpdatesValue = &count
 		}
 		c.clearUpdatesBySymbol[sym] = true
 	}
@@ -434,9 +437,14 @@ func (c *ArrayCache) getLimitOwned(symbol any, limit any) *int64 {
 	if newUpdatesValue == nil {
 		return Int64PtrTyped(limit)
 	} else if limit != nil {
-		return Int64PtrTyped(MathMin(newUpdatesValue, limit))
+		count := int64(*newUpdatesValue)
+		if bound := Int64PtrTyped(limit); bound != nil && *bound < count {
+			count = *bound
+		}
+		return &count
 	} else {
-		return Int64PtrTyped(newUpdatesValue)
+		count := int64(*newUpdatesValue)
+		return &count
 	}
 }
 
@@ -540,7 +548,7 @@ func (c *ArrayCacheByTimestamp) appendOwned(item any) {
 		c.clearUpdates = false
 		c.sizeTracker = NewSet()
 	}
-	c.sizeTracker.Add(ToString(ts))
+	c.sizeTracker.Add(strconv.FormatInt(ts, 10))
 	c.newUpdates = c.sizeTracker.Size()
 }
 
@@ -629,7 +637,11 @@ func (c *ArrayCacheByTimestamp) getLimitOwned(symbol any, limit any) *int64 {
 	if derefScalar(limit) == nil {
 		return Int64PtrTyped(c.newUpdates)
 	}
-	return Int64PtrTyped(MathMin(c.newUpdates, limit))
+	count := int64(c.newUpdates)
+	if bound := Int64PtrTyped(limit); bound != nil && *bound < count {
+		count = *bound
+	}
+	return &count
 }
 
 // Remove removes all items with the given symbol from the timestamp cache

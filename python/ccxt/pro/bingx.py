@@ -497,7 +497,7 @@ class bingx(ccxt.async_support.bingx):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data', [])
+        dataList = self.safe_list(message, 'data', [])
         rawHash = self.safe_string(message, 'dataType', '')
         hashParts = rawHash.split('@')
         marketId = self.safe_string(hashParts, 0)
@@ -509,10 +509,10 @@ class bingx(ccxt.async_support.bingx):
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
         trades: list[Trade]
-        if isinstance(data, list):
-            trades = self.parse_trades(data, market)
+        if self.safe_dict(message, 'data') is None:
+            trades = self.parse_trades(dataList, market)
         else:
-            trades = [self.parse_trade(data, market)]
+            trades = [self.parse_trade(self.safe_dict(message, 'data', {}), market)]
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -1194,7 +1194,7 @@ class bingx(ccxt.async_support.bingx):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type: Str, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, type: str, symbols: Strings = None):
         if self.positions is not None:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
@@ -1206,7 +1206,7 @@ class bingx(ccxt.async_support.bingx):
         else:
             self.positions = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client: Client, messageHash: str, type: Str):
+    async def load_positions_snapshot(self, client: Client, messageHash: str, type: str):
         positions = await self.fetch_positions(None, {'type': type, 'subType': 'linear'})
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1682,9 +1682,10 @@ class bingx(ccxt.async_support.bingx):
             type = 'spot'
         if not (type in self.balance):
             self.balance[type] = {}
-        self.balance[type]['info'] = data
-        self.balance[type]['timestamp'] = timestamp
-        self.balance[type]['datetime'] = self.iso8601(timestamp)
+        typeBalance = self.safe_dict(self.balance, type, {})
+        typeBalance['info'] = data
+        typeBalance['timestamp'] = timestamp
+        typeBalance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
@@ -1694,8 +1695,8 @@ class bingx(ccxt.async_support.bingx):
             account['used'] = self.safe_string(balance, 'lk')
             account['free'] = self.safe_string(balance, 'wb')
             if code is not None:
-                self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+                typeBalance[code] = account
+        self.balance[type] = self.safe_balance(typeBalance)
         client.resolve(self.balance[type], type + ':balance')
 
     def handle_text_message(self, client: Client, message: str):

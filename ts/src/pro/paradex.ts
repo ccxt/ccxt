@@ -158,7 +158,7 @@ export default class paradex extends paradexRest {
      * @returns {object} the reply
      */
     async sendRequest (url: string, request: Dict, subscribeHash: Str = undefined): Promise<any> {
-        const requestHash = 'request:' + this.safeString (request, 'id');
+        const requestHash = 'request:' + this.safeString (request, 'id', '');
         const subscription: Dict = {
             'id': request['id'],
             'messageHashes': [ requestHash ],
@@ -286,7 +286,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    async unsubscribeChannelsFrom (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: number, params: Dict = {}): Promise<any> {
+    async unsubscribeChannelsFrom (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: int, params: Dict = {}): Promise<any> {
         let refused = 0;
         for (let i = 0; i < channels.length; i++) {
             if (i >= start) {
@@ -314,7 +314,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    async unsubscribeChannelAt (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: number, params: Dict = {}): Promise<any> {
+    async unsubscribeChannelAt (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: int, params: Dict = {}): Promise<any> {
         const channel = channels[index];
         const symbol = this.safeString (symbols, index);
         const hashes: string[] = [ subMessageHashes[index] ];
@@ -775,7 +775,7 @@ export default class paradex extends paradexRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        const [ deltasOption, paramsDeltas ] = this.handleOptionAndParams (params, 'watchOrderBook', 'deltas', false);
+        const [ deltasOption, paramsDeltas ] = this.handleOptionBoolAndParams (params, 'watchOrderBook', 'deltas', false);
         const deltas = (deltasOption === true) || ((limit !== undefined) && (limit > 15));
         const url = this.getWsUrl ();
         // an unwatch in flight decides which feed each market is on once acknowledged
@@ -846,7 +846,7 @@ export default class paradex extends paradexRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
-        const [ deltasOption, paramsDeltas ] = this.handleOptionAndParams (params, 'watchOrderBook', 'deltas', false);
+        const [ deltasOption, paramsDeltas ] = this.handleOptionBoolAndParams (params, 'watchOrderBook', 'deltas', false);
         const url = this.getWsUrl ();
         const client = this.client (url);
         const channels: string[] = [];
@@ -1016,7 +1016,7 @@ export default class paradex extends paradexRest {
         // the whole connection
         const unsubscribe = this.unsubscribeRequest (channel);
         const subscribe = this.subscribeRequest (channel);
-        const unsubscribeHash = 'request:' + this.safeString (unsubscribe, 'id');
+        const unsubscribeHash = 'request:' + this.safeString (unsubscribe, 'id', '');
         client.subscriptions[unsubscribeHash] = {
             'id': unsubscribe['id'],
             'messageHashes': [],
@@ -1149,7 +1149,8 @@ export default class paradex extends paradexRest {
         const subMessageHashes: string[] = [];
         for (let i = 0; i < symbolsLength; i++) {
             const symbol = (symbolsNormalized as string[])[i];
-            const marketId = this.market (symbol)['id'] as string;
+            const market = this.market (symbol);
+            const marketId = market['id'] as string;
             marketIds.push (marketId);
             subscribeHashes.push (channel + '.' + marketId);
             subMessageHashes.push (channel + '.' + symbol);
@@ -1164,14 +1165,14 @@ export default class paradex extends paradexRest {
             return true;
         }
         // the markets left in the scoped subscription once these are removed
-        let remaining = 0;
+        let othersRemain = false;
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             if ((keys[i].indexOf (channel + '.') === 0) && !this.inArray (keys[i], subscribeHashes)) {
-                remaining = remaining + 1;
+                othersRemain = true;
             }
         }
-        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && (remaining === 0))) {
+        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && !othersRemain)) {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             const channelSubscription: Dict = {
                 'topic': 'ticker',
@@ -1218,7 +1219,8 @@ export default class paradex extends paradexRest {
         const channel = 'markets_summary';
         const pendingHashes: string[] = [ channel, channel + ':scoped' ];
         for (let i = 0; i < symbols.length; i++) {
-            pendingHashes.push (channel + '.' + this.market (symbols[i])['id']);
+            const market = this.market (symbols[i]);
+            pendingHashes.push (channel + '.' + market['id']);
         }
         await this.waitForPendingUnsubscribe (url, pendingHashes);
         const client = this.client (url);
@@ -1234,7 +1236,8 @@ export default class paradex extends paradexRest {
         const missingHashes: string[] = [];
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.market (symbols[i])['id'] as string;
+            const market = this.market (symbols[i]);
+            const marketId = market['id'] as string;
             const subscribeHash = channel + '.' + marketId;
             subscribeHashes.push (subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {

@@ -936,7 +936,7 @@ class bitopro(Exchange, ImplicitAPI):
             candle = self.safe_list(candles, i, [])
             if candle[0] == timestamp:
                 result.append(candle)
-                i = self.sum(i, 1)
+                i = i + 1
             else:
                 # set open, high, low to close
                 closeValue = self.safe_value(copyFrom, 4)

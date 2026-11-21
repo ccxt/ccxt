@@ -1002,7 +1002,8 @@ class aster(ccxt.async_support.aster):
             await self.load_markets()
         symbolValue = self.safe_symbol(symbol)
         result = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, params)
-        return result[symbolValue][timeframe]
+        bySymbol = result[symbolValue]
+        return bySymbol[timeframe]
 
     async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params: dict = {}) -> object:
         """
@@ -1150,7 +1151,7 @@ class aster(ccxt.async_support.aster):
             return
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe) is None:
+        if not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]
@@ -1208,8 +1209,12 @@ class aster(ccxt.async_support.aster):
                     # reject instead of caching an empty credential, so
                     # waiters retry rather than proceed unauthenticated
                     raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
-                self.options['listenKey'][type] = listenKey
-                self.options['lastAuthenticatedTime'][type] = time
+                listenKeys = self.safe_dict(self.options, 'listenKey', {})
+                listenKeys[type] = listenKey
+                self.options['listenKey'] = listenKeys
+                lastAuthenticatedTimes = self.safe_dict(self.options, 'lastAuthenticatedTime', {})
+                lastAuthenticatedTimes[type] = time
+                self.options['lastAuthenticatedTime'] = lastAuthenticatedTimes
                 keepAliveParams = self.extend({'type': type}, params)
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, keepAliveParams)
                 # settle the flight: client.resolve () removes the future from
@@ -1241,7 +1246,9 @@ class aster(ccxt.async_support.aster):
                 messageHash = messageHashes[i]
                 client.reject(error, messageHash)
             self.options['listenKey'][type] = None
-            self.options['lastAuthenticatedTime'][type] = 0
+            lastAuthenticatedTimes = self.safe_dict(self.options, 'lastAuthenticatedTime', {})
+            lastAuthenticatedTimes[type] = 0
+            self.options['lastAuthenticatedTime'] = lastAuthenticatedTimes
             return
         # whether or not to schedule another listenKey keepAlive request
         listenKeyRefreshOptions = self.safe_dict(self.options, 'listenKeyRefresh', {})
@@ -1366,7 +1373,8 @@ class aster(ccxt.async_support.aster):
         messageHash = accountType + ':balance'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
+        balance = self.safe_dict(self.balance, accountType, {})
+        balance['info'] = message
         messageValue = self.safe_dict(message, 'a', message)
         B = self.safe_list(messageValue, 'B', [])
         wallet = self.safe_string(self.options, 'wallet', 'wb')
@@ -1379,11 +1387,11 @@ class aster(ccxt.async_support.aster):
             account['used'] = self.safe_string(entry, 'l')
             account['total'] = self.safe_string(entry, wallet)
             if code is not None:
-                self.balance[accountType][code] = account
+                balance[code] = account
         timestamp = self.safe_integer(messageValue, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
+        self.balance[accountType] = self.safe_balance(balance)
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
@@ -1664,24 +1672,37 @@ class aster(ccxt.async_support.aster):
                         # accumulate order fees
                         fees = self.safe_list(order, 'fees', [])
                         fee = self.safe_dict(order, 'fee')
+                        tradeFeeCurrency = self.safe_string(tradeFee, 'currency')
+                        tradeFeeCost = self.safe_number(tradeFee, 'cost')
                         if not self.is_empty(fees):
                             insertNewFeeCurrency = True
+                            newFees = []
                             for i in range(0, len(fees)):
-                                orderFee = fees[i]
-                                if self.safe_string(orderFee, 'currency') == self.safe_string(tradeFee, 'currency'):
-                                    feeCost = self.sum(tradeFee['cost'], orderFee['cost'])
-                                    feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
-                                    order['fees'][i]['cost'] = None if (feeCostString is None) else float(feeCostString)
+                                orderFee = self.extend({}, fees[i])
+                                if insertNewFeeCurrency and self.safe_string(orderFee, 'currency') == tradeFeeCurrency:
+                                    feeCost = self.sum(tradeFeeCost, self.safe_number(orderFee, 'cost'))
+                                    feeCostString = self.currency_to_precision(tradeFeeCurrency, feeCost)
+                                    if feeCostString is not None:
+                                        orderFee['cost'] = float(feeCostString)
+                                    else:
+                                        orderFee['cost'] = None
                                     insertNewFeeCurrency = False
-                                    break
+                                newFees.append(orderFee)
                             if insertNewFeeCurrency:
-                                order['fees'].append(tradeFee)
+                                newFees.append(tradeFee)
+                            order['fees'] = newFees
                         elif fee is not None:
-                            if self.safe_string(fee, 'currency') == self.safe_string(tradeFee, 'currency'):
-                                feeCost = self.sum(fee['cost'], tradeFee['cost'])
-                                feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
-                                order['fee']['cost'] = None if (feeCostString is None) else float(feeCostString)
-                            elif self.safe_string(fee, 'currency') is None:
+                            feeCurrency = self.safe_string(fee, 'currency')
+                            if feeCurrency == tradeFeeCurrency:
+                                feeCost = self.sum(self.safe_number(fee, 'cost'), tradeFeeCost)
+                                feeCostString = self.currency_to_precision(tradeFeeCurrency, feeCost)
+                                newFee = self.extend({}, fee)
+                                if feeCostString is not None:
+                                    newFee['cost'] = float(feeCostString)
+                                else:
+                                    newFee['cost'] = None
+                                order['fee'] = newFee
+                            elif feeCurrency is None:
                                 order['fee'] = tradeFee
                             else:
                                 order['fees'] = [fee, tradeFee]

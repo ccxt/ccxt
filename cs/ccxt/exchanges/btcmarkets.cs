@@ -521,16 +521,16 @@ public partial class btcmarkets : Exchange
         IDictionary<string, object> cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new Dictionary<string, object>() {});
         string? txid = this.safeString(cryptoPaymentDetail, "txId");
         string? addressRaw = this.safeString(cryptoPaymentDetail, "address");
-        object address = null;
-        object tag = null;
+        string? address = null;
+        string? tag = null;
         if ((addressRaw != null))
         {
             List<object> addressParts = addressRaw.Split(new [] {"?dt="}, StringSplitOptions.None).ToList<object>();
             int numParts = addressParts.Count;
             if (numParts > 1)
             {
-                address = (addressParts != null && 0 < addressParts.Count ? addressParts[0] : null);
-                tag = (addressParts != null && 1 < addressParts.Count ? addressParts[1] : null);
+                address = ((string)(addressParts != null && 0 < addressParts.Count ? addressParts[0] : null));
+                tag = ((string)(addressParts != null && 1 < addressParts.Count ? addressParts[1] : null));
             } else
             {
                 address = addressRaw;
@@ -794,7 +794,7 @@ public partial class btcmarkets : Exchange
         //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     /**
@@ -1624,7 +1624,7 @@ public partial class btcmarkets : Exchange
                 requestBody = jsonBody;
                 auth = (((method + request) + nonce) + jsonBody);
             }
-            string signature = this.hmac(this.encode(auth), secret, sha512, "base64");
+            string signature = this.hmac(auth, secret, sha512, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
                 { "Accept-Charset", "UTF-8" },
@@ -1671,8 +1671,8 @@ public partial class btcmarkets : Exchange
         if ((errorCode != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

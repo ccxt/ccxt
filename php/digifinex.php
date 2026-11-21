@@ -1104,7 +1104,7 @@ class digifinex extends Exchange {
                 'date' => $date,
             ), $this->safe_dict($tickers, $i));
             $ticker = $this->parse_ticker($rawTicker);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }
@@ -2052,7 +2052,7 @@ class digifinex extends Exchange {
         $error = $this->safe_list($response, 'error', array());
         $result = array();
         for ($i = 0; $i < count($success); $i++) {
-            $order = $success[$i];
+            $order = $this->safe_string($success, $i);
             $result[] = $this->safe_order(array(
                 'info' => $order,
                 'id' => $order,
@@ -2061,7 +2061,7 @@ class digifinex extends Exchange {
             ));
         }
         for ($i = 0; $i < count($error); $i++) {
-            $order = $error[$i];
+            $order = $this->safe_string($error, $i);
             $result[] = $this->safe_order(array(
                 'info' => $order,
                 'id' => $order,
@@ -2158,7 +2158,7 @@ class digifinex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires a symbol for each order');
             }
             $market = $this->market($symbol);
-            $orderMarketType = $market['type'];
+            $orderMarketType = $this->safe_string($market, 'type');
             if ($marketType === null) {
                 $marketType = $orderMarketType;
             } elseif ($marketType !== $orderMarketType) {
@@ -2176,7 +2176,7 @@ class digifinex extends Exchange {
             $ordersRequests = array();
             for ($i = 0; $i < count($ids); $i++) {
                 $market = $this->market($symbols[$i]);
-                $marketId = $market['id'];
+                $marketId = $this->safe_string($market, 'id');
                 $orderId = $ids[$i];
                 $ordersRequests[] = array(
                     'instrument_id' => $marketId,
@@ -3268,7 +3268,7 @@ class digifinex extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $currencyId = $currency['id'];
+        $currencyId = $this->safe_string($currency, 'id');
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
@@ -3785,7 +3785,9 @@ class digifinex extends Exchange {
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
                 }
-                $symbol = $symbolsNormalized[0];
+                if ($symbolsLength === 1) {
+                    $symbol = $symbolsNormalized[0];
+                }
             } else {
                 $symbol = $symbolsNormalized;
             }
@@ -4020,7 +4022,7 @@ class digifinex extends Exchange {
         //
         $marketId = $this->safe_string_2($position, 'instrument_id', 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $marginMode = $this->safe_string($position, 'margin_mode');
         if ($marginMode !== null) {
             $marginMode = ($marginMode === 'crossed') ? 'cross' : 'isolated';

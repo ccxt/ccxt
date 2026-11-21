@@ -949,7 +949,7 @@ public partial class extended : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -2104,7 +2104,7 @@ public partial class extended : Exchange
         {
             throw new BadRequest ((this.id + " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
         }
-        Dictionary<string, object> account = await this.FetchExtendedAccount();
+        IDictionary<string, object> account = await this.FetchExtendedAccount();
         string? amountString = this.currencyToPrecision(code, amount);
         string? accountId = this.safeString(account, "accountId");
         Dictionary<string, object> settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag);
@@ -2203,7 +2203,7 @@ public partial class extended : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(code);
-        Dictionary<string, object> account = await this.FetchExtendedAccount();
+        IDictionary<string, object> account = await this.FetchExtendedAccount();
         string? currentAccountId = this.safeString(account, "accountId", "");
         if (((fromAccount != null)) && ((fromAccount != currentAccountId)))
         {
@@ -2590,7 +2590,7 @@ public partial class extended : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            IList<object> marketIds = this.marketIds(this.toArray(symbols));
+            IList<object> marketIds = this.marketIds(symbols);
             request["market"] = marketIds;
         }
         Dictionary<string, object> response = await this.v1PrivateGetUserPositions(this.extend(request, parameters));
@@ -2625,7 +2625,7 @@ public partial class extended : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
     }
 
     /**
@@ -2804,17 +2804,17 @@ public partial class extended : Exchange
         return result;
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchExtendedAccount(IDictionary<string, object>? parameters = null)
+    public async virtual Task<IDictionary<string, object>> FetchExtendedAccount(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> cachedAccount = this.safeDict(this.options, "account");
         if ((cachedAccount != null))
         {
-            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "account", new Dictionary<string, object>() {}));
+            return this.safeDict(this.options, "account", new Dictionary<string, object>() {});
         }
         Dictionary<string, object> accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount(parameters));
         this.options["account"] = this.safeDict(accountData, "info", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "account", new Dictionary<string, object>() {}));
+        return this.safeDict(this.options, "account", new Dictionary<string, object>() {});
     }
 
     public virtual Dictionary<string, object> createOrderSettlementData(bool isBuy, string amountString, string priceString, IDictionary<string, object>? parameters = null)
@@ -3003,7 +3003,7 @@ public partial class extended : Exchange
         Int64? settlementDefault = ((expiryEpochMillis != null)) ? (this.parseToInt(((double?)((expiryEpochMillis + 999)) / 1000)) + 1209600) : null;
         Int64? settlementExpiration = this.safeInteger(paramsBuilder, "settlementExpiration", settlementDefault);
         string? nonce = this.numberToString(this.nonce());
-        Dictionary<string, object> account = await this.FetchExtendedAccount();
+        IDictionary<string, object> account = await this.FetchExtendedAccount();
         string? starkKey = this.safeString(account, "l2Key");
         string? collateralPosition = this.safeString(account, "l2Vault");
         IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
@@ -3521,8 +3521,6 @@ public partial class extended : Exchange
         {
             market = this.market(symbol);
         }
-        Dictionary<string, object> response = null;
-        IDictionary<string, object> order = null;
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         if ((clientOrderId != null))
@@ -3530,9 +3528,9 @@ public partial class extended : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "externalId", clientOrderId },
             };
-            response = await this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted));
+            Dictionary<string, object> response = await this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted));
             List<object> data = this.safeList(response, "data", new List<object>() {});
-            order = this.safeDict(data, 0, new Dictionary<string, object>() {});
+            return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
         } else
         {
             if ((id == null))
@@ -3542,10 +3540,10 @@ public partial class extended : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", id },
             };
-            response = await this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted));
-            order = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            Dictionary<string, object> response = await this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted));
+            IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            return this.parseOrder(order, market);
         }
-        return this.parseOrder(order, market);
     }
 
     /**
@@ -3946,7 +3944,7 @@ public partial class extended : Exchange
             string? errorCode = this.safeString(error, "code");
             string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

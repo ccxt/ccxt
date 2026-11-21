@@ -200,8 +200,7 @@ func (this *BaseExchange) SetApiKey(apiKey any) {
 }
 
 func (this *BaseExchange) SetAccounts(accounts any) {
-	accounts = derefScalar(accounts) // generated callers may pass typed pointers; a typed nil is an absent value
-	this.Accounts = accounts
+	this.Accounts, _ = derefScalar(accounts).([]any) // a non-list (or absent) value leaves no accounts
 }
 
 func (this *BaseExchange) SetOptions(options any) {

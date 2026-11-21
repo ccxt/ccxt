@@ -3652,7 +3652,7 @@ public partial class bitget : Exchange
         return new List<object>() {productType, paramsSubType};
     }
 
-    public async virtual Task<object> handleUTAAndParams(object parameters, object methodName, bool? defaultValue = null)
+    public async virtual Task<(bool?, IDictionary<string, object>)> handleUTAAndParams(object parameters, object methodName, bool? defaultValue = null)
     {
         defaultValue ??= false;
         IList<object> utaparamsUtaVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "uta");
@@ -3660,7 +3660,7 @@ public partial class bitget : Exchange
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable[1]);
         if ((uta != null))
         {
-            return new List<object>() {uta, paramsUta};
+            return (uta, paramsUta);
         }
         if (this.checkRequiredCredentials(false))
         {
@@ -3675,9 +3675,9 @@ public partial class bitget : Exchange
                 accountIsUTa = false;
             }
             this.options["uta"] = accountIsUTa;
-            return new List<object>() {accountIsUTa, paramsUta};
+            return (accountIsUTa, paramsUta);
         }
-        return new List<object>() {defaultValue, paramsUta};
+        return (defaultValue, paramsUta);
     }
 
     /**
@@ -3730,9 +3730,9 @@ public partial class bitget : Exchange
         (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "stock", false);
         bool? stock = stockparamsStockVariable.Item1;
         IDictionary<string, object> paramsStock = (stockparamsStockVariable.Item2);
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchMarkets", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchMarkets", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((stock == true) || ((uta is true)))
         {
             return await this.FetchUtaMarkets(paramsUTA);
@@ -3897,7 +3897,7 @@ public partial class bitget : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? quoteId = this.safeString(market, "quoteCoin");
             string? baseId = this.safeString(market, "baseCoin");
             string? quote = this.safeCurrencyCode(quoteId);
@@ -3907,7 +3907,7 @@ public partial class bitget : Exchange
                 continue;
             }
             Dictionary<string, object> parsedMarket = this.parseMarket(market);
-            if (((parsedMarket != null)) && isTrue((parsedMarket != null && parsedMarket.ContainsKey("spot") ? parsedMarket["spot"] : null)))
+            if (((parsedMarket != null)) && (this.safeBool(parsedMarket, "spot", false) == true))
             {
                 string? marketId = ((string)(parsedMarket != null && parsedMarket.ContainsKey("id") ? parsedMarket["id"] : null));
                 IDictionary<string, object> instrument = this.safeDict(spotInstruments, marketId);
@@ -4011,9 +4011,9 @@ public partial class bitget : Exchange
                 string? yearPart = this.safeString(expiryParts, 0, "");
                 string? dayPart = this.safeString(expiryParts, 2, "");
                 string? year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
-                object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
+                string? month = ((string)(expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null));
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                string? monthDay = (month == null ? null : month + day);
+                string? monthDay = ((string)(month == null ? null : month + day));
                 string expiryString = (year + monthDay);
                 type = "future";
                 future = true;
@@ -4027,12 +4027,18 @@ public partial class bitget : Exchange
             string? priceEndStep = this.safeString(market, "priceEndStep");
             string? sizeMultiplier = this.safeString(market, "sizeMultiplier");
             var precise = new Precise(priceEndStep);
-            precise.decimals = mathMax(precise.decimals, pricePlaces);
+            if ((pricePlaces != null))
+            {
+                precise.decimals = mathMax(precise.decimals, pricePlaces);
+            }
             precise.reduce();
             string priceString = ((object)precise).ToString();
             pricePrecision = this.parseNumber(priceString);
             var preciseAmount = new Precise(sizeMultiplier);
-            preciseAmount.decimals = mathMax(preciseAmount.decimals, volumePlaces);
+            if ((volumePlaces != null))
+            {
+                preciseAmount.decimals = mathMax(preciseAmount.decimals, volumePlaces);
+            }
             preciseAmount.reduce();
             string amountString = ((object)preciseAmount).ToString();
             amountPrecision = this.parseNumber(amountString);
@@ -4224,7 +4230,7 @@ public partial class bitget : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? quoteId = this.safeString(market, "quoteCoin");
             string? baseId = this.safeString(market, "baseCoin");
             string? quote = this.safeCurrencyCode(quoteId);
@@ -4316,9 +4322,9 @@ public partial class bitget : Exchange
                 string? yearPart = this.safeString(expiryParts, 0, "");
                 string? dayPart = this.safeString(expiryParts, 2, "");
                 string? year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
-                object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
+                string? month = ((string)(expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null));
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                string? monthDay = (month == null ? null : month + day);
+                string? monthDay = ((string)(month == null ? null : month + day));
                 string expiryString = (year + monthDay);
                 type = "future";
                 future = true;
@@ -4567,9 +4573,9 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsMarginModeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsMarginMode);
         productType = (string)productTypeparamsMarginModeVariable[0];
         paramsMarginMode = (IDictionary<string, object>)productTypeparamsMarginModeVariable[1];
-        var utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "fetchMarketLeverageTiers", false);
-        uta = (bool?)((IList<object>)utaparamsMarginModeVariable)[0];
-        paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "fetchMarketLeverageTiers", false);
+        uta = utaparamsMarginModeVariable.Item1;
+        paramsMarginMode = utaparamsMarginModeVariable.Item2;
         if ((uta == true))
         {
             if (productType == "SPOT")
@@ -4785,9 +4791,9 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchDeposits", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchDeposits", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
@@ -4937,9 +4943,9 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsNetworkCode, "withdraw", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsNetworkCode, "withdraw", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         Dictionary<string, object> currency = this.currency(code);
         string? networkId = this.networkCodeToId(networkCode, code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5012,9 +5018,9 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchWithdrawals", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchWithdrawals", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
@@ -5284,9 +5290,9 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchDepositAddress", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchDepositAddress", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsUTA);
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
@@ -5387,9 +5393,9 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
         Dictionary<string, object> paramsStock = this.omit(paramsProductType, "stock");
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchOrderBook", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchOrderBook", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         bool isStockOrUta = (isStockSpot || ((uta is true)));
         if (isStockSpot)
@@ -5628,9 +5634,9 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
         Dictionary<string, object> paramsStock = this.omit(paramsProductType, "stock");
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchTicker", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchTicker", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         bool isStockOrUta = (((isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) || ((uta is true)));
         if (isStockOrUta)
         {
@@ -5853,9 +5859,9 @@ public partial class bitget : Exchange
         bool? stock = stockparamsStockVariable.Item1;
         IDictionary<string, object> paramsStock = (stockparamsStockVariable.Item2);
         // only if passedSubType && productType is undefined, then use spot
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchTickers", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchTickers", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         bool isStock = ((stock == true));
         bool isStockOrUta = (isStock || ((uta is true)));
         if (isStockOrUta)
@@ -6226,9 +6232,9 @@ public partial class bitget : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         bool? uta = null;
-        var utaparamsPaginateVariable = await this.handleUTAAndParams(paramsPaginate, "fetchTrades", false);
-        uta = (bool?)((IList<object>)utaparamsPaginateVariable)[0];
-        paramsPaginate = (IDictionary<string, object>)((IList<object>)utaparamsPaginateVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsPaginateVariable = await this.handleUTAAndParams(paramsPaginate, "fetchTrades", false);
+        uta = utaparamsPaginateVariable.Item1;
+        paramsPaginate = utaparamsPaginateVariable.Item2;
         bool isStockOrUta = (isStockSpot || ((uta == true)));
         if ((limit != null))
         {
@@ -6401,9 +6407,9 @@ public partial class bitget : Exchange
         };
         bool? uta = null;
         IDictionary<string, object> paramsUTA = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchTradingFee", false);
-        uta = (bool?)((IList<object>)utaparamsUTAVariable)[0];
-        paramsUTA = (IDictionary<string, object>)((IList<object>)utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchTradingFee", false);
+        uta = utaparamsUTAVariable.Item1;
+        paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta == true))
         {
             string? productType = null;
@@ -6491,9 +6497,9 @@ public partial class bitget : Exchange
         marketType = (string)marketTypeparamsMarginModeVariable[0];
         paramsMarginMode = (IDictionary<string, object>)marketTypeparamsMarginModeVariable[1];
         bool? uta = null;
-        var utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "fetchTradingFees", false);
-        uta = (bool?)((IList<object>)utaparamsMarginModeVariable)[0];
-        paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "fetchTradingFees", false);
+        uta = utaparamsMarginModeVariable.Item1;
+        paramsMarginMode = utaparamsMarginModeVariable.Item2;
         if ((uta == true))
         {
             bool? utaMargin = this.safeBool(paramsMarginMode, "margin", false);
@@ -6538,7 +6544,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> utaResult = new Dictionary<string, object>() {};
             for (int i = 0; i < rows.Count; i++)
             {
-                object entry = rows[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
                 string? entryMarketId = this.safeString(entry, "symbol");
                 if (((entryMarketId == null)) || ((this.markets_by_id == null)) || !(((entryMarketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(entryMarketId)))))
                 {
@@ -6652,7 +6658,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "symbol");
             string? symbol = this.safeSymbol(marketId, null, null, marketType);
             Dictionary<string, object> market = this.market(symbol);
@@ -6735,9 +6741,9 @@ public partial class bitget : Exchange
         (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsPaginate, "fetchOHLCV", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsPaginate, "fetchOHLCV", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
@@ -6792,7 +6798,7 @@ public partial class bitget : Exchange
         // the per-timeframe cap only applies to a user-supplied limit
         Int64? timeframeLimit = ((timeframeLimitValue == null)) ? maxLimitForRecentEndpoint : timeframeLimitValue;
         Int64? requestedLimit = ((limit == null)) ? defaultLimit : limit;
-        Int64? limitCapped = ((requestedLimit > maxLimitForRecentEndpoint)) ? maxLimitForRecentEndpoint : requestedLimit;
+        Int64? limitCapped = (requestedLimit > maxLimitForRecentEndpoint) ? maxLimitForRecentEndpoint : requestedLimit;
         // the per-timeframe cap only applies to a user-supplied limit
         Int64? recentLimit = (((limit != null)) && ((limitCapped != null && (timeframeLimit == null || limitCapped > timeframeLimit)))) ? timeframeLimit : limitCapped;
         Int64? limitResolved = recentLimit;
@@ -6802,8 +6808,8 @@ public partial class bitget : Exchange
         bool historicalEndpointNeeded = ((useHistoryEndpoint == true));
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        object calculatedStartTime = null;
-        object calculatedEndTime = null;
+        Int64? calculatedStartTime = null;
+        Int64? calculatedEndTime = null;
         if ((since != null))
         {
             calculatedStartTime = since;
@@ -6824,7 +6830,7 @@ public partial class bitget : Exchange
         }
         if ((until != null))
         {
-            Int64? untilEndTime = ((until > now)) ? now : until;
+            Int64? untilEndTime = (until > now) ? now : until;
             calculatedEndTime = untilEndTime;
             request["endTime"] = untilEndTime;
             if ((since == null))
@@ -6841,17 +6847,17 @@ public partial class bitget : Exchange
         if (historicalEndpointNeeded)
         {
             // only for "historical-candles" - ensure we use correct max limit
-            Int64? historicalLimit = ((recentLimit > maxLimitForHistoryEndpoint)) ? maxLimitForHistoryEndpoint : recentLimit;
+            Int64? historicalLimit = (recentLimit > maxLimitForHistoryEndpoint) ? maxLimitForHistoryEndpoint : recentLimit;
             limitResolved = historicalLimit;
             Int64? historicalDuration = (historicalLimit * duration);
-            calculatedStartTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(calculatedEndTime, historicalDuration);
+            calculatedStartTime = (calculatedEndTime - historicalDuration);
             request["startTime"] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
             if (!(this.safeBool(market, "spot", false) == true))
             {
                 Int64 maxDistanceForContracts = (90L * msInDay);
                 // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if ((!(calculatedEndTime == null)) && ((historicalDuration > maxDistanceForContracts)))
+                if (((calculatedEndTime != null)) && (historicalDuration > maxDistanceForContracts))
                 {
                     calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
                     request["endTime"] = calculatedEndTime;
@@ -6994,9 +7000,9 @@ public partial class bitget : Exchange
         IDictionary<string, object> paramsStock = (stockparamsStockVariable.Item2);
         bool? uta = null;
         IDictionary<string, object> paramsUTA = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchBalance", false);
-        uta = (bool?)((IList<object>)utaparamsUTAVariable)[0];
-        paramsUTA = (IDictionary<string, object>)((IList<object>)utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchBalance", false);
+        uta = utaparamsUTAVariable.Item1;
+        paramsUTA = utaparamsUTAVariable.Item2;
         bool isStock = ((stock == true));
         bool isStockOrUta = (isStock || ((uta == true)));
         IList<object> marketTypeparamsUTAVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, paramsUTA);
@@ -7767,9 +7773,9 @@ public partial class bitget : Exchange
         bool hasStopLoss = (stopLoss != null);
         bool hasTakeProfit = (takeProfit != null);
         Dictionary<string, object> response = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "createOrder", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "createOrder", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         bool isStockOrUta = (isStockSpot || ((uta is true)));
         if (isStockSpot)
         {
@@ -8346,8 +8352,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        IDictionary<string, object> firstOrder = this.safeDict(orders, 0);
-        string? symbol = this.safeString(firstOrder, "symbol");
+        string? symbol = null;
         string? marginMode = null;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -8428,16 +8433,15 @@ public partial class bitget : Exchange
         }
         bool? uta = null;
         IDictionary<string, object> paramsUTA = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "createOrders", false);
-        uta = (bool?)((IList<object>)utaparamsUTAVariable)[0];
-        paramsUTA = (IDictionary<string, object>)((IList<object>)utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "createOrders", false);
+        uta = utaparamsUTAVariable.Item1;
+        paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta == true))
         {
             return await this.CreateUtaOrders(orders, paramsUTA);
         }
         List<object> ordersRequests = new List<object>() {};
-        IDictionary<string, object> firstOrder = this.safeDict(orders, 0);
-        string? symbol = this.safeString(firstOrder, "symbol");
+        string? symbol = null;
         string? marginMode = null;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -8620,9 +8624,9 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsOmittedVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsOmitted);
         productType = (string)productTypeparamsOmittedVariable[0];
         paramsOmitted = (IDictionary<string, object>)productTypeparamsOmittedVariable[1];
-        var utaparamsOmittedVariable = await this.handleUTAAndParams(paramsOmitted, "editOrder", false);
-        uta = (bool?)((IList<object>)utaparamsOmittedVariable)[0];
-        paramsOmitted = (IDictionary<string, object>)((IList<object>)utaparamsOmittedVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsOmittedVariable = await this.handleUTAAndParams(paramsOmitted, "editOrder", false);
+        uta = utaparamsOmittedVariable.Item1;
+        paramsOmitted = utaparamsOmittedVariable.Item2;
         if ((uta == true))
         {
             if ((amount != null))
@@ -8872,9 +8876,9 @@ public partial class bitget : Exchange
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         bool? uta = null;
-        var utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "cancelOrder", false);
-        uta = (bool?)((IList<object>)utaparamsMarginModeVariable)[0];
-        paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "cancelOrder", false);
+        uta = utaparamsMarginModeVariable.Item1;
+        paramsMarginMode = utaparamsMarginModeVariable.Item2;
         bool isStockOrUta = (isStockSpot || ((uta == true)));
         bool isPlanOrder = ((trigger == true)) || (trailing == true);
         bool isContract = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true));
@@ -9046,7 +9050,8 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? productType = ((string)this.handleProductTypeAndParams(market, parameters)[0]);
+        IList<object> productTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
+        string? productType = (string)productTypeVariable[0];
         List<object> requestList = new List<object>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
@@ -9108,9 +9113,9 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? uta = null;
         IDictionary<string, object> paramsUTA = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "cancelOrders", false);
-        uta = (bool?)((IList<object>)utaparamsUTAVariable)[0];
-        paramsUTA = (IDictionary<string, object>)((IList<object>)utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "cancelOrders", false);
+        uta = utaparamsUTAVariable.Item1;
+        paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta == true))
         {
             return await this.CancelUtaOrders(ids, symbol, paramsUTA);
@@ -9236,9 +9241,9 @@ public partial class bitget : Exchange
         paramsMarginMode = this.omit(paramsMarginMode, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> response = null;
         bool? uta = null;
-        var utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "cancelAllOrders", false);
-        uta = (bool?)((IList<object>)utaparamsMarginModeVariable)[0];
-        paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "cancelAllOrders", false);
+        uta = utaparamsMarginModeVariable.Item1;
+        paramsMarginMode = utaparamsMarginModeVariable.Item2;
         if ((uta == true))
         {
             if (productType == "SPOT")
@@ -9350,9 +9355,9 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOrderId"}) : parameters;
         object response = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsOmitted, "fetchOrder", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsOmitted, "fetchOrder", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             response = await this.privateUtaGetV3TradeOrderInfo(this.extend(request, paramsUTA));
@@ -9544,9 +9549,9 @@ public partial class bitget : Exchange
         marginMode = marginModeparamsMarginModeVariable.Item1;
         paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         bool? uta = null;
-        var utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "fetchOpenOrders", false);
-        uta = (bool?)((IList<object>)utaparamsMarginModeVariable)[0];
-        paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "fetchOpenOrders", false);
+        uta = utaparamsMarginModeVariable.Item1;
+        paramsMarginMode = utaparamsMarginModeVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -10064,9 +10069,9 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         bool? uta = null;
         IDictionary<string, object> paramsUTA = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchCanceledAndClosedOrders", false);
-        uta = (bool?)((IList<object>)utaparamsUTAVariable)[0];
-        paramsUTA = (IDictionary<string, object>)((IList<object>)utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchCanceledAndClosedOrders", false);
+        uta = utaparamsUTAVariable.Item1;
+        paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta == true))
         {
             return await this.FetchUtaCanceledAndClosedOrders(symbol, since, limit, paramsUTA);
@@ -10584,9 +10589,9 @@ public partial class bitget : Exchange
         marketType = (string)marketTypeparamsOmittedVariable[0];
         paramsOmitted = marketTypeparamsOmittedVariable[1];
         bool? uta = null;
-        var utaparamsOmittedVariable = await this.handleUTAAndParams(paramsOmitted, "fetchLedger", false);
-        uta = (bool?)((IList<object>)utaparamsOmittedVariable)[0];
-        paramsOmitted = ((IList<object>)utaparamsOmittedVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsOmittedVariable = await this.handleUTAAndParams(paramsOmitted, "fetchLedger", false);
+        uta = utaparamsOmittedVariable.Item1;
+        paramsOmitted = utaparamsOmittedVariable.Item2;
         bool? paginate = false;
         (bool?, IDictionary<string, object>) paginateparamsOmittedVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchLedger", "paginate", false);
         paginate = paginateparamsOmittedVariable.Item1;
@@ -10741,13 +10746,14 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
         if ((marketType == "swap") || (marketType == "future"))
         {
+            IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             List<object> bills = this.safeList(data, "bills", new List<object>() {});
             return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(bills, currency, since, limit));
         }
-        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
+        List<object> rows = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit));
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
@@ -11068,9 +11074,9 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         bool? uta = null;
         IDictionary<string, object> paramsUTA = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchMyTrades", false);
-        uta = (bool?)((IList<object>)utaparamsUTAVariable)[0];
-        paramsUTA = (IDictionary<string, object>)((IList<object>)utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchMyTrades", false);
+        uta = utaparamsUTAVariable.Item1;
+        paramsUTA = utaparamsUTAVariable.Item2;
         if (((uta != true)) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
@@ -11333,9 +11339,9 @@ public partial class bitget : Exchange
         };
         Dictionary<string, object> response = null;
         List<object> result = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchPosition", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchPosition", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             request["category"] = productType;
@@ -11483,9 +11489,9 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         bool isHistory = false;
         bool? uta = null;
-        var utaparamsPaginateVariable = await this.handleUTAAndParams(paramsPaginate, "fetchPositions", false);
-        uta = (bool?)((IList<object>)utaparamsPaginateVariable)[0];
-        paramsPaginate = (IDictionary<string, object>)((IList<object>)utaparamsPaginateVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsPaginateVariable = await this.handleUTAAndParams(paramsPaginate, "fetchPositions", false);
+        uta = utaparamsPaginateVariable.Item1;
+        paramsPaginate = utaparamsPaginateVariable.Item2;
         if ((uta == true))
         {
             request["category"] = productType;
@@ -11644,7 +11650,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> parsedPosition = this.parsePosition(position[i], market);
             result.Add(parsedPosition);
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
 
@@ -11930,14 +11936,14 @@ public partial class bitget : Exchange
         string? productType = null;
         bool? uta = null;
         Dictionary<string, object> response = null;
-        List<object> result = null;
+        List<object> result = new List<object>() {};
         IDictionary<string, object> paramsProductType = null;
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         productType = (string)productTypeparamsProductTypeVariable[0];
         paramsProductType = (IDictionary<string, object>)productTypeparamsProductTypeVariable[1];
-        var utaparamsProductTypeVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingRateHistory", false);
-        uta = (bool?)((IList<object>)utaparamsProductTypeVariable)[0];
-        paramsProductType = (IDictionary<string, object>)((IList<object>)utaparamsProductTypeVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsProductTypeVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingRateHistory", false);
+        uta = utaparamsProductTypeVariable.Item1;
+        paramsProductType = utaparamsProductTypeVariable.Item2;
         if ((uta == true))
         {
             if ((limit != null))
@@ -11999,7 +12005,7 @@ public partial class bitget : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (result?.Count ?? 0); i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
@@ -12051,9 +12057,9 @@ public partial class bitget : Exchange
         };
         bool? uta = null;
         Dictionary<string, object> response = null;
-        var utaparamsProductTypeVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingRate", false);
-        uta = (bool?)((IList<object>)utaparamsProductTypeVariable)[0];
-        paramsProductType = (IDictionary<string, object>)((IList<object>)utaparamsProductTypeVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsProductTypeVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingRate", false);
+        uta = utaparamsProductTypeVariable.Item1;
+        paramsProductType = utaparamsProductTypeVariable.Item2;
         if ((uta == true))
         {
             response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, paramsProductType));
@@ -12107,9 +12113,9 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingRates", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingRates", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         string method = "publicMixGetV2MixMarketTickers";
         (string?, IDictionary<string, object>) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsUTA, "fetchFundingRates", "method", method);
         string? methodOption = methodOptionparamsMethodVariable.Item1;
@@ -12329,9 +12335,9 @@ public partial class bitget : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchFundingHistory", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchFundingHistory", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
@@ -12681,9 +12687,9 @@ public partial class bitget : Exchange
         };
         bool? uta = null;
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        var utaparamsProductTypeVariable = await this.handleUTAAndParams(paramsProductType, "setLeverage", false);
-        uta = (bool?)((IList<object>)utaparamsProductTypeVariable)[0];
-        paramsProductType = (IDictionary<string, object>)((IList<object>)utaparamsProductTypeVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsProductTypeVariable = await this.handleUTAAndParams(paramsProductType, "setLeverage", false);
+        uta = utaparamsProductTypeVariable.Item1;
+        paramsProductType = utaparamsProductTypeVariable.Item2;
         if ((uta == true))
         {
             if (productType == "SPOT")
@@ -12802,9 +12808,9 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "setPositionMode", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "setPositionMode", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             request["holdMode"] = posMode;
@@ -12848,9 +12854,9 @@ public partial class bitget : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchOpenInterest", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchOpenInterest", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             request["category"] = productType;
@@ -13001,9 +13007,9 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "transfer", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "transfer", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         Dictionary<string, object> currency = this.currency(code);
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromType = this.safeString(accountsByType, fromAccount);
@@ -13768,9 +13774,9 @@ public partial class bitget : Exchange
         };
         Dictionary<string, object> response = null;
         IDictionary<string, object> result = new Dictionary<string, object>() {};
-        var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchCrossBorrowRate", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchCrossBorrowRate", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             response = await this.publicUtaGetV3MarketMarginLoans(this.extend(request, paramsUTA));
@@ -14069,9 +14075,9 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "closePosition", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "closePosition", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             if ((side != null))
@@ -14117,9 +14123,9 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "closeAllPositions", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "closeAllPositions", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             request["category"] = productType;
@@ -14192,18 +14198,18 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
         if (marginType == "crossed")
         {
             marginType = "cross";
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginType },
-        };
+        })));
     }
 
     /**
@@ -14254,9 +14260,9 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsUntil);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchPositionsHistory", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchPositionsHistory", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             requestUntil["category"] = productType;
@@ -14267,7 +14273,7 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> responseList = this.safeList(data, "list", new List<object>() {});
-        IList<object> positions = this.parsePositions(responseList, this.toArray(symbols), paramsUTA);
+        IList<object> positions = this.parsePositions(responseList, symbols, paramsUTA);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
@@ -14539,7 +14545,7 @@ public partial class bitget : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(entry, "coin");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))
@@ -14603,9 +14609,9 @@ public partial class bitget : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingInterval", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingInterval", false);
+        bool? uta = utaparamsUTAVariable.Item1;
+        IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
         if ((uta is true))
         {
             response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, paramsUTA));
@@ -14710,14 +14716,14 @@ public partial class bitget : Exchange
         bool nonEmptyMessage = (((message != null)) && (message != "") && (message != "success"));
         if (nonEmptyMessage)
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         }
         string? errorCode = this.safeString2(response, "code", "err_code");
         bool nonZeroErrorCode = ((errorCode != null)) && (errorCode != "00000");
         if (nonZeroErrorCode)
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         }
         if (nonZeroErrorCode || nonEmptyMessage)
         {
@@ -14790,7 +14796,7 @@ public partial class bitget : Exchange
                     auth = auth + ("?" + this.rawencode(sortedParams, true));
                 }
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(auth, this.secret, sha256, "base64");
             string? broker = this.safeString(this.options, "broker");
             requestHeaders = new Dictionary<string, object>() {
                 { "ACCESS-KEY", this.apiKey },

@@ -926,7 +926,10 @@ class whitebit(Exchange, ImplicitAPI):
                 depositWithdrawFee = self.safe_dict(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
-                depositWithdrawFees[code]['info'][entry] = feeInfo
+                feeEntry = self.safe_dict(depositWithdrawFees, code, {})
+                feeEntryInfo = self.safe_dict(feeEntry, 'info', {})
+                feeEntryInfo[entry] = feeInfo
+                feeEntry['info'] = feeEntryInfo
                 networkId = self.safe_string(splitEntry, 1)
                 withdraw = self.safe_dict(feeInfo, 'withdraw')
                 deposit = self.safe_dict(feeInfo, 'deposit')
@@ -941,16 +944,18 @@ class whitebit(Exchange, ImplicitAPI):
                     'percentage': False if (depositFee is not None) else None,
                 }
                 if networkId is not None:
-                    networkLength = len(networkId)
-                    networkCode = self.network_id_to_code(networkId[1:networkLength - 1], code)
+                    networkCode = self.network_id_to_code(networkId[1:-1], code)
                     if networkCode is not None:
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        feeEntryNetworks = self.safe_dict(feeEntry, 'networks', {})
+                        feeEntryNetworks[networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult,
                         }
+                        feeEntry['networks'] = feeEntryNetworks
                 else:
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult
-                    depositWithdrawFees[code]['deposit'] = depositResult
+                    feeEntry['withdraw'] = withdrawResult
+                    feeEntry['deposit'] = depositResult
+                depositWithdrawFees[code] = feeEntry
         depositWithdrawCodes = list(depositWithdrawFees.keys())
         for i in range(0, len(depositWithdrawCodes)):
             code = depositWithdrawCodes[i]
@@ -1825,8 +1830,12 @@ class whitebit(Exchange, ImplicitAPI):
             'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        cappedLimit = 1440 if ((limit is None) or (limit > 1440)) else limit
-        limitResolved = cappedLimit if (since is not None) else limit
+        cappedLimit = 1440
+        if (limit is not None) and (limit < 1440):
+            cappedLimit = limit
+        limitResolved = limit
+        if since is not None:
+            limitResolved = cappedLimit
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
         if (since is not None) or (until is not None):
@@ -1836,11 +1845,11 @@ class whitebit(Exchange, ImplicitAPI):
             duration = self.parse_timeframe(timeframe)
             endTime = None
             if until is not None:
-                endTime = self.sum(self.parse_to_int(until / 1000), duration)
+                endTime = self.parse_to_int(self.sum(self.parse_to_int(until / 1000), duration))
             if since is not None:
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                rangeEnd = self.sum(start, duration * cappedLimit)
+                rangeEnd = self.parse_to_int(self.sum(start, duration * cappedLimit))
                 if (endTime is None) or (rangeEnd < endTime):
                     endTime = rangeEnd
             if (endTime is not None) and (self.sum(endTime, duration) < self.seconds()):

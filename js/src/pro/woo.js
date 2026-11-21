@@ -1194,19 +1194,19 @@ export default class woo extends wooRest {
         //     }
         //
         const topic = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data');
-        if (Array.isArray(data)) {
+        const dataList = this.safeList(message, 'data');
+        if (dataList !== undefined) {
             // algoexecutionreportv2
-            for (let i = 0; i < data.length; i++) {
-                const order = data[i];
-                const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
+            for (let i = 0; i < dataList.length; i++) {
+                const tradeId = this.omitZero(this.safeString(dataList, 'tradeId'));
                 if (tradeId !== undefined) {
-                    this.handleMyTrade(client, order);
+                    this.handleMyTrade(client, dataList[i]);
                 }
-                this.handleOrder(client, order, topic);
+                this.handleOrder(client, dataList[i], topic);
             }
         }
         else {
+            const data = this.safeValue(message, 'data');
             // executionreport
             const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
             if (tradeId !== undefined) {
@@ -1587,8 +1587,8 @@ export default class woo extends wooRest {
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
         const unsubMessageHashes = this.safeList(subscription, 'unsubMessageHashes', []);
         for (let i = 0; i < subMessageHashes.length; i++) {
-            const subHash = subMessageHashes[i];
-            const unsubHash = unsubMessageHashes[i];
+            const subHash = this.safeString(subMessageHashes, i);
+            const unsubHash = this.safeString(unsubMessageHashes, i);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
@@ -1682,7 +1682,7 @@ export default class woo extends wooRest {
         const subscription = this.safeDict(subscriptionsById, id, {});
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
-            method.call(this, client, message, subscription);
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         return message;
     }

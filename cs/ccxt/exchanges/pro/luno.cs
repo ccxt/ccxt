@@ -81,7 +81,7 @@ public partial class luno : ccxt.luno
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleTrades(WebSocketClient client, object message, object subscription)
     {
         //
         //     {
@@ -205,7 +205,7 @@ public partial class luno : ccxt.luno
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBook(WebSocketClient client, object message, object subscription)
     {
         //
         //     {
@@ -371,7 +371,7 @@ public partial class luno : ccxt.luno
         List<object> tradeUpdates = this.safeList(message, "trade_updates", new List<object>() {});
         for (int i = 0; i < tradeUpdates.Count; i++)
         {
-            object tradeUpdate = tradeUpdates[i];
+            IDictionary<string, object> tradeUpdate = ((IDictionary<string, object>)tradeUpdates[i]);
             string? makerOrderId = this.safeString(tradeUpdate, "maker_order_id");
             string? tradedAmount = this.safeString(tradeUpdate, "base");
             if (((makerOrderId != null)) && ((tradedAmount != null)))
@@ -418,12 +418,12 @@ public partial class luno : ccxt.luno
      * @param {string} tradedAmount the traded amount in base currency, as a string
      * @returns {boolean} true if the order was found in this side, false otherwise
      */
-    public virtual bool reduceOrderVolume(object orderSide, string orderId, string tradedAmount)
+    public virtual bool reduceOrderVolume(IList<object> orderSide, string orderId, string tradedAmount)
     {
-        int sideLength = getArrayLength(orderSide);
+        int sideLength = orderSide?.Count ?? 0;
         for (int i = 0; i < sideLength; i++)
         {
-            object order = getValue(orderSide, i);
+            object order = (orderSide != null && i < orderSide.Count ? orderSide[i] : null);
             string? entryId = this.safeString(order, 2);
             if ((entryId == orderId))
             {
@@ -470,7 +470,7 @@ public partial class luno : ccxt.luno
         {
             return true;
         }
-        if ((messageSequence == null || messageSequence <= storedNonce))
+        if (messageSequence.Value <= storedNonce.Value)
         {
             // an old or replayed frame, discard it
             return false;
@@ -516,11 +516,8 @@ public partial class luno : ccxt.luno
             // frames still arriving until the client resubscribes
             return;
         }
-        List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
-        for (int j = 0; j < (handlers?.Count ?? 0); j++)
-        {
-            object handler = handlers[j];
-            DynamicInvoker.InvokeMethod(handler, new object[] { client, message, (subscriptions != null && 0 < subscriptions.Count ? subscriptions[0] : null)});
-        }
+        IDictionary<string, object> subscription = this.safeDict(subscriptions, 0, new Dictionary<string, object>() {});
+        this.handleOrderBook(client, message, subscription);
+        this.handleTrades(client, message, subscription);
     }
 }

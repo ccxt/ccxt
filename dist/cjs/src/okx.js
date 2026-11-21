@@ -2723,9 +2723,9 @@ class okx extends okx$1["default"] {
         if (isMarkOrIndex) {
             requestMaxLimit = 100;
         }
-        let limitResolved = 100;
+        let limitResolved = this.parseToInt(100);
         if (limit !== undefined) {
-            limitResolved = Math.min(limit, requestMaxLimit);
+            limitResolved = this.parseToInt(Math.min(limit, requestMaxLimit));
         }
         const duration = this.parseTimeframe(timeframe);
         let bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2785,7 +2785,7 @@ class okx extends okx$1["default"] {
         else {
             if (isHistoryCandles) {
                 if (limitIsUndefined && (limitResolved === 100)) {
-                    limitResolved = 300;
+                    limitResolved = this.parseToInt(300);
                     request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
                 }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, paramsType));
@@ -3337,23 +3337,24 @@ class okx extends okx$1["default"] {
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
                     const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(orderParams, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    let notional = this.safeNumber2(paramsRequiresPrice, 'cost', 'sz');
+                    const notionalParam = this.safeNumber2(paramsRequiresPrice, 'cost', 'sz');
+                    let notional = notionalParam;
                     orderParams = this.omit(paramsRequiresPrice, ['cost', 'sz']);
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
-                            if (notional === undefined) {
+                            if (notionalParam === undefined) {
                                 const amountString = this.numberToString(amount);
                                 const priceString = this.numberToString(price);
                                 const quoteAmount = Precise["default"].stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
                         }
-                        else if (notional === undefined) {
+                        else if (notionalParam === undefined) {
                             throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     }
                     else {
-                        notional = (notional === undefined) ? amount : notional;
+                        notional = (notionalParam === undefined) ? amount : notionalParam;
                     }
                     request['sz'] = this.costToPrecision(symbol, notional);
                 }
@@ -3643,11 +3644,16 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
-            if (marketId === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
-            }
             const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
+            if ((marketId === undefined) || (side === undefined)) {
+                // a missing side is the createOrderRequest () error
+                let reason = ' requires a side argument';
+                if (marketId === undefined) {
+                    reason = ' createOrders() requires a symbol for each order';
+                }
+                throw new errors.ArgumentsRequired(this.id + reason);
+            }
             const amount = this.safeNumber(rawOrder, 'amount');
             const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
@@ -6218,28 +6224,43 @@ class okx extends okx$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(data, market);
-    }
-    parseLeverage(leverage, market = undefined) {
         let marketId = undefined;
-        let marginMode = undefined;
+        let rowMarginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        for (let i = 0; i < leverage.length; i++) {
-            const entry = this.safeDict(leverage, i);
-            marginMode = this.safeStringLower(entry, 'mgnMode');
+        for (let i = 0; i < data.length; i++) {
+            const entry = this.safeDict(data, i);
+            rowMarginMode = this.safeStringLower(entry, 'mgnMode');
             marketId = this.safeString(entry, 'instId');
             const positionSide = this.safeStringLower(entry, 'posSide');
-            if (positionSide === 'long') {
-                longLeverage = this.safeInteger(entry, 'lever');
+            const lever = this.safeInteger(entry, 'lever');
+            if (positionSide !== 'short') {
+                longLeverage = lever;
             }
-            else if (positionSide === 'short') {
-                shortLeverage = this.safeInteger(entry, 'lever');
+            if (positionSide !== 'long') {
+                shortLeverage = lever;
             }
-            else {
-                longLeverage = this.safeInteger(entry, 'lever');
-                shortLeverage = this.safeInteger(entry, 'lever');
-            }
+        }
+        return {
+            'info': data,
+            'symbol': this.safeSymbol(marketId, market),
+            'marginMode': rowMarginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        };
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'instId');
+        const positionSide = this.safeStringLower(leverage, 'posSide');
+        const lever = this.safeInteger(leverage, 'lever');
+        const marginMode = this.safeStringLower(leverage, 'mgnMode');
+        let longLeverage = undefined;
+        let shortLeverage = undefined;
+        if (positionSide !== 'short') {
+            longLeverage = lever;
+        }
+        if (positionSide !== 'long') {
+            shortLeverage = lever;
         }
         return {
             'info': leverage,
@@ -8195,7 +8216,10 @@ class okx extends okx$1["default"] {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         let marketType = undefined;
         let paramsSubType = {};
@@ -8571,9 +8595,13 @@ class okx extends okx$1["default"] {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
+                const feeEntry = this.safeDict(depositWithdrawFees, code, {});
                 if (currencyId !== undefined) {
-                    depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                    const feeEntryInfo = this.safeDict(feeEntry, 'info', {});
+                    feeEntryInfo[currencyId] = feeInfo;
+                    feeEntry['info'] = feeEntryInfo;
                 }
+                depositWithdrawFees[code] = feeEntry;
                 const chain = this.safeString(feeInfo, 'chain');
                 if (chain === undefined) {
                     continue;
@@ -8591,10 +8619,13 @@ class okx extends okx$1["default"] {
                 };
                 const networkCode = this.networkIdToCode(networkId, code);
                 if (networkCode !== undefined) {
-                    depositWithdrawFees[code]['networks'][networkCode] = {
+                    const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
+                    feeEntryNetworks[networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
                     };
+                    feeEntry['networks'] = feeEntryNetworks;
+                    depositWithdrawFees[code] = feeEntry;
                 }
             }
         }
@@ -9427,8 +9458,7 @@ class okx extends okx$1["default"] {
         //         "msg": ""
         //     }
         //
-        const rows = this.safeList(response, 'data', []);
-        return this.parseConversions(rows, code, 'baseCcy', 'quoteCcy', since, limit);
+        return this.parseConversions(this.safeList(response, 'data', []), code, 'baseCcy', 'quoteCcy', since, limit);
     }
     parseConversion(conversion, fromCurrency = undefined, toCurrency = undefined) {
         //

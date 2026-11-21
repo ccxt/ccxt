@@ -14,10 +14,10 @@ pub fn testStringToBase16() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut result1: Option<String> = exchange.string_to_base16(Value::Str("hello".into())).as_str().map(str::to_owned);
-    let mut expected1: String = "0x68656c6c6f".to_string();
+    let result1: Option<String> = exchange.string_to_base16(Value::Str("hello".into())).as_str().map(str::to_owned);
+    let expected1: String = "0x68656c6c6f".to_string();
     assert!(ccxt::runtime::is_true(&((result1.as_deref() == Some(expected1.as_str())))));
-    let mut result2: Option<String> = exchange.string_to_base16(Value::Str("world 1!@#$%^&*()".into())).as_str().map(str::to_owned);
-    let mut expected2: String = "0x776f726c64203121402324255e262a2829".to_string();
+    let result2: Option<String> = exchange.string_to_base16(Value::Str("world 1!@#$%^&*()".into())).as_str().map(str::to_owned);
+    let expected2: String = "0x776f726c64203121402324255e262a2829".to_string();
     assert!(ccxt::runtime::is_true(&((result2.as_deref() == Some(expected2.as_str())))));
 }

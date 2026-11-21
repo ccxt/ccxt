@@ -58,7 +58,7 @@ public partial class BaseExchange
 
     public object limits { get; set; } = new dict();
 
-    public object precisionMode { get; set; } = DECIMAL_PLACES;
+    public Int64? precisionMode { get; set; } = DECIMAL_PLACES;
 
     public IDictionary<string, object> currencies_by_id { get; set; } = null;
 
@@ -98,6 +98,24 @@ public partial class BaseExchange
             }
             return sections["api"] as IDictionary<string, object>;
         }
+    }
+    // exceptions['ws'] / options['ws']: read live, null when absent or not a dictionary
+    public IDictionary<string, object> exceptionsWs
+    {
+        get { var d = this.exceptions; return (d != null && d.ContainsKey("ws")) ? d["ws"] as IDictionary<string, object> : null; }
+    }
+    // exceptions['exact'] / exceptions['ws']['exact']: read live, null when absent or not a dictionary
+    public IDictionary<string, object> exceptionsExact
+    {
+        get { var d = this.exceptions; return (d != null && d.ContainsKey("exact")) ? d["exact"] as IDictionary<string, object> : null; }
+    }
+    public IDictionary<string, object> exceptionsWsExact
+    {
+        get { var d = this.exceptionsWs; return (d != null && d.ContainsKey("exact")) ? d["exact"] as IDictionary<string, object> : null; }
+    }
+    public IDictionary<string, object> optionsWs
+    {
+        get { var d = this.options; return (d != null && d.ContainsKey("ws")) ? d["ws"] as IDictionary<string, object> : null; }
     }
     // urls['api'] entries that are themselves dictionaries, so urlsApi['ws'] indexes as a map.
     // urls is written at config time only; RefreshUrlsViews re-derives this at every such write.
@@ -199,8 +217,8 @@ public partial class BaseExchange
     public object proxyUrl { get; set; } = null;
     public object proxy_url { get; set; } = null;
 
-    public Func<object, object, object, object> proxyUrlCallback { get; set; } = null;
-    public Func<object, object, object, object> proxy_url_callback { get; set; } = null;
+    public Func<object, object, object, object, object> proxyUrlCallback { get; set; } = null;
+    public Func<object, object, object, object, object> proxy_url_callback { get; set; } = null;
 
     // public object httpProxy { get; set; } = null;
     public object http_proxy { get; set; } = null;
@@ -217,8 +235,8 @@ public partial class BaseExchange
     public object wsSocksProxy { get; set; } = null;
     public object ws_socks_proxy { get; set; } = null;
 
-    public Func<object, object, object, object> socksProxyCallback { get; set; } = null;
-    public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
+    public Func<object, object, object, object, object> socksProxyCallback { get; set; } = null;
+    public Func<object, object, object, object, object> socks_proxy_callback { get; set; } = null;
 
     // WS options
 
@@ -277,9 +295,10 @@ public partial class BaseExchange
         set { this.orderbooksState = this.wrapWsCache(value); }
     }
 
-    private IDictionary<string, object> ohlcvsState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    // one row per symbol: timeframe -> candle cache
+    private IDictionary<string, IDictionary<string, object>> ohlcvsState = new System.Collections.Concurrent.ConcurrentDictionary<string, IDictionary<string, object>>();
 
-    public IDictionary<string, object> ohlcvs
+    public IDictionary<string, IDictionary<string, object>> ohlcvs
     {
         get { return this.ohlcvsState; }
         set { this.ohlcvsState = this.wrapWsCache(value); }

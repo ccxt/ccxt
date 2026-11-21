@@ -29,7 +29,7 @@ public partial class testMainClass : BaseTest
         {
             // todo: symbol check here
             testLastPrice(exchange, skippedProperties, method, values[i], ((string)checkedSymbol));
-            atLeastOnePassed = atLeastOnePassed || (isGreaterThan(exchange.safeNumber(values[i], "price"), 0));
+            atLeastOnePassed = atLeastOnePassed || ((exchange.safeNumber(values[i], "price") > 0));
         }
         assert(atLeastOnePassed, add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));
         return true;

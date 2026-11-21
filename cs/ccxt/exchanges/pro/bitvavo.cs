@@ -91,14 +91,14 @@ public partial class bitvavo : ccxt.bitvavo
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchPublicMultiple(object methodName, object channelName, object symbols, object parameters = null)
+    public async virtual Task<object> watchPublicMultiple(object methodName, object channelName, IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {methodName};
         List<object> args = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -184,7 +184,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object data = tickers[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)tickers[i]);
             string? marketId = this.safeString(data, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             ccxt.Ticker ticker = this.parseTicker(data, market);
@@ -300,7 +300,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string name = "trades";
         string messageHash = ((name + "@") + this.safeString(message, "market", ""));
         ccxt.Trade trade = this.parseTrade(message, market);
@@ -333,7 +333,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string name = "trades";
         List<object> marketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -435,9 +435,9 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string name = "candles";
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = ((((name + "@") + this.safeString(market, "id", "")) + "_") + interval);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
@@ -498,23 +498,23 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "candles";
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? interval = this.safeString(message, "interval", "");
         // use a reverse lookup in a static map instead
         string? timeframe = this.findTimeframe(interval);
         string messageHash = ((((name + "@") + this.safeString(message, "market", "")) + "_") + interval);
         List<object> candles = this.safeList(message, "candle", new List<object>() {});
-        this.ohlcvs[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         for (int i = 0; i < candles.Count; i++)
         {
-            object candle = candles[i];
+            IDictionary<string, object> candle = ((IDictionary<string, object>)candles[i]);
             IList<object> parsed = this.parseOHLCV(candle, market);
             stored.append(parsed);
         }
@@ -675,7 +675,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string name = "book";
         string messageHash = ((name + "@") + this.safeString(market, "id", ""));
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
@@ -717,7 +717,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string name = "book";
         List<object> marketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -814,7 +814,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
     {
         //
         //     {
@@ -831,11 +831,11 @@ public partial class bitvavo : ccxt.bitvavo
         //
         Int64? nonce = this.safeInteger(message, "nonce");
         Int64? currentNonce = this.safeInteger(orderbook, "nonce");
-        if (((nonce != null)) && ((currentNonce != null)) && ((nonce != null && (currentNonce == null || nonce > currentNonce))))
+        if (((nonce != null)) && ((currentNonce != null)) && (nonce.Value > currentNonce.Value))
         {
-            this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "asks", new List<object>() {}));
-            this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "bids", new List<object>() {}));
-            ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
+            this.handleDeltas(orderbook?.asks, this.safeList(message, "asks", new List<object>() {}));
+            this.handleDeltas(orderbook?.bids, this.safeList(message, "bids", new List<object>() {}));
+            orderbook["nonce"] = nonce;
         }
         return orderbook;
     }
@@ -858,7 +858,7 @@ public partial class bitvavo : ccxt.bitvavo
         string eventVar = this.safeString(message, "event", "");
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol");
         string messageHash = ((eventVar + "@") + this.safeString(message, "market", ""));
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
@@ -1097,8 +1097,8 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? symbolValue = this.safeString(market, "symbol");
+        string? marketId = this.safeString(market, "id");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         string name = "account";
         string messageHash = ("order:" + symbolValue);
@@ -1141,8 +1141,8 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? symbolValue = this.safeString(market, "symbol");
+        string? marketId = this.safeString(market, "id");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         string name = "account";
         string messageHash = ("myTrades:" + symbolValue);
@@ -1580,7 +1580,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCVWs(string symbol, string timeframe = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCVWs(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1848,30 +1848,25 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual string? buildMessageHash(string? action, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> methods = new Dictionary<string, object>() {
-            { "privateCreateOrder", this.actionAndMarketMessageHash },
-            { "privateUpdateOrder", this.actionAndOrderIdMessageHash },
-            { "privateCancelOrder", this.actionAndOrderIdMessageHash },
-            { "privateGetOrder", this.actionAndOrderIdMessageHash },
-            { "privateGetTrades", this.actionAndMarketMessageHash },
-        };
-        Delegate method = ((Delegate)this.safeValue(methods, action));
-        object messageHash = action;
-        if ((method != null))
+        string? messageHash = action;
+        if (((action == "privateCreateOrder")) || ((action == "privateGetTrades")))
         {
-            messageHash = DynamicInvoker.InvokeMethod(method, new object[] { action, parameters});
+            messageHash = this.actionAndMarketMessageHash(action, parameters);
+        } else if (((action == "privateUpdateOrder")) || ((action == "privateCancelOrder")) || ((action == "privateGetOrder")))
+        {
+            messageHash = this.actionAndOrderIdMessageHash(action, parameters);
         }
-        return ((string?)((object)(messageHash)));
+        return messageHash;
     }
 
-    public virtual string? actionAndMarketMessageHash(string action, IDictionary<string, object>? parameters = null)
+    public virtual string? actionAndMarketMessageHash(string action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? symbol = this.safeString(parameters, "market", "");
         return ((string?)((object)((action + symbol))));
     }
 
-    public virtual string? actionAndOrderIdMessageHash(string action, IDictionary<string, object>? parameters = null)
+    public virtual string? actionAndOrderIdMessageHash(string action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? orderId = this.safeString(parameters, "orderId");
@@ -1907,7 +1902,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol");
         string messageHash = ("order:" + symbol);
         ccxt.Order order = this.parseOrder(message, market);
         if ((this.orders == null))
@@ -1939,7 +1934,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol");
         string messageHash = ("myTrades:" + symbol);
         ccxt.Trade trade = this.parseTrade(message, market);
         if ((this.myTrades == null))
@@ -1992,7 +1987,7 @@ public partial class bitvavo : ccxt.bitvavo
             Int64 timestamp = this.milliseconds();
             string stringTimestamp = timestamp.ToString();
             string auth = (((stringTimestamp + "GET/") + this.version) + "/websocket");
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             string action = "authenticate";
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "action", action },

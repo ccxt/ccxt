@@ -84,7 +84,11 @@ class pacifica extends \ccxt\async\pacifica {
                 $headers['PF-API-KEY'] = $this->options['apiKey'];
             }
         }
-        $this->options['ws']['options']['headers'] = $headers;
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $wsSubOptions = $this->safe_dict($wsOptions, 'options', array());
+        $wsSubOptions['headers'] = $headers;
+        $wsOptions['options'] = $wsSubOptions;
+        $this->options['ws'] = $wsOptions;
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -322,7 +326,7 @@ class pacifica extends \ccxt\async\pacifica {
         $results = $this->safe_list($data, 'results', array());
         $ordersToReturn = array();
         for ($i = 0; $i < count($results); $i++) {
-            $order = $this->safe_dict($results, $i);
+            $order = $this->safe_dict($results, $i, array());
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $marketId = $this->safe_string($order, 'symbol');
@@ -595,7 +599,7 @@ class pacifica extends \ccxt\async\pacifica {
         $entry = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($entry, 's');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $levels = $this->safe_list($entry, 'l', array());
         $result = array(
             'bids' => $this->safe_list($levels, 0, array()),
@@ -845,7 +849,7 @@ class pacifica extends \ccxt\async\pacifica {
             $info = $data[$i];
             $marketId = $this->safe_string($info, 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $ticker = $this->parse_ws_ticker($info, $market);
             $this->tickers[$symbol] = $ticker;
             $parsedTickers[] = $ticker;
@@ -898,7 +902,7 @@ class pacifica extends \ccxt\async\pacifica {
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = $this->parse_ws_trade($rawTrade);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol !== null) {
                 $symbols[$symbol] = true;
             }
@@ -934,7 +938,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbolValue;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
@@ -981,7 +985,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $subMessageHash = 'trade:' . $symbolValue;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;
@@ -1028,7 +1032,7 @@ class pacifica extends \ccxt\async\pacifica {
         $first = $this->safe_dict($entry, 0, array());
         $marketId = $this->safe_string($first, 's');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbol;
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1084,7 +1088,7 @@ class pacifica extends \ccxt\async\pacifica {
         $amount = $this->safe_string($trade, 'a');
         $marketId = $this->safe_string($trade, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string($trade, 'h');
         $fee = $this->safe_string($trade, 'f');
         $side = $this->safe_string_2($trade, 'ts', 'd');
@@ -1145,7 +1149,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $isTestnet = $this->isSandboxModeEnabled;
         $parsedTf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $urlKey = 'api';
@@ -1195,7 +1199,7 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
         if ($isTestnet) {

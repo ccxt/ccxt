@@ -1270,8 +1270,9 @@ class toobit extends toobit$1["default"] {
         }
         else if ((since !== undefined) && (limit !== undefined)) {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            const duration = this.parseTimeframe(timeframe) * 1000;
-            request['endTime'] = Math.min(this.sum(since, duration * limit) - 1, this.milliseconds());
+            const durationMs = this.parseTimeframe(timeframe) * 1000;
+            // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            request['endTime'] = Math.min(since - (1 - durationMs * limit), this.milliseconds());
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2846,7 +2847,7 @@ class toobit extends toobit$1["default"] {
         const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            results.push(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+            results.push(this.extend(this.parseTransactionWithType(this.safeDict(response, i, {}), currency, transactType), paramsUntil));
         }
         const sorted = this.sortBy(results, 'timestamp');
         const currencyCode = (currency !== undefined) ? currency['code'] : undefined;

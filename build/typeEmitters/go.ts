@@ -502,7 +502,8 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
     }
     const constructor = 'New' + baseGoType (goType);
     if (helpers[constructor]) {
-        return constructor + '(MapOrEmpty(SafeValue(' + accessor + ', "' + key + '", map[string]any{})))';
+        // nested ctors read through Safe*Typed, which answer nil for a missing or non-map value
+        return constructor + '(SafeValue(' + accessor + ', "' + key + '", map[string]any{}))';
     }
     return undefined;
 }

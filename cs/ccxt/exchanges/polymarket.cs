@@ -472,7 +472,7 @@ public partial class polymarket : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < instruments.Count; i++)
         {
-            object instrument = instruments[i];
+            IDictionary<string, object> instrument = ((IDictionary<string, object>)instruments[i]);
             string? baseId = this.safeString(instrument, "base_asset");
             if ((baseId == null))
             {
@@ -517,7 +517,7 @@ public partial class polymarket : Exchange
         });
         for (int i = 0; i < assets.Count; i++)
         {
-            object asset = assets[i];
+            IDictionary<string, object> asset = ((IDictionary<string, object>)assets[i]);
             string? currencyId = this.safeString(asset, "asset");
             if ((currencyId == null))
             {
@@ -691,7 +691,7 @@ public partial class polymarket : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<Task<List<object>>> promises = new List<Task<List<object>>> {this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)};
         List<object> responses = new List<object>(await Task.WhenAll(promises));
         //
@@ -833,7 +833,7 @@ public partial class polymarket : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetInfoBbo(parameters);
         //
         //     [
@@ -1219,7 +1219,7 @@ public partial class polymarket : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -1431,7 +1431,7 @@ public partial class polymarket : Exchange
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
         List<object> row = new List<object>() {instrumentId, isBuy, priceString, quantity, tif, postOnly, reduceOnlyValue, clientOrderId};
-        object signable = this.compactSignable(row);
+        List<object> signable = this.compactSignable(row);
         Dictionary<string, object> entry = new Dictionary<string, object>() {
             { "iid", instrumentId },
             { "buy", isBuy },
@@ -1496,7 +1496,7 @@ public partial class polymarket : Exchange
             IDictionary<string, object> firstInfo = this.safeDict(first, "info", new Dictionary<string, object>() {});
             string? errorId = this.safeString(firstInfo, "error");
             string feedback = ((this.id + " createOrder() rejected: ") + this.json(firstInfo));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorId, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorId, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorId, feedback);
             throw new InvalidOrder (feedback) ;
         }
@@ -1992,7 +1992,7 @@ public partial class polymarket : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadProxyCredentials();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.privateGetAccountPortfolio(parameters);
         Int64? timestamp = this.safeInteger(response, "timestamp");
         List<object> rows = this.safeList(response, "positions", new List<object>() {});
@@ -2333,7 +2333,7 @@ public partial class polymarket : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "instrument_id");
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             result.Add(new Dictionary<string, object>() {
@@ -2847,9 +2847,9 @@ public partial class polymarket : Exchange
 
     public virtual string? signHash(object hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? sVal = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((((string)privateKey) == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        string? r = this.safeString(signature, "r", "");
+        string? sVal = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((sVal as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
@@ -2876,7 +2876,7 @@ public partial class polymarket : Exchange
         // secret and unique per provisioning, the paradex stark-key idiom
         string nonceMessage = ((("polymarket-perps-proxy:" + this.milliseconds().ToString()) + ":") + this.randNumber(9).ToString());
         string seedSignature = this.signMessage(nonceMessage, this.privateKey);
-        string proxyPrivateKey = ((string)this.hash(this.encode(seedSignature), keccak, "hex"));
+        string proxyPrivateKey = ((string)this.hash(seedSignature, keccak, "hex"));
         string proxyAddress = this.ethGetAddressFromPrivateKey(proxyPrivateKey);
         string owner = this.ethGetAddressFromPrivateKey(this.privateKey);
         Int64 ts = this.milliseconds();
@@ -2959,8 +2959,8 @@ public partial class polymarket : Exchange
             {
                 return credentials;
             }
-            Int64? refreshAfter = (expires - margin);
-            if ((this.milliseconds() < refreshAfter))
+            Int64? refreshAfter = this.parseToInt((expires - margin));
+            if (this.milliseconds() < refreshAfter)
             {
                 return credentials;
             }
@@ -3035,7 +3035,7 @@ public partial class polymarket : Exchange
      * @param {any[]} row the positional array to compact
      * @returns {any[]} the compacted array
      */
-    public virtual object compactSignable(IList<object> row)
+    public virtual List<object> compactSignable(IList<object> row)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (row?.Count ?? 0); i++)
@@ -3086,24 +3086,24 @@ public partial class polymarket : Exchange
         return result;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((path is "account/orders"))
+        if ((path == "account/orders"))
         {
             return (inOp(parameters, "order_id")) ? 1 : 10;
         }
-        if ((path is "account/open-orders"))
+        if ((path == "account/open-orders"))
         {
             return (inOp(parameters, "instrument_id")) ? 1 : 20;
         }
-        if (((path is "trade/orders")) || ((path is "trade/orders-coid")))
+        if (((path == "trade/orders")) || ((path == "trade/orders-coid")))
         {
             IDictionary<string, object> op = this.safeDict(parameters, "op", new Dictionary<string, object>() {});
             List<object> args = this.safeList(op, "args", new List<object>() {});
             return this.sum(1, this.parseToInt(((double)args.Count / 20)));
         }
-        if (isEqual(path, "info/book"))
+        if ((path == "info/book"))
         {
             Int64? depth = this.safeInteger(parameters, "depth", 100);
             if ((depth == null || depth <= 10))
@@ -3194,7 +3194,7 @@ public partial class polymarket : Exchange
         if ((status == "err") || ((error != null)))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             if ((code == 400))
             {

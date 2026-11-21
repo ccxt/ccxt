@@ -981,7 +981,7 @@ export default class deribit extends Exchange {
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike: Num = undefined;
                 let optionType: Str = undefined;
-                let symbol = id;
+                let symbol: Str = id;
                 let type = 'swap';
                 if (future) {
                     type = 'future';
@@ -1311,7 +1311,7 @@ export default class deribit extends Exchange {
         const marketId = this.safeString (ticker, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString2 (ticker, 'last_price', 'last');
-        const stats = this.safeDict (ticker, 'stats', ticker);
+        const stats: Dict = this.safeDict (ticker, 'stats', ticker);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1470,7 +1470,7 @@ export default class deribit extends Exchange {
         const tickers: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
-            const symbol = ticker['symbol'];
+            const symbol: Str = ticker['symbol'];
             if (symbol !== undefined) {
                 tickers[symbol] = ticker;
             }
@@ -1511,7 +1511,10 @@ export default class deribit extends Exchange {
         const defaultLimit = 1000;
         const windowLimit: int = (limit === undefined) ? defaultLimit : limit;
         const limitResolved = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
-        const sinceResolved: Int = (since === undefined) ? undefined : Math.max (since - 1, 0);
+        let sinceResolved: Int = undefined;
+        if (since !== undefined) {
+            sinceResolved = Math.max (since - 1, 0);
+        }
         if (since === undefined) {
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
             request['end_timestamp'] = now;
@@ -3488,7 +3491,7 @@ export default class deribit extends Exchange {
         const result: Dict = this.safeDict (response, 'result', {});
         const cursor = this.safeString (result, 'continuation');
         const settlements: Dict[] = this.safeList (result, 'settlements', []);
-        const settlementsWithCursor = this.addPaginationCursorToResult (cursor, settlements);
+        const settlementsWithCursor: List = this.addPaginationCursorToResult (cursor, settlements);
         return this.parseLiquidations (settlementsWithCursor, market, since, limit);
     }
 
@@ -3781,8 +3784,8 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeList (response, 'result', []);
-        const chain = this.safeDict (result, 0, {}) as Dict;
+        const result: Dict[] = this.safeList (response, 'result', []);
+        const chain: Dict = this.safeDict (result, 0, {});
         return this.parseOption (chain, undefined, market);
     }
 

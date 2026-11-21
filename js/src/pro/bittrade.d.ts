@@ -53,10 +53,10 @@ export default class bittrade extends bittradeRest {
     handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
     watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleDelta(bookside: any, delta: any): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
-    handleSubscriptionStatus(client: Client, message: Dict): any;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict | undefined;
     handleSystemStatus(client: Client, message: Dict): Dict;
     handleSubject(client: Client, message: Dict): void;
     pong(client: Client, message: Dict): Promise<void>;

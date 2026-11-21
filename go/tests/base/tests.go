@@ -252,12 +252,12 @@ func (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.ICoreExchange) {
 			var fullKey any = Add(Add(exchangeId, "_"), credential)
 			var credentialEnvName string = ToUpper(fullKey) // example: KRAKEN_APIKEY
 			var envVars any = GetEnvVars()
-			var credentialValue any = func() any {
-				if InOp(envVars, credentialEnvName) {
-					return GetValue(envVars, credentialEnvName)
-				}
-				return nil
-			}()
+			var credentialValue any
+			if InOp(envVars, credentialEnvName) {
+				credentialValue = GetValue(envVars, credentialEnvName)
+			} else {
+				credentialValue = nil
+			}
 			if !IsEqual(credentialValue, nil) && (credentialValue != "") {
 				SetExchangeProp(exchange, credential, credentialValue)
 			}
@@ -421,7 +421,7 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	// check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
 	var methodNames []any = []any{methodName, Add(Add(methodName, "."), this.Ext)}
 	for i := 0; i < len(methodNames); i++ {
-		var mName *string = SafeStringPtr(DerefScalar(methodNames[i]))
+		var mName *string = SafeStringPtr(methodNames[i])
 		if InOp(this.SkippedMethods, mName) {
 			// if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
 			if IsString(GetValue(this.SkippedMethods, mName)) {
@@ -463,13 +463,19 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	// extend related skips
 	// - if 'timestamp' is skipped, we should do so for 'datetime' too
 	// - if 'bid' is skipped, skip 'ask' too
-	if (func() bool { _, ok := finalSkips["timestamp"]; return ok }()) && !(func() bool { _, ok := finalSkips["datetime"]; return ok }()) {
+	_, has3 := finalSkips["timestamp"]
+	_, has4 := finalSkips["datetime"]
+	if has3 && !has4 {
 		finalSkips["datetime"] = finalSkips["timestamp"]
 	}
-	if (func() bool { _, ok := finalSkips["bid"]; return ok }()) && !(func() bool { _, ok := finalSkips["ask"]; return ok }()) {
+	_, has5 := finalSkips["bid"]
+	_, has6 := finalSkips["ask"]
+	if has5 && !has6 {
 		finalSkips["ask"] = finalSkips["bid"]
 	}
-	if (func() bool { _, ok := finalSkips["baseVolume"]; return ok }()) && !(func() bool { _, ok := finalSkips["quoteVolume"]; return ok }()) {
+	_, has7 := finalSkips["baseVolume"]
+	_, has8 := finalSkips["quoteVolume"]
+	if has7 && !has8 {
 		finalSkips["quoteVolume"] = finalSkips["baseVolume"]
 	}
 	return finalSkips
@@ -514,12 +520,12 @@ func (this *testMainClass) testSafeBody(ch chan ccxt.AsyncResult[any], methodNam
 							var isAuthError bool = (IsInstance(e, AuthenticationError))
 							var isNotSupported bool = (IsInstance(e, NotSupported))
 							var isOperationFailed bool = (IsInstance(e, OperationFailed)) // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-							var lastUrlMsg any = func() any {
-								if EvalTruthy(this.WsTests) {
-									return ""
-								}
-								return Add(Add(" (Last url: ", this.GetLastRequestUrl(exchange)), " )")
-							}()
+							var lastUrlMsg any
+							if EvalTruthy(this.WsTests) {
+								lastUrlMsg = ""
+							} else {
+								lastUrlMsg = Add(Add(" (Last url: ", this.GetLastRequestUrl(exchange)), " )")
+							}
 							if isOperationFailed {
 								// if last retry was gone with same `tempFailure` error, then let's eventually return false
 								if i == maxRetries-1 {
@@ -725,7 +731,7 @@ func (this *testMainClass) runTestsBody(ch chan ccxt.AsyncResult[any], exchange 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	// now count which test-methods retuned `false` from "testSafe" and dump that info below
 	var failedMethods []string = []string{}
 	for i := 0; i < len(testNames); i++ {
@@ -869,7 +875,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var activeMarkets []any = exchange.FilterBy(currentTypeMarkets, "active", true)
 		var activeSymbols []any = []any{}
 		for i := 0; i < len(activeMarkets); i++ {
-			activeSymbols = append(activeSymbols, GetValue(DerefScalar(activeMarkets[i]), "symbol"))
+			activeSymbols = append(activeSymbols, GetValue(activeMarkets[i], "symbol"))
 		}
 		symbol = this.GetTestSymbol(exchange, spot, activeSymbols)
 	}
@@ -877,7 +883,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var values []any = ObjectValues(currentTypeMarkets)
 		var valuesLength int = len(values)
 		if valuesLength > 0 {
-			var first any = DerefScalar(values[0])
+			var first any = values[0]
 			if !IsEqual(first, nil) {
 				symbol = GetValue(first, "symbol")
 			}
@@ -1016,12 +1022,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan ccxt.AsyncResult[any
 		ch <- ccxt.AsyncResult[any]{Value: defaultSymbols}
 		return nil
 	}
-	var result []any = []any{exchange.SafeString(func() any {
-		if 0 >= 0 && 0 < len(ranked) {
-			return DerefScalar(ranked[0])
-		}
-		return nil
-	}(), "symbol")}
+	var result []any = []any{exchange.SafeString(DerefScalar(ranked[0]), "symbol")}
 	if rankedLength > 1 {
 		result = append(result, exchange.SafeString(DerefScalar(ranked[1]), "symbol"))
 	}
@@ -1284,12 +1285,12 @@ func (this *testMainClass) runPredictionTestsBody(ch chan ccxt.AsyncResult[any],
 					// derive one from the selected outcome handle (the market words with
 					// separators as spaces) so the scoped contract holds even without a pin
 					var handleParts []string = Split(outcomeSymbol, ":")
-					var marketPart any = func() any {
-						if 0 >= 0 && 0 < len(handleParts) {
-							return handleParts[0]
-						}
-						return nil
-					}()
+					var marketPart any
+					if 0 >= 0 && 0 < len(handleParts) {
+						marketPart = handleParts[0]
+					} else {
+						marketPart = nil
+					}
 					var lowerPart string = ToLower(marketPart)
 					var dedashed string = strings.ReplaceAll(lowerPart, "-", " ")
 					eventQuery = strings.ReplaceAll(dedashed, "_", " ")
@@ -2091,13 +2092,8 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 		if keysLength != 2 {
 			continue
 		}
-		var key *string = SafeStringPtr(keyValue[0])
-		var value any = func() any {
-			if 1 >= 0 && 1 < len(keyValue) {
-				return keyValue[1]
-			}
-			return nil
-		}()
+		var key *string = &keyValue[0]
+		var value any = keyValue[1]
 		if (value != nil) && ((StartsWith(value, "[")) || (StartsWith(value, "{"))) {
 			// some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
 			value = JsonParse(value)
@@ -2160,13 +2156,13 @@ func (this *testMainClass) CountSignificantKeys(exchange ccxt.ICoreExchange, tar
 	// count the keys of `target`, skipping those the other side does not have at
 	// all and which carry no data here (see isVacantValue)
 	var keys []string = ObjectKeys(target)
-	var count any = 0
+	var count int = 0
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		if !EvalTruthy((exchange.InArray(key, otherKeys))) && EvalTruthy(this.IsVacantValue(exchange, GetValue(target, key))) {
 			continue
 		}
-		count = Add(count, 1)
+		count = count + 1
 	}
 	return count
 }
@@ -2258,18 +2254,18 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		}
 	} else {
 		// built-in types like strings, numbers, booleans
-		var sanitizedNewOutput any = func() any {
-			if EvalTruthy((IsNullValue(newOutput))) {
-				return nil
-			}
-			return newOutput
-		}() // we store undefined as nulls in the json file so we need to convert it back
-		var sanitizedStoredOutput any = func() any {
-			if EvalTruthy((IsNullValue(storedOutput))) {
-				return nil
-			}
-			return storedOutput
-		}()
+		var sanitizedNewOutput any
+		if EvalTruthy((IsNullValue(newOutput))) {
+			sanitizedNewOutput = nil
+		} else {
+			sanitizedNewOutput = newOutput
+		} // we store undefined as nulls in the json file so we need to convert it back
+		var sanitizedStoredOutput any
+		if EvalTruthy((IsNullValue(storedOutput))) {
+			sanitizedStoredOutput = nil
+		} else {
+			sanitizedStoredOutput = storedOutput
+		}
 		// a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
 		// typed core hits constantly (its Num fields are real doubles, so an unset
 		// cost arrives as 0.0 rather than as a string). Test for undefined instead.
@@ -2532,40 +2528,38 @@ func (this *testMainClass) AssertStaticIsolatedPosition(exchange ccxt.ICoreExcha
 	if (!IsEqual(entryMargin, nil)) && (entryPrice != nil) && (liquidationPrice != nil) && (contracts != nil) && (contractSize != nil) && (maintenanceMargin != nil) {
 		if (IsGreaterThan(entryMargin, 0)) && (*entryPrice > 0) && (*liquidationPrice > 0) && (*contracts > 0) && (*contractSize > 0) && (*maintenanceMargin > 0) {
 			var symbol any = ccxt.DerefScalar(exchange.SafeString(entry, "symbol"))
-			var market any = func() any {
-				if !IsEqual(symbol, nil) {
-					return exchange.SafeDict(exchange.GetMarkets(), symbol)
-				}
-				return nil
-			}()
+			var market any
+			if !IsEqual(symbol, nil) {
+				market = exchange.SafeDict(exchange.GetMarkets(), symbol)
+			} else {
+				market = nil
+			}
 			var isInverse bool = (!IsEqual(market, nil)) && EvalTruthy(exchange.SafeBool(market, "inverse", false))
 			var priceDiff any = 0
 			if isInverse {
 				var invEntry any = Divide(1, entryPrice)
 				var invLiq any = Divide(1, liquidationPrice)
-				priceDiff = func() any {
-					if IsGreaterThan(invEntry, invLiq) {
-						return (Subtract(invEntry, invLiq))
-					}
-					return (Subtract(invLiq, invEntry))
-				}()
+				if IsGreaterThan(invEntry, invLiq) {
+					priceDiff = (Subtract(invEntry, invLiq))
+				} else {
+					priceDiff = (Subtract(invLiq, invEntry))
+				}
 			} else {
-				priceDiff = func() any {
-					if *entryPrice > *liquidationPrice {
-						return (Subtract(entryPrice, liquidationPrice))
-					}
-					return (Subtract(liquidationPrice, entryPrice))
-				}()
+				if *entryPrice > *liquidationPrice {
+					priceDiff = (Subtract(entryPrice, liquidationPrice))
+				} else {
+					priceDiff = (Subtract(liquidationPrice, entryPrice))
+				}
 			}
 			var lossFromEntry any = Multiply(Multiply(priceDiff, contracts), contractSize)
 			var calculatedMm any = Subtract(entryMargin, lossFromEntry)
 			this.AssertStaticError(IsGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm)
-			var mmDiff any = func() any {
-				if IsGreaterThan(calculatedMm, maintenanceMargin) {
-					return (Subtract(calculatedMm, maintenanceMargin))
-				}
-				return (Subtract(maintenanceMargin, calculatedMm))
-			}()
+			var mmDiff any
+			if IsGreaterThan(calculatedMm, maintenanceMargin) {
+				mmDiff = (Subtract(calculatedMm, maintenanceMargin))
+			} else {
+				mmDiff = (Subtract(maintenanceMargin, calculatedMm))
+			}
 			var maxTolerance any = Multiply(entryMargin, 0.05)
 			this.AssertStaticError(IsLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm)
 		}
@@ -2676,12 +2670,12 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan ccxt.AsyncResult[an
 			// silently corrupt when a header literal contains a local/parameter name of sign ()
 			var storedHeaders any = exchange.SafeDict(data, "headers")
 			if !IsEqual(storedHeaders, nil) {
-				var sentHeaders any = func() any {
-					if !IsEqual(exchange.GetLast_request_headers(), nil) {
-						return exchange.GetLast_request_headers()
-					}
-					return map[string]any{}
-				}()
+				var sentHeaders any
+				if !IsEqual(exchange.GetLast_request_headers(), nil) {
+					sentHeaders = exchange.GetLast_request_headers()
+				} else {
+					sentHeaders = map[string]any{}
+				}
 				var storedHeaderKeys []string = ObjectKeys(storedHeaders)
 				for i := 0; i < len(storedHeaderKeys); i++ {
 					var headerKey string = storedHeaderKeys[i]
@@ -2975,7 +2969,7 @@ func (this *testMainClass) testWsStaticallyBody(ch chan ccxt.AsyncResult[any], e
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-				var results []any = ListTyped(r1.Value)
+				var results []any = r1.Value
 				var unifiedResult any = JsonParse(JsonStringify(func() any {
 					if 0 >= 0 && 0 < len(results) {
 						return results[0]
@@ -3004,18 +2998,18 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan ccxt.AsyncResult
 	defer ReturnPanicError(ch)
 	testName := GetArg(optionalArgs, 0, nil)
 	_ = testName
-	var globalOptions any = func() any {
-		if IsEqual(GetValue(exchangeData, "options"), nil) {
-			return map[string]any{}
-		}
-		return GetValue(exchangeData, "options")
-	}()
-	var methods any = func() any {
-		if IsEqual(GetValue(exchangeData, "methods"), nil) {
-			return map[string]any{}
-		}
-		return GetValue(exchangeData, "methods")
-	}()
+	var globalOptions any
+	if IsEqual(GetValue(exchangeData, "options"), nil) {
+		globalOptions = map[string]any{}
+	} else {
+		globalOptions = GetValue(exchangeData, "options")
+	}
+	var methods any
+	if IsEqual(GetValue(exchangeData, "methods"), nil) {
+		methods = map[string]any{}
+	} else {
+		methods = GetValue(exchangeData, "methods")
+	}
 	var methodsNames []string = ObjectKeys(methods)
 	for i := 0; i < len(methodsNames); i++ {
 		var method string = methodsNames[i]
@@ -4012,7 +4006,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}
 			}()
 			// try block:
-			var orders []any = []any{map[string]any{
+			var orders []map[string]any = []map[string]any{map[string]any{
 				"symbol": "BTC/USDT:USDT",
 				"type":   "limit",
 				"side":   "sell",
@@ -4057,7 +4051,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}
 			}()
 			// try block:
-			var linearConditionalOrders []any = []any{map[string]any{
+			var linearConditionalOrders []map[string]any = []map[string]any{map[string]any{
 				"symbol": "BTC/USDT:USDT",
 				"type":   "limit",
 				"side":   "buy",
@@ -4097,7 +4091,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}
 			}()
 			// try block:
-			var inverseConditionalOrders []any = []any{map[string]any{
+			var inverseConditionalOrders []map[string]any = []map[string]any{map[string]any{
 				"symbol": "BTC/USD:BTC",
 				"type":   "limit",
 				"side":   "buy",
@@ -5224,12 +5218,11 @@ func (this *testMainClass) testBybitBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5275,12 +5268,11 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5308,12 +5300,11 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5343,12 +5334,11 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5557,12 +5547,11 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5589,12 +5578,11 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5623,12 +5611,11 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5654,12 +5641,11 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5710,12 +5696,11 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan ccxt.AsyncResult[any]) 
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5742,12 +5727,11 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan ccxt.AsyncResult[any]) 
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5794,12 +5778,11 @@ func (this *testMainClass) testBitgetBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5850,12 +5833,11 @@ func (this *testMainClass) testMexcBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6086,12 +6068,11 @@ func (this *testMainClass) testBingxBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6558,12 +6539,11 @@ func (this *testMainClass) testParadexBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6609,12 +6589,11 @@ func (this *testMainClass) testHashkeyBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6822,12 +6801,11 @@ func (this *testMainClass) testBackpackBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6873,12 +6851,11 @@ func (this *testMainClass) testToobitBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6992,12 +6969,11 @@ func (this *testMainClass) testFoxbitBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}

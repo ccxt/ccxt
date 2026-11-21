@@ -1075,7 +1075,7 @@ class lighter extends lighter$1["default"] {
             const assetIds = Object.keys(assets);
             for (let i = 0; i < assetIds.length; i++) {
                 const assetId = assetIds[i];
-                const asset = this.safeDict(assets, assetId);
+                const asset = this.safeDict(assets, assetId, {});
                 const codeId = this.safeString(asset, 'symbol');
                 const code = this.safeCurrencyCode(codeId);
                 const account = this.account();
@@ -1167,7 +1167,8 @@ class lighter extends lighter$1["default"] {
         const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
     /**
@@ -1286,7 +1287,7 @@ class lighter extends lighter$1["default"] {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
-        const id = this.safeString(message, 'id');
+        const id = this.safeString(message, 'id', '');
         client.resolve(message, 'jsonapi/sendtx:' + id);
     }
     handleOrders(client, message) {
@@ -1541,8 +1542,8 @@ class lighter extends lighter$1["default"] {
             for (let i = 0; i < subscriptionHashes.length; i++) {
                 const subscriptionHash = subscriptionHashes[i];
                 if (subscriptionHash.startsWith('ticker')) {
-                    const subscription = this.safeDict(client.subscriptions, subscriptionHash);
-                    const subscriptionParams = this.safeDict(subscription, 'params');
+                    const subscription = this.safeDict(client.subscriptions, subscriptionHash, {});
+                    const subscriptionParams = this.safeDict(subscription, 'params', {});
                     const subscribedChannel = this.safeString(subscriptionParams, 'channel');
                     if (subscribedChannel === 'market_stats/all') {
                         delete client.subscriptions[subscriptionHash];

@@ -1250,8 +1250,9 @@ class toobit(Exchange, ImplicitAPI):
                 request['to'] = self.sum(since, duration * limit * 1000)
         elif (since is not None) and (limit is not None):
             # without an end time the exchange returns the latest candles, not the ones starting at since
-            duration = self.parse_timeframe(timeframe) * 1000
-            request['endTime'] = min(self.sum(since, duration * limit) - 1, self.milliseconds())
+            durationMs = self.parse_timeframe(timeframe) * 1000
+            # last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            request['endTime'] = min(since - (1 - durationMs * limit), self.milliseconds())
         if limit is not None:
             request['limit'] = limit
         response = []
@@ -2696,7 +2697,7 @@ class toobit(Exchange, ImplicitAPI):
         transactType = 'deposit' if (type == 'deposits') else 'withdrawal'
         results = []
         for i in range(0, len(response)):
-            results.append(self.extend(self.parse_transaction_with_type(response[i], currency, transactType), paramsUntil))
+            results.append(self.extend(self.parse_transaction_with_type(self.safe_dict(response, i, {}), currency, transactType), paramsUntil))
         sorted = self.sort_by(results, 'timestamp')
         currencyCode = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(sorted, currencyCode, since, limit)

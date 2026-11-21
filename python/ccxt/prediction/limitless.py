@@ -239,7 +239,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             cappedPages = int(math.ceil(maxMarkets / pageSize))
             knownTotal = self.safe_integer(firstPageResponse, 'totalMarketsCount', 0)
             allPages = self.parse_to_int(int(math.ceil(knownTotal / pageSize)))
-            for i in range(2, allPages):
+            for i in range(2, allPages + 1):
                 if i > cappedPages:
                     break
                 page = i
@@ -2092,8 +2092,8 @@ class limitless(PredictionExchange, ImplicitAPI):
 
     def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         rPadded = r.rjust(64, '0')
         sPadded = s.rjust(64, '0')
@@ -2268,8 +2268,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         paramsValue = params
         if outcome is not None:
-            warn = True
-            warn, paramsValue = self.handle_option_and_params(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn)
+            warn, paramsWarn = self.handle_option_bool_and_params(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', True)
+            paramsValue = paramsWarn
             if warn:
                 raise BadRequest(self.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to False to suppress self warning message.')
         request = {}
@@ -2304,13 +2304,11 @@ class limitless(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             outcomeObj = await self.load_outcome(outcome)
             outcomeSymbol = self.safe_string(outcomeObj, 'outcome')
-        paginate = False
         maxLimit = 100
-        paramsValue = params
-        paginate, paramsValue = self.handle_option_and_params(paramsValue, 'fetchMyTrades', 'paginate', paginate)
+        paginate, paramsValue = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            paramsValue = self.omit(paramsValue, 'paginate')
-            return await self.fetch_paginated_call_cursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', None, maxLimit)
+            paramsCursor = self.omit(paramsValue, 'paginate')
+            return await self.fetch_paginated_call_cursor('fetchMyTrades', outcome, since, limit, paramsCursor, 'nextCursor', 'cursor', None, maxLimit)
         request = {}
         if limit is not None:
             request['limit'] = min(limit, 100)
@@ -2877,8 +2875,6 @@ class limitless(PredictionExchange, ImplicitAPI):
             categoryId = self.safe_string(category, 'id')
             matched = False
             for wi in range(0, len(wanted)):
-                if name is None:
-                    raise ExchangeError(self.id + ' fetchRawMarketsByTags() missing name')
                 if name.find(wanted[wi]) >= 0:
                     matched = True
                     break

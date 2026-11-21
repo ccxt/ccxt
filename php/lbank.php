@@ -1360,22 +1360,6 @@ class lbank extends Exchange {
             }
             return $this->safe_balance($result);
         }
-        // from spotPrivatePostSupplementUserInfo
-        $isArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
-        if ($isArray) {
-            for ($i = 0; $i < count($data); $i++) {
-                $item = $this->safe_dict($data, $i);
-                $currencyId = $this->safe_string($item, 'coin');
-                $codeInner = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($item, 'usableAmt');
-                $account['used'] = $this->safe_string($item, 'freezeAmt');
-                if ($codeInner !== null) {
-                    $result[$codeInner] = $account;
-                }
-            }
-            return $this->safe_balance($result);
-        }
         return $this->safe_balance($result);
     }
 

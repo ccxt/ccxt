@@ -258,17 +258,16 @@ class onetrading extends \ccxt\async\onetrading {
             $ticker = $tickers[$i];
             $marketId = $this->safe_string($ticker, 'instrument');
             $symbol = $this->safe_symbol($marketId);
-            $parsedTicker = $this->parse_ws_ticker($ticker);
             $timestamp = $this->parse8601($datetime);
-            $parsedTicker['timestamp'] = $timestamp;
-            $parsedTicker['datetime'] = $this->iso8601($timestamp);
+            $isoDatetime = $this->iso8601($timestamp);
+            $parsedTicker = $this->parse_ws_ticker($ticker, null, $timestamp, $isoDatetime);
             $this->tickers[$symbol] = $parsedTicker;
             $client->resolve($parsedTicker, 'ticker.' . $symbol);
         }
         $client->resolve($this->tickers, 'tickers');
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ws_ticker(array $ticker, array $market, ?int $timestamp, ?string $datetime): array {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -283,8 +282,8 @@ class onetrading extends \ccxt\async\onetrading {
         $marketId = $this->safe_string($ticker, 'instrument');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol($marketId, $market),
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,
@@ -470,7 +469,7 @@ class onetrading extends \ccxt\async\onetrading {
         }
     }
 
-    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
+    public function handle_book_deltas(mixed $orderbook, array $deltas) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],

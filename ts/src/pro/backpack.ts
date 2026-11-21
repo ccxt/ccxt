@@ -679,7 +679,8 @@ export default class backpack extends backpackRest {
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const query = await this.prepareWsStockParams ('watchOHLCV', params);
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, query);
-        return result[symbol][timeframe];
+        const bySymbol: Dict = result[symbol];
+        return bySymbol[timeframe];
     }
 
     /**
@@ -1174,14 +1175,15 @@ export default class backpack extends backpackRest {
         const deltaNonce = this.safeInteger (data, 'u');
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cacheSize = storedOrderBook.cache.length;
+            const cacheLength = this.parseToInt (cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache.push (data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             const market = this.market (symbol);
             const isStockMarket = (market['stock'] === true) || ((marketId !== undefined) && ((marketId.indexOf ('.US_') >= 0) || (marketId.indexOf ('.HK_') >= 0)));
             const defaultSnapshotDelay = isStockMarket ? 0 : 10;
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay);
+            const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay));
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, undefined, {});
             }

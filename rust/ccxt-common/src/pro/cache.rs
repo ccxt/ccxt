@@ -84,6 +84,14 @@ impl From<Value> for Option<Cache> {
 }
 impl From<&Option<Cache>> for Value { fn from(c: &Option<Cache>) -> Value { c.as_ref().map_or(Value::Null, Value::from) } }
 
+/// What an OHLCV handler resolves: `[symbol, timeframe, stored]`, typed.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct OhlcvTick {
+    pub symbol: Option<String>,
+    pub timeframe: Option<String>,
+    pub stored: Option<Cache>,
+}
+
 impl crate::value::Rows for &Cache {
     fn rows(self) -> Value { Value::from(self) }
     fn absent(&self) -> bool { false }
@@ -127,16 +135,16 @@ pub trait CacheKey {
 impl CacheKey for Value {
     fn strict(&self) -> Option<&str> { self.as_str() }
     fn text(&self) -> std::borrow::Cow<'_, str> {
-        match self.as_str() { Some(s) => std::borrow::Cow::Borrowed(s), None => std::borrow::Cow::Owned(crate::runtime::stringify_param(self)) }
+        match self.as_str() { Some(s) => s.into(), None => crate::runtime::stringify_param(self).into() }
     }
 }
 impl CacheKey for String {
     fn strict(&self) -> Option<&str> { Some(self.as_str()) }
-    fn text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_str()) }
+    fn text(&self) -> std::borrow::Cow<'_, str> { self.as_str().into() }
 }
 impl CacheKey for Option<String> {
     fn strict(&self) -> Option<&str> { self.as_deref() }
-    fn text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_deref().unwrap_or("null")) }
+    fn text(&self) -> std::borrow::Cow<'_, str> { self.as_deref().unwrap_or("null").into() }
 }
 
 /// Keyed access to a map of ws handles (`CacheMap`, `BookMap`), with the semantics the untyped

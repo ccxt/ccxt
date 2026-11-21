@@ -743,11 +743,12 @@ class deribit(ccxt.async_support.deribit):
             self.orders = ArrayCacheBySymbolById(limit)
         params = self.safe_dict(message, 'params', {})
         channel = self.safe_string(params, 'channel', '')
-        data = self.safe_value(params, 'data', {})
+        dataList = self.safe_list(params, 'data')
         orders = []
-        if isinstance(data, list):
-            orders = self.parse_orders(data)
+        if dataList is not None:
+            orders = self.parse_orders(dataList)
         else:
+            data = self.safe_value(params, 'data', {})
             order = self.parse_order(data)
             orders = [order]
         cachedOrders = self.orders
@@ -772,7 +773,8 @@ class deribit(ccxt.async_support.deribit):
             await self.load_markets()
         symbolValue = self.symbol(symbol)
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbolValue, timeframe]], since, limit, params)
-        return ohlcvs[symbolValue][timeframe]
+        bySymbol = ohlcvs[symbolValue]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """

@@ -434,7 +434,11 @@ func (this *Foxbit) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//     }
 	//   ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(data)}
 	return nil
@@ -629,7 +633,11 @@ func (this *Foxbit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//       }
 	//     ]
 	//   }
-	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var markets []any
+	markets, _ = response["data"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -702,8 +710,15 @@ func (this *Foxbit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	//      }
 	//    ]
 	//  }
-	var data []any = SafeListTyped(response, "data")
-	var result map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	var result map[string]any
+	if 0 < len(data) {
+		result, _ = data[0].(map[string]any)
+	}
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
 	return nil
@@ -765,7 +780,11 @@ func (this *Foxbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	//      }
 	//    ]
 	//  }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -809,15 +828,16 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	//         "taker": "0.005"
 	//     }
 	// ]
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(entry, "market_symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		if symbol != nil {
-			result[*symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(entry, market))
+			result[*symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(data[i], market))
 		}
 	}
 
@@ -854,16 +874,18 @@ func (this *Foxbit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var defaultLimit int = 20
 	var request map[string]any = map[string]any{
-		"market": market["id"],
-		"depth": func() any {
-			if limit == nil {
-				return defaultLimit
-			}
-			return limit
-		}(),
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
+	}
+	if limit == nil {
+		request["depth"] = defaultLimit
+	} else {
+		request["depth"] = limit
 	}
 
 	r1 := <-this.V3PublicGetMarketsMarketOrderbook(this.Extend(request, params))
@@ -912,12 +934,12 @@ func (this *Foxbit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Foxbit) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Foxbit) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Foxbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -938,7 +960,7 @@ func (this *Foxbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 200 {
 			request["page_size"] = 200
 		}
@@ -958,7 +980,11 @@ func (this *Foxbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1009,7 +1035,7 @@ func (this *Foxbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		request["start_time"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 		if *limit > 500 {
 			request["limit"] = 500
 		}
@@ -1066,11 +1092,11 @@ func (this *Foxbit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		}
 	}
 
-	r1 := <-this.V3PrivateGetAccounts(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V3PrivateGetAccounts(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	// {
 	//     "data": [
 	//         {
@@ -1081,12 +1107,13 @@ func (this *Foxbit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	//         }
 	//     ]
 	// }
-	var accounts []any = SafeListTyped(response, "data")
+	var accounts []any
+	accounts, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 	}
 	for i := 0; i < len(accounts); i++ {
-		var account map[string]any = SafeMapTyped(accounts, i)
+		var account, _ = accounts[i].(map[string]any)
 		var currencyId *string = this.SafeString(account, "currency_symbol")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var total *string = this.SafeString(account, "balance")
@@ -1251,7 +1278,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 		request["start_time"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -1262,7 +1289,11 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
@@ -1374,12 +1405,12 @@ func (this *Foxbit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Foxbit) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Foxbit) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1393,9 +1424,9 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = SafeMapTyped(orders, i)
+		var order map[string]any = orders[i]
 		var symbol *string = this.SafeString(order, "symbol")
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		var typeVar *string = this.SafeStringUpper(order, "type", "")
 		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
 		if (typeVar == nil || *typeVar != "LIMIT") && (typeVar == nil || *typeVar != "MARKET") && (typeVar == nil || *typeVar != "STOP_MARKET") && (typeVar == nil || *typeVar != "STOP_LIMIT") && (typeVar == nil || *typeVar != "INSTANT") {
@@ -1405,9 +1436,12 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 		var postOnly *bool = this.SafeBool(orderParams, "postOnly", false)
 		var triggerPrice *float64 = this.SafeNumber(orderParams, "triggerPrice")
 		var request map[string]any = map[string]any{
-			"market_symbol": market["id"],
+			"market_symbol": nil,
 			"side":          this.SafeStringUpper(order, "side"),
 			"type":          typeVar,
+		}
+		if market.Id != nil {
+			request["market_symbol"] = *market.Id
 		}
 		if (typeVar != nil && *typeVar == "STOP_MARKET") || (typeVar != nil && *typeVar == "STOP_LIMIT") {
 			if triggerPrice == nil {
@@ -1464,7 +1498,11 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
@@ -1517,8 +1555,15 @@ func (this *Foxbit) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTyped(response, "data")
-	var result map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	var result map[string]any
+	if 0 < len(data) {
+		result, _ = data[0].(map[string]any)
+	}
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil
@@ -1556,9 +1601,12 @@ func (this *Foxbit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		"type": "ALL",
 	}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		request["type"] = "MARKET"
-		request["market_symbol"] = market["id"]
+		request["market_symbol"] = nil
+		if market.Id != nil {
+			request["market_symbol"] = *market.Id
+		}
 	}
 
 	r1 := <-this.V3PrivatePutOrdersCancel(this.Extend(request, params))
@@ -1689,7 +1737,7 @@ func (this *Foxbit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		request["start_time"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -1723,7 +1771,11 @@ func (this *Foxbit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	//         }
 	//     ]
 	// }
-	var list []any = SafeListTypedDefault(response, "data", []any{})
+	var list []any
+	list, _ = response["data"].([]any)
+	if list == nil {
+		list = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(list, market, since, limit))}
 	return nil
@@ -1774,7 +1826,7 @@ func (this *Foxbit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["start_time"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -1799,7 +1851,11 @@ func (this *Foxbit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//         "created_at": "2021-02-15T22:06:32.999Z"
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1901,7 +1957,7 @@ func (this *Foxbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		currency = this.Currency(code)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -1931,7 +1987,11 @@ func (this *Foxbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -1977,7 +2037,7 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		currency = this.Currency(code)
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -2022,7 +2082,11 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -2097,11 +2161,11 @@ func (this *Foxbit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.StatusPublicGetStatus(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.StatusPublicGetStatus(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	// {
 	//     "data": {
 	//       "id": 1,
@@ -2116,8 +2180,8 @@ func (this *Foxbit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	//     "meta": {
 	//     }
 	// }
-	var data map[string]any = SafeMapTyped(response, "data")
-	var attributes map[string]any = SafeMapTyped(data, "attributes")
+	var data, _ = response["data"].(map[string]any)
+	var attributes, _ = data["attributes"].(map[string]any)
 	var statusRaw *string = this.SafeString(attributes, "status")
 	var statusMap map[string]any = map[string]any{
 		"NORMAL":            "ok",
@@ -2129,7 +2193,7 @@ func (this *Foxbit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 		"updated": this.Parse8601(this.SafeString(attributes, "updatedAt")),
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -2148,12 +2212,12 @@ func (this *Foxbit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Foxbit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Foxbit) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2163,7 +2227,7 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	this.CheckRequiredArgument("editOrder", symbol, "symbol")
-	var typeValue string = ToUpper(typeVar)
+	var typeValue string = strings.ToUpper(typeVar)
 	if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "INSTANT") {
 		panic(InvalidOrder("Invalid order type: " + typeValue + ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT."))
 	}
@@ -2178,7 +2242,7 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	this.CheckRequiredArgument("editOrder", side, "side")
 	var createRequest map[string]any = map[string]any{
 		"type":          typeValue,
-		"side":          ToUpper(side),
+		"side":          strings.ToUpper(side),
 		"market_symbol": market["id"],
 	}
 	if (typeValue == "LIMIT") || (typeValue == "MARKET") {
@@ -2217,7 +2281,11 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	//         "client_order_id": "451637946501"
 	//     }
 	// }
-	var created map[string]any = this.SafeDictMap(response, "create", map[string]any{})
+	var created map[string]any
+	created, _ = response["create"].(map[string]any)
+	if created == nil {
+		created = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(created, market)}
 	return nil
@@ -2235,12 +2303,12 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Foxbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Foxbit) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Foxbit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2254,11 +2322,14 @@ func (this *Foxbit) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency_symbol":     currency["id"],
+		"currency_symbol":     nil,
 		"amount":              this.NumberToString(amount),
 		"destination_address": address,
+	}
+	if currency.Id != nil {
+		request["currency_symbol"] = *currency.Id
 	}
 	if tagWithdrawTag != nil {
 		request["destination_tag"] = *tagWithdrawTag
@@ -2324,7 +2395,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code argument"))
 	}
 	if limit != nil {
-		request["page_size"] = limit
+		request["page_size"] = *limit
 		if *limit > 100 {
 			request["page_size"] = 100
 		}
@@ -2340,7 +2411,11 @@ func (this *Foxbit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, currency, since, limit))}
 	return nil
@@ -2608,10 +2683,6 @@ func (this *Foxbit) ParseTransactionStatus(status *string) *string {
 func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
-	_ = since
-	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
-	_ = limit
 	var cryptoDetails map[string]any = SafeMapTyped(transaction, "details_crypto")
 	var address *string = this.SafeString2(cryptoDetails, "receiving_address", "destination_address")
 	var sn *string = this.SafeString(transaction, "sn")
@@ -2706,9 +2777,10 @@ func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry 
 	if balance == nil {
 		panic(ExchangeError(this.Id + " parseLedgerEntry() missing balance"))
 	}
-	var before any = nil
+	var before *float64 = nil
 	if (amount != nil) && (balance != nil) {
-		before = (*balance - *amount)
+		beforeValue := (*balance - *amount)
+		before = &beforeValue
 		if 0 > *amount {
 			direction = "out"
 			realAmount = (-*amount)
@@ -2774,13 +2846,13 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
+	var bodyToSignature string = ""
 	if (method == "POST") || (method == "PUT") {
-		requestBody = this.Json(paramsOmitted)
-	}
-	var bodyToSignature any = ""
-	if requestBody != nil {
-		bodyToSignature = requestBody
+		var jsonBody string = this.Json(paramsOmitted)
+		requestBodyStr := jsonBody
+		requestBody = &requestBodyStr
+		bodyToSignature = jsonBody
 	}
 	var headersValue map[string]any = map[string]any{
 		"Content-Type":        "application/json",
@@ -2789,7 +2861,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	if urlPath == "private" {
 		this.CheckRequiredCredentials()
-		var preHash *string = SafeStringPtr(Add(strconv.FormatInt(timestamp, 10)+method+fullPath+signatureQuery, bodyToSignature))
+		var preHash string = strconv.FormatInt(timestamp, 10) + method + fullPath + signatureQuery + bodyToSignature
 		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
 		headersValue["X-FB-ACCESS-KEY"] = this.ApiKey
 		headersValue["X-FB-ACCESS-TIMESTAMP"] = strconv.FormatInt(timestamp, 10)
@@ -3153,7 +3225,7 @@ func (this *Foxbit) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

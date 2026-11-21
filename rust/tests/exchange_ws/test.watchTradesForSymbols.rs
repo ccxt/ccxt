@@ -10,11 +10,11 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchTradesForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbols: Value) -> Value {
-    let mut method: Value = Value::Str("watchTradesForSymbols".into());
-    let mut logText: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), " [symbols: ").into()), exchange.json(symbols.clone())).into()), "] ");
+    let method: Value = Value::Str("watchTradesForSymbols".into());
+    let logText: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), " [symbols: ").into()), exchange.json(symbols.clone())).into()), "] ");
     let mut now: Value = Value::Int(exchange.milliseconds());
-    let mut ends: Value = (match (&(now), &(Value::Int(30000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    let mut symbolsLength: i64 = symbols.len() as i64;
+    let ends: Value = (match (&(now), &(Value::Int(30000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+    let symbolsLength: i64 = symbols.len() as i64;
     let mut returnedSymbols: Value = Value::from(vec![]);
     let mut allReceived: bool = false;
     while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !allReceived {
@@ -34,25 +34,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert!(ccxt::runtime::is_true(&((matches!(&response, Value::Arr(_))))));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1618: bool = true;
-                while { if !__for_first_1618 { i += 1; } __for_first_1618 = false; i < (response.len() as i64) } {
-                let mut trade: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (response.len() as i64) } {
+                let trade: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 assert!(ccxt::runtime::is_true(&((symbol != Value::Null))));
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trade.clone(), symbol.clone(), now.clone(), Value::Bool(true));
-                crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trade.clone(), Value::Str("symbol".into()).clone(), symbols.clone()]);
+                crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trade, Value::Str("symbol".into()), symbols.clone()]);
                 if !exchange.in_array(symbol.clone(), returnedSymbols.clone()) {
                     append_to_array(&mut returnedSymbols, symbol);
                 }
             }
             }
-            let mut returnedLength: i64 = returnedSymbols.len() as i64;
+            let returnedLength: i64 = returnedSymbols.len() as i64;
             if (returnedLength == symbolsLength) {
                 allReceived = true;
             }
         }
     }
-    let mut receivedLength: i64 = returnedSymbols.len() as i64;
+    let receivedLength: i64 = returnedSymbols.len() as i64;
     assert!(ccxt::runtime::is_true(&((receivedLength > 0))));
     if !allReceived {
         // an illiquid symbol may not trade inside the window, that is the market and not a bug

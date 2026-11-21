@@ -119,7 +119,9 @@ class bullish extends \ccxt\async\bullish {
         $cookies = array(
             'JWT_COOKIE' => $token,
         );
-        $this->options['ws']['cookies'] = $cookies;
+        $wsDict = $this->safe_dict($this->options, 'ws', array());
+        $wsDict['cookies'] = $cookies;
+        $this->options['ws'] = $wsDict;
         $id = (string) $this->request_id();
         $message = array(
             'jsonrpc' => '2.0',
@@ -719,11 +721,12 @@ class bullish extends \ccxt\async\bullish {
             $data = $this->safe_list($message, 'data', array());
             $parsed = $this->parseBalanceList($data);
             $parsedKeys = is_array($parsed) ? array_keys($parsed) : array();
+            $balance = $this->safe_dict($this->balance, $tradingAccountId, array());
             for ($i = 0; $i < count($parsedKeys); $i++) {
                 $parsedKey = $parsedKeys[$i];
-                $this->balance[$tradingAccountId][$parsedKey] = $parsed[$parsedKey];
+                $balance[$parsedKey] = $parsed[$parsedKey];
             }
-            $this->balance[$tradingAccountId] = $this->safe_balance($this->balance[$tradingAccountId]);
+            $this->balance[$tradingAccountId] = $this->safe_balance($balance);
         } else {
             $data = $this->safe_dict($message, 'data', array());
             $assetId = $this->safe_string($data, 'assetSymbol');
@@ -731,11 +734,12 @@ class bullish extends \ccxt\async\bullish {
             $account['total'] = $this->safe_string($data, 'availableQuantity');
             $account['used'] = $this->safe_string($data, 'lockedQuantity');
             $code = $this->safe_currency_code($assetId);
-            if (($tradingAccountId !== null) && ($code !== null)) {
-                $this->balance[$tradingAccountId][$code] = $account;
-            }
             $this->balance[$tradingAccountId]['info'] = $message;
-            $this->balance[$tradingAccountId] = $this->safe_balance($this->balance[$tradingAccountId]);
+            $deltaBalance = $this->safe_dict($this->balance, $tradingAccountId, array());
+            if (($tradingAccountId !== null) && ($code !== null)) {
+                $deltaBalance[$code] = $account;
+            }
+            $this->balance[$tradingAccountId] = $this->safe_balance($deltaBalance);
         }
         $messageHash = 'balance';
         $tradingAccountIdHash = '::' . $tradingAccountId;

@@ -63,23 +63,27 @@ public class Binanceusdm extends BinanceusdmApi
 
     public CompletableFuture<Object> transferIn(String code, Object amount, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.transferInCore(code, amount, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object transferInCore(String code, Object amount, Map<String, Object> parameters)
+    {
 
-            // transfer from spot wallet to usdm futures wallet
-            return (this.futuresTransfer(code, amount, 1L, parameters)).join();
-        });
+        // transfer from spot wallet to usdm futures wallet
+        return (this.futuresTransfer(code, amount, 1L, parameters)).join();
 
     }
 
     public CompletableFuture<Object> transferOut(String code, Object amount, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.transferOutCore(code, amount, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object transferOutCore(String code, Object amount, Map<String, Object> parameters)
+    {
 
-            // transfer from usdm futures wallet to spot wallet
-            return (this.futuresTransfer(code, amount, 2L, parameters)).join();
-        });
+        // transfer from usdm futures wallet to spot wallet
+        return (this.futuresTransfer(code, amount, 2L, parameters)).join();
 
     }
 }

@@ -141,7 +141,9 @@ export default class cex extends cexRest {
         if (currentSymbol !== undefined && currentSymbol !== symbol) {
             throw new ArgumentsRequired(this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        this.options['watchTrades']['symbol'] = symbol;
+        const watchTradesDict = this.safeDict(this.options, 'watchTrades', {});
+        watchTradesDict['symbol'] = symbol;
+        this.options['watchTrades'] = watchTradesDict;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -749,7 +751,7 @@ export default class cex extends cexRest {
         const data = this.safeDict(message, 'data', {});
         const isTransaction = this.safeString(message, 'e') === 'tx';
         const orderId = this.safeString2(data, 'id', 'order');
-        let remains = this.safeString(data, 'remains');
+        const remainsPrecision = this.safeString(data, 'remains');
         let baseId = this.safeString(data, 'symbol');
         let quoteId = this.safeString(data, 'symbol2');
         const pair = this.safeDict(data, 'pair');
@@ -764,15 +766,16 @@ export default class cex extends cexRest {
         }
         const symbol = base + '/' + quote;
         const market = this.safeMarket(symbol);
-        remains = this.currencyFromPrecision(base, remains);
+        const remains = this.currencyFromPrecision(base, remainsPrecision);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         const storedOrders = this.orders;
         const ordersBySymbol = this.safeDict(storedOrders.hashmap, symbol, {});
-        let order = this.safeValue(ordersBySymbol, orderId);
+        let order = this.safeDict(ordersBySymbol, orderId);
         if (order === undefined) {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             order = this.parseWsOrderUpdate(data, market);
         }
         order['remaining'] = remains;
@@ -794,8 +797,9 @@ export default class cex extends cexRest {
         const timestamp = this.safeInteger(data, 'time');
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601(timestamp);
-        order = this.safeOrder(order);
-        storedOrders.append(order);
+        // a fresh map copy: the cached entry is untyped
+        const parsedOrder = this.safeOrder(this.extend(order, {}));
+        storedOrders.append(parsedOrder);
         const messageHash = 'orders:' + symbol;
         client.resolve(storedOrders, messageHash);
     }
@@ -917,7 +921,7 @@ export default class cex extends cexRest {
             return undefined;
         }
         const precise = new Precise(amount);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger([scale], 0, 0));
         precise.reduce();
         return precise.toString();
     }

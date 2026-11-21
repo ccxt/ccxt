@@ -441,9 +441,9 @@ class lighter extends Exchange {
     }
 
     public function get_lighter_private_key(string $strAccountIndex, string $strApiKeyIndex) {
-        $auths = $this->safe_dict($this->options, 'auths');
-        $accountAuths = $this->safe_dict($auths, $strAccountIndex);
-        $apiKeyAuths = $this->safe_dict($accountAuths, $strApiKeyIndex);
+        $auths = $this->safe_dict($this->options, 'auths', array());
+        $accountAuths = $this->safe_dict($auths, $strAccountIndex, array());
+        $apiKeyAuths = $this->safe_dict($accountAuths, $strApiKeyIndex, array());
         return $this->safe_string($apiKeyAuths, 'lighterPrivateKey');
     }
 
@@ -523,7 +523,7 @@ class lighter extends Exchange {
             // }
             //
             $subAccounts = $this->safe_list($res, 'sub_accounts');
-            if ((gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
+            if ($subAccounts !== null) {
                 $account = $this->safe_dict($subAccounts, 0);
                 if ($account === null) {
                     throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . ' or ' . $optionName2 . ' parameter');
@@ -567,9 +567,9 @@ class lighter extends Exchange {
             $res = $this->handle_option_and_params_2(array(), 'createAuth', 'accountIndex', 'account_index');
             $accountIndex = $this->safe_string($res, 0);
         }
-        $auths = $this->safe_dict($this->options, 'auths');
-        $accountAuths = $this->safe_dict($auths, $accountIndex);
-        $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex);
+        $auths = $this->safe_dict($this->options, 'auths', array());
+        $accountAuths = $this->safe_dict($auths, $accountIndex, array());
+        $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex, array());
         $cachedDeadline = $this->safe_integer($cachedAuth, 'deadline');
         $minimumRemaining = $this->safe_integer($this->options, 'authDeadlineMinimumRemaining', 60);
         if (($cachedDeadline !== null) && ($minimumRemaining !== null) && ($cachedDeadline - $minimumRemaining >= $this->seconds())) {
@@ -621,8 +621,8 @@ class lighter extends Exchange {
     public function sign_hash(string $hash, string $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
@@ -972,10 +972,10 @@ class lighter extends Exchange {
                 }
             }
         }
-        $order = null;
-        if ($totalOrderRequests > 0) {
-            $order = $orderRequests[0];
+        if ($totalOrderRequests < 1) {
+            throw new InvalidOrder($this->id . ' createOrder() built no order request');
         }
+        $order = $orderRequests[0];
         // the nonce could be updated
         if ($this->safe_integer($order, 'nonce') === null) {
             $order['nonce'] = $this->fetch_nonce($accountIndex, $apiKeyIndex);
@@ -1894,11 +1894,11 @@ class lighter extends Exchange {
         $result = array( 'info' => $response );
         $accounts = $this->safe_list($response, 'accounts', array());
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $this->safe_dict($accounts, $i);
+            $account = $this->safe_dict($accounts, $i, array());
             if ($type === 'spot') {
                 $assets = $this->safe_list($account, 'assets', array());
                 for ($j = 0; $j < count($assets); $j++) {
-                    $asset = $this->safe_dict($assets, $j);
+                    $asset = $this->safe_dict($assets, $j, array());
                     $codeId = $this->safe_string($asset, 'symbol');
                     $code = $this->safe_currency_code($codeId);
                     $balance = $this->extend($this->account(), $this->safe_dict($result, $code, array()));
@@ -2011,7 +2011,7 @@ class lighter extends Exchange {
         $allPositions = array();
         $accounts = $this->safe_list($response, 'accounts', array());
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $this->safe_dict($accounts, $i);
+            $account = $this->safe_dict($accounts, $i, array());
             $positions = $this->safe_list($account, 'positions', array());
             for ($j = 0; $j < count($positions); $j++) {
                 $allPositions[] = $positions[$j];

@@ -264,8 +264,7 @@ class myriad extends myriad$1["default"] {
                 'state': state,
                 'limit': limit,
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const found = (responseIsArray) ? response : this.safeList(response, 'data', []);
+            const found = this.safeList(response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const networkId = this.safeString(raw, 'networkId', '');
@@ -310,8 +309,7 @@ class myriad extends myriad$1["default"] {
                 'page': page,
                 'trading_model': tradingModel,
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const rawMarkets = (responseIsArray) ? response : this.safeList(response, 'data', []);
+            const rawMarkets = this.safeList(response, 'data', []);
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
                 break;
@@ -437,8 +435,7 @@ class myriad extends myriad$1["default"] {
                 'keyword': q,
                 'limit': limit,
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const found = (responseIsArray) ? response : this.safeList(response, 'data', []);
+            const found = this.safeList(response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const questionId = this.safeString(raw, 'id');
@@ -477,8 +474,7 @@ class myriad extends myriad$1["default"] {
                 request['state'] = state;
             }
             const response = await this.myriadPublicGetQuestions(this.extend(request, rest));
-            const responseIsArray = Array.isArray(response);
-            const rawQuestions = (responseIsArray) ? response : this.safeList(response, 'data', []);
+            const rawQuestions = this.safeList(response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
@@ -1067,8 +1063,11 @@ class myriad extends myriad$1["default"] {
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
         const skipWaitForReceipt = this.safeBool(params, 'skipWaitForReceipt', hasPreBroadcastTxHash);
-        let txHash = txHashParam;
-        if (txHash === undefined) {
+        let txHash = undefined;
+        if (txHashParam !== undefined) {
+            txHash = txHashParam;
+        }
+        else {
             txHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit);
         }
         if (!skipWaitForReceipt) {
@@ -1117,8 +1116,8 @@ class myriad extends myriad$1["default"] {
         const encoded = this.ethEncodeStructuredData(domain, types, message);
         const digest = this.hash(encoded, sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1_js.secp256k1, undefined);
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         const v = this.sum(27, signature['v']);
@@ -1413,7 +1412,13 @@ class myriad extends myriad$1["default"] {
             return [];
         }
         const traderParam = this.safeString2(params, 'trader', 'address');
-        const trader = (traderParam !== undefined) ? traderParam : this.walletAddressOrUndefined();
+        let trader = undefined;
+        if (traderParam !== undefined) {
+            trader = traderParam;
+        }
+        else {
+            trader = this.walletAddressOrUndefined();
+        }
         if (trader === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -2882,8 +2887,7 @@ class myriad extends myriad$1["default"] {
         //         ]
         //     }
         //
-        const responseIsArray = Array.isArray(response);
-        const rows = (responseIsArray) ? response : this.safeList(response, 'data', []);
+        const rows = this.safeList(response, 'data', []);
         const trades = [];
         for (let i = 0; i < rows.length; i++) {
             const row = this.safeDict(rows, i);

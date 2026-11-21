@@ -1221,7 +1221,7 @@ export default class dydx extends Exchange {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any): Dict {
+    signHash (hash: string, privateKey: any): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = this.safeString (signature, 'r', '');
         const s = this.safeString (signature, 's', '');
@@ -1464,11 +1464,17 @@ export default class dydx extends Exchange {
             'value': orderPayload,
         };
         const paramsOmitted = this.omit (paramsGoodTillBlockTimeInSeconds, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
-        const walletAddress = this.getWalletAddress ();
+        const walletAddress: string = this.getWalletAddress ();
         const clobPairId = this.safeInteger (marketInfo, 'clobPairId', 0);
-        const subaccountIdValue = (subaccountIdOption === undefined) ? 0 : subaccountIdOption;
+        let subaccountIdValue: Int = 0;
+        if (subaccountIdOption !== undefined) {
+            subaccountIdValue = subaccountIdOption;
+        }
         const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
-        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        let orderFlagValue: Int = 0;
+        if (orderFlag !== undefined) {
+            orderFlagValue = orderFlag;
+        }
         const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
         const orderId = this.createOrderIdFromParts (walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [ orderId, this.extend (signingPayload, paramsOmitted) ];
@@ -1875,8 +1881,9 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.fetchTransactionsHelper ('fetchLedger', code, since, limit, this.omit (params, 'methodName'));
-        return this.parseLedger (response, currency, since, limit);
+        let rows: Dict[] = [];
+        rows = await this.fetchTransactionsHelper ('fetchLedger', code, since, limit, this.omit (params, 'methodName'));
+        return this.parseLedger (rows, currency, since, limit);
     }
 
     async estimateTxFee (message: Dict, memo: Str, account: Dict): Promise<Dict> {
@@ -2583,6 +2590,8 @@ export default class dydx extends Exchange {
         // rewrite testnet parameters
         this.options['chainName'] = 'dydx-testnet-4';
         this.options['chainId'] = 11155111;
-        this.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        const feeDenomDict = this.safeDict (this.options, 'feeDenom', {});
+        feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        this.options['feeDenom'] = feeDenomDict;
     }
 }

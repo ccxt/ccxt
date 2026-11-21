@@ -557,7 +557,7 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr24608 && ((hxArr24608 is IList<object>) || (hxArr24608.GetType().IsGenericType && hxArr24608.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -593,7 +593,7 @@ public partial class blofin : ccxt.blofin
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)unifiedTimeframe] = stored;
         }
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
@@ -659,6 +659,7 @@ public partial class blofin : ccxt.blofin
         // the merged currencies by safeBalance
         this.balance[marketType] = this.safeDict(this.balance, marketType, new Dictionary<string, object>() {});
         Dictionary<string, object> parsed = this.parseWsBalance(message);
+        IDictionary<string, object> marketBalance = this.safeDict(this.balance, marketType, new Dictionary<string, object>() {});
         List<object> reserved = new List<object>() {"free", "used", "total"};
         List<object> keys = new List<object>(parsed.Keys);
         for (int i = 0; i < keys.Count; i++)
@@ -668,8 +669,9 @@ public partial class blofin : ccxt.blofin
             {
                 continue;
             }
-            ((IDictionary<string,object>)(this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null))[(string)key] = (parsed != null && key != null && parsed.ContainsKey(key) ? parsed[key] : null);
+            marketBalance[(string)key] = (parsed != null && key != null && parsed.ContainsKey(key) ? parsed[key] : null);
         }
+        this.balance[marketType] = marketBalance;
         this.balance[marketType] = this.safeBalance((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null));
         string messageHash = (marketType + ":balance");
         client.resolve((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
@@ -737,8 +739,8 @@ public partial class blofin : ccxt.blofin
         // every symbol shares one orders cache, so filter by the requested symbols and count
         // per symbol only when exactly one is requested
         IList<object> requestedSymbols = null;
-        object countSymbol = null;
-        IList<object> unifiedSymbols = this.marketSymbols(this.toArray(symbols), null, true);
+        string? countSymbol = null;
+        IList<object> unifiedSymbols = this.marketSymbols(symbols, null, true);
         if ((unifiedSymbols != null))
         {
             int symbolsLength = (unifiedSymbols?.Count ?? 0);
@@ -748,7 +750,7 @@ public partial class blofin : ccxt.blofin
             }
             if ((symbolsLength == 1))
             {
-                countSymbol = (unifiedSymbols != null && 0 < unifiedSymbols.Count ? unifiedSymbols[0] : null);
+                countSymbol = ((string)(unifiedSymbols != null && 0 < unifiedSymbols.Count ? unifiedSymbols[0] : null));
             }
         }
         object newest = orders;
@@ -844,7 +846,7 @@ public partial class blofin : ccxt.blofin
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, this.toArray(symbols), since, limit));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit));
     }
 
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
@@ -1020,7 +1022,7 @@ public partial class blofin : ccxt.blofin
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
 
-    public async virtual Task<object> unsubscribeMultipleWrapper(string channelName, string callerMethodName, object symbolsArray, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeMultipleWrapper(string channelName, string callerMethodName, IList<object> symbolsArray, IDictionary<string, object> parameters = null)
     {
         // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
         parameters ??= new Dictionary<string, object>();
@@ -1035,10 +1037,10 @@ public partial class blofin : ccxt.blofin
         IList<object> symbols = new List<object>() {};
         if (isOHLCV)
         {
-            symbols = this.marketSymbols(this.toArray(this.getListFromObjectValues(symbolsArray, 0)), null, false, true);
+            symbols = this.marketSymbols(this.getListFromObjectValues(symbolsArray, 0), null, false, true);
         } else
         {
-            symbols = this.marketSymbols(this.toArray(symbolsArray), null, false, true);
+            symbols = this.marketSymbols(symbolsArray, null, false, true);
         }
         Dictionary<string, object> firstMarket = this.market(this.safeString(symbols, 0));
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName);
@@ -1203,7 +1205,7 @@ public partial class blofin : ccxt.blofin
             string timestamp = milliseconds.ToString();
             string nonce = ("n_" + timestamp);
             string auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
-            string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
+            string signature = this.stringToBase64(this.hmac(auth, this.secret, sha256));
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", "login" },
                 { "args", new List<object>() {new Dictionary<string, object>() {

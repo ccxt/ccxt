@@ -948,20 +948,28 @@ class predictfun(PredictionExchange, ImplicitAPI):
         digits = '0123456789'
         chars = self.string_to_chars_array(text)
         stripped = ''
+        prevCh = ''
+        # a comma after a digit waits for the next char: it is dropped only when that one is a digit too
+        pendingComma = False
         for i in range(0, len(chars)):
             ch = chars[i]
-            keep = True
-            if ch == '$':
-                keep = False
-            elif ch == ',':
+            isDigit = (digits.find(ch) >= 0)
+            if pendingComma and not isDigit:
+                stripped = stripped + ','
+            pendingComma = False
+            if ch == ',':
                 # only a comma between two digits is a thousands separator: "1,500" has to close
                 # up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 # ordinary punctuation and stays, so it still separates words
-                prevIsDigit = (i > 0) and (digits.find(chars[i - 1]) >= 0)
-                nextIsDigit = ((i + 1) < len(chars)) and (digits.find(chars[i + 1]) >= 0)
-                keep = not (prevIsDigit and nextIsDigit)
-            if keep:
+                if (i > 0) and (digits.find(prevCh) >= 0):
+                    pendingComma = True
+                else:
+                    stripped = stripped + ch
+            elif ch != '$':
                 stripped = stripped + ch
+            prevCh = ch
+        if pendingComma:
+            stripped = stripped + ','
         return stripped
 
     def title_for_market_symbol(self, topicSlug: Str, title: Str, marketCount: Int = None) -> Str:
@@ -1676,8 +1684,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         # assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         # ecrecover wants v in {27,28} while the raw recovery id is {0,1}
@@ -2833,8 +2841,10 @@ class predictfun(PredictionExchange, ImplicitAPI):
         subscribeHash = self.safe_string(subscription, 'subscribeHash')
         if (subscribeHash is not None) and (subscribeHash in client.subscriptions):
             del client.subscriptions[subscribeHash]
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
-        if self.safe_string(subscription, 'topic') == 'walletEvents':
+        messageHashes = []
+        if self.safe_string(subscription, 'topic') != 'walletEvents':
+            messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        else:
             # watch () registers the wallet subscription once, for whichever watcher came first, so
             # its list is a snapshot of that moment - a narrowed watcher that joined later is known
             # only to the client. read the live waiters now, or those later callers would never be
@@ -3112,7 +3122,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             return self.safe_outcome(tokenId, market)
         return self.safe_outcome(tokenId)
 
-    def outcomes_by_market_id(self, marketId: Str) -> list[object]:
+    def outcomes_by_market_id(self, marketId: Str) -> list[dict]:
         """
  @ignore
         the cached outcomes that belong to one venue market id

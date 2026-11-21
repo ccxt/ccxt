@@ -311,7 +311,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         IList<object> methodNameparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
         string? methodName = (string)methodNameparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)methodNameparamsCallerMethodNameVariable[1]);
@@ -710,7 +710,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -1062,7 +1062,7 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         string? type = this.safeString(firstMarket, "type", "swap");
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -1230,7 +1230,8 @@ public partial class aster : ccxt.aster
         }
         string? symbolValue = this.safeSymbol(symbol);
         Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
+
+        return ccxt.BaseExchange.ToOHLCVList((result != null && symbolValue != null && result.ContainsKey(symbolValue) && result[symbolValue] != null && timeframeVar != null && result[symbolValue].ContainsKey(timeframeVar) ? result[symbolValue][timeframeVar] : null));
     }
 
     /**
@@ -1424,12 +1425,12 @@ public partial class aster : ccxt.aster
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if ((this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) == null))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe))))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.TryGetValue(timeframe, out var ohlcvsValue2) ? ohlcvsValue2 : null));
         List<object> parsed = this.parseWsOHLCV(kline);
         stored.append(parsed);
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
@@ -1490,8 +1491,12 @@ public partial class aster : ccxt.aster
                 {
                     throw new AuthenticationError ((this.id + " authenticate() received an empty listenKey")) ;
                 }
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null))[(string)type] = listenKey;
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("lastAuthenticatedTime") ? this.options["lastAuthenticatedTime"] : null))[(string)type] = time;
+                IDictionary<string, object> listenKeys = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
+                listenKeys[(string)type] = listenKey;
+                this.options["listenKey"] = listenKeys;
+                IDictionary<string, object> lastAuthenticatedTimes = this.safeDict(this.options, "lastAuthenticatedTime", new Dictionary<string, object>() {});
+                lastAuthenticatedTimes[(string)type] = time;
+                this.options["lastAuthenticatedTime"] = lastAuthenticatedTimes;
                 Dictionary<string, object> keepAliveParams = this.extend(new Dictionary<string, object>() {
                     { "type", type },
                 }, parameters);
@@ -1540,7 +1545,9 @@ public partial class aster : ccxt.aster
                 client.reject(error, messageHash);
             }
             ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("listenKey") ? this.options["listenKey"] : null))[(string)type] = null;
-            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("lastAuthenticatedTime") ? this.options["lastAuthenticatedTime"] : null))[(string)type] = 0;
+            IDictionary<string, object> lastAuthenticatedTimes = this.safeDict(this.options, "lastAuthenticatedTime", new Dictionary<string, object>() {});
+            lastAuthenticatedTimes[(string)type] = 0;
+            this.options["lastAuthenticatedTime"] = lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -1697,13 +1704,14 @@ public partial class aster : ccxt.aster
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
+        IDictionary<string, object> balance = this.safeDict(this.balance, accountType, new Dictionary<string, object>() {});
+        balance["info"] = message;
         IDictionary<string, object> messageValue = this.safeDict(message, "a", message);
         List<object> B = this.safeList(messageValue, "B", new List<object>() {});
         string? wallet = this.safeString(this.options, "wallet", "wb");
         for (int i = 0; i < B.Count; i++)
         {
-            object entry = B[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)B[i]);
             string? currencyId = this.safeString(entry, "a");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1712,13 +1720,13 @@ public partial class aster : ccxt.aster
             account["total"] = this.safeString(entry, wallet);
             if ((code != null))
             {
-                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
+                balance[(string)code] = account;
             }
         }
         Int64? timestamp = this.safeInteger(messageValue, "E");
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null));
+        balance["timestamp"] = timestamp;
+        balance["datetime"] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(balance);
         client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), messageHash);
     }
 
@@ -1747,7 +1755,7 @@ public partial class aster : ccxt.aster
         this.setPositionsCache(client);
         List<object> messageHashes = new List<object>() {};
         string messageHash = "positions";
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true);
         if ((symbolsNormalized == null))
         {
             messageHashes.Add(messageHash);
@@ -1765,7 +1773,7 @@ public partial class aster : ccxt.aster
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((cache == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watchMultiple(url, messageHashes, null, new List<object>() {type});
         if (this.newUpdates)
@@ -2093,33 +2101,52 @@ public partial class aster : ccxt.aster
                         // accumulate order fees
                         List<object> fees = this.safeList(order, "fees", new List<object>() {});
                         IDictionary<string, object> fee = this.safeDict(order, "fee");
+                        string? tradeFeeCurrency = this.safeString(tradeFee, "currency");
+                        double? tradeFeeCost = this.safeNumber(tradeFee, "cost");
                         if (!this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
+                            List<object> newFees = new List<object>() {};
                             for (int i = 0; i < fees.Count; i++)
                             {
-                                IDictionary<string, object> orderFee = ((IDictionary<string, object>)fees[i]);
-                                if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
+                                Dictionary<string, object> orderFee = this.extend(new Dictionary<string, object>() {}, fees[i]);
+                                if (insertNewFeeCurrency && (this.safeString(orderFee, "currency") == tradeFeeCurrency))
                                 {
-                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), (orderFee != null && orderFee.ContainsKey("cost") ? orderFee["cost"] : null));
-                                    string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
-                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = ((feeCostString == null)) ? null : JsParse.parseFloat(feeCostString);
+                                    object feeCost = this.sum(tradeFeeCost, this.safeNumber(orderFee, "cost"));
+                                    string? feeCostString = this.currencyToPrecision(tradeFeeCurrency, feeCost);
+                                    if ((feeCostString != null))
+                                    {
+                                        orderFee["cost"] = JsParse.parseFloat(feeCostString);
+                                    } else
+                                    {
+                                        orderFee["cost"] = null;
+                                    }
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                newFees.Add(orderFee);
                             }
                             if (insertNewFeeCurrency)
                             {
-                                ((IList<object>)(order != null && order.ContainsKey("fees") ? order["fees"] : null)).Add(tradeFee);
+                                newFees.Add(tradeFee);
                             }
+                            order["fees"] = newFees;
                         } else if ((fee != null))
                         {
-                            if ((this.safeString(fee, "currency") == this.safeString(tradeFee, "currency")))
+                            string? feeCurrency = this.safeString(fee, "currency");
+                            if ((feeCurrency == tradeFeeCurrency))
                             {
-                                object feeCost = this.sum((fee != null && fee.ContainsKey("cost") ? fee["cost"] : null), (tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null));
-                                string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
-                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = ((feeCostString == null)) ? null : JsParse.parseFloat(feeCostString);
-                            } else if ((this.safeString(fee, "currency") == null))
+                                object feeCost = this.sum(this.safeNumber(fee, "cost"), tradeFeeCost);
+                                string? feeCostString = this.currencyToPrecision(tradeFeeCurrency, feeCost);
+                                Dictionary<string, object> newFee = this.extend(new Dictionary<string, object>() {}, fee);
+                                if ((feeCostString != null))
+                                {
+                                    newFee["cost"] = JsParse.parseFloat(feeCostString);
+                                } else
+                                {
+                                    newFee["cost"] = null;
+                                }
+                                order["fee"] = newFee;
+                            } else if ((feeCurrency == null))
                             {
                                 order["fee"] = tradeFee;
                             } else

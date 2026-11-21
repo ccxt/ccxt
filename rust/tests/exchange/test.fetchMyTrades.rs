@@ -10,18 +10,18 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchMyTrades(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchMyTrades".into());
-    let mut trades: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_my_trades", vec![symbol.clone()]).await;
+    let method: Value = Value::Str("fetchMyTrades".into());
+    let trades: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_my_trades", vec![symbol.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trades.clone(), symbol.clone()]);
-    let mut now: Value = Value::Int(exchange.milliseconds());
+    let now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1588: bool = true;
-        while { if !__for_first_1588 { i += 1; } __for_first_1588 = false; i < (trades.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (trades.len() as i64) } {
         testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), Value::Bool(false));
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), trades.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol, trades]);
     return Value::Bool(true);
 
     Value::Null

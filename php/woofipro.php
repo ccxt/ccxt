@@ -3507,8 +3507,15 @@ class woofipro extends Exchange {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($requestParams, 'orders', array());
+                        $taggedOrders = array();
+                        $hasOrders = false;
                         for ($i = 0; $i < count($ordersList); $i++) {
-                            $requestParams['orders'][$i]['order_tag'] = $brokerId;
+                            $orderRow = $this->extend($ordersList[$i], array( 'order_tag' => $brokerId ));
+                            $taggedOrders[] = $orderRow;
+                            $hasOrders = true;
+                        }
+                        if ($hasOrders) {
+                            $requestParams['orders'] = $taggedOrders;
                         }
                     } else {
                         $requestParams['order_tag'] = $brokerId;

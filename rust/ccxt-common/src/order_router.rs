@@ -20,7 +20,6 @@
 //     names the other ports throw, so `is("NetworkError")` answers the same
 //     question `isOutcomeUnknownError` asks there.
 
-use std::borrow::Cow;
 use std::collections::BTreeSet;
 use std::future::Future;
 use std::sync::Arc;
@@ -2514,13 +2513,13 @@ impl<V: RouterVenue> OrderRouter<V> {
             result.insert("filledAmount".into(), Value::Float(0.0));
             result.insert("averagePrice".into(), Value::Float(0.0));
             result.insert("cost".into(), Value::Float(0.0));
-            result.insert("inAsset".into(), Value::Str(Cow::Borrowed("")));
+            result.insert("inAsset".into(), Value::Str("".into()));
             result.insert("inAmount".into(), Value::Float(0.0));
-            result.insert("outAsset".into(), Value::Str(Cow::Borrowed("")));
+            result.insert("outAsset".into(), Value::Str("".into()));
             result.insert("outAmount".into(), Value::Float(0.0));
-            result.insert("orderId".into(), Value::Str(Cow::Borrowed("")));
-            result.insert("clientOrderId".into(), Value::Str(Cow::Borrowed("")));
-            result.insert("errorCode".into(), Value::Str(Cow::Borrowed("")));
+            result.insert("orderId".into(), Value::Str("".into()));
+            result.insert("clientOrderId".into(), Value::Str("".into()));
+            result.insert("errorCode".into(), Value::Str("".into()));
             // which retry produced this result; 0 unless retryFailedSteps re-placed it
             result.insert("attempt".into(), Value::Float(0.0));
             // False until an order is actually dispatched — a failure before
@@ -2531,7 +2530,7 @@ impl<V: RouterVenue> OrderRouter<V> {
         let mut report = HashMap::new();
         // A placeholder: execute resolves the real identity from the plan AND the
         // options and overwrites it before anything reads this field.
-        report.insert("planId".into(), Value::Str(Cow::Borrowed("")));
+        report.insert("planId".into(), Value::Str("".into()));
         report.insert("strategy".into(), Value::Str(strategy.to_string().into()));
         report.insert("dryRun".into(), Value::Bool(dry_run));
         report.insert("live".into(), Value::Bool(!dry_run));
@@ -2546,7 +2545,7 @@ impl<V: RouterVenue> OrderRouter<V> {
         report.insert("wouldPlaceOrders".into(), Value::Float(0.0));
         report.insert("ordersPlaced".into(), Value::Float(0.0));
         report.insert("halted".into(), Value::Bool(false));
-        report.insert("haltReason".into(), Value::Str(Cow::Borrowed("")));
+        report.insert("haltReason".into(), Value::Str("".into()));
         report.insert("haltStepIndex".into(), Value::Float(-1.0));
         report.insert("filledIn".into(), Value::Float(0.0));
         report.insert("filledOut".into(), Value::Float(0.0));
@@ -2812,13 +2811,13 @@ impl<V: RouterVenue> OrderRouter<V> {
         result.insert("filledAmount".into(), Value::Float(0.0));
         result.insert("averagePrice".into(), Value::Float(0.0));
         result.insert("cost".into(), Value::Float(0.0));
-        result.insert("inAsset".into(), Value::Str(Cow::Borrowed("")));
+        result.insert("inAsset".into(), Value::Str("".into()));
         result.insert("inAmount".into(), Value::Float(0.0));
-        result.insert("outAsset".into(), Value::Str(Cow::Borrowed("")));
+        result.insert("outAsset".into(), Value::Str("".into()));
         result.insert("outAmount".into(), Value::Float(0.0));
-        result.insert("orderId".into(), Value::Str(Cow::Borrowed("")));
-        result.insert("clientOrderId".into(), Value::Str(Cow::Borrowed("")));
-        result.insert("errorCode".into(), Value::Str(Cow::Borrowed("")));
+        result.insert("orderId".into(), Value::Str("".into()));
+        result.insert("clientOrderId".into(), Value::Str("".into()));
+        result.insert("errorCode".into(), Value::Str("".into()));
         result.insert("placementAttempted".into(), Value::Bool(false));
         let mut result = Value::Map(result);
 
@@ -3858,7 +3857,7 @@ impl<V: RouterVenue> OrderRouter<V> {
                     if amount > 0.0 {
                         //  no venue: a bare ASSET:amount means "wherever you hold it"
                         let mut entry = HashMap::new();
-                        entry.insert("exchangeId".to_string(), Value::Str(Cow::Borrowed("")));
+                        entry.insert("exchangeId".to_string(), Value::Str("".into()));
                         entry.insert("asset".to_string(), Value::Str(outer.clone().into()));
                         entry.insert("amount".to_string(), Value::Float(amount));
                         entries.push(Value::Map(entry));

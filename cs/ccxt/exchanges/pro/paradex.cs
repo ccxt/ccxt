@@ -129,7 +129,7 @@ public partial class paradex : ccxt.paradex
      * @param {string} channel the channel to unsubscribe from
      * @returns {object} the unsubscribe request
      */
-    public virtual object unsubscribeRequest(object channel)
+    public virtual Dictionary<string, object> unsubscribeRequest(string channel)
     {
         return new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -151,11 +151,11 @@ public partial class paradex : ccxt.paradex
      * @param {string} [subscribeHash] the subscription the request opens, the request id when undefined
      * @returns {object} the reply
      */
-    public async virtual Task<object> sendRequest(object url, object request, object subscribeHash = null)
+    public async virtual Task<object> sendRequest(object url, IDictionary<string, object> request, object subscribeHash = null)
     {
-        string requestHash = ("request:" + this.safeString(request, "id"));
+        string requestHash = ("request:" + this.safeString(request, "id", ""));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {requestHash} },
         };
         object hash = ((subscribeHash == null)) ? requestHash : subscribeHash;
@@ -173,50 +173,50 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each subscribe request
      * @returns {object} the first update
      */
-    public async virtual Task<object> subscribeChannels(object url, object messageHashes, object channels, object parameters = null)
+    public async virtual Task<object> subscribeChannels(object url, IList<object> messageHashes, IList<object> channels, object parameters = null)
     {
         // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
         // starts a client without any. Each but the last is sent once the previous one is acknowledged
         parameters ??= new Dictionary<string, object>();
         await this.waitForPendingUnsubscribe(url, channels);
-        int channelsLength = getArrayLength(channels);
+        int channelsLength = channels?.Count ?? 0;
         for (int attempt = 0; attempt < channelsLength; attempt++)
         {
-            List<object> pending = this.unsubscribedChannels(url, channels);
+            List<Int64> pending = this.unsubscribedChannels(url, channels);
             int pendingLength = (pending?.Count ?? 0);
             if (pendingLength < 2)
             {
                 break;
             }
-            object channel = getValue(channels, (pending != null && 0 < pending.Count ? pending[0] : null));
+            string? channel = ((string)(channels != null && (pending != null && 0 < pending.Count ? pending[0] : (Int64?)null) is Int64 channelsKey186_39 && channelsKey186_39 < channels.Count ? channels[(int)channelsKey186_39] : null));
             Dictionary<string, object> pendingRequest = this.subscribeRequest(channel);
             await this.sendRequest(url, this.deepExtend(pendingRequest, parameters), channel);
         }
         // the last one goes with the watch, so that an update sent right after it is not missed
-        List<object> missing = this.unsubscribedChannels(url, channels);
+        List<Int64> missing = this.unsubscribedChannels(url, channels);
         int missingLength = (missing?.Count ?? 0);
         if ((missingLength == 0))
         {
             return await this.watchMultiple(url, messageHashes, null, channels);
         }
-        object index = (missing != null && 0 < missing.Count ? missing[0] : null);
-        Dictionary<string, object> request = this.subscribeRequest(getValue(channels, index));
+        Int64? index = ((Int64?)(missing != null && 0 < missing.Count ? missing[0] : (Int64?)null));
+        Dictionary<string, object> request = this.subscribeRequest((channels != null && index != null && index < channels.Count ? channels[(int)index] : null));
         // a failed subscribe rejects the watchers of its own channel only
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
-            { "messageHashes", new List<object>() {getValue(messageHashes, index)} },
+            { "messageHashes", new List<object>() {(messageHashes != null && index != null && index < messageHashes.Count ? messageHashes[(int)index] : null)} },
         };
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {getValue(channels, index)}, subscription);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {(channels != null && index != null && index < channels.Count ? channels[(int)index] : null)}, subscription);
     }
 
-    public virtual List<object> unsubscribedChannels(object url, object channels)
+    public virtual List<Int64> unsubscribedChannels(object url, IList<object> channels)
     {
         var client = this.client(url);
-        List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(channels); i++)
+        List<Int64> result = new List<Int64>() {};
+        for (int i = 0; i < (channels?.Count ?? 0); i++)
         {
-            if (!((client.subscriptions != null && getValue(channels, i) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
+            if (!((client.subscriptions != null && (channels != null && i < channels.Count ? channels[i] : null) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 result.Add(i);
             }
@@ -236,12 +236,12 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the request
      * @returns {boolean} true once the reply is in
      */
-    public async virtual Task<object> sendUnsubscribe(object url, object unsubHash, object request, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> sendUnsubscribe(object url, object unsubHash, IDictionary<string, object> request, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         // an error reply rejects the unwatch only, the watchers keep their subscription
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> unsubscription = this.extend(subscription, new Dictionary<string, object>() {
-            { "id", getValue(request, "id") },
+            { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {unsubHash} },
         });
         // a lost acknowledgement is timed out, so that neither the unwatch nor a watch waiting on it can hang
@@ -264,11 +264,11 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {boolean} true once every channel is unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannels(object url, string topic, object channels, object subMessageHashes, object symbols, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannels(object url, string topic, IList<object> channels, IList<object> subMessageHashes, object symbols, IDictionary<string, object> parameters = null)
     {
         // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
         parameters ??= new Dictionary<string, object>();
-        for (int i = 0; i < getArrayLength(channels); i++)
+        for (int i = 0; i < (channels?.Count ?? 0); i++)
         {
             try
             {
@@ -296,11 +296,11 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    public async virtual Task<object> unsubscribeChannelsFrom(object url, object topic, object channels, object subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelsFrom(object url, object topic, IList<object> channels, IList<object> subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? refused = 0;
-        for (int i = 0; i < getArrayLength(channels); i++)
+        for (int i = 0; i < (channels?.Count ?? 0); i++)
         {
             if (isGreaterThanOrEqual(i, start))
             {
@@ -330,12 +330,12 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannelAt(object url, object topic, object channels, object subMessageHashes, object symbols, object index, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelAt(object url, object topic, IList<object> channels, IList<object> subMessageHashes, object symbols, Int64 index, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object channel = getValue(channels, index);
+        string? channel = ((string)(channels != null && index < channels.Count ? channels[(int)index] : null));
         string? symbol = this.safeString(symbols, index);
-        List<object> hashes = new List<object>() {getValue(subMessageHashes, index)};
+        List<object> hashes = new List<object>() {(subMessageHashes != null && index < subMessageHashes.Count ? subMessageHashes[(int)index] : null)};
         List<object> channelSymbols = new List<object>() {};
         if ((symbol != null))
         {
@@ -352,8 +352,8 @@ public partial class paradex : ccxt.paradex
             { "subMessageHashes", hashes },
             { "symbols", channelSymbols },
         };
-        object request = this.unsubscribeRequest(channel);
-        return await this.sendUnsubscribe(url, ("unsubscribe:" + (channel)), request, subscription, parameters);
+        Dictionary<string, object> request = this.unsubscribeRequest(channel);
+        return await this.sendUnsubscribe(url, ("unsubscribe:" + channel), request, subscription, parameters);
     }
 
     /**
@@ -504,7 +504,7 @@ public partial class paradex : ccxt.paradex
         }
     }
 
-    public virtual void handleUnsubscribeReply(WebSocketClient client, object requestId)
+    public virtual void handleUnsubscribeReply(WebSocketClient client, string? requestId)
     {
         //
         // the reply to an unsubscribe, a modify_subscription with remove is acknowledged the same way
@@ -530,7 +530,7 @@ public partial class paradex : ccxt.paradex
                 continue;
             }
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, unsubHash, new Dictionary<string, object>() {});
-            if (isEqual(this.safeString(subscription, "id"), requestId))
+            if ((this.safeString(subscription, "id") == requestId))
             {
                 this.cleanUnsubscribed(client, unsubHash, subscription);
             }
@@ -622,7 +622,7 @@ public partial class paradex : ccxt.paradex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -851,16 +851,16 @@ public partial class paradex : ccxt.paradex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> deltasOptionparamsDeltasVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "deltas", false);
-        var deltasOption = deltasOptionparamsDeltasVariable[0];
-        IDictionary<string, object> paramsDeltas = ((IDictionary<string, object>)deltasOptionparamsDeltasVariable[1]);
-        bool deltas = ((deltasOption is true)) || (((limit != null)) && ((limit > 15)));
+        (bool?, IDictionary<string, object>) deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBook", "deltas", false);
+        bool? deltasOption = deltasOptionparamsDeltasVariable.Item1;
+        IDictionary<string, object> paramsDeltas = (deltasOptionparamsDeltasVariable.Item2);
+        bool deltas = ((deltasOption == true)) || (((limit != null)) && ((limit > 15)));
         string? url = this.getWsUrl();
         // an unwatch in flight decides which feed each market is on once acknowledged
         List<object> feeds = new List<object>() {};
@@ -893,7 +893,7 @@ public partial class paradex : ccxt.paradex
             {
                 // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
                 // arrives once the reply is in
-                object unsubscribe = this.unsubscribeRequest(snapshotChannel);
+                Dictionary<string, object> unsubscribe = this.unsubscribeRequest(snapshotChannel);
                 ((IDictionary<string,object>)client.subscriptions).Remove(snapshotChannel);
                 await this.sendRequest(url, unsubscribe);
             }
@@ -939,9 +939,9 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        IList<object> deltasOptionparamsDeltasVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "deltas", false);
-        var deltasOption = deltasOptionparamsDeltasVariable[0];
-        IDictionary<string, object> paramsDeltas = ((IDictionary<string, object>)deltasOptionparamsDeltasVariable[1]);
+        (bool?, IDictionary<string, object>) deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBook", "deltas", false);
+        bool? deltasOption = deltasOptionparamsDeltasVariable.Item1;
+        IDictionary<string, object> paramsDeltas = (deltasOptionparamsDeltasVariable.Item2);
         string? url = this.getWsUrl();
         var client = this.client(url);
         List<object> channels = new List<object>() {};
@@ -952,7 +952,7 @@ public partial class paradex : ccxt.paradex
             // the feed the market is on, a market is on one of them at a time
             string deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
             string? snapshotChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), false);
-            string? channel = ((deltasOption is true)) ? deltasChannel : snapshotChannel;
+            string? channel = ((deltasOption == true)) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             string requestedHash = (deltasChannel + ":requested");
             if (((client.subscriptions != null && deltasChannel != null && client.subscriptions.ContainsKey(deltasChannel))) || ((client.subscriptions != null && requestedHash != null && client.subscriptions.ContainsKey(requestedHash))))
@@ -1100,12 +1100,12 @@ public partial class paradex : ccxt.paradex
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleBookSideDeltas(object bookside, object deltas)
+    public virtual void handleBookSideDeltas(object bookside, IList<object> deltas)
     {
         // a size of 0 removes the price level
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            List<object> bidAsk = this.parseOrderBookBidAsk(getValue(deltas, i), 0, 1);
+            List<object> bidAsk = this.parseOrderBookBidAsk((deltas != null && i < deltas.Count ? deltas[i] : null), 0, 1);
             (bookside as IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -1125,9 +1125,9 @@ public partial class paradex : ccxt.paradex
         // a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
         // keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
         // the whole connection
-        Dictionary<string, object> unsubscribe = ((Dictionary<string, object>)this.unsubscribeRequest(channel));
+        Dictionary<string, object> unsubscribe = this.unsubscribeRequest(channel);
         Dictionary<string, object> subscribe = this.subscribeRequest(channel);
-        string unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id"));
+        string unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id", ""));
         ((IDictionary<string,object>)client.subscriptions)[unsubscribeHash] = new Dictionary<string, object>() {
             { "id", (unsubscribe != null && unsubscribe.ContainsKey("id") ? unsubscribe["id"] : null) },
             { "messageHashes", new List<object>() {} },
@@ -1212,7 +1212,7 @@ public partial class paradex : ccxt.paradex
                         ((IDictionary<string,object>)client.subscriptions).Remove((string)subscribeHashes[i]);
                     }
                 }
-                object unsubscribe = this.unsubscribeRequest(channel);
+                Dictionary<string, object> unsubscribe = this.unsubscribeRequest(channel);
                 await this.sendRequest(url, unsubscribe);
             }
             Dictionary<string, object> request = this.subscribeRequest(channel);
@@ -1282,7 +1282,8 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < symbolsLength; i++)
         {
             object symbol = (symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null);
-            string marketId = ((string)getValue(this.market(symbol), "id"));
+            Dictionary<string, object> market = this.market(symbol);
+            string marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             marketIds.Add(marketId);
             subscribeHashes.Add(((channel + ".") + marketId));
             subMessageHashes.Add(((channel + ".") + (symbol)));
@@ -1302,16 +1303,16 @@ public partial class paradex : ccxt.paradex
             return true;
         }
         // the markets left in the scoped subscription once these are removed
-        Int64 remaining = 0;
+        bool othersRemain = false;
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             if (((getIndexOf(keys[i], (channel + ".")) == 0)) && !this.inArray(keys[i], subscribeHashes))
             {
-                remaining = (remaining + 1);
+                othersRemain = true;
             }
         }
-        if (((symbolsLength == 0)) || (((client.subscriptions != null && client.subscriptions.ContainsKey(scopedHash))) && ((remaining == 0))))
+        if (((symbolsLength == 0)) || (((client.subscriptions != null && client.subscriptions.ContainsKey(scopedHash))) && !othersRemain))
         {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             Dictionary<string, object> channelSubscription = new Dictionary<string, object>() {
@@ -1321,7 +1322,7 @@ public partial class paradex : ccxt.paradex
                 { "prefix", true },
                 { "symbols", tickerSymbols },
             };
-            object unsubscribe = this.unsubscribeRequest(channel);
+            Dictionary<string, object> unsubscribe = this.unsubscribeRequest(channel);
             return await this.sendUnsubscribe(url, ("unsubscribe:" + channel), unsubscribe, channelSubscription, parameters);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1354,15 +1355,16 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the request
      * @returns {object} the first [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure} updated
      */
-    public async virtual Task<object> subscribeMarketsSummary(object symbols, object messageHashes, object parameters = null)
+    public async virtual Task<object> subscribeMarketsSummary(IList<object> symbols, IList<object> messageHashes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.getWsUrl();
         string channel = "markets_summary";
         List<object> pendingHashes = new List<object>() {channel, (channel + ":scoped")};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            pendingHashes.Add(((channel + ".") + (getValue(this.market(getValue(symbols, i)), "id"))));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            pendingHashes.Add(((channel + ".") + ((market.ContainsKey("id") ? market["id"] : null))));
         }
         await this.waitForPendingUnsubscribe(url, pendingHashes);
         var client = this.client(url);
@@ -1378,15 +1380,16 @@ public partial class paradex : ccxt.paradex
         List<object> missing = new List<object>() {};
         List<object> missingHashes = new List<object>() {};
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string marketId = ((string)getValue(this.market(getValue(symbols, i)), "id"));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            string marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             string subscribeHash = ((channel + ".") + marketId);
             subscribeHashes.Add(subscribeHash);
             if (!((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash))))
             {
                 missing.Add(marketId);
-                missingHashes.Add(getValue(messageHashes, i));
+                missingHashes.Add((messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
             }
         }
         int missingLength = (missing?.Count ?? 0);
@@ -1786,7 +1789,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         await this.authenticate();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         // one channel carries every market
         string channel = "positions";
         string? url = this.getWsUrl();
@@ -2225,7 +2228,7 @@ public partial class paradex : ccxt.paradex
         Int64? blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
         Int64? templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
         Int64? schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
-        if (((schemaId != 1)) || (isLessThan(frameLength, this.sum(blockLength, 8))))
+        if (((schemaId != 1)) || (((frameLength == null || frameLength < this.sum(blockLength, 8)))))
         {
             return null;
         }
@@ -2306,7 +2309,7 @@ public partial class paradex : ccxt.paradex
         Int64? count = this.parseToInt(length);
         Int64? start = this.parseToInt(offset);
         Int64? position = (start * 2);
-        for (int i = 0; (i < count); i++)
+        for (int i = 0; i < count; i++)
         {
             // plain variables as slice bounds, php gets end - start unparenthesized
             Int64? middle = (position + 1);
@@ -2391,7 +2394,7 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < 63; i++)
         {
             Int64 next = (i + 1L);
-            if (!isEqual(slice(raw, i, next), "0"))
+            if (!isEqual(((raw == null) ? null : raw[(int)(i < 0 ? raw.Length + i : i)..Math.Min((int)(next < 0 ? raw.Length + next : next), raw.Length)]), "0"))
             {
                 start = i;
                 break;
@@ -2410,7 +2413,7 @@ public partial class paradex : ccxt.paradex
         Int64? end = this.parseToInt(frameLength);
         Int64? total = this.parseToInt(count);
         Int64? position = this.parseToInt(offset);
-        for (int i = 0; (i < total); i++)
+        for (int i = 0; i < total; i++)
         {
             if ((end == null || position >= end))
             {
@@ -2536,7 +2539,7 @@ public partial class paradex : ccxt.paradex
             {
                 return ((Dictionary<string, object>)((object)(null)));
             }
-            for (int j = 0; (j < numInGroup); j++)
+            for (int j = 0; j < numInGroup; j++)
             {
                 levels.Add(new Dictionary<string, object>() {
                     { "side", sides[i] },
@@ -2595,7 +2598,7 @@ public partial class paradex : ccxt.paradex
         }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         object settlementTwapEstimate = null;
-        if ((blockSize >= 248))
+        if (blockSize >= 248)
         {
             settlementTwapEstimate = this.sbeReadDecimal(frameHex, 248);
         }
@@ -2803,7 +2806,7 @@ public partial class paradex : ccxt.paradex
             { "size", this.sbeReadDecimal(frameHex, 35) },
             { "underlying_price", this.sbeReadDecimal(frameHex, 99) },
         };
-        if ((blockSize >= 116))
+        if (blockSize >= 116)
         {
             // lowercase, as the JSON feed spells fill flags
             fill["flags"] = this.sbeReadFlags(frameHex, 115, new List<object>() {"interactive", "rpi", "fastfill", "", "", "", "", "unknown"});
@@ -2911,7 +2914,7 @@ public partial class paradex : ccxt.paradex
             { "total_collateral", this.sbeReadDecimal(frameHex, 24) },
             { "updated_at", this.sbeReadTimestamp(frameHex, 72) },
         };
-        if ((blockSize >= 121))
+        if (blockSize >= 121)
         {
             account["last_seen_notification"] = this.sbeReadTimestamp(frameHex, 121);
         }
@@ -2945,7 +2948,7 @@ public partial class paradex : ccxt.paradex
             string? errorCode = this.safeString(error, "code");
             if ((errorCode != null))
             {
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             }
             string? messageString = this.safeString(error, "message");
             if ((messageString != null))

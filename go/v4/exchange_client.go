@@ -18,6 +18,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -89,7 +90,8 @@ type Client struct {
 	Verbose               bool // default false
 	DecompressBinary      bool
 	IsMock                bool                          // static ws tests: transport is stubbed, sends are recorded
-	MockSentMessages      []any                         // frames recorded in mock mode
+	MockSentMessages      []any                         // frames recorded in mock mode; read via MockSent
+	mockSentMu            sync.Mutex                    // guards MockSentMessages: each send records on its own goroutine
 	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
 	MaxPingPongMisses     any                           // int or counter type
 	PingInterval          any                           // time.Duration recommended
@@ -367,7 +369,9 @@ func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
 			// static ws tests: record the outgoing frame so the test can assert it
 			var parsed any
 			if err := json.Unmarshal([]byte(msgStr), &parsed); err == nil {
+				this.mockSentMu.Lock()
 				this.MockSentMessages = append(this.MockSentMessages, parsed)
+				this.mockSentMu.Unlock()
 			}
 			future.Resolve(true)
 			ch <- AsyncResult[bool]{Value: true}
@@ -391,6 +395,13 @@ func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
 	}()
 
 	return ch
+}
+
+// MockSent returns a copy of the frames recorded in mock mode.
+func (this *Client) MockSent() []any {
+	this.mockSentMu.Lock()
+	defer this.mockSentMu.Unlock()
+	return append([]any(nil), this.MockSentMessages...)
 }
 
 func gunzipData(data []byte) ([]byte, error) {

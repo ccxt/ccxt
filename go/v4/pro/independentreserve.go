@@ -80,14 +80,14 @@ func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
 	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
 	}
-	var baseId string = *this.SafeString(market, "base", "")
-	var quoteId string = *this.SafeString(market, "quote", "")
+	var baseId string = market.BaseCurrency
+	var quoteId string = market.QuoteCurrency
 	var url string = *wsUrl + "?subscribe=ticker-" + baseId + "-" + quoteId
 	var messageHash string = "trades:" + symbolValue
 
@@ -119,7 +119,11 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 	//        "Event": "Trade"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
+	var data map[string]any
+	data, _ = message["Data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "Pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash string = "trades:" + *symbol
@@ -200,8 +204,8 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
 	var limitResolved int64
 	if limit == nil {
 		limitResolved = 100
@@ -213,8 +217,8 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
 	}
-	var baseId string = *this.SafeString(market, "base", "")
-	var quoteId string = *this.SafeString(market, "quote", "")
+	var baseId string = market.BaseCurrency
+	var quoteId string = market.QuoteCurrency
 	var url string = *wsUrl + "/orderbook/" + *limitString + "?subscribe=" + baseId + "-" + quoteId
 	var messageHash string = "orderbook:" + symbolValue + ":" + *limitString
 	var subscription map[string]any = map[string]any{
@@ -268,9 +272,16 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		return
 	}
 	var symbol string = *base + "/" + *quote
-	var orderBook map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
+	var orderBook map[string]any
+	orderBook, _ = message["Data"].(map[string]any)
+	if orderBook == nil {
+		orderBook = map[string]any{}
+	}
 	var messageHash string = "orderbook:" + symbol + ":" + depth
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
 	var timestamp *int64 = this.SafeInteger(message, "Time")
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
@@ -287,8 +298,8 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 			"receivedSnapshot": true,
 		}))
 	} else {
-		var asks []any = ccxt.SafeListTypedDefault(orderBook, "Offers", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(orderBook, "Bids", []any{})
+		var asks []any = this.SafeListSlice(orderBook, "Offers", []any{})
+		var bids []any = this.SafeListSlice(orderBook, "Bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -298,23 +309,23 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot) {
 		var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
 		var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
-		var asksLength int = ccxt.GetArrayLength(storedAsks)
-		var bidsLength int = ccxt.GetArrayLength(storedBids)
+		var asksLength int = ccxt.IOrderBookSide.Len(storedAsks)
+		var bidsLength int = ccxt.IOrderBookSide.Len(storedBids)
 		var payload any = ""
 		for i := 0; i < 10; i++ {
 			if i < bidsLength {
-				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(this.SafeNumber(ccxt.GetValue(storedBids, i), 0))), this.ValueToChecksum(this.SafeNumber(ccxt.GetValue(storedBids, i), 1)))
+				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(this.SafeNumber(storedBids.GetData()[i], 0))), this.ValueToChecksum(this.SafeNumber(storedBids.GetData()[i], 1)))
 			}
 		}
 		for i := 0; i < 10; i++ {
 			if i < asksLength {
-				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(this.SafeNumber(ccxt.GetValue(storedAsks, i), 0))), this.ValueToChecksum(this.SafeNumber(ccxt.GetValue(storedAsks, i), 1)))
+				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(this.SafeNumber(storedAsks.GetData()[i], 0))), this.ValueToChecksum(this.SafeNumber(storedAsks.GetData()[i], 1)))
 			}
 		}
 		var calculatedChecksum int64 = this.Crc32(payload, false)
 		var responseChecksum *int64 = this.SafeInteger(orderBook, "Crc32")
 		if responseChecksum == nil || *responseChecksum != calculatedChecksum {
-			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
+			error := ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(&symbol))
 			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			delete(this.Orderbooks, symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -329,23 +340,22 @@ func (this *Independentreserve) ValueToChecksum(value *float64) any {
 	// ccxt.ToFixed returns a zero-padded *string* in js but a *number* in
 	// go/c#/java, dropping trailing zeros. decimalToPrecision with
 	// ccxt.PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-	var result any = this.DecimalToPrecision(value, ccxt.ROUND, 8, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO)
-	result = ccxt.Replace(result, ".", "")
+	var padded string = this.DecimalToPrecision(value, ccxt.ROUND, 8, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO)
+	var digits string = strings.Replace(padded, ".", "", 1)
 	// remove leading zeros
-	result = this.ParseNumber(result)
-	result = ccxt.DerefScalar(this.NumberToString(result))
+	var result *string = this.NumberToString(this.ParseNumber(digits))
 	return result
 }
 func (this *Independentreserve) HandleDelta(bookside any, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "Price", "Volume")
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Independentreserve) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+func (this *Independentreserve) HandleDeltas(bookside any, deltas []any) {
+	for i := 0; i < len(deltas); i++ {
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Independentreserve) HandleHeartbeat(client any, message map[string]any) any {
+func (this *Independentreserve) HandleHeartbeat(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "Time": 1676156208182,
@@ -354,7 +364,7 @@ func (this *Independentreserve) HandleHeartbeat(client any, message map[string]a
 	//
 	return message
 }
-func (this *Independentreserve) HandleSubscriptions(client any, message map[string]any) any {
+func (this *Independentreserve) HandleSubscriptions(client any, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "Data": [ "ticker-btc-sgd" ],

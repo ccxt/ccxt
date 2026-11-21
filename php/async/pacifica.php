@@ -1306,21 +1306,21 @@ class pacifica extends Exchange {
             'symbol' => $market['id'],
             'interval' => $tf,
         );
-        $sinceValue = $since;
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $paramsPaginate);
-        if ($this->safe_integer($requestUntil, 'end_time') === null) {
-            if ($sinceValue === null) {
-                $sinceValue = $nowMs - $limitValue * $duration;
-            }
-            $windowEnd = $this->parse_to_int($this->sum($sinceValue - 1, $limitValue * $duration));
+        $untilEnd = $this->safe_integer($requestUntil, 'end_time');
+        $startTime = $this->parse_to_int($nowMs - $limitValue * $duration);
+        if ($untilEnd !== null) {
+            $startTime = $this->parse_to_int($untilEnd - $limitValue * $duration);
+        }
+        if ($since !== null) {
+            $startTime = $this->parse_to_int($since);
+        }
+        if ($untilEnd === null) {
+            $windowEnd = $this->parse_to_int($this->sum($startTime - 1, $limitValue * $duration));
             $until = ($windowEnd > $nowMs) ? $nowMs : $windowEnd;
             $requestUntil['end_time'] = $until;
-        } else {
-            if ($sinceValue === null) {
-                $sinceValue = $requestUntil['end_time'] - $limitValue * $duration;
-            }
         }
-        $requestUntil['start_time'] = $sinceValue;
+        $requestUntil['start_time'] = $startTime;
         $response = Async\await($this->publicGetKline($this->extend($requestUntil, $paramsUntil)));
         //
         // {
@@ -2622,11 +2622,10 @@ class pacifica extends Exchange {
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         $sorted = $this->sort_by($data, 'history_id', true);
         $lastIdx = count($sorted);
-        $lastInfo = array();
         if ($lastIdx > 0) {
-            $lastInfo = $sorted[0];
+            return $this->parse_order($sorted[0], $market);
         }
-        return $this->parse_order($lastInfo, $market);
+        return $this->parse_order(array(), $market);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -3924,7 +3923,7 @@ class pacifica extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -4013,7 +4012,7 @@ class pacifica extends Exchange {
         $signature = $this->sign_message($signatureHeader, $sigPayload, $this->privateKey);
         $finalHeaders = array( );
         list($agentAddress, $paramsAgentAddress) = $this->handle_option_string_and_params($paramsExpiryWindow, 'postActionRequest', 'agentAddress');
-        $originAddress = $this->handle_origin_and_single_address('postActionRequest', $paramsAgentAddress)[0];
+        list($originAddress) = $this->handle_origin_and_single_address('postActionRequest', $paramsAgentAddress);
         if ($originAddress === null) {
             throw new ArgumentsRequired($this->id . ' action => ' . $operationType . ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }

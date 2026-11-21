@@ -439,13 +439,13 @@ class polymarket extends polymarket$1["default"] {
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        const data = this.safeValue(message, 'data');
+        const dataList = this.safeList(message, 'data');
         let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
+        if (dataList !== undefined) {
+            rows = dataList;
         }
         else {
-            rows.push(data);
+            rows.push(this.safeValue(message, 'data'));
         }
         const rowsLength = rows.length;
         if (rowsLength === 0) {
@@ -798,13 +798,13 @@ class polymarket extends polymarket$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(message, 'data');
+        const dataList = this.safeList(message, 'data');
         let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
+        if (dataList !== undefined) {
+            rows = dataList;
         }
         else {
-            rows.push(data);
+            rows.push(this.safeValue(message, 'data'));
         }
         const rowsLength = rows.length;
         if (rowsLength === 0) {

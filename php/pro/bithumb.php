@@ -269,12 +269,8 @@ class bithumb extends \ccxt\async\bithumb {
         if ($marketId === null) {
             return;
         }
-        $symbol = null;
-        if ($isGenerationTwo) {
-            $symbol = $this->safe_symbol($marketId, null, '-');
-        } else {
-            $symbol = $this->safe_symbol($marketId, null, '_');
-        }
+        $delimiter = $isGenerationTwo ? '-' : '_';
+        $symbol = $this->safe_symbol($marketId, null, $delimiter);
         if ($symbol === null) {
             return;
         }

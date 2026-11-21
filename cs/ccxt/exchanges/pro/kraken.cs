@@ -727,7 +727,7 @@ public partial class kraken : ccxt.kraken
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         int ohlcvsLength = (data?.Count ?? 0);
         for (int i = 0; i < ohlcvsLength; i++)
@@ -1216,7 +1216,7 @@ public partial class kraken : ccxt.kraken
             for (int i = 0; i < (keys?.Count ?? 0); i++)
             {
                 string? key = ((string)keys[i]);
-                object bookside = getValue(orderbook, key);
+                object bookside = (orderbook != null && key != null && orderbook.ContainsKey(key) ? orderbook[key] : null);
                 List<object> deltas = this.safeList(first, key, new List<object>() {});
                 int deltasLength = deltas.Count;
                 if (deltasLength > 0)
@@ -1341,7 +1341,7 @@ public partial class kraken : ccxt.kraken
         Int64 now = this.seconds();
         Int64? start = this.safeInteger(subscription, "start");
         Int64? expires = this.safeInteger(subscription, "expires", -1);
-        bool expired = ((start != null)) && ((expires >= 0)) && ((start == null || start <= ((now - expires))));
+        bool expired = ((start != null)) && (expires >= 0) && ((start <= (now - expires)));
         if (((subscription == null)) || expired)
         {
             // single-flight leader election, see
@@ -1757,12 +1757,12 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, IList<object>? symbols = null, object subscriptionArgs = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // symbols are required
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         if ((symbolsNormalized == null))
         {
             return null;
@@ -1854,7 +1854,8 @@ public partial class kraken : ccxt.kraken
             this.balance = new Dictionary<string, object>() {};
         }
         this.balance[type] = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
+        IDictionary<string, object> balance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        balance["info"] = message;
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
@@ -1863,14 +1864,14 @@ public partial class kraken : ccxt.kraken
             Dictionary<string, object> account = this.account();
             string? eq = this.safeString(data[i], "balance");
             account["total"] = eq;
-            ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[code] = account;
+            balance[(string)code] = account;
         }
-        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        this.balance[type] = this.safeBalance(balance);
         string? channel = this.safeString(message, "channel");
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
     }
 
-    public virtual string? getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)
+    public virtual string? getMessageHash(string unifiedElementName, object subChannelName = null, object symbol = null)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
@@ -1987,7 +1988,7 @@ public partial class kraken : ccxt.kraken
         if ((errorMessage != null))
         {
             string? requestId = this.safeString2(message, "reqid", "req_id");
-            object broad = getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "broad");
+            object broad = (this.exceptionsWs != null && this.exceptionsWs.ContainsKey("broad") ? this.exceptionsWs["broad"] : null);
             string? broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
             object exception = null;
             if ((broadKey == null))

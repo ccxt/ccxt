@@ -880,7 +880,7 @@ class BaseExchange(SyncExchange):
     async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchLongShortRatioHistory() is not supported yet')
 
-    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params: dict = {}):
+    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         fetches the history of margin added or reduced from contract isolated positions
         :param str [symbol]: unified market symbol
@@ -1033,7 +1033,8 @@ class BaseExchange(SyncExchange):
                 self.set_last_request(request)
                 response = await self.fetch(request['url'], request['method'], request['headers'], request['body'])
                 if fetchData is not None:
-                    fetchData['response']['body'] = response
+                    responseData = {'body': response}
+                    fetchData['response'] = responseData
                     self.add_fetch_cache(fetchData)
                 return response
             except Exception as e:
@@ -1445,7 +1446,7 @@ class BaseExchange(SyncExchange):
                     response = await getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
+                        backwardMessage = 'Dynamic pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
@@ -1467,7 +1468,7 @@ class BaseExchange(SyncExchange):
                     response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
+                        forwardMessage = 'Dynamic pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
@@ -1659,8 +1660,7 @@ class BaseExchange(SyncExchange):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + 1)
-                    incrementalMessage = 'Incremental pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength)
+                    incrementalMessage = 'Incremental pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
                     shouldBreak = True
@@ -2146,10 +2146,10 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     async def fetch_rest_order_book_safe(self, symbol: object, limit: Int = None, params: dict = {}):
-        fetchSnapshotMaxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
+        fetchSnapshotMaxRetries, fetchParams = self.handle_option_integer_and_params(params, 'watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
-                orderBook = await self.fetch_order_book(symbol, limit, params)
+                orderBook = await self.fetch_order_book(symbol, limit, fetchParams)
                 return orderBook
             except Exception as e:
                 if (i + 1) == fetchSnapshotMaxRetries:

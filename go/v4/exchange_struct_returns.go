@@ -1297,8 +1297,17 @@ func MarketInterfaceToMap(mi MarketInterface) map[string]any {
 	m["quote"] = m["quoteCurrency"]
 	delete(m, "baseCurrency")
 	delete(m, "quoteCurrency")
+	// an absent symbol / base / quote is "" on the struct and nil in the map form
+	for _, k := range []string{"symbol", "base", "quote"} {
+		if m[k] == "" {
+			m[k] = nil
+		}
+	}
 	if mi.Quanto == nil {
 		delete(m, "quanto")
+	}
+	if mi.MarketId == nil {
+		delete(m, "marketId")
 	}
 	return m
 }

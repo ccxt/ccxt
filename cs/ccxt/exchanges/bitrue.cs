@@ -423,8 +423,8 @@ public partial class bitrue : Exchange
                         { "taker", this.parseNumber("0.000400") },
                         { "maker", this.parseNumber("0.000200") },
                         { "tiers", new Dictionary<string, object>() {
-                            { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.000350")}, new List<object> {this.parseNumber("7500"), this.parseNumber("0.000320")}, new List<object> {this.parseNumber("22500"), this.parseNumber("0.000300")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.000270")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.000250")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.000220")}, new List<object> {this.parseNumber("400000"), this.parseNumber("0.000200")}, new List<object> {this.parseNumber("750000"), this.parseNumber("0.000170")}} },
-                            { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.000200")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.000160")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.000140")}, new List<object> {this.parseNumber("7500"), this.parseNumber("0.000120")}, new List<object> {this.parseNumber("22500"), this.parseNumber("0.000100")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.000080")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.000060")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.000040")}, new List<object> {this.parseNumber("400000"), this.parseNumber("0.000020")}, new List<object> {this.parseNumber("750000"), this.parseNumber("0")}} },
+                            { "taker", new List<object>() {new List<object> {0.0, 0.000400}, new List<object> {250.0, 0.000400}, new List<object> {2500.0, 0.000350}, new List<object> {7500.0, 0.000320}, new List<object> {22500.0, 0.000300}, new List<object> {50000.0, 0.000270}, new List<object> {100000.0, 0.000250}, new List<object> {200000.0, 0.000220}, new List<object> {400000.0, 0.000200}, new List<object> {750000.0, 0.000170}} },
+                            { "maker", new List<object>() {new List<object> {0.0, 0.000200}, new List<object> {250.0, 0.000160}, new List<object> {2500.0, 0.000140}, new List<object> {7500.0, 0.000120}, new List<object> {22500.0, 0.000100}, new List<object> {50000.0, 0.000080}, new List<object> {100000.0, 0.000060}, new List<object> {200000.0, 0.000040}, new List<object> {400000.0, 0.000020}, new List<object> {750000.0, 0.0}} },
                         } },
                     } },
                 } },
@@ -436,8 +436,8 @@ public partial class bitrue : Exchange
                         { "taker", this.parseNumber("0.000500") },
                         { "maker", this.parseNumber("0.000100") },
                         { "tiers", new Dictionary<string, object>() {
-                            { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.000500")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.000450")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.000400")}, new List<object> {this.parseNumber("7500"), this.parseNumber("0.000300")}, new List<object> {this.parseNumber("22500"), this.parseNumber("0.000250")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.000240")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.000240")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.000240")}, new List<object> {this.parseNumber("400000"), this.parseNumber("0.000240")}, new List<object> {this.parseNumber("750000"), this.parseNumber("0.000240")}} },
-                            { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.000100")}, new List<object> {this.parseNumber("250"), this.parseNumber("0.000080")}, new List<object> {this.parseNumber("2500"), this.parseNumber("0.000050")}, new List<object> {this.parseNumber("7500"), this.parseNumber("0.0000030")}, new List<object> {this.parseNumber("22500"), this.parseNumber("0")}, new List<object> {this.parseNumber("50000"), this.parseNumber("-0.000050")}, new List<object> {this.parseNumber("100000"), this.parseNumber("-0.000060")}, new List<object> {this.parseNumber("200000"), this.parseNumber("-0.000070")}, new List<object> {this.parseNumber("400000"), this.parseNumber("-0.000080")}, new List<object> {this.parseNumber("750000"), this.parseNumber("-0.000090")}} },
+                            { "taker", new List<object>() {new List<object> {0.0, 0.000500}, new List<object> {250.0, 0.000450}, new List<object> {2500.0, 0.000400}, new List<object> {7500.0, 0.000300}, new List<object> {22500.0, 0.000250}, new List<object> {50000.0, 0.000240}, new List<object> {100000.0, 0.000240}, new List<object> {200000.0, 0.000240}, new List<object> {400000.0, 0.000240}, new List<object> {750000.0, 0.000240}} },
+                            { "maker", new List<object>() {new List<object> {0.0, 0.000100}, new List<object> {250.0, 0.000080}, new List<object> {2500.0, 0.000050}, new List<object> {7500.0, 0.0000030}, new List<object> {22500.0, 0.0}, new List<object> {50000.0, -0.000050}, new List<object> {100000.0, -0.000060}, new List<object> {200000.0, -0.000070}, new List<object> {400000.0, -0.000080}, new List<object> {750000.0, -0.000090}} },
                         } },
                     } },
                 } },
@@ -854,7 +854,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkDetails.Count; j++)
         {
-            object entry = networkDetails[j];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)networkDetails[j]);
             string? networkId = this.safeString(entry, "chain");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))
@@ -1654,7 +1654,7 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string? first = this.safeString(symbolsNormalized, 0);
         Dictionary<string, object> market = this.market(first);
         object response = null;
@@ -1727,7 +1727,7 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = new List<object>() {};
         IList<object> data = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -1741,7 +1741,7 @@ public partial class bitrue : Exchange
             } else if ((this.safeBool(market, "spot", false) == true))
             {
                 response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
-                data = this.toArray(response);
+                data = response;
             } else
             {
                 throw new NotSupported ((this.id + " fetchTickers only support spot & swap markets")) ;
@@ -1756,7 +1756,7 @@ public partial class bitrue : Exchange
                 throw new NotSupported ((this.id + " fetchTickers only support spot when symbols are not proved")) ;
             }
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, paramsMarketType));
-            data = this.toArray(response);
+            data = response;
         }
         //
         // spot
@@ -1885,7 +1885,8 @@ public partial class bitrue : Exchange
             side = isBuyer == true ? "buy" : "sell"; // this is a true side
         }
         Dictionary<string, object> fee = null;
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
+        string? commission = this.safeString(trade, "commission");
+        if ((commission != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeString2(trade, "commission", "fee") },
@@ -2044,22 +2045,25 @@ public partial class bitrue : Exchange
         string? filled = this.safeString(order, "executedQty");
         Int64? timestamp = null;
         Int64? lastTradeTimestamp = null;
-        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("time")))
+        Int64? time = this.safeInteger(order, "time");
+        Int64? transactTime = this.safeInteger(order, "transactTime");
+        Int64? updateTime = this.safeInteger(order, "updateTime");
+        if ((time != null))
         {
-            timestamp = this.safeInteger(order, "time");
-        } else if ((order != null && ((IDictionary<string, object>)order).ContainsKey("transactTime")))
+            timestamp = time;
+        } else if ((transactTime != null))
         {
-            timestamp = this.safeInteger(order, "transactTime");
-        } else if ((order != null && ((IDictionary<string, object>)order).ContainsKey("updateTime")))
+            timestamp = transactTime;
+        } else if ((updateTime != null))
         {
             if (status == "open")
             {
                 if (Precise.stringGt(filled, "0"))
                 {
-                    lastTradeTimestamp = this.safeInteger(order, "updateTime");
+                    lastTradeTimestamp = updateTime;
                 } else
                 {
-                    timestamp = this.safeInteger(order, "updateTime");
+                    timestamp = updateTime;
                 }
             }
         }
@@ -3045,10 +3049,10 @@ public partial class bitrue : Exchange
         string? txid = this.safeString(transaction, "txid");
         Int64? timestamp = this.safeInteger(transaction, "createdAt");
         Int64? updated = this.safeInteger(transaction, "updatedAt");
-        bool payAmount = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("payAmount")));
-        bool ctime = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("ctime")));
+        string? payAmount = this.safeString(transaction, "payAmount");
+        string? ctime = this.safeString(transaction, "ctime");
         string type = "deposit";
-        if (payAmount || ctime)
+        if (((payAmount != null)) || ((ctime != null)))
         {
             type = "withdrawal";
         }
@@ -3533,7 +3537,7 @@ public partial class bitrue : Exchange
                     { "timestamp", this.nonce() },
                     { "recvWindow", recvWindow },
                 }, paramsOmitted));
-                string signature = this.hmac(this.encode(unsignedQuery), this.encode(this.secret), sha256);
+                string signature = this.hmac(unsignedQuery, this.secret, sha256);
                 string signedQuery = (((unsignedQuery + "&") + "signature=") + signature);
                 if (((method == "GET")) || ((method == "DELETE")))
                 {
@@ -3567,7 +3571,7 @@ public partial class bitrue : Exchange
                     {
                         signMessage = signMessage + ("?" + this.urlencode(paramsOmitted));
                     }
-                    string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
+                    string signature = this.hmac(signMessage, this.secret, sha256);
                     requestHeaders = new Dictionary<string, object>() {
                         { "X-CH-APIKEY", this.apiKey },
                         { "X-CH-SIGN", signature },
@@ -3581,7 +3585,7 @@ public partial class bitrue : Exchange
                     }, paramsOmitted);
                     requestBody = this.json(query);
                     signMessage = signMessage + requestBody;
-                    string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
+                    string signature = this.hmac(signMessage, this.secret, sha256);
                     requestHeaders = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },
                         { "X-CH-APIKEY", this.apiKey },
@@ -3617,7 +3621,7 @@ public partial class bitrue : Exchange
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         Int64? statusCode = this.parseToInt(code);
-        if ((statusCode >= 400))
+        if (statusCode >= 400)
         {
             if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
@@ -3652,7 +3656,7 @@ public partial class bitrue : Exchange
         string? message = this.safeString(errorResponse, "msg");
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.exceptionsExact, message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, ((this.id + " ") + message));
         }
         // checks against error codes
@@ -3673,7 +3677,7 @@ public partial class bitrue : Exchange
                 throw new DDoSProtection ((string)((this.id + " temporary banned: ") + (body))) ;
             }
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             throw new ExchangeError (feedback) ;
         }
         if (success != true)
@@ -3683,13 +3687,13 @@ public partial class bitrue : Exchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbol"))))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("limit"))))
         {
             Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
@@ -3697,7 +3701,7 @@ public partial class bitrue : Exchange
             {
                 object entry = byLimit[i];
                 Int64? threshold = this.safeInteger(entry, 0);
-                if ((limit != null) && (threshold != null) && (limit == null || limit <= threshold))
+                if ((limit != null) && (threshold != null) && limit.Value <= threshold.Value)
                 {
                     return this.safeNumber(entry, 1);
                 }

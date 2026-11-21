@@ -1918,7 +1918,7 @@ class foxbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction(mixed $transaction, ?array $currency = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         $cryptoDetails = $this->safe_dict($transaction, 'details_crypto');
         $address = $this->safe_string_2($cryptoDetails, 'receiving_address', 'destination_address');
         $sn = $this->safe_string($transaction, 'sn');
@@ -2077,12 +2077,11 @@ class foxbit extends Exchange {
             }
         }
         $requestBody = null;
-        if ($method === 'POST' || $method === 'PUT') {
-            $requestBody = $this->json($paramsOmitted);
-        }
         $bodyToSignature = '';
-        if ($requestBody !== null) {
-            $bodyToSignature = $requestBody;
+        if ($method === 'POST' || $method === 'PUT') {
+            $jsonBody = $this->json($paramsOmitted);
+            $requestBody = $jsonBody;
+            $bodyToSignature = $jsonBody;
         }
         $headersValue = array(
             'Content-Type' => 'application/json',

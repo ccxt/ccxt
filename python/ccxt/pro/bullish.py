@@ -103,7 +103,9 @@ class bullish(ccxt.async_support.bullish):
         cookies = {
             'JWT_COOKIE': token,
         }
-        self.options['ws']['cookies'] = cookies
+        wsDict = self.safe_dict(self.options, 'ws', {})
+        wsDict['cookies'] = cookies
+        self.options['ws'] = wsDict
         id = str(self.request_id())
         message = {
             'jsonrpc': '2.0',
@@ -629,10 +631,11 @@ class bullish(ccxt.async_support.bullish):
             data = self.safe_list(message, 'data', [])
             parsed = self.parseBalanceList(data)
             parsedKeys = list(parsed.keys())
+            balance = self.safe_dict(self.balance, tradingAccountId, {})
             for i in range(0, len(parsedKeys)):
                 parsedKey = parsedKeys[i]
-                self.balance[tradingAccountId][parsedKey] = parsed[parsedKey]
-            self.balance[tradingAccountId] = self.safe_balance(self.balance[tradingAccountId])
+                balance[parsedKey] = parsed[parsedKey]
+            self.balance[tradingAccountId] = self.safe_balance(balance)
         else:
             data = self.safe_dict(message, 'data', {})
             assetId = self.safe_string(data, 'assetSymbol')
@@ -640,10 +643,11 @@ class bullish(ccxt.async_support.bullish):
             account['total'] = self.safe_string(data, 'availableQuantity')
             account['used'] = self.safe_string(data, 'lockedQuantity')
             code = self.safe_currency_code(assetId)
-            if (tradingAccountId is not None) and (code is not None):
-                self.balance[tradingAccountId][code] = account
             self.balance[tradingAccountId]['info'] = message
-            self.balance[tradingAccountId] = self.safe_balance(self.balance[tradingAccountId])
+            deltaBalance = self.safe_dict(self.balance, tradingAccountId, {})
+            if (tradingAccountId is not None) and (code is not None):
+                deltaBalance[code] = account
+            self.balance[tradingAccountId] = self.safe_balance(deltaBalance)
         messageHash = 'balance'
         tradingAccountIdHash = '::' + tradingAccountId
         client.resolve(self.balance[tradingAccountId], messageHash)

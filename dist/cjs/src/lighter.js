@@ -443,9 +443,9 @@ class lighter extends lighter$1["default"] {
         }
     }
     getLighterPrivateKey(strAccountIndex, strApiKeyIndex) {
-        const auths = this.safeDict(this.options, 'auths');
-        const accountAuths = this.safeDict(auths, strAccountIndex);
-        const apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex);
+        const auths = this.safeDict(this.options, 'auths', {});
+        const accountAuths = this.safeDict(auths, strAccountIndex, {});
+        const apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex, {});
         return this.safeString(apiKeyAuths, 'lighterPrivateKey');
     }
     /**
@@ -524,7 +524,7 @@ class lighter extends lighter$1["default"] {
             // }
             //
             const subAccounts = this.safeList(res, 'sub_accounts');
-            if (Array.isArray(subAccounts)) {
+            if (subAccounts !== undefined) {
                 const account = this.safeDict(subAccounts, 0);
                 if (account === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter');
@@ -566,9 +566,9 @@ class lighter extends lighter$1["default"] {
             const res = this.handleOptionAndParams2({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeString(res, 0);
         }
-        const auths = this.safeDict(this.options, 'auths');
-        const accountAuths = this.safeDict(auths, accountIndex);
-        const cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
+        const auths = this.safeDict(this.options, 'auths', {});
+        const accountAuths = this.safeDict(auths, accountIndex, {});
+        const cachedAuth = this.safeDict(accountAuths, apiKeyIndex, {});
         const cachedDeadline = this.safeInteger(cachedAuth, 'deadline');
         const minimumRemaining = this.safeInteger(this.options, 'authDeadlineMinimumRemaining', 60);
         if ((cachedDeadline !== undefined) && (minimumRemaining !== undefined) && (cachedDeadline - minimumRemaining >= this.seconds())) {
@@ -617,8 +617,8 @@ class lighter extends lighter$1["default"] {
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -973,10 +973,10 @@ class lighter extends lighter$1["default"] {
                 }
             }
         }
-        let order = undefined;
-        if (totalOrderRequests > 0) {
-            order = orderRequests[0];
+        if (totalOrderRequests < 1) {
+            throw new errors.InvalidOrder(this.id + ' createOrder() built no order request');
         }
+        const order = orderRequests[0];
         // the nonce could be updated
         if (this.safeInteger(order, 'nonce') === undefined) {
             order['nonce'] = await this.fetchNonce(accountIndex, apiKeyIndex);
@@ -1890,11 +1890,11 @@ class lighter extends lighter$1["default"] {
         const result = { 'info': response };
         const accounts = this.safeList(response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
-            const account = this.safeDict(accounts, i);
+            const account = this.safeDict(accounts, i, {});
             if (type === 'spot') {
                 const assets = this.safeList(account, 'assets', []);
                 for (let j = 0; j < assets.length; j++) {
-                    const asset = this.safeDict(assets, j);
+                    const asset = this.safeDict(assets, j, {});
                     const codeId = this.safeString(asset, 'symbol');
                     const code = this.safeCurrencyCode(codeId);
                     const balance = this.extend(this.account(), this.safeDict(result, code, {}));
@@ -2006,7 +2006,7 @@ class lighter extends lighter$1["default"] {
         const allPositions = [];
         const accounts = this.safeList(response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
-            const account = this.safeDict(accounts, i);
+            const account = this.safeDict(accounts, i, {});
             const positions = this.safeList(account, 'positions', []);
             for (let j = 0; j < positions.length; j++) {
                 allPositions.push(positions[j]);

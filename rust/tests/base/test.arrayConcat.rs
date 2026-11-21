@@ -14,5 +14,5 @@ pub fn testArrayConcat() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testArrayConcat".into()).clone(), exchange.array_concat(Value::from(vec![Value::Str("b".into())]), Value::from(vec![Value::Str("a".into()), Value::Str("c".into())])).clone(), Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testArrayConcat".into()), exchange.array_concat(Value::from(vec![Value::Str("b".into())]), Value::from(vec![Value::Str("a".into()), Value::Str("c".into())])).clone(), Value::from(vec![Value::Str("b".into()), Value::Str("a".into()), Value::Str("c".into())])]);
 }

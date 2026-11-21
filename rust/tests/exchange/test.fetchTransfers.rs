@@ -10,17 +10,17 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTransfers(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTransfers".into());
-    let mut transfers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_transfers", vec![code.clone()]).await;
+    let method: Value = Value::Str("fetchTransfers".into());
+    let transfers: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_transfers", vec![code.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), transfers.clone(), code.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1603: bool = true;
-        while { if !__for_first_1603 { i += 1; } __for_first_1603 = false; i < (transfers.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (transfers.len() as i64) } {
         testTransfer(exchange.clone(), skippedProperties.clone(), method.clone(), transfers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone());
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code.clone(), transfers.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code, transfers]);
     return Value::Bool(true);
 
     Value::Null

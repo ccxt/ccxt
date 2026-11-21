@@ -451,11 +451,11 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan AsyncResult[Currency], id any, 
 		"currency": id,
 	}
 
-	r := <-this.PrivateGetWithdrawsChance(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PrivateGetWithdrawsChance(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "member_level": {
@@ -494,9 +494,9 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan AsyncResult[Currency], id any, 
 	//         }
 	//     }
 	//
-	var memberInfo map[string]any = SafeMapTyped(response, "member_level")
-	var currencyInfo map[string]any = SafeMapTyped(response, "currency")
-	var withdrawLimits map[string]any = SafeMapTyped(response, "withdraw_limit")
+	var memberInfo, _ = response["member_level"].(map[string]any)
+	var currencyInfo, _ = response["currency"].(map[string]any)
+	var withdrawLimits, _ = response["withdraw_limit"].(map[string]any)
 	var canWithdraw *bool = this.SafeBool(withdrawLimits, "can_withdraw")
 	var walletState *string = this.SafeString(currencyInfo, "wallet_state")
 	var walletLocked *bool = this.SafeBool(memberInfo, "wallet_locked")
@@ -524,7 +524,7 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan AsyncResult[Currency], id any, 
 	var code *string = this.SafeCurrencyCode(currencyId)
 
 	ch <- AsyncResult[Currency]{Value: CurrencyFromMap(map[string]any{
-		"info":      response,
+		"info":      responseReply.Raw,
 		"id":        currencyId,
 		"code":      code,
 		"name":      code,
@@ -584,11 +584,11 @@ func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[MarketInterface], id 
 		"market": id,
 	}
 
-	r := <-this.PrivateGetOrdersChance(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PrivateGetOrdersChance(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "bid_fee": "0.0015",
@@ -621,9 +621,9 @@ func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[MarketInterface], id 
 	//         }
 	//     }
 	//
-	var marketInfo map[string]any = SafeMapTyped(response, "market")
-	var bid map[string]any = SafeMapTyped(marketInfo, "bid")
-	var ask map[string]any = SafeMapTyped(marketInfo, "ask")
+	var marketInfo, _ = response["market"].(map[string]any)
+	var bid, _ = marketInfo["bid"].(map[string]any)
+	var ask, _ = marketInfo["ask"].(map[string]any)
 	var marketId *string = this.SafeString(marketInfo, "id")
 	var baseId *string = this.SafeString(ask, "currency")
 	var quoteId *string = this.SafeString(bid, "currency")
@@ -685,7 +685,7 @@ func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[MarketInterface], id 
 				"min": this.SafeNumber(bid, "min_total"),
 				"max": this.SafeNumber(marketInfo, "max_total"),
 			},
-			"info": response,
+			"info": responseReply.Raw,
 		},
 	}))}
 	return nil
@@ -743,8 +743,8 @@ func (this *Upbit) ParseMarket(market any) map[string]any {
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
-	var tradingFeesByQuoteCurrency map[string]any = SafeMapTyped(this.Options, "tradingFeesByQuoteCurrency")
-	var tradingFees map[string]any = SafeMapTyped(this.Fees, "trading")
+	var tradingFeesByQuoteCurrency, _ = this.Options["tradingFeesByQuoteCurrency"].(map[string]any)
+	var tradingFees, _ = this.Fees["trading"].(map[string]any)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         *base + "/" + *quote,
@@ -797,14 +797,14 @@ func (this *Upbit) ParseMarket(market any) map[string]any {
 		"info":    market,
 	})
 }
-func (this *Upbit) ParseBalanceList(response any) map[string]any {
+func (this *Upbit) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+	for i := 0; i < len(response); i++ {
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -901,17 +901,19 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 	var ids *string = nil
 	if symbols == nil {
 		if this.Ids != nil {
-			ids = SafeStringPtr(Join(this.Ids, ","))
+			idsStr := strings.Join(this.Ids, ",")
+			ids = &idsStr
 		}
 	} else {
 		var marketIds []string = this.MarketIdsStrings(symbols)
-		ids = SafeStringPtr(strings.Join(marketIds, ","))
+		idsStr2 := strings.Join(marketIds, ",")
+		ids = &idsStr2
 	}
 	var request map[string]any = map[string]any{
 		"markets": ids,
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	responseRecv := <-this.PublicGetOrderbook(this.Extend(request, params))
@@ -950,7 +952,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 	var result map[string]any = map[string]any{}
 	var orderbooks []any = this.ToArray(response)
 	for i := 0; i < len(orderbooks); i++ {
-		var orderbook map[string]any = SafeMapTyped(orderbooks, i)
+		var orderbook, _ = orderbooks[i].(map[string]any)
 		var marketId *string = this.SafeString(orderbook, "market")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
@@ -998,10 +1000,10 @@ func (this *Upbit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orderbooks map[string]any = StructResultMap(r.Value, OrderBookMapToMap)
-	var orderbook map[string]any = SafeMapTyped(orderbooks, symbol)
+	var orderbooks map[string]OrderBook = r.Value
+	var orderbook OrderBook = orderbooks[symbol]
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
+	ch <- AsyncResult[OrderBook]{Value: orderbook}
 	return nil
 }
 func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1096,14 +1098,14 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var tickers any = []any{}
+	var tickers []any = []any{}
 	if symbolsNormalized == nil {
 		// ticker/all returns every market of the requested quote currencies with a single request
 		var quoteIds []any = []any{}
 		var marketSymbols []string = this.Symbols
 		for i := 0; i < len(marketSymbols); i++ {
-			var market map[string]any = this.Market(marketSymbols[i])
-			var quoteId *string = SafeStringPtr(market["quoteId"])
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(marketSymbols[i]))
+			var quoteId *string = market.QuoteId
 			if !this.InArray(quoteId, quoteIds) {
 				quoteIds = append(quoteIds, quoteId)
 			}
@@ -1120,13 +1122,13 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 			"quote_currencies": quoteCurrencies,
 		}
 
-		r1 := <-this.PublicGetTickerAll(this.Extend(request, params))
-		if r1.Err != nil {
-			panic(r1.Err)
+		tickersRecv := <-this.PublicGetTickerAll(this.Extend(request, params))
+		if tickersRecv.Err != nil {
+			panic(tickersRecv.Err)
 		}
-		tickers = r1.Raw
+		tickers = tickersRecv.Value
 	} else {
-		var ids any = this.MarketIds(symbolsNormalized)
+		var ids []string = this.MarketIds(symbolsNormalized)
 		var promises []any = []any{}
 		var queries []any = this.IdsQueryStrings(ids) // the url is limited to about 8000 characters once the commas are percent-encoded
 		for i := 0; i < len(queries); i++ {
@@ -1135,11 +1137,11 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 			}, params)))
 		}
 
-		r2 := <-promiseAll(promises)
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-promiseAll(promises)
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		var responses []any = ListTyped(r2.Value)
+		var responses []any = r1.Value
 		tickers = this.ArraysConcat(responses)
 	}
 
@@ -1174,14 +1176,14 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
 	return nil
 }
-func (this *Upbit) IdsQueryStrings(ids any) []any {
+func (this *Upbit) IdsQueryStrings(ids []string) []any {
 	var idsString string = ""
 	var queries []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	for i := 0; i < len(ids); i++ {
 		if idsString != "" {
 			idsString = idsString + ","
 		}
-		idsString = idsString + *this.SafeString(ids, i, "")
+		idsString = idsString + ids[i]
 		if len(idsString) >= 4000 {
 			queries = append(queries, idsString)
 			idsString = ""
@@ -1218,10 +1220,10 @@ func (this *Upbit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var tickers map[string]any = StructResultMap(r.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbol)
+	var tickers map[string]Ticker = r.Value
+	var ticker Ticker = tickers[symbol]
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1264,9 +1266,11 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = nil
 	var askOrBid *string = this.SafeStringLower2(trade, "ask_bid", "side", "")
 	if askOrBid != nil && *askOrBid == "ask" {
-		side = SafeStringPtr("sell")
+		sideStr := "sell"
+		side = &sideStr
 	} else if askOrBid != nil && *askOrBid == "bid" {
-		side = SafeStringPtr("buy")
+		sideStr2 := "buy"
+		side = &sideStr2
 	}
 	var cost *string = this.SafeString(trade, "funds")
 	var price *string = this.SafeString2(trade, "trade_price", "price")
@@ -1310,12 +1314,12 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Upbit) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Upbit) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Upbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1402,16 +1406,19 @@ func (this *Upbit) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 
-	r1 := <-this.PrivateGetOrdersChance(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetOrdersChance(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "bid_fee": "0.0005",
@@ -1454,7 +1461,7 @@ func (this *Upbit) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 	var maker *string = Precise.StringMax(makerAskFee, makerBidFee)
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     symbol,
 		"maker":      this.ParseNumber(maker),
 		"taker":      this.ParseNumber(taker),
@@ -1587,7 +1594,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	var response []any = nil
 	if since != nil {
 		// convert `since` to `to` value
-		request["to"] = this.Iso8601(this.Sum(since, (timeframePeriod*limitResolved)*1000))
+		request["to"] = this.Iso8601(*since + (timeframePeriod*limitResolved)*1000)
 	}
 	if timeframeValue != nil && *timeframeValue == "minutes" {
 		var numMinutes float64 = math.Round(float64(timeframePeriod) / 60)
@@ -1641,7 +1648,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limitResolved))}
 	return nil
 }
-func (this *Upbit) CalcOrderPrice(symbol any, optionalArgs ...any) any {
+func (this *Upbit) CalcOrderPrice(symbol string, optionalArgs ...any) any {
 	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -1713,7 +1720,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "ordType", "ord_type")
 	var postOnly bool = this.IsPostOnly((typeVar == "market"), false, params)
@@ -1732,8 +1739,11 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		panic(InvalidOrder(this.Id + " createOrder() supports only buy or sell in the side argument."))
 	}
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
 		"side":   orderSide,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if typeVar == "limit" {
 		if (price == nil) || IsEqual(amount, nil) {
@@ -1757,12 +1767,12 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	} else {
 		panic(InvalidOrder(this.Id + " createOrder() supports only limit or market types in the type argument."))
 	}
-	var paramsOrdType map[string]any = func() map[string]any {
-		if customType != nil && *customType == "best" {
-			return this.OmitDict(params, []any{"ordType", "ord_type"})
-		}
-		return params
-	}()
+	var paramsOrdType map[string]any
+	if customType != nil && *customType == "best" {
+		paramsOrdType = this.OmitDict(params, []any{"ordType", "ord_type"})
+	} else {
+		paramsOrdType = params
+	}
 	if customType != nil && *customType == "best" {
 		request["ord_type"] = "best"
 		if side == "buy" {
@@ -1793,7 +1803,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a timeInForce parameter for best type orders"))
 	}
 	var response map[string]any = nil
-	var paramsRequest any = this.Omit(paramsOrdType, []any{"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"})
+	var paramsRequest map[string]any = this.OmitDict(paramsOrdType, []any{"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"})
 	if test != nil && *test {
 
 		r1 := <-this.PrivatePostOrdersTest(this.Extend(request, paramsRequest))
@@ -1918,12 +1928,12 @@ func (this *Upbit) cancelOrderBody(ch chan AsyncResult[Order], id string, option
  * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Upbit) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Upbit) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1943,7 +1953,7 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	var prevClientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "newOrdType", "new_ord_type")
 	var clientOrderId *string = this.SafeString(params, "newClientOrderId")
-	var postOnly bool = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
+	var postOnly bool = this.IsPostOnly((typeVar == "market"), false, params)
 	var timeInForce *string = this.SafeStringLower2(params, "newTimeInForce", "new_time_in_force")
 	var selfTradePrevention *string = this.SafeString2(params, "selfTradePrevention", "new_smp_type")
 	if postOnly && (selfTradePrevention != nil) {
@@ -1957,15 +1967,15 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	} else {
 		panic(ArgumentsRequired(this.Id + " editOrder() is required id or clientOrderId."))
 	}
-	if IsEqual(typeVar, "limit") {
+	if typeVar == "limit" {
 		if (price == nil) || (amount == nil) {
 			panic(ArgumentsRequired(this.Id + " editOrder() is required price and amount to create limit type order."))
 		}
 		request["new_ord_type"] = "limit"
 		request["new_price"] = this.PriceToPrecision(symbol, price)
 		request["new_volume"] = this.AmountToPrecision(symbol, amount)
-	} else if IsEqual(typeVar, "market") {
-		if IsEqual(side, "buy") {
+	} else if typeVar == "market" {
+		if side == "buy" {
 			request["new_ord_type"] = "price"
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, paramsOmitted)
 			request["new_price"] = orderPrice
@@ -1979,15 +1989,15 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	} else {
 		panic(InvalidOrder(this.Id + " editOrder() supports only limit or market types in the type argument."))
 	}
-	var paramsOrdType map[string]any = func() map[string]any {
-		if customType != nil && *customType == "best" {
-			return this.OmitDict(paramsOmitted, []any{"newOrdType", "new_ord_type"})
-		}
-		return paramsOmitted
-	}()
+	var paramsOrdType map[string]any
+	if customType != nil && *customType == "best" {
+		paramsOrdType = this.OmitDict(paramsOmitted, []any{"newOrdType", "new_ord_type"})
+	} else {
+		paramsOrdType = paramsOmitted
+	}
 	if customType != nil && *customType == "best" {
 		request["new_ord_type"] = "best"
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, paramsOrdType)
 			request["new_price"] = orderPrice
 		} else {
@@ -2017,7 +2027,7 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	if (this.SafeString(request, "new_ord_type") != nil && *this.SafeString(request, "new_ord_type") == "best") && (timeInForce == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a timeInForce parameter for best type orders"))
 	}
-	var paramsRequest any = this.Omit(paramsOrdType, []any{"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"})
+	var paramsRequest map[string]any = this.OmitDict(paramsOrdType, []any{"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"})
 	// console.log ('check the each request paramsOmitted: ', request);
 
 	r1 := <-this.PrivatePostOrdersCancelAndNew(this.Extend(request, paramsRequest))
@@ -2097,7 +2107,7 @@ func (this *Upbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default is 100
+		request["limit"] = *limit // default is 100
 	}
 
 	responseRecv := <-this.PrivateGetDeposits(this.Extend(request, params))
@@ -2233,7 +2243,7 @@ func (this *Upbit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit // default is 100
+		request["limit"] = *limit // default is 100
 	}
 
 	responseRecv := <-this.PrivateGetWithdraws(this.Extend(request, params))
@@ -2379,7 +2389,8 @@ func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "created_at", updatedRaw))
 	var typeVar *string = this.SafeString(transaction, "type")
 	if typeVar != nil && *typeVar == "withdraw" {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 	}
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -2496,9 +2507,11 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var id *string = this.SafeString(order, "uuid")
 	var side *string = this.SafeStringLower(order, "side")
 	if side != nil && *side == "bid" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "ask" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var identifier *string = this.SafeString(order, "identifier")
 	var typeVar *string = this.SafeString(order, "ord_type")
@@ -2511,7 +2524,8 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var filled *string = this.SafeString(order, "executed_volume")
 	var cost *string = nil
 	if typeVar != nil && *typeVar == "price" {
-		typeVar = SafeStringPtr("market")
+		typeVarStr := "market"
+		typeVar = &typeVarStr
 		cost = price
 		price = nil
 	}
@@ -2532,9 +2546,11 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 		var getFeesFromTrades bool = false
 		if feeCost == nil {
 			getFeesFromTrades = true
-			feeCost = SafeStringPtr("0")
+			feeCostStr := "0"
+			feeCost = &feeCostStr
 		}
-		cost = SafeStringPtr("0")
+		costStr := "0"
+		cost = &costStr
 		for i := 0; i < numTrades; i++ {
 			var trade map[string]any = SafeMapTyped(trades, i)
 			cost = Precise.StringAdd(cost, this.SafeString(trade, "cost"))
@@ -2622,7 +2638,7 @@ func (this *Upbit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
@@ -2702,10 +2718,10 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["market"] = market["id"]
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
@@ -2787,10 +2803,10 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optiona
 		request["market"] = market["id"]
 	}
 	if since != nil {
-		request["start_time"] = since
+		request["start_time"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
@@ -3080,9 +3096,12 @@ func (this *Upbit) createDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	// https://github.com/ccxt/ccxt/issues/6452
 
@@ -3128,12 +3147,12 @@ func (this *Upbit) createDepositAddressBody(ch chan AsyncResult[DepositAddress],
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Upbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Upbit) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3146,7 +3165,7 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"amount": amount,
 	}
@@ -3160,7 +3179,10 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		}
 		var paramsOmitted map[string]any = this.OmitDict(paramsTag, []any{"network"})
 		request["net_type"] = network
-		request["currency"] = currency["id"]
+		request["currency"] = nil
+		if currency.Id != nil {
+			request["currency"] = *currency.Id
+		}
 		request["address"] = address
 		if tagResolved != nil {
 			request["secondary_address"] = *tagResolved
@@ -3246,24 +3268,24 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) map[string]any {
 			auth = this.Rawencode(query)
 		}
 		if auth != nil {
-			var hash any = this.Hash(this.Encode(auth), sha512)
+			var hash string = this.HashString(this.Encode(auth), sha512, "hex")
 			request["query_hash"] = hash
 			request["query_hash_alg"] = "SHA512"
 		}
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		headers["Authorization"] = "Bearer " + token
 	}
-	return map[string]any{
+	var literal247915 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
-		"headers": func() any {
-			if apiName == "private" {
-				return headers
-			}
-			return nil
-		}(),
 	}
+	if apiName == "private" {
+		literal247915["headers"] = headers
+	} else {
+		literal247915["headers"] = nil
+	}
+	return literal247915
 }
 func (this *Upbit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

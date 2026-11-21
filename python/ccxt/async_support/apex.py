@@ -1248,24 +1248,22 @@ class apex(Exchange, ImplicitAPI):
             if (self.markets is not None) and (marketId in self.markets):
                 marketResolved = self.markets[marketId]
             elif (self.markets_by_id is not None) and (marketId in self.markets_by_id):
-                marketResolved = self.markets_by_id[marketId]
+                marketResolved = self.safe_dict(self.markets_by_id[marketId], 0)
             else:
                 newMarketId = self.add_hyphen_before_usdt(marketId)
                 if (self.markets_by_id is not None) and (newMarketId in self.markets_by_id):
                     markets = self.markets_by_id[newMarketId]
                     numMarkets = len(markets)
-                    if numMarkets > 0:
-                        if markets[0]['id2'] == marketId:
-                            marketResolved = markets[0]
+                    for i in range(0, numMarkets):
+                        if (i == 0) and (markets[i]['id2'] == marketId):
+                            marketResolved = markets[i]
         return super(apex, self).safe_market(marketId, marketResolved, delimiter, marketType)
 
     def generate_random_client_id_omni(self, _accountId: Str) -> str:
-        accountId = ''
+        suffix = '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
         if (_accountId is not None) and (_accountId != ''):
-            accountId = _accountId
-        else:
-            accountId = str(self.rand_number(12))
-        return 'apexomni-' + accountId + '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
+            return 'apexomni-' + _accountId + suffix
+        return 'apexomni-' + str(self.rand_number(12)) + suffix
 
     def add_hyphen_before_usdt(self, symbol: str) -> str:
         uppercaseSymbol = symbol.upper()

@@ -29,7 +29,7 @@ pub fn testCryptography() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(hmac(encode(Value::Str("hello".into())), encode(Value::Str("there".into())), Value::Str("sha256".into()), Value::Str("hex".into())).as_str() == Some("551e1c1ecbce0fe9b643745a376584a6289f5f43a46861b315fac9edc8d52a26")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(hmac(encode(Value::Str("a message".into())), encode(Value::Str("a secret".into())), Value::Str("md5".into()), Value::Str("hex".into())).as_str() == Some("0bfa503bdbc7358185fcd49b4869e23d")))));
     // ---------------------------------------------------------------------------------------------------------------------
-    let mut privateKey: Value = Value::Str("1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a".into());
+    let privateKey: Value = Value::Str("1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a".into());
     assert!(ccxt::runtime::is_true(&(equals(Value::Dict(ecdsa(Value::Str("1a".into()), privateKey.clone(), Value::Str("secp256k1".into()), Value::Str("sha256".into()))), Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("r".to_string(), Value::Str("23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f".into()));
@@ -37,7 +37,7 @@ pub fn testCryptography() {
             m.insert("v".to_string(), Value::Int(0));
         m
     })))));
-    assert!(ccxt::runtime::is_true(&(equals(Value::Dict(ecdsa(privateKey.clone(), privateKey.clone(), Value::Str("secp256k1".into()), Value::Null)), Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(Value::Dict(ecdsa(privateKey.clone(), privateKey, Value::Str("secp256k1".into()), Value::Null)), Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("r".to_string(), Value::Str("b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1".into()));
             m.insert("s".to_string(), Value::Str("66ebfb8221cda925526e699a59cd221bb4cc84bdc563024b1802c4d9e1d8bbe9".into()));
@@ -61,14 +61,14 @@ pub fn testCryptography() {
     // }))));
     //
     // ---------------------------------------------------------------------------------------------------------------------
-    let mut pemKeyArray: Value = Value::from(vec![Value::Str("-----BEGIN RSA PRIVATE KEY-----".into()), Value::Str("MIIEpAIBAAKCAQEAqUtXQXv2uSm9zPvdJTRpu5/65rBjAoHmIiowAs+u7fY0QP9O".into()), Value::Str("+T8CZRQjvZrfPomBiccjCxDo8mm7GkmL67rs9s7VOMQFvpTTtMBeglNSEbXJ3wTt".into()),
-        Value::Str("7WM5gD3ZAbhfGtwWdGpcOMX0hV5/d/fiw1zQk0+AooayTryZ7HV+DQcD1sGTYYir".into()), Value::Str("LePUGkKV2NCvKtGOQfRAtuo0ccigMxMvEhWuExCc9Fhd077OpXMc0n7OiFqA2JWN".into()), Value::Str("jlocM9S71Srvw/lDos8a7lGaFUV8gP1CsQY/4qTju6hhsRd4lFujVr5J9FqmDbnv".into()), Value::Str("wQ79SSu6+lT0+ToFdDHiYOorBK2ESFR7EzlyLwIDAQABAoIBAEobQMbZjNbg/sSM".into()),
-        Value::Str("O/HdT6tiDGKPM8gVNLgf34RbhSeFbrpFCDzy6Al3F24YLUEi0CGPmjdt34q93blU".into()), Value::Str("GHvIB5LCV3PR2vHiFAo7ayOBdZtrCEMn1T7lAHaynBu0qW0IiovLQzNW9AKtqv7I".into()), Value::Str("8+qw5lyVoKmEbOkqhfaMN/Fb8MJAo3yEVyhyp4EjtFhqDQ9DuHEjp1jGthnMgm+4".into()), Value::Str("qFyELf0DXZSAN+R9IGDqWPyo78lOcPW4pgeLuoLQ6Nn/2JAEGHFt1a7zMEw5yYbR".into()),
-        Value::Str("XB89Bh0dheSmopBN6Heay4YuhnNKua37OlL1/nhKpLGUNE3z/UOXeiUiMeE1C2i+".into()), Value::Str("GjK+xgECgYEA4XH63rJ3VYDHHWUGlWffFWkEpgR4BDEkZ8MyVYQoUjQA2TpCvQ2+".into()), Value::Str("bR7aAIGXhBnRTrIBNu9m4+am0aUfi1hVmVHqt1b2vFgEb9uKuO4U62tCFpeji+Rz".into()), Value::Str("8C8QJyu5v5OUWdQZ4EA0d7ljeoTl50g8tpcGsDhnImLt+/jvJuFt8dECgYEAwD0n".into()),
-        Value::Str("rhlkEjKVHxu1xwKeczxYCqqcUV9Quq8HnPh4VJQ77ljfZ57V7sAKrFDi5XfVD9jS".into()), Value::Str("oJPwxjw6za134VobhdvCM6WNs6AJmbR8E/b5kDMbGaZn27vt+/8JfnGaWBqpDi6W".into()), Value::Str("a5xoJOqmcMBQBK1YleZDoY4PLbk+onVKLMfGI/8CgYEAkyUIv8euGdGWpHnm5SdJ".into()), Value::Str("tLi5vv4Vs267uzntJWG/y3+DukTLgIdy7dgAI+pxkVgkg/+syUVSW5eU9CqZPyLl".into()),
-        Value::Str("o8+Sqh2Jp36vTq71iSRj5RA5r3ND3K+8eFzPZzGj6AWUA1lrljFxzV7kLfiF8gH1".into()), Value::Str("FpvWUrhNoGT/vcFJno/uabECgYAecRC5hxfLserfVDoC261PvjyK492BHUDhbxob".into()), Value::Str("h1U2v4qGAdjOxd5Gwm5uPxjPEZzRt5oTB5pXKe5953xWWTiGh/hGyW6ZBTy/9E65".into()), Value::Str("sqBub0lZVHqZ1zamcwqD1WWFkiM3NbVoMQpk3iuhKzMAqpqekiofiSlqKi16+GvY".into()),
-        Value::Str("j4IW7QKBgQCrIUckPZ6IY3ERIN1IL4TIcK2gOJcznp7fLWpC+sv35ya3OhtDXKFt".into()), Value::Str("GjIHmwLuiUNc0iPzA9Rw89W0zIkKWmWcxM88/ithdxh3MEeNDUGSnd4hQ9SECwxB".into()), Value::Str("Wem3eBT7I4VtFYoaTE3/bX1SKfgBdTzIRqWKSDpgBNZg/P2Tc+s11g==".into()), Value::Str("-----END RSA PRIVATE KEY-----".into())]);
-    let mut pemKey: Value = Value::Str(pemKeyArray.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into());
+    let pemKeyArray: Value = Value::from(vec![Value::Str("-----BEGIN RSA PRIVATE KEY-----".into()), Value::Str("MIIEpAIBAAKCAQEAqUtXQXv2uSm9zPvdJTRpu5/65rBjAoHmIiowAs+u7fY0QP9O".into()), Value::Str("+T8CZRQjvZrfPomBiccjCxDo8mm7GkmL67rs9s7VOMQFvpTTtMBeglNSEbXJ3wTt".into()), Value::Str("7WM5gD3ZAbhfGtwWdGpcOMX0hV5/d/fiw1zQk0+AooayTryZ7HV+DQcD1sGTYYir".into()),
+        Value::Str("LePUGkKV2NCvKtGOQfRAtuo0ccigMxMvEhWuExCc9Fhd077OpXMc0n7OiFqA2JWN".into()), Value::Str("jlocM9S71Srvw/lDos8a7lGaFUV8gP1CsQY/4qTju6hhsRd4lFujVr5J9FqmDbnv".into()), Value::Str("wQ79SSu6+lT0+ToFdDHiYOorBK2ESFR7EzlyLwIDAQABAoIBAEobQMbZjNbg/sSM".into()), Value::Str("O/HdT6tiDGKPM8gVNLgf34RbhSeFbrpFCDzy6Al3F24YLUEi0CGPmjdt34q93blU".into()),
+        Value::Str("GHvIB5LCV3PR2vHiFAo7ayOBdZtrCEMn1T7lAHaynBu0qW0IiovLQzNW9AKtqv7I".into()), Value::Str("8+qw5lyVoKmEbOkqhfaMN/Fb8MJAo3yEVyhyp4EjtFhqDQ9DuHEjp1jGthnMgm+4".into()), Value::Str("qFyELf0DXZSAN+R9IGDqWPyo78lOcPW4pgeLuoLQ6Nn/2JAEGHFt1a7zMEw5yYbR".into()), Value::Str("XB89Bh0dheSmopBN6Heay4YuhnNKua37OlL1/nhKpLGUNE3z/UOXeiUiMeE1C2i+".into()),
+        Value::Str("GjK+xgECgYEA4XH63rJ3VYDHHWUGlWffFWkEpgR4BDEkZ8MyVYQoUjQA2TpCvQ2+".into()), Value::Str("bR7aAIGXhBnRTrIBNu9m4+am0aUfi1hVmVHqt1b2vFgEb9uKuO4U62tCFpeji+Rz".into()), Value::Str("8C8QJyu5v5OUWdQZ4EA0d7ljeoTl50g8tpcGsDhnImLt+/jvJuFt8dECgYEAwD0n".into()), Value::Str("rhlkEjKVHxu1xwKeczxYCqqcUV9Quq8HnPh4VJQ77ljfZ57V7sAKrFDi5XfVD9jS".into()),
+        Value::Str("oJPwxjw6za134VobhdvCM6WNs6AJmbR8E/b5kDMbGaZn27vt+/8JfnGaWBqpDi6W".into()), Value::Str("a5xoJOqmcMBQBK1YleZDoY4PLbk+onVKLMfGI/8CgYEAkyUIv8euGdGWpHnm5SdJ".into()), Value::Str("tLi5vv4Vs267uzntJWG/y3+DukTLgIdy7dgAI+pxkVgkg/+syUVSW5eU9CqZPyLl".into()), Value::Str("o8+Sqh2Jp36vTq71iSRj5RA5r3ND3K+8eFzPZzGj6AWUA1lrljFxzV7kLfiF8gH1".into()),
+        Value::Str("FpvWUrhNoGT/vcFJno/uabECgYAecRC5hxfLserfVDoC261PvjyK492BHUDhbxob".into()), Value::Str("h1U2v4qGAdjOxd5Gwm5uPxjPEZzRt5oTB5pXKe5953xWWTiGh/hGyW6ZBTy/9E65".into()), Value::Str("sqBub0lZVHqZ1zamcwqD1WWFkiM3NbVoMQpk3iuhKzMAqpqekiofiSlqKi16+GvY".into()), Value::Str("j4IW7QKBgQCrIUckPZ6IY3ERIN1IL4TIcK2gOJcznp7fLWpC+sv35ya3OhtDXKFt".into()),
+        Value::Str("GjIHmwLuiUNc0iPzA9Rw89W0zIkKWmWcxM88/ithdxh3MEeNDUGSnd4hQ9SECwxB".into()), Value::Str("Wem3eBT7I4VtFYoaTE3/bX1SKfgBdTzIRqWKSDpgBNZg/P2Tc+s11g==".into()), Value::Str("-----END RSA PRIVATE KEY-----".into())]);
+    let pemKey: Value = Value::Str(pemKeyArray.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into());
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(rsa(Value::Str("hello".into()), pemKey.clone(),
         Value::Str("sha256".into()))).as_str() ==
         Some("PqHotvSEBvM/AejnMOWBXUcOf3uHtcGu2zAYdlYdnlNSSQ80Uq4lcyAEstnZ2AnQJ9l5TCC53uoRZ26GQ47zlACgqtYglmPhQKLvQ5fldRzeBauYhGgM2C0mUuUGxh074fNGbK+bgmwEmDMIrnSPtXwiCqTAHh+8VEnC7us3t09D61y298dPBJYEBNN3dFZT0w0pCIQg3j3DSiFJOCfywmOKyXqS1pvmk6A38DVclQZORQ5WZXp2yvSKRLjxpzjxDl76h1GfbBl7sMLEFMyzk0wyIhIz8ZELMibYn036G4X1IcSlDcimthEkIbn2QjM0ntyYDZIS4QnsMBjvkV2UHw==")))));

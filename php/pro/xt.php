@@ -1304,7 +1304,7 @@ class xt extends \ccxt\async\xt {
         //        }
         //    }
         //
-        $data = $this->safe_dict($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         if ($marketId !== null) {
             $event = $this->safe_string($message, 'event', '');
@@ -1327,8 +1327,8 @@ class xt extends \ccxt\async\xt {
             $orderbook = $this->orderbooks[$symbol];
             $nonce = $this->safe_integer($orderbook, 'nonce');
             if ($nonce === null) {
-                $cacheLength = count($orderbook->cache);
-                $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
+                $cacheLength = $this->parse_to_int(strlen($orderbook->cache));
+                $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 25));
                 if ($cacheLength === $snapshotDelay) {
                     $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
                 }

@@ -112,20 +112,17 @@ class bitget extends \ccxt\async\bitget {
 
     public function get_inst_type(?string $methodName, array $market, bool $uta = false, $params = array()): array {
         $useProductType = ($market === null) || ($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false));
-        $productTypeAndParams = array( null, array() );
+        $instTypeDefault = 'SPOT';
+        $paramsProductType = $params;
         if ($useProductType) {
-            $productTypeAndParams = $this->handleProductTypeAndParams($market, $params);
-        } else {
-            $productTypeAndParams = array( 'SPOT', $params );
+            list($instTypeDefault, $paramsProductType) = $this->handleProductTypeAndParams($market, $params);
         }
-        $instTypeDefault = $productTypeAndParams[0];
-        $paramsProductType = $productTypeAndParams[1];
         list($instTypeOption, $paramsInstType) = $this->handle_option_string_and_params($paramsProductType, $methodName, 'instType', $instTypeDefault);
-        $instType = $instTypeOption;
         if ($uta && ($instTypeOption !== null)) {
-            $instType = strtolower($instTypeOption);
+            $instTypeLower = strtolower($instTypeOption);
+            return array( $instTypeLower, $paramsInstType );
         }
-        return array( $instType, $paramsInstType );
+        return array( $instTypeOption, $paramsInstType );
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -621,9 +618,9 @@ class bitget extends \ccxt\async\bitget {
         }
         $timeframes = $this->safe_dict($this->options, 'timeframes');
         $interval = $this->safe_string($timeframes, $timeframe);
-        $channel = null;
+        $channel = '';
         $market = $this->market($symbol);
-        $messageHash = null;
+        $messageHash = '';
         $values = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'uta', false);
         $uta = $values[0];
         $isStock = $market['stock'];
@@ -875,7 +872,8 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'unsubscribe:' . $messageHashTopic . ':' . $market['symbol'];
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $messageHash = 'unsubscribe:' . $messageHashTopic . ':' . $marketSymbol;
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, $methodName, 'uta', false);
         list($privateChannel, $paramsPrivateChannel) = $this->handle_option_bool_and_params($paramsUta, $methodName, 'privateChannel', false);
         list($instType, $paramsInstType) = $this->get_inst_type($methodName, $market, $uta, $paramsPrivateChannel);
@@ -1090,7 +1088,7 @@ class bitget extends \ccxt\async\bitget {
                 $payload = implode(':', $payloadArray);
                 $calculatedChecksum = $this->crc32($payload, true);
                 if ($calculatedChecksum !== $responseChecksum) {
-                    $this->spawn(array($this, 'handle_check_sum_error'), $client, $symbol, $messageHash);
+                    $this->spawn(array($this, 'handle_check_sum_error'), $client, $symbol, $messageHash, $this->orderbook_checksum_message($this->safe_string($market, 'symbol', '')));
                     return;
                 }
             }
@@ -1122,13 +1120,13 @@ class bitget extends \ccxt\async\bitget {
         $client->resolve($this->orderbooks[$symbol], $messageHash);
     }
 
-    public function handle_check_sum_error(Client $client, string $symbol, string $messageHash) {
-        return Async\async(self::do_handle_check_sum_error(...))($client, $symbol, $messageHash);
+    public function handle_check_sum_error(Client $client, string $symbol, string $messageHash, string $checksumMessage) {
+        return Async\async(self::do_handle_check_sum_error(...))($client, $symbol, $messageHash, $checksumMessage);
     }
 
-    private function do_handle_check_sum_error(Client $client, string $symbol, string $messageHash) {
+    private function do_handle_check_sum_error(Client $client, string $symbol, string $messageHash, string $checksumMessage) {
         Async\await($this->un_watch_order_book($symbol));
-        $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+        $error = new ChecksumError($this->id . ' ' . $checksumMessage);
         $client->reject($error, $messageHash);
     }
 
@@ -1776,12 +1774,13 @@ class bitget extends \ccxt\async\bitget {
             $messageHash = 'triggerOrder';
         }
         $subscriptionHash = 'order:trades';
-        $symbolResolved = null;
+        $symbolResolved = $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
             $marketId = $this->safe_string($market, 'id');
-            $messageHash = $messageHash . ':' . $symbolResolved;
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $messageHash = $messageHash . ':' . $marketSymbol;
         }
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsTrigger, 'watchOrders', 'uta', false);
         $productType = $this->safe_string($paramsUta, 'productType');
@@ -1806,7 +1805,8 @@ class bitget extends \ccxt\async\bitget {
             list($instType, $paramsInstType) = $this->get_inst_type('watchOrders', $market, $uta, $paramsSubType);
         }
         if ($type === 'spot' && ($symbolResolved !== null)) {
-            $subscriptionHash = $subscriptionHash . ':' . $symbolResolved;
+            $resolvedSymbol = $symbolResolved;
+            $subscriptionHash = $subscriptionHash . ':' . $resolvedSymbol;
         }
         if ($isTrigger === true) {
             $subscriptionHash = $subscriptionHash . ':stop'; // we don't want to re-use the same subscription hash for stop orders
@@ -1987,7 +1987,7 @@ class bitget extends \ccxt\async\bitget {
             $market = $this->safe_market($marketId, null, null, $marketType);
             $parsed = $this->parse_ws_order($order, $market);
             $stored->append($parsed);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol !== null) {
                 $marketSymbols[$symbol] = true;
             }
@@ -2314,7 +2314,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $market = null;
         $messageHash = 'myTrades';
-        $symbolResolved = null;
+        $symbolResolved = $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
@@ -2667,20 +2667,20 @@ class bitget extends \ccxt\async\bitget {
                     $entry = $this->safe_dict($coins, $j);
                     $currencyId = $this->safe_string($entry, 'coin');
                     $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
+                    $coinAccount = $this->account();
                     if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
-                        $account = $this->safe_dict($this->balance, $code, $account);
+                        $coinAccount = $this->safe_dict($this->balance, $code, $coinAccount);
                     }
                     $borrow = $this->safe_string($entry, 'borrow');
                     $debts = $this->safe_string($entry, 'debts');
                     if (($borrow !== null) || ($debts !== null)) {
-                        $account['debt'] = Precise::string_add($borrow, $debts);
+                        $coinAccount['debt'] = Precise::string_add($borrow, $debts);
                     }
-                    $account['free'] = $this->safe_string($entry, 'available');
-                    $account['used'] = $this->safe_string($entry, 'locked');
-                    $account['total'] = $this->safe_string($entry, 'balance');
+                    $coinAccount['free'] = $this->safe_string($entry, 'available');
+                    $coinAccount['used'] = $this->safe_string($entry, 'locked');
+                    $coinAccount['total'] = $this->safe_string($entry, 'balance');
                     if ($code !== null) {
-                        $this->balance[$code] = $account;
+                        $this->balance[$code] = $coinAccount;
                     }
                 }
             } else {

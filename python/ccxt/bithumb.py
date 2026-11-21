@@ -747,7 +747,6 @@ class bithumb(Exchange, ImplicitAPI):
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchOrderBook', 'generation', 2)
         market = self.market(symbol)
         request = {}
-        response = None
         data = None
         timestamp = None
         if generation == 2:
@@ -1134,7 +1133,6 @@ class bithumb(Exchange, ImplicitAPI):
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'fetchTicker', 'generation', 2)
         market = self.market(symbol)
         request = {}
-        response = None
         data = {}
         if generation == 2:
             request['markets'] = self.get_gen2_market_id(market)
@@ -1269,7 +1267,7 @@ class bithumb(Exchange, ImplicitAPI):
         response = None
         data = []
         if generation == 2:
-            paginate, paramsPaginate = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+            paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
             if paginate:
                 return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
             until = self.safe_integer(paramsGeneration, 'until')
@@ -1508,7 +1506,6 @@ class bithumb(Exchange, ImplicitAPI):
         request = {}
         if limit is not None:
             request['count'] = limit
-        response = None
         data = []
         if generation == 2:
             request['market'] = self.get_gen2_market_id(market)
@@ -2276,7 +2273,6 @@ class bithumb(Exchange, ImplicitAPI):
             request['market'] = self.get_gen2_market_id(market)
         if limit is not None:
             request['limit'] = limit
-        response = None
         data = None
         if twap:
             response = self.privateGetV1Twap(self.extend(request, paramsRequest))

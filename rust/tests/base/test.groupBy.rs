@@ -14,7 +14,7 @@ pub fn testGroupBy() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut sampleArray: Value = Value::from(vec![Value::Map({
+    let sampleArray: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".into()));
     m
@@ -39,8 +39,8 @@ pub fn testGroupBy() {
         m.insert("foo".to_string(), Value::Str("c".into()));
     m
 })]);
-    let mut currentValue: Value = exchange.group_by(sampleArray, Value::Str("foo".into()), &[]);
-    let mut storedValue: Value = Value::Map({
+    let currentValue: Value = Value::Dict(exchange.group_by(sampleArray, Value::Str("foo".into()), &[]));
+    let storedValue: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -71,5 +71,5 @@ pub fn testGroupBy() {
 })]));
         m
     });
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testGroupBy".into()).clone(), currentValue.clone(), storedValue.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testGroupBy".into()), currentValue, storedValue]);
 }

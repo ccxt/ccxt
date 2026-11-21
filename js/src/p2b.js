@@ -386,7 +386,7 @@ export default class p2b extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const limits = this.safeDict(market, 'limits');
+        const limits = this.safeDict(market, 'limits', {});
         const maxAmount = this.safeString(limits, 'max_amount');
         const maxPrice = this.safeString(limits, 'max_price');
         return {
@@ -878,7 +878,7 @@ export default class p2b extends Exchange {
         const keys = Object.keys(response);
         for (let i = 0; i < keys.length; i++) {
             const currencyId = keys[i];
-            const balance = this.safeDict(response, currencyId);
+            const balance = this.safeDict(response, currencyId, {});
             const code = this.safeCurrencyCode(currencyId);
             const used = this.safeString(balance, 'freeze');
             const available = this.safeString(balance, 'available');

@@ -10,17 +10,17 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchFundingRateHistory(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchFundingRateHistory".into());
-    let mut fundingRatesHistory: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_funding_rate_history", vec![symbol.clone()]).await;
+    let method: Value = Value::Str("fetchFundingRateHistory".into());
+    let fundingRatesHistory: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_funding_rate_history", vec![symbol.clone()]).await;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), fundingRatesHistory.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1577: bool = true;
-        while { if !__for_first_1577 { i += 1; } __for_first_1577 = false; i < (fundingRatesHistory.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (fundingRatesHistory.len() as i64) } {
         testFundingRateHistory(exchange.clone(), skippedProperties.clone(), method.clone(), fundingRatesHistory.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone());
     }
     }
-    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), fundingRatesHistory.clone()]);
+    crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol, fundingRatesHistory]);
     return Value::Bool(true);
 
     Value::Null

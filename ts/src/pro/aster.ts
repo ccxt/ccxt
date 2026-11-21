@@ -4,7 +4,7 @@
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
-import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString } from '../base/types.js';
+import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString, Num } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -1096,7 +1096,8 @@ export default class aster extends asterRest {
         }
         const symbolValue: string = this.safeSymbol (symbol);
         const result = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, params);
-        return result[symbolValue][timeframe];
+        const bySymbol: Dict = result[symbolValue];
+        return bySymbol[timeframe];
     }
 
     /**
@@ -1261,7 +1262,7 @@ export default class aster extends asterRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe) === undefined) {
+        if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
@@ -1325,8 +1326,12 @@ export default class aster extends asterRest {
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
-                this.options['listenKey'][type] = listenKey;
-                this.options['lastAuthenticatedTime'][type] = time;
+                const listenKeys = this.safeDict (this.options, 'listenKey', {});
+                listenKeys[type] = listenKey;
+                this.options['listenKey'] = listenKeys;
+                const lastAuthenticatedTimes = this.safeDict (this.options, 'lastAuthenticatedTime', {});
+                lastAuthenticatedTimes[type] = time;
+                this.options['lastAuthenticatedTime'] = lastAuthenticatedTimes;
                 const keepAliveParams = this.extend ({ 'type': type }, params);
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, keepAliveParams);
                 // settle the flight: client.resolve () removes the future from
@@ -1364,7 +1369,9 @@ export default class aster extends asterRest {
                 client.reject (error, messageHash);
             }
             this.options['listenKey'][type] = undefined;
-            this.options['lastAuthenticatedTime'][type] = 0;
+            const lastAuthenticatedTimes = this.safeDict (this.options, 'lastAuthenticatedTime', {});
+            lastAuthenticatedTimes[type] = 0;
+            this.options['lastAuthenticatedTime'] = lastAuthenticatedTimes;
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
@@ -1503,7 +1510,8 @@ export default class aster extends asterRest {
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
         }
-        this.balance[accountType]['info'] = message;
+        const balance = this.safeDict (this.balance, accountType, {});
+        balance['info'] = message;
         const messageValue: Dict = this.safeDict (message, 'a', message);
         const B: Dict[] = this.safeList (messageValue, 'B', []);
         const wallet = this.safeString (this.options, 'wallet', 'wb');
@@ -1516,13 +1524,13 @@ export default class aster extends asterRest {
             account['used'] = this.safeString (entry, 'l');
             account['total'] = this.safeString (entry, wallet);
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger (messageValue, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
-        this.balance[accountType] = this.safeBalance (this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601 (timestamp);
+        this.balance[accountType] = this.safeBalance (balance);
         client.resolve (this.balance[accountType], messageHash);
     }
 
@@ -1842,27 +1850,42 @@ export default class aster extends asterRest {
                         // accumulate order fees
                         const fees: Dict[] = this.safeList (order, 'fees', []);
                         const fee = this.safeDict (order, 'fee');
+                        const tradeFeeCurrency = this.safeString (tradeFee, 'currency');
+                        const tradeFeeCost = this.safeNumber (tradeFee, 'cost');
                         if (!this.isEmpty (fees)) {
                             let insertNewFeeCurrency = true;
+                            const newFees: Dict[] = [];
                             for (let i = 0; i < fees.length; i++) {
-                                const orderFee = fees[i];
-                                if (this.safeString (orderFee, 'currency') === this.safeString (tradeFee, 'currency')) {
-                                    const feeCost = this.sum (tradeFee['cost'], orderFee['cost']);
-                                    const feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
-                                    order['fees'][i]['cost'] = (feeCostString === undefined) ? undefined : parseFloat (feeCostString);
+                                const orderFee: Dict = this.extend ({}, fees[i]);
+                                if (insertNewFeeCurrency && this.safeString (orderFee, 'currency') === tradeFeeCurrency) {
+                                    const feeCost: Num = this.sum (tradeFeeCost, this.safeNumber (orderFee, 'cost'));
+                                    const feeCostString = this.currencyToPrecision (tradeFeeCurrency, feeCost);
+                                    if (feeCostString !== undefined) {
+                                        orderFee['cost'] = parseFloat (feeCostString);
+                                    } else {
+                                        orderFee['cost'] = undefined;
+                                    }
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                newFees.push (orderFee);
                             }
                             if (insertNewFeeCurrency) {
-                                order['fees'].push (tradeFee);
+                                newFees.push (tradeFee);
                             }
+                            order['fees'] = newFees;
                         } else if (fee !== undefined) {
-                            if (this.safeString (fee, 'currency') === this.safeString (tradeFee, 'currency')) {
-                                const feeCost = this.sum (fee['cost'], tradeFee['cost']);
-                                const feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
-                                order['fee']['cost'] = (feeCostString === undefined) ? undefined : parseFloat (feeCostString);
-                            } else if (this.safeString (fee, 'currency') === undefined) {
+                            const feeCurrency = this.safeString (fee, 'currency');
+                            if (feeCurrency === tradeFeeCurrency) {
+                                const feeCost: Num = this.sum (this.safeNumber (fee, 'cost'), tradeFeeCost);
+                                const feeCostString = this.currencyToPrecision (tradeFeeCurrency, feeCost);
+                                const newFee: Dict = this.extend ({}, fee);
+                                if (feeCostString !== undefined) {
+                                    newFee['cost'] = parseFloat (feeCostString);
+                                } else {
+                                    newFee['cost'] = undefined;
+                                }
+                                order['fee'] = newFee;
+                            } else if (feeCurrency === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
                                 order['fees'] = [ fee, tradeFee ];
@@ -2062,7 +2085,7 @@ export default class aster extends asterRest {
     }
 
     override handleMessage (client: Client, message: Dict) {
-        const messageInner = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
+        const messageInner: Dict = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
         const event = this.safeString (messageInner, 'e');
         const methods: Dict = {
             '24hrTicker': this.handleTicker,

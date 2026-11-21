@@ -574,7 +574,7 @@ class coinbase extends coinbase$1["default"] {
                     this.safeNumber(candle, 'close'),
                     this.safeNumber(candle, 'volume'),
                 ];
-                this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+                this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
                 let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
                 if (stored === undefined) {
                     const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);

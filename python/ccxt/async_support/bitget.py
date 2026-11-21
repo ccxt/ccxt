@@ -2289,7 +2289,7 @@ class bitget(Exchange, ImplicitAPI):
             if (base is None) or (quote is None):
                 continue
             parsedMarket = self.parse_market(market)
-            if (parsedMarket is not None) and parsedMarket['spot']:
+            if (parsedMarket is not None) and self.safe_bool(parsedMarket, 'spot', False):
                 marketId = parsedMarket['id']
                 instrument = self.safe_dict(spotInstruments, marketId)
                 if instrument is not None:
@@ -2389,12 +2389,14 @@ class bitget(Exchange, ImplicitAPI):
             priceEndStep = self.safe_string(market, 'priceEndStep')
             sizeMultiplier = self.safe_string(market, 'sizeMultiplier')
             precise = Precise(priceEndStep)
-            precise.decimals = max(precise.decimals, pricePlaces)
+            if pricePlaces is not None:
+                precise.decimals = max(precise.decimals, pricePlaces)
             precise.reduce()
             priceString = str(precise)
             pricePrecision = self.parse_number(priceString)
             preciseAmount = Precise(sizeMultiplier)
-            preciseAmount.decimals = max(preciseAmount.decimals, volumePlaces)
+            if volumePlaces is not None:
+                preciseAmount.decimals = max(preciseAmount.decimals, volumePlaces)
             preciseAmount.reduce()
             amountString = str(preciseAmount)
             amountPrecision = self.parse_number(amountString)
@@ -5986,8 +5988,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         ordersRequests = []
-        firstOrder = self.safe_dict(orders, 0)
-        symbol = self.safe_string(firstOrder, 'symbol')
+        symbol = None
         marginMode = None
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -6053,8 +6054,7 @@ class bitget(Exchange, ImplicitAPI):
         if uta is True:
             return await self.create_uta_orders(orders, paramsUTA)
         ordersRequests = []
-        firstOrder = self.safe_dict(orders, 0)
-        symbol = self.safe_string(firstOrder, 'symbol')
+        symbol = None
         marginMode = None
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -7943,11 +7943,12 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
         if (marketType == 'swap') or (marketType == 'future'):
+            data = self.safe_dict(response, 'data', {})
             bills = self.safe_list(data, 'bills', [])
             return self.parse_ledger(bills, currency, since, limit)
-        return self.parse_ledger(data, currency, since, limit)
+        rows = self.safe_list(response, 'data', [])
+        return self.parse_ledger(rows, currency, since, limit)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
@@ -8991,7 +8992,7 @@ class bitget(Exchange, ImplicitAPI):
         productType = None
         uta = None
         response = None
-        result = None
+        result = []
         paramsProductType = None
         productType, paramsProductType = self.handle_product_type_and_params(market, params)
         uta, paramsProductType = await self.handle_uta_and_params(paramsProductType, 'fetchFundingRateHistory', False)

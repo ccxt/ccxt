@@ -16,15 +16,15 @@ pub fn testRawencode() {
     }));
     // todo: add sort
     // todo: add nulls
-    let mut dict2: Value = Value::Map({
+    let dict2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::Str("+&".into()));
         m
     });
     // as key-order not preserved, expect mixed orde
-    let mut expected2a: String = "a=1&b=+&".to_string();
-    let mut expected2b: String = "b=+&&a=1".to_string();
-    let mut result2: String = exchange.rawencode(dict2, &[]);
+    let expected2a: String = "a=1&b=+&".to_string();
+    let expected2b: String = "b=+&&a=1".to_string();
+    let result2: String = exchange.rawencode(dict2, &[]);
     assert!(ccxt::runtime::is_true(&(((result2 == expected2a) || (result2 == expected2b)))));
 }

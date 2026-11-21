@@ -14,22 +14,22 @@ pub fn testOmit() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testOmit".into()).clone(), exchange.omit(Value::Map({
-        let mut m = indexmap::IndexMap::new();
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testOmit".into()), exchange.omit(Value::Map({
+        let m = indexmap::IndexMap::new();
         m
     }), Value::Str("foo".into()), &[]).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone()]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testOmit".into()).clone(), exchange.omit(Value::Map({
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testOmit".into()), exchange.omit(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("foo".to_string(), Value::Int(2));
         m
     }), Value::Str("foo".into()), &[]).clone(), Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }).clone()]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testOmit".into()).clone(), exchange.omit(Value::Map({
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testOmit".into()), exchange.omit(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("foo".to_string(), Value::Int(2));
             m.insert("bar".to_string(), Value::Int(3));
@@ -39,7 +39,7 @@ pub fn testOmit() {
             m.insert("bar".to_string(), Value::Int(3));
         m
     }).clone()]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testOmit".into()).clone(), exchange.omit(Value::Map({
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testOmit".into()), exchange.omit(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("foo".to_string(), Value::Int(2));
             m.insert("bar".to_string(), Value::Int(3));

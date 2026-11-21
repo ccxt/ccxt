@@ -1806,7 +1806,10 @@ export default class xt extends Exchange {
         let market = undefined;
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const request = {};
         let response = undefined;
@@ -1898,7 +1901,10 @@ export default class xt extends Exchange {
         const request = {};
         let market = undefined;
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchBidsAsks', market, paramsMarketType);
@@ -2510,7 +2516,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        let balances = undefined;
+        let balances = [];
         if ((subType !== undefined) || isContractWallet) {
             balances = this.safeList(response, 'result', []);
         }
@@ -2749,7 +2755,7 @@ export default class xt extends Exchange {
             }
             request['positionSide'] = requestType;
         }
-        let response = {};
+        let response = undefined;
         const triggerPrice = this.safeNumber2(paramsOmitted4, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2(paramsOmitted4, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2(paramsOmitted4, 'takeProfit', 'triggerProfitPrice');
@@ -3745,8 +3751,10 @@ export default class xt extends Exchange {
         //     }
         //
         const isContractResponse = ((subType !== undefined) || (type === 'swap') || (type === 'future'));
-        const order = isContractResponse ? response : this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
+        if (isContractResponse) {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, 'result', {}), market);
     }
     /**
      * @method
@@ -5854,8 +5862,10 @@ export default class xt extends Exchange {
             //     }
             //
         }
-        const result = (this.safeBool(market, 'swap', false)) ? response : this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        if (this.safeBool(market, 'swap', false)) {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, 'result', {}), market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //

@@ -16,15 +16,15 @@ pub fn testUrlencode() {
     }));
     // todo: add nulls
     // todo: add sort
-    let mut dict1: Value = Value::Map({
+    let dict1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("c".to_string(), Value::Str("+&".into()));
         m
     });
     // as key-order not preserved, expect mixed order
-    let mut expected1: String = "a=1&c=%2B%26".to_string();
-    let mut expected2: String = "c=%2B%26&a=1".to_string();
-    let mut encoded: String = exchange.urlencode(dict1, &[]);
+    let expected1: String = "a=1&c=%2B%26".to_string();
+    let expected2: String = "c=%2B%26&a=1".to_string();
+    let encoded: String = exchange.urlencode(dict1, &[]);
     assert!(ccxt::runtime::is_true(&(((encoded == expected1) || (encoded == expected2)))));
 }

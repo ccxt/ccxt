@@ -2896,9 +2896,10 @@ class deepcoin(Exchange, ImplicitAPI):
             }
             requestBody = None
             if method != 'GET':
-                requestBody = self.json(params)
+                body = self.json(params)
                 privateHeaders['Content-Type'] = 'application/json'
-                payload += requestBody
+                payload += body
+                requestBody = body
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             privateHeaders['DC-ACCESS-SIGN'] = signature
             return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
@@ -2913,11 +2914,10 @@ class deepcoin(Exchange, ImplicitAPI):
         errorCode = self.safe_string(data, 'errorCode')
         if (msg is not None) and (msg == '') and (sMsg is not None):
             msg = sMsg
-        errorList = self.safe_list(data, 'errorList')
-        if errorList is not None:
-            for i in range(0, len(errorList)):
-                entry = self.safe_dict(errorList, i, {})
-                errorCode = self.safe_string(entry, 'errorCode')
+        errorList = self.safe_list(data, 'errorList', [])
+        for i in range(0, len(errorList)):
+            entry = self.safe_dict(errorList, i, {})
+            errorCode = self.safe_string(entry, 'errorCode')
         feedback = self.id + ' ' + body
         if (sCode is None) and (errorCode is not None):
             sCode = errorCode

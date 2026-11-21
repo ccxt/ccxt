@@ -598,8 +598,8 @@ public partial class cryptocom : Exchange
                     { "maker", this.parseNumber("0.0025") },
                     { "taker", this.parseNumber("0.005") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.00065")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00035")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0.00031")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.00025")}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0025}, new List<object> {10000.0, 0.002}, new List<object> {50000.0, 0.0015}, new List<object> {250000.0, 0.001}, new List<object> {500000.0, 0.0008}, new List<object> {2500000.0, 0.00065}, new List<object> {10000000.0, 0.0}, new List<object> {25000000.0, 0.0}, new List<object> {100000000.0, 0.0}, new List<object> {250000000.0, 0.0}, new List<object> {500000000.0, 0.0}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.005}, new List<object> {10000.0, 0.004}, new List<object> {50000.0, 0.0025}, new List<object> {250000.0, 0.002}, new List<object> {500000.0, 0.0018}, new List<object> {2500000.0, 0.001}, new List<object> {10000000.0, 0.0005}, new List<object> {25000000.0, 0.0004}, new List<object> {100000000.0, 0.00035}, new List<object> {250000000.0, 0.00031}, new List<object> {500000000.0, 0.00025}} },
                     } },
                 } },
             } },
@@ -1029,7 +1029,7 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? inst_type = this.safeString(market, "inst_type");
             bool spot = inst_type == "CCY_PAIR";
             bool swap = inst_type == "PERPETUAL_SWAP";
@@ -1194,7 +1194,7 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
     /**
@@ -2129,7 +2129,7 @@ public partial class cryptocom : Exchange
         return this.parseOrder(result);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object amount = null, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -3159,7 +3159,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual List<object> customHandleMarginModeAndParams(object methodName, IDictionary<string, object> parameters = null)
+    public virtual List<object> customHandleMarginModeAndParams(string methodName, IDictionary<string, object> parameters = null)
     {
         /**
         * @ignore
@@ -3586,9 +3586,9 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        List<object> settlements = this.parseSettlements(data, market);
-        List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
+        List<Dictionary<string, object>> settlements = this.parseSettlements(data, market);
+        List<Dictionary<string, object>> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> settlement, IDictionary<string, object>? market = null)
@@ -3612,7 +3612,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
+    public virtual List<Dictionary<string, object>> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
     {
         //
         //     [
@@ -3624,7 +3624,7 @@ public partial class cryptocom : Exchange
         //         }
         //     ]
         //
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
             result.Add(this.parseSettlement(this.safeDict(settlements, i, new Dictionary<string, object>() {}), market));
@@ -3794,7 +3794,7 @@ public partial class cryptocom : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "t");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -3872,7 +3872,7 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
@@ -3885,7 +3885,10 @@ public partial class cryptocom : Exchange
                 {
                     throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                if ((symbolsLength == 1))
+                {
+                    symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                }
             } else
             {
                 symbol = symbolsNormalized;
@@ -3921,7 +3924,7 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            object entry = positions[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)positions[i]);
             string? marketId = this.safeString(entry, "instrument_name");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             result.Add(this.parsePosition(entry, marketInner));
@@ -3987,7 +3990,7 @@ public partial class cryptocom : Exchange
     {
         int maxLevel = 3;
         Int64? depth = this.parseToInt(level);
-        if ((depth >= maxLevel))
+        if (depth >= maxLevel)
         {
             return obj.ToString();
         }
@@ -4247,7 +4250,7 @@ public partial class cryptocom : Exchange
             List<object> paramsKeys = new List<object>(requestParams.Keys);
             string? strSortKey = this.paramsToString(requestParams, 0);
             string payload = ((((path + nonce) + this.apiKey) + strSortKey) + nonce);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
+            string signature = this.hmac(payload, this.secret, sha256);
             int paramsKeysLength = paramsKeys.Count;
             requestBody = this.json(new Dictionary<string, object>() {
                 { "id", nonce },
@@ -4286,7 +4289,7 @@ public partial class cryptocom : Exchange
         if (errorCode != "0")
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;

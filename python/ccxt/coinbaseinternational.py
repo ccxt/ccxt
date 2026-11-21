@@ -1091,7 +1091,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker: object, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "timestamp": 1788867258984,
@@ -3001,10 +3001,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         uri = None
         if (url is not None) and (method is not None):
-            uri = method + ' ' + url.replace('https://', '')
-            quesPos = uri.find('?')
+            fullUri = method + ' ' + url.replace('https://', '')
+            quesPos = fullUri.find('?')
             if quesPos > 0:
-                uri = uri[0:quesPos]
+                uri = fullUri[0:quesPos]
+            else:
+                uri = fullUri
         nonce = self.random_bytes(16)
         aud = 'retail_rest_api_proxy'
         if useEddsa:

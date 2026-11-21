@@ -77,7 +77,7 @@ func (this *Bullish) Ping(client any) any {
 		"id":      id,
 	}
 }
-func (this *Bullish) HandlePong(client any, message map[string]any) any {
+func (this *Bullish) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "7",
@@ -124,29 +124,35 @@ func (this *Bullish) watchPublicBody(ch chan ccxt.AsyncResult[any], url string, 
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Bullish) WatchPrivateAsync(messageHash any, subscribeHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bullish) WatchPrivateAsync(messageHash string, subscribeHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, messageHash, subscribeHash, optionalArgs...)
 	return ch
 }
-func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, subscribeHash string, optionalArgs ...any) any {
+func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash string, subscribeHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var request map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = request
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 
 	r := <-this.HandleTokenAsync()
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var token *string = ccxt.SafeStringPtr(r.Value)
+	var token *string = r.Value
 	var cookies map[string]any = map[string]any{
 		"JWT_COOKIE": token,
 	}
-	ccxt.AddElementToObject(this.Options["ws"], "cookies", cookies)
+	var wsDict map[string]any
+	wsDict, _ = this.Options["ws"].(map[string]any)
+	if wsDict == nil {
+		wsDict = map[string]any{}
+	}
+	wsDict["cookies"] = cookies
+	this.Options["ws"] = wsDict
 	var id string = strconv.FormatInt(this.RequestId(), 10)
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -244,14 +250,18 @@ func (this *Bullish) HandleTrades(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	if symbol == nil {
 		return
 	}
 	var market map[string]any = this.Market(symbol)
-	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
+	var rawTrades []any
+	rawTrades, _ = data["trades"].([]any)
+	if rawTrades == nil {
+		rawTrades = []any{}
+	}
 	var trades []any = this.ParseTrades(rawTrades, market)
 	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -261,7 +271,7 @@ func (this *Bullish) HandleTrades(client any, message map[string]any) {
 	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
 	var tradesList []any = this.ToArray(trades)
 	for i := 0; i < len(tradesList); i++ {
-		tradesArray.Append(ccxt.DerefScalar(tradesList[i]))
+		tradesArray.Append(tradesList[i])
 	}
 	this.Trades[*symbol] = tradesArray
 	var messageHash string = "trades::" + *this.SafeString(market, "symbol", "")
@@ -355,7 +365,11 @@ func (this *Bullish) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var updateType string = *this.SafeString(message, "type", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -440,7 +454,7 @@ func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	// current channel is 'l2Orderbook' which returns only snapshots
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "orderbook::" + *symbol
@@ -458,7 +472,7 @@ func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
 		"asks": asks,
 	}
 	var parsed map[string]any = this.ParseOrderBook(snapshot, symbol, timestamp)
-	var sequenceNumberRange []any = ccxt.SafeListTyped(data, "sequenceNumberRange")
+	var sequenceNumberRange, _ = data["sequenceNumberRange"].([]any)
 	if len(sequenceNumberRange) > 0 {
 		var lastIndex int64 = int64(len(sequenceNumberRange)) - 1
 		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)
@@ -521,22 +535,23 @@ func (this *Bullish) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		}
 	}
 	var subscribeHash string = "orders"
-	var messageHash any = subscribeHash
-	var symbolResolved any = nil
+	var messageHash string = subscribeHash
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add(subscribeHash+"::", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = subscribeHash + "::" + *symbolResolved
 	}
 	var request map[string]any = map[string]any{
 		"topic": "orders",
 	}
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if tradingAccountId != nil {
-			return this.OmitDict(params, "tradingAccountId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if tradingAccountId != nil {
+		paramsOmitted = this.OmitDict(params, "tradingAccountId")
+	} else {
+		paramsOmitted = params
+	}
 	if tradingAccountId != nil {
 		request["tradingAccountId"] = tradingAccountId
 	}
@@ -602,10 +617,17 @@ func (this *Bullish) HandleOrders(client any, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var rawOrders []any = []any{}
 	if typeVar != nil && *typeVar == "update" {
-		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+		var data map[string]any
+		data, _ = message["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		rawOrders = append(rawOrders, data) // update is a single order
 	} else {
-		rawOrders = ccxt.ArrayTyped(this.SafeList(message, "data", []any{})) // snapshot is a list of orders
+		rawOrders, _ = message["data"].([]any)
+		if rawOrders == nil {
+			rawOrders = []any{}
+		}
 	}
 	var numRawOrders int = len(rawOrders) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	if numRawOrders > 0 {
@@ -676,22 +698,23 @@ func (this *Bullish) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		}
 	}
 	var subscribeHash string = "myTrades"
-	var messageHash any = subscribeHash
-	var symbolResolved any = nil
+	var messageHash string = subscribeHash
+	var symbolResolved *string = nil
 	if symbol != nil {
-		symbolResolved = this.Symbol(symbol)
-		messageHash = ccxt.Add(subscribeHash+"::", symbolResolved)
+		symbolText := this.Symbol(symbol)
+		symbolResolved = &symbolText
+		messageHash = subscribeHash + "::" + *symbolResolved
 	}
 	var request map[string]any = map[string]any{
 		"topic": "trades",
 	}
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if tradingAccountId != nil {
-			return this.OmitDict(params, "tradingAccountId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if tradingAccountId != nil {
+		paramsOmitted = this.OmitDict(params, "tradingAccountId")
+	} else {
+		paramsOmitted = params
+	}
 	if tradingAccountId != nil {
 		request["tradingAccountId"] = tradingAccountId
 	}
@@ -750,10 +773,17 @@ func (this *Bullish) HandleMyTrades(client any, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var rawTrades []any = []any{}
 	if typeVar != nil && *typeVar == "update" {
-		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+		var data map[string]any
+		data, _ = message["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		rawTrades = append(rawTrades, data) // update is a single trade
 	} else {
-		rawTrades = ccxt.ArrayTyped(this.SafeList(message, "data", []any{})) // snapshot is a list of trades
+		rawTrades, _ = message["data"].([]any)
+		if rawTrades == nil {
+			rawTrades = []any{}
+		}
 	}
 	var numRawTrades int = len(rawTrades) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	if numRawTrades > 0 {
@@ -819,12 +849,12 @@ func (this *Bullish) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	}
 	var messageHash string = "balance"
 	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if tradingAccountId != nil {
-			return this.OmitDict(params, "tradingAccountId")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if tradingAccountId != nil {
+		paramsOmitted = this.OmitDict(params, "tradingAccountId")
+	} else {
+		paramsOmitted = params
+	}
 	if tradingAccountId != nil {
 		request["tradingAccountId"] = tradingAccountId
 		messageHash += "::" + *tradingAccountId
@@ -888,7 +918,7 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 	}
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {
-		var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+		var data []any = this.SafeListSlice(message, "data", []any{})
 		var parsed map[string]any = this.ParseBalanceList(data)
 		var parsedKeys []string = nil
 		if parsed != nil {
@@ -897,27 +927,27 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 				parsedKeys = append(parsedKeys, objectKey)
 			}
 		}
+		var balance map[string]any = this.SafeDictMap(this.Balance, tradingAccountId, map[string]any{})
 		for i := 0; i < len(parsedKeys); i++ {
 			var parsedKey string = parsedKeys[i]
-			ccxt.AddElementToObject(this.Balance[*tradingAccountId], parsedKey, parsed[parsedKey])
+			ccxt.AddElementToObject(balance, parsedKey, parsed[parsedKey])
 		}
-		this.Balance[*tradingAccountId] = this.SafeBalance(this.Balance[*tradingAccountId])
+		this.Balance[*tradingAccountId] = this.SafeBalance(balance)
 	} else {
-		var data map[string]any = ccxt.SafeMapTyped(message, "data")
+		var data, _ = message["data"].(map[string]any)
 		var assetId *string = this.SafeString(data, "assetSymbol")
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(data, "availableQuantity")
 		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
-		if (tradingAccountId != nil) && (code != nil) {
-			if entry, ok := this.Balance[*tradingAccountId].(map[string]any); ok && (entry != nil) {
-				entry[*code] = account
-			}
-		}
 		if entry, ok := this.Balance[*tradingAccountId].(map[string]any); ok && (entry != nil) {
 			entry["info"] = message
 		}
-		this.Balance[*tradingAccountId] = this.SafeBalance(this.Balance[*tradingAccountId])
+		var deltaBalance map[string]any = this.SafeDictMap(this.Balance, tradingAccountId, map[string]any{})
+		if (tradingAccountId != nil) && (code != nil) {
+			deltaBalance[*code] = account
+		}
+		this.Balance[*tradingAccountId] = this.SafeBalance(deltaBalance)
 	}
 	var messageHash string = "balance"
 	var tradingAccountIdHash string = "::" + *tradingAccountId
@@ -1019,16 +1049,11 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 		positions.Append(position)
 		newPositions = append(newPositions, position)
 	}
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(parts) {
-				return parts[1]
-			}
-			return nil
-		}())
+		var messageHash string = messageHashes[i]
+		var parts []string = strings.Split(messageHash, "::")
+		var symbolsString *string = &parts[1]
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var symbolPositions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(symbolPositions) {
@@ -1049,7 +1074,11 @@ func (this *Bullish) HandleErrorMessage(client any, message map[string]any) {
 	//         "type": "error"
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var feedback string = this.Id + " " + this.Json(data)
 
 	{
@@ -1079,7 +1108,7 @@ func (this *Bullish) HandleErrorMessage(client any, message map[string]any) {
 }
 func (this *Bullish) HandleMessage(client any, message map[string]any) {
 	var dataType *string = this.SafeString(message, "dataType")
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var result, _ = message["result"].(map[string]any)
 	if result != nil {
 		var response *string = this.SafeString(result, "message")
 		if response != nil && *response == "Keep alive pong" {

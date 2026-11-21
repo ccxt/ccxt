@@ -761,7 +761,6 @@ class bithumb extends Exchange {
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchOrderBook', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
-        $response = null;
         $data = null;
         $timestamp = null;
         if ($generation === 2) {
@@ -1182,7 +1181,6 @@ class bithumb extends Exchange {
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'fetchTicker', 'generation', 2);
         $market = $this->market($symbol);
         $request = array();
-        $response = null;
         $data = array();
         if ($generation === 2) {
             $request['markets'] = $this->get_gen2_market_id($market);
@@ -1322,7 +1320,7 @@ class bithumb extends Exchange {
         $response = null;
         $data = array();
         if ($generation === 2) {
-            list($paginate, $paramsPaginate) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
             if ($paginate) {
                 return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 200);
             }
@@ -1582,7 +1580,6 @@ class bithumb extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $response = null;
         $data = array();
         if ($generation === 2) {
             $request['market'] = $this->get_gen2_market_id($market);
@@ -2418,7 +2415,6 @@ class bithumb extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
         $data = null;
         if ($twap) {
             $response = $this->privateGetV1Twap($this->extend($request, $paramsRequest));

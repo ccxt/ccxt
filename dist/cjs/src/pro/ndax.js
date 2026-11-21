@@ -559,7 +559,7 @@ class ndax extends ndax$1["default"] {
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
-                method.call(this, client, message, subscription);
+                this.handleOrderBookSubscription(client, message, subscription);
             }
         }
     }

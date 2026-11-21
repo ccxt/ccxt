@@ -544,9 +544,7 @@ export default class backpack extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
-        const selection = this.handleStockParams ('fetchCurrencies', params);
-        const stock = this.safeBool (selection, 0, false);
-        const query = this.safeDict (selection, 1, {});
+        const [ stock, query ] = this.handleOptionBoolAndParams (params, 'fetchCurrencies', 'stock', false);
         const response = await this.publicGetApiV1Assets (query);
         //
         //     [
@@ -664,14 +662,17 @@ export default class backpack extends Exchange {
         if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
-        const selection = this.handleStockParams ('fetchMarkets', params);
-        const stock = this.safeBool (selection, 0, false);
-        const query = this.safeDict (selection, 1, {});
+        const [ stock, query ] = this.handleOptionBoolAndParams (params, 'fetchMarkets', 'stock', false);
         const marketType = this.safeString (query, 'marketType');
-        let requestedTypes = this.safeList (query, 'marketType', [ 'SPOT', 'PERP', 'RFQ' ]);
+        const defaultTypes: string[] = [];
         if (marketType !== undefined) {
-            requestedTypes = [ marketType ];
+            defaultTypes.push (marketType);
+        } else {
+            defaultTypes.push ('SPOT');
+            defaultTypes.push ('PERP');
+            defaultTypes.push ('RFQ');
         }
+        const requestedTypes = this.safeList (query, 'marketType', defaultTypes);
         const aliases: Dict = { 'spot': 'SPOT', 'swap': 'PERP', 'stock': 'RFQ' };
         const supportedTypes = [ 'SPOT', 'PERP', 'RFQ' ];
         const marketTypes: Strings = [];
@@ -1411,9 +1412,7 @@ export default class backpack extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const selection = this.handleStockParams ('fetchTickers', params);
-        const stockOnly = this.safeBool (selection, 0, false);
-        const query = this.safeDict (selection, 1, {});
+        const [ stockOnly, query ] = this.handleOptionBoolAndParams (params, 'fetchTickers', 'stock', false);
         const source = this.safeString (query, 'source', 'Venue');
         let symbolsLength = 0;
         if (symbols !== undefined) {
@@ -1633,7 +1632,6 @@ export default class backpack extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const maxLimit = 2000;
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe (timeframe) * 1000;
@@ -1644,11 +1642,11 @@ export default class backpack extends Exchange {
             request['endTime'] = this.parseToInt (until / 1000); // convert milliseconds to seconds
         }
         const defaultLimit = 100;
-        let limitResolved: Int = limit;
-        if (limitResolved !== undefined) {
-            limitResolved = Math.min (limitResolved, maxLimit);
+        const windowLimit = (limit === undefined) ? defaultLimit : Math.min (limit, 2000);
+        let limitResolved: Int = undefined;
+        if (limit !== undefined) {
+            limitResolved = windowLimit;
         }
-        const windowLimit = (limitResolved === undefined) ? defaultLimit : limitResolved;
         const now = this.milliseconds ();
         let startTime: Int = since;
         let untilValue: Int = until;
@@ -2134,9 +2132,7 @@ export default class backpack extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const selection = this.handleStockParams ('fetchBalance', params);
-        const stock = this.safeBool (selection, 0, false);
-        const query = this.safeDict (selection, 1, {});
+        const [ stock, query ] = this.handleOptionBoolAndParams (params, 'fetchBalance', 'stock', false);
         const response = await this.privateGetApiV1Capital (query);
         if (stock) {
             let securities = this.safeList (this.options, 'securities');
@@ -2657,13 +2653,11 @@ export default class backpack extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
-        const selection = this.handleStockParams ('createOrders', params);
-        const query = this.safeDict (selection, 1, {});
+        const [ stock, query ] = this.handleOptionBoolAndParams (params, 'createOrders', 'stock', false);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        const stock = this.safeBool (selection, 0, false);
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -2870,7 +2864,7 @@ export default class backpack extends Exchange {
             const rfqResponse = await this.privateGetApiV1Rfqs (this.extend (query, { 'symbol': market['id'], 'rfqId': id }));
             for (let i = 0; i < rfqResponse.length; i++) {
                 const order = this.parseOrder (this.safeDict (rfqResponse, i, {}), market);
-                if (order['id'] === id) {
+                if (this.safeString (order, 'id') === id) {
                     return order;
                 }
             }
@@ -2920,7 +2914,7 @@ export default class backpack extends Exchange {
         }
         for (let i = 0; i < response.length; i++) {
             const order = this.parseOrder (this.safeDict (response, i, {}), market);
-            if (order['id'] === id) {
+            if (this.safeString (order, 'id') === id) {
                 return order;
             }
         }

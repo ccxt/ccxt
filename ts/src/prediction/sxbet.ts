@@ -443,7 +443,7 @@ export default class sxbet extends Exchange {
             queries.push (tags[i]);
         }
         const rest = this.omit (params, [ 'eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
-        let rawMarkets: Dict[];
+        let rawMarkets: Dict[] = [];
         if (eventId !== undefined) {
             rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': eventId }, rest), undefined);
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
@@ -516,7 +516,8 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
-        let rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined);
+        let rawMarkets: Dict[] = [];
+        rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = this.filterRawMarketsByFixture (rawMarkets, id);
         const rawMarketsLength = rawMarkets.length;
@@ -698,8 +699,8 @@ export default class sxbet extends Exchange {
         const signature = ecdsa (digest.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString (signature, 'r', '');
+        const sRaw = this.safeString (signature, 's', '');
         const r = rRaw.padStart (64, '0');
         const s = sRaw.padStart (64, '0');
         const v = this.intToBase16 (this.sum (27, signature['v']));
@@ -1885,7 +1886,7 @@ export default class sxbet extends Exchange {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
-        const outcomesList: string[] = outcomes;
+        const outcomesList: string[] = (outcomes === undefined) ? [] : outcomes;
         const outcomesLength = outcomesList.length;
         const hashesOrder: string[] = [];
         const seenHashes: Dict = {};

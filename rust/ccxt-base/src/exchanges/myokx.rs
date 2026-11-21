@@ -53,7 +53,7 @@ impl crate::exchange::DerivedExchange for Myokx {
 }
 
 impl crate::exchange_generated::ExchangeBase for Myokx {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {

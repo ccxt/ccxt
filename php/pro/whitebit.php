@@ -1204,7 +1204,7 @@ class whitebit extends \ccxt\async\whitebit {
                 if (($subId !== null) && ($subId === $id)) {
                     $method = $this->safe_value($subscription, 'method');
                     if ($method !== null) {
-                        $method($client, $message);
+                        $this->handle_authenticate($client, $message);
                         return;
                     }
                 }

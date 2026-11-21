@@ -2308,13 +2308,14 @@ class blofin extends blofin$1["default"] {
         //
         const result = this.depositWithdrawFee(fee);
         const chainsLength = fee.length;
+        const networkFees = {};
         for (let i = 0; i < chainsLength; i++) {
             const chain = this.safeDict(fee, i);
             const networkCode = this.chainIdToNetworkCode(this.safeString(chain, 'chain'));
             if (networkCode === undefined) {
                 continue;
             }
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber(chain, 'withdrawFee'),
                     'percentage': false,
@@ -2325,6 +2326,7 @@ class blofin extends blofin$1["default"] {
                 },
             };
         }
+        result['networks'] = networkFees;
         if (chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
             const networks = this.safeDict(result, 'networks', {});
@@ -2739,7 +2741,6 @@ class blofin extends blofin$1["default"] {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
-            const orderIds = this.parseIds(ids);
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push({
@@ -2748,16 +2749,16 @@ class blofin extends blofin$1["default"] {
                     });
                 }
             }
-            for (let i = 0; i < orderIds.length; i++) {
+            for (let i = 0; i < ids.length; i++) {
                 if (trigger === true) {
                     request.push({
-                        'tpslId': this.safeString(orderIds, i),
+                        'tpslId': this.safeString(ids, i),
                         'instId': market['id'],
                     });
                 }
                 else {
                     request.push({
-                        'orderId': this.safeString(orderIds, i),
+                        'orderId': this.safeString(ids, i),
                         'instId': market['id'],
                     });
                 }
@@ -2892,7 +2893,7 @@ class blofin extends blofin$1["default"] {
         let market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
-            if (symbolsLength === 0) {
+            if (symbolsLength > 0) {
                 market = this.market(symbols[0]);
                 request['instId'] = market['id'];
             }
@@ -3127,8 +3128,9 @@ class blofin extends blofin$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         const symbolsNormalized = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbolsNormalized);
         const request = {
-            'instId': this.marketIds(symbolsNormalized).join(','),
+            'instId': marketIds.join(','),
             'marginMode': marginMode,
         };
         const response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, query));

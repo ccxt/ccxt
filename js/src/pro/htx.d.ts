@@ -131,7 +131,7 @@ export default class htx extends htxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    getOrderChannelAndMessageHash(type: Str, subType: Str, market?: Market, params?: Dict): Str[];
+    getOrderChannelAndMessageHash(type: Str, subType: Str, market?: Market, params?: Dict): [string, string];
     getV5LinearChannelAndMessageHash(topic: Str, market?: Market, params?: Dict): any[];
     /**
      * @method

@@ -64,7 +64,7 @@ public class TestKeysort extends BaseTest
             AssertDeepEqual(exchange, null, "testKeysort", new ArrayList<Object>(((Map<String, Object>)result3).keySet()), new ArrayList<Object>(expectedSorted3.keySet()));
             // Test 4: Empty dictionary
             Map<String, Object> unsortedDict4 = new HashMap<String, Object>() {{}};
-            Map<String, Object> expectedSorted4 = new HashMap<String, Object>() {{}};
+            Map<String, Map<String, Object>> expectedSorted4 = new HashMap<String, Map<String, Object>>();
             Object result4 = exchange.keysort(unsortedDict4);
             AssertDeepEqual(exchange, null, "testKeysort", new ArrayList<Object>(((Map<String, Object>)result4).keySet()), new ArrayList<Object>(expectedSorted4.keySet()));
             // Test 5: Single key dictionary

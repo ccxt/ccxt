@@ -324,7 +324,7 @@ class p2b extends \ccxt\async\p2b {
         $timeframe = $this->find_timeframe($channel, $timeframes);
         $symbol = $this->safe_string($market, 'symbol');
         $parsed = $this->parse_ohlcv($data, $market);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($symbol !== null) {
             if ($stored === null) {

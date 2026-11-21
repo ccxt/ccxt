@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLastPrices(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLastprices".into());
+    let method: Value = Value::Str("fetchLastprices".into());
     // log ('fetching all tickers at once...')
     let mut response: Value = Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     });
     let mut checkedSymbol: Value = Value::Null;
@@ -25,13 +25,13 @@ if _try_result.is_err() {
         checkedSymbol = symbol;
     }
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), response.clone(), checkedSymbol.clone()]);
-    let mut values: Value = object_values(&response);
+    let values: Value = object_values(&response);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     let mut atLeastOnePassed: Value = Value::Bool(false);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1578: bool = true;
-        while { if !__for_first_1578 { i += 1; } __for_first_1578 = false; i < (values.len() as i64) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (values.len() as i64) } {
         // todo: symbol check here
         testLastPrice(exchange.clone(), skippedProperties.clone(), method.clone(), values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), checkedSymbol.clone());
         atLeastOnePassed = Value::Bool(is_true(&atLeastOnePassed) || (exchange.safe_number(values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("price".into()), &[]).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)));

@@ -800,7 +800,7 @@ public partial class upbit : Exchange
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> orderbooks = this.toArray(response);
+        IList<object> orderbooks = response;
         for (int i = 0; i < (orderbooks?.Count ?? 0); i++)
         {
             IDictionary<string, object> orderbook = this.safeDict(orderbooks, i, new Dictionary<string, object>() {});
@@ -916,7 +916,7 @@ public partial class upbit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> tickers = new List<object>() {};
         if ((symbolsNormalized == null))
         {
@@ -1357,7 +1357,7 @@ public partial class upbit : Exchange
         //         }
         //     ]
         //
-        IList<object> ohlcvs = this.toArray(response);
+        IList<object> ohlcvs = response;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
@@ -2741,11 +2741,11 @@ public partial class upbit : Exchange
             }
             if ((auth != null))
             {
-                string hash = ((string)this.hash(this.encode(auth), sha512));
+                string hash = ((string)this.hash(auth, sha512));
                 request["query_hash"] = hash;
                 request["query_hash_alg"] = "SHA512";
             }
-            string token = jwt(request, this.encode(this.secret), sha256);
+            string token = jwt(request, this.secret, sha256);
             headers["Authorization"] = ("Bearer " + token);
         }
         return new Dictionary<string, object>() {
@@ -2779,8 +2779,8 @@ public partial class upbit : Exchange
             string? message = this.safeString(error, "message");
             string? name = this.safeString(error, "name");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), name, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, name, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), name, feedback);
             throw new ExchangeError (feedback) ;

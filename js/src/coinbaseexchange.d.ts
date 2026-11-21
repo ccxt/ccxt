@@ -60,7 +60,8 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseTicker(ticker: Dict | List, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
+    parseTickerList(ticker: List, market?: Market): Ticker;
     /**
      * @method
      * @name coinbaseexchange#fetchTickers

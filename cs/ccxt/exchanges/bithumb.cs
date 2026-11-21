@@ -593,16 +593,16 @@ public partial class bithumb : Exchange
             {
                 object entry = response[i];
                 string? marketId = this.safeString(entry, "market");
-                object baseId = null;
-                object quoteId = null;
+                string? baseId = null;
+                string? quoteId = null;
                 string? bs = null;
                 string? quote = null;
                 if ((marketId != null))
                 {
                     List<object> parts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = (parts != null && 1 < parts.Count ? parts[1] : null);
-                    quoteId = (parts != null && 0 < parts.Count ? parts[0] : null);
+                    baseId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
+                    quoteId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
                     bs = this.safeCurrencyCode(baseId);
                     quote = this.safeCurrencyCode(quoteId);
                 }
@@ -876,13 +876,12 @@ public partial class bithumb : Exchange
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object response = null;
         IDictionary<string, object> data = null;
         Int64? timestamp = null;
         if ((generation == 2))
         {
             request["markets"] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
+            List<object> response = await this.publicGetV1Orderbook(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -930,7 +929,7 @@ public partial class bithumb : Exchange
             {
                 request["count"] = limit; // default 30, max 30
             }
-            response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
+            Dictionary<string, object> response = await this.publicGetPublicOrderbookBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1203,7 +1202,7 @@ public partial class bithumb : Exchange
                     tickers = ((List<object>)response);
                 } else if (this.isDictionary(response))
                 {
-                    if ((inOp(response, "market")) || (inOp(response, "trade_date")) || (inOp(response, "trade_timestamp")))
+                    if (((response is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("market"))) || ((response is IDictionary<string, object> inOpDict1 && inOpDict1.ContainsKey("trade_date"))) || ((response is IDictionary<string, object> inOpDict2 && inOpDict2.ContainsKey("trade_timestamp"))))
                     {
                         tickers = new List<object>() {response};
                     } else
@@ -1223,7 +1222,7 @@ public partial class bithumb : Exchange
                 }
                 for (int j = 0; j < (tickers?.Count ?? 0); j++)
                 {
-                    object entry = tickers[j];
+                    IDictionary<string, object> entry = ((IDictionary<string, object>)tickers[j]);
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
                     if ((marketId == null))
                     {
@@ -1319,12 +1318,11 @@ public partial class bithumb : Exchange
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
         if ((generation == 2))
         {
             request["markets"] = this.getGen2MarketId(market);
-            response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
+            List<object> response = await this.publicGetV1Ticker(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -1362,7 +1360,7 @@ public partial class bithumb : Exchange
         {
             request["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             request["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
+            Dictionary<string, object> response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -1465,10 +1463,10 @@ public partial class bithumb : Exchange
         object data = new List<object>() {};
         if ((generation == 2))
         {
-            IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            bool paginate = (bool)paginateparamsPaginateVariable[0];
-            IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
-            if (paginate)
+            (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+            bool? paginate = paginateparamsPaginateVariable.Item1;
+            IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
+            if ((paginate == true))
             {
                 return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 200));
             }
@@ -1476,7 +1474,7 @@ public partial class bithumb : Exchange
             Dictionary<string, object> requestParams = this.omit(paramsGeneration, new List<object>() {"until", "paginate"});
             request["market"] = this.getGen2MarketId(market);
             // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
-            object count = 200;
+            Int64 count = 200;
             if ((limit != null))
             {
                 count = Math.Min(limit.Value, 200);
@@ -1487,7 +1485,7 @@ public partial class bithumb : Exchange
             }
             // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
             // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
-            object to = null;
+            Int64? to = null;
             if ((until != null))
             {
                 to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
@@ -1495,13 +1493,13 @@ public partial class bithumb : Exchange
             if ((since != null))
             {
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                object sinceEnd = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, count));
-                if (((to == null)) || (isLessThan(sinceEnd, to)))
+                Int64 sinceEnd = this.sum(since, (duration * count));
+                if (((to == null)) || (sinceEnd < to))
                 {
                     to = sinceEnd;
                 }
             }
-            if (!(to == null))
+            if ((to != null))
             {
                 request["to"] = this.ymdhms(this.sum(to, 32400000), " ");
             }
@@ -1658,14 +1656,14 @@ public partial class bithumb : Exchange
             int numParts = parts.Count;
             if (numParts > 1)
             {
-                object transactionDate = (parts != null && 0 < parts.Count ? parts[0] : null);
+                string? transactionDate = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
                 string? rawTransactionTime = this.safeString(parts, 1, "");
                 string? transactionTime = rawTransactionTime;
                 if (rawTransactionTime.Length < 8)
                 {
                     transactionTime = ("0" + rawTransactionTime);
                 }
-                Int64? kstTimestamp = this.parse8601(((object)(transactionDate == null ? null : transactionDate + " " + transactionTime)));
+                Int64? kstTimestamp = this.parse8601((transactionDate == null ? null : transactionDate + " " + transactionTime));
                 timestamp = kstTimestamp;
                 if (((kstTimestamp != null)) && (!isGenerationTwo))
                 {
@@ -1757,12 +1755,11 @@ public partial class bithumb : Exchange
         {
             request["count"] = limit;
         }
-        object response = null;
-        object data = new List<object>() {};
+        List<object> data = new List<object>() {};
         if ((generation == 2))
         {
             request["market"] = this.getGen2MarketId(market);
-            response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
+            List<object> response = await this.publicGetV1TradesTicks(this.extend(request, paramsGeneration));
             //
             //     [
             //         {
@@ -1784,7 +1781,7 @@ public partial class bithumb : Exchange
         {
             request["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
             request["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
+            Dictionary<string, object> response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, paramsGeneration));
             //
             //     {
             //         "status":"0000",
@@ -2673,11 +2670,10 @@ public partial class bithumb : Exchange
         {
             request["limit"] = limit;
         }
-        object response = null;
-        object data = null;
+        List<object> data = null;
         if ((twap == true))
         {
-            response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
+            Dictionary<string, object> response = await this.privateGetV1Twap(this.extend(request, paramsRequest));
             //
             //     {
             //         "has_next": false,
@@ -2705,7 +2701,7 @@ public partial class bithumb : Exchange
             data = this.safeList(response, "orders", new List<object>() {});
         } else
         {
-            response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
+            List<object> response = await this.privateGetV1Orders(this.extend(request, paramsRequest));
             //
             //     [
             //         {
@@ -3750,10 +3746,10 @@ public partial class bithumb : Exchange
                 }
                 if (hasQuery)
                 {
-                    request["query_hash"] = this.hash(this.encode(auth), sha512);
+                    request["query_hash"] = this.hash(auth, sha512);
                     request["query_hash_alg"] = "SHA512";
                 }
-                string token = jwt(request, this.encode(this.secret), sha256);
+                string token = jwt(request, this.secret, sha256);
                 requestHeaders["Authorization"] = ("Bearer " + token);
             } else
             {
@@ -3765,7 +3761,7 @@ public partial class bithumb : Exchange
                 requestBody = String.Join("+", bodyParts.ToArray());
                 string? nonce = this.numberToString(this.nonce());
                 string authPayload = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
-                string signature = this.hmac(this.encode(authPayload), this.encode(this.secret), sha512);
+                string signature = this.hmac(authPayload, this.secret, sha512);
                 string signature64 = this.stringToBase64(signature);
                 requestHeaders = new Dictionary<string, object>() {
                     { "Accept", "application/json" },

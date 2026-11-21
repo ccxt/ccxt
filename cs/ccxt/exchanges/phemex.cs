@@ -1340,9 +1340,9 @@ public partial class phemex : Exchange
         List<object> products = this.safeList(v2ProductsData, "products", new List<object>() {});
         List<object> perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new List<object>() {});
         products = this.arrayConcat(products, perpetualProductsV2);
-        List<object> riskLimits = this.safeList(v2ProductsData, "riskLimits", new List<object>() {});
+        List<object> riskLimitsV1 = this.safeList(v2ProductsData, "riskLimits", new List<object>() {});
         List<object> riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new List<object>() {});
-        riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
+        List<object> riskLimits = this.arrayConcat(riskLimitsV1, riskLimitsV2);
         List<object> currencies = this.safeList(v2ProductsData, "currencies", new List<object>() {});
         Dictionary<string, object> riskLimitsById = this.indexBy(riskLimits, "symbol");
         Dictionary<string, object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
@@ -1566,7 +1566,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.extend(orderbook, new Dictionary<string, object>() {             { "nonce", nonce },         }));
     }
 
-    public virtual object toEn(object n, object scale)
+    public virtual object toEn(object n, Int64? scale)
     {
         if (((n == null)) || ((scale == null)))
         {
@@ -1574,7 +1574,7 @@ public partial class phemex : Exchange
         }
         string? stringN = this.numberToString(n);
         var precise = new Precise(stringN);
-        precise.decimals = this.sum(precise.decimals, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(scale, -1));
+        precise.decimals = this.sum(precise.decimals, this.parseToInt((scale * (-1))));
         precise.reduce();
         string preciseString = ((object)precise).ToString();
         return this.parseToNumeric(preciseString);
@@ -1605,7 +1605,7 @@ public partial class phemex : Exchange
             return null;
         }
         var precise = new Precise(en);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.parseToInt(scale));
         precise.reduce();
         return ((object)precise).ToString();
     }
@@ -1724,7 +1724,7 @@ public partial class phemex : Exchange
                         // when since is defined 'to' is mandatory
                         Int64 now = this.seconds();
                         Int64? to = this.parseToInt(add(this.parseToInt(fromSeconds), (((Int64)maxLimit * candleDuration))));
-                        request["to"] = ((to > now)) ? now : to;
+                        request["to"] = (to > now) ? now : to;
                     }
                 } else if ((until != null))
                 {
@@ -1825,12 +1825,13 @@ public partial class phemex : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         string? last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), marketResolved);
         string? quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), marketResolved);
-        string? baseVolume = this.safeString(ticker, "volume");
-        if ((baseVolume == null))
+        string? volume = this.safeString(ticker, "volume");
+        string? baseVolume = volume;
+        if ((volume == null))
         {
             baseVolume = this.fromEv(this.safeString2(ticker, "volumeEv", "volumeRq"), marketResolved);
         }
@@ -1984,7 +1985,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
     }
 
     /**
@@ -2231,12 +2232,12 @@ public partial class phemex : Exchange
         string? costString = null;
         string? type = null;
         Dictionary<string, object> fee = null;
-        object feeCostString = null;
+        string? feeCostString = null;
         string? feeRateString = null;
         string? feeCurrencyCode = null;
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? orderId = null;
         string? takerOrMaker = null;
         if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -2388,7 +2389,7 @@ public partial class phemex : Exchange
         //         ]
         //     }
         //
-        object timestamp = null;
+        Int64? timestamp = null;
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -2414,7 +2415,7 @@ public partial class phemex : Exchange
                 timestamp = lastUpdateTimeNs;
             } else
             {
-                timestamp = mathMax(timestamp, lastUpdateTimeNs);
+                timestamp = Math.Max(timestamp.Value, lastUpdateTimeNs.Value);
             }
             account["total"] = total;
             account["used"] = used;
@@ -2788,7 +2789,7 @@ public partial class phemex : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.fromEp(this.safeString(order, "priceEp"), marketResolved);
         string? amount = this.fromEv(this.safeString(order, "baseQtyEv"), marketResolved);
         string? remaining = ((string)this.omitZero(this.fromEv(this.safeString(order, "leavesBaseQtyEv"), marketResolved)));
@@ -2960,8 +2961,9 @@ public partial class phemex : Exchange
         string? status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         string? side = this.parseOrderSide(this.safeStringLower(order, "side"));
         string? type = this.parseOrderType(this.safeString(order, "orderType"));
-        string? price = this.safeString(order, "priceRp");
-        if ((price == null))
+        string? priceRp = this.safeString(order, "priceRp");
+        string? price = priceRp;
+        if ((priceRp == null))
         {
             price = this.fromEp(this.safeString(order, "priceEp"), marketResolved);
         }
@@ -3658,9 +3660,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((data is IList<object> hxList170521))
         {
-            int numOrders = getArrayLength(data);
+            int numOrders = hxList170521.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))
@@ -3797,15 +3799,14 @@ public partial class phemex : Exchange
             }
             throw e;
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> dataList = this.safeList(response, "data");
+        if ((dataList != null))
         {
-            return this.parseOrders(data, market, since, limit);
-        } else
-        {
-            List<object> rows = this.safeList(data, "rows", new List<object>() {});
-            return this.parseOrders(rows, market, since, limit);
+            return this.parseOrders(dataList, market, since, limit);
         }
+        IDictionary<string, object> dataDict = this.safeDict(response, "data");
+        List<object> rows = this.safeList(dataDict, "rows", new List<object>() {});
+        return this.parseOrders(rows, market, since, limit);
     }
 
     /**
@@ -3896,15 +3897,14 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> dataList = this.safeList(response, "data");
+        if ((dataList != null))
         {
-            return this.parseOrders(data, market, since, limit);
-        } else
-        {
-            List<object> rows = this.safeList(data, "rows", new List<object>() {});
-            return this.parseOrders(rows, market, since, limit);
+            return this.parseOrders(dataList, market, since, limit);
         }
+        IDictionary<string, object> dataDict = this.safeDict(response, "data");
+        List<object> rows = this.safeList(dataDict, "rows", new List<object>() {});
+        return this.parseOrders(rows, market, since, limit);
     }
 
     /**
@@ -4403,7 +4403,7 @@ public partial class phemex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? code = this.safeString2(parameters, "currency", "code", "USDT");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"currency", "code"});
         object paramsSettle = paramsOmitted;
@@ -4702,7 +4702,7 @@ public partial class phemex : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? collateral = this.safeString2(position, "positionMargin", "positionMarginRv");
         string? notionalString = this.safeString2(position, "value", "valueRv");
         string? maintenanceMarginPercentageString = this.safeString2(position, "maintMarginReq", "maintMarginReqRr");
@@ -4859,7 +4859,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             Int64? timestamp = this.safeInteger(entry, "createTime");
             string? execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
             string? currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
@@ -5378,7 +5378,7 @@ public partial class phemex : Exchange
                 privateHeaders["Content-Type"] = "application/json";
             }
             string auth = (((requestPath + queryString) + expiryString) + payload);
-            privateHeaders["x-phemex-request-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            privateHeaders["x-phemex-request-signature"] = this.hmac(auth, this.secret, sha256);
         }
         string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
@@ -5782,7 +5782,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rates.Count; i++)
         {
-            object item = rates[i];
+            IDictionary<string, object> item = ((IDictionary<string, object>)rates[i]);
             Int64? timestamp = this.safeInteger(item, "fundingTime");
             result.Add(new Dictionary<string, object>() {
                 { "info", item },
@@ -5834,7 +5834,7 @@ public partial class phemex : Exchange
         {
             if (!(this.inArray(code, stableCoins)))
             {
-                networkId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
+                networkId = this.safeString(currency, "id", (currency.ContainsKey("id") ? currency["id"] : null));
             } else
             {
                 throw new ArgumentsRequired ((this.id + " withdraw () requires an extra argument params[\"network\"]")) ;
@@ -6294,7 +6294,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < ranks.Count; i++)
         {
-            object rank = ranks[i];
+            IDictionary<string, object> rank = ((IDictionary<string, object>)ranks[i]);
             result.Add(this.parseADLRank(rank));
         }
         return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbolsNormalized, false));
@@ -6448,7 +6448,7 @@ public partial class phemex : Exchange
         if (((errorCode != null)) && (errorCode != "0"))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

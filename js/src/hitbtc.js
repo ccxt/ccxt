@@ -1504,7 +1504,7 @@ export default class hitbtc extends Exchange {
             'fee': fee,
         }, marketResolved);
     }
-    async fetchTransactionsHelper(types, code, since, limit, params) {
+    async fetchTransactionsHelper(types, code, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2699,7 +2699,10 @@ export default class hitbtc extends Exchange {
         let market = undefined;
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+            }
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchMarginMode', market, params);
         let response;
@@ -2920,9 +2923,12 @@ export default class hitbtc extends Exchange {
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
-            const queryMarketIds = this.marketIds(symbolsNormalized);
-            request['symbols'] = queryMarketIds.join(',');
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                market = this.market(symbolsNormalized[0]);
+                const queryMarketIds = this.marketIds(symbolsNormalized);
+                request['symbols'] = queryMarketIds.join(',');
+            }
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchFundingRates', market, params);
         if (type !== 'swap') {
@@ -3785,6 +3791,7 @@ export default class hitbtc extends Exchange {
         //
         const networks = this.safeList(fee, 'networks', []);
         const result = this.depositWithdrawFee(fee);
+        const networkFees = {};
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = this.safeDict(networks, j);
             const networkId = this.safeString(networkEntry, 'network');
@@ -3805,7 +3812,7 @@ export default class hitbtc extends Exchange {
                 result['withdraw'] = withdrawResult;
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': undefined,
@@ -3814,6 +3821,7 @@ export default class hitbtc extends Exchange {
                 };
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**

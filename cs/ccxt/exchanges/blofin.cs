@@ -1072,7 +1072,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetMarketTickers(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
@@ -2723,6 +2723,7 @@ public partial class blofin : Exchange
         //
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         int chainsLength = getArrayLength(fee);
+        Dictionary<string, object> networkFees = new Dictionary<string, object>() {};
         for (int i = 0; i < chainsLength; i++)
         {
             IDictionary<string, object> chain = this.safeDict(fee, i);
@@ -2731,7 +2732,7 @@ public partial class blofin : Exchange
             {
                 continue;
             }
-            ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+            networkFees[(string)networkCode] = new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
                     { "fee", this.safeNumber(chain, "withdrawFee") },
                     { "percentage", false },
@@ -2742,6 +2743,7 @@ public partial class blofin : Exchange
                 } },
             };
         }
+        result["networks"] = networkFees;
         if ((chainsLength == 1))
         {
             // a single network means the currency-level fee is unambiguous
@@ -3215,7 +3217,6 @@ public partial class blofin : Exchange
         }
         if ((clientOrderIds == null))
         {
-            object orderIds = this.parseIds(ids);
             if ((tpslIds != null))
             {
                 for (int i = 0; i < getArrayLength(tpslIds); i++)
@@ -3226,18 +3227,18 @@ public partial class blofin : Exchange
                     });
                 }
             }
-            for (int i = 0; i < getArrayLength(orderIds); i++)
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
                 if ((trigger == true))
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "tpslId", this.safeString(orderIds, i) },
+                        { "tpslId", this.safeString(ids, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 } else
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "orderId", this.safeString(orderIds, i) },
+                        { "orderId", this.safeString(ids, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 }
@@ -3361,7 +3362,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.privateGetAccountPositions(parameters);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> result = this.parsePositions(data);
@@ -3394,7 +3395,7 @@ public partial class blofin : Exchange
         if ((symbols != null))
         {
             int symbolsLength = symbols?.Count ?? 0;
-            if ((symbolsLength == 0))
+            if (symbolsLength > 0)
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["instId"] = (market.ContainsKey("id") ? market["id"] : null);
@@ -3440,7 +3441,7 @@ public partial class blofin : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, this.toArray(symbols), paramsUntil);
+        IList<object> positions = this.parsePositions(data, symbols, paramsUntil);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
@@ -3654,8 +3655,9 @@ public partial class blofin : Exchange
             throw new BadRequest ((this.id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> marketIds = this.marketIds(symbolsNormalized);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instId", String.Join(",", ((IList<object>)this.marketIds(symbolsNormalized)).ToArray()) },
+            { "instId", String.Join(",", marketIds.ToArray()) },
             { "marginMode", marginMode },
         };
         Dictionary<string, object> response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, query));
@@ -3919,13 +3921,13 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(market, "symbol") },
             { "marginMode", this.safeString(marginMode, "marginMode") },
-        };
+        })));
     }
 
     /**
@@ -3965,7 +3967,7 @@ public partial class blofin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToDict(this.parseMarginMode(data, market));  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
+        return this.parseMarginMode(data, market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
 
     /**
@@ -4128,8 +4130,8 @@ public partial class blofin : Exchange
         string feedback = ((this.id + " ") + (body));
         if ((codeError != null) && codeError != "0")
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -4147,8 +4149,8 @@ public partial class blofin : Exchange
         string? insideCode = this.safeString(first, "code");
         if ((insideCode != null) && insideCode != "0")
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), insideCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), insideMsg, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, insideCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, insideMsg, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), insideMsg, feedback);
         }
         return null;
@@ -4205,7 +4207,7 @@ public partial class blofin : Exchange
                 signedHeaders["Content-Type"] = "application/json";
             }
             string auth = ((((request + method) + timestamp) + timestamp) + sign_body);
-            string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
+            string signature = this.stringToBase64(this.hmac(auth, this.secret, sha256));
             signedHeaders["ACCESS-SIGN"] = signature;
             string? bodyResolved = signedBody;
             return new Dictionary<string, object>() {

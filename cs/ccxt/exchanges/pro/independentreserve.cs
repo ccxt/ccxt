@@ -65,8 +65,8 @@ public partial class independentreserve : ccxt.independentreserve
         string? quoteId = this.safeString(market, "quote", "");
         string url = ((((wsUrl + "?subscribe=ticker-") + baseId) + "-") + quoteId);
         string messageHash = ("trades:" + symbolValue);
-        object trades = await this.watch(url, messageHash, null, messageHash);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.watch<ccxt.pro.ArrayCache>(url, messageHash, null, messageHash);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -289,12 +289,11 @@ public partial class independentreserve : ccxt.independentreserve
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
         // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
-        object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
-        result = ((string)result).Replace(".", (string)"");
+        string padded = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
+        string digits = padded.Replace(".", (string)"");
         // remove leading zeros
-        result = this.parseNumber(result);
-        result = this.numberToString(result);
-        return ((string?)((object)(result)));
+        string? result = this.numberToString(this.parseNumber(digits));
+        return result;
     }
 
     public override void handleDelta(object bookside, object delta)

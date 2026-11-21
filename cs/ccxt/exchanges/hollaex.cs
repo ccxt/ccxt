@@ -415,8 +415,10 @@ public partial class hollaex : Exchange
             IDictionary<string, object> market = this.safeDict(pairs, key);
             string? baseId = this.safeString(market, "pair_base");
             string? quoteId = this.safeString(market, "pair_2");
-            string? baseCode = this.commonCurrencyCode(baseId.ToUpper());
-            string? quoteCode = this.commonCurrencyCode(quoteId.ToUpper());
+            string upperBaseId = baseId.ToUpper();
+            string upperQuoteId = quoteId.ToUpper();
+            string? baseCode = this.commonCurrencyCode(upperBaseId);
+            string? quoteCode = this.commonCurrencyCode(upperQuoteId);
             result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "name") },
                 { "symbol", (baseCode == null ? null : baseCode + "/" + quoteCode) },
@@ -746,7 +748,7 @@ public partial class hollaex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         //
         //     {
@@ -1071,7 +1073,7 @@ public partial class hollaex : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1740,14 +1742,11 @@ public partial class hollaex : Exchange
         //     }
         //
         List<object> wallet = this.safeList(response, "wallet", new List<object>() {});
-        List<object> addresses = null;
         if ((network == null))
         {
-            addresses = wallet;
-        } else
-        {
-            addresses = this.filterBy(wallet, "network", this.networkCodeToId(network));
+            return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(wallet, codes, false));
         }
+        List<object> addresses = this.filterBy(wallet, "network", this.networkCodeToId(network));
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
 
@@ -2264,7 +2263,7 @@ public partial class hollaex : Exchange
                     auth = auth + requestBody;
                 }
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             requestHeaders["api-signature"] = signature;
         }
         string? bodyResult = requestBody;
@@ -2285,7 +2284,7 @@ public partial class hollaex : Exchange
             return null;
         }
         Int64? statusCode = this.parseToInt(code);
-        if (((statusCode >= 400)) && ((statusCode == null || statusCode <= 503)))
+        if ((statusCode >= 400) && ((statusCode == null || statusCode <= 503)))
         {
             //
             //  { "message": "Invalid token" }
@@ -2300,7 +2299,7 @@ public partial class hollaex : Exchange
             string? message = this.safeString(response, "message");
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             string status = ((object)code).ToString();
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), status, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, status, feedback);
         }
         return null;
     }

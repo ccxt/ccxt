@@ -729,7 +729,7 @@ public partial class bigone : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             IDictionary<string, object> baseAsset = this.safeDict(market, "base_asset", new Dictionary<string, object>() {});
             IDictionary<string, object> quoteAsset = this.safeDict(market, "quote_asset", new Dictionary<string, object>() {});
             string? baseId = this.safeString(baseAsset, "symbol");
@@ -794,7 +794,7 @@ public partial class bigone : Exchange
         IList<object> contractMarkets = this.toArray(contractResponse);
         for (int i = 0; i < (contractMarkets?.Count ?? 0); i++)
         {
-            object market = contractMarkets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)contractMarkets[i]);
             string? baseId = this.safeString(market, "baseCurrency");
             string? quoteId = this.safeString(market, "quoteCurrency");
             string? settleId = this.safeString(market, "settleCurrency");
@@ -1022,7 +1022,7 @@ public partial class bigone : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         bool isSpot = (type == "spot");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IList<object> data = null;
         if (isSpot)
         {
@@ -1063,7 +1063,7 @@ public partial class bigone : Exchange
         } else
         {
             List<object> instruments = await this.contractPublicGetInstruments(paramsMarketType);
-            data = this.toArray(instruments);
+            data = instruments;
         }
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(data, symbolsNormalized));
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsNormalized));
@@ -1200,8 +1200,8 @@ public partial class bigone : Exchange
         List<object> asks = this.parseContractBidsAsks(responseAsks);
         return new Dictionary<string, object>() {
             { "symbol", symbol },
-            { "bids", this.filterByLimit(this.toArray(this.sortBy(bids, 0, true)), limit) },
-            { "asks", this.filterByLimit(this.toArray(this.sortBy(asks, 0)), limit) },
+            { "bids", this.filterByLimit(this.sortBy(bids, 0, true), limit) },
+            { "asks", this.filterByLimit(this.sortBy(asks, 0), limit) },
             { "timestamp", null },
             { "datetime", null },
             { "nonce", null },
@@ -2179,7 +2179,7 @@ public partial class bigone : Exchange
                 { "sub", this.apiKey },
                 { "nonce", nonce },
             };
-            string token = jwt(request, this.encode(this.secret), sha256);
+            string token = jwt(request, this.secret, sha256);
             headersValue["Authorization"] = ("Bearer " + token);
             if ((method == "GET"))
             {
@@ -2637,8 +2637,8 @@ public partial class bigone : Exchange
         if ((codeError != "0") && ((codeError != null)))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

@@ -139,7 +139,7 @@ export default class bitget extends bitgetRest {
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleCheckSumError(client: Client, symbol: string, messageHash: string): Promise<void>;
+    handleCheckSumError(client: Client, symbol: string, messageHash: string, checksumMessage: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
     /**

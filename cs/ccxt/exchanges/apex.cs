@@ -896,7 +896,7 @@ public partial class apex : Exchange
         }
         Dictionary<string, object> response = await this.publicGetV3DataAllTickerInfo(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -1231,7 +1231,7 @@ public partial class apex : Exchange
         List<object> resultList = this.safeList(data, "historyFunds", new List<object>() {});
         for (int i = 0; i < resultList.Count; i++)
         {
-            object entry = resultList[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)resultList[i]);
             Int64? timestamp = this.safeInteger(entry, "fundingTimestamp");
             string? marketId = this.safeString(entry, "symbol");
             rates.Add(new Dictionary<string, object>() {
@@ -1399,7 +1399,7 @@ public partial class apex : Exchange
                 marketResolved = (this.markets != null && marketId != null && this.markets.ContainsKey((string)marketId) ? this.markets[(string)marketId] : null);
             } else if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
             {
-                marketResolved = (this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey((string)marketId) ? this.markets_by_id[(string)marketId] : null);
+                marketResolved = this.safeDict((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey((string)marketId) ? this.markets_by_id[(string)marketId] : null), 0);
             } else
             {
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
@@ -1407,11 +1407,11 @@ public partial class apex : Exchange
                 {
                     object markets = (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId) ? this.markets_by_id[newMarketId] : null);
                     int numMarkets = getArrayLength(markets);
-                    if (numMarkets > 0)
+                    for (int i = 0; i < numMarkets; i++)
                     {
-                        if (isEqual(getValue(getValue(markets, 0), "id2"), marketId))
+                        if (((i == 0)) && (isEqual(getValue(getValue(markets, i), "id2"), marketId)))
                         {
-                            marketResolved = getValue(markets, 0);
+                            marketResolved = getValue(markets, i);
                         }
                     }
                 }
@@ -1422,15 +1422,12 @@ public partial class apex : Exchange
 
     public virtual string? generateRandomClientIdOmni(object _accountId)
     {
-        object accountId = "";
+        string suffix = ((("-" + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString());
         if (((_accountId != null)) && (!(_accountId is "")))
         {
-            accountId = _accountId;
-        } else
-        {
-            accountId = this.randNumber(12).ToString();
+            return (("apexomni-" + (_accountId)) + suffix);
         }
-        return ((((("apexomni-" + (accountId)) + "-") + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString());
+        return (("apexomni-" + this.randNumber(12).ToString()) + suffix);
     }
 
     public virtual string? addHyphenBeforeUsdt(object symbol)
@@ -2126,7 +2123,7 @@ public partial class apex : Exchange
         Dictionary<string, object> response = await this.privateGetV3Account(parameters);
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(data, "positions", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -2225,7 +2222,7 @@ public partial class apex : Exchange
             {
                 messageString = (messageString + signBody);
             }
-            string signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
+            string signature = this.hmac(messageString, this.stringToBase64(this.secret), sha256, "base64");
             headersValue["APEX-SIGNATURE"] = signature;
             headersValue["APEX-API-KEY"] = this.apiKey;
             headersValue["APEX-TIMESTAMP"] = timestamp;
@@ -2256,7 +2253,7 @@ public partial class apex : Exchange
             string? message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             string status = ((object)code).ToString();
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), status, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, status, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

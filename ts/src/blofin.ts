@@ -2326,13 +2326,14 @@ export default class blofin extends Exchange {
         //
         const result = this.depositWithdrawFee (fee);
         const chainsLength = (fee as List).length;
+        const networkFees: Dict = {};
         for (let i = 0; i < chainsLength; i++) {
             const chain = this.safeDict (fee, i);
             const networkCode = this.chainIdToNetworkCode (this.safeString (chain, 'chain'));
             if (networkCode === undefined) {
                 continue;
             }
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber (chain, 'withdrawFee'),
                     'percentage': false,
@@ -2343,6 +2344,7 @@ export default class blofin extends Exchange {
                 },
             };
         }
+        result['networks'] = networkFees;
         if (chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
             const networks: Dict = this.safeDict (result, 'networks', {});
@@ -2765,7 +2767,6 @@ export default class blofin extends Exchange {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
-            const orderIds = this.parseIds (ids) as string[];
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push ({
@@ -2774,15 +2775,15 @@ export default class blofin extends Exchange {
                     });
                 }
             }
-            for (let i = 0; i < orderIds.length; i++) {
+            for (let i = 0; i < ids.length; i++) {
                 if (trigger === true) {
                     request.push ({
-                        'tpslId': this.safeString (orderIds, i),
+                        'tpslId': this.safeString (ids, i),
                         'instId': market['id'],
                     });
                 } else {
                     request.push ({
-                        'orderId': this.safeString (orderIds, i),
+                        'orderId': this.safeString (ids, i),
                         'instId': market['id'],
                     });
                 }
@@ -2920,7 +2921,7 @@ export default class blofin extends Exchange {
         let market: Market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
-            if (symbolsLength === 0) {
+            if (symbolsLength > 0) {
                 market = this.market (symbols[0]);
                 request['instId'] = market['id'];
             }
@@ -3152,8 +3153,9 @@ export default class blofin extends Exchange {
             throw new BadRequest (this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const marketIds: string[] = this.marketIds (symbolsNormalized);
         const request: Dict = {
-            'instId': this.marketIds (symbolsNormalized).join (','),
+            'instId': marketIds.join (','),
             'marginMode': marginMode,
         };
         const response = await this.privateGetAccountBatchLeverageInfo (this.extend (request, query));

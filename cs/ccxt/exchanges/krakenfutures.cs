@@ -295,8 +295,8 @@ public partial class krakenfutures : Exchange
                     { "taker", this.parseNumber("0.0005") },
                     { "maker", this.parseNumber("0.0002") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00025")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.00015")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.000125")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0001")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.000125")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.000075")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.00005")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.000025")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.0005}, new List<object> {100000.0, 0.0004}, new List<object> {1000000.0, 0.0003}, new List<object> {5000000.0, 0.00025}, new List<object> {10000000.0, 0.0002}, new List<object> {20000000.0, 0.00015}, new List<object> {50000000.0, 0.000125}, new List<object> {100000000.0, 0.0001}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0002}, new List<object> {100000.0, 0.0015}, new List<object> {1000000.0, 0.000125}, new List<object> {5000000.0, 0.0001}, new List<object> {10000000.0, 0.000075}, new List<object> {20000000.0, 0.00005}, new List<object> {50000000.0, 0.000025}, new List<object> {100000000.0, 0.0}} },
                     } },
                 } },
             } },
@@ -529,7 +529,7 @@ public partial class krakenfutures : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < instruments.Count; i++)
         {
-            object market = instruments[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)instruments[i]);
             string? id = this.safeString(market, "symbol");
             string? marketType = this.safeString(market, "type");
             string? type = null;
@@ -813,7 +813,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         List<object> tickers = this.safeList(response, "tickers");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -957,7 +957,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> schedulesByUid = new Dictionary<string, object>() {};
         for (int i = 0; i < feeSchedules.Count; i++)
         {
-            object schedule = feeSchedules[i];
+            IDictionary<string, object> schedule = ((IDictionary<string, object>)feeSchedules[i]);
             string? uid = this.safeString(schedule, "uid");
             if ((uid != null))
             {
@@ -1105,7 +1105,7 @@ public partial class krakenfutures : Exchange
         //        "more_candles": true
         //    }
         //
-        List<object> candles = this.safeList(response, "candles");
+        List<object> candles = this.safeList(response, "candles", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limitResolved));
     }
 
@@ -1625,7 +1625,7 @@ public partial class krakenfutures : Exchange
         //         }
         //     }
         //
-        object sendStatus = this.safeValue(response, "sendStatus");
+        IDictionary<string, object> sendStatus = this.safeDict(response, "sendStatus");
         string? status = this.safeString(sendStatus, "status");
         this.verifyOrderActionSuccess(status, "createOrder", new List<object>() {"filled"});
         return this.parseOrder(sendStatus, market);
@@ -1749,15 +1749,17 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privatePostCancelorder(this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
-        }, parameters));
-        string? status = this.safeString(this.safeDict(response, "cancelStatus", new Dictionary<string, object>() {}), "status");
+        };
+        Dictionary<string, object> response = await this.privatePostCancelorder(this.extend(request, parameters));
+        IDictionary<string, object> cancelStatus = this.safeDict(response, "cancelStatus");
+        string? status = this.safeString(cancelStatus, "status");
         this.verifyOrderActionSuccess(status, "cancelOrder");
         Dictionary<string, object> order = new Dictionary<string, object>() {};
-        if (response.ContainsKey("cancelStatus"))
+        if ((cancelStatus != null))
         {
-            order = ccxt.BaseExchange.FromOrder(this.parseOrder(response["cancelStatus"]));
+            order = ccxt.BaseExchange.FromOrder(this.parseOrder(cancelStatus));
         }
         return ccxt.BaseExchange.ToOrder(this.extend(new Dictionary<string, object>() {             { "info", response },         }, order));
     }
@@ -2913,7 +2915,7 @@ public partial class krakenfutures : Exchange
         List<object> rows = new List<object>() {};
         for (int i = 0; i < logs.Count; i++)
         {
-            object row = logs[i];
+            IDictionary<string, object> row = ((IDictionary<string, object>)logs[i]);
             string? asset = this.safeString(row, "asset");
             string? contract = this.safeString(row, "contract");
             if (((asset != null)) && ((asset != contract)))
@@ -3607,7 +3609,7 @@ public partial class krakenfutures : Exchange
         {
             throw new ExchangeNotAvailable ((this.id + " fetchPositions() returned a response without an \"openPositions\" list")) ;
         }
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
     /**
@@ -3705,7 +3707,7 @@ public partial class krakenfutures : Exchange
                 updates.Add(update);
             }
         }
-        IList<object> positions = this.parsePositions(updates, this.toArray(symbols));
+        IList<object> positions = this.parsePositions(updates, symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
@@ -4241,7 +4243,7 @@ public partial class krakenfutures : Exchange
             return null;
         }
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         if ((code == 400))
         {
@@ -4299,7 +4301,7 @@ public partial class krakenfutures : Exchange
                 auth = auth + (apiName + "/");
             }
             auth = auth + endpoint; // 1
-            byte[] hash = ((byte[])this.hash(this.encode(auth), sha256, "binary")); // 2
+            byte[] hash = ((byte[])this.hash(auth, sha256, "binary")); // 2
             byte[] secret = this.base64ToBinary(this.secret); // 3
             string signature = this.hmac(hash, secret, sha512, "base64"); // 4-5
             privateHeaders = new Dictionary<string, object>() {

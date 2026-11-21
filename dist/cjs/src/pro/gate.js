@@ -179,7 +179,7 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_place';
         const url = this.getUrlByMarket(market);
@@ -204,8 +204,13 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         const request = this.createOrdersRequest(orders, params);
-        const firstOrder = orders[0];
-        const market = this.market(firstOrder['symbol']);
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            if (i === 0) {
+                symbol = this.safeString(orders[i], 'symbol');
+            }
+        }
+        const market = this.market(symbol);
         if (!this.safeBool(market, 'swap', false)) {
             throw new errors.NotSupported(this.id + ' createOrdersWs is not supported for swap markets');
         }
@@ -235,13 +240,7 @@ class gate extends gate$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol === undefined) {
-            market = undefined;
-        }
-        else {
-            market = this.market(symbol);
-        }
+        const market = this.market(symbol);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_cancel_cp';
@@ -449,15 +448,17 @@ class gate extends gate$1["default"] {
         const messageType = this.getTypeByMarket(market);
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
-        let defaultLimit = 100;
+        let limitResolved = this.parseToInt(100);
         if ((this.safeBool(market, 'spot', false)) || (messageType === 'options')) {
-            defaultLimit = 50;
+            limitResolved = this.parseToInt(50);
         }
-        let limitResolved = (limit === undefined) ? defaultLimit : limit;
+        if (limit !== undefined) {
+            limitResolved = this.parseToInt(limit);
+        }
         if (this.safeBool(market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
-            limitResolved = Math.min(limitResolved, maxSpotLimit);
+            limitResolved = this.parseToInt(Math.min(limitResolved, maxSpotLimit));
         }
         let payload = [];
         let channel = '';
@@ -511,12 +512,13 @@ class gate extends gate$1["default"] {
         const interval = intervalDefault;
         const [intervalOption, paramsInterval] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket(market);
-        let limit = this.safeInteger(paramsInterval, 'limit');
-        if (limit === undefined) {
-            limit = (this.safeBool(market, 'spot', false)) ? 50 : 100; // max 100 atm
-            if (messageType === 'options') {
-                limit = 50; // max 50 for options
-            }
+        const limitParam = this.safeInteger(paramsInterval, 'limit');
+        let limit = this.parseToInt((this.safeBool(market, 'spot', false)) ? 50 : 100); // max 100 atm
+        if (messageType === 'options') {
+            limit = this.parseToInt(50); // max 50 for options
+        }
+        if (limitParam !== undefined) {
+            limit = this.parseToInt(limitParam);
         }
         let payload = [];
         let channel = '';
@@ -1086,7 +1088,7 @@ class gate extends gate$1["default"] {
         // todo add options support
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.candlesticks';
@@ -1118,7 +1120,7 @@ class gate extends gate$1["default"] {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.candlesticks';
@@ -1210,7 +1212,7 @@ class gate extends gate$1["default"] {
                     this.safeNumber(ohlcv, 'a'),
                 ];
             }
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -1691,9 +1693,9 @@ class gate extends gate$1["default"] {
         }
         let payload = ['!' + 'all'];
         if (market !== undefined) {
-            messageHash += ':' + market['id'];
-            const mid = market['id'];
+            const mid = this.safeString(market, 'id');
             if (mid !== undefined) {
+                messageHash += ':' + mid;
                 payload = [mid];
             }
         }
@@ -1784,10 +1786,11 @@ class gate extends gate$1["default"] {
                 }
             }
             stored.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             const market = this.market(symbol);
-            if (market['id'] !== undefined) {
-                marketIds[market['id']] = true;
+            const marketId = this.safeString(market, 'id');
+            if (marketId !== undefined) {
+                marketIds[marketId] = true;
             }
         }
         const keys = Object.keys(marketIds);
@@ -1927,10 +1930,7 @@ class gate extends gate$1["default"] {
             newLiquidations.push(liquidation);
             const symbol = this.safeString(liquidation, 'symbol');
             if (symbol !== undefined) {
-                let symbolLiquidations = this.safeList(liquidationsBySymbol, symbol);
-                if (symbolLiquidations === undefined) {
-                    symbolLiquidations = [];
-                }
+                const symbolLiquidations = this.safeList(liquidationsBySymbol, symbol, []);
                 symbolLiquidations.push(liquidation);
                 liquidationsBySymbol[symbol] = symbolLiquidations;
             }
@@ -2309,16 +2309,13 @@ class gate extends gate$1["default"] {
     getUrlByMarket(market) {
         if (this.safeBool(market, 'contract', false)) {
             const settleKey = (this.safeBool(market, 'linear', false)) ? 'usdt' : 'btc';
-            return this.safeString(this.urls['api'][market['type']], settleKey, '');
+            const contractUrl = this.safeString(this.urls['api'][market['type']], settleKey, '');
+            return contractUrl;
         }
-        else {
-            return this.safeString(this.urls['api'], market['type'], '');
-        }
+        const spotUrl = this.safeString(this.urls['api'], market['type'], '');
+        return spotUrl;
     }
     getTypeByMarket(market) {
-        if (market === undefined) {
-            return undefined;
-        }
         if (this.safeBool(market, 'spot', false)) {
             return 'spot';
         }
@@ -2339,20 +2336,21 @@ class gate extends gate$1["default"] {
         }
     }
     getMarketTypeByUrl(url) {
-        const findBy = {
-            'op-': 'option',
-            '/ws/options/': 'option',
-            'delivery': 'future',
-            'fx': 'swap',
-            '/ws/futures/': 'swap',
-        };
-        const keys = Object.keys(findBy);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = findBy[key];
-            if (url.indexOf(key) >= 0) {
-                return value;
-            }
+        // same order as the url table: delivery urls also contain 'fx'
+        if (url.indexOf('op-') >= 0) {
+            return 'option';
+        }
+        if (url.indexOf('/ws/options/') >= 0) {
+            return 'option';
+        }
+        if (url.indexOf('delivery') >= 0) {
+            return 'future';
+        }
+        if (url.indexOf('fx') >= 0) {
+            return 'swap';
+        }
+        if (url.indexOf('/ws/futures/') >= 0) {
+            return 'swap';
         }
         return 'spot';
     }

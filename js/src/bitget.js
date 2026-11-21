@@ -2308,7 +2308,7 @@ export default class bitget extends Exchange {
                 continue;
             }
             const parsedMarket = this.parseMarket(market);
-            if ((parsedMarket !== undefined) && parsedMarket['spot']) {
+            if ((parsedMarket !== undefined) && this.safeBool(parsedMarket, 'spot', false)) {
                 const marketId = parsedMarket['id'];
                 const instrument = this.safeDict(spotInstruments, marketId);
                 if (instrument !== undefined) {
@@ -2420,12 +2420,16 @@ export default class bitget extends Exchange {
             const priceEndStep = this.safeString(market, 'priceEndStep');
             const sizeMultiplier = this.safeString(market, 'sizeMultiplier');
             const precise = new Precise(priceEndStep);
-            precise.decimals = Math.max(precise.decimals, pricePlaces);
+            if (pricePlaces !== undefined) {
+                precise.decimals = Math.max(precise.decimals, pricePlaces);
+            }
             precise.reduce();
             const priceString = precise.toString();
             pricePrecision = this.parseNumber(priceString);
             const preciseAmount = new Precise(sizeMultiplier);
-            preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces);
+            if (volumePlaces !== undefined) {
+                preciseAmount.decimals = Math.max(preciseAmount.decimals, volumePlaces);
+            }
             preciseAmount.reduce();
             const amountString = preciseAmount.toString();
             amountPrecision = this.parseNumber(amountString);
@@ -6338,8 +6342,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        const firstOrder = this.safeDict(orders, 0);
-        let symbol = this.safeString(firstOrder, 'symbol');
+        let symbol = undefined;
         let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -6415,8 +6418,7 @@ export default class bitget extends Exchange {
             return await this.createUtaOrders(orders, paramsUTA);
         }
         const ordersRequests = [];
-        const firstOrder = this.safeDict(orders, 0);
-        let symbol = this.safeString(firstOrder, 'symbol');
+        let symbol = undefined;
         let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -6952,7 +6954,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const productType = this.handleProductTypeAndParams(market, params)[0];
+        const [productType] = this.handleProductTypeAndParams(market, params);
         const requestList = [];
         for (let i = 0; i < ids.length; i++) {
             const individualId = this.safeString(ids, i);
@@ -8534,12 +8536,13 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
         if ((marketType === 'swap') || (marketType === 'future')) {
+            const data = this.safeDict(response, 'data', {});
             const bills = this.safeList(data, 'bills', []);
             return this.parseLedger(bills, currency, since, limit);
         }
-        return this.parseLedger(data, currency, since, limit);
+        const rows = this.safeList(response, 'data', []);
+        return this.parseLedger(rows, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
         //
@@ -9644,7 +9647,7 @@ export default class bitget extends Exchange {
         let productType = undefined;
         let uta = undefined;
         let response = undefined;
-        let result = undefined;
+        let result = [];
         let paramsProductType = undefined;
         [productType, paramsProductType] = this.handleProductTypeAndParams(market, params);
         [uta, paramsProductType] = await this.handleUTAAndParams(paramsProductType, 'fetchFundingRateHistory', false);

@@ -1506,7 +1506,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
          * @see https://bybit-exchange.github.io/docs/v5/account/account-info
          *
-         * returns [$enableUnifiedMargin, $enableUnifiedAccount] so the user can check if unified account is enabled
+         * returns [$enableUnifiedMargin, $enableUnifiedAccount] so the user can check if $unified account is enabled
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} [$enableUnifiedMargin, $enableUnifiedAccount]
          */
@@ -1585,8 +1585,10 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             $accountResult = $this->safe_dict($accountInfo, 'result', array());
-            $this->options['enableUnifiedMargin'] = $this->safe_integer($result, 'unified') === 1;
-            $this->options['enableUnifiedAccount'] = $this->safe_integer($result, 'uta') === 1;
+            $unified = $this->safe_integer($result, 'unified');
+            $uta = $this->safe_integer($result, 'uta');
+            $this->options['enableUnifiedMargin'] = $unified === 1;
+            $this->options['enableUnifiedAccount'] = $uta === 1;
             $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return array( $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] );
@@ -1610,7 +1612,7 @@ class bybit extends Exchange {
 
     public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
-        $quote = null;
+        $quote = 'USDC';
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $expiry = null;
@@ -1624,20 +1626,16 @@ class bybit extends Exchange {
                 throw new ExchangeError($this->id . ' createExpiredOptionMarket() missing symbolQuoteAndSettle');
             }
             $splitQuote = explode(':', $symbolQuoteAndSettle);
-            $quoteAndSettle = $this->safe_string($splitQuote, 0);
-            $quote = $quoteAndSettle;
+            $quote = $this->safe_string($splitQuote, 0, '');
         } else {
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
             if (str_ends_with($symbol, '-USDT')) {
                 $quote = 'USDT';
-            } else {
-                $quote = 'USDC';
             }
         }
         $strike = $this->safe_string($optionParts, 2);
         $optionType = $this->safe_string($optionParts, 3);
         $datetime = $this->convert_expire_date($expiry);
-        $timestamp = $this->parse8601($datetime);
         $amountPrecision = null;
         $pricePrecision = null;
         // hard coded amount and price precisions from fetchOptionMarkets
@@ -1673,7 +1671,7 @@ class bybit extends Exchange {
             'margin' => false,
             'contract' => true,
             'contractSize' => $this->parse_number('1'),
-            'expiry' => $timestamp,
+            'expiry' => $this->parse8601($datetime),
             'expiryDatetime' => $datetime,
             'optionType' => ($optionType === 'C') ? 'call' : 'put',
             'strike' => $this->parse_number($strike),
@@ -2075,8 +2073,6 @@ class bybit extends Exchange {
         $responseResult = $this->safe_dict($response, 'result', array());
         $markets = $this->safe_list($responseResult, 'list', array());
         $result = array();
-        $takerFee = $this->parse_number('0.001');
-        $makerFee = $this->parse_number('0.001');
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'symbol');
@@ -2094,7 +2090,6 @@ class bybit extends Exchange {
             $priceFilter = $this->safe_dict($market, 'priceFilter');
             $quotePrecision = $this->safe_number($lotSizeFilter, 'quotePrecision');
             $marginTrading = $this->safe_string($market, 'marginTrading', 'none');
-            $allowsMargin = $marginTrading !== 'none';
             $result[] = $this->safe_market_structure(array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -2106,7 +2101,7 @@ class bybit extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $allowsMargin,
+                'margin' => ($marginTrading !== 'none'),
                 'swap' => false,
                 'future' => false,
                 'option' => false,
@@ -2114,8 +2109,8 @@ class bybit extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => $takerFee,
-                'maker' => $makerFee,
+                'taker' => $this->parse_number('0.001'),
+                'maker' => $this->parse_number('0.001'),
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -2252,7 +2247,6 @@ class bybit extends Exchange {
             $inverseFutures = ($contractType === 'InverseFutures');
             $linearFutures = ($contractType === 'LinearFutures');
             $linearPerpetual = ($contractType === 'LinearPerpetual');
-            $inversePerpetual = ($contractType === 'InversePerpetual');
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseCoin');
             $quoteId = $this->safe_string($market, 'quoteCoin');
@@ -2277,7 +2271,7 @@ class bybit extends Exchange {
             $priceFilter = $this->safe_dict($market, 'priceFilter', array());
             $leverage = $this->safe_dict($market, 'leverageFilter', array());
             $status = $this->safe_string($market, 'status');
-            $swap = $linearPerpetual || $inversePerpetual;
+            $swap = $linearPerpetual || ($contractType === 'InversePerpetual');
             $future = $inverseFutures || $linearFutures;
             $type = null;
             if ($swap) {
@@ -3090,11 +3084,14 @@ class bybit extends Exchange {
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $symbolMarket = $this->market($symbolsNormalized[0]);
-            $market = $symbolMarket;
-            $symbolsLength = count($symbolsNormalized);
-            if ($symbolsLength === 1) {
-                $request['symbol'] = $symbolMarket['id'];
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $symbolMarket = $this->market($symbolsNormalized[0]);
+                $market = $symbolMarket;
+                $symbolsLength = count($symbolsNormalized);
+                if ($symbolsLength === 1) {
+                    $request['symbol'] = $symbolMarket['id'];
+                }
             }
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchFundingRates', $market, $params);
@@ -4191,7 +4188,7 @@ class bybit extends Exchange {
         $triggerDirection = $this->safe_string($order, 'triggerDirection');
         $isAscending = ($triggerDirection === '1');
         $isStopOrderType2 = ($triggerPrice !== null) && $reduceOnly;
-        if (($stopLossPrice === null) && ($isStopOrderType2 === true)) {
+        if (($stopLossPrice === null) && $isStopOrderType2) {
             // check if order is stop order type 2 - stopLossPrice
             if ($isAscending && ($side === 'buy')) {
                 // stopLoss order against short position
@@ -4202,7 +4199,7 @@ class bybit extends Exchange {
                 $stopLossPrice = $triggerPrice;
             }
         }
-        if (($takeProfitPrice === null) && ($isStopOrderType2 === true)) {
+        if (($takeProfitPrice === null) && $isStopOrderType2) {
             // check if order is stop order type 2 - takeProfitPrice
             if ($isAscending && ($side === 'sell')) {
                 // takeprofit order against a long position
@@ -5395,7 +5392,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $orders = $this->safe_list($result, 'list');
-        if ((gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders)))) {
+        if ($orders === null) {
             return array( $this->safe_order(array( 'info' => $response )) );
         }
         return $this->parse_orders($orders, $market);
@@ -7471,16 +7468,18 @@ class bybit extends Exchange {
                 $leverage = $this->safe_string($paramsType, 'leverage');
                 $paramsOmitted = null;
                 if ($leverage === null) {
-                    $sellLeverage = $this->safe_string_2($paramsType, 'sell_leverage', 'sellLeverage');
-                    $buyLeverage = $this->safe_string_2($paramsType, 'buy_leverage', 'buyLeverage');
-                    if ($sellLeverage === null && $buyLeverage === null) {
+                    $sellLeverageRaw = $this->safe_string_2($paramsType, 'sell_leverage', 'sellLeverage');
+                    $buyLeverageRaw = $this->safe_string_2($paramsType, 'buy_leverage', 'buyLeverage');
+                    if ($sellLeverageRaw === null && $buyLeverageRaw === null) {
                         throw new ArgumentsRequired($this->id . ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
                     }
-                    if ($buyLeverage === null) {
-                        $buyLeverage = $sellLeverage;
+                    $sellLeverage = $sellLeverageRaw;
+                    $buyLeverage = $buyLeverageRaw;
+                    if ($buyLeverageRaw === null) {
+                        $buyLeverage = $sellLeverageRaw;
                     }
-                    if ($sellLeverage === null) {
-                        $sellLeverage = $buyLeverage;
+                    if ($sellLeverageRaw === null) {
+                        $sellLeverage = $buyLeverageRaw;
                     }
                     $paramsOmitted = $this->omit($paramsType, array( 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ));
                 } else {
@@ -7997,9 +7996,10 @@ class bybit extends Exchange {
         $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         $paramsOmitted = $this->omit($params, array( 'until' ));
         if ($endTime === null) {
-            $endTime = $sinceResolved + 2592000000; // since + 30 days
+            $request['endTime'] = $sinceResolved + 2592000000; // since + 30 days
+        } else {
+            $request['endTime'] = $endTime;
         }
-        $request['endTime'] = $endTime;
         $response = Async\await($this->privateGetV5SpotMarginTradeInterestRateHistory($this->extend($request, $paramsOmitted)));
         //
         //   {
@@ -8561,6 +8561,7 @@ class bybit extends Exchange {
             ),
             'networks' => array(),
         );
+        $networks = array();
         if ($chainsLength !== 0) {
             for ($i = 0; $i < $chainsLength; $i++) {
                 $chain = $this->safe_dict($chains, $i);
@@ -8568,17 +8569,20 @@ class bybit extends Exchange {
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
                 if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
+                    $networks[$networkCode] = array(
                         'deposit' => array( 'fee' => null, 'percentage' => null ),
                         'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
                     );
                 }
                 if ($chainsLength === 1) {
-                    $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
-                    $result['withdraw']['percentage'] = false;
+                    $result['withdraw'] = array(
+                        'fee' => $this->safe_number($chain, 'withdrawFee'),
+                        'percentage' => false,
+                    );
                 }
             }
         }
+        $result['networks'] = $networks;
         return $result;
     }
 
@@ -10454,17 +10458,18 @@ class bybit extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $this->implode_hostname($apiUrl) . '/' . $path;
+        $baseUrl = $this->implode_hostname($apiUrl) . '/' . $path;
+        $url = $baseUrl;
         if ($apiName === 'public') {
             if (count($params) > 0) {
                 $url = $this->implode_hostname($apiUrl) . '/' . $path . '?' . $this->rawencode($params);
             }
         } elseif ($apiName === 'private') {
             $this->check_required_credentials();
-            $isOpenapi = mb_strpos($url, 'openapi') !== false;
-            $isV3UnifiedMargin = mb_strpos($url, 'unified/v3') !== false;
-            $isV3Contract = mb_strpos($url, 'contract/v3') !== false;
-            $isV5UnifiedAccount = mb_strpos($url, 'v5') !== false;
+            $isOpenapi = mb_strpos($baseUrl, 'openapi') !== false;
+            $isV3UnifiedMargin = mb_strpos($baseUrl, 'unified/v3') !== false;
+            $isV3Contract = mb_strpos($baseUrl, 'contract/v3') !== false;
+            $isV5UnifiedAccount = mb_strpos($baseUrl, 'v5') !== false;
             $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
                 if (count($params) > 0) {
@@ -10525,7 +10530,7 @@ class bybit extends Exchange {
                     $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 }
                 if ($method === 'POST') {
-                    $isSpot = mb_strpos($url, 'spot') !== false;
+                    $isSpot = mb_strpos($baseUrl, 'spot') !== false;
                     $extendedQuery = $this->extend($query, array(
                         'sign' => $signature,
                     ));
@@ -10541,8 +10546,7 @@ class bybit extends Exchange {
                         );
                     }
                 } else {
-                    $url = $this->implode_hostname($apiUrl) . '/' . $path . '?' . $this->rawencode($sortedQuery, true);
-                    $url .= '&sign=' . $signature;
+                    $url = $baseUrl . '?' . $this->rawencode($sortedQuery, true) . '&sign=' . $signature;
                 }
             }
         }

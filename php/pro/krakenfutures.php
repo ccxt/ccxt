@@ -151,7 +151,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $length = count($symbolsValue);
         if ($length === 1) {
-            $market = $this->market($marketIds[0]);
+            $market = $this->market($symbolsValue[0]);
             $messageHash .= ':' . $market['symbol'];
         }
         $subscribe['product_ids'] = $marketIds;
@@ -1541,6 +1541,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $this->balance['cash']['timestamp'] = $timestamp;
             $this->balance['cash']['datetime'] = $this->iso8601($timestamp);
             $holdingCodes = array();
+            $cashBalance = $this->safe_dict($this->balance, 'cash', array());
             for ($i = 0; $i < count($holdingKeys); $i++) {
                 $key = $holdingKeys[$i];
                 $code = $this->safe_currency_code($key);
@@ -1548,10 +1549,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $newAccount['total'] = $this->safe_string($holding, $key);
                 if ($code !== null) {
                     $holdingCodes[$code] = true;
-                    $this->balance['cash'][$code] = $newAccount;
+                    $cashBalance[$code] = $newAccount;
                 }
             }
-            $this->balance['cash'] = $this->prune_stale_balance_keys($this->balance['cash'], $holdingCodes);
+            $this->balance['cash'] = $this->prune_stale_balance_keys($cashBalance, $holdingCodes);
             $this->balance['cash'] = $this->safe_balance($this->balance['cash']);
             $updatedBalance = $this->balance['cash'];
         }
@@ -1562,6 +1563,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $this->balance['margin']['timestamp'] = $timestamp;
             $this->balance['margin']['datetime'] = $this->iso8601($timestamp);
             $futuresSymbols = array();
+            $marginBalance = $this->safe_dict($this->balance, 'margin', array());
             for ($i = 0; $i < count($futuresKeys); $i++) {
                 $key = $futuresKeys[$i];
                 $symbol = $this->safe_symbol($key);
@@ -1577,9 +1579,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $futuresSymbols[$symbol] = true;
                     $symbolAccounts[$code] = $newAccount;
                 }
-                $this->balance['margin'][$symbol] = $symbolAccounts;
+                $marginBalance[$symbol] = $symbolAccounts;
             }
-            $this->balance['margin'] = $this->prune_stale_balance_keys($this->balance['margin'], $futuresSymbols);
+            $this->balance['margin'] = $this->prune_stale_balance_keys($marginBalance, $futuresSymbols);
             $this->balance['margin'] = $this->safe_balance($this->balance['margin']);
             $client->resolve($this->balance['margin'], $messageHash . ':futures');
             if ($updatedBalance === null) {
@@ -1594,6 +1596,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $this->balance['flex']['timestamp'] = $timestamp;
             $this->balance['flex']['datetime'] = $this->iso8601($timestamp);
             $flexCodes = array();
+            $flexBalance = $this->safe_dict($this->balance, 'flex', array());
             for ($i = 0; $i < count($flexFuturesKeys); $i++) {
                 $key = $flexFuturesKeys[$i];
                 $flexFuture = $this->safe_dict($flexFutureCurrencies, $key);
@@ -1604,10 +1607,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $newAccount['total'] = $this->safe_string($flexFuture, 'quantity');
                 if ($code !== null) {
                     $flexCodes[$code] = true;
-                    $this->balance['flex'][$code] = $newAccount;
+                    $flexBalance[$code] = $newAccount;
                 }
             }
-            $this->balance['flex'] = $this->prune_stale_balance_keys($this->balance['flex'], $flexCodes);
+            $this->balance['flex'] = $this->prune_stale_balance_keys($flexBalance, $flexCodes);
             $this->balance['flex'] = $this->safe_balance($this->balance['flex']);
             $client->resolve($this->balance['flex'], $messageHash . ':flex_futures');
             if ($updatedBalance === null) {

@@ -1220,8 +1220,10 @@ export default class paradex extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'results', []);
-        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries (data) : data;
-        return this.parseTickers (rows, symbolsNormalized);
+        if (request['market'] === 'ALL') {
+            return this.parseTickers (this.filterLoadedSummaries (data), symbolsNormalized);
+        }
+        return this.parseTickers (data, symbolsNormalized);
     }
 
     /**
@@ -1391,8 +1393,10 @@ export default class paradex extends Exchange {
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
         const data: Dict[] = this.safeList (response, 'results', []);
         // only a perpetual funds, the other rows are dropped before they are parsed
-        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries (data, 'swap') : data;
-        return this.parseFundingRates (rows, symbolsNormalized);
+        if (request['market'] === 'ALL') {
+            return this.parseFundingRates (this.filterLoadedSummaries (data, 'swap'), symbolsNormalized);
+        }
+        return this.parseFundingRates (data, symbolsNormalized);
     }
 
     /**
@@ -1731,8 +1735,8 @@ export default class paradex extends Exchange {
 
     signHash (hash: string, privateKey: string): string {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString (signature, 'r', '');
+        const s = this.safeString (signature, 's', '');
         const v = this.intToBase16 (this.sum (27, signature['v']));
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
@@ -2033,7 +2037,8 @@ export default class paradex extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        const reduceOnlyParam = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        let reduceOnly: boolean = (reduceOnlyParam === true);
         const orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         const request: Dict = {
@@ -2422,7 +2427,7 @@ export default class paradex extends Exchange {
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const hasOrderIds = (ids !== undefined);
-        const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray (clientOrderIds));
+        const hasClientOrderIds = (clientOrderIds !== undefined);
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
         }
@@ -3636,8 +3641,10 @@ export default class paradex extends Exchange {
         //
         const results: Dict[] = this.safeList (response, 'results', []);
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        const rows = (request['market'] === 'ALL') ? this.filterLoadedSummaries (results, 'option') : results;
-        return this.parseAllGreeks (rows, symbolsNormalized);
+        if (request['market'] === 'ALL') {
+            return this.parseAllGreeks (this.filterLoadedSummaries (results, 'option'), symbolsNormalized);
+        }
+        return this.parseAllGreeks (results, symbolsNormalized);
     }
 
     override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {

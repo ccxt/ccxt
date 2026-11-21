@@ -459,6 +459,7 @@ class sxbet extends Exchange {
             $queries[] = $tags[$i];
         }
         $rest = $this->omit($params, array( 'eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ));
+        $rawMarkets = array();
         if ($eventId !== null) {
             $rawMarkets = Async\await($this->fetch_raw_markets_paged($this->extend(array( 'sportXeventId' => $eventId ), $rest), null));
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
@@ -535,6 +536,7 @@ class sxbet extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a [prediction $event structure](https://docs.ccxt.com/#/?$id=prediction-$event-structure)
          */
+        $rawMarkets = array();
         $rawMarkets = Async\await($this->fetch_raw_markets_paged($this->extend(array( 'sportXeventId' => $id ), $params), null));
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         $rawMarkets = $this->filter_raw_markets_by_fixture($rawMarkets, $id);
@@ -711,8 +713,8 @@ class sxbet extends Exchange {
         $signature = $this->ecdsa(mb_substr($digest, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
@@ -1956,7 +1958,7 @@ class sxbet extends Exchange {
         if ($outcomes === null) {
             throw new ArgumentsRequired($this->id . ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
-        $outcomesList = $outcomes;
+        $outcomesList = ($outcomes === null) ? array() : $outcomes;
         $outcomesLength = count($outcomesList);
         $hashesOrder = array();
         $seenHashes = array();

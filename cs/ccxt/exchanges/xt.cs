@@ -789,8 +789,8 @@ public partial class xt : Exchange
                     { "maker", this.parseNumber("0.002") },
                     { "taker", this.parseNumber("0.002") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("150000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("300000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("600000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1200000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("6000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0002")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("150000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("300000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("600000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("1200000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("6000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0002")}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {5000.0, 0.0018}, new List<object> {10000.0, 0.0016}, new List<object> {20000.0, 0.0014}, new List<object> {50000.0, 0.0012}, new List<object> {150000.0, 0.0010}, new List<object> {300000.0, 0.0008}, new List<object> {600000.0, 0.0007}, new List<object> {1200000.0, 0.0006}, new List<object> {2500000.0, 0.0005}, new List<object> {6000000.0, 0.0004}, new List<object> {15000000.0, 0.0003}, new List<object> {30000000.0, 0.0002}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {5000.0, 0.0018}, new List<object> {10000.0, 0.0016}, new List<object> {20000.0, 0.0014}, new List<object> {50000.0, 0.0012}, new List<object> {150000.0, 0.0010}, new List<object> {300000.0, 0.0008}, new List<object> {600000.0, 0.0007}, new List<object> {1200000.0, 0.0006}, new List<object> {2500000.0, 0.0005}, new List<object> {6000000.0, 0.0004}, new List<object> {15000000.0, 0.0003}, new List<object> {30000000.0, 0.0002}} },
                     } },
                 } },
                 { "contract", new Dictionary<string, object>() {
@@ -799,8 +799,8 @@ public partial class xt : Exchange
                     { "maker", this.parseNumber("0.0004") },
                     { "taker", this.parseNumber("0.0006") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.00038")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00036")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00034")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.00032")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.00028")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.00024")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00016")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.00012")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.00008")}} },
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.000588")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00057")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00054")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.00051")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.00048")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.00045")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.00045")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00036")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.00033")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0003")}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0004}, new List<object> {200000.0, 0.00038}, new List<object> {1000000.0, 0.00036}, new List<object> {5000000.0, 0.00034}, new List<object> {10000000.0, 0.00032}, new List<object> {15000000.0, 0.00028}, new List<object> {30000000.0, 0.00024}, new List<object> {50000000.0, 0.0002}, new List<object> {100000000.0, 0.00016}, new List<object> {300000000.0, 0.00012}, new List<object> {500000000.0, 0.00008}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.0006}, new List<object> {200000.0, 0.000588}, new List<object> {1000000.0, 0.00057}, new List<object> {5000000.0, 0.00054}, new List<object> {10000000.0, 0.00051}, new List<object> {15000000.0, 0.00048}, new List<object> {30000000.0, 0.00045}, new List<object> {50000000.0, 0.00045}, new List<object> {100000000.0, 0.00036}, new List<object> {300000000.0, 0.00033}, new List<object> {500000000.0, 0.0003}} },
                     } },
                 } },
             } },
@@ -1313,7 +1313,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < currenciesData.Count; i++)
         {
-            object entry = currenciesData[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)currenciesData[i]);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             IDictionary<string, object> networkEntry = this.safeDict(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
@@ -1321,7 +1321,7 @@ public partial class xt : Exchange
             Dictionary<string, object> networks = new Dictionary<string, object>() {};
             for (int j = 0; j < rawNetworks.Count; j++)
             {
-                object rawNetwork = rawNetworks[j];
+                IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[j]);
                 string? networkId = this.safeString(rawNetwork, "chain");
                 string? networkCode = this.networkIdToCode(networkId, code);
                 if ((networkCode != null))
@@ -1553,10 +1553,10 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(swapAndFutureMarkets));
     }
 
-    public override IList<object> parseMarkets(object markets)
+    public override IList<object> parseMarkets(IList<object> markets)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); i++)
+        for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = this.parseMarket(this.safeValue(markets, i));
             if ((parsed != null))
@@ -2206,10 +2206,14 @@ public partial class xt : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
@@ -2308,12 +2312,16 @@ public partial class xt : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2376,7 +2384,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object rawTicker = tickers[i];
+            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)tickers[i]);
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             string? marketId = this.safeString(rawTicker, "s");
@@ -2984,7 +2992,7 @@ public partial class xt : Exchange
         //         ]
         //     }
         //
-        List<object> balances = null;
+        List<object> balances = new List<object>() {};
         if (((subType != null)) || isContractWallet)
         {
             balances = this.safeList(response, "result", new List<object>() {});
@@ -2996,7 +3004,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceList(balances));
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         //
         // spot
@@ -3027,7 +3035,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString2(balance, "currency", "coin");
@@ -3270,7 +3278,7 @@ public partial class xt : Exchange
             }
             request["positionSide"] = requestType;
         }
-        Dictionary<string, object> response = new Dictionary<string, object>() {};
+        Dictionary<string, object> response = null;
         double? triggerPrice = this.safeNumber2(paramsOmitted4, "triggerPrice", "stopPrice");
         double? stopLoss = this.safeNumber2(paramsOmitted4, "stopLoss", "triggerStopPrice");
         double? takeProfit = this.safeNumber2(paramsOmitted4, "takeProfit", "triggerProfitPrice");
@@ -4374,8 +4382,11 @@ public partial class xt : Exchange
         //     }
         //
         bool isContractResponse = (((subType != null)) || ((type == "swap")) || ((type == "future")));
-        IDictionary<string, object> order = isContractResponse ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(order, market);
+        if (isContractResponse)
+        {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, "result", new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -5689,7 +5700,7 @@ public partial class xt : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < items.Count; i++)
         {
-            object entry = items[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)items[i]);
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger(entry, "createdTime");
@@ -6109,7 +6120,7 @@ public partial class xt : Exchange
         Dictionary<string, object> breakBySymbolSide = new Dictionary<string, object>() {};
         for (int i = 0; i < (breakList?.Count ?? 0); i++)
         {
-            object breakEntry = (breakList != null && i < breakList.Count ? breakList[i] : null);
+            IDictionary<string, object> breakEntry = ((IDictionary<string, object>)(breakList != null && i < breakList.Count ? breakList[i] : null));
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
@@ -6339,7 +6350,7 @@ public partial class xt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
@@ -6726,8 +6737,11 @@ public partial class xt : Exchange
             request["quantity"] = this.amountToPrecision(symbol, amount);
             response = await this.privateSpotPutOrderOrderId(this.extend(request, paramsOmitted));
         }
-        IDictionary<string, object> result = (this.safeBool(market, "swap", false) == true) ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result, market);
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, "result", new Dictionary<string, object>() {}), market);
     }
 
     public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
@@ -6793,7 +6807,7 @@ public partial class xt : Exchange
             string? errorCode = this.safeString(error, "code", spotErrorCode);
             string? spotMessage = this.safeString(response, "msgInfo");
             string? message = this.safeString(error, "msg", spotMessage);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
@@ -6898,7 +6912,7 @@ public partial class xt : Exchange
             }
             headersValue["xt-validate-appkey"] = this.apiKey;
             headersValue["xt-validate-timestamp"] = timestamp;
-            headersValue["xt-validate-signature"] = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);
+            headersValue["xt-validate-signature"] = this.hmac(payloadString, this.secret, sha256);
         } else
         {
             if (urlencoded != "")

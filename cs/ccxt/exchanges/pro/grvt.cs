@@ -127,7 +127,7 @@ public partial class grvt : ccxt.grvt
         {
             apiPart = "publicMarket";
         }
-        return await this.watchMultiple(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), apiPart), messageHashes, payload, rawHashes);
+        return await this.watchMultiple((this.urlsApiSections.ContainsKey("ws") && apiPart != null && this.urlsApiSections["ws"].ContainsKey(apiPart) ? this.urlsApiSections["ws"][apiPart] : null), messageHashes, payload, rawHashes);
     }
 
     public override Int64 requestId()
@@ -345,7 +345,7 @@ public partial class grvt : ccxt.grvt
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -368,7 +368,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -442,7 +442,8 @@ public partial class grvt : ccxt.grvt
         string? symbolValue = this.symbol(symbol);
         parameters["callerMethodName"] = "watchOHLCV";
         Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
+
+        return ccxt.BaseExchange.ToOHLCVList((result != null && symbolValue != null && result.ContainsKey(symbolValue) && result[symbolValue] != null && timeframeVar != null && result[symbolValue].ContainsKey(timeframeVar) ? result[symbolValue][timeframeVar] : null));
     }
 
     /**
@@ -529,12 +530,12 @@ public partial class grvt : ccxt.grvt
         }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe))))
         {
             object limit = this.handleOption("watchOHLCV", "limit", 1000);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.TryGetValue(timeframe, out var ohlcvsValue2) ? ohlcvsValue2 : null));
         List<object> parsed = this.parseWsOHLCV(data, market);
         stored.append(parsed);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
@@ -599,21 +600,21 @@ public partial class grvt : ccxt.grvt
         (Int64?, object) limitOptionparamsLimitOptionVariable = this.handleOptionIntegerAndParams(paramsChannel, "watchOrderBook", "limit", 100);
         Int64? limitOption = limitOptionparamsLimitOptionVariable.Item1;
         IDictionary<string, object> paramsLimitOption = ((IDictionary<string, object>)limitOptionparamsLimitOptionVariable.Item2);
-        Int64? limitResolved = limitOption;
+        string limitString = ((object)limitOption).ToString();
         IDictionary<string, object> paramsLimit = paramsLimitOption;
         if ((limit != null))
         {
-            limitResolved = limit;
+            limitString = ((object)limit).ToString();
             paramsLimit = paramsChannel;
         }
         (Int64?, object) intervalparamsIntervalVariable = this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500);
         Int64? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? extraPart = null;
         if (isSnapshot)
         {
-            extraPart = ((((object)interval).ToString() + "-") + ((object)limitResolved).ToString());
+            extraPart = ((((object)interval).ToString() + "-") + limitString);
         } else
         {
             extraPart = ((object)interval).ToString();
@@ -762,7 +763,7 @@ public partial class grvt : ccxt.grvt
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            rawHashes.Add(((subAccountId + "-") + ((market.ContainsKey("id") ? market["id"] : null))));
+            rawHashes.Add(((subAccountId + "-") + this.safeString(market, "id", "")));
             messageHashes.Add(("myTrades::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         } else
         {
@@ -779,7 +780,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -856,7 +857,7 @@ public partial class grvt : ccxt.grvt
             await this.loadMarkets();
         }
         string subAccountId = this.getSubAccountId(parameters);
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))
@@ -865,7 +866,7 @@ public partial class grvt : ccxt.grvt
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
-                rawHashes.Add(((subAccountId + "-") + ((market.ContainsKey("id") ? market["id"] : null))));
+                rawHashes.Add(((subAccountId + "-") + this.safeString(market, "id", "")));
                 messageHashes.Add(("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             }
         } else
@@ -964,7 +965,7 @@ public partial class grvt : ccxt.grvt
         {
             Dictionary<string, object> market = this.market(symbol);
             messageHashes.Add(("order::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
-            rawHashes.Add(((subAccountId + "-") + ((market.ContainsKey("id") ? market["id"] : null))));
+            rawHashes.Add(((subAccountId + "-") + this.safeString(market, "id", "")));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.order" },
@@ -976,7 +977,7 @@ public partial class grvt : ccxt.grvt
         {
             limitResolved = ((Int64?)orders.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -1083,8 +1084,8 @@ public partial class grvt : ccxt.grvt
             string body = this.json(response);
             string feedback = ((this.id + " ") + body);
             string? message = this.safeString(error, "message");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (((this.id + " ") + body)) ;
         }

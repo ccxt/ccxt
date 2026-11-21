@@ -919,11 +919,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		keyEnd = "endTime"
 	}
 	if since != nil {
-		request[keyStart] = since
+		request[keyStart] = *since
 	}
 	if limit != nil {
 		// limit should in between 100 and 500
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption(keyEnd, request, paramsPaginate)
 	if (since != nil) && (limit != nil) && (this.SafeInteger(requestUntil, keyEnd) == nil) {
@@ -932,7 +932,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		var firstCandle int64 = this.ParseToInt(math.Ceil(float64(*since)/float64(duration))) * duration
 		var endTimeByLimit int64 = firstCandle + duration*(*limit-1)
-		AddElementToObject(requestUntil, keyEnd, min(endTimeByLimit, this.Milliseconds()))
+		requestUntil[keyEnd] = min(endTimeByLimit, this.Milliseconds())
 	}
 	if *this.SafeBool(market, "contract", false) {
 
@@ -958,17 +958,18 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		//             "1740770099999",
 		//           ],
 		//
-		var data []any = SafeListTyped(responseRaw, "data")
+		var data []any
+		data, _ = responseRaw["data"].([]any)
 
 		ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 		return nil
 	}
 
-	r3 := <-this.PublicGetMarketsSymbolCandles(this.Extend(requestUntil, paramsUntil))
-	if r3.Err != nil {
-		panic(r3.Err)
+	responseRecv := <-this.PublicGetMarketsSymbolCandles(this.Extend(requestUntil, paramsUntil))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r3.Raw
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         [
@@ -990,7 +991,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//     ]
 	//
 	var candles []any = []any{}
-	if IsArray(response) {
+	if response != nil {
 		candles = ArrayTyped(response)
 	}
 
@@ -1014,8 +1015,8 @@ func (this *Poloniex) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	markets := r.Value
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var markets map[string]any = r.Value
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies, "numericId")
 	}
@@ -1049,7 +1050,7 @@ func (this *Poloniex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(results[0], results[1]))}
 	return nil
@@ -1152,7 +1153,11 @@ func (this *Poloniex) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface
 	//                "limitMaxQty": "1000000"
 	//            },
 	//
-	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var markets []any
+	markets, _ = response["data"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1273,7 +1278,11 @@ func (this *Poloniex) ParseSwapMarket(market any) map[string]any {
 	var linear bool = (this.SafeString(market, "ctType") != nil && *this.SafeString(market, "ctType") == "LINEAR")
 	var symbol any = *base + "/" + *quote
 	if linear {
-		symbol = Add(*base+"/"+*quote+":", settle)
+		if settle != nil {
+			symbol = *base + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 	} else {
 		// actually, exchange does not have any inverse future now
 		symbol = *base + "/" + *quote + ":" + *base
@@ -1527,7 +1536,8 @@ func (this *Poloniex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		//                "iPx": "2.1834"
 		//            },
 		//
-		var data []any = SafeListTyped(responseRaw, "data")
+		var data []any
+		data, _ = responseRaw["data"].([]any)
 
 		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 		return nil
@@ -1710,10 +1720,10 @@ func (this *Poloniex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-		var contractTicker map[string]any = SafeMapTyped(tickers, symbol)
+		var tickers map[string]Ticker = r1.Value
+		var contractTicker Ticker = tickers[symbol]
 
-		ch <- AsyncResult[Ticker]{Value: TickerFromMap(contractTicker)}
+		ch <- AsyncResult[Ticker]{Value: contractTicker}
 		return nil
 	}
 
@@ -1896,12 +1906,12 @@ func (this *Poloniex) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Poloniex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Poloniex) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1920,7 +1930,7 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // max 1000, for spot & swap
+		request["limit"] = *limit // max 1000, for spot & swap
 	}
 	if *this.SafeBool(market, "contract", false) {
 
@@ -1943,7 +1953,11 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		//             cT: "1740777074704",
 		//         },
 		//
-		var tradesList []any = SafeListTypedDefault(response, "data", []any{})
+		var tradesList []any
+		tradesList, _ = response["data"].([]any)
+		if tradesList == nil {
+			tradesList = []any{}
+		}
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, since, limit))}
 		return nil
@@ -2038,10 +2052,10 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		endKey = "eTime"
 	}
 	if since != nil {
-		request[startKey] = since
+		request[startKey] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if isContract && (symbol != nil) {
 		request["symbol"] = this.SafeString(market, "id")
@@ -2085,7 +2099,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		//                "actType": "TRADING"
 		//            },
 		//
-		var data []any = SafeListTypedDefault(raw, "data", []any{})
+		var data []any
+		data, _ = raw["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 		return nil
@@ -2254,7 +2272,8 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) Order {
 	var errorCode *int64 = this.SafeInteger(order, "code")
 	if (status == nil) && (errorCode != nil) && (errorCode == nil || *errorCode != 200) {
 		// the batch endpoints report per-element failures with an error code instead of throwing
-		status = SafeStringPtr("rejected")
+		statusStr := "rejected"
+		status = &statusStr
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var rawType *string = this.SafeString(order, "type")
@@ -2266,12 +2285,11 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) Order {
 	var feeCurrencyCode any = nil
 	var rate *string = this.SafeString(order, "fee")
 	if feeCurrency == nil {
-		feeCurrencyCode = func() any {
-			if side != nil && *side == "buy" {
-				return marketResolved["base"]
-			}
-			return marketResolved["quote"]
-		}()
+		if side != nil && *side == "buy" {
+			feeCurrencyCode = marketResolved["base"]
+		} else {
+			feeCurrencyCode = marketResolved["quote"]
+		}
 	} else {
 		// poloniex accepts a 30% discount to pay fees in TRX
 		if derefPtr := this.SafeCurrencyCode(feeCurrency); derefPtr != nil {
@@ -2396,7 +2414,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	var isTrigger *bool = this.SafeBool2(paramsMarketType, "trigger", "stop")
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"trigger", "stop"})
-	var response any = []any{}
+	var response []any = []any{}
 	if marketType == nil || *marketType != "spot" {
 
 		r1 := <-this.SwapPrivateGetV3TradeOrderOpens(this.Extend(request, paramsOmitted))
@@ -2443,21 +2461,21 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		//                "qCcy": "USDT"
 		//            },
 		//
-		response = this.SafeList(raw, "data", []any{})
+		response = ArrayTyped(this.SafeList(raw, "data", []any{}))
 	} else if isTrigger != nil && *isTrigger == true {
 
-		r2 := <-this.PrivateGetSmartorders(this.Extend(request, paramsOmitted))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateGetSmartorders(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else {
 
-		r3 := <-this.PrivateGetOrders(this.Extend(request, paramsOmitted))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateGetOrders(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	}
 	//
 	//     [
@@ -2537,7 +2555,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		request["limit"] = min(200, *limit)
 	}
 	if since != nil {
-		request["sTime"] = since
+		request["sTime"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("eTime", request, paramsMarketType)
 
@@ -2586,7 +2604,11 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	//                "qCcy": "USDT"
 	//            },
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -2632,9 +2654,7 @@ func (this *Poloniex) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		"side":   strings.ToUpper(side),
 	}
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
-	requestValueparamsValueVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
-	var requestValue map[string]any = requestValueparamsValueVariable[0].(map[string]any)
-	var paramsValue map[string]any = MapTyped(requestValueparamsValueVariable[1])
+	requestValue, paramsValue := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
 	var response any = map[string]any{}
 	if (*this.SafeBool(market, "swap", false)) || (*this.SafeBool(market, "future", false)) {
 
@@ -2685,12 +2705,12 @@ func (this *Poloniex) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Poloniex) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Poloniex) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2705,7 +2725,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	var market map[string]any = nil
 	var isContract bool = false
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = MapTyped(orders[i])
+		var rawOrder map[string]any = orders[i]
 		var symbol string = *this.SafeString(rawOrder, "symbol", "")
 		var marketInner map[string]any = this.Market(symbol)
 		var marketInnerType *string = this.SafeString(marketInner, "type")
@@ -2723,13 +2743,11 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		// the request body is a bare list, so there is no room for common params - extend each order with them instead
 		var extendedParams any = this.Extend(orderParams, params)
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": marketInner["id"],
 			"side":   this.SafeStringUpper(rawOrder, "side"),
 		}
-		requestextendedParamsVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, extendedParams)
-		request = requestextendedParamsVariable[0]
-		extendedParams = GetValue(requestextendedParamsVariable, 1)
+		request, extendedParams = this.OrderRequest(symbol, *typeVar, *side, amount, request, price, extendedParams)
 		var merged map[string]any = this.Extend(request, extendedParams)
 		if isContract {
 			// unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
@@ -2781,19 +2799,19 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		var entryMarket any = func() any {
-			if i >= 0 && i < len(ordersMarkets) {
-				return DerefScalar(ordersMarkets[i])
-			}
-			return nil
-		}()
+		var entryMarket any
+		if i >= 0 && i < len(ordersMarkets) {
+			entryMarket = ordersMarkets[i]
+		} else {
+			entryMarket = nil
+		}
 		results = append(results, OrderToMap(this.ParseOrder(entry, entryMarket)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(results)}
 	return nil
 }
-func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any, request any, optionalArgs ...any) []any {
+func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, amount any, request map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {
 	// build the request on a copy: the caller keeps its own dict and reads ours
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
@@ -2814,12 +2832,11 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 		if marginMode != nil {
 			this.CheckRequiredArgument("createOrder", marginMode, "marginMode", []any{"cross", "isolated"})
 			// the argument check above leaves only 'cross' or 'isolated'
-			result["mgnMode"] = func() string {
-				if marginMode != nil && *marginMode == "isolated" {
-					return "ISOLATED"
-				}
-				return "CROSS"
-			}()
+			if marginMode != nil && *marginMode == "isolated" {
+				result["mgnMode"] = "ISOLATED"
+			} else {
+				result["mgnMode"] = "CROSS"
+			}
 		}
 		if (hedged != nil) && (hedged == nil || *hedged != "") {
 			if marginMode == nil {
@@ -2830,7 +2847,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			}
 		}
 	}
-	var upperCaseType string = ToUpper(typeVar)
+	var upperCaseType string = strings.ToUpper(typeVar)
 	var isMarket bool = (upperCaseType == "MARKET")
 	var isPostOnly bool = this.IsPostOnly(isMarket, (upperCaseType == "LIMIT_MAKER"), query)
 	var queryOmitted any = this.Omit(query, []any{"postOnly", "triggerPrice", "stopPrice"})
@@ -2838,19 +2855,18 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 		if !(*this.SafeBool(market, "spot", false)) {
 			panic(InvalidOrder(this.Id + " createOrder() does not support trigger orders for " + *this.SafeString(market, "type", "") + " markets"))
 		}
-		upperCaseType = func() string {
-			if price == nil {
-				return "STOP"
-			}
-			return "STOP_LIMIT"
-		}()
+		if price == nil {
+			upperCaseType = "STOP"
+		} else {
+			upperCaseType = "STOP_LIMIT"
+		}
 		result["stopPrice"] = triggerPrice
 	} else if isPostOnly {
 		upperCaseType = "LIMIT_MAKER"
 	}
 	result["type"] = upperCaseType
 	if isMarket {
-		if IsEqual(side, "buy") {
+		if side == "buy" {
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, queryOmitted = this.HandleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true)
@@ -2905,7 +2921,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 		queryOmitted = this.Omit(queryOmitted, []any{"clientOrderId", "clOrdId"})
 	}
 	// remember the timestamp before issuing the request
-	return []any{result, queryOmitted}
+	return result, MapTyped(queryOmitted)
 }
 
 /**
@@ -2925,12 +2941,12 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
  * @param {string} [params.clientOrderId] a unique identifier for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Poloniex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Poloniex) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	amount := GetArg(optionalArgs, 0, nil)
@@ -2952,9 +2968,7 @@ func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		"id": id,
 	}
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
-	requestValueparamsValueVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
-	var requestValue map[string]any = requestValueparamsValueVariable[0].(map[string]any)
-	var paramsValue map[string]any = MapTyped(requestValueparamsValueVariable[1])
+	requestValue, paramsValue := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
 	var response any = map[string]any{}
 	if triggerPrice != nil {
 
@@ -3017,10 +3031,13 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{}
-	if !(*this.SafeBool(market, "spot", false)) {
-		request["symbol"] = market["id"]
+	if !market.Spot {
+		request["symbol"] = nil
+		if market.Id != nil {
+			request["symbol"] = *market.Id
+		}
 		request["ordId"] = id
 
 		r1 := <-this.SwapPrivateDeleteV3TradeOrder(this.Extend(request, params))
@@ -3147,7 +3164,11 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 		//         ]
 		//     }
 		//
-		var data []any = SafeListTypedDefault(responseRaw, "data", []any{})
+		var data []any
+		data, _ = responseRaw["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 		return nil
@@ -3211,7 +3232,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		market = this.Market(symbol)
 		request["symbols"] = []any{market["id"]}
 	}
-	var response any = []any{}
+	var response []any = []any{}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") {
 
@@ -3234,7 +3255,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		//        ]
 		//    }
 		//
-		response = this.SafeList(raw, "data", []any{})
+		response = ArrayTyped(this.SafeList(raw, "data", []any{}))
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 		return nil
@@ -3243,18 +3264,18 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"trigger", "stop"})
 	if isTrigger != nil && *isTrigger == true {
 
-		r2 := <-this.PrivateDeleteSmartorders(this.Extend(request, paramsOmitted))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateDeleteSmartorders(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else {
 
-		r3 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOmitted))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateDeleteOrders(this.Extend(request, paramsOmitted))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	}
 
 	//
@@ -3398,7 +3419,7 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 		"false": "closed",
 	}
 	var found string
-	if func() bool { _, ok := indexed[id]; return ok }() {
+	if _, indexedHas := indexed[id]; indexedHas {
 		found = "true"
 	} else {
 		found = "false"
@@ -3588,7 +3609,11 @@ func (this *Poloniex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		//        }
 		//    }
 		//
-		var data map[string]any = this.SafeDictMap(responseRaw, "data", map[string]any{})
+		var data map[string]any
+		data, _ = responseRaw["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 
 		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 		return nil
@@ -3647,11 +3672,11 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 		panic(r.Err)
 	}
 
-	r1 := <-this.PrivateGetFeeinfo(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetFeeinfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "trxDiscount" : false,
@@ -3665,7 +3690,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
-			"info":       response,
+			"info":       responseReply.Raw,
 			"symbol":     symbol,
 			"maker":      this.SafeNumber(response, "makerRate"),
 			"taker":      this.SafeNumber(response, "takerRate"),
@@ -3733,7 +3758,11 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		//       "msg": "Success"
 		//    }
 		//
-		var data map[string]any = this.SafeDictMap(responseRaw, "data", map[string]any{})
+		var data map[string]any
+		data, _ = responseRaw["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		var ts *int64 = this.SafeInteger(data, "ts")
 
 		ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, ts))}
@@ -3755,8 +3784,16 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var asks []any = SafeListTypedDefault(response, "asks", []any{})
-	var bids []any = SafeListTypedDefault(response, "bids", []any{})
+	var asks []any
+	asks, _ = response["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
+	var bids []any
+	bids, _ = response["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
 	var asksResult []any = []any{}
 	var bidsResult []any = []any{}
 	for i := 0; i < len(asks); i++ {
@@ -3905,24 +3942,31 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires a network parameter for " + code + "."))
 	}
 	var exchangeNetworkId *string = nil
-	networkCode = DerefScalar(this.NetworkIdToCode(networkCode, code))
-	var networkEntry any = func() any {
-		if networkCode == nil {
-			return nil
-		}
-		return this.SafeDict(currency["networks"], networkCode)
-	}()
+	if derefPtr := this.NetworkIdToCode(networkCode, code); derefPtr != nil {
+		networkCode = *derefPtr
+	} else {
+		networkCode = nil
+	}
+	var networkEntry any
+	if networkCode == nil {
+		networkEntry = nil
+	} else {
+		networkEntry = this.SafeDict(currency["networks"], networkCode)
+	}
 	if networkEntry != nil {
 		exchangeNetworkId = this.SafeString(networkEntry, "id")
 	} else {
 		exchangeNetworkId = this.NetworkCodeToId(networkCode, code)
 	}
 	var request map[string]any = map[string]any{
-		"currency": exchangeNetworkId,
+		"currency": nil,
+	}
+	if exchangeNetworkId != nil {
+		request["currency"] = *exchangeNetworkId
 	}
 	return []any{request, query, currency, networkEntry}
 }
-func (this *Poloniex) ParseDepositAddressSpecial(response any, currency any, networkEntry any) map[string]any {
+func (this *Poloniex) ParseDepositAddressSpecial(response map[string]any, currency any, networkEntry any) map[string]any {
 	var address *string = this.SafeString(response, "address")
 	if address == nil {
 		address = this.SafeString(response, this.SafeString(networkEntry, "id"))
@@ -3973,7 +4017,7 @@ func (this *Poloniex) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		panic(r.Err)
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var amountToPrecision *string = this.CurrencyToPrecision(code, amount)
@@ -4095,10 +4139,10 @@ func (this *Poloniex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -4158,7 +4202,7 @@ func (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) TransferE
 	var timestamp *int64 = this.SafeInteger(transfer, "createTime")
 	var fromAccountId *string = this.SafeString(transfer, "fromAccount")
 	var toAccountId *string = this.SafeString(transfer, "toAccount")
-	var accountIds map[string]any = SafeMapTyped(this.Options, "accountsById")
+	var accountIds, _ = this.Options["accountsById"].(map[string]any)
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString2(transfer, "id", "transferId"),
@@ -4184,12 +4228,12 @@ func (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) TransferE
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Poloniex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Poloniex) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Poloniex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4266,7 +4310,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan AsyncResult[map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -4380,16 +4424,13 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response any = nil
-	if r1.Value != nil {
-		response = r1.Value
-	}
+	var response map[string]any = r1.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
-	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
+	var withdrawals []any = this.SafeListSlice(response, "withdrawals", []any{})
+	var deposits []any = this.SafeListSlice(response, "deposits", []any{})
 	var withdrawalTransactions []any = this.ParseTransactions(withdrawals, currency, since, limit)
 	var depositTransactions []any = this.ParseTransactions(deposits, currency, since, limit)
 	var transactions []any = this.ArrayConcat(depositTransactions, withdrawalTransactions)
@@ -4430,15 +4471,12 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response any = nil
-	if r.Value != nil {
-		response = r.Value
-	}
+	var response map[string]any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var withdrawals []any = SafeListTypedDefault(response, "withdrawals", []any{})
+	var withdrawals []any = this.SafeListSlice(response, "withdrawals", []any{})
 	var transactions []any = this.ParseTransactions(withdrawals, currency, since, limit)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(transactions, code, since, limit))}
@@ -4478,7 +4516,7 @@ func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	var response []any = r1.Value
 	//
 	//     [
 	//         {
@@ -4504,8 +4542,8 @@ func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[strin
 	//
 	var data map[string]any = map[string]any{}
 	var entries []any = []any{}
-	if IsArray(response) {
-		entries = ArrayTyped(response)
+	if response != nil {
+		entries = response
 	}
 	for i := 0; i < len(entries); i++ {
 		var entry map[string]any = SafeMapTyped(entries, i)
@@ -4550,15 +4588,15 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	var currencyIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyIdKey
 	var depositWithdrawFees map[string]any = map[string]any{}
-	var codesValue any = this.MarketCodes(codes)
+	var codesValue []any = this.MarketCodes(codes)
 	var responseKeys []string = ObjectKeys(response)
 	for i := 0; i < len(responseKeys); i++ {
 		var currencyId string = responseKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var feeInfo map[string]any = SafeMapTyped(response, currencyId)
-		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
+		if (code != nil) && ((codesValue == nil) || (this.InArray(code, codesValue))) {
 			var currency map[string]any = this.Currency(code)
-			AddElementToObject(depositWithdrawFees, code, this.ParseDepositWithdrawFee(feeInfo, currency))
+			depositWithdrawFees[*code] = this.ParseDepositWithdrawFee(feeInfo, currency)
 			var parsedFee map[string]any = this.SafeDictMap(depositWithdrawFees, code, map[string]any{})
 			var childChains []any = SafeListTyped(feeInfo, "childChains")
 			var chainsLength int = len(childChains)
@@ -4590,9 +4628,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 					parsedFee["networks"] = this.Extend(this.SafeDict(parsedFee, "networks", map[string]any{}), networkObject)
 				}
 			}
-			if code != nil {
-				depositWithdrawFees[*code] = parsedFee
-			}
+			depositWithdrawFees[*code] = parsedFee
 		}
 	}
 	return depositWithdrawFees
@@ -4602,18 +4638,19 @@ func (this *Poloniex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[
 	_ = currency
 	var currencyCode *string = this.SafeString(currency, "code")
 	var info map[string]any = map[string]any{}
-	AddElementToObject(info, currencyCode, fee)
+	if currencyCode != nil {
+		info[*currencyCode] = fee
+	}
 	var depositWithdrawFee map[string]any = this.DepositWithdrawFee(info)
 	var networkId *string = this.SafeString(fee, "blockchain")
 	var withdrawFee *float64 = this.SafeNumber(fee, "withdrawalFee")
 	var withdrawResult map[string]any = map[string]any{
 		"fee": withdrawFee,
-		"percentage": func() any {
-			if withdrawFee != nil {
-				return false
-			}
-			return nil
-		}(),
+	}
+	if withdrawFee != nil {
+		withdrawResult["percentage"] = false
+	} else {
+		withdrawResult["percentage"] = nil
 	}
 	var depositResult map[string]any = map[string]any{
 		"fee":        nil,
@@ -4665,15 +4702,12 @@ func (this *Poloniex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response any = nil
-	if r.Value != nil {
-		response = r.Value
-	}
+	var response map[string]any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var deposits []any = SafeListTypedDefault(response, "deposits", []any{})
+	var deposits []any = this.SafeListSlice(response, "deposits", []any{})
 	var transactions []any = this.ParseTransactions(deposits, currency, since, limit)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(transactions, code, since, limit))}
@@ -4812,7 +4846,7 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params)
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\""))
@@ -4826,14 +4860,17 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	var request map[string]any = map[string]any{
 		"lever":   leverage,
 		"mgnMode": strings.ToUpper(*marginMode),
-		"symbol":  market["id"],
+		"symbol":  nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.SwapPrivatePostV3PositionLeverage(this.Extend(request, paramsHedged))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -4848,12 +4885,12 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Poloniex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Poloniex) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Poloniex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4975,11 +5012,11 @@ func (this *Poloniex) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.SwapPrivateGetV3PositionMode(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.SwapPrivateGetV3PositionMode(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//    {
 	//        "code": "200",
@@ -4989,12 +5026,12 @@ func (this *Poloniex) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo
 	//        }
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var posMode *string = this.SafeString(data, "posMode")
 	var hedged bool = (posMode != nil && *posMode == "HEDGE")
 
 	ch <- AsyncResult[PositionModeInfo]{Value: PositionModeInfoFromMap(map[string]any{
-		"info":   response,
+		"info":   responseReply.Raw,
 		"hedged": hedged,
 	})}
 	return nil
@@ -5034,7 +5071,7 @@ func (this *Poloniex) setPositionModeBody(ch chan AsyncResult[map[string]any], h
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	//
 	//    {
@@ -5116,7 +5153,11 @@ func (this *Poloniex) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	//        ]
 	//    }
 	//
-	var positions []any = SafeListTypedDefault(response, "data", []any{})
+	var positions []any
+	positions, _ = response["data"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbolsNormalized))}
 	return nil
@@ -5161,16 +5202,15 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) Position 
 	var initialMargin *string = this.SafeString(position, "im")
 	var notional *string = Precise.StringMul(leverage, initialMargin)
 	var positionMargin *string = nil
-	var collateral any = nil
+	var collateral *string = nil
 	if marginMode != nil && *marginMode == "isolated" {
 		positionMargin = this.OmitZero(this.SafeString(position, "mgn"))
 		var upl *string = this.SafeString(position, "upl")
-		collateral = func() any {
-			if (positionMargin != nil) && (upl != nil) {
-				return Precise.StringAdd(positionMargin, upl)
-			}
-			return nil
-		}()
+		if (positionMargin != nil) && (upl != nil) {
+			collateral = Precise.StringAdd(positionMargin, upl)
+		} else {
+			collateral = nil
+		}
 	}
 	// todo: some more fields
 	return this.SafePosition(map[string]any{
@@ -5252,7 +5292,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan AsyncResult[MarginModificat
 	if typeVar == "reduce" {
 		amountResolved = Precise.StringAbs(amountResolved)
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(data, market))}
 	return nil
@@ -5364,7 +5404,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) map[string]any {
 	// shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
 	// cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
 	var bodyJson *string = nil
-	var signedHeaders any = nil
+	var signedHeaders map[string]any = nil
 	if (apiName == "public") || (apiName == "swapPublic") {
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url = url + "?" + this.Urlencode(query)
@@ -5400,7 +5440,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResolved *string = bodyJson
-	var headersResolved any = signedHeaders
+	var headersResolved map[string]any = signedHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -5757,7 +5797,7 @@ func (this *Poloniex) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -5904,7 +5944,10 @@ func (this *Poloniex) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 	if r.Err != nil {
 		return "", r.Err
 	}
-	var res string = ToString(r.Value)
+	var res string = "<nil>"
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

@@ -335,8 +335,8 @@ public partial class coinmate : Exchange
                     { "taker", this.parseNumber("0.006") },
                     { "maker", this.parseNumber("0.004") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0023")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0021")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.001")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("-0.0004")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.006}, new List<object> {10000.0, 0.003}, new List<object> {100000.0, 0.0023}, new List<object> {250000.0, 0.0021}, new List<object> {500000.0, 0.0018}, new List<object> {1000000.0, 0.0015}, new List<object> {3000000.0, 0.0012}, new List<object> {15000000.0, 0.001}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.004}, new List<object> {10000.0, 0.002}, new List<object> {100000.0, 0.0012}, new List<object> {250000.0, 0.0009}, new List<object> {500000.0, 0.0005}, new List<object> {1000000.0, 0.0003}, new List<object> {3000000.0, 0.0002}, new List<object> {15000000.0, -0.0004}} },
                     } },
                 } },
             } },
@@ -495,7 +495,7 @@ public partial class coinmate : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(market, "name");
             string? baseId = this.safeString(market, "firstCurrency");
             string? quoteId = this.safeString(market, "secondCurrency");
@@ -685,7 +685,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetTickerAll(parameters);
         //
         //     {
@@ -713,7 +713,11 @@ public partial class coinmate : Exchange
         {
             Dictionary<string, object> market = this.market(keys[i]);
             ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, keys[i], new Dictionary<string, object>() {}), market);
-            result[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
+            string? symbol = this.safeString(market, "symbol");
+            if ((symbol != null))
+            {
+                result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -1496,7 +1500,7 @@ public partial class coinmate : Exchange
             // coinmate requires each nonce to be greater than the previous one for the key
             string nonce = ((object)this.incrementingNonce()).ToString();
             string auth = ((nonce + this.uid) + this.apiKey);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             bodySigned = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "clientId", this.uid },
                 { "nonce", nonce },
@@ -1531,7 +1535,7 @@ public partial class coinmate : Exchange
         if ((errorMessage != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         }

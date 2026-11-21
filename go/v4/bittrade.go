@@ -684,38 +684,40 @@ func (this *Bittrade) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any]
 			panic(r.Err)
 		}
 	}
-	var symbolsResolved any = func() any {
-		if symbols == nil {
-			return this.Symbols
-		}
-		return symbols
-	}()
+	var symbolsResolved any
+	if symbols == nil {
+		symbolsResolved = this.Symbols
+	} else {
+		symbolsResolved = symbols
+	}
 	if IsEqual(symbolsResolved, nil) {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(symbolsResolved); i++ {
 		var symbol *string = SafeStringPtr(GetValue(symbolsResolved, i))
-		r1 := <-this.FetchTradingLimitsByIdAsync(this.MarketId(symbol), params)
-		if r1.Err != nil {
-			panic(r1.Err)
+		r45429 := <-this.FetchTradingLimitsByIdAsync(this.MarketId(symbol), params)
+		if r45429.Err != nil {
+			panic(r45429.Err)
 		}
-		var r1ValueBox any = nil
-		if r1.Value != nil {
-			r1ValueBox = r1.Value
+		if symbol != nil {
+			var r45429ValueBox any = nil
+			if r45429.Value != nil {
+				r45429ValueBox = r45429.Value
+			}
+			result[*symbol] = r45429ValueBox
 		}
-		AddElementToObject(result, symbol, r1ValueBox)
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
 }
-func (this *Bittrade) FetchTradingLimitsByIdAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Bittrade) FetchTradingLimitsByIdAsync(id *string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchTradingLimitsByIdBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) fetchTradingLimitsByIdBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bittrade) fetchTradingLimitsByIdBody(ch chan AsyncResult[map[string]any], id *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -845,7 +847,11 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//         ]
 	//    }
 	//
-	var markets []any = SafeListTypedDefault(response, "data", []any{})
+	var markets []any
+	markets, _ = response["data"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 	var numMarkets int = len(markets)
 	if numMarkets < 1 {
 		panic(NetworkError(this.Id + " fetchMarkets() returned empty response: " + this.Json(markets)))
@@ -1000,16 +1006,16 @@ func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var close *string = this.SafeString(ticker, "close")
 	var baseVolume *string = this.SafeString(ticker, "amount")
 	var quoteVolume *string = this.SafeString(ticker, "vol")
-	return this.SafeTicker(map[string]any{
+	var literal70932 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(ticker, "high"),
 		"low":           this.SafeString(ticker, "low"),
-		"bid":           bid,
-		"bidVolume":     bidVolume,
-		"ask":           ask,
-		"askVolume":     askVolume,
+		"bid":           nil,
+		"bidVolume":     nil,
+		"ask":           nil,
+		"askVolume":     nil,
 		"vwap":          nil,
 		"open":          open,
 		"close":         close,
@@ -1021,7 +1027,20 @@ func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	}, market)
+	}
+	if bid != nil {
+		literal70932["bid"] = *bid
+	}
+	if bidVolume != nil {
+		literal70932["bidVolume"] = *bidVolume
+	}
+	if ask != nil {
+		literal70932["ask"] = *ask
+	}
+	if askVolume != nil {
+		literal70932["askVolume"] = *askVolume
+	}
+	return this.SafeTicker(literal70932, market)
 }
 
 /**
@@ -1052,10 +1071,13 @@ func (this *Bittrade) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
 		"type":   "step0",
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.MarketGetDepth(this.Extend(request, params))
@@ -1154,7 +1176,11 @@ func (this *Bittrade) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	//         }
 	//     }
 	//
-	var tick map[string]any = this.SafeDictMap(response, "tick", map[string]any{})
+	var tick map[string]any
+	tick, _ = response["tick"].(map[string]any)
+	if tick == nil {
+		tick = map[string]any{}
+	}
 	var ticker map[string]any = TickerToMap(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	ticker["timestamp"] = timestamp
@@ -1198,7 +1224,8 @@ func (this *Bittrade) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = SafeListTyped(response, "data")
+	var tickers []any
+	tickers, _ = response["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
@@ -1285,21 +1312,25 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var tradeId *string = this.SafeString2(trade, "trade-id", "tradeId")
 	var id *string = this.SafeString(trade, "id", tradeId)
-	return this.SafeTrade(map[string]any{
+	var literal92731 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"symbol":       symbol,
 		"order":        order,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"type":         typeVar,
+		"type":         nil,
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
 		"price":        price,
 		"amount":       amount,
 		"cost":         cost,
 		"fee":          fee,
-	})
+	}
+	if typeVar != nil {
+		literal92731["type"] = *typeVar
+	}
+	return this.SafeTrade(literal92731)
 }
 
 /**
@@ -1345,7 +1376,11 @@ func (this *Bittrade) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, nil, since, limit))}
 	return nil
@@ -1391,10 +1426,10 @@ func (this *Bittrade) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["symbol"] = market["id"]
 	}
 	if limit != nil {
-		request["size"] = limit // 1-100 orders, default is 100
+		request["size"] = *limit // 1-100 orders, default is 100
 	}
 	if since != nil {
-		request["start-time"] = since // a date within 120 days from today
+		request["start-time"] = *since // a date within 120 days from today
 	}
 
 	r1 := <-this.PrivateGetOrderMatchresults(this.Extend(request, params))
@@ -1402,7 +1437,11 @@ func (this *Bittrade) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1418,17 +1457,17 @@ func (this *Bittrade) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bittrade) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bittrade) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 1, 1000)
+	var limit int64 = GetArgInt64(optionalArgs, 1, 1000)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -1443,8 +1482,8 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if limit != nil {
-		request["size"] = mathMin(limit, 2000)
+	if true {
+		request["size"] = min(limit, 2000)
 	}
 
 	r1 := <-this.MarketGetHistoryTrade(this.Extend(request, params))
@@ -1476,7 +1515,8 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var trades []any = SafeListTyped(data[i], "data")
@@ -1531,7 +1571,7 @@ func (this *Bittrade) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	_ = timeframe
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, 1000)
+	var limit int64 = GetArgInt64(optionalArgs, 2, 1000)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
@@ -1547,8 +1587,8 @@ func (this *Bittrade) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"symbol": market["id"],
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if limit != nil {
-		request["size"] = mathMin(limit, 2000)
+	if true {
+		request["size"] = min(limit, 2000)
 	}
 
 	r1 := <-this.MarketGetHistoryKline(this.Extend(request, params))
@@ -1568,7 +1608,11 @@ func (this *Bittrade) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1675,7 +1719,11 @@ func (this *Bittrade) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	//         ]
 	//     }
 	//
-	var currencies []any = SafeListTypedDefault(response, "data", []any{})
+	var currencies []any
+	currencies, _ = response["data"].([]any)
+	if currencies == nil {
+		currencies = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -1719,8 +1767,8 @@ func (this *Bittrade) ParseCurrency(currency any) map[string]any {
 		"info": currency,
 	})
 }
-func (this *Bittrade) ParseBalance(response any) map[string]any {
-	var data map[string]any = SafeMapTyped(response, "data")
+func (this *Bittrade) ParseBalance(response map[string]any) map[string]any {
+	var data, _ = response["data"].(map[string]any)
 	var balances []map[string]any = this.SafeListMapsTyped(data, "list")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -1729,12 +1777,20 @@ func (this *Bittrade) ParseBalance(response any) map[string]any {
 		var balance map[string]any = balances[i]
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var account any = this.SafeDict(result, code, this.Account())
+		var account map[string]any = this.SafeDictMap(result, code, this.Account())
 		if this.SafeString(balance, "type") != nil && *this.SafeString(balance, "type") == "trade" {
-			AddElementToObject(account, "free", this.SafeString(balance, "balance"))
+			if ptrValue := this.SafeString(balance, "balance"); ptrValue != nil {
+				account["free"] = *ptrValue
+			} else {
+				account["free"] = nil
+			}
 		}
 		if this.SafeString(balance, "type") != nil && *this.SafeString(balance, "type") == "frozen" {
-			AddElementToObject(account, "used", this.SafeString(balance, "balance"))
+			if ptrValue := this.SafeString(balance, "balance"); ptrValue != nil {
+				account["used"] = *ptrValue
+			} else {
+				account["used"] = nil
+			}
 		}
 		if code != nil {
 			result[*code] = account
@@ -1899,7 +1955,11 @@ func (this *Bittrade) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var order map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var order map[string]any
+	order, _ = response["data"].(map[string]any)
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order)}
 	return nil
@@ -2109,8 +2169,8 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		for i := 0; i < GetArrayLength(this.Accounts); i++ {
-			var account map[string]any = MapTyped(GetValue(this.Accounts, i))
+		for i := 0; i < len(this.Accounts); i++ {
+			var account map[string]any = MapTyped(this.Accounts[i])
 			if this.SafeString(account, "type") != nil && *this.SafeString(account, "type") == "spot" {
 				accountId = this.SafeString(account, "id")
 				if accountId != nil {
@@ -2121,7 +2181,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan AsyncResult[[]Order], option
 	}
 	request["account-id"] = accountId
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	}
 	var omitted map[string]any = this.OmitDict(params, "account-id")
 
@@ -2151,7 +2211,11 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan AsyncResult[[]Order], option
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -2233,7 +2297,7 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrency,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal152731 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -2241,10 +2305,10 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
 		"symbol":             marketResolved["symbol"],
-		"type":               typeVar,
+		"type":               nil,
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              price,
 		"triggerPrice":       nil,
 		"average":            nil,
@@ -2252,10 +2316,20 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 		"amount":             amount,
 		"filled":             filled,
 		"remaining":          nil,
-		"status":             status,
+		"status":             nil,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved)
+	}
+	if typeVar != nil {
+		literal152731["type"] = *typeVar
+	}
+	if side != nil {
+		literal152731["side"] = *side
+	}
+	if status != nil {
+		literal152731["status"] = *status
+	}
+	return this.SafeOrder(literal152731, marketResolved)
 }
 
 /**
@@ -2284,8 +2358,8 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -2539,7 +2613,7 @@ func (this *Bittrade) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseCancelOrders(response))}
 	return nil
 }
-func (this *Bittrade) ParseCancelOrders(orders any) []any {
+func (this *Bittrade) ParseCancelOrders(orders map[string]any) []any {
 	//
 	//    {
 	//        "success": [
@@ -2646,7 +2720,11 @@ func (this *Bittrade) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": data,
@@ -2742,7 +2820,11 @@ func (this *Bittrade) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	}
 	var response map[string]any = r1.Value
 	// return response
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limitResolved))}
 	return nil
@@ -2806,7 +2888,11 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	}
 	var response map[string]any = r1.Value
 	// return response
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limitResolved))}
 	return nil
@@ -2860,7 +2946,8 @@ func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var code *string = this.SafeCurrencyCode(this.SafeString(transaction, "currency"))
 	var typeVar *string = this.SafeString(transaction, "type")
 	if typeVar != nil && *typeVar == "withdraw" {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 	}
 	var feeCost *string = this.SafeString(transaction, "fee")
 	if feeCost != nil {
@@ -2925,12 +3012,12 @@ func (this *Bittrade) ParseTransactionStatus(status *string) *string {
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bittrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bittrade) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2966,12 +3053,12 @@ func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string
 			request["chain"] = *network + currency["id"].(string)
 		}
 	}
-	var paramsNetwork map[string]any = func() map[string]any {
-		if network != nil {
-			return this.OmitDict(paramsWithdrawTag, "network")
-		}
-		return paramsWithdrawTag
-	}()
+	var paramsNetwork map[string]any
+	if network != nil {
+		paramsNetwork = this.OmitDict(paramsWithdrawTag, "network")
+	} else {
+		paramsNetwork = paramsWithdrawTag
+	}
 
 	r1 := <-this.PrivatePostDwWithdrawApiCreate(this.Extend(request, paramsNetwork))
 	if r1.Err != nil {
@@ -2996,7 +3083,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var url string = "/"
 	if apiName == "market" {
@@ -3052,7 +3139,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 	url = this.ImplodeParams(baseApiUrl, map[string]any{
 		"hostname": this.Hostname,
 	}) + url
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
@@ -3129,7 +3216,7 @@ func (this *Bittrade) FetchTradingLimits(options ...FetchTradingLimitsOptions) (
 	var res map[string]any = r.Value
 	return res, nil
 }
-func (this *Bittrade) FetchTradingLimitsById(id string, options ...FetchTradingLimitsByIdOptions) (map[string]any, error) {
+func (this *Bittrade) FetchTradingLimitsById(id *string, options ...FetchTradingLimitsByIdOptions) (map[string]any, error) {
 
 	opts := FetchTradingLimitsByIdOptionsStruct{}
 

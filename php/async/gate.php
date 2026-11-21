@@ -2824,6 +2824,7 @@ class gate extends Exchange {
             ),
             'networks' => array(),
         );
+        $networkFees = array();
         if ($withdrawFixOnChains !== null) {
             $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
             for ($i = 0; $i < count($chainKeys); $i++) {
@@ -2832,7 +2833,7 @@ class gate extends Exchange {
                 $code = $this->safe_currency_code($currencyId, $currency);
                 $networkCode = $this->network_id_to_code($chainKey, $code);
                 if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
+                    $networkFees[$networkCode] = array(
                         'withdraw' => array(
                             'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
                             'percentage' => false,
@@ -2845,6 +2846,7 @@ class gate extends Exchange {
                 }
             }
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 
@@ -4756,7 +4758,7 @@ class gate extends Exchange {
          * @see https://www.gate.com/docs/developers/apiv4/en/#batch-place-$orders
          * @see https://www.gate.com/docs/developers/apiv4/en/#place-batch-futures-$orders
          *
-         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, type, side, amount, price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
@@ -4765,8 +4767,13 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $ordersRequests = $this->create_orders_request($orders, $params);
-        $firstOrder = $orders[0];
-        $market = $this->market($firstOrder['symbol']);
+        $symbol = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            if ($i === 0) {
+                $symbol = $this->safe_string($orders[$i], 'symbol');
+            }
+        }
+        $market = $this->market($symbol);
         $response = null;
         if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->privateSpotPostBatchOrders($ordersRequests));
@@ -5097,7 +5104,10 @@ class gate extends Exchange {
     public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('editOrder', $market, $params);
-        $accountParsed = $this->convert_type_to_account($marketType);
+        $accountParsed = null;
+        if ($marketType !== null) {
+            $accountParsed = $this->convert_type_to_account($marketType);
+        }
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsMarketType, 'editOrder', 'unifiedAccount', false);
         $account = $isUnifiedAccount ? 'unified' : $accountParsed;
         $isLimitOrder = ($type === 'limit');
@@ -7063,8 +7073,9 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
+        $currencyId = $this->safe_string($currency, 'id', '');
         $request = array(
-            'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
+            'currency' => strtoupper($currencyId), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $market = $this->market($symbol);
@@ -7100,8 +7111,9 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $currency = $this->currency($code);
+        $currencyId = $this->safe_string($currency, 'id', '');
         $request = array(
-            'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
+            'currency' => strtoupper($currencyId), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'repayCrossMargin', 'unifiedAccount', false);
@@ -7153,8 +7165,9 @@ class gate extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
+        $currencyId = $this->safe_string($currency, 'id', '');
         $request = array(
-            'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
+            'currency' => strtoupper($currencyId), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         $market = $this->market($symbol);
@@ -7205,8 +7218,9 @@ class gate extends Exchange {
         }
         Async\await($this->load_unified_status());
         $currency = $this->currency($code);
+        $currencyId = $this->safe_string($currency, 'id', '');
         $request = array(
-            'currency' => strtoupper($currency['id']), // todo: currencies have network-junctions
+            'currency' => strtoupper($currencyId), // todo: currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($params, 'borrowCrossMargin', 'unifiedAccount', false);

@@ -1160,6 +1160,11 @@ func InOp(dict any, key any) bool {
 		if ok {
 			return true
 		}
+	case map[string]*WSClient:
+		_, ok := v[key.(string)]
+		if ok {
+			return true
+		}
 	case OrderBookInterface:
 		// WsOrderBook is a typed struct, not a map - without this case every key-presence
 		// check on ws orderbooks is false and shared structure tests fail with
@@ -2455,13 +2460,13 @@ func Slice(str2 any, idx1 any, idx2 any) string {
 
 type Task func() any
 
-func PromiseAll(tasksInterface any) <-chan AsyncResult[any] {
+func PromiseAll(tasksInterface any) <-chan AsyncResult[[]any] {
 	return promiseAll(tasksInterface)
 }
 
 // promiseAll awaits every task; the first failing task by index fails the whole call.
-func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func promiseAll(tasksInterface any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any])
 
 	go func() {
 		defer close(ch)
@@ -2469,7 +2474,7 @@ func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
 
 		tasks, ok := tasksInterface.([]any)
 		if !ok {
-			ch <- AsyncResult[any]{} // not a slice of tasks: nil, as before
+			ch <- AsyncResult[[]any]{} // not a slice of tasks: nil, as before
 			return
 		}
 
@@ -2493,11 +2498,11 @@ func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
 		wg.Wait()
 		for _, err := range failures {
 			if err != nil {
-				ch <- AsyncResult[any]{Err: err}
+				ch <- AsyncResult[[]any]{Err: err}
 				return
 			}
 		}
-		ch <- AsyncResult[any]{Value: results}
+		ch <- AsyncResult[[]any]{Value: results}
 	}()
 
 	return ch
@@ -3238,6 +3243,12 @@ func (r AsyncResult[T]) Failure() error {
 // Typed returns the carried value.
 func (r AsyncResult[T]) Typed() T {
 	return r.Value
+}
+
+// MapPair is the async result of a (value, params) pair method: V the value, P the params.
+type MapPair[T any] struct {
+	V T
+	P map[string]any
 }
 
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async

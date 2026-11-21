@@ -89,7 +89,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    unsubscribeChannelsFrom(url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: number, params?: Dict): Promise<any>;
+    unsubscribeChannelsFrom(url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: int, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -104,7 +104,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    unsubscribeChannelAt(url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: number, params?: Dict): Promise<any>;
+    unsubscribeChannelAt(url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: int, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method

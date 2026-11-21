@@ -1311,7 +1311,7 @@ public partial class tokocrypto : Exchange
         //         }
         //     ]
         //
-        IList<object> responseList = this.toArray(response);
+        IList<object> responseList = response;
         return this.parseTrades(responseList, market, since, limit);
     }
 
@@ -1428,9 +1428,9 @@ public partial class tokocrypto : Exchange
             // a user-supplied symbol param makes the endpoint answer a single
             // ticker object, the unified fetchTickers contract returns a
             // symbol-keyed dict either way
-            return ccxt.BaseExchange.ToTickers(this.parseTickers(new List<object>() {response}, this.toArray(symbols)));
+            return ccxt.BaseExchange.ToTickers(this.parseTickers(new List<object>() {response}, symbols));
         }
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     /**
@@ -1519,7 +1519,7 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         List<object> response = await this.binanceGetTickerBookTicker(parameters);
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -2604,10 +2604,10 @@ public partial class tokocrypto : Exchange
         {
             request["startTime"] = since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            object endTime = this.sum(since, 7776000000);
+            Int64 endTime = this.sum(since, 7776000000);
             if ((until != null))
             {
-                endTime = mathMin(endTime, until);
+                endTime = Math.Min(endTime, until.Value);
             }
             request["endTime"] = endTime;
         }
@@ -2981,7 +2981,7 @@ public partial class tokocrypto : Exchange
             {
                 query = this.urlencode(extendedParams);
             }
-            string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            string signature = this.hmac(query, this.secret, sha256);
             query = query + (("&" + "signature=") + signature);
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
@@ -3067,7 +3067,7 @@ public partial class tokocrypto : Exchange
         string? message = this.safeString(responseParsed, "msg");
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException(this.exceptionsExact, message, ((this.id + " ") + message));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, ((this.id + " ") + message));
         }
         // checks against error codes
@@ -3092,7 +3092,7 @@ public partial class tokocrypto : Exchange
             {
                 throw new MarginModeAlreadySet (feedback) ;
             }
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             throw new ExchangeError (feedback) ;
         }
         if (success != true)
@@ -3102,7 +3102,7 @@ public partial class tokocrypto : Exchange
         return null;
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsDict = this.extend(new Dictionary<string, object>() {}, parameters);
@@ -3123,7 +3123,7 @@ public partial class tokocrypto : Exchange
             {
                 object entry = byLimit[i];
                 Int64? entryLimit = this.safeInteger(entry, 0);
-                if (((limit != null)) && ((entryLimit != null)) && ((limit == null || limit <= entryLimit)))
+                if (((limit != null)) && ((entryLimit != null)) && (limit.Value <= entryLimit.Value))
                 {
                     return this.safeInteger(entry, 1);
                 }

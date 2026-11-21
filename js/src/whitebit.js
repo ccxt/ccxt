@@ -929,7 +929,10 @@ export default class whitebit extends Exchange {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
-                depositWithdrawFees[code]['info'][entry] = feeInfo;
+                const feeEntry = this.safeDict(depositWithdrawFees, code, {});
+                const feeEntryInfo = this.safeDict(feeEntry, 'info', {});
+                feeEntryInfo[entry] = feeInfo;
+                feeEntry['info'] = feeEntryInfo;
                 const networkId = this.safeString(splitEntry, 1);
                 const withdraw = this.safeDict(feeInfo, 'withdraw');
                 const deposit = this.safeDict(feeInfo, 'deposit');
@@ -944,19 +947,21 @@ export default class whitebit extends Exchange {
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length;
-                    const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
+                    const networkCode = this.networkIdToCode(networkId.slice(1, -1), code);
                     if (networkCode !== undefined) {
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
+                        feeEntryNetworks[networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult,
                         };
+                        feeEntry['networks'] = feeEntryNetworks;
                     }
                 }
                 else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
+                    feeEntry['withdraw'] = withdrawResult;
+                    feeEntry['deposit'] = depositResult;
                 }
+                depositWithdrawFees[code] = feeEntry;
             }
         }
         const depositWithdrawCodes = Object.keys(depositWithdrawFees);
@@ -1895,8 +1900,14 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
-        const limitResolved = (since !== undefined) ? cappedLimit : limit;
+        let cappedLimit = 1440;
+        if ((limit !== undefined) && (limit < 1440)) {
+            cappedLimit = limit;
+        }
+        let limitResolved = limit;
+        if (since !== undefined) {
+            limitResolved = cappedLimit;
+        }
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
         if ((since !== undefined) || (until !== undefined)) {
@@ -1906,12 +1917,12 @@ export default class whitebit extends Exchange {
             const duration = this.parseTimeframe(timeframe);
             let endTime = undefined;
             if (until !== undefined) {
-                endTime = this.sum(this.parseToInt(until / 1000), duration);
+                endTime = this.parseToInt(this.sum(this.parseToInt(until / 1000), duration));
             }
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                const rangeEnd = this.sum(start, duration * cappedLimit);
+                const rangeEnd = this.parseToInt(this.sum(start, duration * cappedLimit));
                 if ((endTime === undefined) || (rangeEnd < endTime)) {
                     endTime = rangeEnd;
                 }

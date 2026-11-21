@@ -977,7 +977,7 @@ export default class krakenfutures extends Exchange {
         //        "more_candles": true
         //    }
         //
-        const candles = this.safeList(response, 'candles');
+        const candles = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(candles, market, timeframe, since, limitResolved);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1454,7 +1454,7 @@ export default class krakenfutures extends Exchange {
         //         }
         //     }
         //
-        const sendStatus = this.safeValue(response, 'sendStatus');
+        const sendStatus = this.safeDict(response, 'sendStatus');
         const status = this.safeString(sendStatus, 'status');
         this.verifyOrderActionSuccess(status, 'createOrder', ['filled']);
         return this.parseOrder(sendStatus, market);
@@ -1562,12 +1562,14 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privatePostCancelorder(this.extend({ 'order_id': id }, params));
-        const status = this.safeString(this.safeDict(response, 'cancelStatus', {}), 'status');
+        const request = { 'order_id': id };
+        const response = await this.privatePostCancelorder(this.extend(request, params));
+        const cancelStatus = this.safeDict(response, 'cancelStatus');
+        const status = this.safeString(cancelStatus, 'status');
         this.verifyOrderActionSuccess(status, 'cancelOrder');
         let order = {};
-        if ('cancelStatus' in response) {
-            order = this.parseOrder(response['cancelStatus']);
+        if (cancelStatus !== undefined) {
+            order = this.parseOrder(cancelStatus);
         }
         return this.extend({ 'info': response }, order);
     }

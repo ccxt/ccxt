@@ -1211,8 +1211,10 @@ class paradex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'results', array());
-        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($data) : $data;
-        return $this->parse_tickers($rows, $symbolsNormalized);
+        if ($request['market'] === 'ALL') {
+            return $this->parse_tickers($this->filter_loaded_summaries($data), $symbolsNormalized);
+        }
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function summary_market_id(?array $symbols = null): string {
@@ -1378,8 +1380,10 @@ class paradex extends Exchange {
         $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         $data = $this->safe_list($response, 'results', array());
         // only a perpetual funds, the other rows are dropped before they are parsed
-        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($data, 'swap') : $data;
-        return $this->parse_funding_rates($rows, $symbolsNormalized);
+        if ($request['market'] === 'ALL') {
+            return $this->parse_funding_rates($this->filter_loaded_summaries($data, 'swap'), $symbolsNormalized);
+        }
+        return $this->parse_funding_rates($data, $symbolsNormalized);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): array {
@@ -1718,8 +1722,8 @@ class paradex extends Exchange {
 
     public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
@@ -2020,7 +2024,8 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnlyParam = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnly = ($reduceOnlyParam === true);
         $orderType = strtoupper($type);
         $orderSide = strtoupper($side);
         $request = array(
@@ -2408,7 +2413,7 @@ class paradex extends Exchange {
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $paramsOmitted = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $hasOrderIds = ($ids !== null);
-        $hasClientOrderIds = ($clientOrderIds !== null) && ((gettype($clientOrderIds) === 'array' && array_keys($clientOrderIds) === array_keys(array_keys($clientOrderIds))));
+        $hasClientOrderIds = ($clientOrderIds !== null);
         if (!$hasOrderIds && !$hasClientOrderIds) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
         }
@@ -3621,8 +3626,10 @@ class paradex extends Exchange {
         //
         $results = $this->safe_list($response, 'results', array());
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($results, 'option') : $results;
-        return $this->parse_all_greeks($rows, $symbolsNormalized);
+        if ($request['market'] === 'ALL') {
+            return $this->parse_all_greeks($this->filter_loaded_summaries($results, 'option'), $symbolsNormalized);
+        }
+        return $this->parse_all_greeks($results, $symbolsNormalized);
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {

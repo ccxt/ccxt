@@ -254,8 +254,8 @@ public partial class bit2c : Exchange
                     { "maker", this.parseNumber("0.025") },
                     { "taker", this.parseNumber("0.03") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.03")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0275")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.025")}, new List<object> {this.parseNumber("75000"), this.parseNumber("0.0225")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.02")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.015")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0125")}, new List<object> {this.parseNumber("750000"), this.parseNumber("0.01")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.008")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("4000000"), this.parseNumber("0.002")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.025")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0225")}, new List<object> {this.parseNumber("50000"), this.parseNumber("0.02")}, new List<object> {this.parseNumber("75000"), this.parseNumber("0.0175")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.015")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.01")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0075")}, new List<object> {this.parseNumber("750000"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("4000000"), this.parseNumber("0.001")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.03}, new List<object> {20000.0, 0.0275}, new List<object> {50000.0, 0.025}, new List<object> {75000.0, 0.0225}, new List<object> {100000.0, 0.02}, new List<object> {250000.0, 0.015}, new List<object> {500000.0, 0.0125}, new List<object> {750000.0, 0.01}, new List<object> {1000000.0, 0.008}, new List<object> {2000000.0, 0.006}, new List<object> {3000000.0, 0.004}, new List<object> {4000000.0, 0.002}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.025}, new List<object> {20000.0, 0.0225}, new List<object> {50000.0, 0.02}, new List<object> {75000.0, 0.0175}, new List<object> {100000.0, 0.015}, new List<object> {250000.0, 0.01}, new List<object> {500000.0, 0.0075}, new List<object> {750000.0, 0.005}, new List<object> {1000000.0, 0.004}, new List<object> {2000000.0, 0.003}, new List<object> {3000000.0, 0.002}, new List<object> {4000000.0, 0.001}} },
                     } },
                 } },
             } },
@@ -995,7 +995,7 @@ public partial class bit2c : Exchange
         //         }
         //     ]
         //
-        IList<object> responseList = this.toArray(response);
+        IList<object> responseList = response;
         return this.parseTrades(responseList, market, since, limit);
     }
 
@@ -1218,7 +1218,7 @@ public partial class bit2c : Exchange
             {
                 requestBody = auth;
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
+            string signature = this.hmac(auth, this.secret, sha512, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "key", this.apiKey },
@@ -1254,7 +1254,7 @@ public partial class bit2c : Exchange
         if ((error != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }

@@ -289,7 +289,7 @@ export default class kalshi extends Exchange {
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
-                        const entryMarkets = eventEntry['markets'];
+                        const entryMarkets: Market[] = eventEntry['markets'];
                         entryMarkets.push (m);
                         eventEntry['markets'] = entryMarkets;
                     }
@@ -991,7 +991,7 @@ export default class kalshi extends Exchange {
         await this.loadOutcomes (outcomes);
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         const outcomesByTicker: Dict = {};
-        const tickers: any[] = [];
+        const tickers: string[] = [];
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const ticker = this.safeString (outcomeObj['info'], 'ticker');
@@ -2213,7 +2213,7 @@ export default class kalshi extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         const eventId = this.safeString2 (paramsOmitted, 'eventId', 'slug');
-        let rawEvents: any[] = [];
+        let rawEvents: Dict[] = [];
         if (queriesLength > 0) {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
             rawEvents = await this.fetchEventsByQuery (queries, fetchCap, rest);
@@ -2239,8 +2239,10 @@ export default class kalshi extends Exchange {
             const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
-                const m = parsedMarkets[mi];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString (parsedMarkets[mi], 'market');
+                if (marketKey !== undefined) {
+                    this.markets[marketKey] = parsedMarkets[mi];
+                }
             }
         }
         this.populateOutcomes ();
@@ -2418,7 +2420,7 @@ export default class kalshi extends Exchange {
             let cursor: Str = undefined;
             for (let page = 0; page < maxPages; page++) {
                 let reqLimit = pageLimit;
-                if (hasLimit && (limitValue !== undefined)) {
+                if (hasLimit) {
                     const collectedSoFar = rawEvents.length;
                     const remaining = this.parseToInt (limitValue - collectedSoFar);
                     if (remaining < reqLimit) {

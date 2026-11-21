@@ -1664,11 +1664,14 @@ class delta(Exchange, ImplicitAPI):
             balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'asset_id')
             currency = self.safe_dict(currenciesByNumericId, currencyId)
-            code = currencyId if (currency is None) else currency['code']
+            code = currencyId
+            if currency is not None:
+                code = self.safe_string(currency, 'code')
             account = self.account()
             account['total'] = self.safe_string(balance, 'balance')
             account['free'] = self.safe_string(balance, 'available_balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params: dict = {}) -> Balances:
@@ -3243,7 +3246,7 @@ class delta(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def parse_settlements(self, settlements: list[object], market: Market) -> list[dict]:
+    def parse_settlements(self, settlements: list[dict], market: Market) -> list[dict]:
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))

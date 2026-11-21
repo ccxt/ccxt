@@ -159,13 +159,13 @@ public partial class bitopro : ccxt.bitopro
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = (("TRADE" + ":") + symbolValue);
-        object trades = await this.watchPublic("trades", messageHash, (market.ContainsKey("id") ? market["id"] : null));
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPublic("trades", messageHash, (market.ContainsKey("id") ? market["id"] : null)));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -471,7 +471,7 @@ public partial class bitopro : ccxt.bitopro
             { "identity", this.login },
         });
         string payload = this.stringToBase64(rawData);
-        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+        string signature = this.hmac(payload, this.secret, sha384);
         Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {
@@ -483,7 +483,7 @@ public partial class bitopro : ccxt.bitopro
         this.extendExchangeOptions(defaultOptions);
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> wsInnerOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
-        object originalHeaders = (wsInnerOptions != null && wsInnerOptions.ContainsKey("headers") ? wsInnerOptions["headers"] : null);
+        IDictionary<string, object> originalHeaders = this.safeDict(wsInnerOptions, "headers");
         Dictionary<string, object> headers = new Dictionary<string, object>() {
             { "X-BITOPRO-API", "ccxt" },
             { "X-BITOPRO-APIKEY", this.apiKey },

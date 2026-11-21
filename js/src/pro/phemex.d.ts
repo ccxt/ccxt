@@ -23,7 +23,7 @@ export default class phemex extends phemexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
-    handleBalance(type: string, client: Client, message: any[]): void;
+    handleBalance(client: Client, message: any[], type: string): void;
     handleTrades(client: Client, message: Dict): void;
     handleOHLCV(client: Client, message: Dict): void;
     /**

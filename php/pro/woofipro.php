@@ -80,7 +80,8 @@ class woofipro extends \ccxt\async\woofipro {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
-        $this->options['requestId'][$url] = $newValue;
+        $options[$url] = $newValue;
+        $this->options['requestId'] = $options;
         return $newValue;
     }
 
@@ -974,18 +975,18 @@ class woofipro extends \ccxt\async\woofipro {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
-        $data = $this->safe_value($message, 'data');
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+        $dataList = $this->safe_list($message, 'data');
+        if ($dataList !== null) {
             // algoexecutionreport
-            for ($i = 0; $i < count($data); $i++) {
-                $order = $data[$i];
-                $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
+            for ($i = 0; $i < count($dataList); $i++) {
+                $tradeId = $this->omit_zero($this->safe_string($dataList, 'tradeId'));
                 if ($tradeId !== null) {
-                    $this->handle_my_trade($client, $order);
+                    $this->handle_my_trade($client, $dataList[$i]);
                 }
-                $this->handle_order($client, $order, $topic);
+                $this->handle_order($client, $dataList[$i], $topic);
             }
         } else {
+            $data = $this->safe_value($message, 'data');
             // executionreport
             $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
             if ($tradeId !== null) {

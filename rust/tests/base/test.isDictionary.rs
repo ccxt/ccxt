@@ -32,7 +32,7 @@ pub fn testIsDictionary() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Int(5)))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_dictionary(Value::Bool(true)))))));
     assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     })))));
 }

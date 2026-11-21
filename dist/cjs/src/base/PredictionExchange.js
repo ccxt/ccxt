@@ -91,7 +91,18 @@ class PredictionExchange extends Exchange.BaseExchange {
         if (singleQuery !== undefined) {
             return [singleQuery];
         }
-        return this.safeList(params, 'queries', []);
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        const rawQueries = this.toArray(this.safeList(params, 'queries', []));
+        const rawQueriesLength = rawQueries.length;
+        const queries = [];
+        for (let i = 0; i < rawQueriesLength; i++) {
+            const query = this.safeString(rawQueries, i);
+            if (query === undefined) {
+                throw new errors.BadRequest(this.id + ' params.queries must be a list of strings');
+            }
+            queries.push(query);
+        }
+        return queries;
     }
     requireEventQuery(params = {}) {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
@@ -224,15 +235,9 @@ class PredictionExchange extends Exchange.BaseExchange {
             let matched = false;
             for (let qi = 0; qi < queriesLength; qi++) {
                 const q = this.safeString(queries, qi, '').toLowerCase();
-                if (title === undefined) {
-                    throw new errors.ExchangeError(this.id + ' filterEventsBySearchIn() missing title');
-                }
                 if (checkTitle && (title.indexOf(q) >= 0)) {
                     matched = true;
                     break;
-                }
-                if (description === undefined) {
-                    throw new errors.ExchangeError(this.id + ' filterEventsBySearchIn() missing description');
                 }
                 if (checkDescription && (description.indexOf(q) >= 0)) {
                     matched = true;
@@ -1620,6 +1625,9 @@ class PredictionExchange extends Exchange.BaseExchange {
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         const byteLength = this.parseToInt(hex.length / 2);
+        if (byteLength === undefined) {
+            return '';
+        }
         if (byteLength === 0) {
             return '80';
         }
@@ -1630,7 +1638,10 @@ class PredictionExchange extends Exchange.BaseExchange {
             return this.intToBase16(128 + byteLength) + hex;
         }
         let lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
+        const lengthHexLength = lengthHex.length;
+        if ((lengthHexLength % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
         const lengthOfLength = this.parseToInt(lengthHex.length / 2);
         return this.intToBase16(183 + lengthOfLength) + lengthHex + hex;
     }
@@ -1640,11 +1651,17 @@ class PredictionExchange extends Exchange.BaseExchange {
             concatenated = concatenated + this.safeString(items, i, '');
         }
         const byteLength = this.parseToInt(concatenated.length / 2);
+        if (byteLength === undefined) {
+            return '';
+        }
         if (byteLength < 56) {
             return this.intToBase16(192 + byteLength) + concatenated;
         }
         let lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven(lengthHex);
+        const lengthHexLength = lengthHex.length;
+        if ((lengthHexLength % 2) !== 0) {
+            lengthHex = '0' + lengthHex;
+        }
         const lengthOfLength = this.parseToInt(lengthHex.length / 2);
         return this.intToBase16(247 + lengthOfLength) + lengthHex + concatenated;
     }
@@ -1657,7 +1674,10 @@ class PredictionExchange extends Exchange.BaseExchange {
             return '';
         }
         let hex = this.intToBase16(value);
-        hex = this.padHexToEven(hex);
+        const hexLength = hex.length;
+        if ((hexLength % 2) !== 0) {
+            hex = '0' + hex;
+        }
         return hex;
     }
     hexToRlpBytes(hexValue) {

@@ -617,7 +617,7 @@ export default class predictfun extends Exchange {
      * @param {string} [marketId] the venue market id
      * @returns {object[]} the outcome objects
      */
-    outcomesByMarketId(marketId: Str): any[];
+    outcomesByMarketId(marketId: Str): Dict[];
     /**
      * @ignore
      * @method

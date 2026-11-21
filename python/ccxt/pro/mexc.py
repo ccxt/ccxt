@@ -424,8 +424,11 @@ class mexc(ccxt.async_support.mexc):
         symbolsNormalized = self.market_symbols(symbols, None, True, False, True)
         if symbolsNormalized is None:
             raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
-        markets = self.require_value(self.markets_for_symbols(symbolsNormalized), 'watchBidsAsks() markets is required')
-        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
+        symbolsLength = len(symbolsNormalized)
+        firstMarket = None
+        if symbolsLength > 0:
+            firstMarket = self.market(symbolsNormalized[0])
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
         isSpot = marketType == 'spot'
         if not isSpot:
             raise NotSupported(self.id + ' watchBidsAsks only support spot market')
@@ -1577,16 +1580,17 @@ class mexc(ccxt.async_support.mexc):
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data
-        self.balance[type]['timestamp'] = timestamp
-        self.balance[type]['datetime'] = self.iso8601(timestamp)
+        balance = self.safe_dict(self.balance, type, {})
+        balance['timestamp'] = timestamp
+        balance['datetime'] = self.iso8601(timestamp)
         currencyId = self.safe_string_2(data, 'currency', 'vcoinName')
         code = self.safe_currency_code(currencyId)
         account = self.account()
         account['free'] = self.safe_string_2(data, 'balanceAmount', 'availableBalance')
         account['used'] = self.safe_string_2(data, 'frozenBalance', 'frozenAmount')
         if code is not None:
-            self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+            balance[code] = account
+        self.balance[type] = self.safe_balance(balance)
         client.resolve(self.balance[type], messageHash)
 
     async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
@@ -1752,8 +1756,11 @@ class mexc(ccxt.async_support.mexc):
         symbolsNormalized = self.market_symbols(symbols, None, True, False, True)
         if symbolsNormalized is None:
             raise ArgumentsRequired(self.id + ' watchBidsAsks required symbols argument')
-        markets = self.require_value(self.markets_for_symbols(symbolsNormalized), 'unWatchBidsAsks() markets is required')
-        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', markets[0], params)
+        symbolsLength = len(symbolsNormalized)
+        firstMarket = None
+        if symbolsLength > 0:
+            firstMarket = self.market(symbolsNormalized[0])
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
         isSpot = marketType == 'spot'
         if not isSpot:
             raise NotSupported(self.id + ' watchBidsAsks only support spot market')

@@ -2238,8 +2238,8 @@ class limitless extends limitless$1["default"] {
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         const rPadded = r.padStart(64, '0');
         const sPadded = s.padStart(64, '0');
@@ -2428,8 +2428,8 @@ class limitless extends limitless$1["default"] {
     async cancelAllOrders(outcome = undefined, params = {}) {
         let paramsValue = params;
         if (outcome !== undefined) {
-            let warn = true;
-            [warn, paramsValue] = this.handleOptionAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
+            const [warn, paramsWarn] = this.handleOptionBoolAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', true);
+            paramsValue = paramsWarn;
             if (warn) {
                 throw new errors.BadRequest(this.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
@@ -2469,13 +2469,11 @@ class limitless extends limitless$1["default"] {
             const outcomeObj = await this.loadOutcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, 'outcome');
         }
-        let paginate = false;
         const maxLimit = 100;
-        let paramsValue = params;
-        [paginate, paramsValue] = this.handleOptionAndParams(paramsValue, 'fetchMyTrades', 'paginate', paginate);
+        const [paginate, paramsValue] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            paramsValue = this.omit(paramsValue, 'paginate');
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', undefined, maxLimit);
+            const paramsCursor = this.omit(paramsValue, 'paginate');
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsCursor, 'nextCursor', 'cursor', undefined, maxLimit);
         }
         const request = {};
         if (limit !== undefined) {
@@ -3103,9 +3101,6 @@ class limitless extends limitless$1["default"] {
             const categoryId = this.safeString(category, 'id');
             let matched = false;
             for (let wi = 0; wi < wanted.length; wi++) {
-                if (name === undefined) {
-                    throw new errors.ExchangeError(this.id + ' fetchRawMarketsByTags() missing name');
-                }
                 if (name.indexOf(wanted[wi]) >= 0) {
                     matched = true;
                     break;

@@ -962,7 +962,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "more_candles": true
         #    }
         #
-        candles = self.safe_list(response, 'candles')
+        candles = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limitResolved)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
@@ -1403,7 +1403,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        sendStatus = self.safe_value(response, 'sendStatus')
+        sendStatus = self.safe_dict(response, 'sendStatus')
         status = self.safe_string(sendStatus, 'status')
         self.verify_order_action_success(status, 'createOrder', ['filled'])
         return self.parse_order(sendStatus, market)
@@ -1504,12 +1504,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        response = self.privatePostCancelorder(self.extend({'order_id': id}, params))
-        status = self.safe_string(self.safe_dict(response, 'cancelStatus', {}), 'status')
+        request = {'order_id': id}
+        response = self.privatePostCancelorder(self.extend(request, params))
+        cancelStatus = self.safe_dict(response, 'cancelStatus')
+        status = self.safe_string(cancelStatus, 'status')
         self.verify_order_action_success(status, 'cancelOrder')
         order = {}
-        if 'cancelStatus' in response:
-            order = self.parse_order(response['cancelStatus'])
+        if cancelStatus is not None:
+            order = self.parse_order(cancelStatus)
         return self.extend({'info': response}, order)
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:

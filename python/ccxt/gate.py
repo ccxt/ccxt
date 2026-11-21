@@ -2649,6 +2649,7 @@ class gate(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
+        networkFees = {}
         if withdrawFixOnChains is not None:
             chainKeys = list(withdrawFixOnChains.keys())
             for i in range(0, len(chainKeys)):
@@ -2657,7 +2658,7 @@ class gate(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId, currency)
                 networkCode = self.network_id_to_code(chainKey, code)
                 if networkCode is not None:
-                    result['networks'][networkCode] = {
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': self.parse_number(withdrawFixOnChains[chainKey]),
                             'percentage': False,
@@ -2667,6 +2668,7 @@ class gate(Exchange, ImplicitAPI):
                             'percentage': None,
                         },
                     }
+        result['networks'] = networkFees
         return result
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
@@ -4402,8 +4404,11 @@ class gate(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_unified_status()
         ordersRequests = self.create_orders_request(orders, params)
-        firstOrder = orders[0]
-        market = self.market(firstOrder['symbol'])
+        symbol = None
+        for i in range(0, len(orders)):
+            if i == 0:
+                symbol = self.safe_string(orders[i], 'symbol')
+        market = self.market(symbol)
         response = None
         if self.safe_bool(market, 'spot', False):
             response = self.privateSpotPostBatchOrders(ordersRequests)
@@ -4679,7 +4684,9 @@ class gate(Exchange, ImplicitAPI):
     def edit_order_request(self, id: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         marketType, paramsMarketType = self.handle_market_type_and_params('editOrder', market, params)
-        accountParsed = self.convert_type_to_account(marketType)
+        accountParsed = None
+        if marketType is not None:
+            accountParsed = self.convert_type_to_account(marketType)
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(paramsMarketType, 'editOrder', 'unifiedAccount', False)
         account = 'unified' if isUnifiedAccount else accountParsed
         isLimitOrder = (type == 'limit')
@@ -6436,8 +6443,9 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
+        currencyId = self.safe_string(currency, 'id', '')
         request = {
-            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
+            'currency': currencyId.upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         market = self.market(symbol)
@@ -6467,8 +6475,9 @@ class gate(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_unified_status()
         currency = self.currency(code)
+        currencyId = self.safe_string(currency, 'id', '')
         request = {
-            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
+            'currency': currencyId.upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(params, 'repayCrossMargin', 'unifiedAccount', False)
@@ -6514,8 +6523,9 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
+        currencyId = self.safe_string(currency, 'id', '')
         request = {
-            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
+            'currency': currencyId.upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         market = self.market(symbol)
@@ -6560,8 +6570,9 @@ class gate(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_unified_status()
         currency = self.currency(code)
+        currencyId = self.safe_string(currency, 'id', '')
         request = {
-            'currency': currency['id'].upper(),  # todo: currencies have network-junctions
+            'currency': currencyId.upper(),  # todo: currencies have network-junctions
             'amount': self.currency_to_precision(code, amount),
         }
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(params, 'borrowCrossMargin', 'unifiedAccount', False)
@@ -7151,7 +7162,7 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: list[object], market: Market = None) -> list[dict]:
+    def parse_settlements(self, settlements: list[dict], market: Market = None) -> list[dict]:
         #
         # fetchSettlementHistory
         #

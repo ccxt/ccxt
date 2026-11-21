@@ -431,12 +431,12 @@ class polymarket(ccxt.async_support.polymarket):
         # the asyncapi spec describes the data field as an array of trade objects while typing it
         # as a single object, so both shapes are handled here
         #
-        data = self.safe_value(message, 'data')
+        dataList = self.safe_list(message, 'data')
         rows = []
-        if isinstance(data, list):
-            rows = data
+        if dataList is not None:
+            rows = dataList
         else:
-            rows.append(data)
+            rows.append(self.safe_value(message, 'data'))
         rowsLength = len(rows)
         if rowsLength == 0:
             return
@@ -762,12 +762,12 @@ class polymarket(ccxt.async_support.polymarket):
         #         ]
         #     }
         #
-        data = self.safe_value(message, 'data')
+        dataList = self.safe_list(message, 'data')
         rows = []
-        if isinstance(data, list):
-            rows = data
+        if dataList is not None:
+            rows = dataList
         else:
-            rows.append(data)
+            rows.append(self.safe_value(message, 'data'))
         rowsLength = len(rows)
         if rowsLength == 0:
             return

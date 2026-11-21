@@ -168,7 +168,7 @@ class extended extends \ccxt\async\extended {
                 ),
             );
             $this->extend_exchange_options($defaultOptions);
-            $originalOptions = $this->options['ws']['options'];
+            $originalOptions = $this->safe_dict($this->options['ws'], 'options');
             $originalHeaders = $this->safe_dict($originalOptions, 'headers', array());
             $this->options['ws']['options'] = $this->extend($this->extend(array(), $originalOptions), array(
                 'headers' => $this->extend($this->extend(array(
@@ -869,11 +869,9 @@ class extended extends \ccxt\async\extended {
         $symbol = $this->safe_string($subscription, 'symbol');
         $timeframe = $this->safe_string($subscription, 'timeframe', '');
         $candleType = $this->safe_string($subscription, 'candleType', '');
-        $cacheKey = null;
-        if ($candleType === 'trades') {
-            $cacheKey = $timeframe;
-        } else {
-            $cacheKey = $timeframe . ':' . $candleType;
+        $cacheKey = $timeframe;
+        if ($candleType !== 'trades') {
+            $cacheKey = $cacheKey . ':' . $candleType;
         }
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());

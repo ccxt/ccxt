@@ -115,7 +115,9 @@ public partial class bullish : ccxt.bullish
         Dictionary<string, object> cookies = new Dictionary<string, object>() {
             { "JWT_COOKIE", token },
         };
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null))["cookies"] = cookies;
+        IDictionary<string, object> wsDict = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        wsDict["cookies"] = cookies;
+        this.options["ws"] = wsDict;
         string id = this.requestId().ToString();
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -159,7 +161,7 @@ public partial class bullish : ccxt.bullish
         {
             limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -205,7 +207,7 @@ public partial class bullish : ccxt.bullish
             this.trades[(string)symbol] = tradesArrayCache;
         }
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
-        IList<object> tradesList = this.toArray(trades);
+        IList<object> tradesList = trades;
         for (int i = 0; i < (tradesList?.Count ?? 0); i++)
         {
             tradesArray.append(tradesList[i]);
@@ -390,7 +392,7 @@ public partial class bullish : ccxt.bullish
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        IList<object> entries = this.toArray(entry);
+        IList<object> entries = entry;
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
             if (((Int64)i % 2L != 0))
@@ -445,7 +447,7 @@ public partial class bullish : ccxt.bullish
         {
             limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -578,7 +580,7 @@ public partial class bullish : ccxt.bullish
         {
             limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -750,12 +752,13 @@ public partial class bullish : ccxt.bullish
             List<object> data = this.safeList(message, "data", new List<object>() {});
             Dictionary<string, object> parsed = this.parseBalanceList(data);
             List<object> parsedKeys = new List<object>(parsed.Keys);
+            IDictionary<string, object> balance = this.safeDict(this.balance, tradingAccountId, new Dictionary<string, object>() {});
             for (int i = 0; i < parsedKeys.Count; i++)
             {
                 string? parsedKey = ((string)parsedKeys[i]);
-                ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))[(string)parsedKey] = (parsed != null && parsedKey != null && parsed.ContainsKey(parsedKey) ? parsed[parsedKey] : null);
+                balance[(string)parsedKey] = (parsed != null && parsedKey != null && parsed.ContainsKey(parsedKey) ? parsed[parsedKey] : null);
             }
-            this.balance[(string)tradingAccountId] = this.safeBalance((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null));
+            this.balance[(string)tradingAccountId] = this.safeBalance(balance);
         } else
         {
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -764,12 +767,13 @@ public partial class bullish : ccxt.bullish
             account["total"] = this.safeString(data, "availableQuantity");
             account["used"] = this.safeString(data, "lockedQuantity");
             string? code = this.safeCurrencyCode(assetId);
+            ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))["info"] = message;
+            IDictionary<string, object> deltaBalance = this.safeDict(this.balance, tradingAccountId, new Dictionary<string, object>() {});
             if (((tradingAccountId != null)) && ((code != null)))
             {
-                ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))[(string)code] = account;
+                deltaBalance[(string)code] = account;
             }
-            ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))["info"] = message;
-            this.balance[(string)tradingAccountId] = this.safeBalance((this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null));
+            this.balance[(string)tradingAccountId] = this.safeBalance(deltaBalance);
         }
         string messageHash = "balance";
         string tradingAccountIdHash = ("::" + tradingAccountId);
@@ -801,7 +805,7 @@ public partial class bullish : ccxt.bullish
         IList<object> symbolsNormalized = symbols;
         if (hasSymbols)
         {
-            symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+            symbolsNormalized = this.marketSymbols(symbols);
         }
         if (hasSymbols && ((symbolsNormalized != null)))
         {
@@ -880,7 +884,7 @@ public partial class bullish : ccxt.bullish
         {
             string? errorCode = this.safeString(data, "errorCode");
             string? errorCodeName = this.safeString(data, "errorCodeName");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCodeName, feedback);
             throw new ExchangeError (feedback) ;
         } catch(Exception e)

@@ -611,7 +611,7 @@ public partial class btcturk : Exchange
         }
         Dictionary<string, object> response = await this.publicGetTicker(parameters);
         List<object> tickers = this.safeList(response, "data");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -1248,7 +1248,7 @@ public partial class btcturk : Exchange
             privateHeaders = new Dictionary<string, object>() {
                 { "X-PCK", this.apiKey },
                 { "X-Stamp", nonce },
-                { "X-Signature", this.hmac(this.encode(auth), secret, sha256, "base64") },
+                { "X-Signature", this.hmac(auth, secret, sha256, "base64") },
                 { "Content-Type", "application/json" },
             };
         }
@@ -1269,7 +1269,7 @@ public partial class btcturk : Exchange
         {
             feedback = ((this.id + " ") + message);
         }
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
         if ((errorCode != "0") && (errorCode != "SUCCESS"))
         {
             throw new ExchangeError (feedback) ;

@@ -1848,7 +1848,10 @@ class xt extends Exchange {
         $market = null;
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         $request = array();
         $response = null;
@@ -1943,7 +1946,10 @@ class xt extends Exchange {
         $request = array();
         $market = null;
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $paramsMarketType);
@@ -2558,7 +2564,7 @@ class xt extends Exchange {
         //         ]
         //     }
         //
-        $balances = null;
+        $balances = array();
         if (($subType !== null) || $isContractWallet) {
             $balances = $this->safe_list($response, 'result', array());
         } else {
@@ -2568,7 +2574,7 @@ class xt extends Exchange {
         return $this->parse_balance_list($balances);
     }
 
-    public function parse_balance_list(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         //
         // spot
         //
@@ -2811,7 +2817,7 @@ class xt extends Exchange {
             }
             $request['positionSide'] = $requestType;
         }
-        $response = array();
+        $response = null;
         $triggerPrice = $this->safe_number_2($paramsOmitted4, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_number_2($paramsOmitted4, 'stopLoss', 'triggerStopPrice');
         $takeProfit = $this->safe_number_2($paramsOmitted4, 'takeProfit', 'triggerProfitPrice');
@@ -3691,7 +3697,7 @@ class xt extends Exchange {
 
     private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * cancels an open $order
+         * cancels an open order
          *
          * @see https://doc.xt.com/docs/spot/Order/CancelOrder
          * @see https://doc.xt.com/docs/futures/Order/cancel-orders
@@ -3699,13 +3705,13 @@ class xt extends Exchange {
          * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
          * @see https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
          *
-         * @param {string} $id $order $id
-         * @param {string} [$symbol] unified $symbol of the $market the $order was made in
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the $market the order was made in
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
-         * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
-         * @param {bool} [$params->trailing] if the $order is a $trailing $order or not
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @param {bool} [$params->trigger] if the order is a $trigger order or not
+         * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
+         * @param {bool} [$params->trailing] if the order is a $trailing order or not
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3786,8 +3792,10 @@ class xt extends Exchange {
         //     }
         //
         $isContractResponse = (($subType !== null) || ($type === 'swap') || ($type === 'future'));
-        $order = $isContractResponse ? $response : $this->safe_dict($response, 'result', array());
-        return $this->parse_order($order, $market);
+        if ($isContractResponse) {
+            return $this->parse_order($response, $market);
+        }
+        return $this->parse_order($this->safe_dict($response, 'result', array()), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -6006,8 +6014,10 @@ class xt extends Exchange {
             //     }
             //
         }
-        $result = ($this->safe_bool($market, 'swap', false)) ? $response : $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        if ($this->safe_bool($market, 'swap', false)) {
+            return $this->parse_order($response, $market);
+        }
+        return $this->parse_order($this->safe_dict($response, 'result', array()), $market);
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {

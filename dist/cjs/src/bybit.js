@@ -1573,8 +1573,10 @@ class bybit extends bybit$1["default"] {
             //
             const result = this.safeDict(response, 'result', {});
             const accountResult = this.safeDict(accountInfo, 'result', {});
-            this.options['enableUnifiedMargin'] = this.safeInteger(result, 'unified') === 1;
-            this.options['enableUnifiedAccount'] = this.safeInteger(result, 'uta') === 1;
+            const unified = this.safeInteger(result, 'unified');
+            const uta = this.safeInteger(result, 'uta');
+            this.options['enableUnifiedMargin'] = unified === 1;
+            this.options['enableUnifiedAccount'] = uta === 1;
             this.options['unifiedMarginStatus'] = this.safeInteger(accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
@@ -1592,7 +1594,7 @@ class bybit extends bybit$1["default"] {
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
-        let quote = undefined;
+        let quote = 'USDC';
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
         let expiry = undefined;
@@ -1606,22 +1608,17 @@ class bybit extends bybit$1["default"] {
                 throw new errors.ExchangeError(this.id + ' createExpiredOptionMarket() missing symbolQuoteAndSettle');
             }
             const splitQuote = symbolQuoteAndSettle.split(':');
-            const quoteAndSettle = this.safeString(splitQuote, 0);
-            quote = quoteAndSettle;
+            quote = this.safeString(splitQuote, 0, '');
         }
         else {
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (symbol.endsWith('-USDT')) {
                 quote = 'USDT';
             }
-            else {
-                quote = 'USDC';
-            }
         }
         const strike = this.safeString(optionParts, 2);
         const optionType = this.safeString(optionParts, 3);
         const datetime = this.convertExpireDate(expiry);
-        const timestamp = this.parse8601(datetime);
         let amountPrecision = undefined;
         let pricePrecision = undefined;
         // hard coded amount and price precisions from fetchOptionMarkets
@@ -1659,7 +1656,7 @@ class bybit extends bybit$1["default"] {
             'margin': false,
             'contract': true,
             'contractSize': this.parseNumber('1'),
-            'expiry': timestamp,
+            'expiry': this.parse8601(datetime),
             'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': this.parseNumber(strike),
@@ -2038,8 +2035,6 @@ class bybit extends bybit$1["default"] {
         const responseResult = this.safeDict(response, 'result', {});
         const markets = this.safeList(responseResult, 'list', []);
         const result = [];
-        const takerFee = this.parseNumber('0.001');
-        const makerFee = this.parseNumber('0.001');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString(market, 'symbol');
@@ -2057,7 +2052,6 @@ class bybit extends bybit$1["default"] {
             const priceFilter = this.safeDict(market, 'priceFilter');
             const quotePrecision = this.safeNumber(lotSizeFilter, 'quotePrecision');
             const marginTrading = this.safeString(market, 'marginTrading', 'none');
-            const allowsMargin = marginTrading !== 'none';
             result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
@@ -2069,7 +2063,7 @@ class bybit extends bybit$1["default"] {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': allowsMargin,
+                'margin': (marginTrading !== 'none'),
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -2077,8 +2071,8 @@ class bybit extends bybit$1["default"] {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': takerFee,
-                'maker': makerFee,
+                'taker': this.parseNumber('0.001'),
+                'maker': this.parseNumber('0.001'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -2213,7 +2207,6 @@ class bybit extends bybit$1["default"] {
             const inverseFutures = (contractType === 'InverseFutures');
             const linearFutures = (contractType === 'LinearFutures');
             const linearPerpetual = (contractType === 'LinearPerpetual');
-            const inversePerpetual = (contractType === 'InversePerpetual');
             const id = this.safeString(market, 'symbol');
             const baseId = this.safeString(market, 'baseCoin');
             const quoteId = this.safeString(market, 'quoteCoin');
@@ -2239,7 +2232,7 @@ class bybit extends bybit$1["default"] {
             const priceFilter = this.safeDict(market, 'priceFilter', {});
             const leverage = this.safeDict(market, 'leverageFilter', {});
             const status = this.safeString(market, 'status');
-            const swap = linearPerpetual || inversePerpetual;
+            const swap = linearPerpetual || (contractType === 'InversePerpetual');
             const future = inverseFutures || linearFutures;
             let type = undefined;
             if (swap) {
@@ -3033,11 +3026,14 @@ class bybit extends bybit$1["default"] {
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            const symbolMarket = this.market(symbolsNormalized[0]);
-            market = symbolMarket;
-            const symbolsLength = symbolsNormalized.length;
-            if (symbolsLength === 1) {
-                request['symbol'] = symbolMarket['id'];
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                const symbolMarket = this.market(symbolsNormalized[0]);
+                market = symbolMarket;
+                const symbolsLength = symbolsNormalized.length;
+                if (symbolsLength === 1) {
+                    request['symbol'] = symbolMarket['id'];
+                }
             }
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchFundingRates', market, params);
@@ -4131,7 +4127,7 @@ class bybit extends bybit$1["default"] {
         const triggerDirection = this.safeString(order, 'triggerDirection');
         const isAscending = (triggerDirection === '1');
         const isStopOrderType2 = (triggerPrice !== undefined) && reduceOnly;
-        if ((stopLossPrice === undefined) && (isStopOrderType2 === true)) {
+        if ((stopLossPrice === undefined) && isStopOrderType2) {
             // check if order is stop order type 2 - stopLossPrice
             if (isAscending && (side === 'buy')) {
                 // stopLoss order against short position
@@ -4142,7 +4138,7 @@ class bybit extends bybit$1["default"] {
                 stopLossPrice = triggerPrice;
             }
         }
-        if ((takeProfitPrice === undefined) && (isStopOrderType2 === true)) {
+        if ((takeProfitPrice === undefined) && isStopOrderType2) {
             // check if order is stop order type 2 - takeProfitPrice
             if (isAscending && (side === 'sell')) {
                 // takeprofit order against a long position
@@ -5310,7 +5306,7 @@ class bybit extends bybit$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const orders = this.safeList(result, 'list');
-        if (!Array.isArray(orders)) {
+        if (orders === undefined) {
             return [this.safeOrder({ 'info': response })];
         }
         return this.parseOrders(orders, market);
@@ -7294,16 +7290,18 @@ class bybit extends bybit$1["default"] {
                 const leverage = this.safeString(paramsType, 'leverage');
                 let paramsOmitted = undefined;
                 if (leverage === undefined) {
-                    sellLeverage = this.safeString2(paramsType, 'sell_leverage', 'sellLeverage');
-                    buyLeverage = this.safeString2(paramsType, 'buy_leverage', 'buyLeverage');
-                    if (sellLeverage === undefined && buyLeverage === undefined) {
+                    const sellLeverageRaw = this.safeString2(paramsType, 'sell_leverage', 'sellLeverage');
+                    const buyLeverageRaw = this.safeString2(paramsType, 'buy_leverage', 'buyLeverage');
+                    if (sellLeverageRaw === undefined && buyLeverageRaw === undefined) {
                         throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
                     }
-                    if (buyLeverage === undefined) {
-                        buyLeverage = sellLeverage;
+                    sellLeverage = sellLeverageRaw;
+                    buyLeverage = buyLeverageRaw;
+                    if (buyLeverageRaw === undefined) {
+                        buyLeverage = sellLeverageRaw;
                     }
-                    if (sellLeverage === undefined) {
-                        sellLeverage = buyLeverage;
+                    if (sellLeverageRaw === undefined) {
+                        sellLeverage = buyLeverageRaw;
                     }
                     paramsOmitted = this.omit(paramsType, ['buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage']);
                 }
@@ -7780,12 +7778,14 @@ class bybit extends bybit$1["default"] {
         };
         const sinceResolved = (since === undefined) ? this.milliseconds() - 2592000000 : since; // last 30 days
         request['startTime'] = sinceResolved;
-        let endTime = this.safeInteger2(params, 'until', 'endTime');
+        const endTime = this.safeInteger2(params, 'until', 'endTime');
         const paramsOmitted = this.omit(params, ['until']);
         if (endTime === undefined) {
-            endTime = sinceResolved + 2592000000; // since + 30 days
+            request['endTime'] = sinceResolved + 2592000000; // since + 30 days
         }
-        request['endTime'] = endTime;
+        else {
+            request['endTime'] = endTime;
+        }
         const response = await this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, paramsOmitted));
         //
         //   {
@@ -8301,6 +8301,7 @@ class bybit extends bybit$1["default"] {
             },
             'networks': {},
         };
+        const networks = {};
         if (chainsLength !== 0) {
             for (let i = 0; i < chainsLength; i++) {
                 const chain = this.safeDict(chains, i);
@@ -8308,17 +8309,20 @@ class bybit extends bybit$1["default"] {
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
                     };
                 }
                 if (chainsLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
-                    result['withdraw']['percentage'] = false;
+                    result['withdraw'] = {
+                        'fee': this.safeNumber(chain, 'withdrawFee'),
+                        'percentage': false,
+                    };
                 }
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -10075,7 +10079,8 @@ class bybit extends bybit$1["default"] {
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname(apiUrl) + '/' + path;
+        const baseUrl = this.implodeHostname(apiUrl) + '/' + path;
+        let url = baseUrl;
         if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 url = this.implodeHostname(apiUrl) + '/' + path + '?' + this.rawencode(params);
@@ -10083,10 +10088,10 @@ class bybit extends bybit$1["default"] {
         }
         else if (apiName === 'private') {
             this.checkRequiredCredentials();
-            const isOpenapi = url.indexOf('openapi') >= 0;
-            const isV3UnifiedMargin = url.indexOf('unified/v3') >= 0;
-            const isV3Contract = url.indexOf('contract/v3') >= 0;
-            const isV5UnifiedAccount = url.indexOf('v5') >= 0;
+            const isOpenapi = baseUrl.indexOf('openapi') >= 0;
+            const isV3UnifiedMargin = baseUrl.indexOf('unified/v3') >= 0;
+            const isV3Contract = baseUrl.indexOf('contract/v3') >= 0;
+            const isV5UnifiedAccount = baseUrl.indexOf('v5') >= 0;
             const timestamp = this.nonce().toString();
             if (isOpenapi) {
                 if (Object.keys(params).length > 0) {
@@ -10153,7 +10158,7 @@ class bybit extends bybit$1["default"] {
                     signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
                 }
                 if (method === 'POST') {
-                    const isSpot = url.indexOf('spot') >= 0;
+                    const isSpot = baseUrl.indexOf('spot') >= 0;
                     const extendedQuery = this.extend(query, {
                         'sign': signature,
                     });
@@ -10171,8 +10176,7 @@ class bybit extends bybit$1["default"] {
                     }
                 }
                 else {
-                    url = this.implodeHostname(apiUrl) + '/' + path + '?' + this.rawencode(sortedQuery, true);
-                    url += '&sign=' + signature;
+                    url = baseUrl + '?' + this.rawencode(sortedQuery, true) + '&sign=' + signature;
                 }
             }
         }

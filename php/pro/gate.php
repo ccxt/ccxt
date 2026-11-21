@@ -194,7 +194,7 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.order_place';
         $url = $this->get_url_by_market($market);
@@ -216,7 +216,7 @@ class gate extends \ccxt\async\gate {
          *
          * @see https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
          *
-         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, type, side, amount, price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
@@ -224,8 +224,13 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
         }
         $request = $this->createOrdersRequest($orders, $params);
-        $firstOrder = $orders[0];
-        $market = $this->market($firstOrder['symbol']);
+        $symbol = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            if ($i === 0) {
+                $symbol = $this->safe_string($orders[$i], 'symbol');
+            }
+        }
+        $market = $this->market($symbol);
         if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' createOrdersWs is not supported for swap markets');
         }
@@ -260,12 +265,7 @@ class gate extends \ccxt\async\gate {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = null;
-        if ($symbol === null) {
-            $market = null;
-        } else {
-            $market = $this->market($symbol);
-        }
+        $market = $this->market($symbol);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.order_cancel_cp';
@@ -506,15 +506,17 @@ class gate extends \ccxt\async\gate {
         $messageType = $this->get_type_by_market($market);
         $messageHash = 'orderbook' . ':' . $symbolValue;
         // max 100 atm, max 50 for options
-        $defaultLimit = 100;
+        $limitResolved = $this->parse_to_int(100);
         if (($this->safe_bool($market, 'spot', false)) || ($messageType === 'options')) {
-            $defaultLimit = 50;
+            $limitResolved = $this->parse_to_int(50);
         }
-        $limitResolved = ($limit === null) ? $defaultLimit : $limit;
+        if ($limit !== null) {
+            $limitResolved = $this->parse_to_int($limit);
+        }
         if ($this->safe_bool($market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             $maxSpotLimit = $this->parse_to_int($this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000));
-            $limitResolved = min($limitResolved, $maxSpotLimit);
+            $limitResolved = $this->parse_to_int(min($limitResolved, $maxSpotLimit));
         }
         $payload = array();
         $channel = '';
@@ -569,12 +571,13 @@ class gate extends \ccxt\async\gate {
         $interval = $intervalDefault;
         list($intervalOption, $paramsInterval) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'interval', $interval);
         $messageType = $this->get_type_by_market($market);
-        $limit = $this->safe_integer($paramsInterval, 'limit');
-        if ($limit === null) {
-            $limit = ($this->safe_bool($market, 'spot', false)) ? 50 : 100; // max 100 atm
-            if ($messageType === 'options') {
-                $limit = 50; // max 50 for options
-            }
+        $limitParam = $this->safe_integer($paramsInterval, 'limit');
+        $limit = $this->parse_to_int(($this->safe_bool($market, 'spot', false)) ? 50 : 100); // max 100 atm
+        if ($messageType === 'options') {
+            $limit = $this->parse_to_int(50); // max 50 for options
+        }
+        if ($limitParam !== null) {
+            $limit = $this->parse_to_int($limitParam);
         }
         $payload = array();
         $channel = '';
@@ -1181,7 +1184,7 @@ class gate extends \ccxt\async\gate {
         // todo add options support
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.candlesticks';
@@ -1218,7 +1221,7 @@ class gate extends \ccxt\async\gate {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.candlesticks';
@@ -1310,7 +1313,7 @@ class gate extends \ccxt\async\gate {
                     $this->safe_number($ohlcv, 'a'),
                 );
             }
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -1818,9 +1821,9 @@ class gate extends \ccxt\async\gate {
         }
         $payload = array( '!' . 'all' );
         if ($market !== null) {
-            $messageHash .= ':' . $market['id'];
-            $mid = $market['id'];
+            $mid = $this->safe_string($market, 'id');
             if ($mid !== null) {
+                $messageHash .= ':' . $mid;
                 $payload = array( $mid );
             }
         }
@@ -1911,10 +1914,11 @@ class gate extends \ccxt\async\gate {
                 }
             }
             $stored->append($parsed);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             $market = $this->market($symbol);
-            if ($market['id'] !== null) {
-                $marketIds[$market['id']] = true;
+            $marketId = $this->safe_string($market, 'id');
+            if ($marketId !== null) {
+                $marketIds[$marketId] = true;
             }
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
@@ -2064,10 +2068,7 @@ class gate extends \ccxt\async\gate {
             $newLiquidations[] = $liquidation;
             $symbol = $this->safe_string($liquidation, 'symbol');
             if ($symbol !== null) {
-                $symbolLiquidations = $this->safe_list($liquidationsBySymbol, $symbol);
-                if ($symbolLiquidations === null) {
-                    $symbolLiquidations = array();
-                }
+                $symbolLiquidations = $this->safe_list($liquidationsBySymbol, $symbol, array());
                 $symbolLiquidations[] = $liquidation;
                 $liquidationsBySymbol[$symbol] = $symbolLiquidations;
             }
@@ -2451,16 +2452,14 @@ class gate extends \ccxt\async\gate {
     public function get_url_by_market(mixed $market): string {
         if ($this->safe_bool($market, 'contract', false)) {
             $settleKey = ($this->safe_bool($market, 'linear', false)) ? 'usdt' : 'btc';
-            return $this->safe_string($this->urls['api'][$market['type']], $settleKey, '');
-        } else {
-            return $this->safe_string($this->urls['api'], $market['type'], '');
+            $contractUrl = $this->safe_string($this->urls['api'][$market['type']], $settleKey, '');
+            return $contractUrl;
         }
+        $spotUrl = $this->safe_string($this->urls['api'], $market['type'], '');
+        return $spotUrl;
     }
 
-    public function get_type_by_market(array $market): ?string {
-        if ($market === null) {
-            return null;
-        }
+    public function get_type_by_market(array $market): string {
         if ($this->safe_bool($market, 'spot', false)) {
             return 'spot';
         } elseif ($this->safe_bool($market, 'option', false)) {
@@ -2480,20 +2479,21 @@ class gate extends \ccxt\async\gate {
     }
 
     public function get_market_type_by_url(string $url): string {
-        $findBy = array(
-            'op-' => 'option',
-            '/ws/options/' => 'option',
-            'delivery' => 'future',
-            'fx' => 'swap',
-            '/ws/futures/' => 'swap',
-        );
-        $keys = is_array($findBy) ? array_keys($findBy) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $value = $findBy[$key];
-            if (mb_strpos($url, $key) !== false) {
-                return $value;
-            }
+        // same order as the url table: delivery urls also contain 'fx'
+        if (mb_strpos($url, 'op-') !== false) {
+            return 'option';
+        }
+        if (mb_strpos($url, '/ws/options/') !== false) {
+            return 'option';
+        }
+        if (mb_strpos($url, 'delivery') !== false) {
+            return 'future';
+        }
+        if (mb_strpos($url, 'fx') !== false) {
+            return 'swap';
+        }
+        if (mb_strpos($url, '/ws/futures/') !== false) {
+            return 'swap';
         }
         return 'spot';
     }

@@ -1340,15 +1340,15 @@ class apex extends Exchange {
             if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($marketId ?? '', $this->markets))) {
                 $marketResolved = $this->markets[$marketId];
             } elseif (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
-                $marketResolved = $this->markets_by_id[$marketId];
+                $marketResolved = $this->safe_dict($this->markets_by_id[$marketId], 0);
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
                 if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($newMarketId ?? '', $this->markets_by_id))) {
                     $markets = $this->markets_by_id[$newMarketId];
                     $numMarkets = count($markets);
-                    if ($numMarkets > 0) {
-                        if ($markets[0]['id2'] === $marketId) {
-                            $marketResolved = $markets[0];
+                    for ($i = 0; $i < $numMarkets; $i++) {
+                        if (($i === 0) && ($markets[$i]['id2'] === $marketId)) {
+                            $marketResolved = $markets[$i];
                         }
                     }
                 }
@@ -1358,13 +1358,11 @@ class apex extends Exchange {
     }
 
     public function generate_random_client_id_omni(?string $_accountId): string {
-        $accountId = '';
+        $suffix = '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
         if (($_accountId !== null) && ($_accountId !== '')) {
-            $accountId = $_accountId;
-        } else {
-            $accountId = (string) $this->rand_number(12);
+            return 'apexomni-' . $_accountId . $suffix;
         }
-        return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
+        return 'apexomni-' . (string) $this->rand_number(12) . $suffix;
     }
 
     public function add_hyphen_before_usdt(string $symbol): string {

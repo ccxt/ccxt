@@ -148,11 +148,11 @@ mod sandbox_mode_tests {
     #[test]
     fn binance_sandbox_swaps_api_url() {
         let mut b = crate::exchanges::binance::Binance::new(None);
-        let test_url = crate::get_value(&b.exchange.urls, &Value::Str("test".into()));
+        let test_url = b.exchange.urls.get("test").cloned().unwrap_or(Value::Null);
         assert!(!matches!(test_url, Value::Null), "binance describe() has no test url");
         b.set_sandbox_mode(true).expect("binance has a sandbox url");
         assert_eq!(b.exchange.isSandboxModeEnabled, Value::Bool(true));
-        let api_url = crate::get_value(&b.exchange.urls, &Value::Str("api".into()));
+        let api_url = b.exchange.urls.get("api").cloned().unwrap_or(Value::Null);
         assert_eq!(api_url, test_url, "sandbox mode did not switch urls['api'] to urls['test']");
     }
 }
@@ -171,7 +171,7 @@ mod dynamic_dispatch_tests {
         assert_eq!(snake, "fetch_ohlcv");
         b.exchange.internals.dynamic_dispatch_miss = None;
         let _ = futures::FutureExt::catch_unwind(
-            std::panic::AssertUnwindSafe(b.call_dynamic(&snake, vec![])),
+            std::panic::AssertUnwindSafe(b.call_dynamic(&snake, &[])),
         ).await;
         assert_eq!(
             b.exchange.internals.dynamic_dispatch_miss, None,
@@ -179,7 +179,7 @@ mod dynamic_dispatch_tests {
              re-entry would have silently returned an empty page",
         );
         // Negative control for the probe itself: a name with no arm DOES record.
-        let _ = b.call_dynamic("fetch_definitely_not_an_arm", vec![]).await;
+        let _ = b.call_dynamic("fetch_definitely_not_an_arm", &[]).await;
         assert_eq!(
             b.exchange.internals.dynamic_dispatch_miss.as_deref(),
             Some("fetch_definitely_not_an_arm"),
@@ -213,7 +213,7 @@ mod dynamic_dispatch_tests {
     #[tokio::test]
     async fn bare_call_dynamic_still_returns_null_for_optional_probes() {
         let mut b = crate::exchanges::binance::Binance::new(None);
-        let out = b.call_dynamic("fetch_no_such_thing_at_all", vec![]).await;
+        let out = b.call_dynamic("fetch_no_such_thing_at_all", &[]).await;
         assert_eq!(out, Value::Null);
         assert_eq!(
             b.exchange.internals.dynamic_dispatch_miss.as_deref(),
@@ -259,5 +259,24 @@ mod nonce_override_from_lifted_sign_tests {
         let n = <crate::exchanges::binanceusdm::Binanceusdm as ExchangeBase>::nonce(&b);
         let Value::Int(n) = n else { panic!("nonce must be an Int, got {n:?}") };
         assert!(n >= before_ms, "binanceusdm reached the base nonce (seconds): {n} < {before_ms}");
+    }
+}
+
+#[cfg(all(test, feature = "engine", feature = "binance"))]
+mod until_pair_dispatch_tests {
+    #[allow(unused_imports)]
+    use crate::exchange::{CallDynamicChecked, ExchangeRuntime};
+    #[allow(unused_imports)]
+    use crate::exchange_generated::ExchangeBase;
+    use crate::Value;
+
+    // the by-name arm boxes the native `(Dict, Dict)` pair back into the two-map list
+    #[tokio::test]
+    async fn handle_until_option_by_name_returns_the_two_maps() {
+        let mut b = crate::exchanges::binance::Binance::new(None);
+        let request = Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT" }));
+        let params = Value::from_json(&serde_json::json!({ "until": 5, "x": 1 }));
+        let out = b.call_dynamic("handle_until_option", &[Value::Str("endTime".into()), request, params]).await;
+        assert_eq!(out, Value::from_json(&serde_json::json!([{ "symbol": "BTCUSDT", "endTime": 5 }, { "x": 1 }])));
     }
 }

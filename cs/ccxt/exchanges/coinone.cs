@@ -722,7 +722,7 @@ public partial class coinone : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "quote_currency", "KRW" },
         };
@@ -1477,7 +1477,7 @@ public partial class coinone : Exchange
                 result[(string)code] = depositAddress;
             }
         }
-        return ccxt.BaseExchange.ToDepositAddressList(this.toArray(result));
+        return ccxt.BaseExchange.ToDepositAddressList((result == null ? null : new List<object>(result.Values)));
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
@@ -1548,7 +1548,7 @@ public partial class coinone : Exchange
             }, parameters));
             string payload = this.stringToBase64(json);
             requestBody = payload;
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret.ToUpper()), sha512);
+            string signature = this.hmac(payload, this.secret.ToUpper(), sha512);
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-COINONE-PAYLOAD", payload },

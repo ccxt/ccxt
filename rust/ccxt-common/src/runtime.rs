@@ -198,6 +198,17 @@ pub fn is_less_than_or_equal(a: &Value, b: &Value) -> bool {
     is_less_than(a, b) || is_equal(a, b)
 }
 
+/// The dict / list a map holds under `key`, read by reference: the shared container for a dict / list
+/// value, an empty one for a missing key or any other value (what `.get(k).cloned().unwrap_or_default().into_dict()` answers).
+pub trait KeyDictRead {
+    fn key_dict(&self, key: &str) -> crate::value::Dict;
+    fn key_list(&self, key: &str) -> crate::value::List;
+}
+impl KeyDictRead for HashMap<String, Value> {
+    fn key_dict(&self, key: &str) -> crate::value::Dict { if let Some(Value::Dict(m)) = self.get(key) { Arc::clone(m) } else { Arc::default() } }
+    fn key_list(&self, key: &str) -> crate::value::List { if let Some(Value::Arr(a)) = self.get(key) { Arc::clone(a) } else { Arc::default() } }
+}
+
 // ── type checks ─────────────────────────────────────────────────────────────
 
 /// `is_true(x)` — polymorphic truthy check. The transpiler emits
@@ -251,24 +262,6 @@ pub fn panic_msg_to_error(msg: &str) -> crate::ExchangeError {
 /// the TS `throw new <Kind>(message)` pattern); the typed-wrapper layer
 /// wraps every delegate call in this helper so its public surface is
 /// idiomatic Rust (`Result<T, ExchangeError>`) rather than panicking.
-/// Synchronous sibling of [`call_typed`]: runs a closure that may signal an
-/// error the transpiled way (`panic!("[Kind] message")`) and converts that into
-/// a typed `Result`. Used by the typed wrappers' non-async accessors.
-pub fn catch_typed<F, T>(f: F) -> crate::Result<T>
-where
-    F: FnOnce() -> T,
-{
-    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)) {
-        Ok(v) => Ok(v),
-        Err(payload) => {
-            let msg = payload.downcast_ref::<String>().cloned()
-                .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
-                .unwrap_or_else(|| "panic".to_string());
-            Err(panic_msg_to_error(&msg))
-        }
-    }
-}
-
 pub async fn call_typed<F, T>(fut: F) -> crate::Result<T>
 where
     F: std::future::Future<Output = T>,
@@ -399,8 +392,8 @@ pub fn get_value(obj: &Value, key: impl crate::value::ValueKey) -> Value {
 /// `invalid_reference_casting` lint can be allowed in one place. Mirrors
 /// `coerce_to_mut_unsafe` in `exchange_stubs.rs`.
 #[allow(clippy::mut_from_ref, invalid_reference_casting)]
-pub unsafe fn coerce_value_to_mut(v: &Value) -> &mut Value {
-    let ptr = v as *const Value as *mut Value;
+pub unsafe fn coerce_value_to_mut<T>(v: &T) -> &mut T {
+    let ptr = v as *const T as *mut T;
     &mut *ptr
 }
 
@@ -661,16 +654,17 @@ pub fn println_val(v: &Value) {
 }
 
 /// Async equivalent of Promise.all — awaits all futures and collects results.
-/// Currently a stub: takes a Value::Array and returns it unchanged.
-pub async fn promise_all(v: &Value) -> Value {
-    v.clone()
+/// Currently a stub: takes the already-awaited `Value::Arr` and answers its list (empty for a non-list).
+pub async fn promise_all(v: &Value) -> crate::value::List {
+    if let Value::Arr(a) = v { Arc::clone(a) } else { Arc::default() }
 }
 
 // ── variadic / array helpers ─────────────────────────────────────────────────
 
 /// `get_arg(args, index, default)` — used by transpiled methods that accept
 /// `params = []` variadic optional arguments.
-pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
+/// Takes owned (`&[Value]`) or lent (`&[&Value]`) slots.
+pub fn get_arg<T: std::borrow::Borrow<Value>>(args: &[T], idx: usize, default: Value) -> Value {
     // JS default parameters trigger on `undefined`, so `f(a, b)` and
     // `f(a, b, undefined, undefined)` both apply the declared defaults. The port
     // collapses `undefined`/`null` into `Value::Null`, and a caller may pass
@@ -681,7 +675,7 @@ pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
     // when the slot is `Null` *and* a non-`Null` default is declared, honour the
     // default — matching JS. A `Null` default is unchanged (explicit `Null`
     // stays `Null`).
-    match args.get(idx) {
+    match args.get(idx).map(std::borrow::Borrow::borrow) {
         None => default,
         Some(Value::Null) if !matches!(default, Value::Null) => default,
         Some(v) => v.clone(),

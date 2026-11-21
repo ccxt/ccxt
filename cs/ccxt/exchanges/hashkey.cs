@@ -416,8 +416,8 @@ public partial class hashkey : Exchange
                         { "maker", this.parseNumber("0.0012") },
                         { "taker", this.parseNumber("0.0012") },
                         { "tiers", new Dictionary<string, object>() {
-                            { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00080")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00070")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.00060")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.00040")}, new List<object> {this.parseNumber("200000000"), this.parseNumber("0.00030")}, new List<object> {this.parseNumber("400000000"), this.parseNumber("0.00010")}, new List<object> {this.parseNumber("800000000"), this.parseNumber("0.00")}} },
-                            { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00090")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00085")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.00075")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.00065")}, new List<object> {this.parseNumber("200000000"), this.parseNumber("0.00045")}, new List<object> {this.parseNumber("400000000"), this.parseNumber("0.00040")}, new List<object> {this.parseNumber("800000000"), this.parseNumber("0.00035")}} },
+                            { "maker", new List<object>() {new List<object> {0.0, 0.0012}, new List<object> {1000000.0, 0.00080}, new List<object> {5000000.0, 0.00070}, new List<object> {10000000.0, 0.00060}, new List<object> {50000000.0, 0.00040}, new List<object> {200000000.0, 0.00030}, new List<object> {400000000.0, 0.00010}, new List<object> {800000000.0, 0.00}} },
+                            { "taker", new List<object>() {new List<object> {0.0, 0.0012}, new List<object> {1000000.0, 0.00090}, new List<object> {5000000.0, 0.00085}, new List<object> {10000000.0, 0.00075}, new List<object> {50000000.0, 0.00065}, new List<object> {200000000.0, 0.00045}, new List<object> {400000000.0, 0.00040}, new List<object> {800000000.0, 0.00035}} },
                         } },
                     } },
                     { "swap", new Dictionary<string, object>() {
@@ -427,8 +427,8 @@ public partial class hashkey : Exchange
                         { "maker", this.parseNumber("0.00025") },
                         { "taker", this.parseNumber("0.00060") },
                         { "tiers", new Dictionary<string, object>() {
-                            { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.00025")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00016")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00014")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.00012")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.000080")}, new List<object> {this.parseNumber("200000000"), this.parseNumber("0.000060")}, new List<object> {this.parseNumber("400000000"), this.parseNumber("0.000020")}, new List<object> {this.parseNumber("800000000"), this.parseNumber("0.00")}} },
-                            { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.00060")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.00050")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.00045")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.00040")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.00035")}, new List<object> {this.parseNumber("200000000"), this.parseNumber("0.00030")}, new List<object> {this.parseNumber("400000000"), this.parseNumber("0.00025")}, new List<object> {this.parseNumber("800000000"), this.parseNumber("0.00020")}} },
+                            { "maker", new List<object>() {new List<object> {0.0, 0.00025}, new List<object> {1000000.0, 0.00016}, new List<object> {5000000.0, 0.00014}, new List<object> {10000000.0, 0.00012}, new List<object> {50000000.0, 0.000080}, new List<object> {200000000.0, 0.000060}, new List<object> {400000000.0, 0.000020}, new List<object> {800000000.0, 0.00}} },
+                            { "taker", new List<object>() {new List<object> {0.0, 0.00060}, new List<object> {1000000.0, 0.00050}, new List<object> {5000000.0, 0.00045}, new List<object> {10000000.0, 0.00040}, new List<object> {50000000.0, 0.00035}, new List<object> {200000000.0, 0.00030}, new List<object> {400000000.0, 0.00025}, new List<object> {800000000.0, 0.00020}} },
                         } },
                     } },
                 } },
@@ -1313,7 +1313,7 @@ public partial class hashkey : Exchange
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < (networks?.Count ?? 0); j++)
         {
-            object network = networks[j];
+            IDictionary<string, object> network = ((IDictionary<string, object>)networks[j]);
             string? networkId = this.safeString(network, "chainType");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -1728,7 +1728,7 @@ public partial class hashkey : Exchange
         //         ...
         //     ]
         //
-        IList<object> ohlcvs = this.toArray(response);
+        IList<object> ohlcvs = response;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeValue, since, limit));
     }
 
@@ -1807,7 +1807,7 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.publicGetQuoteV1Ticker24hr(parameters);
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }
@@ -2816,7 +2816,7 @@ public partial class hashkey : Exchange
             throw new NotSupported ((this.id + " createOrder() supports cost parameter for spot market buy orders only")) ;
         }
         Dictionary<string, object> request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
-        Dictionary<string, object> response = new Dictionary<string, object>() {};
+        Dictionary<string, object> response = null;
         bool? test = this.safeBool(parameters, "test", false);
         if ((test == true))
         {
@@ -3217,7 +3217,7 @@ public partial class hashkey : Exchange
         {
             request["side"] = side;
         }
-        object response = null;
+        Dictionary<string, object> response = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
             response = await this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters));
@@ -3823,7 +3823,7 @@ public partial class hashkey : Exchange
     public virtual List<object> parseOrderSideAndReduceOnly(object unparsed)
     {
         List<object> parts = ((string)unparsed).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-        object side = (parts != null && 0 < parts.Count ? parts[0] : null);
+        string? side = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         string? secondPart = this.safeString(parts, 1);
         if (secondPart == "open")
         {
@@ -4020,10 +4020,10 @@ public partial class hashkey : Exchange
         //     ]
         //
         List<object> rates = new List<object>() {};
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -4670,7 +4670,7 @@ public partial class hashkey : Exchange
             {
                 headersSigned["Content-Type"] = "application/json";
                 bodySigned = this.json(this.safeList(parameters, "orders"));
-                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256);
+                signature = this.hmac(this.customUrlencode(additionalParams), this.secret, sha256);
                 query = this.customUrlencode(this.extend(additionalParams, new Dictionary<string, object>() {
                     { "signature", signature },
                 }));
@@ -4678,7 +4678,7 @@ public partial class hashkey : Exchange
             } else
             {
                 Dictionary<string, object> totalParams = this.extend(additionalParams, parameters);
-                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256);
+                signature = this.hmac(this.customUrlencode(totalParams), this.secret, sha256);
                 totalParams["signature"] = signature;
                 query = this.customUrlencode(totalParams);
                 if ((method == "GET"))
@@ -4749,7 +4749,7 @@ public partial class hashkey : Exchange
         {
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), responseCodeString, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCodeString, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, responseCodeString, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

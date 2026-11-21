@@ -1893,7 +1893,9 @@ class kraken extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
         );
-        $this->options['delistedMarketsById'][$id] = $market;
+        $delistedMarketsByIdDict = $this->safe_dict($this->options, 'delistedMarketsById', array());
+        $delistedMarketsByIdDict[$id] = $market;
+        $this->options['delistedMarketsById'] = $delistedMarketsByIdDict;
         return $market;
     }
 
@@ -2051,10 +2053,11 @@ class kraken extends Exchange {
             } else {
                 $descriptionType = $part4 . ' ' . $part5; // eg. stop loss, take profit, trailing stop
             }
-            if ($descriptionType === 'stop loss' || $descriptionType === 'take profit') {
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if (($part4 === 'stop' && $part5 === 'loss') || ($part4 === 'take' && $part5 === 'profit')) {
                 $triggerPrice = $this->safe_string($parts, 6);
                 $price = $this->safe_string($parts, 9);
-            } elseif ($descriptionType === 'limit') {
+            } elseif ($part4 === 'limit') {
                 $price = $this->safe_string($parts, 5);
             }
         }
@@ -3102,7 +3105,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type(string $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_transactions_by_type(string $type, array $transactions, ?string $code = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction($this->extend(array(
@@ -3265,12 +3268,12 @@ class kraken extends Exchange {
         //        }
         //     }
         //
-        $rawWithdrawals = null;
+        $rawWithdrawals = array();
         $result = $this->safe_value($response, 'result');
         if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
             $rawWithdrawals = $this->add_pagination_cursor_to_result($result);
         } else {
-            $rawWithdrawals = $result;
+            $rawWithdrawals = $this->safe_list($response, 'result', array());
         }
         return $this->parse_transactions_by_type('withdrawal', $rawWithdrawals, $code, $since, $limit);
     }

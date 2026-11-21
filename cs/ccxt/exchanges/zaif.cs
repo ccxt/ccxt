@@ -623,7 +623,7 @@ public partial class zaif : Exchange
         //          }, ...
         //      ]
         //
-        IList<object> trades = this.toArray(response);
+        IList<object> trades = response;
         int numTrades = (trades?.Count ?? 0);
         if ((numTrades == 1))
         {
@@ -985,7 +985,7 @@ public partial class zaif : Exchange
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "Key", this.apiKey },
-                { "Sign", this.hmac(this.encode(bodyEncoded), this.encode(this.secret), sha512) },
+                { "Sign", this.hmac(bodyEncoded, this.secret, sha512) },
             };
             return new Dictionary<string, object>() {
                 { "url", url },
@@ -1015,7 +1015,7 @@ public partial class zaif : Exchange
         string? error = this.safeString(response, "error");
         if ((error != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }

@@ -1193,7 +1193,7 @@ public partial class woo : Exchange
         //         "isMaker": 0
         //     }
         //
-        bool isFromFetchOrder = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("id")));
+        bool isFromFetchOrder = ((this.safeString(trade, "id") != null));
         string? timestampString = this.safeString2(trade, "executed_timestamp", "executedTimestamp");
         Int64? timestamp = null;
         if ((timestampString != null))
@@ -1496,8 +1496,8 @@ public partial class woo : Exchange
     {
         string? currencyId = this.safeString(rawCurrency, "_coin_id");
         string? code = this.safeCurrencyCode(currencyId);
-        Dictionary<string, object> tokensByNetworkId = this.indexBy(getValue(rawCurrency, "_tokens_by_id"), "network");
-        Dictionary<string, object> chainsByNetworkId = this.indexBy(getValue(rawCurrency, "_networks_by_id"), "network");
+        Dictionary<string, object> tokensByNetworkId = this.indexBy(this.safeList(rawCurrency, "_tokens_by_id", new List<object>() {}), "network");
+        Dictionary<string, object> chainsByNetworkId = this.indexBy(this.safeList(rawCurrency, "_networks_by_id", new List<object>() {}), "network");
         List<object> keys = new List<object>(chainsByNetworkId.Keys);
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < keys.Count; j++)
@@ -2739,8 +2739,8 @@ public partial class woo : Exchange
                 }
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), "swap", true, true);
-        object paramsRequest = parameters;
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true);
+        IDictionary<string, object> paramsRequest = parameters;
         if ((symbolsNormalized == null))
         {
             IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters, "swap");
@@ -3960,7 +3960,7 @@ public partial class woo : Exchange
                 auth = ((encodedParams + "|") + ts);
                 signedHeaders["content-type"] = "application/x-www-form-urlencoded";
             }
-            signedHeaders["x-api-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            signedHeaders["x-api-signature"] = this.hmac(auth, this.secret, sha256);
             requestHeaders = signedHeaders;
         }
         return new Dictionary<string, object>() {
@@ -3987,7 +3987,7 @@ public partial class woo : Exchange
         {
             string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         }
         return null;
     }
@@ -4340,7 +4340,7 @@ public partial class woo : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "fundingRateTimestamp");
             rates.Add(new Dictionary<string, object>() {
@@ -4642,7 +4642,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -5091,7 +5091,7 @@ public partial class woo : Exchange
         List<object> data = this.safeList(response, "rows", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(entry, "token");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))

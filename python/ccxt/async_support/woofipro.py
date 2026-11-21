@@ -3314,8 +3314,14 @@ class woofipro(Exchange, ImplicitAPI):
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
                     if path == 'batch-order':
                         ordersList = self.safe_list(requestParams, 'orders', [])
+                        taggedOrders = []
+                        hasOrders = False
                         for i in range(0, len(ordersList)):
-                            requestParams['orders'][i]['order_tag'] = brokerId
+                            orderRow = self.extend(ordersList[i], {'order_tag': brokerId})
+                            taggedOrders.append(orderRow)
+                            hasOrders = True
+                        if hasOrders:
+                            requestParams['orders'] = taggedOrders
                     else:
                         requestParams['order_tag'] = brokerId
                 requestParams = self.keysort(requestParams)

@@ -666,7 +666,7 @@ public partial class lbank : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(market, "symbol");
             List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
@@ -770,7 +770,7 @@ public partial class lbank : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCurrency");
             string? settleId = this.safeString(market, "clearCurrency");
@@ -973,7 +973,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
@@ -1520,25 +1520,6 @@ public partial class lbank : Exchange
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString(item, "free");
                 account["used"] = this.safeString(item, "locked");
-                if ((codeInner != null))
-                {
-                    result[(string)codeInner] = account;
-                }
-            }
-            return this.safeBalance(result);
-        }
-        // from spotPrivatePostSupplementUserInfo
-        bool isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        if (isArray)
-        {
-            for (int i = 0; i < data.Count; i++)
-            {
-                IDictionary<string, object> item = this.safeDict(data, i);
-                string? currencyId = this.safeString(item, "coin");
-                string? codeInner = this.safeCurrencyCode(currencyId);
-                Dictionary<string, object> account = this.account();
-                account["free"] = this.safeString(item, "usableAmt");
-                account["used"] = this.safeString(item, "freezeAmt");
                 if ((codeInner != null))
                 {
                     result[(string)codeInner] = account;
@@ -3431,7 +3412,7 @@ public partial class lbank : Exchange
                 { "signature_method", finalSig },
                 { "timestamp", timestamp },
             }, signedQuery)));
-            string? encoded = this.encode(auth);
+            string? encoded = auth;
             string uppercaseHash = ((string)this.hash(encoded, md5)).ToUpper();
             string sign = "";
             if (signatureMethod == "RSA")
@@ -3443,7 +3424,7 @@ public partial class lbank : Exchange
                     string? cachedPem = this.safeString(this.options, "pem");
                     if ((cachedPem == null))
                     {
-                        pem = this.convertSecretToPem(this.encode(this.secret));
+                        pem = this.convertSecretToPem(this.secret);
                         this.options["pem"] = pem;
                     } else
                     {
@@ -3451,12 +3432,12 @@ public partial class lbank : Exchange
                     }
                 } else
                 {
-                    pem = this.convertSecretToPem(this.encode(this.secret));
+                    pem = this.convertSecretToPem(this.secret);
                 }
                 sign = rsa(uppercaseHash, pem, sha256);
             } else if (signatureMethod == "HmacSHA256")
             {
-                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha256);
+                sign = this.hmac(uppercaseHash, this.secret, sha256);
             }
             signedQuery["sign"] = sign;
             string bodySigned = this.urlencode(this.keysort(signedQuery));
@@ -3486,11 +3467,11 @@ public partial class lbank : Exchange
         int secretLength = getArrayLength(secret);
         Int64? fullLines = this.parseToInt(((double)secretLength / 64));
         string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for (int i = 0; (i <= fullLines); i++)
+        for (int i = 0; i <= fullLines; i++)
         {
             Int64 start = (i * 64L);
             Int64 end = this.sum(start, 64);
-            pem = pem + (slice(this.secret, start, end) + "\n"); // eslint-disable-line
+            pem = pem + (((this.secret == null) ? null : this.secret[(int)(start < 0 ? this.secret.Length + start : start)..Math.Min((int)(end < 0 ? this.secret.Length + end : end), this.secret.Length)]) + "\n"); // eslint-disable-line
         }
         return (pem + "-----END PRIVATE KEY-----");
     }

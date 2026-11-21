@@ -14,21 +14,21 @@ pub fn testToArray() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut obj1: Value = Value::Map({
+    let obj1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::Int(3));
             m.insert("c".to_string(), Value::Int(2));
         m
     });
-    let mut obj2: Value = Value::Map({
+    let obj2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Str("x".into()));
             m.insert("b".to_string(), Value::Int(2));
         m
     });
-    let mut result1: Value = exchange.to_array(obj1);
-    let mut result2: Value = exchange.to_array(obj2);
+    let result1: Value = exchange.to_array(obj1);
+    let result2: Value = exchange.to_array(obj2);
     // we can't guarantee order of values in GO lang
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);

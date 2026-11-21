@@ -1061,7 +1061,7 @@ class gemini(Exchange, ImplicitAPI):
         base = None
         quote = None
         if (marketId is not None) and (marketResolved is None):
-            idLength = len(marketId) - 0
+            idLength = len(marketId)
             if idLength == 7:
                 baseId = marketId[0:4]
                 quoteId = marketId[4:7]

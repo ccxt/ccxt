@@ -562,7 +562,7 @@ public partial class latoken : Exchange
         IDictionary<string, object> currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
         Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
         List<object> result = new List<object>() {};
-        IList<object> rawMarkets = this.toArray(response);
+        IList<object> rawMarkets = response;
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
             IDictionary<string, object> market = this.safeDict(rawMarkets, i);
@@ -708,7 +708,7 @@ public partial class latoken : Exchange
         // no params on this one - they belong to the currency request, not to the bindings
         List<object> bindingsResponse = await this.publicGetTransactionBindings();
         Dictionary<string, object> bindingsById = this.indexBy(bindingsResponse, "id");
-        IList<object> rawCurrencies = this.toArray(response);
+        IList<object> rawCurrencies = response;
         List<object> merged = new List<object>() {};
         for (int i = 0; i < (rawCurrencies?.Count ?? 0); i++)
         {
@@ -738,7 +738,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int i = 0; i < bindings.Count; i++)
         {
-            object binding = bindings[i];
+            IDictionary<string, object> binding = ((IDictionary<string, object>)bindings[i]);
             string? networkId = this.safeString(binding, "providerName");
             string? networkCode = this.networkIdToCode(networkId, code);
             // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
@@ -928,7 +928,7 @@ public partial class latoken : Exchange
         List<object> bids = new List<object>() {};
         for (int i = 0; i < rawAsks.Count; i++)
         {
-            object askEntry = rawAsks[i];
+            IDictionary<string, object> askEntry = ((IDictionary<string, object>)rawAsks[i]);
             string? askQuantity = this.safeString(askEntry, "quantity");
             if (Precise.stringGt(askQuantity, "0"))
             {
@@ -937,7 +937,7 @@ public partial class latoken : Exchange
         }
         for (int i = 0; i < rawBids.Count; i++)
         {
-            object bidEntry = rawBids[i];
+            IDictionary<string, object> bidEntry = ((IDictionary<string, object>)rawBids[i]);
             string? bidQuantity = this.safeString(bidEntry, "quantity");
             if (Precise.stringGt(bidQuantity, "0"))
             {
@@ -1112,7 +1112,7 @@ public partial class latoken : Exchange
         //        }
         //    ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
@@ -2245,7 +2245,7 @@ public partial class latoken : Exchange
         {
             this.checkRequiredCredentials();
             string auth = ((method + request) + urlencodedQuery);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
+            string signature = this.hmac(auth, this.secret, sha512);
             requestHeaders = new Dictionary<string, object>() {
                 { "X-LA-APIKEY", this.apiKey },
                 { "X-LA-SIGNATURE", signature },
@@ -2287,13 +2287,13 @@ public partial class latoken : Exchange
         string feedback = ((this.id + " ") + (body));
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         }
         string? error = this.safeString(response, "error");
         if ((error != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
             throw new ExchangeError (feedback) ;
         }

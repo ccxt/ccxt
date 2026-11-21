@@ -876,7 +876,7 @@ public partial class deepcoin : Exchange
                 // we calculate until (after) for correct pagination
                 int duration = this.parseTimeframe(timeframeVar);
                 Int64? numberOfCandles = ((limit == null)) ? maxLimit : limit;
-                object endTime = this.parseToInt(add(since, (((duration * numberOfCandles)) * 1000)));
+                object endTime = this.parseToInt((since + (((duration * numberOfCandles)) * 1000)));
                 if ((until != null))
                 {
                     endTime = mathMin(endTime, until);
@@ -942,7 +942,7 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolsNormalized);
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -1192,7 +1192,7 @@ public partial class deepcoin : Exchange
             { "datetime", null },
         };
         List<object> balances = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < (balances?.Count ?? 0); i++)
+        for (int i = 0; i < balances.Count; i++)
         {
             IDictionary<string, object> balance = this.safeDict(balances, i);
             string? symbol = this.safeString(balance, "ccy");
@@ -3004,7 +3004,7 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, true);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
         string marketType = "swap";
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
@@ -3603,11 +3603,12 @@ public partial class deepcoin : Exchange
             string? requestBody = null;
             if ((method != "GET"))
             {
-                requestBody = this.json(parameters);
+                string body = this.json(parameters);
                 privateHeaders["Content-Type"] = "application/json";
-                payload = payload + requestBody;
+                payload = payload + body;
+                requestBody = body;
             }
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(payload, this.secret, sha256, "base64");
             privateHeaders["DC-ACCESS-SIGN"] = signature;
             return new Dictionary<string, object>() {
                 { "url", url },
@@ -3636,14 +3637,11 @@ public partial class deepcoin : Exchange
         {
             msg = sMsg;
         }
-        List<object> errorList = this.safeList(data, "errorList");
-        if ((errorList != null))
+        List<object> errorList = this.safeList(data, "errorList", new List<object>() {});
+        for (int i = 0; i < errorList.Count; i++)
         {
-            for (int i = 0; i < errorList.Count; i++)
-            {
-                IDictionary<string, object> entry = this.safeDict(errorList, i, new Dictionary<string, object>() {});
-                errorCode = this.safeString(entry, "errorCode");
-            }
+            IDictionary<string, object> entry = this.safeDict(errorList, i, new Dictionary<string, object>() {});
+            errorCode = this.safeString(entry, "errorCode");
         }
         string feedback = ((this.id + " ") + (body));
         if (((sCode == null)) && ((errorCode != null)))
@@ -3657,9 +3655,9 @@ public partial class deepcoin : Exchange
         }
         if (((code != 200)) || (messageCode != "0") || ((sCode != null) && sCode != "0"))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), messageCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), sCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), msg, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, messageCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, sCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, msg, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
             throw new ExchangeError (feedback) ;
         } else

@@ -265,7 +265,7 @@ export default class hashkey extends Exchange {
                     },
                     'delete': {
                         'api/v1/spot/order': { 'cost': 1 } as Endpoint<Dict>,
-                        'api/v1/spot/openOrders': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/spot/openOrders': { 'cost': 5 } as Endpoint<Dict>,
                         'api/v1/spot/cancelOrderByIds': { 'cost': 5 } as Endpoint<Dict>,
                         'api/v1/spot/cancelAllOpenOrders': { 'cost': 5 } as Endpoint<Dict>,
                         'api/v1/futures/order': { 'cost': 1 } as Endpoint<Dict>,
@@ -2598,7 +2598,7 @@ export default class hashkey extends Exchange {
             throw new NotSupported (this.id + ' createOrder() supports cost parameter for spot market buy orders only');
         }
         const request = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
-        let response: Dict = {};
+        let response: NullableDict = undefined;
         const test = this.safeBool (params, 'test', false);
         if (test) {
             response = await this.privatePostApiV1SpotOrderTest (request);

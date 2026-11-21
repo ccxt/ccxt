@@ -189,7 +189,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         eventsList = []
         # every raw (unflattened) row fetched so far, so its length is the raw fetched count
         fetchedRawRows = []
-        for page in range(1, maxPages):
+        for page in range(1, maxPages + 1):
             request = {
                 'marketType': 2,  # all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -411,7 +411,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         fetchCap = self.safe_integer(params, 'limit', self.safe_integer(self.options, 'maxFetchEventsResults', 100))
         maxPages = self.safe_integer(self.options, 'maxEventsPages', 50)
         rawEvents = []
-        for page in range(1, maxPages):
+        for page in range(1, maxPages + 1):
             fetchedSoFar = len(rawEvents)
             remaining = self.parse_to_int(fetchCap - fetchedSoFar)
             reqLimit = remaining if (remaining < pageLimit) else pageLimit
@@ -445,7 +445,9 @@ class opinion(PredictionExchange, ImplicitAPI):
             eventMarketsLength = len(eventMarkets)
             for mi in range(0, eventMarketsLength):
                 m = eventMarkets[mi]
-                self.markets[m['market']] = m
+                marketKey = self.safe_string(m, 'market')
+                if marketKey is not None:
+                    self.markets[marketKey] = m
         self.populate_outcomes()
         return self.apply_event_fetch_params(parsedEvents, params, queries)
 

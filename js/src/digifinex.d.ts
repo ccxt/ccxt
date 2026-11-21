@@ -484,6 +484,7 @@ export default class digifinex extends Exchange {
      */
     fetchMarketLeverageTiers(symbol: string, params?: Dict): Promise<LeverageTier[]>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
+    handleMarginModeAndParams(methodName: string, params: Dict, defaultValue: string): [string, Dict];
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     /**
      * @method

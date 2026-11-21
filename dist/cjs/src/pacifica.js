@@ -1244,22 +1244,21 @@ class pacifica extends pacifica$1["default"] {
             'symbol': market['id'],
             'interval': tf,
         };
-        let sinceValue = since;
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
-        if (this.safeInteger(requestUntil, 'end_time') === undefined) {
-            if (sinceValue === undefined) {
-                sinceValue = nowMs - limitValue * duration;
-            }
-            const windowEnd = this.parseToInt(this.sum(sinceValue - 1, limitValue * duration));
+        const untilEnd = this.safeInteger(requestUntil, 'end_time');
+        let startTime = this.parseToInt(nowMs - limitValue * duration);
+        if (untilEnd !== undefined) {
+            startTime = this.parseToInt(untilEnd - limitValue * duration);
+        }
+        if (since !== undefined) {
+            startTime = this.parseToInt(since);
+        }
+        if (untilEnd === undefined) {
+            const windowEnd = this.parseToInt(this.sum(startTime - 1, limitValue * duration));
             const until = (windowEnd > nowMs) ? nowMs : windowEnd;
             requestUntil['end_time'] = until;
         }
-        else {
-            if (sinceValue === undefined) {
-                sinceValue = requestUntil['end_time'] - limitValue * duration;
-            }
-        }
-        requestUntil['start_time'] = sinceValue;
+        requestUntil['start_time'] = startTime;
         const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {
@@ -2488,11 +2487,10 @@ class pacifica extends pacifica$1["default"] {
         // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
         const sorted = this.sortBy(data, 'history_id', true);
         const lastIdx = sorted.length;
-        let lastInfo = {};
         if (lastIdx > 0) {
-            lastInfo = sorted[0];
+            return this.parseOrder(sorted[0], market);
         }
-        return this.parseOrder(lastInfo, market);
+        return this.parseOrder({}, market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -3754,7 +3752,7 @@ class pacifica extends pacifica$1["default"] {
         const signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         const finalHeaders = {};
         const [agentAddress, paramsAgentAddress] = this.handleOptionStringAndParams(paramsExpiryWindow, 'postActionRequest', 'agentAddress');
-        const originAddress = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress)[0];
+        const [originAddress] = this.handleOriginAndSingleAddress('postActionRequest', paramsAgentAddress);
         if (originAddress === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' action: ' + operationType + ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }

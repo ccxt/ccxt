@@ -14,9 +14,9 @@ pub fn testEncode() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut input: Value = Value::Str("encode-test".into());
-    let mut encoded: ccxt::value::Bytes = exchange.encode(input.clone());
-    let mut decoded: Option<String> = exchange.decode(&encoded).as_str().map(str::to_owned);
+    let input: Value = Value::Str("encode-test".into());
+    let encoded: ccxt::value::Bytes = exchange.encode(input.clone());
+    let decoded: Option<String> = exchange.decode(&encoded).as_str().map(str::to_owned);
     assert!(ccxt::runtime::is_true(&(((decoded.as_deref() == input.as_str())))));
 }
 pub fn testDecode() {
@@ -25,9 +25,9 @@ pub fn testDecode() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut input: Value = Value::Str("decode-test".into());
-    let mut encoded: ccxt::value::Bytes = exchange.encode(input.clone());
-    let mut decoded: Option<String> = exchange.decode(&encoded).as_str().map(str::to_owned);
+    let input: Value = Value::Str("decode-test".into());
+    let encoded: ccxt::value::Bytes = exchange.encode(input.clone());
+    let decoded: Option<String> = exchange.decode(&encoded).as_str().map(str::to_owned);
     assert!(ccxt::runtime::is_true(&(((decoded.as_deref() == input.as_str())))));
 }
 pub fn testEncodeDecode() {

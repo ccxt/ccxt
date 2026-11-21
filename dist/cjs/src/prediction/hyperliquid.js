@@ -189,7 +189,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {string} the coin name
      */
     outcomeCoin(encoding) {
-        return '#' + encoding.toString();
+        return '#' + this.parseToInt(encoding).toString();
     }
     /**
      * @ignore
@@ -200,7 +200,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {string} the token name
      */
     outcomeToken(encoding) {
-        return '+' + encoding.toString();
+        return '+' + this.parseToInt(encoding).toString();
     }
     /**
      * @ignore
@@ -266,7 +266,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @name hyperliquid#buildOutcomeParentSymbol
      * @description builds a market id (parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
      * @param {object} desc parsed outcome description
-     * @param {int} outcomeId integer outcome id
+     * @param {string} outcomeId outcome id
      * @param {string} [name] outcome name
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
@@ -334,7 +334,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                         else {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
-                        return questionUnderlying.toUpperCase() + '_' + bucketLabel + questionExpiryPart;
+                        const upperUnderlying = questionUnderlying.toUpperCase();
+                        return upperUnderlying + '_' + bucketLabel + questionExpiryPart;
                     }
                 }
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf('fallback') >= 0) || (nameLower.indexOf('other') >= 0);
@@ -362,16 +363,16 @@ class hyperliquid extends hyperliquid$1["default"] {
                     }
                 }
                 if ((outcomeSlug !== undefined) && (outcomeSlug !== '')) {
-                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId.toString();
+                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId;
                 }
-                return questionSlug + '_' + outcomeId.toString();
+                return questionSlug + '_' + outcomeId;
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if ((name !== undefined) && (name !== '')) {
-            return this.shortenSlug(name) + '_' + outcomeId.toString();
+            return this.shortenSlug(name) + '_' + outcomeId;
         }
-        return 'OUTCOME_' + outcomeId.toString();
+        return 'OUTCOME_' + outcomeId;
     }
     /**
      * @method
@@ -443,7 +444,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const outcomeInfo = this.safeDict(outcomesList, i, {});
             const outcomeId = this.safeInteger(outcomeInfo, 'outcome', i);
             const linkedQuestion = this.safeDict(outcomesToQuestions, outcomeId.toString(), {});
-            const market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
+            const market = this.parseOutcomeMarket(outcomeInfo, outcomeId.toString(), outcomeId, linkedQuestion);
             markets.push(market);
             // Build outcomes dictionary from market outcomes
             const marketOutcomes = this.safeList(market, 'outcomes', []);
@@ -467,16 +468,17 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @name hyperliquid#parseOutcomeMarket
      * @description parses a single binary outcome market into a CCXT market structure with outcomes[]
      * @param {object} outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param {string} outcomeKey outcome id as a string
      * @param {int} outcomeId integer outcome id
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    parseOutcomeMarket(outcomeInfo, outcomeId, question = {}) {
+    parseOutcomeMarket(outcomeInfo, outcomeKey, outcomeId, question = {}) {
         const description = this.safeString(outcomeInfo, 'description', '');
         const name = this.safeString(outcomeInfo, 'name', '');
         const sideSpecs = this.safeList(outcomeInfo, 'sideSpecs', []);
         const desc = this.parseOutcomeDescription(description);
-        const parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
+        const parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeKey, name, question);
         const yesEncoding = this.outcomeEncoding(outcomeId, 0);
         const noEncoding = this.outcomeEncoding(outcomeId, 1);
         const yesOutcomeSymbol = parentSymbol + ':YES';
@@ -553,12 +555,12 @@ class hyperliquid extends hyperliquid$1["default"] {
             },
         ];
         const marketRow = this.safeMarketStructure({
-            'id': outcomeId.toString(),
+            'id': outcomeKey,
             'market': parentSymbol,
             'base': parentSymbol.split('/')[0],
             'quote': quoteCurrency,
             'settle': undefined,
-            'baseId': outcomeId.toString(),
+            'baseId': outcomeKey,
             'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
@@ -622,7 +624,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const intPart = parts[0];
         const intPartLength = intPart.length;
         const szDecimalsInt = this.parseToInt(szDecimals);
-        const maxDecimals = 8 - szDecimalsInt;
+        const maxDecimals = this.parseToInt(8 - szDecimalsInt);
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         let digitsLeft = 0;
         if (intPartLength <= 5) {
@@ -695,14 +697,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             // no filter — warm the whole outcome set so identities resolve from the cache
             await this.loadOutcomes();
         }
-        const response = await this.publicPostInfo(this.extend({ 'type': 'allMids' }, params));
+        const allMidsResponse = await this.publicPostInfo(this.extend({ 'type': 'allMids' }, params));
+        const allMids = this.infoDict(allMidsResponse);
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        let allMids = {};
-        if ((typeof response !== 'string') && !Array.isArray(response)) {
-            allMids = response;
-        }
         const mids = this.safeDict(allMids, 'mids', allMids);
         const tickers = {};
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
@@ -887,7 +886,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             },
         };
         const paramsOmitted = this.omit(params, 'until');
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const candles = this.infoList(candlesResponse);
         //
         //     [
         //         {
@@ -904,10 +904,6 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     /**
@@ -1029,10 +1025,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const response = this.safeDict(results, 0);
         const midsResponse = results[1];
         const balances = this.safeList(response, 'balances', []);
-        let allMids = {};
-        if ((typeof midsResponse !== 'string') && !Array.isArray(midsResponse)) {
-            allMids = midsResponse;
-        }
+        const allMids = this.infoDict(midsResponse);
         const mids = this.safeDict(allMids, 'mids', allMids);
         const positions = [];
         for (let i = 0; i < balances.length; i++) {
@@ -1123,8 +1116,8 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     findOutcomeInMarket(market, sideHint = undefined) {
         const outcomesList = this.safeList(market, 'outcomes', []);
-        const normalizedHint = (sideHint !== undefined && sideHint !== '') ? sideHint.toUpperCase() : undefined;
-        if (normalizedHint !== undefined) {
+        if (sideHint !== undefined && sideHint !== '') {
+            const normalizedHint = sideHint.toUpperCase();
             for (let i = 0; i < outcomesList.length; i++) {
                 const oc = this.safeDict(outcomesList, i, {});
                 const ocSymbol = this.safeString2(oc, 'outcome', 'symbol', '');
@@ -1399,15 +1392,14 @@ class hyperliquid extends hyperliquid$1["default"] {
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const assetId = this.safeInteger(outcomeInfo, 'assetId');
         const nonce = this.incrementingNonce();
-        const clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
+        const clientOrderIds = this.safeStringList(params, ['clientOrderId', 'client_id']);
         const paramsOmitted = this.omit(params, ['clientOrderId', 'client_id']);
         const cancelReq = [];
         const cancelAction = { 'type': 'cancel', 'cancels': [] };
-        if (clientOrderId !== undefined) {
-            const cloids = Array.isArray(clientOrderId) ? clientOrderId : [clientOrderId];
+        if (clientOrderIds !== undefined) {
             cancelAction['type'] = 'cancelByCloid';
-            for (let i = 0; i < cloids.length; i++) {
-                cancelReq.push({ 'asset': assetId, 'cloid': cloids[i] });
+            for (let i = 0; i < clientOrderIds.length; i++) {
+                cancelReq.push({ 'asset': assetId, 'cloid': clientOrderIds[i] });
             }
         }
         else {
@@ -1434,13 +1426,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         const statuses = this.safeList(data, 'statuses', []);
         const outcomeSymbol = this.safeString(outcomeObj, 'outcome', outcome);
         let requestIds = ids;
-        if (clientOrderId !== undefined) {
-            if (Array.isArray(clientOrderId)) {
-                requestIds = clientOrderId;
-            }
-            else {
-                requestIds = [clientOrderId];
-            }
+        if (clientOrderIds !== undefined) {
+            requestIds = clientOrderIds;
         }
         const orders = [];
         for (let i = 0; i < statuses.length; i++) {
@@ -1456,7 +1443,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
             const order = {
                 'id': requestId,
-                'clientOrderId': (clientOrderId !== undefined) ? requestId : undefined,
+                'clientOrderId': (clientOrderIds !== undefined) ? requestId : undefined,
                 'info': status,
                 'status': 'canceled',
                 'outcome': outcomeSymbol,
@@ -1487,12 +1474,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOpenOrders', params);
         const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         const request = { 'type': method, 'user': userAddress };
-        const response = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrdersResponse = await this.publicPostInfo(this.extend(request, paramsMethod));
+        const rawOrders = this.infoList(rawOrdersResponse);
         const ordersWithStatus = [];
-        let rawOrders = [];
-        if (Array.isArray(response)) {
-            rawOrders = response;
-        }
         for (let i = 0; i < rawOrders.length; i++) {
             const order = rawOrders[i];
             ordersWithStatus.push(this.extend(order, { 'ccxtStatus': 'open' }));
@@ -1521,13 +1505,10 @@ class hyperliquid extends hyperliquid$1["default"] {
     async fetchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOrders', params);
         const request = { 'type': 'historicalOrders', 'user': userAddress };
-        const response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrdersResponse = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        const historicalOrders = this.infoList(historicalOrdersResponse);
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped = {};
-        let historicalOrders = [];
-        if (Array.isArray(response)) {
-            historicalOrders = response;
-        }
         for (let i = 0; i < historicalOrders.length; i++) {
             const raw = historicalOrders[i];
             let entry = this.safeDict(raw, 'order');
@@ -1583,11 +1564,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             const isCloid = id.length >= 34;
             request['oid'] = isCloid ? id : this.parseToNumeric(id);
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsValue));
-        let orderStatus = {};
-        if ((typeof response !== 'string') && !Array.isArray(response)) {
-            orderStatus = response;
-        }
+        const orderStatusResponse = await this.publicPostInfo(this.extend(request, paramsValue));
+        const orderStatus = this.infoDict(orderStatusResponse);
         const orderWrapper = this.safeDict(orderStatus, 'order', orderStatus);
         const parsed = this.parsePredictionOrder(orderWrapper, undefined);
         if (outcome !== undefined) {
@@ -2075,8 +2053,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         return {
@@ -2295,6 +2273,33 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
         }
         return this.safeValue(config, 'cost', 1);
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    infoList(response) {
+        let result = [];
+        if (Array.isArray(response)) {
+            result = response;
+        }
+        return result;
+    }
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON object
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object} the response object, or an empty object for any other response
+     */
+    infoDict(response) {
+        if ((typeof response !== 'string') && !Array.isArray(response)) {
+            return response;
+        }
+        return {};
     }
 }
 

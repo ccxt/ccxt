@@ -437,100 +437,102 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicGetTradeApiCcxtPairs(parameters)).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "count": 28,
-            //             "pairs": [
-            //                 {
-            //                     "id": 2,
-            //                     "name": "eth_usdt",
-            //                     "baseAssetId": 2,
-            //                     "quoteAssetId": 3,
-            //                     "fullName": "ETH USDT",
-            //                     "description": "ETH   USDT",
-            //                     "lastBuy": 1964.665001,
-            //                     "lastSell": 1959.835005,
-            //                     "lastPrice": 1964.665001,
-            //                     "change24": 1.41,
-            //                     "volume24": 28.22627543,
-            //                     "volume24USD": 55662.35636401598,
-            //                     "active": true,
-            //                     "baseStep": 8,
-            //                     "quoteStep": 6,
-            //                     "status": 1,
-            //                     "settings": {
-            //                         "limit_usd": "0.1",
-            //                         "price_max": "10000000000000",
-            //                         "price_min": "1",
-            //                         "price_tick": "1",
-            //                         "pricescale": 10000,
-            //                         "lot_size_max": "1000000000000000",
-            //                         "lot_size_min": "1",
-            //                         "lot_size_tick": "1",
-            //                         "price_view_min": 6,
-            //                         "default_slippage": 10,
-            //                         "lot_size_view_min": 6
-            //                     },
-            //                     "updateId": "50620",
-            //                     "timeStart": "2021-01-28T09:19:30.706Z",
-            //                     "makerFee": 200,
-            //                     "takerFee": 200,
-            //                     "quoteVolume24": 54921.93404134529,
-            //                     "lowPrice24": 1919.355,
-            //                     "highPrice24": 1971.204995
-            //                 },
-            //                 {
-            //                     "id": 27,
-            //                     "name": "ltc_usdt",
-            //                     "baseAssetId": 13,
-            //                     "quoteAssetId": 3,
-            //                     "fullName": "LTC USDT",
-            //                     "description": "This is LTC USDT",
-            //                     "lastBuy": 53.14,
-            //                     "lastSell": 53.58,
-            //                     "lastPrice": 53.58,
-            //                     "change24": -6.72,
-            //                     "volume24": 0,
-            //                     "volume24USD": null,
-            //                     "active": true,
-            //                     "baseStep": 8,
-            //                     "quoteStep": 6,
-            //                     "status": 0,
-            //                     "settings": {
-            //                         "limit_usd": "0.1",
-            //                         "price_max": "1000000000000",
-            //                         "price_min": "1",
-            //                         "price_tick": "1",
-            //                         "pricescale": 10000,
-            //                         "lot_size_max": "1000000000000",
-            //                         "lot_size_min": "1",
-            //                         "lot_size_tick": "1",
-            //                         "price_view_min": 6,
-            //                         "default_slippage": 10,
-            //                         "lot_size_view_min": 6
-            //                     },
-            //                     "updateId": "30",
-            //                     "timeStart": "2021-10-13T12:11:05.359Z",
-            //                     "makerFee": 200,
-            //                     "takerFee": 200,
-            //                     "quoteVolume24": 0,
-            //                     "lowPrice24": null,
-            //                     "highPrice24": null
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> markets = this.safeList(result, "pairs", new ArrayList<Object>(Arrays.asList()));
-            return this.parseMarkets(markets);
-        });
+        Map<String, Object> response = (this.publicGetTradeApiCcxtPairs(parameters)).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 28,
+        //             "pairs": [
+        //                 {
+        //                     "id": 2,
+        //                     "name": "eth_usdt",
+        //                     "baseAssetId": 2,
+        //                     "quoteAssetId": 3,
+        //                     "fullName": "ETH USDT",
+        //                     "description": "ETH   USDT",
+        //                     "lastBuy": 1964.665001,
+        //                     "lastSell": 1959.835005,
+        //                     "lastPrice": 1964.665001,
+        //                     "change24": 1.41,
+        //                     "volume24": 28.22627543,
+        //                     "volume24USD": 55662.35636401598,
+        //                     "active": true,
+        //                     "baseStep": 8,
+        //                     "quoteStep": 6,
+        //                     "status": 1,
+        //                     "settings": {
+        //                         "limit_usd": "0.1",
+        //                         "price_max": "10000000000000",
+        //                         "price_min": "1",
+        //                         "price_tick": "1",
+        //                         "pricescale": 10000,
+        //                         "lot_size_max": "1000000000000000",
+        //                         "lot_size_min": "1",
+        //                         "lot_size_tick": "1",
+        //                         "price_view_min": 6,
+        //                         "default_slippage": 10,
+        //                         "lot_size_view_min": 6
+        //                     },
+        //                     "updateId": "50620",
+        //                     "timeStart": "2021-01-28T09:19:30.706Z",
+        //                     "makerFee": 200,
+        //                     "takerFee": 200,
+        //                     "quoteVolume24": 54921.93404134529,
+        //                     "lowPrice24": 1919.355,
+        //                     "highPrice24": 1971.204995
+        //                 },
+        //                 {
+        //                     "id": 27,
+        //                     "name": "ltc_usdt",
+        //                     "baseAssetId": 13,
+        //                     "quoteAssetId": 3,
+        //                     "fullName": "LTC USDT",
+        //                     "description": "This is LTC USDT",
+        //                     "lastBuy": 53.14,
+        //                     "lastSell": 53.58,
+        //                     "lastPrice": 53.58,
+        //                     "change24": -6.72,
+        //                     "volume24": 0,
+        //                     "volume24USD": null,
+        //                     "active": true,
+        //                     "baseStep": 8,
+        //                     "quoteStep": 6,
+        //                     "status": 0,
+        //                     "settings": {
+        //                         "limit_usd": "0.1",
+        //                         "price_max": "1000000000000",
+        //                         "price_min": "1",
+        //                         "price_tick": "1",
+        //                         "pricescale": 10000,
+        //                         "lot_size_max": "1000000000000",
+        //                         "lot_size_min": "1",
+        //                         "lot_size_tick": "1",
+        //                         "price_view_min": 6,
+        //                         "default_slippage": 10,
+        //                         "lot_size_view_min": 6
+        //                     },
+        //                     "updateId": "30",
+        //                     "timeStart": "2021-10-13T12:11:05.359Z",
+        //                     "makerFee": 200,
+        //                     "takerFee": 200,
+        //                     "quoteVolume24": 0,
+        //                     "lowPrice24": null,
+        //                     "highPrice24": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> markets = this.safeList(result, "pairs", new ArrayList<Object>(Arrays.asList()));
+        return this.parseMarkets(markets);
 
     }
 
@@ -620,130 +622,132 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicGetTradeApiCurrencies(parameters)).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "count": 24,
-            //             "currencies": [
-            //                 {
-            //                     "txLimits": {
-            //                         "minDeposit": "0.0001",
-            //                         "minWithdraw": "0.02",
-            //                         "maxWithdraw": "10000",
-            //                         "withdrawCommissionPercentage": "NaN",
-            //                         "withdrawCommissionFixed": "0.005"
-            //                     },
-            //                     "id": 2,
-            //                     "status": 1,
-            //                     "symbol": "eth",
-            //                     "title": "Ethereum",
-            //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-            //                     "isDiscount": false,
-            //                     "address": "https://ethereum.org/",
-            //                     "description": "Ethereum ETH",
-            //                     "decimals": 18,
-            //                     "blockChain": "Ethereum",
-            //                     "precision": 8,
-            //                     "currentRate": null,
-            //                     "active": true,
-            //                     "timeStart": "2021-01-28T08:57:41.719Z",
-            //                     "type": "crypto",
-            //                     "typeNetwork": "internalGW",
-            //                     "idSorting": 2,
-            //                     "links": [
-            //                         {
-            //                             "tx": "https://etherscan.io/tx/",
-            //                             "address": "https://etherscan.io/address/",
-            //                             "blockChain": "Ethereum"
-            //                         }
-            //                     ]
-            //                 },
-            //                 {
-            //                     "txLimits": {
-            //                         "minDeposit": "0.001",
-            //                         "minWithdraw": "1",
-            //                         "maxWithdraw": "100000",
-            //                         "withdrawCommissionPercentage": "NaN",
-            //                         "withdrawCommissionFixed": {
-            //                             "Tron": "2",
-            //                             "Binance": "2",
-            //                             "Ethereum": "20"
-            //                         }
-            //                     },
-            //                     "id": 3,
-            //                     "status": 1,
-            //                     "symbol": "usdt",
-            //                     "title": "Tether USD",
-            //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-            //                     "isDiscount": false,
-            //                     "address": "https://tether.to/",
-            //                     "description": "Tether USD",
-            //                     "decimals": 6,
-            //                     "blockChain": "",
-            //                     "precision": 6,
-            //                     "currentRate": null,
-            //                     "active": true,
-            //                     "timeStart": "2021-01-28T09:04:17.170Z",
-            //                     "type": "crypto",
-            //                     "typeNetwork": "internalGW",
-            //                     "idSorting": 0,
-            //                     "links": [
-            //                         {
-            //                             "tx": "https://etherscan.io/tx/",
-            //                             "address": "https://etherscan.io/address/",
-            //                             "blockChain": "Ethereum"
-            //                         },
-            //                         {
-            //                             "tx": "https://tronscan.org/#/transaction/",
-            //                             "address": "https://tronscan.org/#/address/",
-            //                             "blockChain": "Tron"
-            //                         },
-            //                         {
-            //                             "tx": "https://bscscan.com/tx/",
-            //                             "address": "https://bscscan.com/address/",
-            //                             "blockChain": "Binance"
-            //                         }
-            //                     ]
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> responseResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> currencies = this.safeList(responseResult, "currencies", new ArrayList<Object>(Arrays.asList()));
-            // using another endpoint to fetch statuses of deposits and withdrawals
-            Object statusesResponse = (this.publicGetTradeApiCmcAssets(new HashMap<String, Object>() {{}})).join();
-            //
-            //     {
-            //         "ZNX": {
-            //             "name": "ZeNeX Coin",
-            //             "unified_cryptoasset_id": 30,
-            //             "withdrawStatus": true,
-            //             "depositStatus": true,
-            //             "min_withdraw": 0.00001,
-            //             "max_withdraw": 10000
-            //         },
-            //         "USDT": {
-            //             "name": "Tether USD",
-            //             "unified_cryptoasset_id": 3,
-            //             "withdrawStatus": true,
-            //             "depositStatus": true,
-            //             "min_withdraw": 1,
-            //             "max_withdraw": 100000
-            //         },
-            //     }
-            //
-            statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
-            this.options.put("_temp_currencies_statuses", statusesResponse);
-            Object result = this.parseCurrencies(currencies);
-            ((Map<String,Object>)this.options).remove("_temp_currencies_statuses");
-            return result;
-        });
+        Map<String, Object> response = (this.publicGetTradeApiCurrencies(parameters)).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 24,
+        //             "currencies": [
+        //                 {
+        //                     "txLimits": {
+        //                         "minDeposit": "0.0001",
+        //                         "minWithdraw": "0.02",
+        //                         "maxWithdraw": "10000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": "0.005"
+        //                     },
+        //                     "id": 2,
+        //                     "status": 1,
+        //                     "symbol": "eth",
+        //                     "title": "Ethereum",
+        //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+        //                     "isDiscount": false,
+        //                     "address": "https://ethereum.org/",
+        //                     "description": "Ethereum ETH",
+        //                     "decimals": 18,
+        //                     "blockChain": "Ethereum",
+        //                     "precision": 8,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T08:57:41.719Z",
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "idSorting": 2,
+        //                     "links": [
+        //                         {
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         }
+        //                     ]
+        //                 },
+        //                 {
+        //                     "txLimits": {
+        //                         "minDeposit": "0.001",
+        //                         "minWithdraw": "1",
+        //                         "maxWithdraw": "100000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2",
+        //                             "Binance": "2",
+        //                             "Ethereum": "20"
+        //                         }
+        //                     },
+        //                     "id": 3,
+        //                     "status": 1,
+        //                     "symbol": "usdt",
+        //                     "title": "Tether USD",
+        //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+        //                     "isDiscount": false,
+        //                     "address": "https://tether.to/",
+        //                     "description": "Tether USD",
+        //                     "decimals": 6,
+        //                     "blockChain": "",
+        //                     "precision": 6,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T09:04:17.170Z",
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "idSorting": 0,
+        //                     "links": [
+        //                         {
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         },
+        //                         {
+        //                             "tx": "https://tronscan.org/#/transaction/",
+        //                             "address": "https://tronscan.org/#/address/",
+        //                             "blockChain": "Tron"
+        //                         },
+        //                         {
+        //                             "tx": "https://bscscan.com/tx/",
+        //                             "address": "https://bscscan.com/address/",
+        //                             "blockChain": "Binance"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> responseResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> currencies = this.safeList(responseResult, "currencies", new ArrayList<Object>(Arrays.asList()));
+        // using another endpoint to fetch statuses of deposits and withdrawals
+        Object statusesResponse = (this.publicGetTradeApiCmcAssets(new HashMap<String, Object>() {{}})).join();
+        //
+        //     {
+        //         "ZNX": {
+        //             "name": "ZeNeX Coin",
+        //             "unified_cryptoasset_id": 30,
+        //             "withdrawStatus": true,
+        //             "depositStatus": true,
+        //             "min_withdraw": 0.00001,
+        //             "max_withdraw": 10000
+        //         },
+        //         "USDT": {
+        //             "name": "Tether USD",
+        //             "unified_cryptoasset_id": 3,
+        //             "withdrawStatus": true,
+        //             "depositStatus": true,
+        //             "min_withdraw": 1,
+        //             "max_withdraw": 100000
+        //         },
+        //     }
+        //
+        statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
+        this.options.put("_temp_currencies_statuses", statusesResponse);
+        Object result = this.parseCurrencies(currencies);
+        ((Map<String,Object>)this.options).remove("_temp_currencies_statuses");
+        return result;
 
     }
 
@@ -762,9 +766,9 @@ public class Bitteam extends BitteamApi
         Double fee = null;
         Map<String, Object> withdrawCommissionFixed = this.safeDict(txLimits, "withdrawCommissionFixed", new HashMap<String, Object>() {{}});
         Map<String, Object> feesByNetworkId = new HashMap<String, Object>() {{}};
-        String blockChain = this.safeString(currency, "blockChain");
+        String blockChain = this.safeString(currency, "blockChain", "");
         // if only one blockChain
-        if ((!java.util.Objects.equals(blockChain, null)) && (!java.util.Objects.equals(blockChain, "")))
+        if (!java.util.Objects.equals(blockChain, ""))
         {
             fee = this.parseNumber(withdrawCommissionFixed);
             feesByNetworkId.put(blockChain, fee);
@@ -855,51 +859,53 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pairName", market.get("id") );
-                put( "resolution", resolution );
-            }};
-            Map<String, Object> response = (this.historyGetApiTwHistoryPairNameResolution(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "count": 364,
-            //             "data": [
-            //                 {
-            //                     "t": 1669593600,
-            //                     "o": 16211.259266,
-            //                     "h": 16476.985001,
-            //                     "l": 16023.714999,
-            //                     "c": 16430.636894,
-            //                     "v": 2.60150368999999
-            //                 },
-            //                 {
-            //                     "t": 1669680000,
-            //                     "o": 16430.636894,
-            //                     "h": 17065.229582,
-            //                     "l": 16346.114155,
-            //                     "c": 16882.297736,
-            //                     "v": 3.0872548400000115
-            //                 },
-            //                 ...
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String resolution = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "pairName", market.get("id") );
+            put( "resolution", resolution );
+        }};
+        Map<String, Object> response = (this.historyGetApiTwHistoryPairNameResolution(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 364,
+        //             "data": [
+        //                 {
+        //                     "t": 1669593600,
+        //                     "o": 16211.259266,
+        //                     "h": 16476.985001,
+        //                     "l": 16023.714999,
+        //                     "c": 16430.636894,
+        //                     "v": 2.60150368999999
+        //                 },
+        //                 {
+        //                     "t": 1669680000,
+        //                     "o": 16430.636894,
+        //                     "h": 17065.229582,
+        //                     "l": 16346.114155,
+        //                     "c": 16882.297736,
+        //                     "v": 3.0872548400000115
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> data = this.safeList(result, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
@@ -930,49 +936,51 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "timestamp": 1701166703284,
-            //         "bids": [
-            //             [
-            //                 2019.334988,
-            //                 0.09048525
-            //             ],
-            //             [
-            //                 1999.860002,
-            //                 0.0225
-            //             ],
-            //             ...
-            //         ],
-            //         "asks": [
-            //             [
-            //                 2019.334995,
-            //                 0.00899078
-            //             ],
-            //             [
-            //                 2019.335013,
-            //                 0.09833052
-            //             ],
-            //             ...
-            //         ]
-            //     }
-            //
-            Long timestamp = this.safeInteger(response, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
-            return orderbook;
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "pair", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "timestamp": 1701166703284,
+        //         "bids": [
+        //             [
+        //                 2019.334988,
+        //                 0.09048525
+        //             ],
+        //             [
+        //                 1999.860002,
+        //                 0.0225
+        //             ],
+        //             ...
+        //         ],
+        //         "asks": [
+        //             [
+        //                 2019.334995,
+        //                 0.00899078
+        //             ],
+        //             [
+        //                 2019.335013,
+        //                 0.09833052
+        //             ],
+        //             ...
+        //         ]
+        //     }
+        //
+        Long timestamp = this.safeInteger(response, "timestamp");
+        Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        return orderbook;
 
     }
 
@@ -990,114 +998,116 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            String type = this.safeString(parameters, "type", "all");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", type );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("pair", market.get("id"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            Map<String, Object> response = (this.privateGetTradeApiCcxtOrdersOfUser(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "count": 3,
-            //             "orders": [
-            //                 {
-            //                     "id": 106733026,
-            //                     "orderId": null,
-            //                     "userId": 21639,
-            //                     "pair": "btc_usdt",
-            //                     "pairId": 22,
-            //                     "quantity": "0.00001",
-            //                     "price": "40",
-            //                     "executedPrice": "0",
-            //                     "fee": null,
-            //                     "orderCid": null,
-            //                     "executed": "0",
-            //                     "expires": null,
-            //                     "baseDecimals": 8,
-            //                     "quoteDecimals": 6,
-            //                     "timestamp": 1700594804,
-            //                     "status": "inactive",
-            //                     "side": "buy",
-            //                     "type": "limit",
-            //                     "createdAt": "2023-11-21T19:26:43.868Z",
-            //                     "updatedAt": "2023-11-21T19:26:43.868Z"
-            //                 },
-            //                 {
-            //                     "id": 106733308,
-            //                     "orderId": "13074362",
-            //                     "userId": 21639,
-            //                     "pair": "btc_usdt",
-            //                     "pairId": 22,
-            //                     "quantity": "0.00001",
-            //                     "price": "50000",
-            //                     "executedPrice": "37017.495008",
-            //                     "fee": {
-            //                         "amount": "0.00000002",
-            //                         "symbol": "btc",
-            //                         "userId": 21639,
-            //                         "decimals": 8,
-            //                         "symbolId": 11
-            //                     },
-            //                     "orderCid": null,
-            //                     "executed": "0.00001",
-            //                     "expires": null,
-            //                     "baseDecimals": 8,
-            //                     "quoteDecimals": 6,
-            //                     "timestamp": 1700594959,
-            //                     "status": "executed",
-            //                     "side": "buy",
-            //                     "type": "limit",
-            //                     "createdAt": "2023-11-21T19:29:19.946Z",
-            //                     "updatedAt": "2023-11-21T19:29:19.946Z"
-            //                 },
-            //                 {
-            //                     "id": 106734455,
-            //                     "orderId": "13248984",
-            //                     "userId": 21639,
-            //                     "pair": "eth_usdt",
-            //                     "pairId": 2,
-            //                     "quantity": "0.001",
-            //                     "price": "1750",
-            //                     "executedPrice": "0",
-            //                     "fee": null,
-            //                     "orderCid": null,
-            //                     "executed": "0",
-            //                     "expires": null,
-            //                     "baseDecimals": 18,
-            //                     "quoteDecimals": 6,
-            //                     "timestamp": 1700595523,
-            //                     "status": "accepted",
-            //                     "side": "buy",
-            //                     "type": "limit",
-            //                     "createdAt": "2023-11-21T19:38:43.530Z",
-            //                     "updatedAt": "2023-11-21T19:38:43.530Z"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        String type = this.safeString(parameters, "type", "all");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", type );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("pair", market.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        Map<String, Object> response = (this.privateGetTradeApiCcxtOrdersOfUser(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 3,
+        //             "orders": [
+        //                 {
+        //                     "id": 106733026,
+        //                     "orderId": null,
+        //                     "userId": 21639,
+        //                     "pair": "btc_usdt",
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "40",
+        //                     "executedPrice": "0",
+        //                     "fee": null,
+        //                     "orderCid": null,
+        //                     "executed": "0",
+        //                     "expires": null,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700594804,
+        //                     "status": "inactive",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:26:43.868Z",
+        //                     "updatedAt": "2023-11-21T19:26:43.868Z"
+        //                 },
+        //                 {
+        //                     "id": 106733308,
+        //                     "orderId": "13074362",
+        //                     "userId": 21639,
+        //                     "pair": "btc_usdt",
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "50000",
+        //                     "executedPrice": "37017.495008",
+        //                     "fee": {
+        //                         "amount": "0.00000002",
+        //                         "symbol": "btc",
+        //                         "userId": 21639,
+        //                         "decimals": 8,
+        //                         "symbolId": 11
+        //                     },
+        //                     "orderCid": null,
+        //                     "executed": "0.00001",
+        //                     "expires": null,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700594959,
+        //                     "status": "executed",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:29:19.946Z",
+        //                     "updatedAt": "2023-11-21T19:29:19.946Z"
+        //                 },
+        //                 {
+        //                     "id": 106734455,
+        //                     "orderId": "13248984",
+        //                     "userId": 21639,
+        //                     "pair": "eth_usdt",
+        //                     "pairId": 2,
+        //                     "quantity": "0.001",
+        //                     "price": "1750",
+        //                     "executedPrice": "0",
+        //                     "fee": null,
+        //                     "orderCid": null,
+        //                     "executed": "0",
+        //                     "expires": null,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700595523,
+        //                     "status": "accepted",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:38:43.530Z",
+        //                     "updatedAt": "2023-11-21T19:38:43.530Z"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1113,62 +1123,64 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", id );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> response = (this.privateGetTradeApiCcxtOrderId(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "id": 106494347,
-            //             "orderId": "13214332",
-            //             "userId": 15912,
-            //             "pair": "eth_usdt",
-            //             "pairId": 2,
-            //             "quantity": "0.00448598",
-            //             "price": "2015.644995",
-            //             "executedPrice": "2015.644995",
-            //             "fee": {
-            //                 "amount": "0",
-            //                 "symbol": "eth",
-            //                 "userId": 15912,
-            //                 "decimals": 18,
-            //                 "symbolId": 2,
-            //                 "discountAmount": "0",
-            //                 "discountSymbol": "btt",
-            //                 "discountDecimals": 18,
-            //                 "discountSymbolId": 5
-            //             },
-            //             "orderCid": null,
-            //             "executed": "0.00448598",
-            //             "expires": null,
-            //             "baseDecimals": 18,
-            //             "quoteDecimals": 6,
-            //             "timestamp": 1700470476,
-            //             "status": "executed",
-            //             "side": "buy",
-            //             "type": "limit",
-            //             "stopPrice": null,
-            //             "slippage": null
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", id );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> response = (this.privateGetTradeApiCcxtOrderId(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "id": 106494347,
+        //             "orderId": "13214332",
+        //             "userId": 15912,
+        //             "pair": "eth_usdt",
+        //             "pairId": 2,
+        //             "quantity": "0.00448598",
+        //             "price": "2015.644995",
+        //             "executedPrice": "2015.644995",
+        //             "fee": {
+        //                 "amount": "0",
+        //                 "symbol": "eth",
+        //                 "userId": 15912,
+        //                 "decimals": 18,
+        //                 "symbolId": 2,
+        //                 "discountAmount": "0",
+        //                 "discountSymbol": "btt",
+        //                 "discountDecimals": 18,
+        //                 "discountSymbolId": 5
+        //             },
+        //             "orderCid": null,
+        //             "executed": "0.00448598",
+        //             "expires": null,
+        //             "baseDecimals": 18,
+        //             "quoteDecimals": 6,
+        //             "timestamp": 1700470476,
+        //             "status": "executed",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "stopPrice": null,
+        //             "slippage": null
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOrder(result, market);
 
     }
 
@@ -1185,18 +1197,20 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "active" );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "active" );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -1213,18 +1227,20 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "closed" );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "closed" );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -1241,18 +1257,20 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "type", "cancelled" );
-            }};
-            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "cancelled" );
+        }};
+        return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
 
     }
 
@@ -1271,56 +1289,58 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("pairId", this.safeString(market, "numericId"));
+        request.put("type", type);
+        request.put("side", side);
+        request.put("amount", this.amountToPrecision(symbol, amount));
+        if (java.util.Objects.equals(type, "limit"))
+        {
+            if (java.util.Objects.equals(price, null))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("pairId", this.safeString(market, "numericId"));
-            request.put("type", type);
-            request.put("side", side);
-            request.put("amount", this.amountToPrecision(symbol, amount));
-            if (java.util.Objects.equals(type, "limit"))
+                throw new ArgumentsRequired((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
+            } else
             {
-                if (java.util.Objects.equals(price, null))
-                {
-                    throw new ArgumentsRequired((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
-                } else
-                {
-                    request.put("price", this.priceToPrecision(symbol, price));
-                }
+                request.put("price", this.priceToPrecision(symbol, price));
             }
-            Map<String, Object> response = (this.privatePostTradeApiCcxtOrdercreate(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "id": 106733308,
-            //             "userId": 21639,
-            //             "quantity": "0.00001",
-            //             "pair": "btc_usdt",
-            //             "side": "buy",
-            //             "price": "50000",
-            //             "executed": "0",
-            //             "executedPrice": "0",
-            //             "status": "created",
-            //             "baseDecimals": 8,
-            //             "quoteDecimals": 6,
-            //             "pairId": 22,
-            //             "type": "limit",
-            //             "stopPrice": null,
-            //             "slippage": null,
-            //             "timestamp": "1700594959"
-            //         }
-            //     }
-            //
-            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(order, market);
-        }).thenApply(Order::new);
+        }
+        Map<String, Object> response = (this.privatePostTradeApiCcxtOrdercreate(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "id": 106733308,
+        //             "userId": 21639,
+        //             "quantity": "0.00001",
+        //             "pair": "btc_usdt",
+        //             "side": "buy",
+        //             "price": "50000",
+        //             "executed": "0",
+        //             "executedPrice": "0",
+        //             "status": "created",
+        //             "baseDecimals": 8,
+        //             "quoteDecimals": 6,
+        //             "pairId": 22,
+        //             "type": "limit",
+        //             "stopPrice": null,
+        //             "slippage": null,
+        //             "timestamp": "1700594959"
+        //         }
+        //     }
+        //
+        Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOrder(order, market);
 
     }
 
@@ -1336,28 +1356,30 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", id );
-            }};
-            Map<String, Object> response = (this.privatePostTradeApiCcxtCancelorder(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "message": "The request to cancel your order was received"
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, (Map<String, Object>) null);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", id );
+        }};
+        Map<String, Object> response = (this.privatePostTradeApiCcxtCancelorder(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "message": "The request to cancel your order was received"
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOrder(result, (Map<String, Object>) null);
 
     }
 
@@ -1372,36 +1394,38 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("pairId", this.safeString(market, "numericId"));
-            } else
-            {
-                request.put("pairId", "0"); // '0' for all markets
-            }
-            Map<String, Object> response = (this.privatePostTradeApiCcxtCancelAllOrder(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "message":"The request to cancel all your orders was received"
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> orders = new ArrayList<Object>(Arrays.asList(result));
-            return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("pairId", this.safeString(market, "numericId"));
+        } else
+        {
+            request.put("pairId", "0"); // '0' for all markets
+        }
+        Map<String, Object> response = (this.privatePostTradeApiCcxtCancelAllOrder(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "message":"The request to cancel all your orders was received"
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> orders = new ArrayList<Object>(Arrays.asList(result));
+        return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1598,59 +1622,61 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> response = (this.publicGetTradeApiCmcSummary(new HashMap<String, Object>() {{}})).join();
-            //
-            //     [
-            //         {
-            //             "trading_pairs": "BTC_USDT",
-            //             "base_currency": "BTC",
-            //             "quote_currency": "USDT",
-            //             "last_price": 37669.955001,
-            //             "lowest_ask": 37670.055,
-            //             "highest_bid": 37669.955,
-            //             "base_volume": 6.81156888,
-            //             "quote_volume": 257400.516878529,
-            //             "price_change_percent_24h": -0.29,
-            //             "highest_price_24h": 38389.994463,
-            //             "lowest_price_24h": 37574.894999
-            //         },
-            //         {
-            //             "trading_pairs": "BNB_USDT",
-            //             "base_currency": "BNB",
-            //             "quote_currency": "USDT",
-            //             "last_price": 233.525142,
-            //             "lowest_ask": 233.675,
-            //             "highest_bid": 233.425,
-            //             "base_volume": 245.0199339,
-            //             "quote_volume": 57356.91823827642,
-            //             "price_change_percent_24h": -0.32,
-            //             "highest_price_24h": 236.171123,
-            //             "lowest_price_24h": 231.634637
-            //         },
-            //         ...
-            //     ]
-            //
-            List<Object> tickers = new ArrayList<Object>(Arrays.asList());
-            List<Object> rawTickers = new ArrayList<Object>(Arrays.asList());
-            if ((response instanceof List))
-            {
-                rawTickers = response;
-            }
-            for (var i = 0; i < rawTickers.size(); i++)
-            {
-                Object rawTicker = (rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i));
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
-                ((List<Object>)tickers).add(ticker);
-            }
-            return this.filterByArrayTickers(tickers, "symbol", symbols);
-        }).thenApply(Tickers::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> response = (this.publicGetTradeApiCmcSummary(new HashMap<String, Object>() {{}})).join();
+        //
+        //     [
+        //         {
+        //             "trading_pairs": "BTC_USDT",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT",
+        //             "last_price": 37669.955001,
+        //             "lowest_ask": 37670.055,
+        //             "highest_bid": 37669.955,
+        //             "base_volume": 6.81156888,
+        //             "quote_volume": 257400.516878529,
+        //             "price_change_percent_24h": -0.29,
+        //             "highest_price_24h": 38389.994463,
+        //             "lowest_price_24h": 37574.894999
+        //         },
+        //         {
+        //             "trading_pairs": "BNB_USDT",
+        //             "base_currency": "BNB",
+        //             "quote_currency": "USDT",
+        //             "last_price": 233.525142,
+        //             "lowest_ask": 233.675,
+        //             "highest_bid": 233.425,
+        //             "base_volume": 245.0199339,
+        //             "quote_volume": 57356.91823827642,
+        //             "price_change_percent_24h": -0.32,
+        //             "highest_price_24h": 236.171123,
+        //             "lowest_price_24h": 231.634637
+        //         },
+        //         ...
+        //     ]
+        //
+        List<Object> tickers = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawTickers = new ArrayList<Object>(Arrays.asList());
+        if ((response instanceof List))
+        {
+            rawTickers = response;
+        }
+        for (var i = 0; i < rawTickers.size(); i++)
+        {
+            Object rawTicker = (rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
+            ((List<Object>)tickers).add(ticker);
+        }
+        return this.filterByArrayTickers(tickers, "symbol", symbols);
 
     }
 
@@ -1665,205 +1691,207 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "name", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetTradeApiPairName(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "pair": {
-            //                 "id": 2,
-            //                 "name": "eth_usdt",
-            //                 "baseAssetId": 2,
-            //                 "quoteAssetId": 3,
-            //                 "fullName": "ETH USDT",
-            //                 "description": "ETH   USDT",
-            //                 "lastBuy": "1976.715012",
-            //                 "lastSell": "1971.995006",
-            //                 "lastPrice": "1976.715012",
-            //                 "change24": "1.02",
-            //                 "volume24": 24.0796457,
-            //                 "volume24USD": 44282.347995912205,
-            //                 "active": true,
-            //                 "baseStep": 8,
-            //                 "quoteStep": 6,
-            //                 "status": 1,
-            //                 "settings": {
-            //                     "limit_usd": "0.1",
-            //                     "price_max": "10000000000000",
-            //                     "price_min": "1",
-            //                     "price_tick": "1",
-            //                     "pricescale": 10000,
-            //                     "lot_size_max": "1000000000000000",
-            //                     "lot_size_min": "1",
-            //                     "lot_size_tick": "1",
-            //                     "price_view_min": 6,
-            //                     "default_slippage": 10,
-            //                     "lot_size_view_min": 6
-            //                 },
-            //                 "asks": [
-            //                     {
-            //                     "price": "1976.405003",
-            //                     "quantity": "0.0051171",
-            //                     "amount": "10.1134620408513"
-            //                     },
-            //                     {
-            //                     "price": "1976.405013",
-            //                     "quantity": "0.09001559",
-            //                     "amount": "177.90726332415267"
-            //                     },
-            //                     {
-            //                     "price": "2010.704988",
-            //                     "quantity": "0.00127892",
-            //                     "amount": "2.57153082325296"
-            //                     }
-            //                 ],
-            //                 "bids": [
-            //                     {
-            //                     "price": "1976.404988",
-            //                     "quantity": "0.09875861",
-            //                     "amount": "195.18700941194668"
-            //                     },
-            //                     {
-            //                     "price": "1905.472973",
-            //                     "quantity": "0.00263591",
-            //                     "amount": "5.02265526426043"
-            //                     },
-            //                     {
-            //                     "price": "1904.274973",
-            //                     "quantity": "0.09425304",
-            //                     "amount": "179.48370520116792"
-            //                     }
-            //                 ],
-            //                 "updateId": "78",
-            //                 "timeStart": "2021-01-28T09:19:30.706Z",
-            //                 "makerFee": 200,
-            //                 "takerFee": 200,
-            //                 "quoteVolume24": 49125.1374009045,
-            //                 "lowPrice24": 1966.704999,
-            //                 "highPrice24": 2080.354997,
-            //                 "baseCurrency": {
-            //                     "id": 2,
-            //                     "status": 1,
-            //                     "symbol": "eth",
-            //                     "title": "Ethereum",
-            //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-            //                     "isDiscount": false,
-            //                     "address": "https://ethereum.org/",
-            //                     "description": "Ethereum ETH",
-            //                     "decimals": 18,
-            //                     "blockChain": "Ethereum",
-            //                     "precision": 8,
-            //                     "currentRate": null,
-            //                     "active": true,
-            //                     "timeStart": "2021-01-28T08:57:41.719Z",
-            //                     "txLimits": {
-            //                         "minDeposit": "100000000000000",
-            //                         "maxWithdraw": "10000000000000000000000",
-            //                         "minWithdraw": "20000000000000000",
-            //                         "withdrawCommissionFixed": "5000000000000000",
-            //                         "withdrawCommissionPercentage": "NaN"
-            //                     },
-            //                     "type": "crypto",
-            //                     "typeNetwork": "internalGW",
-            //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
-            //                     "idSorting": 2,
-            //                     "links": [
-            //                         {
-            //                             "tx": "https://etherscan.io/tx/",
-            //                             "address": "https://etherscan.io/address/",
-            //                             "blockChain": "Ethereum"
-            //                         }
-            //                     ],
-            //                     "clientTxLimits": {
-            //                         "minDeposit": "0.0001",
-            //                         "minWithdraw": "0.02",
-            //                         "maxWithdraw": "10000",
-            //                         "withdrawCommissionPercentage": "NaN",
-            //                         "withdrawCommissionFixed": "0.005"
-            //                     }
-            //                 },
-            //                 "quoteCurrency": {
-            //                     "id": 3,
-            //                     "status": 1,
-            //                     "symbol": "usdt",
-            //                     "title": "Tether USD",
-            //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-            //                     "isDiscount": false,
-            //                     "address": "https://tether.to/",
-            //                     "description": "Tether USD",
-            //                     "decimals": 6,
-            //                     "blockChain": "",
-            //                     "precision": 6,
-            //                     "currentRate": null,
-            //                     "active": true,
-            //                     "timeStart": "2021-01-28T09:04:17.170Z",
-            //                     "txLimits": {
-            //                         "minDeposit": "1000",
-            //                         "maxWithdraw": "100000000000",
-            //                         "minWithdraw": "1000000",
-            //                         "withdrawCommissionFixed": {
-            //                             "Tron": "2000000",
-            //                             "Binance": "2000000000000000000",
-            //                             "Ethereum": "20000000"
-            //                         },
-            //                         "withdrawCommissionPercentage": "NaN"
-            //                     },
-            //                     "type": "crypto",
-            //                     "typeNetwork": "internalGW",
-            //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
-            //                     "idSorting": 0,
-            //                     "links": [
-            //                         {
-            //                             "tx": "https://etherscan.io/tx/",
-            //                             "address": "https://etherscan.io/address/",
-            //                             "blockChain": "Ethereum"
-            //                         },
-            //                         {
-            //                             "tx": "https://tronscan.org/#/transaction/",
-            //                             "address": "https://tronscan.org/#/address/",
-            //                             "blockChain": "Tron"
-            //                         },
-            //                         {
-            //                             "tx": "https://bscscan.com/tx/",
-            //                             "address": "https://bscscan.com/address/",
-            //                             "blockChain": "Binance"
-            //                         }
-            //                     ],
-            //                     "clientTxLimits": {
-            //                         "minDeposit": "0.001",
-            //                         "minWithdraw": "1",
-            //                         "maxWithdraw": "100000",
-            //                         "withdrawCommissionPercentage": "NaN",
-            //                         "withdrawCommissionFixed": {
-            //                             "Tron": "2",
-            //                             "Binance": "2",
-            //                             "Ethereum": "20"
-            //                         }
-            //                     }
-            //                 },
-            //                 "quantities": {
-            //                     "asks": "5.58760757",
-            //                     "bids": "2226.98663823032198"
-            //                 }
-            //             }
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> pair = this.safeDict(result, "pair", new HashMap<String, Object>() {{}});
-            return this.parseTicker(pair, market);
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "name", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicGetTradeApiPairName(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "pair": {
+        //                 "id": 2,
+        //                 "name": "eth_usdt",
+        //                 "baseAssetId": 2,
+        //                 "quoteAssetId": 3,
+        //                 "fullName": "ETH USDT",
+        //                 "description": "ETH   USDT",
+        //                 "lastBuy": "1976.715012",
+        //                 "lastSell": "1971.995006",
+        //                 "lastPrice": "1976.715012",
+        //                 "change24": "1.02",
+        //                 "volume24": 24.0796457,
+        //                 "volume24USD": 44282.347995912205,
+        //                 "active": true,
+        //                 "baseStep": 8,
+        //                 "quoteStep": 6,
+        //                 "status": 1,
+        //                 "settings": {
+        //                     "limit_usd": "0.1",
+        //                     "price_max": "10000000000000",
+        //                     "price_min": "1",
+        //                     "price_tick": "1",
+        //                     "pricescale": 10000,
+        //                     "lot_size_max": "1000000000000000",
+        //                     "lot_size_min": "1",
+        //                     "lot_size_tick": "1",
+        //                     "price_view_min": 6,
+        //                     "default_slippage": 10,
+        //                     "lot_size_view_min": 6
+        //                 },
+        //                 "asks": [
+        //                     {
+        //                     "price": "1976.405003",
+        //                     "quantity": "0.0051171",
+        //                     "amount": "10.1134620408513"
+        //                     },
+        //                     {
+        //                     "price": "1976.405013",
+        //                     "quantity": "0.09001559",
+        //                     "amount": "177.90726332415267"
+        //                     },
+        //                     {
+        //                     "price": "2010.704988",
+        //                     "quantity": "0.00127892",
+        //                     "amount": "2.57153082325296"
+        //                     }
+        //                 ],
+        //                 "bids": [
+        //                     {
+        //                     "price": "1976.404988",
+        //                     "quantity": "0.09875861",
+        //                     "amount": "195.18700941194668"
+        //                     },
+        //                     {
+        //                     "price": "1905.472973",
+        //                     "quantity": "0.00263591",
+        //                     "amount": "5.02265526426043"
+        //                     },
+        //                     {
+        //                     "price": "1904.274973",
+        //                     "quantity": "0.09425304",
+        //                     "amount": "179.48370520116792"
+        //                     }
+        //                 ],
+        //                 "updateId": "78",
+        //                 "timeStart": "2021-01-28T09:19:30.706Z",
+        //                 "makerFee": 200,
+        //                 "takerFee": 200,
+        //                 "quoteVolume24": 49125.1374009045,
+        //                 "lowPrice24": 1966.704999,
+        //                 "highPrice24": 2080.354997,
+        //                 "baseCurrency": {
+        //                     "id": 2,
+        //                     "status": 1,
+        //                     "symbol": "eth",
+        //                     "title": "Ethereum",
+        //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+        //                     "isDiscount": false,
+        //                     "address": "https://ethereum.org/",
+        //                     "description": "Ethereum ETH",
+        //                     "decimals": 18,
+        //                     "blockChain": "Ethereum",
+        //                     "precision": 8,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T08:57:41.719Z",
+        //                     "txLimits": {
+        //                         "minDeposit": "100000000000000",
+        //                         "maxWithdraw": "10000000000000000000000",
+        //                         "minWithdraw": "20000000000000000",
+        //                         "withdrawCommissionFixed": "5000000000000000",
+        //                         "withdrawCommissionPercentage": "NaN"
+        //                     },
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+        //                     "idSorting": 2,
+        //                     "links": [
+        //                         {
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         }
+        //                     ],
+        //                     "clientTxLimits": {
+        //                         "minDeposit": "0.0001",
+        //                         "minWithdraw": "0.02",
+        //                         "maxWithdraw": "10000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": "0.005"
+        //                     }
+        //                 },
+        //                 "quoteCurrency": {
+        //                     "id": 3,
+        //                     "status": 1,
+        //                     "symbol": "usdt",
+        //                     "title": "Tether USD",
+        //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+        //                     "isDiscount": false,
+        //                     "address": "https://tether.to/",
+        //                     "description": "Tether USD",
+        //                     "decimals": 6,
+        //                     "blockChain": "",
+        //                     "precision": 6,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T09:04:17.170Z",
+        //                     "txLimits": {
+        //                         "minDeposit": "1000",
+        //                         "maxWithdraw": "100000000000",
+        //                         "minWithdraw": "1000000",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2000000",
+        //                             "Binance": "2000000000000000000",
+        //                             "Ethereum": "20000000"
+        //                         },
+        //                         "withdrawCommissionPercentage": "NaN"
+        //                     },
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+        //                     "idSorting": 0,
+        //                     "links": [
+        //                         {
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         },
+        //                         {
+        //                             "tx": "https://tronscan.org/#/transaction/",
+        //                             "address": "https://tronscan.org/#/address/",
+        //                             "blockChain": "Tron"
+        //                         },
+        //                         {
+        //                             "tx": "https://bscscan.com/tx/",
+        //                             "address": "https://bscscan.com/address/",
+        //                             "blockChain": "Binance"
+        //                         }
+        //                     ],
+        //                     "clientTxLimits": {
+        //                         "minDeposit": "0.001",
+        //                         "minWithdraw": "1",
+        //                         "maxWithdraw": "100000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2",
+        //                             "Binance": "2",
+        //                             "Ethereum": "20"
+        //                         }
+        //                     }
+        //                 },
+        //                 "quantities": {
+        //                     "asks": "5.58760757",
+        //                     "bids": "2226.98663823032198"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> pair = this.safeDict(result, "pair", new HashMap<String, Object>() {{}});
+        return this.parseTicker(pair, market);
 
     }
 
@@ -2011,41 +2039,43 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", market.get("id") );
-            }};
-            List<Object> response = (this.publicGetTradeApiCmcTradesPair(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         {
-            //             "trade_id": 34970337,
-            //             "price": 37769.994793,
-            //             "base_volume": 0.00119062,
-            //             "quote_volume": 44.96971120044166,
-            //             "timestamp": 1700827234000,
-            //             "type": "buy"
-            //         },
-            //         {
-            //             "trade_id": 34970347,
-            //             "price": 37769.634497,
-            //             "base_volume": 0.00104009,
-            //             "quote_volume": 39.28381914398473,
-            //             "timestamp": 1700827248000,
-            //             "type": "buy"
-            //         },
-            //         ...
-            //     ]
-            //
-            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "pair", market.get("id") );
+        }};
+        List<Object> response = (this.publicGetTradeApiCmcTradesPair(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         {
+        //             "trade_id": 34970337,
+        //             "price": 37769.994793,
+        //             "base_volume": 0.00119062,
+        //             "quote_volume": 44.96971120044166,
+        //             "timestamp": 1700827234000,
+        //             "type": "buy"
+        //         },
+        //         {
+        //             "trade_id": 34970347,
+        //             "price": 37769.634497,
+        //             "base_volume": 0.00104009,
+        //             "quote_volume": 39.28381914398473,
+        //             "timestamp": 1700827248000,
+        //             "type": "buy"
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2062,162 +2092,164 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-                request.put("pairId", market.get("numericId"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            Map<String, Object> response = (this.privateGetTradeApiCcxtTradesOfUser(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "count": 3,
-            //             "trades": [
-            //                 {
-            //                     "id": 34880724,
-            //                     "tradeId": "4368041",
-            //                     "makerOrderId": 106742914,
-            //                     "takerOrderId": 106761614,
-            //                     "pairId": 2,
-            //                     "quantity": "0.00955449",
-            //                     "price": "1993.674994",
-            //                     "isBuyerMaker": true,
-            //                     "baseDecimals": 18,
-            //                     "quoteDecimals": 6,
-            //                     "side": "sell",
-            //                     "timestamp": 1700615250,
-            //                     "rewarded": true,
-            //                     "makerUserId": 21639,
-            //                     "takerUserId": 15913,
-            //                     "baseCurrencyId": 2,
-            //                     "quoteCurrencyId": 3,
-            //                     "feeMaker": {
-            //                         "amount": "0.0000191",
-            //                         "symbol": "eth",
-            //                         "userId": 21639,
-            //                         "decimals": 18,
-            //                         "symbolId": 2
-            //                     },
-            //                     "feeTaker": {
-            //                         "amount": "0",
-            //                         "symbol": "usdt",
-            //                         "userId": 15913,
-            //                         "decimals": 6,
-            //                         "symbolId": 3,
-            //                         "discountAmount": "0",
-            //                         "discountSymbol": "btt",
-            //                         "discountDecimals": 18,
-            //                         "discountSymbolId": 5
-            //                     },
-            //                     "pair": "eth_usdt",
-            //                     "createdAt": "2023-11-22T01:07:30.593Z",
-            //                     "updatedAt": "2023-11-22T01:10:00.117Z",
-            //                     "isCurrentSide": "maker"
-            //                 },
-            //                 {
-            //                     "id": 34875793,
-            //                     "tradeId": "4368010",
-            //                     "makerOrderId": 106742914,
-            //                     "takerOrderId": 106745926,
-            //                     "pairId": 2,
-            //                     "quantity": "0.0027193",
-            //                     "price": "1993.674994",
-            //                     "isBuyerMaker": true,
-            //                     "baseDecimals": 18,
-            //                     "quoteDecimals": 6,
-            //                     "side": "sell",
-            //                     "timestamp": 1700602983,
-            //                     "rewarded": true,
-            //                     "makerUserId": 21639,
-            //                     "takerUserId": 15912,
-            //                     "baseCurrencyId": 2,
-            //                     "quoteCurrencyId": 3,
-            //                     "feeMaker": {
-            //                         "amount": "0.00000543",
-            //                         "symbol": "eth",
-            //                         "userId": 21639,
-            //                         "decimals": 18,
-            //                         "symbolId": 2
-            //                     },
-            //                     "feeTaker": {
-            //                         "amount": "0",
-            //                         "symbol": "usdt",
-            //                         "userId": 15912,
-            //                         "decimals": 6,
-            //                         "symbolId": 3,
-            //                         "discountAmount": "0",
-            //                         "discountSymbol": "btt",
-            //                         "discountDecimals": 18,
-            //                         "discountSymbolId": 5
-            //                     },
-            //                     "pair": "eth_usdt",
-            //                     "createdAt": "2023-11-21T21:43:02.758Z",
-            //                     "updatedAt": "2023-11-21T21:45:00.147Z",
-            //                     "isCurrentSide": "maker"
-            //                 },
-            //                 {
-            //                     "id": 34871727,
-            //                     "tradeId": "3441840",
-            //                     "makerOrderId": 106733299,
-            //                     "takerOrderId": 106733308,
-            //                     "pairId": 22,
-            //                     "quantity": "0.00001",
-            //                     "price": "37017.495008",
-            //                     "isBuyerMaker": false,
-            //                     "baseDecimals": 8,
-            //                     "quoteDecimals": 6,
-            //                     "side": "buy",
-            //                     "timestamp": 1700594960,
-            //                     "rewarded": true,
-            //                     "makerUserId": 15909,
-            //                     "takerUserId": 21639,
-            //                     "baseCurrencyId": 11,
-            //                     "quoteCurrencyId": 3,
-            //                     "feeMaker": {
-            //                         "amount": "0",
-            //                         "symbol": "usdt",
-            //                         "userId": 15909,
-            //                         "decimals": 6,
-            //                         "symbolId": 3,
-            //                         "discountAmount": "0",
-            //                         "discountSymbol": "btt",
-            //                         "discountDecimals": 18,
-            //                         "discountSymbolId": 5
-            //                     },
-            //                     "feeTaker": {
-            //                         "amount": "0.00000002",
-            //                         "symbol": "btc",
-            //                         "userId": 21639,
-            //                         "decimals": 8,
-            //                         "symbolId": 11
-            //                     },
-            //                     "pair": "btc_usdt",
-            //                     "createdAt": "2023-11-21T19:29:20.092Z",
-            //                     "updatedAt": "2023-11-21T19:30:00.159Z"
-            //                     "isCurrentSide": "taker"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+            request.put("pairId", market.get("numericId"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        Map<String, Object> response = (this.privateGetTradeApiCcxtTradesOfUser(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 3,
+        //             "trades": [
+        //                 {
+        //                     "id": 34880724,
+        //                     "tradeId": "4368041",
+        //                     "makerOrderId": 106742914,
+        //                     "takerOrderId": 106761614,
+        //                     "pairId": 2,
+        //                     "quantity": "0.00955449",
+        //                     "price": "1993.674994",
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "sell",
+        //                     "timestamp": 1700615250,
+        //                     "rewarded": true,
+        //                     "makerUserId": 21639,
+        //                     "takerUserId": 15913,
+        //                     "baseCurrencyId": 2,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0.0000191",
+        //                         "symbol": "eth",
+        //                         "userId": 21639,
+        //                         "decimals": 18,
+        //                         "symbolId": 2
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15913,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "pair": "eth_usdt",
+        //                     "createdAt": "2023-11-22T01:07:30.593Z",
+        //                     "updatedAt": "2023-11-22T01:10:00.117Z",
+        //                     "isCurrentSide": "maker"
+        //                 },
+        //                 {
+        //                     "id": 34875793,
+        //                     "tradeId": "4368010",
+        //                     "makerOrderId": 106742914,
+        //                     "takerOrderId": 106745926,
+        //                     "pairId": 2,
+        //                     "quantity": "0.0027193",
+        //                     "price": "1993.674994",
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "sell",
+        //                     "timestamp": 1700602983,
+        //                     "rewarded": true,
+        //                     "makerUserId": 21639,
+        //                     "takerUserId": 15912,
+        //                     "baseCurrencyId": 2,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0.00000543",
+        //                         "symbol": "eth",
+        //                         "userId": 21639,
+        //                         "decimals": 18,
+        //                         "symbolId": 2
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15912,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "pair": "eth_usdt",
+        //                     "createdAt": "2023-11-21T21:43:02.758Z",
+        //                     "updatedAt": "2023-11-21T21:45:00.147Z",
+        //                     "isCurrentSide": "maker"
+        //                 },
+        //                 {
+        //                     "id": 34871727,
+        //                     "tradeId": "3441840",
+        //                     "makerOrderId": 106733299,
+        //                     "takerOrderId": 106733308,
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "37017.495008",
+        //                     "isBuyerMaker": false,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "side": "buy",
+        //                     "timestamp": 1700594960,
+        //                     "rewarded": true,
+        //                     "makerUserId": 15909,
+        //                     "takerUserId": 21639,
+        //                     "baseCurrencyId": 11,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15909,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0.00000002",
+        //                         "symbol": "btc",
+        //                         "userId": 21639,
+        //                         "decimals": 8,
+        //                         "symbolId": 11
+        //                     },
+        //                     "pair": "btc_usdt",
+        //                     "createdAt": "2023-11-21T19:29:20.092Z",
+        //                     "updatedAt": "2023-11-21T19:30:00.159Z"
+        //                     "isCurrentSide": "taker"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2304,11 +2336,11 @@ public class Bitteam extends BitteamApi
                 side = "sell";
             }
             order = this.safeString(trade, "makerOrderId");
-            feeInfo = (Map<String, Object>) this.safeDict(trade, "feeMaker", new HashMap<String, Object>() {{}});
+            feeInfo = this.safeDict(trade, "feeMaker", new HashMap<String, Object>() {{}});
         } else if (java.util.Objects.equals(takerOrMaker, "taker"))
         {
             order = this.safeString(trade, "takerOrderId");
-            feeInfo = (Map<String, Object>) this.safeDict(trade, "feeTaker", new HashMap<String, Object>() {{}});
+            feeInfo = this.safeDict(trade, "feeTaker", new HashMap<String, Object>() {{}});
         }
         String feeCurrencyId = this.safeString(feeInfo, "symbol");
         String feeCost = this.safeString(feeInfo, "amount");
@@ -2344,16 +2376,18 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
-            return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
+        return this.parseBalance(response);
 
     }
 
@@ -2441,117 +2475,119 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(code, null))
-            {
-                currency = this.currency((String) (code));
-                request.put("currency", currency.get("numericId"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            Map<String, Object> response = (this.privateGetTradeApiTransactionsOfUser(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "ok": true,
-            //         "result": {
-            //             "count": 2,
-            //             "transactions": [
-            //                 {
-            //                     "id": 1329686,
-            //                     "orderId": "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
-            //                     "transactionCoreId": "561863",
-            //                     "userId": 21639,
-            //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "sender": "0x6894a93B6fea044584649278621723cac51443Cd",
-            //                     "symbolId": 2,
-            //                     "CommissionId": 17571,
-            //                     "amount": "44000000000000000",
-            //                     "params": {},
-            //                     "reason": null,
-            //                     "timestamp": 1700715341743,
-            //                     "status": "approving",
-            //                     "statusDescription": null,
-            //                     "type": "withdraw",
-            //                     "message": null,
-            //                     "blockChain": "",
-            //                     "before": null,
-            //                     "after": null,
-            //                     "currency": {
-            //                         "symbol": "eth",
-            //                         "decimals": 18,
-            //                         "blockChain": "Ethereum",
-            //                         "links": [
-            //                             {
-            //                                 "tx": "https://etherscan.io/tx/",
-            //                                 "address": "https://etherscan.io/address/",
-            //                                 "blockChain": "Ethereum"
-            //                             }
-            //                         ]
-            //                     }
-            //                 },
-            //                 {
-            //                     "id": 1329229,
-            //                     "orderId": null,
-            //                     "transactionCoreId": "561418",
-            //                     "userId": 21639,
-            //                     "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
-            //                     "sender": null,
-            //                     "symbolId": 3,
-            //                     "CommissionId": null,
-            //                     "amount": "100000000",
-            //                     "params": {
-            //                         "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
-            //                     },
-            //                     "reason": null,
-            //                     "timestamp": 1700594180417,
-            //                     "status": "success",
-            //                     "statusDescription": null,
-            //                     "type": "deposit",
-            //                     "message": null,
-            //                     "blockChain": "Ethereum",
-            //                     "before": 0,
-            //                     "after": 100000000,
-            //                     "currency": {
-            //                         "symbol": "usdt",
-            //                         "decimals": 6,
-            //                         "blockChain": "",
-            //                         "links": [
-            //                             {
-            //                                 "tx": "https://etherscan.io/tx/",
-            //                                 "address": "https://etherscan.io/address/",
-            //                                 "blockChain": "Ethereum"
-            //                             },
-            //                             {
-            //                                 "tx": "https://tronscan.org/#/transaction/",
-            //                                 "address": "https://tronscan.org/#/address/",
-            //                                 "blockChain": "Tron"
-            //                             },
-            //                             {
-            //                                 "tx": "https://bscscan.com/tx/",
-            //                                 "address": "https://bscscan.com/address/",
-            //                                 "blockChain": "Binance"
-            //                             }
-            //                         ]
-            //                     }
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> transactions = this.safeList(result, "transactions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = null;
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(code, null))
+        {
+            currency = this.currency((String) (code));
+            request.put("currency", currency.get("numericId"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        Map<String, Object> response = (this.privateGetTradeApiTransactionsOfUser(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 2,
+        //             "transactions": [
+        //                 {
+        //                     "id": 1329686,
+        //                     "orderId": "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
+        //                     "transactionCoreId": "561863",
+        //                     "userId": 21639,
+        //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "sender": "0x6894a93B6fea044584649278621723cac51443Cd",
+        //                     "symbolId": 2,
+        //                     "CommissionId": 17571,
+        //                     "amount": "44000000000000000",
+        //                     "params": {},
+        //                     "reason": null,
+        //                     "timestamp": 1700715341743,
+        //                     "status": "approving",
+        //                     "statusDescription": null,
+        //                     "type": "withdraw",
+        //                     "message": null,
+        //                     "blockChain": "",
+        //                     "before": null,
+        //                     "after": null,
+        //                     "currency": {
+        //                         "symbol": "eth",
+        //                         "decimals": 18,
+        //                         "blockChain": "Ethereum",
+        //                         "links": [
+        //                             {
+        //                                 "tx": "https://etherscan.io/tx/",
+        //                                 "address": "https://etherscan.io/address/",
+        //                                 "blockChain": "Ethereum"
+        //                             }
+        //                         ]
+        //                     }
+        //                 },
+        //                 {
+        //                     "id": 1329229,
+        //                     "orderId": null,
+        //                     "transactionCoreId": "561418",
+        //                     "userId": 21639,
+        //                     "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
+        //                     "sender": null,
+        //                     "symbolId": 3,
+        //                     "CommissionId": null,
+        //                     "amount": "100000000",
+        //                     "params": {
+        //                         "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
+        //                     },
+        //                     "reason": null,
+        //                     "timestamp": 1700594180417,
+        //                     "status": "success",
+        //                     "statusDescription": null,
+        //                     "type": "deposit",
+        //                     "message": null,
+        //                     "blockChain": "Ethereum",
+        //                     "before": 0,
+        //                     "after": 100000000,
+        //                     "currency": {
+        //                         "symbol": "usdt",
+        //                         "decimals": 6,
+        //                         "blockChain": "",
+        //                         "links": [
+        //                             {
+        //                                 "tx": "https://etherscan.io/tx/",
+        //                                 "address": "https://etherscan.io/address/",
+        //                                 "blockChain": "Ethereum"
+        //                             },
+        //                             {
+        //                                 "tx": "https://tronscan.org/#/transaction/",
+        //                                 "address": "https://tronscan.org/#/address/",
+        //                                 "blockChain": "Tron"
+        //                             },
+        //                             {
+        //                                 "tx": "https://bscscan.com/tx/",
+        //                                 "address": "https://bscscan.com/address/",
+        //                                 "blockChain": "Binance"
+        //                             }
+        //                         ]
+        //                     }
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> transactions = this.safeList(result, "transactions", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 

@@ -294,7 +294,7 @@ class coinspot extends coinspot$1["default"] {
         const result = { 'info': response };
         const balances = this.safeValue2(response, 'balance', 'balances');
         if (Array.isArray(balances)) {
-            const rows = this.toArray(balances);
+            const rows = this.safeList2(response, 'balance', 'balances', []);
             const numRows = rows.length;
             for (let i = 0; i < numRows; i++) {
                 const currencies = this.safeDict(rows, i, {});

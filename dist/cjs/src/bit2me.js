@@ -428,7 +428,7 @@ class bit2me extends bit2me$1["default"] {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const status = this.safeString(market, 'marketEnabled');
-        const fees = this.fees;
+        const tradingFees = this.safeValue(this.fees, 'trading');
         return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -453,8 +453,8 @@ class bit2me extends bit2me$1["default"] {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
+            'taker': this.safeNumber(tradingFees, 'taker'),
+            'maker': this.safeNumber(tradingFees, 'maker'),
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amountPrecision'))),
                 'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),

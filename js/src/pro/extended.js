@@ -149,7 +149,7 @@ export default class extended extends extendedRest {
                 },
             };
             this.extendExchangeOptions(defaultOptions);
-            const originalOptions = this.options['ws']['options'];
+            const originalOptions = this.safeDict(this.options['ws'], 'options');
             const originalHeaders = this.safeDict(originalOptions, 'headers', {});
             this.options['ws']['options'] = this.extend(this.extend({}, originalOptions), {
                 'headers': this.extend(this.extend({
@@ -803,12 +803,9 @@ export default class extended extends extendedRest {
         const symbol = this.safeString(subscription, 'symbol');
         const timeframe = this.safeString(subscription, 'timeframe', '');
         const candleType = this.safeString(subscription, 'candleType', '');
-        let cacheKey = undefined;
-        if (candleType === 'trades') {
-            cacheKey = timeframe;
-        }
-        else {
-            cacheKey = timeframe + ':' + candleType;
+        let cacheKey = timeframe;
+        if (candleType !== 'trades') {
+            cacheKey = cacheKey + ':' + candleType;
         }
         const messageHash = this.safeString(subscription, 'messageHash');
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});

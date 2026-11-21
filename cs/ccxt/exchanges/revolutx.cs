@@ -271,7 +271,7 @@ public partial class revolutx : Exchange
             }
             string requestPath = ("/api/" + implodedPath);
             string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + bodyString);
-            string signature = eddsa(this.encode(message), this.privateKey, ed25519);
+            string signature = eddsa(message, this.privateKey, ed25519);
             requestHeaders = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
                 { "X-Revx-Timestamp", timestamp },
@@ -934,7 +934,7 @@ public partial class revolutx : Exchange
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             result.Add(ccxt.BaseExchange.FromTrade(this.parseTrade(trade, market)));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(this.sortBy(result, "timestamp")), symbol, since, limit));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit));
     }
 
     /**
@@ -1812,7 +1812,7 @@ public partial class revolutx : Exchange
     public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         Int64? statusCode = this.parseToInt(code);
-        if ((statusCode >= 400))
+        if (statusCode >= 400)
         {
             if ((response == null))
             {

@@ -832,7 +832,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
         $orderbook = $this->orderbooks[$symbol];
         $type = $this->safe_string($message, 't');
-        if ($orderbook['timestamp'] === null) {
+        if ($this->safe_integer($orderbook, 'timestamp') === null) {
             if ($type === 'f') {
                 // snapshot
                 $this->handle_order_book_snapshot($client, $message);

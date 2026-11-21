@@ -215,7 +215,7 @@ public partial class alpaca : ccxt.alpaca
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["1m"] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)["1m"] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message);
         stored.append(parsed);
@@ -735,11 +735,11 @@ public partial class alpaca : ccxt.alpaca
         return message;
     }
 
-    public virtual void handleCryptoMessage(WebSocketClient client, object message)
+    public virtual void handleCryptoMessage(WebSocketClient client, IList<object> message)
     {
-        for (int i = 0; i < getArrayLength(message); i++)
+        for (int i = 0; i < (message?.Count ?? 0); i++)
         {
-            object data = getValue(message, i);
+            object data = (message != null && i < message.Count ? message[i] : null);
             string? T = this.safeString(data, "T");
             string? msg = this.safeString(data, "msg");
             if (T == "subscription")
@@ -792,7 +792,7 @@ public partial class alpaca : ccxt.alpaca
         this.handleTradingMessage(client, message);
     }
 
-    public override void handleListMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, IList<object> message)
     {
         this.handleCryptoMessage(client, message);
     }

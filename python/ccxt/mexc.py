@@ -1078,11 +1078,12 @@ class mexc(Exchange, ImplicitAPI):
         status = None
         updated = None
         if marketType == 'spot':
-            response = self.spotPublicGetPing(query)
+            spotResponse = self.spotPublicGetPing(query)
+            response = spotResponse
             #
             #     {}
             #
-            keys = list(response.keys())
+            keys = list(spotResponse.keys())
             length = len(keys)
             status = self.json(response) if (length > 0) else 'ok'
         elif marketType == 'swap':
@@ -1684,7 +1685,8 @@ class mexc(Exchange, ImplicitAPI):
         costString = None
         marketResolved = None
         # if swap
-        if 'v' in trade:
+        swapVolume = self.safe_string(trade, 'v')
+        if swapVolume is not None:
             #
             # swap: fetchTrades
             #
@@ -1762,7 +1764,8 @@ class mexc(Exchange, ImplicitAPI):
             priceString = self.safe_string_2(trade, 'price', 'p')
             orderId = self.safe_string(trade, 'orderId')
             # if swap
-            if 'positionMode' in trade:
+            positionMode = self.safe_string(trade, 'positionMode')
+            if positionMode is not None:
                 timestamp = self.safe_integer(trade, 'timestamp')
                 amountString = self.safe_string(trade, 'vol')
                 side = self.parse_contract_order_side(self.safe_string(trade, 'side'))
@@ -3537,11 +3540,7 @@ class mexc(Exchange, ImplicitAPI):
                 'status': 'rejected',
                 'clientOrderId': self.safe_string(order, 'newClientOrderId'),
             })
-        id = None
-        if isinstance(order, str):
-            id = order
-        else:
-            id = self.safe_string_2(order, 'orderId', 'id')
+        id = self.safe_string_2(order, 'orderId', 'id')
         timeInForce = self.parse_order_time_in_force(self.safe_string(order, 'timeInForce'))
         typeRaw = self.safe_string(order, 'type')
         if timeInForce is None:
@@ -5316,7 +5315,6 @@ class mexc(Exchange, ImplicitAPI):
             request['toAccountType'] = self.safe_string(accountTypes, toAccountType, toAccountType)
         else:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"')
-        resultList = []
         if marketType == 'spot':
             if since is not None:
                 request['startTime'] = since
@@ -5343,13 +5341,13 @@ class mexc(Exchange, ImplicitAPI):
             #     ],
             #     "total": 1
             # }
-            resultList = self.safe_list(response, 'rows', [])
+            return self.parse_transfers(self.safe_list(response, 'rows', []), currency, since, limit)
         elif marketType == 'swap':
             if limit is not None:
                 request['page_size'] = limit
             response = self.contractPrivateGetAccountTransferRecord(self.extend(request, paramsToAccountType))
             data = self.safe_dict(response, 'data')
-            resultList = self.safe_value(data, 'resultList')
+            return self.parse_transfers(self.safe_list(data, 'resultList', []), currency, since, limit)
             #
             #     {
             #         "success": true,
@@ -5374,7 +5372,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        return self.parse_transfers(resultList, currency, since, limit)
+        return self.parse_transfers([], currency, since, limit)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """
@@ -5801,12 +5799,13 @@ class mexc(Exchange, ImplicitAPI):
         #
         networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
+        networks = {}
         for j in range(0, len(networkList)):
             networkEntry = self.safe_dict(networkList, j)
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': self.safe_number(networkEntry, 'withdrawFee'),
                         'percentage': None,
@@ -5816,6 +5815,7 @@ class mexc(Exchange, ImplicitAPI):
                         'percentage': None,
                     },
                 }
+        result['networks'] = networks
         return self.assign_default_deposit_withdraw_fees(result)
 
     def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
@@ -5866,14 +5866,15 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_leverage(data, market)
+        return self.parse_leverage_list(data, market)
 
-    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+    def parse_leverage_list(self, leverages: list[dict], market: Market = None) -> Leverage:
         marginMode = None
         longLeverage = None
         shortLeverage = None
-        for i in range(0, len(leverage)):
-            entry = self.safe_dict(leverage, i)
+        numLeverages = len(leverages)
+        for i in range(0, numLeverages):
+            entry = self.safe_dict(leverages, i)
             openType = self.safe_integer(entry, 'openType')
             positionType = self.safe_integer(entry, 'positionType')
             if positionType == 1:
@@ -5882,11 +5883,21 @@ class mexc(Exchange, ImplicitAPI):
                 shortLeverage = self.safe_integer(entry, 'leverage')
             marginMode = 'isolated' if (openType == 1) else 'cross'
         return {
-            'info': leverage,
+            'info': leverages,
             'symbol': self.safe_string(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
+        }
+
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        # setMarginMode answers { success, code }: no per-side leverage rows to read
+        return {
+            'info': leverage,
+            'symbol': self.safe_string(market, 'symbol'),
+            'marginMode': None,
+            'longLeverage': None,
+            'shortLeverage': None,
         }
 
     def handle_margin_mode_and_params(self, methodName: str, params: dict = {}, defaultValue: Str = None) -> list:

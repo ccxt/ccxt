@@ -268,8 +268,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'state': state,
                 'limit': limit,
             }, rest))
-            responseIsArray = isinstance(response, list)
-            found = response if (responseIsArray) else self.safe_list(response, 'data', [])
+            found = self.safe_list(response, 'data', [])
             for j in range(0, len(found)):
                 raw = found[j]
                 networkId = self.safe_string(raw, 'networkId', '')
@@ -311,8 +310,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'page': page,
                 'trading_model': tradingModel,
             }, rest))
-            responseIsArray = isinstance(response, list)
-            rawMarkets = response if (responseIsArray) else self.safe_list(response, 'data', [])
+            rawMarkets = self.safe_list(response, 'data', [])
             rawMarketsLength = len(rawMarkets)
             if rawMarketsLength == 0:
                 break
@@ -419,8 +417,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 'keyword': q,
                 'limit': limit,
             }, rest))
-            responseIsArray = isinstance(response, list)
-            found = response if (responseIsArray) else self.safe_list(response, 'data', [])
+            found = self.safe_list(response, 'data', [])
             for j in range(0, len(found)):
                 raw = found[j]
                 questionId = self.safe_string(raw, 'id')
@@ -453,8 +450,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             if state is not None:
                 request['state'] = state
             response = await self.myriadPublicGetQuestions(self.extend(request, rest))
-            responseIsArray = isinstance(response, list)
-            rawQuestions = response if (responseIsArray) else self.safe_list(response, 'data', [])
+            rawQuestions = self.safe_list(response, 'data', [])
             rawQuestionsLength = len(rawQuestions)
             if rawQuestionsLength == 0:
                 break
@@ -990,8 +986,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         if (sideStr == 'buy') and (tokenAddress is not None) and (not skipAllowance):
             await self.ensure_erc20_allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
         skipWaitForReceipt = self.safe_bool(params, 'skipWaitForReceipt', hasPreBroadcastTxHash)
-        txHash = txHashParam
-        if txHash is None:
+        txHash = None
+        if txHashParam is not None:
+            txHash = txHashParam
+        else:
             txHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit)
         if not skipWaitForReceipt:
             await self.wait_for_transaction_receipt(rpcUrl, txHash)
@@ -1035,8 +1033,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         encoded = self.eth_encode_structured_data(domain, types, message)
         digest = self.hash(encoded, 'keccak', 'hex')
         signature = self.ecdsa(digest, self.remove0x_prefix(self.privateKey), 'secp256k1', None)
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         v = self.sum(27, signature['v'])
@@ -1296,7 +1294,11 @@ class myriad(PredictionExchange, ImplicitAPI):
         if (requestedStatus == 'open') or (requestedStatus == 'cancelled') or (requestedStatus == 'canceled') or (requestedStatus == 'expired'):
             return []
         traderParam = self.safe_string_2(params, 'trader', 'address')
-        trader = traderParam if (traderParam is not None) else self.wallet_address_or_undefined()
+        trader = None
+        if traderParam is not None:
+            trader = traderParam
+        else:
+            trader = self.wallet_address_or_undefined()
         if trader is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey')
         request = {
@@ -2679,8 +2681,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #         ]
         #     }
         #
-        responseIsArray = isinstance(response, list)
-        rows = response if (responseIsArray) else self.safe_list(response, 'data', [])
+        rows = self.safe_list(response, 'data', [])
         trades = []
         for i in range(0, len(rows)):
             row = self.safe_dict(rows, i)

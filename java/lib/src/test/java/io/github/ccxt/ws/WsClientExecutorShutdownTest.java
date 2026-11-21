@@ -35,7 +35,7 @@ class WsClientExecutorShutdownTest {
 
     @SuppressWarnings("unchecked")
     private static Map<String, Object> clientsMap(Exchange ex) {
-        return (Map<String, Object>) ex.clients;
+        return (Map<String, Object>) (Map<String, ?>) ex.clients;
     }
 
     /** onMessage is package-private on WsClient; reach it without the Client subtype in the way. */

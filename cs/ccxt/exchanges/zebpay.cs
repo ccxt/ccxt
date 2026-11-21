@@ -825,7 +825,7 @@ public partial class zebpay : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicSpotGetV2MarketAllTickers(paramsMarketType);
         //
         //     [
@@ -1752,7 +1752,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            request["symbols"] = this.marketIds(this.toArray(symbols));
+            request["symbols"] = this.marketIds(symbols);
         }
         Dictionary<string, object> response = await this.privateSwapGetV1TradePositions(this.extend(request, parameters));
         //
@@ -1894,7 +1894,7 @@ public partial class zebpay : Exchange
         List<object> markets = this.safeList(data, "symbols", new List<object>() {});
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -1980,7 +1980,7 @@ public partial class zebpay : Exchange
         List<object> markets = this.safeList(data, "symbols", new List<object>() {});
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -2272,13 +2272,13 @@ public partial class zebpay : Exchange
             {
                 // For GET/DELETE: Append params to URL and sign the query string
                 string queryString = this.urlencode(paramsSigned);
-                signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
+                signature = this.hmac(queryString, this.secret, sha256, "hex");
                 suffix = ("?" + queryString);
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 bodySigned = this.json(paramsSigned);
-                signature = this.hmac(this.encode(bodySigned), this.encode(this.secret), sha256, "hex");
+                signature = this.hmac(bodySigned, this.secret, sha256, "hex");
             }
             headersSigned = new Dictionary<string, object>() {
                 { "Referrer", "ccxt" },
@@ -2316,8 +2316,8 @@ public partial class zebpay : Exchange
         string? message = this.safeString2(response, "msg", "statusDescription", "");
         string feedback = ((this.id + " ") + message);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         return null;
     }
 }

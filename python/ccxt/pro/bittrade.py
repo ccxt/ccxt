@@ -310,7 +310,7 @@ class bittrade(ccxt.async_support.bittrade):
             'symbol': symbolValue,
             'limit': limitValue,
             'params': params,
-            'method': self.handle_order_book_subscription,
+            'method': 'handleOrderBookSubscription',
         }
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         return orderbook.limit()
@@ -382,7 +382,7 @@ class bittrade(ccxt.async_support.bittrade):
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
-                'method': self.handle_order_book_snapshot,
+                'method': 'handleOrderBookSnapshot',
             }
             orderbook = await self.watch(url, str(requestId), request, str(requestId), snapshotSubscription)
             return orderbook.limit()
@@ -502,9 +502,13 @@ class bittrade(ccxt.async_support.bittrade):
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id)
         if subscription is not None:
-            method = self.safe_value(subscription, 'method')
-            if method is not None:
-                return method(client, message, subscription)
+            method = self.safe_string(subscription, 'method')
+            if method == 'handleOrderBookSnapshot':
+                self.handle_order_book_snapshot(client, message, subscription)
+                return None
+            elif method == 'handleOrderBookSubscription':
+                self.handle_order_book_subscription(client, message, subscription)
+                return None
             # clean up
             if id in client.subscriptions:
                 del client.subscriptions[id]

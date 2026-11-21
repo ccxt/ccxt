@@ -562,6 +562,7 @@ export default class blofin extends blofinRest {
         // the merged currencies by safeBalance
         this.balance[marketType] = this.safeDict(this.balance, marketType, {});
         const parsed = this.parseWsBalance(message);
+        const marketBalance = this.safeDict(this.balance, marketType, {});
         const reserved = ['free', 'used', 'total'];
         const keys = Object.keys(parsed);
         for (let i = 0; i < keys.length; i++) {
@@ -569,8 +570,9 @@ export default class blofin extends blofinRest {
             if (this.inArray(key, reserved)) {
                 continue;
             }
-            this.balance[marketType][key] = parsed[key];
+            marketBalance[key] = parsed[key];
         }
+        this.balance[marketType] = marketBalance;
         this.balance[marketType] = this.safeBalance(this.balance[marketType]);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);

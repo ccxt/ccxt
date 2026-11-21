@@ -884,8 +884,12 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 			panic(r1.Err)
 		}
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var list []any = SafeListTypedDefault(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var list []any
+	list, _ = data["list"].([]any)
+	if list == nil {
+		list = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(list))}
 	return nil
@@ -941,7 +945,7 @@ func (this *Tokocrypto) ParseMarket(market any) map[string]any {
 		},
 	}
 	if _, ok := filtersByType["PRICE_FILTER"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
+		var filter, _ = filtersByType["PRICE_FILTER"].(map[string]any)
 		// PRICE_FILTER reports zero values for maxPrice
 		// since they updated filter types in November 2018
 		// https://github.com/ccxt/ccxt/issues/4286
@@ -953,7 +957,7 @@ func (this *Tokocrypto) ParseMarket(market any) map[string]any {
 		precision["price"] = filter["tickSize"]
 	}
 	if _, ok := filtersByType["LOT_SIZE"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
+		var filter, _ = filtersByType["LOT_SIZE"].(map[string]any)
 		precision["amount"] = this.SafeNumber(filter, "stepSize")
 		limits["amount"] = map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
@@ -961,7 +965,7 @@ func (this *Tokocrypto) ParseMarket(market any) map[string]any {
 		}
 	}
 	if _, ok := filtersByType["MARKET_LOT_SIZE"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
+		var filter, _ = filtersByType["MARKET_LOT_SIZE"].(map[string]any)
 		limits["market"] = map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
 			"max": this.SafeNumber(filter, "maxQty"),
@@ -998,7 +1002,7 @@ func (this *Tokocrypto) ParseMarket(market any) map[string]any {
 		"info":           market,
 	}
 	if _, ok := filtersByType["MIN_NOTIONAL"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
+		var filter, _ = filtersByType["MIN_NOTIONAL"].(map[string]any)
 		costMin = this.SafeNumber2(filter, "minNotional", "notional")
 	}
 	return entry
@@ -1038,7 +1042,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 		"symbol": this.GetMarketIdByType(market),
 	}
 	if limit != nil {
-		request["limit"] = limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
+		request["limit"] = *limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
 	}
 	var response map[string]any = nil
 	if this.IsNativeMarket(market) {
@@ -1085,7 +1089,11 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	//         },
 	//         "timestamp":1692262634599
 	//     }
-	var data any = this.SafeDict(response, "data", response)
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = response
+	}
 	var timestamp *int64 = this.SafeInteger2(response, "T", "timestamp")
 	var orderbook map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	orderbook["nonce"] = this.SafeInteger(data, "lastUpdateId")
@@ -1202,23 +1210,26 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var buyerMaker *bool = this.SafeBool2(trade, "m", "isBuyerMaker")
 	var takerOrMaker *string = nil
 	if buyerMaker != nil {
-		side = SafeStringPtr(func() string {
-			if buyerMaker != nil && *buyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()) // this is reversed intentionally
-		takerOrMaker = SafeStringPtr("taker")
+		var sideStr string
+		if buyerMaker != nil && *buyerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
+		side = &sideStr // this is reversed intentionally
+		takerOrMakerStr := "taker"
+		takerOrMaker = &takerOrMakerStr
 	} else if this.SafeString(trade, "side") != nil {
 		side = this.SafeStringLower(trade, "side")
 	} else {
 		if this.SafeString(trade, "isBuyer") != nil {
-			side = SafeStringPtr(func() string {
-				if *this.SafeBool(trade, "isBuyer", false) {
-					return "buy"
-				}
-				return "sell"
-			}()) // this is a true side
+			var sideStr2 string
+			if *this.SafeBool(trade, "isBuyer", false) {
+				sideStr2 = "buy"
+			} else {
+				sideStr2 = "sell"
+			}
+			side = &sideStr2 // this is a true side
 		}
 	}
 	var fee map[string]any = nil
@@ -1229,20 +1240,22 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	if this.SafeString(trade, "isMaker") != nil {
-		takerOrMaker = SafeStringPtr(func() string {
-			if *this.SafeBool(trade, "isMaker", false) {
-				return "maker"
-			}
-			return "taker"
-		}())
+		var takerOrMakerStr2 string
+		if *this.SafeBool(trade, "isMaker", false) {
+			takerOrMakerStr2 = "maker"
+		} else {
+			takerOrMakerStr2 = "taker"
+		}
+		takerOrMaker = &takerOrMakerStr2
 	}
 	if this.SafeString(trade, "maker") != nil {
-		takerOrMaker = SafeStringPtr(func() string {
-			if *this.SafeBool(trade, "maker", false) {
-				return "maker"
-			}
-			return "taker"
-		}())
+		var takerOrMakerStr3 string
+		if *this.SafeBool(trade, "maker", false) {
+			takerOrMakerStr3 = "maker"
+		} else {
+			takerOrMakerStr3 = "taker"
+		}
+		takerOrMaker = &takerOrMakerStr3
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1273,12 +1286,12 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Tokocrypto) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Tokocrypto) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1302,7 +1315,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 	request["symbol"] = this.GetMarketIdByType(market)
 	if this.IsNativeMarket(market) {
 		if limit != nil {
-			request["limit"] = limit
+			request["limit"] = *limit
 		}
 		// open/v1/market/trades answers an empty list for every market, the
 		// aggregate endpoint is the one that carries data for these markets
@@ -1332,20 +1345,24 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 		//        "timestamp": 1787318052414
 		//    }
 		//
-		var data map[string]any = SafeMapTyped(responseInner, "data")
-		var list []any = SafeListTypedDefault(data, "list", []any{})
+		var data, _ = responseInner["data"].(map[string]any)
+		var list []any
+		list, _ = data["list"].([]any)
+		if list == nil {
+			list = []any{}
+		}
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(list, market, since, limit))}
 		return nil
 	}
 	if limit != nil {
-		request["limit"] = limit // default = 500, maximum = 1000
+		request["limit"] = *limit // default = 500, maximum = 1000
 	}
 	var defaultMethod string = "binanceGetTrades"
 	var method *string = this.SafeString(this.Options, "fetchTradesMethod", defaultMethod)
 	var response []any = nil
 	if (method != nil && *method == "binanceGetAggTrades") && (since != nil) {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// https://github.com/ccxt/ccxt/issues/6400
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
 		request["endTime"] = *since + 3600000
@@ -1469,7 +1486,7 @@ func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		baseVolume = this.SafeString(ticker, "volume")
 		quoteVolume = this.SafeString(ticker, "quoteVolume")
 	}
-	return this.SafeTicker(map[string]any{
+	var literal128332 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1487,10 +1504,17 @@ func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"change":        this.SafeString(ticker, "priceChange"),
 		"percentage":    this.SafeString(ticker, "priceChangePercent"),
 		"average":       nil,
-		"baseVolume":    baseVolume,
-		"quoteVolume":   quoteVolume,
+		"baseVolume":    nil,
+		"quoteVolume":   nil,
 		"info":          ticker,
-	}, market)
+	}
+	if baseVolume != nil {
+		literal128332["baseVolume"] = *baseVolume
+	}
+	if quoteVolume != nil {
+		literal128332["quoteVolume"] = *quoteVolume
+	}
+	return this.SafeTicker(literal128332, market)
 }
 
 /**
@@ -1569,11 +1593,12 @@ func (this *Tokocrypto) IsNativeMarket(market map[string]any) bool {
  * @param {object} market a unified market structure
  * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
  */
-func (this *Tokocrypto) GetMarketIdByType(market map[string]any) any {
+func (this *Tokocrypto) GetMarketIdByType(market map[string]any) *string {
 	if this.IsNativeMarket(market) {
 		return this.SafeString(market, "id")
 	}
-	return *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
+	retStrVal := *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
+	return &retStrVal
 }
 
 /**
@@ -1764,7 +1789,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	}
 	// const duration = this.parseTimeframe (timeframe);
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if until != nil {
 		request["endTime"] = until
@@ -1902,7 +1927,7 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan AsyncResult[Balances], optional
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceCustom(response, typeVar, marginMode))}
 	return nil
 }
-func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) map[string]any {
+func (this *Tokocrypto) ParseBalanceCustom(response map[string]any, optionalArgs ...any) map[string]any {
 	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = typeVar
 	var marginMode *string = GetArgStringPtr(optionalArgs, 1, nil)
@@ -1913,10 +1938,11 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) ma
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var balances []any = SafeListTyped(data, "accountAssets")
+	var data, _ = response["data"].(map[string]any)
+	var balances []any
+	balances, _ = data["accountAssets"].([]any)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2065,11 +2091,13 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 	var typeVar *string = this.ParseOrderType(rawOrderType)
 	var side *string = this.SafeStringLower(order, "side")
 	if side != nil && *side == "0" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "1" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
-	var fills []any = SafeListTypedDefault(order, "fills", []any{})
+	var fills []any = this.SafeListSlice(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString2(order, "clientOrderId", "clientId")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
 	// the order type carries the post only flag on its own, 7 on the open/v1
@@ -2222,7 +2250,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		request["side"] = 1
 	}
 	if clientOrderId == nil {
-		var broker map[string]any = SafeMapTyped(this.Options, "broker")
+		var broker, _ = this.Options["broker"].(map[string]any)
 		if broker != nil {
 			var brokerId *string = this.SafeString(broker, "marketType")
 			if brokerId != nil {
@@ -2370,7 +2398,11 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	//         "timestamp": 1662710994975
 	//     }
 	//
-	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var rawOrder map[string]any
+	rawOrder, _ = response["data"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder, market)}
 	return nil
@@ -2437,9 +2469,16 @@ func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[Order], id string, op
 	//         "timestamp": 1662710056523
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var list []any = SafeListTyped(data, "list")
-	var rawOrder map[string]any = this.SafeDictMap(list, 0, map[string]any{})
+	var data, _ = response["data"].(map[string]any)
+	var list []any
+	list, _ = data["list"].([]any)
+	var rawOrder map[string]any
+	if 0 < len(list) {
+		rawOrder, _ = list[0].(map[string]any)
+	}
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder)}
 	return nil
@@ -2487,10 +2526,10 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		"symbol": market["id"],
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOpenV1Orders(this.Extend(request, params))
@@ -2531,8 +2570,12 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//         "timestamp": 1572860756458
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = SafeListTypedDefault(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var orders []any
+	orders, _ = data["list"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2684,7 +2727,11 @@ func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[Order], id string, o
 	//         "timestamp": 1662710683634
 	//     }
 	//
-	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var rawOrder map[string]any
+	rawOrder, _ = response["data"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder)}
 	return nil
@@ -2733,19 +2780,19 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	}
 	var endTime *int64 = this.SafeInteger2(params, "until", "endTime")
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	}
-	var paramsOmitted map[string]any = func() map[string]any {
-		if endTime != nil {
-			return this.OmitDict(params, []any{"endTime", "until"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if endTime != nil {
+		paramsOmitted = this.OmitDict(params, []any{"endTime", "until"})
+	} else {
+		paramsOmitted = params
+	}
 	if endTime != nil {
 		request["endTime"] = endTime
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, paramsOmitted))
@@ -2778,8 +2825,12 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	//         "timestamp": 1573723498893
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = SafeListTypedDefault(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["list"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2811,30 +2862,33 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"asset": currency["id"],
+		"asset": nil,
 	}
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
+	if currency.Id != nil {
+		request["asset"] = *currency.Id
+	}
+	var networks, _ = this.Options["networks"].(map[string]any)
 	var network *string = this.SafeStringUpper(params, "network") // this line allows the user to specify either ERC20 or ETH
 	network = this.SafeString(networks, network, network)         // handle ERC20>ETH alias
-	var paramsOmitted map[string]any = func() map[string]any {
-		if network != nil {
-			return this.OmitDict(params, "network")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if network != nil {
+		paramsOmitted = this.OmitDict(params, "network")
+	} else {
+		paramsOmitted = params
+	}
 	if network != nil {
 		request["network"] = network
 	}
 	// has support for the 'network' parameter
 	// https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
 
-	r1 := <-this.PrivateGetOpenV1DepositsAddress(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetOpenV1DepositsAddress(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "code":0,
@@ -2850,7 +2904,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 	//         "timestamp":1660685915746
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var address *string = this.SafeString(data, "address")
 	var tag *string = this.SafeString(data, "addressTag", "")
 	if len(*tag) == 0 {
@@ -2859,7 +2913,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 	this.CheckAddress(address)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": code,
 		"network":  this.NetworkIdToCode(this.SafeString(data, "network"), code),
 		"address":  address,
@@ -2911,7 +2965,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
 		var endTime int64 = *since + 7776000000
 		if until != nil {
@@ -2920,7 +2974,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 		request["endTime"] = endTime
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOpenV1Deposits(this.Extend(request, params))
@@ -2951,8 +3005,12 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 	//         "timestamp":1659758865998
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var deposits []any = SafeListTypedDefault(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var deposits []any
+	deposits, _ = data["list"].([]any)
+	if deposits == nil {
+		deposits = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, currency, since, limit))}
 	return nil
@@ -2999,12 +3057,12 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 		request["coin"] = currency["id"]
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
 		request["endTime"] = *since + 7776000000
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.PrivateGetOpenV1Withdraws(this.Extend(request, params))
@@ -3037,8 +3095,12 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 	//         "timestamp":1659759062187
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var withdrawals []any = SafeListTypedDefault(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var withdrawals []any
+	withdrawals, _ = data["list"].([]any)
+	if withdrawals == nil {
+		withdrawals = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawals, currency, since, limit))}
 	return nil
@@ -3120,13 +3182,13 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
 	}
 	var txid *string = this.SafeString(transaction, "txId")
 	if (txid != nil) && (strings.Index(*txid, "Internal transfer ") >= 0) {
-		txid = SafeStringPtr(func() string {
-			if txid == nil {
-				return ""
-			}
+		var txidPart string
+		if txid != nil {
 			str := *txid
-			return str[18:]
-		}())
+			txidPart = str[18:]
+		}
+		txidStr := txidPart
+		txid = &txidStr
 	}
 	var currencyId *string = this.SafeString2(transaction, "coin", "fiatCurrency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -3136,10 +3198,12 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
 	var typeVar *string = this.SafeString(transaction, "type")
 	if typeVar == nil {
 		if (insertTime != nil) && (createTime == nil) {
-			typeVar = SafeStringPtr("deposit")
+			typeVarStr := "deposit"
+			typeVar = &typeVarStr
 			timestamp = insertTime
 		} else if (insertTime == nil) && (createTime != nil) {
-			typeVar = SafeStringPtr("withdrawal")
+			typeVarStr2 := "withdrawal"
+			typeVar = &typeVarStr2
 			timestamp = createTime
 		}
 	}
@@ -3162,7 +3226,8 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
 	if id == nil {
 		var data map[string]any = SafeMapTyped(transaction, "data")
 		id = this.SafeString(data, "withdrawId")
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr3 := "withdrawal"
+		typeVar = &typeVarStr3
 	}
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
@@ -3200,12 +3265,12 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Tokocrypto) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Tokocrypto) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3281,13 +3346,13 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 				"X-MBX-APIKEY": this.ApiKey,
 				"Content-Type": "application/x-www-form-urlencoded",
 			}
-			var bodyStream *string = func() *string {
-				if method != "GET" {
-					urlencodeText := this.Urlencode(params)
-					return &urlencodeText
-				}
-				return nil
-			}()
+			var bodyStream *string
+			if method != "GET" {
+				retStr := this.Urlencode(params)
+				bodyStream = &retStr
+			} else {
+				bodyStream = nil
+			}
 			return map[string]any{
 				"url":     url,
 				"method":  method,
@@ -3328,15 +3393,20 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 		if queryInUrl {
 			url += "?" + query
 		} else {
-			bodySigned = SafeStringPtr(query)
+			bodySignedStr := query
+			bodySigned = &bodySignedStr
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		return map[string]any{
+		var literal274819 map[string]any = map[string]any{
 			"url":     url,
 			"method":  method,
-			"body":    bodySigned,
+			"body":    nil,
 			"headers": headersSigned,
 		}
+		if bodySigned != nil {
+			literal274819["body"] = *bodySigned
+		}
+		return literal274819
 	} else {
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url += "?" + this.Urlencode(params)
@@ -3437,11 +3507,17 @@ func (this *Tokocrypto) CalculateRateLimiterCost(api any, method string, path st
 	_ = config
 	var paramsDict map[string]any = this.Extend(map[string]any{}, params)
 	var byLimit []any = SafeListTyped(config, "byLimit")
-	if (func() bool { _, ok := paramsDict["noCoin"]; return ok }()) && !(func() bool { _, ok := paramsDict["coin"]; return ok }()) {
+	_, has1 := paramsDict["noCoin"]
+	_, has2 := paramsDict["coin"]
+	_, has3 := paramsDict["noSymbol"]
+	_, has4 := paramsDict["symbol"]
+	_, has5 := paramsDict["noPoolId"]
+	_, has6 := paramsDict["poolId"]
+	if has1 && !has2 {
 		return this.SafeInteger(config, "noCoin")
-	} else if (func() bool { _, ok := paramsDict["noSymbol"]; return ok }()) && !(func() bool { _, ok := paramsDict["symbol"]; return ok }()) {
+	} else if has3 && !has4 {
 		return this.SafeInteger(config, "noSymbol")
-	} else if (func() bool { _, ok := paramsDict["noPoolId"]; return ok }()) && !(func() bool { _, ok := paramsDict["poolId"]; return ok }()) {
+	} else if has5 && !has6 {
 		return this.SafeInteger(config, "noPoolId")
 	} else if _, ok := paramsDict["limit"]; ok {
 		var limit *int64 = this.SafeInteger(paramsDict, "limit")

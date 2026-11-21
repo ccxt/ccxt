@@ -250,8 +250,8 @@ public partial class bitopro : Exchange
                     { "maker", this.parseNumber("0.001") },
                     { "taker", this.parseNumber("0.002") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.00194")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("550000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("1300000000"), this.parseNumber("0.0011")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.00097")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("550000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("1300000000"), this.parseNumber("0.0003")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {3000000.0, 0.00194}, new List<object> {5000000.0, 0.0015}, new List<object> {30000000.0, 0.0014}, new List<object> {300000000.0, 0.0013}, new List<object> {550000000.0, 0.0012}, new List<object> {1300000000.0, 0.0011}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.001}, new List<object> {3000000.0, 0.00097}, new List<object> {5000000.0, 0.0007}, new List<object> {30000000.0, 0.0006}, new List<object> {300000000.0, 0.0005}, new List<object> {550000000.0, 0.0004}, new List<object> {1300000000.0, 0.0003}} },
                     } },
                 } },
             } },
@@ -646,7 +646,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -1023,16 +1023,16 @@ public partial class bitopro : Exchange
         {
             timestamp = since;
         }
-        object i = 0;
+        Int64 i = 0;
         int candleLength = candles?.Count ?? 0;
-        object resultLength = 0;
-        while ((isLessThan(resultLength, limit)) && (isLessThan(i, candleLength)))
+        Int64 resultLength = 0;
+        while ((isLessThan(resultLength, limit)) && (i < candleLength))
         {
             List<object> candle = this.safeList(candles, i, new List<object>() {});
             if (isEqual((candle != null && 0 < candle.Count ? candle[0] : null), timestamp))
             {
                 result.Add(candle);
-                i = this.sum(i, 1);
+                i = (i + 1);
             } else
             {
                 // set open, high, low to close
@@ -1041,7 +1041,7 @@ public partial class bitopro : Exchange
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = (result?.Count ?? 0);
-            copyFrom = this.safeList(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(resultLength, 1));
+            copyFrom = this.safeList(result, (resultLength - 1));
         }
         return result;
     }
@@ -1060,7 +1060,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(rows, i);
@@ -2082,7 +2082,7 @@ public partial class bitopro : Exchange
             if ((method == "POST") || (method == "PUT"))
             {
                 string payload = this.stringToBase64(signedBody);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                string signature = this.hmac(payload, this.secret, sha384);
                 requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
                 requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
                 requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
@@ -2098,7 +2098,7 @@ public partial class bitopro : Exchange
                 };
                 string data = this.json(rawData);
                 string payload = this.stringToBase64(data);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                string signature = this.hmac(payload, this.secret, sha384);
                 requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
                 requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
                 requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
@@ -2131,13 +2131,13 @@ public partial class bitopro : Exchange
             return null;  // fallback to the default error handler
         }
         Int64? statusCode = this.parseToInt(code);
-        if ((statusCode >= 200) && ((statusCode == null || statusCode < 300)))
+        if (statusCode >= 200 && ((statusCode == null || statusCode < 300)))
         {
             return null;
         }
         string feedback = ((this.id + " ") + (body));
         string? error = this.safeString(response, "error");
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
         throw new ExchangeError (feedback) ;
     }

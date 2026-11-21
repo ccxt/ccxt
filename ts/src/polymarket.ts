@@ -2600,15 +2600,15 @@ export default class polymarket extends Exchange {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any): string {
-        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const sVal = signature['s'];
+    signHash (hash: string, privateKey: Str): string {
+        const signature = ecdsa (hash.slice (-64), (privateKey as string).slice (-64), secp256k1, undefined);
+        const r = this.safeString (signature, 'r', '');
+        const sVal = this.safeString (signature, 's', '');
         const v = this.intToBase16 (this.sum (27, signature['v']));
         return '0x' + r.padStart (64, '0') + sVal.padStart (64, '0') + v;
     }
 
-    signMessage (message: any, privateKey: any): string {
+    signMessage (message: any, privateKey: Str): string {
         return this.signHash (this.hashMessage (message), privateKey);
     }
 
@@ -2699,7 +2699,7 @@ export default class polymarket extends Exchange {
             if (expires === undefined) {
                 return credentials;
             }
-            const refreshAfter = expires - margin;
+            const refreshAfter = this.parseToInt (expires - margin);
             if (this.milliseconds () < refreshAfter) {
                 return credentials;
             }
@@ -2766,7 +2766,7 @@ export default class polymarket extends Exchange {
      * @param {any[]} row the positional array to compact
      * @returns {any[]} the compacted array
      */
-    compactSignable (row: any[]) {
+    compactSignable (row: any[]): any[] {
         const result = [];
         for (let i = 0; i < row.length; i++) {
             if (row[i] !== undefined) {

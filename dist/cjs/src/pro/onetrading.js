@@ -233,16 +233,15 @@ class onetrading extends onetrading$1["default"] {
             const ticker = tickers[i];
             const marketId = this.safeString(ticker, 'instrument');
             const symbol = this.safeSymbol(marketId);
-            const parsedTicker = this.parseWSTicker(ticker);
             const timestamp = this.parse8601(datetime);
-            parsedTicker['timestamp'] = timestamp;
-            parsedTicker['datetime'] = this.iso8601(timestamp);
+            const isoDatetime = this.iso8601(timestamp);
+            const parsedTicker = this.parseWSTicker(ticker, undefined, timestamp, isoDatetime);
             this.tickers[symbol] = parsedTicker;
             client.resolve(parsedTicker, 'ticker.' + symbol);
         }
         client.resolve(this.tickers, 'tickers');
     }
-    parseWSTicker(ticker, market = undefined) {
+    parseWSTicker(ticker, market, timestamp, datetime) {
         //
         //     {
         //         "instrument": "ETH_BTC",
@@ -257,8 +256,8 @@ class onetrading extends onetrading$1["default"] {
         const marketId = this.safeString(ticker, 'instrument');
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': undefined,

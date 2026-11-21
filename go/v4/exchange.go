@@ -55,6 +55,7 @@ type BaseExchange struct {
 	requestIds           map[string]int64
 	lastNonce            int64
 	lastNonceSet         bool
+	requestBook          requestBookMu
 	RequiredCredentials  map[string]any
 	HttpExceptions       map[string]any
 	Timeframes           map[string]any
@@ -96,7 +97,7 @@ type BaseExchange struct {
 	ReduceFees           bool
 
 	AccountsById any
-	Accounts     any
+	Accounts     []any
 
 	// timestamps
 	LastRestRequestTimestamp int64
@@ -110,23 +111,23 @@ type BaseExchange struct {
 	Last_request_body     any
 	Last_request_url      any
 	LastRequestUrl        string
-	Headers               any
+	Headers               map[string]any
 	ReturnResponseHeaders bool
 
 	// type check this
 	Number any
 	// keys: plain strings, so `this.ApiKey + ":" + this.Secret` is a native Go concat and an
-	// absent key is "" rather than a nil box. Token/Login/Twofa stay boxed (SetToken writes raw).
+	// absent key is "" rather than a nil box. Token stays boxed (SetToken writes raw).
 	Secret        string
 	ApiKey        string
 	Password      string
 	Uid           string
 	AccountId     string
 	Token         interface{}
-	Login         interface{}
+	Login         string
 	PrivateKey    string
 	WalletAddress string
-	Twofa         interface{}
+	Twofa         string
 
 	httpClient   *http.Client
 	lastProxyURL string
@@ -198,7 +199,7 @@ type BaseExchange struct {
 	FetchHistoryCache     *ConcurrentListForRequests
 
 	// ws
-	WsClients map[string]any // one websocket client per URL
+	WsClients map[string]*WSClient // one websocket client per URL
 	// the venue frame handler, resolved on the first frame
 	wsHandler func(client any, message any)
 	// ownersStarted guards startOwners (markets load and aux tables only); it is set in the
@@ -209,7 +210,7 @@ type BaseExchange struct {
 	Positions       WsArrayCache            // one cache object, nil until a handler creates it
 	PositionsByType map[string]WsArrayCache // one cache per account type / subaccount
 	// the ws client registry, a plain map keyed by url
-	Clients    map[string]any
+	Clients    map[string]*WSClient
 	newUpdates bool
 	streaming  map[string]any
 
@@ -218,6 +219,9 @@ type BaseExchange struct {
 	// re-derives them after every write) and a read is the dictionary's own map index.
 	UrlsApi         map[string]any            // urls["api"], exactly as stored
 	UrlsApiSections map[string]map[string]any // urls["api"] entries that are dictionaries
+	// the string leaves of UrlsApi / UrlsApiSections, as *string (an absent or non-string entry reads nil)
+	UrlsApiStrings        map[string]*string
+	UrlsApiSectionStrings map[string]map[string]*string
 }
 
 // Exchange is the thin, public REST exchange type. All shared infrastructure lives in the
@@ -278,7 +282,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// the liquidation caches start empty: every reader creates the ArrayCache on nil
 	this.Liquidations = nil
 	this.MyLiquidations = nil
-	this.Clients = make(map[string]any)
+	this.Clients = make(map[string]*WSClient)
 	this.Balance = map[string]any{}
 
 	// beforeNs := time.Now().UnixNano()
@@ -487,7 +491,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
-		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
+		if has, isBool := derefScalar(hasFetchCurrencies).(bool); isBool && has {
 			// a nil currencies map stays untyped nil: SetMarkets reads it as "not fetched"
 			if fetchedCurrencies := (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value; fetchedCurrencies != nil {
 				currencies = fetchedCurrencies
@@ -787,10 +791,22 @@ func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value 
 		} else if v == "false" {
 			return &f
 		}
-	case int, int64, float64:
-		if n := ToFloat64(v); n == 1 {
+	case int:
+		if v == 1 {
 			return &t
-		} else if n == 0 {
+		} else if v == 0 {
+			return &f
+		}
+	case int64:
+		if v == 1 {
+			return &t
+		} else if v == 0 {
+			return &f
+		}
+	case float64:
+		if v == 1 {
+			return &t
+		} else if v == 0 {
 			return &f
 		}
 	}
@@ -829,16 +845,27 @@ func optionMethodLabel(methodName any) string {
 func (this *BaseExchange) RefreshUrlsViews() {
 	this.UrlsApi = MapTyped(this.Urls["api"])
 	this.UrlsApiSections = nil
+	this.UrlsApiStrings = nil
+	this.UrlsApiSectionStrings = nil
 	if this.UrlsApi == nil {
 		return
 	}
 	sections := make(map[string]map[string]any, len(this.UrlsApi))
+	leaves := make(map[string]*string, len(this.UrlsApi))
+	sectionLeaves := make(map[string]map[string]*string, len(this.UrlsApi))
 	for key, value := range this.UrlsApi {
+		leaves[key] = SafeStringPtr(value)
 		if section := MapTyped(value); section != nil {
 			sections[key] = section
+			sectionLeaves[key] = make(map[string]*string, len(section))
+			for entry, leaf := range section {
+				sectionLeaves[key][entry] = SafeStringPtr(leaf)
+			}
 		}
 	}
 	this.UrlsApiSections = sections
+	this.UrlsApiStrings = leaves
+	this.UrlsApiSectionStrings = sectionLeaves
 }
 
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan AsyncResult[any] {
@@ -1429,29 +1456,29 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	msgHash := parseStarknetBigInt(a)
 	privateKey := parseStarknetBigInt(b)
 	if msgHash == nil || privateKey == nil {
-		panic(AuthenticationError(Add(this.Id, " extendedStarknetSign() invalid msgHash or privateKey")))
+		panic(AuthenticationError(this.Id+" extendedStarknetSign() invalid msgHash or privateKey"))
 	}
 	r, s, err := starknetSign(msgHash, privateKey)
 	if err != nil {
-		panic(AuthenticationError(Add(this.Id, Add(" extendedStarknetSign() failed: ", err.Error()))))
+		panic(AuthenticationError(this.Id+" extendedStarknetSign() failed: "+err.Error()))
 	}
 	return this.Json([]any{r.String(), s.String()})
 }
 
-func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) string {
-	return starknetGetSelectorFromName(ToString(a)).String()
+func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a string) string {
+	return starknetGetSelectorFromName(a).String()
 }
 
 func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) string {
 	values, ok := derefScalar(a).([]any)
 	if !ok {
-		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
+		panic(ExchangeError(this.Id+" extendedStarknetComputePoseidonHashOnElements() requires an array"))
 	}
 	felts := make([]*starkfelt.Felt, 0, len(values))
 	for _, value := range values {
 		bigValue := parseStarknetBigInt(value)
 		if bigValue == nil {
-			panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() invalid felt value")))
+			panic(ExchangeError(this.Id+" extendedStarknetComputePoseidonHashOnElements() invalid felt value"))
 		}
 		felts = append(felts, new(starkfelt.Felt).SetBigInt(bigValue))
 	}
@@ -1616,7 +1643,14 @@ func (this *BaseExchange) UpdateProxySettings() {
 	socksProxy := this.SafeString(proxies, 2)
 
 	hasHttProxyDefined := (httProxy != nil) || (httpsProxy != nil) || (socksProxy != nil)
-	this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
+	// same pick as the ts fetch path: the first non-empty agent proxy, else socksProxy
+	anyProxySet := socksProxy
+	if httProxy != nil && *httProxy != "" {
+		anyProxySet = httProxy
+	} else if httpsProxy != nil && *httpsProxy != "" {
+		anyProxySet = httpsProxy
+	}
+	this.CheckConflictingProxies(anyProxySet, proxyUrl)
 
 	if hasHttProxyDefined {
 		proxyUrlStr := ""
@@ -1889,11 +1923,7 @@ func (this *BaseExchange) Client(url any) *WSClient {
 	// pointer-carried string; normalize once so the assertions below hold
 	url = derefScalar(url)
 	// get-or-create: one client per URL
-	created := this.wsClientGetOrCreate(url.(string), func() any { return this.newWsClient(url) })
-	if client, ok := created.(*WSClient); ok {
-		return client
-	}
-	return nil
+	return this.wsClientGetOrCreate(url.(string), func() *WSClient { return this.newWsClient(url) })
 }
 
 // newWsClient builds one ws client for url.
@@ -2385,7 +2415,7 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResul
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		_ = outcomeSymbol
-		panic(NotSupported(Add(this.Id, " fetchOutcome() is not supported yet")))
+		panic(NotSupported(this.Id+" fetchOutcome() is not supported yet"))
 	}()
 	return ch
 }
@@ -2399,7 +2429,7 @@ func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncRes
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		_ = outcomeSymbols
-		panic(NotSupported(Add(this.Id, " fetchOutcomes() is not supported yet")))
+		panic(NotSupported(this.Id+" fetchOutcomes() is not supported yet"))
 	}()
 	return ch
 }
@@ -2409,7 +2439,7 @@ func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncRes
 func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 	_ = tx
 	_ = privateKey
-	panic(NotSupported(Add(this.Id, " signEvmTransaction() is not supported yet")))
+	panic(NotSupported(this.Id+" signEvmTransaction() is not supported yet"))
 }
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
@@ -2423,7 +2453,7 @@ func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResu
 		_ = queries
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
+		panic(NotSupported(this.Id+" fetchEvents() is not supported yet"))
 	}()
 	return ch
 }
@@ -2498,10 +2528,10 @@ func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
 	}
 	wsOptions := SafeValue(this.Options, "ws", map[string]interface{}{})
 	backoff := SafeValue(wsOptions, "backoff", map[string]interface{}{})
-	base := ParseInt(SafeInteger(backoff, "base", 1000))
-	factor := ParseInt(SafeInteger(backoff, "factor", 2))
-	maxDelay := ParseInt(SafeInteger(backoff, "max", 60000))
-	stableAfter := ParseInt(SafeInteger(backoff, "stableAfter", 30000))
+	base := *this.SafeInteger(backoff, "base", 1000)
+	factor := *this.SafeInteger(backoff, "factor", 2)
+	maxDelay := *this.SafeInteger(backoff, "max", 60000)
+	stableAfter := *this.SafeInteger(backoff, "stableAfter", 30000)
 	now := this.Milliseconds()
 	state, ok := this.wsBackoffState[url]
 	if !ok {

@@ -281,7 +281,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response1response2Variable []any = ListTyped(r.Value)
+	var response1response2Variable []any = r.Value
 	response1 := response1response2Variable[0]
 	response2 := response1response2Variable[1]
 	//
@@ -422,7 +422,7 @@ func (this *Btcbox) ParseMarket(market any) map[string]any {
 		"info":    market,
 	})
 }
-func (this *Btcbox) ParseBalance(response any) map[string]any {
+func (this *Btcbox) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -435,10 +435,13 @@ func (this *Btcbox) ParseBalance(response any) map[string]any {
 	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
-		var currency map[string]any = this.Currency(code)
-		var currencyId string = *this.SafeString(currency, "id", "")
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		var currencyId string = ""
+		if currency.Id != nil {
+			currencyId = *currency.Id
+		}
 		var free string = currencyId + "_balance"
-		if InOp(response, free) {
+		if _, ok := response[free]; ok {
 			var account map[string]any = this.Account()
 			var used string = currencyId + "_lock"
 			account["free"] = this.SafeString(response, free)
@@ -514,11 +517,14 @@ func (this *Btcbox) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
-		request["coin"] = market["baseId"]
+		request["coin"] = nil
+		if market.BaseId != nil {
+			request["coin"] = *market.BaseId
+		}
 	}
 
 	r1 := <-this.PublicGetDepth(this.Extend(request, params))
@@ -527,7 +533,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"]))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol))}
 	return nil
 }
 func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -688,12 +694,12 @@ func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Btcbox) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Btcbox) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btcbox) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Btcbox) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -889,7 +895,8 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) Order {
 	// fetchOrders do not return status, use heuristic
 	if status == nil {
 		if Precise.StringEquals(remaining, "0") {
-			status = SafeStringPtr("closed")
+			statusStr := "closed"
+			status = &statusStr
 		}
 	}
 	var trades any = nil // todo: this.parseTrades (order['trades']);
@@ -1158,7 +1165,7 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) map[string]any {
 			"nonce": nonce,
 		}, params)
 		var request string = this.Urlencode(query)
-		var secret any = this.Hash(this.Encode(this.Secret), md5)
+		var secret string = this.HashString(this.Encode(this.Secret), md5, "hex")
 		query["signature"] = this.Hmac(this.Encode(request), this.Encode(secret), sha256)
 		var signedBody string = this.Urlencode(query)
 		var signedHeaders map[string]any = map[string]any{

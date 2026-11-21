@@ -1115,9 +1115,9 @@ class phemex(Exchange, ImplicitAPI):
         products = self.safe_list(v2ProductsData, 'products', [])
         perpetualProductsV2 = self.safe_list(v2ProductsData, 'perpProductsV2', [])
         products = self.array_concat(products, perpetualProductsV2)
-        riskLimits = self.safe_list(v2ProductsData, 'riskLimits', [])
+        riskLimitsV1 = self.safe_list(v2ProductsData, 'riskLimits', [])
         riskLimitsV2 = self.safe_list(v2ProductsData, 'riskLimitsV2', [])
-        riskLimits = self.array_concat(riskLimits, riskLimitsV2)
+        riskLimits = self.array_concat(riskLimitsV1, riskLimitsV2)
         currencies = self.safe_list(v2ProductsData, 'currencies', [])
         riskLimitsById = self.index_by(riskLimits, 'symbol')
         v1ProductsById = self.index_by(v1ProductsData, 'symbol')
@@ -1302,7 +1302,7 @@ class phemex(Exchange, ImplicitAPI):
             return None
         stringN = self.number_to_string(n)
         precise = Precise(stringN)
-        precise.decimals = self.sum(precise.decimals, scale * -1)
+        precise.decimals = self.sum(precise.decimals, self.parse_to_int(scale * -1))
         precise.reduce()
         preciseString = str(precise)
         return self.parse_to_numeric(preciseString)
@@ -1321,7 +1321,7 @@ class phemex(Exchange, ImplicitAPI):
         if en is None or scale is None:
             return None
         precise = Precise(en)
-        precise.decimals = self.sum(precise.decimals, scale)
+        precise.decimals = self.sum(precise.decimals, self.parse_to_int(scale))
         precise.reduce()
         return str(precise)
 
@@ -1506,12 +1506,13 @@ class phemex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         last = self.from_ep(self.safe_string_2(ticker, 'lastEp', 'closeRp'), marketResolved)
         quoteVolume = self.from_er(self.safe_string_2(ticker, 'turnoverEv', 'turnoverRv'), marketResolved)
-        baseVolume = self.safe_string(ticker, 'volume')
-        if baseVolume is None:
+        volume = self.safe_string(ticker, 'volume')
+        baseVolume = volume
+        if volume is None:
             baseVolume = self.from_ev(self.safe_string_2(ticker, 'volumeEv', 'volumeRq'), marketResolved)
         open = self.from_ep(self.safe_string(ticker, 'openEp'), marketResolved)
         return self.safe_ticker({
@@ -1881,7 +1882,7 @@ class phemex(Exchange, ImplicitAPI):
         feeCurrencyCode = None
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         orderId = None
         takerOrMaker = None
         if isinstance(trade, list):
@@ -2348,7 +2349,7 @@ class phemex(Exchange, ImplicitAPI):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.from_ep(self.safe_string(order, 'priceEp'), marketResolved)
         amount = self.from_ev(self.safe_string(order, 'baseQtyEv'), marketResolved)
         remaining = self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), marketResolved))
@@ -2512,8 +2513,9 @@ class phemex(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.parse_order_side(self.safe_string_lower(order, 'side'))
         type = self.parse_order_type(self.safe_string(order, 'orderType'))
-        price = self.safe_string(order, 'priceRp')
-        if price is None:
+        priceRp = self.safe_string(order, 'priceRp')
+        price = priceRp
+        if priceRp is None:
             price = self.from_ep(self.safe_string(order, 'priceEp'), marketResolved)
         amount = self.safe_number_2(order, 'orderQty', 'orderQtyRq')
         filled = self.safe_number_2(order, 'cumQty', 'cumQtyRq')
@@ -3160,12 +3162,12 @@ class phemex(Exchange, ImplicitAPI):
             if isinstance(e, OrderNotFound):
                 return []
             raise e
-        data = self.safe_value(response, 'data', {})
-        if isinstance(data, list):
-            return self.parse_orders(data, market, since, limit)
-        else:
-            rows = self.safe_list(data, 'rows', [])
-            return self.parse_orders(rows, market, since, limit)
+        dataList = self.safe_list(response, 'data')
+        if dataList is not None:
+            return self.parse_orders(dataList, market, since, limit)
+        dataDict = self.safe_dict(response, 'data')
+        rows = self.safe_list(dataDict, 'rows', [])
+        return self.parse_orders(rows, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3240,12 +3242,12 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        if isinstance(data, list):
-            return self.parse_orders(data, market, since, limit)
-        else:
-            rows = self.safe_list(data, 'rows', [])
-            return self.parse_orders(rows, market, since, limit)
+        dataList = self.safe_list(response, 'data')
+        if dataList is not None:
+            return self.parse_orders(dataList, market, since, limit)
+        dataDict = self.safe_dict(response, 'data')
+        rows = self.safe_list(dataDict, 'rows', [])
+        return self.parse_orders(rows, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -3949,7 +3951,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         collateral = self.safe_string_2(position, 'positionMargin', 'positionMarginRv')
         notionalString = self.safe_string_2(position, 'value', 'valueRv')
         maintenanceMarginPercentageString = self.safe_string_2(position, 'maintMarginReq', 'maintMarginReqRr')
@@ -4865,7 +4867,7 @@ class phemex(Exchange, ImplicitAPI):
         stableCoins = self.safe_list(self.options, 'stableCoins', [])
         if networkId is None:
             if not (self.in_array(code, stableCoins)):
-                networkId = currency['id']
+                networkId = self.safe_string(currency, 'id', currency['id'])
             else:
                 raise ArgumentsRequired(self.id + ' withdraw () requires an extra argument params["network"]')
         request = {

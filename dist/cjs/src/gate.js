@@ -2724,6 +2724,7 @@ class gate extends gate$1["default"] {
             },
             'networks': {},
         };
+        const networkFees = {};
         if (withdrawFixOnChains !== undefined) {
             const chainKeys = Object.keys(withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
@@ -2732,7 +2733,7 @@ class gate extends gate$1["default"] {
                 const code = this.safeCurrencyCode(currencyId, currency);
                 const networkCode = this.networkIdToCode(chainKey, code);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': this.parseNumber(withdrawFixOnChains[chainKey]),
                             'percentage': false,
@@ -2745,6 +2746,7 @@ class gate extends gate$1["default"] {
                 }
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**
@@ -4632,8 +4634,13 @@ class gate extends gate$1["default"] {
         }
         await this.loadUnifiedStatus();
         const ordersRequests = this.createOrdersRequest(orders, params);
-        const firstOrder = orders[0];
-        const market = this.market(firstOrder['symbol']);
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            if (i === 0) {
+                symbol = this.safeString(orders[i], 'symbol');
+            }
+        }
+        const market = this.market(symbol);
         let response = undefined;
         if (this.safeBool(market, 'spot', false)) {
             response = await this.privateSpotPostBatchOrders(ordersRequests);
@@ -4970,7 +4977,10 @@ class gate extends gate$1["default"] {
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('editOrder', market, params);
-        const accountParsed = this.convertTypeToAccount(marketType);
+        let accountParsed = undefined;
+        if (marketType !== undefined) {
+            accountParsed = this.convertTypeToAccount(marketType);
+        }
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(paramsMarketType, 'editOrder', 'unifiedAccount', false);
         const account = isUnifiedAccount ? 'unified' : accountParsed;
         const isLimitOrder = (type === 'limit');
@@ -6907,8 +6917,9 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
+            'currency': currencyId.toUpperCase(), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision(code, amount),
         };
         const market = this.market(symbol);
@@ -6939,8 +6950,9 @@ class gate extends gate$1["default"] {
         }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
+            'currency': currencyId.toUpperCase(), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision(code, amount),
         };
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(params, 'repayCrossMargin', 'unifiedAccount', false);
@@ -6989,8 +7001,9 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
+            'currency': currencyId.toUpperCase(), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision(code, amount),
         };
         const market = this.market(symbol);
@@ -7036,8 +7049,9 @@ class gate extends gate$1["default"] {
         }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
+        const currencyId = this.safeString(currency, 'id', '');
         const request = {
-            'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
+            'currency': currencyId.toUpperCase(), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision(code, amount),
         };
         const [isUnifiedAccount, paramsUnifiedAccount] = this.handleOptionBoolAndParams(params, 'borrowCrossMargin', 'unifiedAccount', false);

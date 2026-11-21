@@ -108,21 +108,17 @@ export default class bitget extends bitgetRest {
     }
     getInstType(methodName, market, uta = false, params = {}) {
         const useProductType = (market === undefined) || (this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false));
-        let productTypeAndParams = [undefined, {}];
+        let instTypeDefault = 'SPOT';
+        let paramsProductType = params;
         if (useProductType) {
-            productTypeAndParams = this.handleProductTypeAndParams(market, params);
+            [instTypeDefault, paramsProductType] = this.handleProductTypeAndParams(market, params);
         }
-        else {
-            productTypeAndParams = ['SPOT', params];
-        }
-        const instTypeDefault = productTypeAndParams[0];
-        const paramsProductType = productTypeAndParams[1];
         const [instTypeOption, paramsInstType] = this.handleOptionStringAndParams(paramsProductType, methodName, 'instType', instTypeDefault);
-        let instType = instTypeOption;
         if (uta && (instTypeOption !== undefined)) {
-            instType = instTypeOption.toLowerCase();
+            const instTypeLower = instTypeOption.toLowerCase();
+            return [instTypeLower, paramsInstType];
         }
-        return [instType, paramsInstType];
+        return [instTypeOption, paramsInstType];
     }
     /**
      * @method
@@ -585,9 +581,9 @@ export default class bitget extends bitgetRest {
         }
         const timeframes = this.safeDict(this.options, 'timeframes');
         const interval = this.safeString(timeframes, timeframe);
-        let channel = undefined;
+        let channel = '';
         const market = this.market(symbol);
-        let messageHash = undefined;
+        let messageHash = '';
         const values = this.handleOptionBoolAndParams(params, 'watchOHLCV', 'uta', false);
         const uta = values[0];
         const isStock = market['stock'];
@@ -825,7 +821,8 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol'];
+        const marketSymbol = this.safeString(market, 'symbol', '');
+        const messageHash = 'unsubscribe:' + messageHashTopic + ':' + marketSymbol;
         const [uta, paramsUta] = this.handleOptionBoolAndParams(params, methodName, 'uta', false);
         const [privateChannel, paramsPrivateChannel] = this.handleOptionBoolAndParams(paramsUta, methodName, 'privateChannel', false);
         const [instType, paramsInstType] = this.getInstType(methodName, market, uta, paramsPrivateChannel);
@@ -1036,7 +1033,7 @@ export default class bitget extends bitgetRest {
                 const payload = payloadArray.join(':');
                 const calculatedChecksum = this.crc32(payload, true);
                 if (calculatedChecksum !== responseChecksum) {
-                    this.spawn(this.handleCheckSumError, client, symbol, messageHash);
+                    this.spawn(this.handleCheckSumError, client, symbol, messageHash, this.orderbookChecksumMessage(this.safeString(market, 'symbol', '')));
                     return;
                 }
             }
@@ -1068,9 +1065,9 @@ export default class bitget extends bitgetRest {
         }
         client.resolve(this.orderbooks[symbol], messageHash);
     }
-    async handleCheckSumError(client, symbol, messageHash) {
+    async handleCheckSumError(client, symbol, messageHash, checksumMessage) {
         await this.unWatchOrderBook(symbol);
-        const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+        const error = new ChecksumError(this.id + ' ' + checksumMessage);
         client.reject(error, messageHash);
     }
     handleDelta(bookside, delta) {
@@ -1688,12 +1685,13 @@ export default class bitget extends bitgetRest {
             messageHash = 'triggerOrder';
         }
         let subscriptionHash = 'order:trades';
-        let symbolResolved = undefined;
+        let symbolResolved = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
             marketId = this.safeString(market, 'id');
-            messageHash = messageHash + ':' + symbolResolved;
+            const marketSymbol = this.safeString(market, 'symbol', '');
+            messageHash = messageHash + ':' + marketSymbol;
         }
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsTrigger, 'watchOrders', 'uta', false);
         const productType = this.safeString(paramsUta, 'productType');
@@ -1721,7 +1719,8 @@ export default class bitget extends bitgetRest {
             [instType, paramsInstType] = this.getInstType('watchOrders', market, uta, paramsSubType);
         }
         if (type === 'spot' && (symbolResolved !== undefined)) {
-            subscriptionHash = subscriptionHash + ':' + symbolResolved;
+            const resolvedSymbol = symbolResolved;
+            subscriptionHash = subscriptionHash + ':' + resolvedSymbol;
         }
         if (isTrigger === true) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
@@ -1905,7 +1904,7 @@ export default class bitget extends bitgetRest {
             const market = this.safeMarket(marketId, undefined, undefined, marketType);
             const parsed = this.parseWsOrder(order, market);
             stored.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol !== undefined) {
                 marketSymbols[symbol] = true;
             }
@@ -2231,7 +2230,7 @@ export default class bitget extends bitgetRest {
         }
         let market = undefined;
         let messageHash = 'myTrades';
-        let symbolResolved = undefined;
+        let symbolResolved = symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
@@ -2580,20 +2579,20 @@ export default class bitget extends bitgetRest {
                     const entry = this.safeDict(coins, j);
                     const currencyId = this.safeString(entry, 'coin');
                     const code = this.safeCurrencyCode(currencyId);
-                    let account = this.account();
+                    let coinAccount = this.account();
                     if ((code !== undefined) && (code in this.balance)) {
-                        account = this.safeDict(this.balance, code, account);
+                        coinAccount = this.safeDict(this.balance, code, coinAccount);
                     }
                     const borrow = this.safeString(entry, 'borrow');
                     const debts = this.safeString(entry, 'debts');
                     if ((borrow !== undefined) || (debts !== undefined)) {
-                        account['debt'] = Precise.stringAdd(borrow, debts);
+                        coinAccount['debt'] = Precise.stringAdd(borrow, debts);
                     }
-                    account['free'] = this.safeString(entry, 'available');
-                    account['used'] = this.safeString(entry, 'locked');
-                    account['total'] = this.safeString(entry, 'balance');
+                    coinAccount['free'] = this.safeString(entry, 'available');
+                    coinAccount['used'] = this.safeString(entry, 'locked');
+                    coinAccount['total'] = this.safeString(entry, 'balance');
                     if (code !== undefined) {
-                        this.balance[code] = account;
+                        this.balance[code] = coinAccount;
                     }
                 }
             }

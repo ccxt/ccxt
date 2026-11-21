@@ -725,9 +725,9 @@ public partial class bitteam : Exchange
         double? fee = null;
         IDictionary<string, object> withdrawCommissionFixed = this.safeDict(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {});
         Dictionary<string, object> feesByNetworkId = new Dictionary<string, object>() {};
-        string? blockChain = this.safeString(currency, "blockChain");
+        string? blockChain = this.safeString(currency, "blockChain", "");
         // if only one blockChain
-        if (((blockChain != null)) && (blockChain != ""))
+        if (blockChain != "")
         {
             fee = this.parseNumber(withdrawCommissionFixed);
             feesByNetworkId[(string)blockChain] = fee;
@@ -1569,7 +1569,7 @@ public partial class bitteam : Exchange
         }
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
-            object rawTicker = rawTickers[i];
+            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)rawTickers[i]);
             ccxt.Ticker ticker = this.parseTicker(rawTicker);
             tickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
@@ -2641,7 +2641,7 @@ public partial class bitteam : Exchange
             string? message = this.safeString(response, "message");
             string? responseCode = this.safeString(response, "code");
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

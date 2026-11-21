@@ -76,7 +76,8 @@ class woofipro(ccxt.async_support.woofipro):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict):
@@ -863,16 +864,16 @@ class woofipro(ccxt.async_support.woofipro):
         #     }
         #
         topic = self.safe_string(message, 'topic')
-        data = self.safe_value(message, 'data')
-        if isinstance(data, list):
+        dataList = self.safe_list(message, 'data')
+        if dataList is not None:
             # algoexecutionreport
-            for i in range(0, len(data)):
-                order = data[i]
-                tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+            for i in range(0, len(dataList)):
+                tradeId = self.omit_zero(self.safe_string(dataList, 'tradeId'))
                 if tradeId is not None:
-                    self.handle_my_trade(client, order)
-                self.handle_order(client, order, topic)
+                    self.handle_my_trade(client, dataList[i])
+                self.handle_order(client, dataList[i], topic)
         else:
+            data = self.safe_value(message, 'data')
             # executionreport
             tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
             if tradeId is not None:

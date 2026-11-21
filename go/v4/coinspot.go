@@ -589,13 +589,13 @@ func (this *Coinspot) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 	})
 }
-func (this *Coinspot) ParseBalance(response any) map[string]any {
+func (this *Coinspot) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var balances any = this.SafeValue2(response, "balance", "balances")
 	if IsArray(balances) {
-		var rows []any = this.ToArray(balances)
+		var rows []any = SafeList2Typed(response, "balance", "balances")
 		var numRows int = len(rows)
 		for i := 0; i < numRows; i++ {
 			var currencies map[string]any = SafeMapTyped(rows, i)
@@ -724,9 +724,12 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"cointype": market["id"],
+		"cointype": nil,
+	}
+	if market.Id != nil {
+		request["cointype"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, params))
@@ -735,7 +738,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	}
 	var orderbook map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market["symbol"], nil, "buyorders", "sellorders", "rate", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, nil, "buyorders", "sellorders", "rate", "amount"))}
 	return nil
 }
 func (this *Coinspot) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -810,8 +813,9 @@ func (this *Coinspot) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	}
 	var response map[string]any = r1.Value
 	var id *string = this.SafeString(market, "id", "")
-	id = SafeStringPtr(strings.ToLower(*id))
-	var prices map[string]any = SafeMapTyped(response, "prices")
+	idStr := strings.ToLower(*id)
+	id = &idStr
+	var prices, _ = response["prices"].(map[string]any)
 	//
 	//     {
 	//         "status":"ok",
@@ -824,7 +828,13 @@ func (this *Coinspot) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	//         }
 	//     }
 	//
-	var ticker map[string]any = this.SafeDictMap(prices, id, map[string]any{})
+	var ticker map[string]any
+	if id != nil {
+		ticker, _ = prices[*id].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -882,7 +892,7 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	//    }
 	//
 	var result map[string]any = map[string]any{}
-	var prices map[string]any = SafeMapTyped(response, "prices")
+	var prices, _ = response["prices"].(map[string]any)
 	var ids []string = nil
 	if prices != nil {
 		ids = make([]string, 0, len(prices))
@@ -917,12 +927,12 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinspot) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Coinspot) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinspot) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Coinspot) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -956,7 +966,11 @@ func (this *Coinspot) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	//         ],
 	//     }
 	//
-	var trades []any = SafeListTypedDefault(response, "orders", []any{})
+	var trades []any
+	trades, _ = response["orders"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -983,7 +997,7 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -1036,13 +1050,25 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//          },
 	//      ]
 	// }
-	var buyTrades []any = SafeListTypedDefault(response, "buyorders", []any{})
-	for i := 0; i < len(buyTrades); i++ {
-		AddElementToObject(buyTrades[i], "side", "buy")
+	var buyTrades []any
+	buyTrades, _ = response["buyorders"].([]any)
+	if buyTrades == nil {
+		buyTrades = []any{}
 	}
-	var sellTrades []any = SafeListTypedDefault(response, "sellorders", []any{})
+	for i := 0; i < len(buyTrades); i++ {
+		if row, ok := buyTrades[i].(map[string]any); ok && (row != nil) {
+			row["side"] = "buy"
+		}
+	}
+	var sellTrades []any
+	sellTrades, _ = response["sellorders"].([]any)
+	if sellTrades == nil {
+		sellTrades = []any{}
+	}
 	for i := 0; i < len(sellTrades); i++ {
-		AddElementToObject(sellTrades[i], "side", "sell")
+		if row, ok := sellTrades[i].(map[string]any); ok && (row != nil) {
+			row["side"] = "sell"
+		}
 	}
 	var trades []any = this.ArrayConcat(buyTrades, sellTrades)
 
@@ -1158,11 +1184,14 @@ func (this *Coinspot) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if typeVar == "market" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"cointype": market["id"],
+		"cointype": nil,
 		"amount":   amount,
 		"rate":     price,
+	}
+	if market.Id != nil {
+		request["cointype"] = *market.Id
 	}
 	var response map[string]any = nil
 	if sideUpper == "BUY" {

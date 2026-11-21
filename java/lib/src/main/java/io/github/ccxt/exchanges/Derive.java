@@ -797,18 +797,20 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTimeCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Long fetchTimeCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.publicPostGetTime(parameters)).join();
-            //
-            //     {
-            //         "id": "8be9f582-7653-48b1-980a-6da11c130d58",
-            //         "result": 1790877292671
-            //     }
-            //
-            return this.safeInteger(response, "result");
-        });
+        Map<String, Object> response = (this.publicPostGetTime(parameters)).join();
+        //
+        //     {
+        //         "id": "8be9f582-7653-48b1-980a-6da11c130d58",
+        //         "result": 1790877292671
+        //     }
+        //
+        return this.safeInteger(response, "result");
 
     }
 
@@ -822,44 +824,46 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchAccountsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchAccountsCore(Map<String, Object> parameters)
+    {
 
-            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("fetchAccounts", (Map<String, Object>) (parameters));
-            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
-            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "wallet", deriveWalletAddress );
-            }};
-            Map<String, Object> response = (this.privatePostGetSubaccounts(this.extend(request, paramsDeriveWalletAddress))).join();
-            //
-            //     {
-            //         "id": "1c314a3a-f7f5-47bd-998a-cea5dda11c30",
-            //         "result": {
-            //             "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //             "subaccount_ids": [
-            //                 86814,
-            //                 86815,
-            //                 86820
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> subaccountIds = this.safeList(result, "subaccount_ids", new ArrayList<Object>(Arrays.asList()));
-            List<Object> accounts = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < subaccountIds.size(); i++)
-            {
-                String subaccountId = this.safeString(subaccountIds, i);
-                ((List<Object>)accounts).add(new HashMap<String, Object>() {{
-                    put( "id", subaccountId );
-                    put( "type", null );
-                    put( "code", null );
-                    put( "info", result );
-                }});
-            }
-            return accounts;
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+        List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("fetchAccounts", (Map<String, Object>) (parameters));
+        var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+        var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "wallet", deriveWalletAddress );
+        }};
+        Map<String, Object> response = (this.privatePostGetSubaccounts(this.extend(request, paramsDeriveWalletAddress))).join();
+        //
+        //     {
+        //         "id": "1c314a3a-f7f5-47bd-998a-cea5dda11c30",
+        //         "result": {
+        //             "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //             "subaccount_ids": [
+        //                 86814,
+        //                 86815,
+        //                 86820
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> subaccountIds = this.safeList(result, "subaccount_ids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> accounts = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < subaccountIds.size(); i++)
+        {
+            String subaccountId = this.safeString(subaccountIds, i);
+            ((List<Object>)accounts).add(new HashMap<String, Object>() {{
+                put( "id", subaccountId );
+                put( "type", null );
+                put( "code", null );
+                put( "info", result );
+            }});
+        }
+        return accounts;
 
     }
 
@@ -873,68 +877,70 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> tokenResponse = (this.publicGetGetAllCurrencies(parameters)).join();
-            //
-            //     {
-            //         "id": "b343bc1c-8417-485f-9022-e18787909856",
-            //         "result": [
-            //             {
-            //                 "currency": "BTC",
-            //                 "market_type": "ALL",
-            //                 "spot_price": "84829.66932265963",
-            //                 "spot_price_24h": "83566.69063592498",
-            //                 "managers": [
-            //                     {
-            //                         "risk_universe_id": 1,
-            //                         "risk_universe_name": "PRIME",
-            //                         "sm": 1,
-            //                         "pm": 5
-            //                     }
-            //                 ],
-            //                 "option": {
-            //                     "name": "BTC-OPTION",
-            //                     "address": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
-            //                     "universes": [
-            //                         {
-            //                             "risk_universe_id": 1,
-            //                             "risk_universe_name": "PRIME",
-            //                             "oi": {
-            //                                 "current_open_interest": "6495.655320644765",
-            //                                 "interest_cap": "300000"
-            //                             }
-            //                         }
-            //                     ]
-            //                 },
-            //                 "perp": {
-            //                     "name": "BTC-PERP",
-            //                     "address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
-            //                     "universes": [
-            //                         {
-            //                             "risk_universe_id": 1,
-            //                             "risk_universe_name": "PRIME",
-            //                             "oi": {
-            //                                 "current_open_interest": "291.309220426457",
-            //                                 "interest_cap": "36000"
-            //                             },
-            //                             "srm_perp_margin_requirements": {
-            //                                 "im_perp_req": "0.066",
-            //                                 "mm_perp_req": "0.05",
-            //                                 "max_leverage": "15.15"
-            //                             }
-            //                         }
-            //                     ]
-            //                 },
-            //                 "spot": []
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> currencies = this.safeList(tokenResponse, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseCurrencies(currencies);
-        });
+        Map<String, Object> tokenResponse = (this.publicGetGetAllCurrencies(parameters)).join();
+        //
+        //     {
+        //         "id": "b343bc1c-8417-485f-9022-e18787909856",
+        //         "result": [
+        //             {
+        //                 "currency": "BTC",
+        //                 "market_type": "ALL",
+        //                 "spot_price": "84829.66932265963",
+        //                 "spot_price_24h": "83566.69063592498",
+        //                 "managers": [
+        //                     {
+        //                         "risk_universe_id": 1,
+        //                         "risk_universe_name": "PRIME",
+        //                         "sm": 1,
+        //                         "pm": 5
+        //                     }
+        //                 ],
+        //                 "option": {
+        //                     "name": "BTC-OPTION",
+        //                     "address": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
+        //                     "universes": [
+        //                         {
+        //                             "risk_universe_id": 1,
+        //                             "risk_universe_name": "PRIME",
+        //                             "oi": {
+        //                                 "current_open_interest": "6495.655320644765",
+        //                                 "interest_cap": "300000"
+        //                             }
+        //                         }
+        //                     ]
+        //                 },
+        //                 "perp": {
+        //                     "name": "BTC-PERP",
+        //                     "address": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        //                     "universes": [
+        //                         {
+        //                             "risk_universe_id": 1,
+        //                             "risk_universe_name": "PRIME",
+        //                             "oi": {
+        //                                 "current_open_interest": "291.309220426457",
+        //                                 "interest_cap": "36000"
+        //                             },
+        //                             "srm_perp_margin_requirements": {
+        //                                 "im_perp_req": "0.066",
+        //                                 "mm_perp_req": "0.05",
+        //                                 "max_leverage": "15.15"
+        //                             }
+        //                         }
+        //                     ]
+        //                 },
+        //                 "spot": []
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> currencies = this.safeList(tokenResponse, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseCurrencies(currencies);
 
     }
 
@@ -976,118 +982,126 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
-            {
-                (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
-            }
-            Object spotMarketsPromise = this.fetchSpotMarkets(parameters);
-            Object swapMarketsPromise = this.fetchSwapMarkets(parameters);
-            Object optionMarketsPromise = this.fetchOptionMarkets(parameters);
-            var spotMarketsswapMarketsoptionMarketsVariable = (CompletableFuture.allOf(((CompletableFuture<?>) spotMarketsPromise), ((CompletableFuture<?>) swapMarketsPromise), ((CompletableFuture<?>) optionMarketsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) spotMarketsPromise).join(), ((CompletableFuture<?>) swapMarketsPromise).join(), ((CompletableFuture<?>) optionMarketsPromise).join())))).join();
-            var spotMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(0);
-            var swapMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(1);
-            var optionMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(2);
-            //
-            //     {
-            //         "id": "dd959aa7-d878-45b8-926d-3a247376de90",
-            //         "result": {
-            //             "instruments": [
-            //                 {
-            //                     "instrument_type": "perp",
-            //                     "instrument_name": "ZEC-PERP",
-            //                     "scheduled_activation": 1780572941,
-            //                     "scheduled_deactivation": 9223372036854775807,
-            //                     "is_active": true,
-            //                     "tick_size": "0.01",
-            //                     "minimum_amount": "1",
-            //                     "maximum_amount": "100000",
-            //                     "amount_step": "0.01",
-            //                     "mark_price_fee_rate_cap": "0",
-            //                     "maker_fee_rate": "0.0001",
-            //                     "taker_fee_rate": "0.0003",
-            //                     "base_fee": "0.01",
-            //                     "base_currency": "ZEC",
-            //                     "quote_currency": "USDC",
-            //                     "option_details": null,
-            //                     "perp_details": {
-            //                         "index": "ZEC-USD",
-            //                         "max_rate_per_hour": "0.000456621005",
-            //                         "min_rate_per_hour": "-0.000456621005",
-            //                         "aggregate_funding": "26.08805211207",
-            //                         "funding_rate": "0",
-            //                         "srm_perp_margin_requirements": {
-            //                             "im_perp_req": "0.15",
-            //                             "mm_perp_req": "0.1",
-            //                             "max_leverage": "6.67"
-            //                         }
-            //                     },
-            //                     "erc20_details": null,
-            //                     "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
-            //                     "base_asset_sub_id": "0",
-            //                     "pro_rata_fraction": "0",
-            //                     "fifo_min_allocation": "0",
-            //                     "pro_rata_amount_step": "1"
-            //                 }
-            //             ],
-            //             "pagination": {
-            //                 "num_pages": 15,
-            //                 "count": 15
-            //             }
-            //         }
-            //     }
-            //
-            List<Object> result = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
-            result = (List<Object>) this.arrayConcat(result, optionMarkets);
-            return result;
-        });
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
+        {
+            (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
+        }
+        Object spotMarketsPromise = this.fetchSpotMarkets(parameters);
+        Object swapMarketsPromise = this.fetchSwapMarkets(parameters);
+        Object optionMarketsPromise = this.fetchOptionMarkets(parameters);
+        var spotMarketsswapMarketsoptionMarketsVariable = (CompletableFuture.allOf(((CompletableFuture<?>) spotMarketsPromise), ((CompletableFuture<?>) swapMarketsPromise), ((CompletableFuture<?>) optionMarketsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) spotMarketsPromise).join(), ((CompletableFuture<?>) swapMarketsPromise).join(), ((CompletableFuture<?>) optionMarketsPromise).join())))).join();
+        var spotMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(0);
+        var swapMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(1);
+        var optionMarkets = ((List<Object>) spotMarketsswapMarketsoptionMarketsVariable).get(2);
+        //
+        //     {
+        //         "id": "dd959aa7-d878-45b8-926d-3a247376de90",
+        //         "result": {
+        //             "instruments": [
+        //                 {
+        //                     "instrument_type": "perp",
+        //                     "instrument_name": "ZEC-PERP",
+        //                     "scheduled_activation": 1780572941,
+        //                     "scheduled_deactivation": 9223372036854775807,
+        //                     "is_active": true,
+        //                     "tick_size": "0.01",
+        //                     "minimum_amount": "1",
+        //                     "maximum_amount": "100000",
+        //                     "amount_step": "0.01",
+        //                     "mark_price_fee_rate_cap": "0",
+        //                     "maker_fee_rate": "0.0001",
+        //                     "taker_fee_rate": "0.0003",
+        //                     "base_fee": "0.01",
+        //                     "base_currency": "ZEC",
+        //                     "quote_currency": "USDC",
+        //                     "option_details": null,
+        //                     "perp_details": {
+        //                         "index": "ZEC-USD",
+        //                         "max_rate_per_hour": "0.000456621005",
+        //                         "min_rate_per_hour": "-0.000456621005",
+        //                         "aggregate_funding": "26.08805211207",
+        //                         "funding_rate": "0",
+        //                         "srm_perp_margin_requirements": {
+        //                             "im_perp_req": "0.15",
+        //                             "mm_perp_req": "0.1",
+        //                             "max_leverage": "6.67"
+        //                         }
+        //                     },
+        //                     "erc20_details": null,
+        //                     "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
+        //                     "base_asset_sub_id": "0",
+        //                     "pro_rata_fraction": "0",
+        //                     "fifo_min_allocation": "0",
+        //                     "pro_rata_amount_step": "1"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 15,
+        //                 "count": 15
+        //             }
+        //         }
+        //     }
+        //
+        List<Object> result = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
+        result = (List<Object>) this.arrayConcat(result, optionMarkets);
+        return result;
 
     }
 
     public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchSpotMarketsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "expired", false );
-                put( "instrument_type", "erc20" );
-            }};
-            Object instruments = (this.getMarketsPaginated(request, parameters)).join();
-            return this.parseMarkets(instruments);
-        });
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "expired", false );
+            put( "instrument_type", "erc20" );
+        }};
+        Object instruments = (this.getMarketsPaginated(request, parameters)).join();
+        return this.parseMarkets((List<Object>) (instruments));
 
     }
 
     public CompletableFuture<Object> fetchSwapMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchSwapMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchSwapMarketsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "expired", false );
-                put( "instrument_type", "perp" );
-            }};
-            Object instruments = (this.getMarketsPaginated(request, parameters)).join();
-            return this.parseMarkets(instruments);
-        });
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "expired", false );
+            put( "instrument_type", "perp" );
+        }};
+        Object instruments = (this.getMarketsPaginated(request, parameters)).join();
+        return this.parseMarkets((List<Object>) (instruments));
 
     }
 
     public CompletableFuture<Object> fetchOptionMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOptionMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOptionMarketsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "expired", false );
-                put( "instrument_type", "option" );
-            }};
-            Object instruments = (this.getMarketsPaginated(request, parameters)).join();
-            return this.parseMarkets(instruments);
-        });
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "expired", false );
+            put( "instrument_type", "option" );
+        }};
+        Object instruments = (this.getMarketsPaginated(request, parameters)).join();
+        return this.parseMarkets((List<Object>) (instruments));
 
     }
 
@@ -1102,36 +1116,38 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Object> getMarketsPaginated(Map<String, Object> request, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.getMarketsPaginatedCore(request, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object getMarketsPaginatedCore(Map<String, Object> request, Map<String, Object> parameters)
+    {
 
-            List<Object> allInstruments = new ArrayList<Object>(Arrays.asList());
-            List<Object> maxPagesparamsMaxPagesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "getMarketsPaginated", "maxMarketPages", 25L);
-            Long maxPages = (Long) ((List<Object>) maxPagesparamsMaxPagesVariable).get(0);
-            Map<String, Object> paramsMaxPages = (Map<String, Object>) ((List<Object>) maxPagesparamsMaxPagesVariable).get(1);
-            List<Object> pageSizeparamsOmittedVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000L);
-            Long pageSize = (Long) ((List<Object>) pageSizeparamsOmittedVariable).get(0);
-            Map<String, Object> paramsOmitted = (Map<String, Object>) ((List<Object>) pageSizeparamsOmittedVariable).get(1);
-            for (var i = 0; (maxPages != null && i < maxPages); i++)
+        List<Object> allInstruments = new ArrayList<Object>(Arrays.asList());
+        List<Object> maxPagesparamsMaxPagesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "getMarketsPaginated", "maxMarketPages", 25L);
+        Long maxPages = (Long) ((List<Object>) maxPagesparamsMaxPagesVariable).get(0);
+        Map<String, Object> paramsMaxPages = (Map<String, Object>) ((List<Object>) maxPagesparamsMaxPagesVariable).get(1);
+        List<Object> pageSizeparamsOmittedVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000L);
+        Long pageSize = (Long) ((List<Object>) pageSizeparamsOmittedVariable).get(0);
+        Map<String, Object> paramsOmitted = (Map<String, Object>) ((List<Object>) pageSizeparamsOmittedVariable).get(1);
+        for (var i = 0; (maxPages != null && i < maxPages); i++)
+        {
+            Map<String, Object> requestExtension = new HashMap<String, Object>();
+            requestExtension.put("page", (((long) i) + 1L));
+            requestExtension.put("page_size", pageSize);
+            Map<String, Object> requestExtended = this.extend(this.extend(request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
+            Map<String, Object> response = (this.publicPostGetAllInstruments(requestExtended)).join();
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "instruments", new ArrayList<Object>(Arrays.asList()));
+            allInstruments = (List<Object>) this.arrayConcat(allInstruments, data);
+            Map<String, Object> pagination = this.safeDict(result, "pagination", new HashMap<String, Object>() {{}});
+            Long totalCount = this.safeInteger(pagination, "count", 0); // not named count: that collides with the php builtin the length mapping expands to
+            Integer collected = allInstruments.size();
+            if ((totalCount == null || (collected != null && collected >= totalCount)))
             {
-                Map<String, Object> requestExtension = new HashMap<String, Object>();
-                requestExtension.put("page", (((long) i) + 1L));
-                requestExtension.put("page_size", pageSize);
-                Map<String, Object> requestExtended = this.extend(this.extend(request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
-                Map<String, Object> response = (this.publicPostGetAllInstruments(requestExtended)).join();
-                Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-                List<Object> data = this.safeList(result, "instruments", new ArrayList<Object>(Arrays.asList()));
-                allInstruments = (List<Object>) this.arrayConcat(allInstruments, data);
-                Map<String, Object> pagination = this.safeDict(result, "pagination", new HashMap<String, Object>() {{}});
-                Long totalCount = this.safeInteger(pagination, "count", 0); // not named count: that collides with the php builtin the length mapping expands to
-                Integer collected = allInstruments.size();
-                if ((totalCount == null || (collected != null && collected >= totalCount)))
-                {
-                    break;
-                }
+                break;
             }
-            return allInstruments;
-        });
+        }
+        return allInstruments;
 
     }
 
@@ -1268,49 +1284,51 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_name", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "id": "45bb6856-54b7-48da-a9c1-1c3ba964888b",
-            //         "result": {
-            //             "t": 1790867526668,
-            //             "A": "0",
-            //             "a": "0",
-            //             "B": "0",
-            //             "b": "0",
-            //             "f": "0.000012500",
-            //             "option_pricing": null,
-            //             "I": "83946.3",
-            //             "M": "83938.8",
-            //             "stats": {
-            //                 "c": "16.41",
-            //                 "v": "1377350.271",
-            //                 "pr": "1377095.872",
-            //                 "n": 98,
-            //                 "oi": "0",
-            //                 "h": "84282",
-            //                 "l": "83661.8",
-            //                 "p": "0"
-            //             },
-            //             "minp": "82293.1",
-            //             "maxp": "85617.6"
-            //         }
-            //     }
-            //
-            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTicker(data, market);
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument_name", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "id": "45bb6856-54b7-48da-a9c1-1c3ba964888b",
+        //         "result": {
+        //             "t": 1790867526668,
+        //             "A": "0",
+        //             "a": "0",
+        //             "B": "0",
+        //             "b": "0",
+        //             "f": "0.000012500",
+        //             "option_pricing": null,
+        //             "I": "83946.3",
+        //             "M": "83938.8",
+        //             "stats": {
+        //                 "c": "16.41",
+        //                 "v": "1377350.271",
+        //                 "pr": "1377095.872",
+        //                 "n": 98,
+        //                 "oi": "0",
+        //                 "h": "84282",
+        //                 "l": "83661.8",
+        //                 "p": "0"
+        //             },
+        //             "minp": "82293.1",
+        //             "maxp": "85617.6"
+        //         }
+        //     }
+        //
+        Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseTicker(data, market);
 
     }
 
@@ -1325,53 +1343,55 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenInterestCore(symbol, parameters)).thenApply(OpenInterest::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenInterestCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
-            {
-                throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_name", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "id": "a24f964a-4c80-4389-950e-1f68b9bfb40f",
-            //         "result": {
-            //             "t": 1791026876172,
-            //             "A": "5",
-            //             "a": "84638.2",
-            //             "B": "5",
-            //             "b": "84634.2",
-            //             "f": "0.000012500",
-            //             "option_pricing": null,
-            //             "I": "84622",
-            //             "M": "84636.2",
-            //             "stats": {
-            //                 "c": "1.797",
-            //                 "v": "154163.312",
-            //                 "pr": "154178.972",
-            //                 "n": 93,
-            //                 "oi": "291.023",
-            //                 "h": "87151.3",
-            //                 "l": "84034.2",
-            //                 "p": "-0.021"
-            //             },
-            //             "minp": "82976.7",
-            //             "maxp": "86328.9"
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(result, market);
-        }).thenApply(OpenInterest::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
+        {
+            throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument_name", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "id": "a24f964a-4c80-4389-950e-1f68b9bfb40f",
+        //         "result": {
+        //             "t": 1791026876172,
+        //             "A": "5",
+        //             "a": "84638.2",
+        //             "B": "5",
+        //             "b": "84634.2",
+        //             "f": "0.000012500",
+        //             "option_pricing": null,
+        //             "I": "84622",
+        //             "M": "84636.2",
+        //             "stats": {
+        //                 "c": "1.797",
+        //                 "v": "154163.312",
+        //                 "pr": "154178.972",
+        //                 "n": 93,
+        //                 "oi": "291.023",
+        //                 "h": "87151.3",
+        //                 "l": "84034.2",
+        //                 "p": "-0.021"
+        //             },
+        //             "minp": "82976.7",
+        //             "maxp": "86328.9"
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOpenInterest(result, market);
 
     }
 
@@ -1408,65 +1428,67 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Greeks> fetchGreeks(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchGreeksCore(symbol, parameters)).thenApply(Greeks::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchGreeksCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            if (!Boolean.TRUE.equals(this.safeBool(market, "option", false)))
-            {
-                throw new BadRequest((this.id + " fetchGreeks() supports option markets only")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_name", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "id": "b9c8e59e-aa05-4517-8412-0a119f561cfb",
-            //         "result": {
-            //             "t": 1791031771524,
-            //             "A": "0",
-            //             "a": "0",
-            //             "B": "0",
-            //             "b": "0",
-            //             "f": null,
-            //             "option_pricing": {
-            //                 "d": "-0.43348",
-            //                 "t": "-18.65575",
-            //                 "g": "0.00001213",
-            //                 "v": "346.49060",
-            //                 "i": "0.38273",
-            //                 "r": "12976.52088",
-            //                 "f": "89232",
-            //                 "m": "13312",
-            //                 "df": "0.950",
-            //                 "bi": "0",
-            //                 "ai": "0"
-            //             },
-            //             "I": "84812",
-            //             "M": "13312",
-            //             "stats": {
-            //                 "c": "0",
-            //                 "v": "0",
-            //                 "pr": "0",
-            //                 "n": 0,
-            //                 "oi": "0",
-            //                 "h": "0",
-            //                 "l": "0",
-            //                 "p": "0"
-            //             },
-            //             "minp": "10610",
-            //             "maxp": "16397"
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseGreeks(result, market);
-        }).thenApply(Greeks::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        if (!Boolean.TRUE.equals(this.safeBool(market, "option", false)))
+        {
+            throw new BadRequest((this.id + " fetchGreeks() supports option markets only")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument_name", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "id": "b9c8e59e-aa05-4517-8412-0a119f561cfb",
+        //         "result": {
+        //             "t": 1791031771524,
+        //             "A": "0",
+        //             "a": "0",
+        //             "B": "0",
+        //             "b": "0",
+        //             "f": null,
+        //             "option_pricing": {
+        //                 "d": "-0.43348",
+        //                 "t": "-18.65575",
+        //                 "g": "0.00001213",
+        //                 "v": "346.49060",
+        //                 "i": "0.38273",
+        //                 "r": "12976.52088",
+        //                 "f": "89232",
+        //                 "m": "13312",
+        //                 "df": "0.950",
+        //                 "bi": "0",
+        //                 "ai": "0"
+        //             },
+        //             "I": "84812",
+        //             "M": "13312",
+        //             "stats": {
+        //                 "c": "0",
+        //                 "v": "0",
+        //                 "pr": "0",
+        //                 "n": 0,
+        //                 "oi": "0",
+        //                 "h": "0",
+        //                 "l": "0",
+        //                 "p": "0"
+        //             },
+        //             "minp": "10610",
+        //             "maxp": "16397"
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseGreeks(result, market);
 
     }
 
@@ -1508,26 +1530,28 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Option> fetchOption(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOptionCore(symbol, parameters)).thenApply(Option::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOptionCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            if (!Boolean.TRUE.equals(this.safeBool(market, "option", false)))
-            {
-                throw new BadRequest((this.id + " fetchOption() supports option markets only")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_name", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
-            // the response sample is listed in fetchGreeks, both methods read the same endpoint
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOption(result, (Map<String, Object>) null, market);
-        }).thenApply(Option::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        if (!Boolean.TRUE.equals(this.safeBool(market, "option", false)))
+        {
+            throw new BadRequest((this.id + " fetchOption() supports option markets only")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument_name", market.get("id") );
+        }};
+        Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
+        // the response sample is listed in fetchGreeks, both methods read the same endpoint
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOption(result, (Map<String, Object>) null, market);
 
     }
 
@@ -1578,42 +1602,44 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Object> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchSettlementHistory() requires a symbol argument to resolve the underlying currency")) ;
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", market.get("baseId") );
-            }};
-            Map<String, Object> response = (this.publicPostGetOptionSettlementPrices(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "id": "d1847bad-5917-424b-bd9a-37262a03fd47",
-            //         "result": {
-            //             "expiries": [
-            //                 {
-            //                     "expiry_date": "20260707",
-            //                     "price": "63107.787847",
-            //                     "utc_expiry_sec": 1783411200
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> expiries = this.safeList(result, "expiries", new ArrayList<Object>(Arrays.asList()));
-            List<Object> settlements = this.parseSettlements(expiries, (Map<String, Object>) null);
-            List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchSettlementHistory() requires a symbol argument to resolve the underlying currency")) ;
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", market.get("baseId") );
+        }};
+        Map<String, Object> response = (this.publicPostGetOptionSettlementPrices(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "id": "d1847bad-5917-424b-bd9a-37262a03fd47",
+        //         "result": {
+        //             "expiries": [
+        //                 {
+        //                     "expiry_date": "20260707",
+        //                     "price": "63107.787847",
+        //                     "utc_expiry_sec": 1783411200
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> expiries = this.safeList(result, "expiries", new ArrayList<Object>(Arrays.asList()));
+        List<Object> settlements = this.parseSettlements(expiries, (Map<String, Object>) null);
+        List<Object> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
 
     }
 
@@ -1631,51 +1657,53 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Object> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMySettlementHistory", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            Map<String, Object> response = (this.privatePostGetOptionSettlementHistory(this.extend(request, paramsDeriveSubaccountId))).join();
-            //
-            //     {
-            //         "id": "f92af59c-33d6-4bed-b237-378250f5727b",
-            //         "result": {
-            //             "settlements": [
-            //                 {
-            //                     "amount": "0.1",
-            //                     "expiry": 1791100800,
-            //                     "instrument_name": "BTC-20261004-88000-C",
-            //                     "option_settlement_pnl": "-2.8625",
-            //                     "option_settlement_pnl_excl_fees": "-2.1",
-            //                     "settlement_price": "84975.94721521944",
-            //                     "settlement_value": "0",
-            //                     "subaccount_id": 86815
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> settlements = this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsed = this.parseSettlements(settlements, market);
-            List<Object> sorted = this.sortBy(parsed, "timestamp");
-            String symbolResolved = java.util.Objects.toString((((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null, null);
-            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMySettlementHistory", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        Map<String, Object> response = (this.privatePostGetOptionSettlementHistory(this.extend(request, paramsDeriveSubaccountId))).join();
+        //
+        //     {
+        //         "id": "f92af59c-33d6-4bed-b237-378250f5727b",
+        //         "result": {
+        //             "settlements": [
+        //                 {
+        //                     "amount": "0.1",
+        //                     "expiry": 1791100800,
+        //                     "instrument_name": "BTC-20261004-88000-C",
+        //                     "option_settlement_pnl": "-2.8625",
+        //                     "option_settlement_pnl_excl_fees": "-2.1",
+        //                     "settlement_price": "84975.94721521944",
+        //                     "settlement_value": "0",
+        //                     "subaccount_id": 86815
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> settlements = this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parsed = this.parseSettlements(settlements, market);
+        List<Object> sorted = this.sortBy(parsed, "timestamp");
+        String symbolResolved = java.util.Objects.toString((((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null, null);
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
 
     }
 
@@ -1721,12 +1749,12 @@ public class Derive extends DeriveApi
         }
     }
 
-    public List<Object> parseSettlements(Object settlements, Map<String, Object> market)
+    public List<Object> parseSettlements(List<Object> settlements, Map<String, Object> market)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)settlements).size(); i++)
+        for (var i = 0; i < settlements.size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i))), market));
         }
         return result;
     }
@@ -1809,155 +1837,157 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallIncremental("fetchTrades", symbol, since, limit, paramsPaginate, "page", 1000L)).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> symbolMarket = this.market(symbol);
-                market = symbolMarket;
-                request.put("instrument_name", symbolMarket.get("id"));
-            }
-            Long limitResolved = limit;
-            if (!java.util.Objects.equals(limit, null) && (limit > 1000))
-            {
-                limitResolved = 1000L;
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-                Long pageSize = ((((limit > 500)))) ? 1000 : (limit * 2L); // default 100, max 1000
-                request.put("page_size", pageSize);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("from_timestamp", since);
-            }
-            Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("to_timestamp", until);
-            }
-            Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "id": "ac7b1242-a8e5-4ee3-a975-c1b0cb413932",
-            //         "result": {
-            //             "trades": [
-            //                 {
-            //                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "timestamp": 1790792657383,
-            //                     "trade_price": "83863",
-            //                     "trade_amount": "0.0357",
-            //                     "mark_price": "83851.150918173763",
-            //                     "index_price": "83867.1716490259",
-            //                     "direction": "buy",
-            //                     "quote_id": null,
-            //                     "rfq_id": null,
-            //                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
-            //                     "subaccount_id": 56390,
-            //                     "batch_status": null,
-            //                     "tx_hash": "",
-            //                     "trade_fee": "0.44910870418",
-            //                     "expected_rebate": "0",
-            //                     "liquidity_role": "taker",
-            //                     "realized_pnl": "5.486968004488",
-            //                     "realized_pnl_excl_fees": "6.328028163017",
-            //                     "extra_fee": "0"
-            //                 },
-            //                 {
-            //                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "timestamp": 1790792657383,
-            //                     "trade_price": "83863",
-            //                     "trade_amount": "0.0357",
-            //                     "mark_price": "83851.150918173763",
-            //                     "index_price": "83867.1716490259",
-            //                     "direction": "sell",
-            //                     "quote_id": null,
-            //                     "rfq_id": null,
-            //                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
-            //                     "subaccount_id": 62065,
-            //                     "batch_status": null,
-            //                     "tx_hash": "",
-            //                     "trade_fee": "0",
-            //                     "expected_rebate": "0.299405802787",
-            //                     "liquidity_role": "maker",
-            //                     "realized_pnl": "0",
-            //                     "realized_pnl_excl_fees": "0",
-            //                     "extra_fee": "0"
-            //                 },
-            //                 {
-            //                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "timestamp": 1790792405993,
-            //                     "trade_price": "83932.1",
-            //                     "trade_amount": "0.0357",
-            //                     "mark_price": "83934.717310599589",
-            //                     "index_price": "83948.87303382531",
-            //                     "direction": "buy",
-            //                     "quote_id": null,
-            //                     "rfq_id": null,
-            //                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
-            //                     "subaccount_id": 56390,
-            //                     "batch_status": null,
-            //                     "tx_hash": "",
-            //                     "trade_fee": "0.449546215096",
-            //                     "expected_rebate": "0",
-            //                     "liquidity_role": "taker",
-            //                     "realized_pnl": "3.019660493572",
-            //                     "realized_pnl_excl_fees": "3.861158163017",
-            //                     "extra_fee": "0"
-            //                 },
-            //                 {
-            //                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "timestamp": 1790792405993,
-            //                     "trade_price": "83932.1",
-            //                     "trade_amount": "0.0357",
-            //                     "mark_price": "83934.717310599589",
-            //                     "index_price": "83948.87303382531",
-            //                     "direction": "sell",
-            //                     "quote_id": null,
-            //                     "rfq_id": null,
-            //                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
-            //                     "subaccount_id": 62065,
-            //                     "batch_status": null,
-            //                     "tx_hash": "",
-            //                     "trade_fee": "0",
-            //                     "expected_rebate": "0.29969747673",
-            //                     "liquidity_role": "maker",
-            //                     "realized_pnl": "0",
-            //                     "realized_pnl_excl_fees": "0",
-            //                     "extra_fee": "0"
-            //                 }
-            //             ],
-            //             "pagination": {
-            //                 "num_pages": 531087,
-            //                 "count": 2124347
-            //             }
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallIncremental("fetchTrades", symbol, since, limit, paramsPaginate, "page", 1000L)).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request.put("instrument_name", symbolMarket.get("id"));
+        }
+        Long limitResolved = limit;
+        if (!java.util.Objects.equals(limit, null) && (limit > 1000))
+        {
+            limitResolved = 1000L;
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
+            Long pageSize = ((((limit > 500)))) ? 1000 : (limit * 2L); // default 100, max 1000
+            request.put("page_size", pageSize);
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("from_timestamp", since);
+        }
+        Long until = this.safeInteger(paramsPaginate, "until");
+        Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("to_timestamp", until);
+        }
+        Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "id": "ac7b1242-a8e5-4ee3-a975-c1b0cb413932",
+        //         "result": {
+        //             "trades": [
+        //                 {
+        //                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792657383,
+        //                     "trade_price": "83863",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83851.150918173763",
+        //                     "index_price": "83867.1716490259",
+        //                     "direction": "buy",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        //                     "subaccount_id": 56390,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0.44910870418",
+        //                     "expected_rebate": "0",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "5.486968004488",
+        //                     "realized_pnl_excl_fees": "6.328028163017",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "28bea459-a2ff-45cc-a7e9-3d25448c859a",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792657383,
+        //                     "trade_price": "83863",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83851.150918173763",
+        //                     "index_price": "83867.1716490259",
+        //                     "direction": "sell",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
+        //                     "subaccount_id": 62065,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0",
+        //                     "expected_rebate": "0.299405802787",
+        //                     "liquidity_role": "maker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792405993,
+        //                     "trade_price": "83932.1",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83934.717310599589",
+        //                     "index_price": "83948.87303382531",
+        //                     "direction": "buy",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0xa28557a5Dbe5E22249b292fD032C5225952A6709",
+        //                     "subaccount_id": 56390,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0.449546215096",
+        //                     "expected_rebate": "0",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "3.019660493572",
+        //                     "realized_pnl_excl_fees": "3.861158163017",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "trade_id": "10a84fb1-11a5-4521-b49d-a55c9b241207",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "timestamp": 1790792405993,
+        //                     "trade_price": "83932.1",
+        //                     "trade_amount": "0.0357",
+        //                     "mark_price": "83934.717310599589",
+        //                     "index_price": "83948.87303382531",
+        //                     "direction": "sell",
+        //                     "quote_id": null,
+        //                     "rfq_id": null,
+        //                     "wallet": "0x1DBc86f1b1Be7a45a3161A06bDD15F7470bF9d2c",
+        //                     "subaccount_id": 62065,
+        //                     "batch_status": null,
+        //                     "tx_hash": "",
+        //                     "trade_fee": "0",
+        //                     "expected_rebate": "0.29969747673",
+        //                     "liquidity_role": "maker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 531087,
+        //                 "count": 2124347
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> data = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2001,76 +2031,78 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(symbol, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 5000L)).join();
+        }
+        // todo: check active spot markets after launch of v3
+        Map<String, Object> market = this.market(symbol);
+        String period = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Pair<String, Map<String, Object>> priceTypeparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "price", (String) null);
+        String priceType = priceTypeparamsPriceVariable.first();
+        Map<String, Object> paramsPrice = priceTypeparamsPriceVariable.second();
+        Long until = this.safeInteger(paramsPrice, "until");
+        Map<String, Object> paramsOmitted = this.omit(paramsPrice, new ArrayList<Object>(Arrays.asList("until")));
+        int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        Long untilSeconds = this.seconds();
+        if (!java.util.Objects.equals(until, null))
+        {
+            untilSeconds = this.parseToInt((((double) until) / ((double) 1000)));
+        }
+        // the venue keeps only the latest 5000 buckets of the requested window
+        Integer defaultLimit = (((java.util.Objects.equals(since, null)))) ? 1000 : 5000;
+        Long limitResolved = this.parseToInt(defaultLimit);
+        if (!java.util.Objects.equals(limit, null))
+        {
+            limitResolved = this.parseToInt(limit);
+        }
+        if ((limitResolved != null && limitResolved > 5000))
+        {
+            limitResolved = 5000L;
+        }
+        Long span = this.parseToInt((limitResolved * ((long) duration)));
+        Long windowStart = (untilSeconds - span);
+        Long start = windowStart;
+        Object end = untilSeconds;
+        if (!java.util.Objects.equals(since, null))
+        {
+            Long sinceSeconds = this.parseToInt((((double) since) / ((double) 1000)));
+            start = sinceSeconds;
+            // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
+            if ((windowStart != null && (sinceSeconds == null || sinceSeconds < windowStart)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                end = this.sum(sinceSeconds, span);
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 5000L)).join();
-            }
-            // todo: check active spot markets after launch of v3
-            Map<String, Object> market = this.market(symbol);
-            String period = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Pair<String, Map<String, Object>> priceTypeparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "price", (String) null);
-            String priceType = priceTypeparamsPriceVariable.first();
-            Map<String, Object> paramsPrice = priceTypeparamsPriceVariable.second();
-            Long until = this.safeInteger(paramsPrice, "until");
-            Map<String, Object> paramsOmitted = this.omit(paramsPrice, new ArrayList<Object>(Arrays.asList("until")));
-            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long untilSeconds = this.seconds();
-            if (!java.util.Objects.equals(until, null))
-            {
-                untilSeconds = this.parseToInt((((double) until) / ((double) 1000)));
-            }
-            // the venue keeps only the latest 5000 buckets of the requested window
-            Integer defaultLimit = (((java.util.Objects.equals(since, null)))) ? 1000 : 5000;
-            Long limitResolved = this.parseToInt(defaultLimit);
-            if (!java.util.Objects.equals(limit, null))
-            {
-                limitResolved = this.parseToInt(limit);
-            }
-            if ((limitResolved != null && limitResolved > 5000))
-            {
-                limitResolved = 5000L;
-            }
-            Long span = this.parseToInt((limitResolved * ((long) duration)));
-            Long windowStart = (untilSeconds - span);
-            Long start = windowStart;
-            Object end = untilSeconds;
-            if (!java.util.Objects.equals(since, null))
-            {
-                Long sinceSeconds = this.parseToInt((((double) since) / ((double) 1000)));
-                start = sinceSeconds;
-                // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-                if ((windowStart != null && (sinceSeconds == null || sinceSeconds < windowStart)))
-                {
-                    end = this.sum(sinceSeconds, span);
-                }
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("period", period);
-            request.put("start_timestamp", start);
-            request.put("end_timestamp", end);
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(priceType, "index"))
-            {
-                request.put("currency", market.get("baseId"));
-                response = (this.publicPostGetIndexChartData(this.extend(request, paramsOmitted))).join();
-            } else
-            {
-                request.put("instrument_name", market.get("id"));
-                response = (this.publicPostGetTradingviewChartData(this.extend(request, paramsOmitted))).join();
-            }
-            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("period", period);
+        request.put("start_timestamp", start);
+        request.put("end_timestamp", end);
+        Map<String, Object> response = null;
+        if (java.util.Objects.equals(priceType, "index"))
+        {
+            request.put("currency", market.get("baseId"));
+            response = (this.publicPostGetIndexChartData(this.extend(request, paramsOmitted))).join();
+        } else
+        {
+            request.put("instrument_name", market.get("id"));
+            response = (this.publicPostGetTradingviewChartData(this.extend(request, paramsOmitted))).join();
+        }
+        List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
     }
 
@@ -2169,76 +2201,78 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_name", market.get("id") );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_timestamp", since);
-            }
-            Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_timestamp", until); // the venue silently ignores the to_timestamp spelling other endpoints use
-            }
-            Map<String, Object> response = (this.publicPostGetFundingRateHistory(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
-            //         "result": {
-            //             "instrument_name": null,
-            //             "funding_rate_history": [
-            //                 {
-            //                     "timestamp": 1783461600000,
-            //                     "risk_universe_id": 1,
-            //                     "currency": "BTC",
-            //                     "open": "0.000047348",
-            //                     "high": "0.000047348",
-            //                     "low": "0.000047348",
-            //                     "close": "0.000047348",
-            //                     "funding_rate": "0.000047348"
-            //                 },
-            //                 {
-            //                     "timestamp": 1783465200000,
-            //                     "risk_universe_id": 1,
-            //                     "currency": "BTC",
-            //                     "open": "0.000012500",
-            //                     "high": "0.000049960",
-            //                     "low": "0.000012500",
-            //                     "close": "0.000049960",
-            //                     "funding_rate": "0.000049960"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = this.safeList(result, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Long timestamp = this.safeInteger(entry, "timestamp");
-                ((List<Object>)rates).add(new HashMap<String, Object>() {{
-                    put( "info", entry );
-                    put( "symbol", market.get("symbol") );
-                    put( "fundingRate", Derive.this.safeNumber(entry, "funding_rate", (Object) null) );
-                    put( "timestamp", timestamp );
-                    put( "datetime", Derive.this.iso8601(timestamp) );
-                }});
-            }
-            List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument_name", market.get("id") );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_timestamp", since);
+        }
+        Long until = this.safeInteger(parameters, "until");
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_timestamp", until); // the venue silently ignores the to_timestamp spelling other endpoints use
+        }
+        Map<String, Object> response = (this.publicPostGetFundingRateHistory(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
+        //         "result": {
+        //             "instrument_name": null,
+        //             "funding_rate_history": [
+        //                 {
+        //                     "timestamp": 1783461600000,
+        //                     "risk_universe_id": 1,
+        //                     "currency": "BTC",
+        //                     "open": "0.000047348",
+        //                     "high": "0.000047348",
+        //                     "low": "0.000047348",
+        //                     "close": "0.000047348",
+        //                     "funding_rate": "0.000047348"
+        //                 },
+        //                 {
+        //                     "timestamp": 1783465200000,
+        //                     "risk_universe_id": 1,
+        //                     "currency": "BTC",
+        //                     "open": "0.000012500",
+        //                     "high": "0.000049960",
+        //                     "low": "0.000012500",
+        //                     "close": "0.000049960",
+        //                     "funding_rate": "0.000049960"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> data = this.safeList(result, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rates = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Long timestamp = this.safeInteger(entry, "timestamp");
+            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+                put( "info", entry );
+                put( "symbol", market.get("symbol") );
+                put( "fundingRate", Derive.this.safeNumber(entry, "funding_rate", (Object) null) );
+                put( "timestamp", timestamp );
+                put( "datetime", Derive.this.iso8601(timestamp) );
+            }});
+        }
+        List<Object> sorted = this.sortBy(rates, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
 
     }
 
@@ -2253,49 +2287,51 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateCore(symbol, parameters)).thenApply(FundingRate::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateCore(String symbol, Map<String, Object> parameters)
+    {
 
-            List<FundingRateHistory> response = (this.fetchFundingRateHistory(symbol, (Long) null, 1L, parameters)).join();
-            //
-            //     [
-            //         {
-            //             "info": {
-            //                 "timestamp": 1790870400000,
-            //                 "risk_universe_id": 1,
-            //                 "currency": "BTC",
-            //                 "open": "0.000012500",
-            //                 "high": "0.000012500",
-            //                 "low": "0.000012500",
-            //                 "close": "0.000012500",
-            //                 "funding_rate": "0.000012500"
-            //             },
-            //             "symbol": "BTC/USDC:USDC",
-            //             "fundingRate": 1.25e-05,
-            //             "timestamp": 1790870400000,
-            //             "datetime": "2026-10-01T16:00:00.000Z"
-            //         },
-            //         {
-            //             "info": {
-            //                 "timestamp": 1790874000000,
-            //                 "risk_universe_id": 1,
-            //                 "currency": "BTC",
-            //                 "open": "0.000012500",
-            //                 "high": "0.000012500",
-            //                 "low": "0.000012500",
-            //                 "close": "0.000012500",
-            //                 "funding_rate": "0.000012500"
-            //             },
-            //             "symbol": "BTC/USDC:USDC",
-            //             "fundingRate": 1.25e-05,
-            //             "timestamp": 1790874000000,
-            //             "datetime": "2026-10-01T17:00:00.000Z"
-            //         }
-            //     ]
-            //
-            Map<String, Object> data = this.safeDict(response, 0, null);
-            return this.parseFundingRate(data, (Map<String, Object>) null);
-        }).thenApply(FundingRate::new);
+        List<FundingRateHistory> response = (this.fetchFundingRateHistory(symbol, (Long) null, 1L, parameters)).join();
+        //
+        //     [
+        //         {
+        //             "info": {
+        //                 "timestamp": 1790870400000,
+        //                 "risk_universe_id": 1,
+        //                 "currency": "BTC",
+        //                 "open": "0.000012500",
+        //                 "high": "0.000012500",
+        //                 "low": "0.000012500",
+        //                 "close": "0.000012500",
+        //                 "funding_rate": "0.000012500"
+        //             },
+        //             "symbol": "BTC/USDC:USDC",
+        //             "fundingRate": 1.25e-05,
+        //             "timestamp": 1790870400000,
+        //             "datetime": "2026-10-01T16:00:00.000Z"
+        //         },
+        //         {
+        //             "info": {
+        //                 "timestamp": 1790874000000,
+        //                 "risk_universe_id": 1,
+        //                 "currency": "BTC",
+        //                 "open": "0.000012500",
+        //                 "high": "0.000012500",
+        //                 "low": "0.000012500",
+        //                 "close": "0.000012500",
+        //                 "funding_rate": "0.000012500"
+        //             },
+        //             "symbol": "BTC/USDC:USDC",
+        //             "fundingRate": 1.25e-05,
+        //             "timestamp": 1790874000000,
+        //             "datetime": "2026-10-01T17:00:00.000Z"
+        //         }
+        //     ]
+        //
+        Map<String, Object> data = this.safeDict(response, 0, null);
+        return this.parseFundingRate(data, (Map<String, Object>) null);
 
     }
 
@@ -2418,166 +2454,168 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        if (java.util.Objects.equals(price, null))
+        {
+            throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("createOrder", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Boolean test = (Boolean) this.safeBool(paramsDeriveSubaccountId, "test", false);
+        Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", (Object) null);
+        String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
+        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
+        String orderType = ((String)type).toLowerCase();
+        String orderSide = ((String)((String)side)).toLowerCase();
+        Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        String nonce = this.nonceString();
+        // Order signature expiry must be between 2592000 and 7776000 sec from now
+        Long signatureExpiry = this.safeInteger(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));
+        Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"; // shared across mainnet and testnet in v3
+        String priceString = this.numberToString(price);
+        Object maxFeeOptionAndParams = this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee", (Object) null);
+        String maxFeeString = this.safeString(maxFeeOptionAndParams, 0);
+        if (java.util.Objects.equals(maxFeeString, null))
+        {
+            throw new ArgumentsRequired((this.id + " createOrder() requires a max_fee argument in params")) ;
+        }
+        Map<String, Object> paramsMaxFee = this.safeDict(maxFeeOptionAndParams, 1, new HashMap<String, Object>() {{}});
+        String amountString = this.numberToString(amount);
+        Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
+        List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", paramsMaxFee);
+        var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+        var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
+        String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("instrument_name", market.get("id"));
+        request.put("direction", orderSide);
+        request.put("order_type", orderType);
+        request.put("nonce", nonce);
+        request.put("amount", amountString);
+        request.put("limit_price", priceString);
+        request.put("max_fee", maxFeeString);
+        request.put("subaccount_id", subaccountId);
+        request.put("signature_expiry_sec", signatureExpiry);
+        request.put("referral_code", this.safeString(this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"));
+        request.put("signer", this.walletAddress);
+        if (!java.util.Objects.equals(reduceOnly, null))
+        {
+            request.put("reduce_only", reduceOnly);
+            if (Boolean.TRUE.equals(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new InvalidOrder((this.id + " cannot use reduce only with post only time in force")) ;
             }
-            Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(price, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("createOrder", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Boolean test = (Boolean) this.safeBool(paramsDeriveSubaccountId, "test", false);
-            Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", (Object) null);
-            String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-            Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
-            String orderType = ((String)type).toLowerCase();
-            String orderSide = ((String)((String)side)).toLowerCase();
-            Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-            String nonce = this.nonceString();
-            // Order signature expiry must be between 2592000 and 7776000 sec from now
-            Long signatureExpiry = this.safeInteger(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));
-            Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-            String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"; // shared across mainnet and testnet in v3
-            String priceString = this.numberToString(price);
-            Object maxFeeOptionAndParams = this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee", (Object) null);
-            String maxFeeString = this.safeString(maxFeeOptionAndParams, 0);
-            if (java.util.Objects.equals(maxFeeString, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a max_fee argument in params")) ;
-            }
-            Map<String, Object> paramsMaxFee = this.safeDict(maxFeeOptionAndParams, 1, new HashMap<String, Object>() {{}});
-            String amountString = this.numberToString(amount);
-            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
-            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", paramsMaxFee);
-            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
-            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("instrument_name", market.get("id"));
-            request.put("direction", orderSide);
-            request.put("order_type", orderType);
-            request.put("nonce", nonce);
-            request.put("amount", amountString);
-            request.put("limit_price", priceString);
-            request.put("max_fee", maxFeeString);
-            request.put("subaccount_id", subaccountId);
-            request.put("signature_expiry_sec", signatureExpiry);
-            request.put("referral_code", this.safeString(this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"));
-            request.put("signer", this.walletAddress);
-            if (!java.util.Objects.equals(reduceOnly, null))
-            {
-                request.put("reduce_only", reduceOnly);
-                if (Boolean.TRUE.equals(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
-                {
-                    throw new InvalidOrder((this.id + " cannot use reduce only with post only time in force")) ;
-                }
-            }
-            if (!java.util.Objects.equals(postOnly, null))
-            {
-                request.put("time_in_force", "post_only");
-            } else if (!java.util.Objects.equals(timeInForce, null))
-            {
-                request.put("time_in_force", timeInForce);
-            }
-            // the venue supports exactly two standalone conditional kinds: 'stoploss' triggers on adverse crossing (the classic stop semantics, so both triggerPrice and stopLossPrice map onto it) and 'takeprofit' triggers on the favorable one; attached stop loss / take profit are not supported
-            String triggerPrice = this.safeStringN(paramsDeriveWalletAddress, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
-            String stopLossPrice = this.safeString(paramsDeriveWalletAddress, "stopLossPrice");
-            String takeProfitPrice = this.safeString(paramsDeriveWalletAddress, "takeProfitPrice");
-            if ((!java.util.Objects.equals(takeProfitPrice, null)) && ((!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(stopLossPrice, null))))
-            {
-                throw new InvalidOrder((this.id + " createOrder() accepts only one of triggerPrice, stopLossPrice or takeProfitPrice")) ;
-            }
-            String triggerPriceType = this.safeString(paramsDeriveWalletAddress, "trigger_price_type", "mark");
-            String stopPrice = (((!java.util.Objects.equals(triggerPrice, null)))) ? triggerPrice : stopLossPrice;
-            if (!java.util.Objects.equals(stopPrice, null))
-            {
-                request.put("trigger_price", stopPrice);
-                request.put("trigger_type", "stoploss");
-                request.put("trigger_price_type", triggerPriceType);
-            } else if (!java.util.Objects.equals(takeProfitPrice, null))
-            {
-                request.put("trigger_price", takeProfitPrice);
-                request.put("trigger_type", "takeprofit");
-                request.put("trigger_price_type", triggerPriceType);
-            }
-            String clientOrderId = this.safeString(paramsDeriveWalletAddress, "clientOrderId");
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                request.put("label", clientOrderId);
-            }
-            request.put("signature", signature);
-            Object paramsOmitted = this.omit(paramsDeriveWalletAddress, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLossPrice", "takeProfitPrice", "trigger_price_type")));
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(test))
-            {
-                response = (this.privatePostOrderDebug(this.extend(request, paramsOmitted))).join();
-            } else
-            {
-                response = (this.privatePostOrder(this.extend(request, paramsOmitted))).join();
-            }
-            //
-            //     {
-            //         "id": "dd0fe5ec-043c-41ab-95e1-fc2421c6fc10",
-            //         "result": {
-            //             "order": {
-            //                 "subaccount_id": 86815,
-            //                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
-            //                 "instrument_name": "BTC-PERP",
-            //                 "direction": "buy",
-            //                 "label": "",
-            //                 "quote_id": null,
-            //                 "amount": "0.01",
-            //                 "average_price": "0",
-            //                 "cancel_reason": "",
-            //                 "creation_timestamp": 1790871618199,
-            //                 "filled_amount": "0",
-            //                 "is_transfer": false,
-            //                 "last_update_timestamp": 1790871618199,
-            //                 "limit_price": "83000",
-            //                 "signed_limit_price": null,
-            //                 "max_fee": "100",
-            //                 "mmp": false,
-            //                 "nonce": "1790871617137835612",
-            //                 "order_fee": "0",
-            //                 "order_status": "open",
-            //                 "order_type": "limit",
-            //                 "replaced_order_id": null,
-            //                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
-            //                 "signature_expiry_sec": 1798647617,
-            //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                 "time_in_force": "gtc",
-            //                 "trigger_type": null,
-            //                 "trigger_price": null,
-            //                 "trigger_price_type": null,
-            //                 "trigger_reject_message": null,
-            //                 "extra_fee": "0",
-            //                 "algo_type": null,
-            //                 "algo_duration_sec": null,
-            //                 "algo_num_slices": null,
-            //                 "algo_slices_completed": null
-            //             },
-            //             "trades": []
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", null);
-            Map<String, Object> rawOrder = this.safeDict(result, "raw_data", null);
-            if (java.util.Objects.equals(rawOrder, null))
-            {
-                rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            }
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
-            order.put("type", type);
-            return order;
-        }).thenApply(Order::new);
+        }
+        if (!java.util.Objects.equals(postOnly, null))
+        {
+            request.put("time_in_force", "post_only");
+        } else if (!java.util.Objects.equals(timeInForce, null))
+        {
+            request.put("time_in_force", timeInForce);
+        }
+        // the venue supports exactly two standalone conditional kinds: 'stoploss' triggers on adverse crossing (the classic stop semantics, so both triggerPrice and stopLossPrice map onto it) and 'takeprofit' triggers on the favorable one; attached stop loss / take profit are not supported
+        String triggerPrice = this.safeStringN(paramsDeriveWalletAddress, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
+        String stopLossPrice = this.safeString(paramsDeriveWalletAddress, "stopLossPrice");
+        String takeProfitPrice = this.safeString(paramsDeriveWalletAddress, "takeProfitPrice");
+        if ((!java.util.Objects.equals(takeProfitPrice, null)) && ((!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(stopLossPrice, null))))
+        {
+            throw new InvalidOrder((this.id + " createOrder() accepts only one of triggerPrice, stopLossPrice or takeProfitPrice")) ;
+        }
+        String triggerPriceType = this.safeString(paramsDeriveWalletAddress, "trigger_price_type", "mark");
+        String stopPrice = (((!java.util.Objects.equals(triggerPrice, null)))) ? triggerPrice : stopLossPrice;
+        if (!java.util.Objects.equals(stopPrice, null))
+        {
+            request.put("trigger_price", stopPrice);
+            request.put("trigger_type", "stoploss");
+            request.put("trigger_price_type", triggerPriceType);
+        } else if (!java.util.Objects.equals(takeProfitPrice, null))
+        {
+            request.put("trigger_price", takeProfitPrice);
+            request.put("trigger_type", "takeprofit");
+            request.put("trigger_price_type", triggerPriceType);
+        }
+        String clientOrderId = this.safeString(paramsDeriveWalletAddress, "clientOrderId");
+        if (!java.util.Objects.equals(clientOrderId, null))
+        {
+            request.put("label", clientOrderId);
+        }
+        request.put("signature", signature);
+        Object paramsOmitted = this.omit(paramsDeriveWalletAddress, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLossPrice", "takeProfitPrice", "trigger_price_type")));
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(test))
+        {
+            response = (this.privatePostOrderDebug(this.extend(request, paramsOmitted))).join();
+        } else
+        {
+            response = (this.privatePostOrder(this.extend(request, paramsOmitted))).join();
+        }
+        //
+        //     {
+        //         "id": "dd0fe5ec-043c-41ab-95e1-fc2421c6fc10",
+        //         "result": {
+        //             "order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "",
+        //                 "creation_timestamp": 1790871618199,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871618199,
+        //                 "limit_price": "83000",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871617137835612",
+        //                 "order_fee": "0",
+        //                 "order_status": "open",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": null,
+        //                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                 "signature_expiry_sec": 1798647617,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "trades": []
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", null);
+        Map<String, Object> rawOrder = this.safeDict(result, "raw_data", null);
+        if (java.util.Objects.equals(rawOrder, null))
+        {
+            rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+        }
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
+        order.put("type", type);
+        return order;
 
     }
 
@@ -2598,159 +2636,161 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.editOrderCore(id, symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object editOrderCore(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", (Object) null);
+        String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
+        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
+        String orderType = ((String)type).toLowerCase();
+        String orderSide = ((String)((String)side)).toLowerCase();
+        Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        String nonce = this.nonceString();
+        Double signatureExpiry = this.safeNumber(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));
+        Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"; // shared across mainnet and testnet in v3
+        String priceString = this.numberToString(price);
+        String maxFeeString = this.safeString(paramsDeriveSubaccountId, "max_fee", "0");
+        String amountString = this.numberToString(amount);
+        Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
+        List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", (Map<String, Object>) (paramsDeriveSubaccountId));
+        var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+        var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
+        String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("instrument_name", market.get("id"));
+        request.put("order_id_to_cancel", id);
+        request.put("direction", orderSide);
+        request.put("order_type", orderType);
+        request.put("nonce", nonce);
+        request.put("amount", amountString);
+        request.put("limit_price", priceString);
+        request.put("max_fee", maxFeeString);
+        request.put("subaccount_id", subaccountId);
+        request.put("signature_expiry_sec", signatureExpiry);
+        request.put("signer", this.walletAddress);
+        if (!java.util.Objects.equals(reduceOnly, null))
+        {
+            request.put("reduce_only", reduceOnly);
+            if (Boolean.TRUE.equals(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                throw new InvalidOrder((this.id + " cannot use reduce only with post only time in force")) ;
             }
-            Map<String, Object> market = this.market(symbol);
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", (Object) null);
-            String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-            Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
-            String orderType = ((String)type).toLowerCase();
-            String orderSide = ((String)((String)side)).toLowerCase();
-            Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-            String nonce = this.nonceString();
-            Double signatureExpiry = this.safeNumber(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));
-            Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-            String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"; // shared across mainnet and testnet in v3
-            String priceString = this.numberToString(price);
-            String maxFeeString = this.safeString(paramsDeriveSubaccountId, "max_fee", "0");
-            String amountString = this.numberToString(amount);
-            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
-            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", (Map<String, Object>) (paramsDeriveSubaccountId));
-            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
-            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("instrument_name", market.get("id"));
-            request.put("order_id_to_cancel", id);
-            request.put("direction", orderSide);
-            request.put("order_type", orderType);
-            request.put("nonce", nonce);
-            request.put("amount", amountString);
-            request.put("limit_price", priceString);
-            request.put("max_fee", maxFeeString);
-            request.put("subaccount_id", subaccountId);
-            request.put("signature_expiry_sec", signatureExpiry);
-            request.put("signer", this.walletAddress);
-            if (!java.util.Objects.equals(reduceOnly, null))
-            {
-                request.put("reduce_only", reduceOnly);
-                if (Boolean.TRUE.equals(reduceOnly) && (java.util.Objects.equals(postOnly, true)))
-                {
-                    throw new InvalidOrder((this.id + " cannot use reduce only with post only time in force")) ;
-                }
-            }
-            if (!java.util.Objects.equals(postOnly, null))
-            {
-                request.put("time_in_force", "post_only");
-            } else if (!java.util.Objects.equals(timeInForce, null))
-            {
-                request.put("time_in_force", timeInForce);
-            }
-            String clientOrderId = this.safeString(paramsDeriveWalletAddress, "clientOrderId");
-            if (!java.util.Objects.equals(clientOrderId, null))
-            {
-                request.put("label", clientOrderId);
-            }
-            request.put("signature", signature);
-            Object paramsOmitted = this.omit(paramsDeriveWalletAddress, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId")));
-            Map<String, Object> response = (this.privatePostReplace(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
-            //         "result": {
-            //             "cancelled_order": {
-            //                 "subaccount_id": 86815,
-            //                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
-            //                 "instrument_name": "BTC-PERP",
-            //                 "direction": "buy",
-            //                 "label": "",
-            //                 "quote_id": null,
-            //                 "amount": "0.01",
-            //                 "average_price": "0",
-            //                 "cancel_reason": "user_request",
-            //                 "creation_timestamp": 1790871618199,
-            //                 "filled_amount": "0",
-            //                 "is_transfer": false,
-            //                 "last_update_timestamp": 1790871630849,
-            //                 "limit_price": "83000",
-            //                 "signed_limit_price": null,
-            //                 "max_fee": "100",
-            //                 "mmp": false,
-            //                 "nonce": "1790871617137835612",
-            //                 "order_fee": "0",
-            //                 "order_status": "cancelled",
-            //                 "order_type": "limit",
-            //                 "replaced_order_id": null,
-            //                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
-            //                 "signature_expiry_sec": 1798647617,
-            //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                 "time_in_force": "gtc",
-            //                 "trigger_type": null,
-            //                 "trigger_price": null,
-            //                 "trigger_price_type": null,
-            //                 "trigger_reject_message": null,
-            //                 "extra_fee": "0",
-            //                 "algo_type": null,
-            //                 "algo_duration_sec": null,
-            //                 "algo_num_slices": null,
-            //                 "algo_slices_completed": null
-            //             },
-            //             "order": {
-            //                 "subaccount_id": 86815,
-            //                 "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
-            //                 "instrument_name": "BTC-PERP",
-            //                 "direction": "buy",
-            //                 "label": "",
-            //                 "quote_id": null,
-            //                 "amount": "0.01",
-            //                 "average_price": "0",
-            //                 "cancel_reason": "",
-            //                 "creation_timestamp": 1790871630849,
-            //                 "filled_amount": "0",
-            //                 "is_transfer": false,
-            //                 "last_update_timestamp": 1790871630849,
-            //                 "limit_price": "83500",
-            //                 "signed_limit_price": null,
-            //                 "max_fee": "100",
-            //                 "mmp": false,
-            //                 "nonce": "1790871630331176421",
-            //                 "order_fee": "0",
-            //                 "order_status": "open",
-            //                 "order_type": "limit",
-            //                 "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
-            //                 "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
-            //                 "signature_expiry_sec": 1798647630,
-            //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                 "time_in_force": "gtc",
-            //                 "trigger_type": null,
-            //                 "trigger_price": null,
-            //                 "trigger_price_type": null,
-            //                 "trigger_reject_message": null,
-            //                 "extra_fee": "0",
-            //                 "algo_type": null,
-            //                 "algo_duration_sec": null,
-            //                 "algo_num_slices": null,
-            //                 "algo_slices_completed": null
-            //             },
-            //             "trades": [],
-            //             "create_order_error": null
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", null);
-            Map<String, Object> rawOrder = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
-            return order;
-        }).thenApply(Order::new);
+        }
+        if (!java.util.Objects.equals(postOnly, null))
+        {
+            request.put("time_in_force", "post_only");
+        } else if (!java.util.Objects.equals(timeInForce, null))
+        {
+            request.put("time_in_force", timeInForce);
+        }
+        String clientOrderId = this.safeString(paramsDeriveWalletAddress, "clientOrderId");
+        if (!java.util.Objects.equals(clientOrderId, null))
+        {
+            request.put("label", clientOrderId);
+        }
+        request.put("signature", signature);
+        Object paramsOmitted = this.omit(paramsDeriveWalletAddress, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId")));
+        Map<String, Object> response = (this.privatePostReplace(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
+        //         "result": {
+        //             "cancelled_order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "user_request",
+        //                 "creation_timestamp": 1790871618199,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871630849,
+        //                 "limit_price": "83000",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871617137835612",
+        //                 "order_fee": "0",
+        //                 "order_status": "cancelled",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": null,
+        //                 "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                 "signature_expiry_sec": 1798647617,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "order": {
+        //                 "subaccount_id": 86815,
+        //                 "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //                 "instrument_name": "BTC-PERP",
+        //                 "direction": "buy",
+        //                 "label": "",
+        //                 "quote_id": null,
+        //                 "amount": "0.01",
+        //                 "average_price": "0",
+        //                 "cancel_reason": "",
+        //                 "creation_timestamp": 1790871630849,
+        //                 "filled_amount": "0",
+        //                 "is_transfer": false,
+        //                 "last_update_timestamp": 1790871630849,
+        //                 "limit_price": "83500",
+        //                 "signed_limit_price": null,
+        //                 "max_fee": "100",
+        //                 "mmp": false,
+        //                 "nonce": "1790871630331176421",
+        //                 "order_fee": "0",
+        //                 "order_status": "open",
+        //                 "order_type": "limit",
+        //                 "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                 "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        //                 "signature_expiry_sec": 1798647630,
+        //                 "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                 "time_in_force": "gtc",
+        //                 "trigger_type": null,
+        //                 "trigger_price": null,
+        //                 "trigger_price_type": null,
+        //                 "trigger_reject_message": null,
+        //                 "extra_fee": "0",
+        //                 "algo_type": null,
+        //                 "algo_duration_sec": null,
+        //                 "algo_num_slices": null,
+        //                 "algo_slices_completed": null
+        //             },
+        //             "trades": [],
+        //             "create_order_error": null
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", null);
+        Map<String, Object> rawOrder = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
+        return order;
 
     }
 
@@ -2768,98 +2808,100 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "instrument_name", market.get("id") );
+            put( "subaccount_id", subaccountId );
+        }};
+        String clientOrderIdUnified = this.safeString(paramsOmitted, "clientOrderId");
+        String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "label", clientOrderIdUnified);
+        Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(isByClientOrder))
+        {
+            request.put("label", clientOrderIdExchangeSpecific);
+            Object paramsLabel = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId", "label")));
+            response = (this.privatePostCancelByLabel(this.extend(request, paramsLabel))).join();
+        } else
+        {
+            request.put("order_id", id);
+            if (Boolean.TRUE.equals(isTrigger))
             {
-                throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_name", market.get("id") );
-                put( "subaccount_id", subaccountId );
-            }};
-            String clientOrderIdUnified = this.safeString(paramsOmitted, "clientOrderId");
-            String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "label", clientOrderIdUnified);
-            Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(isByClientOrder))
-            {
-                request.put("label", clientOrderIdExchangeSpecific);
-                Object paramsLabel = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId", "label")));
-                response = (this.privatePostCancelByLabel(this.extend(request, paramsLabel))).join();
+                response = (this.privatePostCancelTriggerOrder(this.extend(request, paramsOmitted))).join();
             } else
             {
-                request.put("order_id", id);
-                if (Boolean.TRUE.equals(isTrigger))
-                {
-                    response = (this.privatePostCancelTriggerOrder(this.extend(request, paramsOmitted))).join();
-                } else
-                {
-                    response = (this.privatePostCancel(this.extend(request, paramsOmitted))).join();
-                }
+                response = (this.privatePostCancel(this.extend(request, paramsOmitted))).join();
             }
-            //
-            //     {
-            //         "id": "1765272a-2d4d-4761-8e05-64061d64dc9c",
-            //         "result": {
-            //             "subaccount_id": 86815,
-            //             "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
-            //             "instrument_name": "BTC-PERP",
-            //             "direction": "buy",
-            //             "label": "",
-            //             "quote_id": null,
-            //             "amount": "0.01",
-            //             "average_price": "0",
-            //             "cancel_reason": "user_request",
-            //             "creation_timestamp": 1790871630849,
-            //             "filled_amount": "0",
-            //             "is_transfer": false,
-            //             "last_update_timestamp": 1790871644913,
-            //             "limit_price": "83500",
-            //             "signed_limit_price": null,
-            //             "max_fee": "100",
-            //             "mmp": false,
-            //             "nonce": "1790871630331176421",
-            //             "order_fee": "0",
-            //             "order_status": "cancelled",
-            //             "order_type": "limit",
-            //             "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
-            //             "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
-            //             "signature_expiry_sec": 1798647630,
-            //             "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //             "time_in_force": "gtc",
-            //             "trigger_type": null,
-            //             "trigger_price": null,
-            //             "trigger_price_type": null,
-            //             "trigger_reject_message": null,
-            //             "extra_fee": "0",
-            //             "algo_type": null,
-            //             "algo_duration_sec": null,
-            //             "algo_num_slices": null,
-            //             "algo_slices_completed": null
-            //         }
-            //     }
-            //
-            Map<String, Object> extendParams = new HashMap<String, Object>();
-            extendParams.put("symbol", symbol);
-            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            if (Boolean.TRUE.equals(isByClientOrder))
-            {
-                extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
-            }
-            return this.extend(this.parseOrder(order, market), extendParams);
-        }).thenApply(Order::new);
+        }
+        //
+        //     {
+        //         "id": "1765272a-2d4d-4761-8e05-64061d64dc9c",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //             "instrument_name": "BTC-PERP",
+        //             "direction": "buy",
+        //             "label": "",
+        //             "quote_id": null,
+        //             "amount": "0.01",
+        //             "average_price": "0",
+        //             "cancel_reason": "user_request",
+        //             "creation_timestamp": 1790871630849,
+        //             "filled_amount": "0",
+        //             "is_transfer": false,
+        //             "last_update_timestamp": 1790871644913,
+        //             "limit_price": "83500",
+        //             "signed_limit_price": null,
+        //             "max_fee": "100",
+        //             "mmp": false,
+        //             "nonce": "1790871630331176421",
+        //             "order_fee": "0",
+        //             "order_status": "cancelled",
+        //             "order_type": "limit",
+        //             "replaced_order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //             "signature": "0x0c8ae3bebd23b1e303b49dd60eb34a5c96ccd450ea9f37536f30d7fa07322980569e4e691e90673a9a8db27b253cf00026ea813034ad2f5e22e2db727cb42faa1c",
+        //             "signature_expiry_sec": 1798647630,
+        //             "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //             "time_in_force": "gtc",
+        //             "trigger_type": null,
+        //             "trigger_price": null,
+        //             "trigger_price_type": null,
+        //             "trigger_reject_message": null,
+        //             "extra_fee": "0",
+        //             "algo_type": null,
+        //             "algo_duration_sec": null,
+        //             "algo_num_slices": null,
+        //             "algo_slices_completed": null
+        //         }
+        //     }
+        //
+        Map<String, Object> extendParams = new HashMap<String, Object>();
+        extendParams.put("symbol", symbol);
+        Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        if (Boolean.TRUE.equals(isByClientOrder))
+        {
+            extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
+        }
+        return this.extend(this.parseOrder(order, market), extendParams);
 
     }
 
@@ -2876,43 +2918,45 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            Map<String, Object> response = null;
-            if (!java.util.Objects.equals(market, null))
-            {
-                request.put("instrument_name", market.get("id"));
-                response = (this.privatePostCancelByInstrument(this.extend(request, paramsDeriveSubaccountId))).join();
-            } else
-            {
-                response = (this.privatePostCancelAll(this.extend(request, paramsDeriveSubaccountId))).join();
-            }
-            //
-            //     {
-            //         "id": "dda90de6-30d5-4bb1-8c3b-cdaa23e9e718",
-            //         "result": "ok"
-            //     }
-            //
-            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-            mapLiteral4.put("info", response);
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral4, (Map<String, Object>) null)));
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        Map<String, Object> response = null;
+        if (!java.util.Objects.equals(market, null))
+        {
+            request.put("instrument_name", market.get("id"));
+            response = (this.privatePostCancelByInstrument(this.extend(request, paramsDeriveSubaccountId))).join();
+        } else
+        {
+            response = (this.privatePostCancelAll(this.extend(request, paramsDeriveSubaccountId))).join();
+        }
+        //
+        //     {
+        //         "id": "dda90de6-30d5-4bb1-8c3b-cdaa23e9e718",
+        //         "result": "ok"
+        //     }
+        //
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", response);
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral4, (Map<String, Object>) null)));
 
     }
 
@@ -2932,117 +2976,119 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledAndClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledAndClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
+            Object allOrders = (this.fetchPaginatedCallIncremental("fetchCanceledAndClosedOrders", (String) null, since, (Long) null, paramsPaginate, "page", 500L)).join();
+            return this.filterBySymbolSinceLimit(allOrders, symbol, since, limit, false);
+        }
+        Long until = this.safeInteger(paramsPaginate, "until");
+        Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchCanceledAndClosedOrders", paramsOmitted);
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("page_size", limit);
+        } else
+        {
+            request.put("page_size", 500);
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("from_timestamp", since);
+        }
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("to_timestamp", until);
+        }
+        Map<String, Object> response = (this.privatePostGetOrderHistory(this.extend(request, paramsDeriveSubaccountId))).join();
+        //
+        //     {
+        //         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "orders": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "amount": "0.01",
+        //                     "average_price": "0",
+        //                     "cancel_reason": "user_request",
+        //                     "creation_timestamp": 1790871630849,
+        //                     "filled_amount": "0",
+        //                     "is_transfer": false,
+        //                     "last_update_timestamp": 1790871644913,
+        //                     "limit_price": "83500",
+        //                     "signed_limit_price": null,
+        //                     "max_fee": "100",
+        //                     "mmp": false,
+        //                     "nonce": "1790871630331176421",
+        //                     "order_fee": "0",
+        //                     "order_status": "cancelled",
+        //                     "order_type": "limit",
+        //                     "replaced_order_id": null,
+        //                     "signature": "",
+        //                     "signature_expiry_sec": 1798647630,
+        //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "time_in_force": "gtc",
+        //                     "trigger_type": null,
+        //                     "trigger_price": null,
+        //                     "trigger_price_type": null,
+        //                     "trigger_reject_message": null,
+        //                     "extra_fee": "0",
+        //                     "algo_type": null,
+        //                     "algo_duration_sec": null,
+        //                     "algo_num_slices": null,
+        //                     "algo_slices_completed": null
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 2,
+        //                 "count": 6
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> data = this.safeDict(response, "result", null);
+        Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
+        if (!java.util.Objects.equals(page, null))
+        {
+            Map<String, Object> pagination = this.safeDict(data, "pagination", null);
+            Long currentPage = this.safeInteger(pagination, "num_pages", 0);
+            if ((page != null && (currentPage == null || page > currentPage)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                return new ArrayList<Object>(Arrays.asList());
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
-                Object allOrders = (this.fetchPaginatedCallIncremental("fetchCanceledAndClosedOrders", (String) null, since, (Long) null, paramsPaginate, "page", 500L)).join();
-                return this.filterBySymbolSinceLimit(allOrders, symbol, since, limit, false);
-            }
-            Long until = this.safeInteger(paramsPaginate, "until");
-            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchCanceledAndClosedOrders", paramsOmitted);
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("page_size", limit);
-            } else
-            {
-                request.put("page_size", 500);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("from_timestamp", since);
-            }
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("to_timestamp", until);
-            }
-            Map<String, Object> response = (this.privatePostGetOrderHistory(this.extend(request, paramsDeriveSubaccountId))).join();
-            //
-            //     {
-            //         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
-            //         "result": {
-            //             "subaccount_id": 86815,
-            //             "orders": [
-            //                 {
-            //                     "subaccount_id": 86815,
-            //                     "order_id": "af3f3ec2-eab8-4929-bd50-8ce1657f9e93",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "direction": "buy",
-            //                     "label": "",
-            //                     "quote_id": null,
-            //                     "amount": "0.01",
-            //                     "average_price": "0",
-            //                     "cancel_reason": "user_request",
-            //                     "creation_timestamp": 1790871630849,
-            //                     "filled_amount": "0",
-            //                     "is_transfer": false,
-            //                     "last_update_timestamp": 1790871644913,
-            //                     "limit_price": "83500",
-            //                     "signed_limit_price": null,
-            //                     "max_fee": "100",
-            //                     "mmp": false,
-            //                     "nonce": "1790871630331176421",
-            //                     "order_fee": "0",
-            //                     "order_status": "cancelled",
-            //                     "order_type": "limit",
-            //                     "replaced_order_id": null,
-            //                     "signature": "",
-            //                     "signature_expiry_sec": 1798647630,
-            //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "time_in_force": "gtc",
-            //                     "trigger_type": null,
-            //                     "trigger_price": null,
-            //                     "trigger_price_type": null,
-            //                     "trigger_reject_message": null,
-            //                     "extra_fee": "0",
-            //                     "algo_type": null,
-            //                     "algo_duration_sec": null,
-            //                     "algo_num_slices": null,
-            //                     "algo_slices_completed": null
-            //                 }
-            //             ],
-            //             "pagination": {
-            //                 "num_pages": 2,
-            //                 "count": 6
-            //             }
-            //         }
-            //     }
-            //
-            Map<String, Object> data = this.safeDict(response, "result", null);
-            Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
-            if (!java.util.Objects.equals(page, null))
-            {
-                Map<String, Object> pagination = this.safeDict(data, "pagination", null);
-                Long currentPage = this.safeInteger(pagination, "num_pages", 0);
-                if ((page != null && (currentPage == null || page > currentPage)))
-                {
-                    return new ArrayList<Object>(Arrays.asList());
-                }
-            }
-            List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }
+        List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
 
     }
 
@@ -3059,29 +3105,31 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrder", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-                put( "subaccount_id", subaccountId );
-            }};
-            Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, paramsDeriveSubaccountId))).join();
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseOrder(result, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrder", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+            put( "subaccount_id", subaccountId );
+        }};
+        Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, paramsDeriveSubaccountId))).join();
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        return this.parseOrder(result, market);
 
     }
 
@@ -3101,86 +3149,88 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOpenOrders", paramsOmitted);
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
-            Map<String, Object> response = null;
-            if (Boolean.TRUE.equals(isTrigger))
-            {
-                response = (this.privatePostGetTriggerOrders(this.extend(request, paramsDeriveSubaccountId))).join();
-            } else
-            {
-                response = (this.privatePostGetOpenOrders(this.extend(request, paramsDeriveSubaccountId))).join();
-            }
-            //
-            //     {
-            //         "id": "aca80354-f6fe-4862-bbbd-7982f774914e",
-            //         "result": {
-            //             "subaccount_id": 86815,
-            //             "orders": [
-            //                 {
-            //                     "subaccount_id": 86815,
-            //                     "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "direction": "buy",
-            //                     "label": "",
-            //                     "quote_id": null,
-            //                     "amount": "0.01",
-            //                     "average_price": "0",
-            //                     "cancel_reason": "",
-            //                     "creation_timestamp": 1790871618199,
-            //                     "filled_amount": "0",
-            //                     "is_transfer": false,
-            //                     "last_update_timestamp": 1790871618199,
-            //                     "limit_price": "83000",
-            //                     "signed_limit_price": null,
-            //                     "max_fee": "100",
-            //                     "mmp": false,
-            //                     "nonce": "1790871617137835612",
-            //                     "order_fee": "0",
-            //                     "order_status": "open",
-            //                     "order_type": "limit",
-            //                     "replaced_order_id": null,
-            //                     "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
-            //                     "signature_expiry_sec": 1798647617,
-            //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "time_in_force": "gtc",
-            //                     "trigger_type": null,
-            //                     "trigger_price": null,
-            //                     "trigger_price_type": null,
-            //                     "trigger_reject_message": null,
-            //                     "extra_fee": "0",
-            //                     "algo_type": null,
-            //                     "algo_duration_sec": null,
-            //                     "algo_num_slices": null,
-            //                     "algo_slices_completed": null
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> data = this.safeDict(response, "result", null);
-            List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOpenOrders", paramsOmitted);
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(isTrigger))
+        {
+            response = (this.privatePostGetTriggerOrders(this.extend(request, paramsDeriveSubaccountId))).join();
+        } else
+        {
+            response = (this.privatePostGetOpenOrders(this.extend(request, paramsDeriveSubaccountId))).join();
+        }
+        //
+        //     {
+        //         "id": "aca80354-f6fe-4862-bbbd-7982f774914e",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "orders": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "f690dfc9-5b9c-4f62-a2b0-3f6ba502f2f6",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "amount": "0.01",
+        //                     "average_price": "0",
+        //                     "cancel_reason": "",
+        //                     "creation_timestamp": 1790871618199,
+        //                     "filled_amount": "0",
+        //                     "is_transfer": false,
+        //                     "last_update_timestamp": 1790871618199,
+        //                     "limit_price": "83000",
+        //                     "signed_limit_price": null,
+        //                     "max_fee": "100",
+        //                     "mmp": false,
+        //                     "nonce": "1790871617137835612",
+        //                     "order_fee": "0",
+        //                     "order_status": "open",
+        //                     "order_type": "limit",
+        //                     "replaced_order_id": null,
+        //                     "signature": "0x55412a2a39e2dd70b0c39ea03859ac499b5c500756b46197900a413f7bfd294e0adb8c2c5eec467b4c83ef75f7068b528e21044cdd27faa47a6db475461641c21b",
+        //                     "signature_expiry_sec": 1798647617,
+        //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "time_in_force": "gtc",
+        //                     "trigger_type": null,
+        //                     "trigger_price": null,
+        //                     "trigger_price_type": null,
+        //                     "trigger_reject_message": null,
+        //                     "extra_fee": "0",
+        //                     "algo_type": null,
+        //                     "algo_duration_sec": null,
+        //                     "algo_num_slices": null,
+        //                     "algo_slices_completed": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> data = this.safeDict(response, "result", null);
+        List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
 
     }
 
@@ -3198,16 +3248,18 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Order> orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
-            return this.filterBy(orders, "status", "closed");
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Order> orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+        return this.filterBy(orders, "status", "closed");
 
     }
 
@@ -3225,16 +3277,18 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchCanceledOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchCanceledOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Order> orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
-            return this.filterBy(orders, "status", "canceled");
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Order> orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
+        return this.filterBy(orders, "status", "canceled");
 
     }
 
@@ -3395,79 +3449,81 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderTradesCore(id, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderTradesCore(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrderTrades", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-                put( "subaccount_id", subaccountId );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> symbolMarket = this.market(symbol);
-                market = symbolMarket;
-                request.put("instrument_name", symbolMarket.get("id"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("page_size", limit);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("from_timestamp", since);
-            }
-            Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, paramsDeriveSubaccountId))).join();
-            //
-            //     {
-            //         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
-            //         "result": {
-            //             "subaccount_id": 86815,
-            //             "trades": [
-            //                 {
-            //                     "subaccount_id": 86815,
-            //                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "direction": "buy",
-            //                     "label": "",
-            //                     "quote_id": null,
-            //                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
-            //                     "rfq_id": null,
-            //                     "timestamp": 1790874532387,
-            //                     "mark_price": "84403.830304818628",
-            //                     "index_price": "84394.4543226228",
-            //                     "trade_price": "84412.1",
-            //                     "trade_amount": "0.01",
-            //                     "liquidity_role": "taker",
-            //                     "realized_pnl": "0",
-            //                     "realized_pnl_excl_fees": "0",
-            //                     "is_transfer": false,
-            //                     "batch_status": "Settled",
-            //                     "trade_fee": "0.263183362967",
-            //                     "expected_rebate": "0",
-            //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
-            //                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
-            //                     "extra_fee": "0"
-            //                 }
-            //             ],
-            //             "pagination": {
-            //                 "num_pages": 1,
-            //                 "count": 1
-            //             }
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, paramsDeriveSubaccountId);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOrderTrades", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+            put( "subaccount_id", subaccountId );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request.put("instrument_name", symbolMarket.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("page_size", limit);
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("from_timestamp", since);
+        }
+        Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, paramsDeriveSubaccountId))).join();
+        //
+        //     {
+        //         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "trades": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874532387,
+        //                     "mark_price": "84403.830304818628",
+        //                     "index_price": "84394.4543226228",
+        //                     "trade_price": "84412.1",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263183362967",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 1,
+        //                 "count": 1
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(trades, market, since, limit, paramsDeriveSubaccountId);
 
     }
 
@@ -3486,120 +3542,122 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500L)).join();
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request.put("instrument_name", symbolMarket.get("id"));
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("page_size", limit);
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("from_timestamp", since);
+        }
+        Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, paramsDeriveSubaccountId))).join();
+        //
+        //     {
+        //         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "trades": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "f1ff080c-f2d1-4e0a-9dad-9ba462c6615d",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "sell",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874586675,
+        //                     "mark_price": "84367.247384690156",
+        //                     "index_price": "84358.49561857211",
+        //                     "trade_price": "84365.4",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "-0.993258849822",
+        //                     "realized_pnl_excl_fees": "-0.467",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263075486855",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f871-8e34-7152-aea8-0b6d06ce484e",
+        //                     "extra_fee": "0"
+        //                 },
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "direction": "buy",
+        //                     "label": "",
+        //                     "quote_id": null,
+        //                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
+        //                     "rfq_id": null,
+        //                     "timestamp": 1790874532387,
+        //                     "mark_price": "84403.830304818628",
+        //                     "index_price": "84394.4543226228",
+        //                     "trade_price": "84412.1",
+        //                     "trade_amount": "0.01",
+        //                     "liquidity_role": "taker",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "is_transfer": false,
+        //                     "batch_status": "Settled",
+        //                     "trade_fee": "0.263183362967",
+        //                     "expected_rebate": "0",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
+        //                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
+        //                     "extra_fee": "0"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 2,
+        //                 "count": 4
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
+        if (!java.util.Objects.equals(page, null))
+        {
+            Map<String, Object> pagination = this.safeDict(result, "pagination", null);
+            Long currentPage = this.safeInteger(pagination, "num_pages", 0);
+            if ((page != null && (currentPage == null || page > currentPage)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                return new ArrayList<Object>(Arrays.asList());
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500L)).join();
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", (Map<String, Object>) (paramsPaginate));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> symbolMarket = this.market(symbol);
-                market = symbolMarket;
-                request.put("instrument_name", symbolMarket.get("id"));
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("page_size", limit);
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("from_timestamp", since);
-            }
-            Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, paramsDeriveSubaccountId))).join();
-            //
-            //     {
-            //         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
-            //         "result": {
-            //             "subaccount_id": 86815,
-            //             "trades": [
-            //                 {
-            //                     "subaccount_id": 86815,
-            //                     "order_id": "f1ff080c-f2d1-4e0a-9dad-9ba462c6615d",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "direction": "sell",
-            //                     "label": "",
-            //                     "quote_id": null,
-            //                     "trade_id": "b9608468-9ebe-478c-aedf-38fa2f754f19",
-            //                     "rfq_id": null,
-            //                     "timestamp": 1790874586675,
-            //                     "mark_price": "84367.247384690156",
-            //                     "index_price": "84358.49561857211",
-            //                     "trade_price": "84365.4",
-            //                     "trade_amount": "0.01",
-            //                     "liquidity_role": "taker",
-            //                     "realized_pnl": "-0.993258849822",
-            //                     "realized_pnl_excl_fees": "-0.467",
-            //                     "is_transfer": false,
-            //                     "batch_status": "Settled",
-            //                     "trade_fee": "0.263075486855",
-            //                     "expected_rebate": "0",
-            //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
-            //                     "op_uuid": "01a0f871-8e34-7152-aea8-0b6d06ce484e",
-            //                     "extra_fee": "0"
-            //                 },
-            //                 {
-            //                     "subaccount_id": 86815,
-            //                     "order_id": "ca94f349-8521-40a1-852e-d32b8994cb11",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "direction": "buy",
-            //                     "label": "",
-            //                     "quote_id": null,
-            //                     "trade_id": "7fdf1fb0-0fba-443d-9f34-d6a1f76870aa",
-            //                     "rfq_id": null,
-            //                     "timestamp": 1790874532387,
-            //                     "mark_price": "84403.830304818628",
-            //                     "index_price": "84394.4543226228",
-            //                     "trade_price": "84412.1",
-            //                     "trade_amount": "0.01",
-            //                     "liquidity_role": "taker",
-            //                     "realized_pnl": "0",
-            //                     "realized_pnl_excl_fees": "0",
-            //                     "is_transfer": false,
-            //                     "batch_status": "Settled",
-            //                     "trade_fee": "0.263183362967",
-            //                     "expected_rebate": "0",
-            //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892",
-            //                     "op_uuid": "01a0f870-ba23-7600-a3dd-320305d5bb2f",
-            //                     "extra_fee": "0"
-            //                 }
-            //             ],
-            //             "pagination": {
-            //                 "num_pages": 2,
-            //                 "count": 4
-            //             }
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
-            if (!java.util.Objects.equals(page, null))
-            {
-                Map<String, Object> pagination = this.safeDict(result, "pagination", null);
-                Long currentPage = this.safeInteger(pagination, "num_pages", 0);
-                if ((page != null && (currentPage == null || page > currentPage)))
-                {
-                    return new ArrayList<Object>(Arrays.asList());
-                }
-            }
-            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit, paramsDeriveSubaccountId);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }
+        List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTrades(trades, market, since, limit, paramsDeriveSubaccountId);
 
     }
 
@@ -3615,68 +3673,70 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(symbols, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchPositions", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("subaccount_id")));
-            Map<String, Object> response = (this.privatePostGetPositions(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
-            //         "result": {
-            //             "subaccount_id": 86815,
-            //             "positions": [
-            //                 {
-            //                     "instrument_type": "perp",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "amount": "0.01",
-            //                     "average_price": "84869.2487131065",
-            //                     "average_price_excl_fees": "84842.8",
-            //                     "mark_price": "84838.524516604186",
-            //                     "index_price": "84829.52978196857",
-            //                     "mark_value": "-0.002270077649",
-            //                     "amount_step": "0.0001",
-            //                     "creation_timestamp": 0,
-            //                     "cumulative_funding": "-0.000008835819",
-            //                     "pending_funding": "-0.000008835819",
-            //                     "net_settlements": "-0.304980723193",
-            //                     "initial_margin": "-55.989759825391",
-            //                     "maintenance_margin": "-42.417035008133",
-            //                     "open_orders_margin": "0",
-            //                     "realized_pnl": "0",
-            //                     "realized_pnl_excl_fees": "0",
-            //                     "total_fees": "0.264487131065",
-            //                     "unrealized_pnl": "-0.307241965023",
-            //                     "unrealized_pnl_excl_fees": "-0.042754833958",
-            //                     "delta": "1",
-            //                     "gamma": "0",
-            //                     "vega": "0",
-            //                     "theta": "0",
-            //                     "leverage": "0.141718718485",
-            //                     "liquidation_price": null
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> positions = this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(positions, symbols, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchPositions", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("subaccount_id")));
+        Map<String, Object> response = (this.privatePostGetPositions(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
+        //         "result": {
+        //             "subaccount_id": 86815,
+        //             "positions": [
+        //                 {
+        //                     "instrument_type": "perp",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "amount": "0.01",
+        //                     "average_price": "84869.2487131065",
+        //                     "average_price_excl_fees": "84842.8",
+        //                     "mark_price": "84838.524516604186",
+        //                     "index_price": "84829.52978196857",
+        //                     "mark_value": "-0.002270077649",
+        //                     "amount_step": "0.0001",
+        //                     "creation_timestamp": 0,
+        //                     "cumulative_funding": "-0.000008835819",
+        //                     "pending_funding": "-0.000008835819",
+        //                     "net_settlements": "-0.304980723193",
+        //                     "initial_margin": "-55.989759825391",
+        //                     "maintenance_margin": "-42.417035008133",
+        //                     "open_orders_margin": "0",
+        //                     "realized_pnl": "0",
+        //                     "realized_pnl_excl_fees": "0",
+        //                     "total_fees": "0.264487131065",
+        //                     "unrealized_pnl": "-0.307241965023",
+        //                     "unrealized_pnl_excl_fees": "-0.042754833958",
+        //                     "delta": "1",
+        //                     "gamma": "0",
+        //                     "vega": "0",
+        //                     "theta": "0",
+        //                     "leverage": "0.141718718485",
+        //                     "liquidation_price": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> positions = this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
+        return this.parsePositions(positions, symbols, new HashMap<String, Object>() {{}});
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // {
@@ -3773,95 +3833,97 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingHistoryCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500L)).join();
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request.put("instrument_name", symbolMarket.get("id"));
+        }
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_timestamp", since);
+        }
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("page_size", limit);
+        }
+        Long until = this.safeInteger(paramsDeriveSubaccountId, "until");
+        Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("until")));
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_timestamp", until);
+        }
+        Map<String, Object> response = (this.privatePostGetFundingHistory(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
+        //         "result": {
+        //             "events": [
+        //                 {
+        //                     "funding": "0",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "pnl": "-0.020391277096",
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1790874586000,
+        //                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
+        //                 },
+        //                 {
+        //                     "funding": "-0.000131801001",
+        //                     "instrument_name": "BTC-PERP",
+        //                     "pnl": "-0.124504613742",
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1790874586000,
+        //                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
+        //                 }
+        //             ],
+        //             "pagination": {
+        //                 "num_pages": 4,
+        //                 "count": 7
+        //             }
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
+        if (!java.util.Objects.equals(page, null))
+        {
+            Map<String, Object> pagination = this.safeDict(result, "pagination", null);
+            Long currentPage = this.safeInteger(pagination, "num_pages", 0);
+            if ((page != null && (currentPage == null || page > currentPage)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                return new ArrayList<Object>(Arrays.asList());
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500L)).join();
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", (Map<String, Object>) (paramsPaginate));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> symbolMarket = this.market(symbol);
-                market = symbolMarket;
-                request.put("instrument_name", symbolMarket.get("id"));
-            }
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_timestamp", since);
-            }
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("page_size", limit);
-            }
-            Long until = this.safeInteger(paramsDeriveSubaccountId, "until");
-            Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("until")));
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_timestamp", until);
-            }
-            Map<String, Object> response = (this.privatePostGetFundingHistory(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
-            //         "result": {
-            //             "events": [
-            //                 {
-            //                     "funding": "0",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "pnl": "-0.020391277096",
-            //                     "subaccount_id": 86815,
-            //                     "timestamp": 1790874586000,
-            //                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
-            //                     "batch_status": "Settled",
-            //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
-            //                 },
-            //                 {
-            //                     "funding": "-0.000131801001",
-            //                     "instrument_name": "BTC-PERP",
-            //                     "pnl": "-0.124504613742",
-            //                     "subaccount_id": 86815,
-            //                     "timestamp": 1790874586000,
-            //                     "batch_uuid": "01a0f86e-2486-7732-bcb5-15e64d863650",
-            //                     "batch_status": "Settled",
-            //                     "tx_hash": "0x7a31fda53195c28f2e60bab189bb9e7bf0abffc55a4eceb13d5e307f70d6e892"
-            //                 }
-            //             ],
-            //             "pagination": {
-            //                 "num_pages": 4,
-            //                 "count": 7
-            //             }
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
-            if (!java.util.Objects.equals(page, null))
-            {
-                Map<String, Object> pagination = this.safeDict(result, "pagination", null);
-                Long currentPage = this.safeInteger(pagination, "num_pages", 0);
-                if ((page != null && (currentPage == null || page > currentPage)))
-                {
-                    return new ArrayList<Object>(Arrays.asList());
-                }
-            }
-            List<Object> events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-            return this.parseIncomes(events, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
+        }
+        List<Object> events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
+        return this.parseIncomes(events, market, since, limit);
 
     }
 
@@ -3902,282 +3964,284 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Long subaccountId = this.safeInteger(parameters, "subaccount_id");
-            if (!java.util.Objects.equals(subaccountId, null))
-            {
-                Map<String, Object> subaccountRequest = new HashMap<String, Object>();
-                subaccountRequest.put("subaccount_id", subaccountId);
-                Map<String, Object> subaccountParams = this.omit(parameters, "subaccount_id");
-                Map<String, Object> subaccountResponse = (this.privatePostGetSubaccount(this.extend(subaccountRequest, subaccountParams))).join();
-                // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
-                Map<String, Object> subaccountResult = this.safeDict(subaccountResponse, "result", new HashMap<String, Object>() {{}});
-                return this.parseBalanceList(new ArrayList<Object>(Arrays.asList(subaccountResult)));
-            }
-            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("fetchBalance", (Map<String, Object>) (parameters));
-            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
-            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "wallet", deriveWalletAddress );
-            }};
-            Map<String, Object> response = (this.privatePostGetAllPortfolios(this.extend(request, paramsDeriveWalletAddress))).join();
-            //
-            //     {
-            //         "id": "eb40a04b-167e-4a3f-b142-63f76e0e2a31",
-            //         "result": [
-            //             {
-            //                 "subaccount_id": 86815,
-            //                 "failed_to_fetch": false,
-            //                 "manager_id": 1,
-            //                 "risk_universe_id": 1,
-            //                 "label": "",
-            //                 "currency": [
-            //                     "AUSD",
-            //                     "BTC",
-            //                     "CBBTC",
-            //                     "DRV",
-            //                     "ETH",
-            //                     "FXUSDC",
-            //                     "HEMIBTC",
-            //                     "LBTC",
-            //                     "SC_USDC_2",
-            //                     "SC_USDT_2",
-            //                     "SFP",
-            //                     "SUSDE",
-            //                     "USDC",
-            //                     "USDE",
-            //                     "USDT",
-            //                     "WBTC",
-            //                     "WEETH",
-            //                     "WSTETH"
-            //                 ],
-            //                 "margin_type": "SM",
-            //                 "is_under_liquidation": false,
-            //                 "positions_value": "1466.712032105876",
-            //                 "collaterals_value": "4527.545377437385",
-            //                 "subaccount_value": "5994.257409543261",
-            //                 "mm_credits": "0",
-            //                 "positions_maintenance_margin": "-42.257371387251",
-            //                 "positions_initial_margin": "-55.755494300332",
-            //                 "collaterals_maintenance_margin": "4527.545388020506",
-            //                 "collaterals_initial_margin": "4527.545388020506",
-            //                 "maintenance_margin": "4485.288016633255",
-            //                 "initial_margin": "4471.789893720174",
-            //                 "open_orders_margin": "-1305.403225577642",
-            //                 "projected_margin_change": "0",
-            //                 "open_orders": [
-            //                     {
-            //                         "subaccount_id": 86815,
-            //                         "order_id": "dbc70689-dcc4-43d3-9d95-492a6c165bde",
-            //                         "instrument_name": "LBTC-USDC",
-            //                         "direction": "buy",
-            //                         "label": "",
-            //                         "quote_id": null,
-            //                         "amount": "0.002",
-            //                         "average_price": "0",
-            //                         "cancel_reason": "",
-            //                         "creation_timestamp": 1790874519896,
-            //                         "filled_amount": "0",
-            //                         "is_transfer": false,
-            //                         "last_update_timestamp": 1790874519896,
-            //                         "limit_price": "82000",
-            //                         "signed_limit_price": null,
-            //                         "max_fee": "300",
-            //                         "mmp": false,
-            //                         "nonce": "1790874518872109498",
-            //                         "order_fee": "0",
-            //                         "order_status": "open",
-            //                         "order_type": "limit",
-            //                         "replaced_order_id": null,
-            //                         "signature": "0x089fcff0654a15babcc7e7c256ab500dcee78beb3eb1963c102d7d53e233d2521ee0754fd1fa17c403a4aa9028c00f7ab5cd3d260a3136d84b617ad97e72d2c71c",
-            //                         "signature_expiry_sec": 1798650518,
-            //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                         "time_in_force": "gtc",
-            //                         "trigger_type": null,
-            //                         "trigger_price": null,
-            //                         "trigger_price_type": null,
-            //                         "trigger_reject_message": null,
-            //                         "extra_fee": "0",
-            //                         "algo_type": null,
-            //                         "algo_duration_sec": null,
-            //                         "algo_num_slices": null,
-            //                         "algo_slices_completed": null
-            //                     },
-            //                     {
-            //                         "subaccount_id": 86815,
-            //                         "order_id": "c33e2299-e60e-4d71-8910-15cd5ea43fef",
-            //                         "instrument_name": "BTC-20270924-85000-C",
-            //                         "direction": "buy",
-            //                         "label": "",
-            //                         "quote_id": null,
-            //                         "amount": "0.1",
-            //                         "average_price": "0",
-            //                         "cancel_reason": "",
-            //                         "creation_timestamp": 1790874524730,
-            //                         "filled_amount": "0",
-            //                         "is_transfer": false,
-            //                         "last_update_timestamp": 1790874524730,
-            //                         "limit_price": "12000",
-            //                         "signed_limit_price": null,
-            //                         "max_fee": "300",
-            //                         "mmp": false,
-            //                         "nonce": "1790874524124508650",
-            //                         "order_fee": "0",
-            //                         "order_status": "open",
-            //                         "order_type": "limit",
-            //                         "replaced_order_id": null,
-            //                         "signature": "0x74bb9bc53c590985a916acf0e39d14f264e06105ca008c1e94935cb643741978084e05b7b4d3afa894d763d5c7abe038c58fed6c8b0a899dbeb5d0a2f3b50c8e1c",
-            //                         "signature_expiry_sec": 1798650524,
-            //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                         "time_in_force": "gtc",
-            //                         "trigger_type": null,
-            //                         "trigger_price": null,
-            //                         "trigger_price_type": null,
-            //                         "trigger_reject_message": null,
-            //                         "extra_fee": "0",
-            //                         "algo_type": null,
-            //                         "algo_duration_sec": null,
-            //                         "algo_num_slices": null,
-            //                         "algo_slices_completed": null
-            //                     },
-            //                     {
-            //                         "subaccount_id": 86815,
-            //                         "order_id": "1625ce89-9cf3-4ec0-8a6c-e208b49e5830",
-            //                         "instrument_name": "BTC-PERP",
-            //                         "direction": "buy",
-            //                         "label": "",
-            //                         "quote_id": null,
-            //                         "amount": "0.01",
-            //                         "average_price": "0",
-            //                         "cancel_reason": "",
-            //                         "creation_timestamp": 1790874522225,
-            //                         "filled_amount": "0",
-            //                         "is_transfer": false,
-            //                         "last_update_timestamp": 1790874522225,
-            //                         "limit_price": "83000",
-            //                         "signed_limit_price": null,
-            //                         "max_fee": "100",
-            //                         "mmp": false,
-            //                         "nonce": "1790874521734002365",
-            //                         "order_fee": "0",
-            //                         "order_status": "open",
-            //                         "order_type": "limit",
-            //                         "replaced_order_id": null,
-            //                         "signature": "0x5005d1696341bc1a5bc1ddd9f1312343439cdef792767f0ecc823e43af809480060b1deea0f51e4827899c3766b672d4eb0d4038394d153f8b0a2cd68d3bfe5a1c",
-            //                         "signature_expiry_sec": 1798650521,
-            //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                         "time_in_force": "gtc",
-            //                         "trigger_type": null,
-            //                         "trigger_price": null,
-            //                         "trigger_price_type": null,
-            //                         "trigger_reject_message": null,
-            //                         "extra_fee": "0",
-            //                         "algo_type": null,
-            //                         "algo_duration_sec": null,
-            //                         "algo_num_slices": null,
-            //                         "algo_slices_completed": null
-            //                     }
-            //                 ],
-            //                 "positions": [
-            //                     {
-            //                         "instrument_type": "perp",
-            //                         "instrument_name": "BTC-PERP",
-            //                         "amount": "0.01",
-            //                         "average_price": "84438.4183362967",
-            //                         "average_price_excl_fees": "84412.1",
-            //                         "mark_price": "84372.319949036835",
-            //                         "index_price": "84363.26788266873",
-            //                         "mark_value": "-0.075737406633",
-            //                         "amount_step": "0.0001",
-            //                         "creation_timestamp": 0,
-            //                         "cumulative_funding": "-0.000067374305",
-            //                         "pending_funding": "-0.000041006163",
-            //                         "net_settlements": "-0.585287472129",
-            //                         "initial_margin": "-55.755494300332",
-            //                         "maintenance_margin": "-42.257371387251",
-            //                         "open_orders_margin": "-55.755494300331",
-            //                         "realized_pnl": "0",
-            //                         "realized_pnl_excl_fees": "0",
-            //                         "total_fees": "0.263183362967",
-            //                         "unrealized_pnl": "-0.660983872598",
-            //                         "unrealized_pnl_excl_fees": "-0.397800509631",
-            //                         "delta": "1",
-            //                         "gamma": "0",
-            //                         "vega": "0",
-            //                         "theta": "0",
-            //                         "leverage": "0.186356454478",
-            //                         "liquidation_price": null
-            //                     },
-            //                     {
-            //                         "instrument_type": "option",
-            //                         "instrument_name": "BTC-20270924-85000-C",
-            //                         "amount": "0.1",
-            //                         "average_price": "14711.3113013995",
-            //                         "average_price_excl_fees": "14681",
-            //                         "mark_price": "14667.877695125091",
-            //                         "index_price": "84363.26788266873",
-            //                         "mark_value": "1466.787769512509",
-            //                         "amount_step": "0.00001",
-            //                         "creation_timestamp": 0,
-            //                         "cumulative_funding": "0",
-            //                         "pending_funding": "0",
-            //                         "net_settlements": "0",
-            //                         "initial_margin": "0",
-            //                         "maintenance_margin": "0",
-            //                         "open_orders_margin": "0",
-            //                         "realized_pnl": "0",
-            //                         "realized_pnl_excl_fees": "0",
-            //                         "total_fees": "3.03113013995",
-            //                         "unrealized_pnl": "-4.34336062744",
-            //                         "unrealized_pnl_excl_fees": "-1.31223048749",
-            //                         "delta": "0.620796293303",
-            //                         "gamma": "0.00001229971",
-            //                         "vega": "334.523390908959",
-            //                         "theta": "-18.178343402455",
-            //                         "leverage": null,
-            //                         "liquidation_price": null
-            //                     }
-            //                 ],
-            //                 "collaterals": [
-            //                     {
-            //                         "asset_type": "erc20",
-            //                         "asset_name": "USDC",
-            //                         "amount": "4527.545377437385",
-            //                         "average_price": "1",
-            //                         "average_price_excl_fees": "1",
-            //                         "mark_price": "1",
-            //                         "mark_value": "4527.545377437385",
-            //                         "amount_step": "0",
-            //                         "currency": "USDC",
-            //                         "creation_timestamp": 0,
-            //                         "cumulative_interest": "0.008352036862",
-            //                         "pending_interest": "0.000010583121",
-            //                         "initial_margin": "4527.545388020506",
-            //                         "maintenance_margin": "4527.545388020506",
-            //                         "open_orders_margin": "0",
-            //                         "realized_pnl": "0",
-            //                         "realized_pnl_excl_fees": "0",
-            //                         "total_fees": "0",
-            //                         "unrealized_pnl": "0",
-            //                         "unrealized_pnl_excl_fees": "0",
-            //                         "delta_currency": "USDC",
-            //                         "delta": "1"
-            //                     }
-            //                 ],
-            //                 "vault_deposit_holds": []
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> result = this.safeList(response, "result", null);
-            return this.parseBalanceList(result);
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Long subaccountId = this.safeInteger(parameters, "subaccount_id");
+        if (!java.util.Objects.equals(subaccountId, null))
+        {
+            Map<String, Object> subaccountRequest = new HashMap<String, Object>();
+            subaccountRequest.put("subaccount_id", subaccountId);
+            Map<String, Object> subaccountParams = this.omit(parameters, "subaccount_id");
+            Map<String, Object> subaccountResponse = (this.privatePostGetSubaccount(this.extend(subaccountRequest, subaccountParams))).join();
+            // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
+            Map<String, Object> subaccountResult = this.safeDict(subaccountResponse, "result", new HashMap<String, Object>() {{}});
+            return this.parseBalanceList(new ArrayList<Object>(Arrays.asList(subaccountResult)));
+        }
+        List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("fetchBalance", (Map<String, Object>) (parameters));
+        var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+        var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "wallet", deriveWalletAddress );
+        }};
+        Map<String, Object> response = (this.privatePostGetAllPortfolios(this.extend(request, paramsDeriveWalletAddress))).join();
+        //
+        //     {
+        //         "id": "eb40a04b-167e-4a3f-b142-63f76e0e2a31",
+        //         "result": [
+        //             {
+        //                 "subaccount_id": 86815,
+        //                 "failed_to_fetch": false,
+        //                 "manager_id": 1,
+        //                 "risk_universe_id": 1,
+        //                 "label": "",
+        //                 "currency": [
+        //                     "AUSD",
+        //                     "BTC",
+        //                     "CBBTC",
+        //                     "DRV",
+        //                     "ETH",
+        //                     "FXUSDC",
+        //                     "HEMIBTC",
+        //                     "LBTC",
+        //                     "SC_USDC_2",
+        //                     "SC_USDT_2",
+        //                     "SFP",
+        //                     "SUSDE",
+        //                     "USDC",
+        //                     "USDE",
+        //                     "USDT",
+        //                     "WBTC",
+        //                     "WEETH",
+        //                     "WSTETH"
+        //                 ],
+        //                 "margin_type": "SM",
+        //                 "is_under_liquidation": false,
+        //                 "positions_value": "1466.712032105876",
+        //                 "collaterals_value": "4527.545377437385",
+        //                 "subaccount_value": "5994.257409543261",
+        //                 "mm_credits": "0",
+        //                 "positions_maintenance_margin": "-42.257371387251",
+        //                 "positions_initial_margin": "-55.755494300332",
+        //                 "collaterals_maintenance_margin": "4527.545388020506",
+        //                 "collaterals_initial_margin": "4527.545388020506",
+        //                 "maintenance_margin": "4485.288016633255",
+        //                 "initial_margin": "4471.789893720174",
+        //                 "open_orders_margin": "-1305.403225577642",
+        //                 "projected_margin_change": "0",
+        //                 "open_orders": [
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "dbc70689-dcc4-43d3-9d95-492a6c165bde",
+        //                         "instrument_name": "LBTC-USDC",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.002",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874519896,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874519896,
+        //                         "limit_price": "82000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "300",
+        //                         "mmp": false,
+        //                         "nonce": "1790874518872109498",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x089fcff0654a15babcc7e7c256ab500dcee78beb3eb1963c102d7d53e233d2521ee0754fd1fa17c403a4aa9028c00f7ab5cd3d260a3136d84b617ad97e72d2c71c",
+        //                         "signature_expiry_sec": 1798650518,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     },
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "c33e2299-e60e-4d71-8910-15cd5ea43fef",
+        //                         "instrument_name": "BTC-20270924-85000-C",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.1",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874524730,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874524730,
+        //                         "limit_price": "12000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "300",
+        //                         "mmp": false,
+        //                         "nonce": "1790874524124508650",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x74bb9bc53c590985a916acf0e39d14f264e06105ca008c1e94935cb643741978084e05b7b4d3afa894d763d5c7abe038c58fed6c8b0a899dbeb5d0a2f3b50c8e1c",
+        //                         "signature_expiry_sec": 1798650524,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     },
+        //                     {
+        //                         "subaccount_id": 86815,
+        //                         "order_id": "1625ce89-9cf3-4ec0-8a6c-e208b49e5830",
+        //                         "instrument_name": "BTC-PERP",
+        //                         "direction": "buy",
+        //                         "label": "",
+        //                         "quote_id": null,
+        //                         "amount": "0.01",
+        //                         "average_price": "0",
+        //                         "cancel_reason": "",
+        //                         "creation_timestamp": 1790874522225,
+        //                         "filled_amount": "0",
+        //                         "is_transfer": false,
+        //                         "last_update_timestamp": 1790874522225,
+        //                         "limit_price": "83000",
+        //                         "signed_limit_price": null,
+        //                         "max_fee": "100",
+        //                         "mmp": false,
+        //                         "nonce": "1790874521734002365",
+        //                         "order_fee": "0",
+        //                         "order_status": "open",
+        //                         "order_type": "limit",
+        //                         "replaced_order_id": null,
+        //                         "signature": "0x5005d1696341bc1a5bc1ddd9f1312343439cdef792767f0ecc823e43af809480060b1deea0f51e4827899c3766b672d4eb0d4038394d153f8b0a2cd68d3bfe5a1c",
+        //                         "signature_expiry_sec": 1798650521,
+        //                         "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                         "time_in_force": "gtc",
+        //                         "trigger_type": null,
+        //                         "trigger_price": null,
+        //                         "trigger_price_type": null,
+        //                         "trigger_reject_message": null,
+        //                         "extra_fee": "0",
+        //                         "algo_type": null,
+        //                         "algo_duration_sec": null,
+        //                         "algo_num_slices": null,
+        //                         "algo_slices_completed": null
+        //                     }
+        //                 ],
+        //                 "positions": [
+        //                     {
+        //                         "instrument_type": "perp",
+        //                         "instrument_name": "BTC-PERP",
+        //                         "amount": "0.01",
+        //                         "average_price": "84438.4183362967",
+        //                         "average_price_excl_fees": "84412.1",
+        //                         "mark_price": "84372.319949036835",
+        //                         "index_price": "84363.26788266873",
+        //                         "mark_value": "-0.075737406633",
+        //                         "amount_step": "0.0001",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_funding": "-0.000067374305",
+        //                         "pending_funding": "-0.000041006163",
+        //                         "net_settlements": "-0.585287472129",
+        //                         "initial_margin": "-55.755494300332",
+        //                         "maintenance_margin": "-42.257371387251",
+        //                         "open_orders_margin": "-55.755494300331",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "0.263183362967",
+        //                         "unrealized_pnl": "-0.660983872598",
+        //                         "unrealized_pnl_excl_fees": "-0.397800509631",
+        //                         "delta": "1",
+        //                         "gamma": "0",
+        //                         "vega": "0",
+        //                         "theta": "0",
+        //                         "leverage": "0.186356454478",
+        //                         "liquidation_price": null
+        //                     },
+        //                     {
+        //                         "instrument_type": "option",
+        //                         "instrument_name": "BTC-20270924-85000-C",
+        //                         "amount": "0.1",
+        //                         "average_price": "14711.3113013995",
+        //                         "average_price_excl_fees": "14681",
+        //                         "mark_price": "14667.877695125091",
+        //                         "index_price": "84363.26788266873",
+        //                         "mark_value": "1466.787769512509",
+        //                         "amount_step": "0.00001",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_funding": "0",
+        //                         "pending_funding": "0",
+        //                         "net_settlements": "0",
+        //                         "initial_margin": "0",
+        //                         "maintenance_margin": "0",
+        //                         "open_orders_margin": "0",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "3.03113013995",
+        //                         "unrealized_pnl": "-4.34336062744",
+        //                         "unrealized_pnl_excl_fees": "-1.31223048749",
+        //                         "delta": "0.620796293303",
+        //                         "gamma": "0.00001229971",
+        //                         "vega": "334.523390908959",
+        //                         "theta": "-18.178343402455",
+        //                         "leverage": null,
+        //                         "liquidation_price": null
+        //                     }
+        //                 ],
+        //                 "collaterals": [
+        //                     {
+        //                         "asset_type": "erc20",
+        //                         "asset_name": "USDC",
+        //                         "amount": "4527.545377437385",
+        //                         "average_price": "1",
+        //                         "average_price_excl_fees": "1",
+        //                         "mark_price": "1",
+        //                         "mark_value": "4527.545377437385",
+        //                         "amount_step": "0",
+        //                         "currency": "USDC",
+        //                         "creation_timestamp": 0,
+        //                         "cumulative_interest": "0.008352036862",
+        //                         "pending_interest": "0.000010583121",
+        //                         "initial_margin": "4527.545388020506",
+        //                         "maintenance_margin": "4527.545388020506",
+        //                         "open_orders_margin": "0",
+        //                         "realized_pnl": "0",
+        //                         "realized_pnl_excl_fees": "0",
+        //                         "total_fees": "0",
+        //                         "unrealized_pnl": "0",
+        //                         "unrealized_pnl_excl_fees": "0",
+        //                         "delta_currency": "USDC",
+        //                         "delta": "1"
+        //                     }
+        //                 ],
+        //                 "vault_deposit_holds": []
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> result = this.safeList(response, "result", null);
+        return this.parseBalanceList(result);
 
     }
 
@@ -4245,81 +4309,83 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.transferCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object transferCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
-            List<Object> spotAssets = this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> spotAsset = this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
-            String assetAddress = this.safeString(spotAsset, "address");
-            if (java.util.Objects.equals(assetAddress, null))
-            {
-                throw new BadRequest((((this.id + " transfer() ") + code) + " has no deposit-enabled spot asset")) ;
-            }
-            Long fromId = this.parseToInt(fromAccount);
-            // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-            Long toId = this.parseToInt((((java.util.Objects.equals(toAccount, null)))) ? 0 : toAccount);
-            String amountString = this.numberToString(amount);
-            String maxFeeUsd = this.safeString(parameters, "max_fee_usd", "0");
-            Long newSubaccountManager = this.safeInteger(parameters, "new_subaccount_manager", 0);
-            if (((toId != null && toId == 0)) && ((newSubaccountManager != null && newSubaccountManager == 0)))
-            {
-                throw new ArgumentsRequired((this.id + " transfer() requires an existing toAccount or params.new_subaccount_manager to create one")) ;
-            }
-            if (((newSubaccountManager == null || newSubaccountManager != 0)) && (java.util.Objects.equals(maxFeeUsd, "0")))
-            {
-                throw new ArgumentsRequired((this.id + " transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it")) ;
-            }
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("max_fee_usd", "new_subaccount_manager")));
-            String nonce = this.nonceString();
-            Long signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000L));
-            Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-            String TRANSFER_MODULE_ADDRESS = "0x01259207A40925b794C8ac320456F7F6c8FE2636"; // shared across mainnet and testnet in v3
-            Object transferModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("uint", "uint", "address", "uint", "uint", "uint")), new ArrayList<Object>(Arrays.asList(toId, newSubaccountManager, assetAddress, 0, this.convertToBigInt(this.parseUnits(amountString, "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeUsd, "1000000000000000000"))))), keccak(), "binary");
-            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("transfer", paramsOmitted);
-            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
-            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, fromId, this.convertToBigInt(nonce), TRANSFER_MODULE_ADDRESS, transferModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("subaccount_id", fromId);
-            request.put("to_subaccount_id", toId);
-            request.put("new_subaccount_manager", newSubaccountManager);
-            request.put("asset_name", currency.get("id"));
-            request.put("sub_id", 0);
-            request.put("amount", amountString);
-            request.put("max_fee_usd", maxFeeUsd);
-            request.put("nonce", nonce);
-            request.put("signer", this.walletAddress);
-            request.put("signature", signature);
-            request.put("signature_expiry_sec", signatureExpiry);
-            Map<String, Object> response = (this.privatePostTransferSpot(this.extend(request, paramsDeriveWalletAddress))).join();
-            //
-            //     {
-            //         "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
-            //         "result": {
-            //             "operation_id": 4724036,
-            //             "op_uuid": "01a101be-1291-7e22-b3b4-9cc6ebc71904"
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> transferEntry = (Map<String, Object>) this.parseTransfer(result, currency);
-            Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (Boolean.TRUE.equals(fillResponseFromRequest))
-            {
-                // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
-                transferEntry.put("fromAccount", this.numberToString(fromId));
-                transferEntry.put("toAccount", ((((toId == null || toId != 0)))) ? this.numberToString(toId) : null);
-                transferEntry.put("amount", this.parseNumber(amountString));
-            }
-            return transferEntry;
-        }).thenApply(TransferEntry::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency((String) (code));
+        // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
+        List<Object> spotAssets = this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> spotAsset = this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
+        String assetAddress = this.safeString(spotAsset, "address");
+        if (java.util.Objects.equals(assetAddress, null))
+        {
+            throw new BadRequest((((this.id + " transfer() ") + code) + " has no deposit-enabled spot asset")) ;
+        }
+        Long fromId = this.parseToInt(fromAccount);
+        // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
+        Long toId = this.parseToInt((((java.util.Objects.equals(toAccount, null)))) ? 0 : toAccount);
+        String amountString = this.numberToString(amount);
+        String maxFeeUsd = this.safeString(parameters, "max_fee_usd", "0");
+        Long newSubaccountManager = this.safeInteger(parameters, "new_subaccount_manager", 0);
+        if (((toId != null && toId == 0)) && ((newSubaccountManager != null && newSubaccountManager == 0)))
+        {
+            throw new ArgumentsRequired((this.id + " transfer() requires an existing toAccount or params.new_subaccount_manager to create one")) ;
+        }
+        if (((newSubaccountManager == null || newSubaccountManager != 0)) && (java.util.Objects.equals(maxFeeUsd, "0")))
+        {
+            throw new ArgumentsRequired((this.id + " transfer() creating a subaccount charges a fee, set params.max_fee_usd to cover it")) ;
+        }
+        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("max_fee_usd", "new_subaccount_manager")));
+        String nonce = this.nonceString();
+        Long signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000L));
+        Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        String TRANSFER_MODULE_ADDRESS = "0x01259207A40925b794C8ac320456F7F6c8FE2636"; // shared across mainnet and testnet in v3
+        Object transferModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("uint", "uint", "address", "uint", "uint", "uint")), new ArrayList<Object>(Arrays.asList(toId, newSubaccountManager, assetAddress, 0, this.convertToBigInt(this.parseUnits(amountString, "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeUsd, "1000000000000000000"))))), keccak(), "binary");
+        List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("transfer", paramsOmitted);
+        var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+        var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
+        String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, fromId, this.convertToBigInt(nonce), TRANSFER_MODULE_ADDRESS, transferModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("subaccount_id", fromId);
+        request.put("to_subaccount_id", toId);
+        request.put("new_subaccount_manager", newSubaccountManager);
+        request.put("asset_name", currency.get("id"));
+        request.put("sub_id", 0);
+        request.put("amount", amountString);
+        request.put("max_fee_usd", maxFeeUsd);
+        request.put("nonce", nonce);
+        request.put("signer", this.walletAddress);
+        request.put("signature", signature);
+        request.put("signature_expiry_sec", signatureExpiry);
+        Map<String, Object> response = (this.privatePostTransferSpot(this.extend(request, paramsDeriveWalletAddress))).join();
+        //
+        //     {
+        //         "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
+        //         "result": {
+        //             "operation_id": 4724036,
+        //             "op_uuid": "01a101be-1291-7e22-b3b4-9cc6ebc71904"
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> transferEntry = (Map<String, Object>) this.parseTransfer(result, currency);
+        Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+        Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        if (Boolean.TRUE.equals(fillResponseFromRequest))
+        {
+            // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
+            transferEntry.put("fromAccount", this.numberToString(fromId));
+            transferEntry.put("toAccount", ((((toId == null || toId != 0)))) ? this.numberToString(toId) : null);
+            transferEntry.put("amount", this.parseNumber(amountString));
+        }
+        return transferEntry;
 
     }
 
@@ -4355,64 +4421,66 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTransfersCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTransfersCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchTransfers", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_timestamp", since);
-            }
-            Long until = this.safeInteger(paramsDeriveSubaccountId, "until");
-            Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("until")));
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_timestamp", until);
-            }
-            Map<String, Object> response = (this.privatePostGetErc20TransferHistory(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "id": "6475ec25-b0ac-4f38-a5d6-6fc8f7cc5611",
-            //         "result": {
-            //             "transfers": [
-            //                 {
-            //                     "operation_id": "01a101be-28a1-7a81-967e-56e51d48752b",
-            //                     "is_outgoing": false,
-            //                     "from_subaccount_id": 86820,
-            //                     "to_subaccount_id": 86815,
-            //                     "from_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "to_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "asset": "USDC",
-            //                     "amount": "10",
-            //                     "fee": "0",
-            //                     "timestamp": 1791030601000,
-            //                     "batch_uuid": "01a101b9-c803-71b3-be01-626934f9995b",
-            //                     "batch_status": "Settled",
-            //                     "tx_hash": "0x2609daf9ae76a4289326b6ce8a1b06df6edc77bab5b01689eb535dd3a1067296"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> transfers = this.safeList(result, "transfers", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsed = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < transfers.size(); i++)
-            {
-                ((List<Object>)parsed).add(this.parseTransfer(this.safeDict(transfers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
-            }
-            List<Object> sorted = this.sortBy(parsed, "timestamp");
-            return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchTransfers", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_timestamp", since);
+        }
+        Long until = this.safeInteger(paramsDeriveSubaccountId, "until");
+        Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("until")));
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_timestamp", until);
+        }
+        Map<String, Object> response = (this.privatePostGetErc20TransferHistory(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "id": "6475ec25-b0ac-4f38-a5d6-6fc8f7cc5611",
+        //         "result": {
+        //             "transfers": [
+        //                 {
+        //                     "operation_id": "01a101be-28a1-7a81-967e-56e51d48752b",
+        //                     "is_outgoing": false,
+        //                     "from_subaccount_id": 86820,
+        //                     "to_subaccount_id": 86815,
+        //                     "from_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "to_wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "amount": "10",
+        //                     "fee": "0",
+        //                     "timestamp": 1791030601000,
+        //                     "batch_uuid": "01a101b9-c803-71b3-be01-626934f9995b",
+        //                     "batch_status": "Settled",
+        //                     "tx_hash": "0x2609daf9ae76a4289326b6ce8a1b06df6edc77bab5b01689eb535dd3a1067296"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> transfers = this.safeList(result, "transfers", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parsed = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < transfers.size(); i++)
+        {
+            ((List<Object>)parsed).add(this.parseTransfer(this.safeDict(transfers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
+        }
+        List<Object> sorted = this.sortBy(parsed, "timestamp");
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
 
     }
 
@@ -4432,70 +4500,72 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Object> fetchBorrowRateHistory(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBorrowRateHistoryCore(code, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBorrowRateHistoryCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> currency = this.currency((String) (code));
-            List<Object> riskUniverseIdparamsUniverseVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBorrowRateHistory", "risk_universe_id", 1);
-            var riskUniverseId = ((List<Object>) riskUniverseIdparamsUniverseVariable).get(0);
-            Map<String, Object> paramsUniverse = (Map<String, Object>) ((List<Object>) riskUniverseIdparamsUniverseVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", currency.get("id") );
-                put( "risk_universe_id", riskUniverseId );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_timestamp", since);
-            }
-            Long until = this.safeInteger(paramsUniverse, "until");
-            Map<String, Object> paramsOmitted = this.omit(paramsUniverse, new ArrayList<Object>(Arrays.asList("until")));
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_timestamp", until);
-            }
-            Map<String, Object> response = (this.publicPostGetInterestRateHistory(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "id": "d9f3db6f-9ebd-4d29-ae83-006f22ce07af",
-            //         "result": {
-            //             "interest_rate_history": [
-            //                 {
-            //                     "timestamp": 1789538400000,
-            //                     "risk_universe_id": 2,
-            //                     "borrow_apy": {
-            //                         "open": "0.03921995664",
-            //                         "high": "0.03921995664",
-            //                         "low": "0.03919465776",
-            //                         "close": "0.03919467528"
-            //                     },
-            //                     "supply_apy": {
-            //                         "open": "0.024354974666",
-            //                         "high": "0.024354974666",
-            //                         "low": "0.024323514208",
-            //                         "close": "0.024323528028"
-            //                     },
-            //                     "total_supply": "15439518.077675880999",
-            //                     "total_borrow": "10085783.283513750809"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> rows = this.safeList(result, "interest_rate_history", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < rows.size(); i++)
-            {
-                // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
-                ((List<Object>)rates).add(this.parseBorrowRate(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), currency));
-            }
-            List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency((String) (code));
+        List<Object> riskUniverseIdparamsUniverseVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchBorrowRateHistory", "risk_universe_id", 1);
+        var riskUniverseId = ((List<Object>) riskUniverseIdparamsUniverseVariable).get(0);
+        Map<String, Object> paramsUniverse = (Map<String, Object>) ((List<Object>) riskUniverseIdparamsUniverseVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "currency", currency.get("id") );
+            put( "risk_universe_id", riskUniverseId );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_timestamp", since);
+        }
+        Long until = this.safeInteger(paramsUniverse, "until");
+        Map<String, Object> paramsOmitted = this.omit(paramsUniverse, new ArrayList<Object>(Arrays.asList("until")));
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_timestamp", until);
+        }
+        Map<String, Object> response = (this.publicPostGetInterestRateHistory(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "id": "d9f3db6f-9ebd-4d29-ae83-006f22ce07af",
+        //         "result": {
+        //             "interest_rate_history": [
+        //                 {
+        //                     "timestamp": 1789538400000,
+        //                     "risk_universe_id": 2,
+        //                     "borrow_apy": {
+        //                         "open": "0.03921995664",
+        //                         "high": "0.03921995664",
+        //                         "low": "0.03919465776",
+        //                         "close": "0.03919467528"
+        //                     },
+        //                     "supply_apy": {
+        //                         "open": "0.024354974666",
+        //                         "high": "0.024354974666",
+        //                         "low": "0.024323514208",
+        //                         "close": "0.024323528028"
+        //                     },
+        //                     "total_supply": "15439518.077675880999",
+        //                     "total_borrow": "10085783.283513750809"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> rows = this.safeList(result, "interest_rate_history", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rates = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < rows.size(); i++)
+        {
+            // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
+            ((List<Object>)rates).add(this.parseBorrowRate(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), currency));
+        }
+        List<Object> sorted = this.sortBy(rates, "timestamp");
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
 
     }
 
@@ -4529,50 +4599,52 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBorrowInterestCore(code, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBorrowInterestCore(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchBorrowInterest", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_timestamp", since);
-            }
-            Long until = this.safeInteger(paramsDeriveSubaccountId, "until");
-            Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("until")));
-            if (!java.util.Objects.equals(until, null))
-            {
-                request.put("end_timestamp", until);
-            }
-            Map<String, Object> response = (this.privatePostGetInterestHistory(this.extend(request, paramsOmitted))).join();
-            //
-            //     {
-            //         "id": "7e0a9cb5-44c4-4c27-91cb-c0b7bd23a4f0",
-            //         "result": {
-            //             "events": [
-            //                 {
-            //                     "subaccount_id": 86815,
-            //                     "timestamp": 1791033968000,
-            //                     "interest": "0.003382117138"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
-            List<Object> interests = this.parseBorrowInterests(events, (Map<String, Object>) null);
-            List<Object> sorted = this.sortBy(interests, "timestamp");
-            return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchBorrowInterest", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_timestamp", since);
+        }
+        Long until = this.safeInteger(paramsDeriveSubaccountId, "until");
+        Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("until")));
+        if (!java.util.Objects.equals(until, null))
+        {
+            request.put("end_timestamp", until);
+        }
+        Map<String, Object> response = (this.privatePostGetInterestHistory(this.extend(request, paramsOmitted))).join();
+        //
+        //     {
+        //         "id": "7e0a9cb5-44c4-4c27-91cb-c0b7bd23a4f0",
+        //         "result": {
+        //             "events": [
+        //                 {
+        //                     "subaccount_id": 86815,
+        //                     "timestamp": 1791033968000,
+        //                     "interest": "0.003382117138"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
+        List<Object> interests = this.parseBorrowInterests(events, (Map<String, Object>) null);
+        List<Object> sorted = this.sortBy(interests, "timestamp");
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
 
     }
 
@@ -4608,79 +4680,81 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.withdrawCore(code, amount, address, parameters)).thenApply(Transaction::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object withdrawCore(String code, Object amount, String address, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            this.checkAddress(address, (String) null, (String) null);
-            Map<String, Object> currency = this.currency((String) (code));
-            // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
-            List<Object> spotAssets = this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> spotAsset = this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
-            String assetAddress = this.safeString(spotAsset, "address");
-            if (java.util.Objects.equals(assetAddress, null))
-            {
-                throw new BadRequest((((this.id + " withdraw() ") + code) + " has no deposit-enabled spot asset")) ;
-            }
-            Map<String, Object> erc20 = this.safeDict(spotAsset, "erc20", new HashMap<String, Object>() {{}});
-            Long decimals = this.safeInteger(erc20, "decimals");
-            if (java.util.Objects.equals(decimals, null))
-            {
-                throw new BadRequest((((this.id + " withdraw() ") + code) + " carries no erc20 decimals metadata")) ;
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("withdraw", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Boolean forceBatch = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "force_batch", "forceBatch", false);
-            String defaultMaxFee = ((Boolean.TRUE.equals(forceBatch))) ? "10" : "1";
-            String maxFeeUsd = this.safeString2(paramsDeriveSubaccountId, "max_fee_usd", "maxFeeUsd", defaultMaxFee);
-            Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("max_fee_usd", "maxFeeUsd", "force_batch", "forceBatch")));
-            // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
-            String amountString = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, decimals, DECIMAL_PLACES);
-            // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
-            String one = "1";
-            String scale = Helpers.padEnd(one, ((Number)(decimals + 1L)).intValue(), ((String)"0").charAt(0));
-            String amountScaled = Precise.stringMul(amountString, scale);
-            String nonce = this.nonceString();
-            Long signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000L));
-            Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-            String WITHDRAWAL_MODULE_ADDRESS = "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083"; // shared across mainnet and testnet in v3
-            Object withdrawalModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "address", "uint", "bool")), new ArrayList<Object>(Arrays.asList(assetAddress, this.convertToBigInt(this.parseUnits(maxFeeUsd, "1000000000000000000")), address, this.convertToBigInt(amountScaled), forceBatch))), keccak(), "binary");
-            List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("withdraw", (Map<String, Object>) (paramsOmitted));
-            var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
-            var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), WITHDRAWAL_MODULE_ADDRESS, withdrawalModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-                put( "asset_name", currency.get("id") );
-                put( "amount_in_underlying", amountString );
-                put( "max_fee_usd", maxFeeUsd );
-                put( "force_batch", forceBatch );
-                put( "recipient", address );
-                put( "nonce", nonce );
-                put( "signer", Derive.this.walletAddress );
-                put( "signature", signature );
-                put( "signature_expiry_sec", signatureExpiry );
-            }};
-            // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
-            Map<String, Object> response = (this.privatePostWithdraw(this.extend(request, paramsDeriveWalletAddress))).join();
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(result, currency);
-            transaction.put("type", "withdrawal");
-            Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
-            Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
-            if (Boolean.TRUE.equals(fillResponseFromRequest))
-            {
-                // the response carries only the operation ids, the known request values fill the rest
-                transaction.put("currency", currency.get("code"));
-                transaction.put("amount", this.parseNumber(amountString));
-                transaction.put("addressTo", address);
-            }
-            return transaction;
-        }).thenApply(Transaction::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        this.checkAddress(address, (String) null, (String) null);
+        Map<String, Object> currency = this.currency((String) (code));
+        // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
+        List<Object> spotAssets = this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> spotAsset = this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
+        String assetAddress = this.safeString(spotAsset, "address");
+        if (java.util.Objects.equals(assetAddress, null))
+        {
+            throw new BadRequest((((this.id + " withdraw() ") + code) + " has no deposit-enabled spot asset")) ;
+        }
+        Map<String, Object> erc20 = this.safeDict(spotAsset, "erc20", new HashMap<String, Object>() {{}});
+        Long decimals = this.safeInteger(erc20, "decimals");
+        if (java.util.Objects.equals(decimals, null))
+        {
+            throw new BadRequest((((this.id + " withdraw() ") + code) + " carries no erc20 decimals metadata")) ;
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("withdraw", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Boolean forceBatch = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "force_batch", "forceBatch", false);
+        String defaultMaxFee = ((Boolean.TRUE.equals(forceBatch))) ? "10" : "1";
+        String maxFeeUsd = this.safeString2(paramsDeriveSubaccountId, "max_fee_usd", "maxFeeUsd", defaultMaxFee);
+        Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("max_fee_usd", "maxFeeUsd", "force_batch", "forceBatch")));
+        // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
+        String amountString = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, decimals, DECIMAL_PLACES);
+        // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
+        String one = "1";
+        String scale = Helpers.padEnd(one, ((Number)(decimals + 1L)).intValue(), ((String)"0").charAt(0));
+        String amountScaled = Precise.stringMul(amountString, scale);
+        String nonce = this.nonceString();
+        Long signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000L));
+        Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        String WITHDRAWAL_MODULE_ADDRESS = "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083"; // shared across mainnet and testnet in v3
+        Object withdrawalModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "address", "uint", "bool")), new ArrayList<Object>(Arrays.asList(assetAddress, this.convertToBigInt(this.parseUnits(maxFeeUsd, "1000000000000000000")), address, this.convertToBigInt(amountScaled), forceBatch))), keccak(), "binary");
+        List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("withdraw", (Map<String, Object>) (paramsOmitted));
+        var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
+        var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
+        String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), WITHDRAWAL_MODULE_ADDRESS, withdrawalModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+            put( "asset_name", currency.get("id") );
+            put( "amount_in_underlying", amountString );
+            put( "max_fee_usd", maxFeeUsd );
+            put( "force_batch", forceBatch );
+            put( "recipient", address );
+            put( "nonce", nonce );
+            put( "signer", Derive.this.walletAddress );
+            put( "signature", signature );
+            put( "signature_expiry_sec", signatureExpiry );
+        }};
+        // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
+        Map<String, Object> response = (this.privatePostWithdraw(this.extend(request, paramsDeriveWalletAddress))).join();
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(result, currency);
+        transaction.put("type", "withdrawal");
+        Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
+        Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+        if (Boolean.TRUE.equals(fillResponseFromRequest))
+        {
+            // the response carries only the operation ids, the known request values fill the rest
+            transaction.put("currency", currency.get("code"));
+            transaction.put("amount", this.parseNumber(amountString));
+            transaction.put("addressTo", address);
+        }
+        return transaction;
 
     }
 
@@ -4698,58 +4772,60 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchDepositsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchDeposits", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_timestamp", since);
-            }
-            Map<String, Object> response = (this.privatePostGetDepositHistory(this.extend(request, paramsDeriveSubaccountId))).join();
-            //
-            //     {
-            //         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
-            //         "result": {
-            //             "deposits": [
-            //                 {
-            //                     "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
-            //                     "new_subaccount": true,
-            //                     "subaccount_id": 86815,
-            //                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "asset": "USDC",
-            //                     "amount": "10000",
-            //                     "fee": "0",
-            //                     "timestamp": 1790866358000,
-            //                     "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
-            //                     "batch_status": "Batching",
-            //                     "tx_hash": null,
-            //                     "action_id": 418,
-            //                     "is_fallback": false,
-            //                     "fallback_error_code": null,
-            //                     "fallback_error_message": null,
-            //                     "fallback_error_data": null,
-            //                     "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
-            //                     "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> deposits = this.safeList(result, "deposits", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(deposits, currency, since, limit, paramsDeriveSubaccountId);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchDeposits", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_timestamp", since);
+        }
+        Map<String, Object> response = (this.privatePostGetDepositHistory(this.extend(request, paramsDeriveSubaccountId))).join();
+        //
+        //     {
+        //         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
+        //         "result": {
+        //             "deposits": [
+        //                 {
+        //                     "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",
+        //                     "new_subaccount": true,
+        //                     "subaccount_id": 86815,
+        //                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "amount": "10000",
+        //                     "fee": "0",
+        //                     "timestamp": 1790866358000,
+        //                     "batch_uuid": "01a0f7f1-b8f3-7261-b09f-54c6df91273e",
+        //                     "batch_status": "Batching",
+        //                     "tx_hash": null,
+        //                     "action_id": 418,
+        //                     "is_fallback": false,
+        //                     "fallback_error_code": null,
+        //                     "fallback_error_message": null,
+        //                     "fallback_error_data": null,
+        //                     "l1_tx_hash": "0x77a6f738abb0642f32a35f1a53050968728182bd29ab0b19f8234f5df7bac309",
+        //                     "l1_sender": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> deposits = this.safeList(result, "deposits", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransactions(deposits, currency, since, limit, paramsDeriveSubaccountId);
 
     }
 
@@ -4767,52 +4843,54 @@ public class Derive extends DeriveApi
      */
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchWithdrawalsCore(code, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchWithdrawals", (Map<String, Object>) (parameters));
-            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
-            Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "subaccount_id", subaccountId );
-            }};
-            if (!java.util.Objects.equals(since, null))
-            {
-                request.put("start_timestamp", since);
-            }
-            Map<String, Object> response = (this.privatePostGetWithdrawalHistory(this.extend(request, paramsDeriveSubaccountId))).join();
-            //
-            //     {
-            //         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",
-            //         "result": {
-            //             "withdrawals": [
-            //                 {
-            //                     "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
-            //                     "subaccount_id": 86820,
-            //                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-            //                     "asset": "USDC",
-            //                     "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
-            //                     "amount": "100",
-            //                     "fee": "1.000073283608",
-            //                     "timestamp": 1790866732000,
-            //                     "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
-            //                     "batch_status": "Batching",
-            //                     "tx_hash": null
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-            Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
-            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> withdrawals = this.safeList(result, "withdrawals", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(withdrawals, currency, since, limit, paramsDeriveSubaccountId);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchWithdrawals", (Map<String, Object>) (parameters));
+        var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+        Map<String, Object> paramsDeriveSubaccountId = (Map<String, Object>) ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "subaccount_id", subaccountId );
+        }};
+        if (!java.util.Objects.equals(since, null))
+        {
+            request.put("start_timestamp", since);
+        }
+        Map<String, Object> response = (this.privatePostGetWithdrawalHistory(this.extend(request, paramsDeriveSubaccountId))).join();
+        //
+        //     {
+        //         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",
+        //         "result": {
+        //             "withdrawals": [
+        //                 {
+        //                     "operation_id": "01a0f7f9-b539-7a42-b48e-6081fa401b3f",
+        //                     "subaccount_id": 86820,
+        //                     "wallet": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "asset": "USDC",
+        //                     "erc20_address": "0x73Efab09362052D26FB93A730Be4F8a5EdC833af",
+        //                     "amount": "100",
+        //                     "fee": "1.000073283608",
+        //                     "timestamp": 1790866732000,
+        //                     "batch_uuid": "01a0f7f7-1010-7c33-8bcf-7fef764d7fc5",
+        //                     "batch_status": "Batching",
+        //                     "tx_hash": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        List<Object> withdrawals = this.safeList(result, "withdrawals", new ArrayList<Object>(Arrays.asList()));
+        return this.parseTransactions(withdrawals, currency, since, limit, paramsDeriveSubaccountId);
 
     }
 

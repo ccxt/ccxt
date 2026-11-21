@@ -1186,8 +1186,9 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'results', [])
-        rows = self.filter_loaded_summaries(data) if (request['market'] == 'ALL') else data
-        return self.parse_tickers(rows, symbolsNormalized)
+        if request['market'] == 'ALL':
+            return self.parse_tickers(self.filter_loaded_summaries(data), symbolsNormalized)
+        return self.parse_tickers(data, symbolsNormalized)
 
     def summary_market_id(self, symbols: Strings = None) -> str:
         """
@@ -1338,8 +1339,9 @@ class paradex(Exchange, ImplicitAPI):
         response = self.publicGetMarketsSummary(self.extend(request, params))
         data = self.safe_list(response, 'results', [])
         # only a perpetual funds, the other rows are dropped before they are parsed
-        rows = self.filter_loaded_summaries(data, 'swap') if (request['market'] == 'ALL') else data
-        return self.parse_funding_rates(rows, symbolsNormalized)
+        if request['market'] == 'ALL':
+            return self.parse_funding_rates(self.filter_loaded_summaries(data, 'swap'), symbolsNormalized)
+        return self.parse_funding_rates(data, symbolsNormalized)
 
     def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
@@ -1656,8 +1658,8 @@ class paradex(Exchange, ImplicitAPI):
 
     def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
@@ -1928,7 +1930,8 @@ class paradex(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnlyParam = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnly = (reduceOnlyParam is True)
         orderType = type.upper()
         orderSide = side.upper()
         request = {
@@ -2284,7 +2287,7 @@ class paradex(Exchange, ImplicitAPI):
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         paramsOmitted = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         hasOrderIds = (ids is not None)
-        hasClientOrderIds = (clientOrderIds is not None) and (isinstance(clientOrderIds, list))
+        hasClientOrderIds = (clientOrderIds is not None)
         if not hasOrderIds and not hasClientOrderIds:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter')
         request = {}
@@ -3404,8 +3407,9 @@ class paradex(Exchange, ImplicitAPI):
         #
         results = self.safe_list(response, 'results', [])
         # the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        rows = self.filter_loaded_summaries(results, 'option') if (request['market'] == 'ALL') else results
-        return self.parse_all_greeks(rows, symbolsNormalized)
+        if request['market'] == 'ALL':
+            return self.parse_all_greeks(self.filter_loaded_summaries(results, 'option'), symbolsNormalized)
+        return self.parse_all_greeks(results, symbolsNormalized)
 
     def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #

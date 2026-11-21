@@ -1471,7 +1471,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'fee': fee,
         }, marketResolved)
 
-    def fetch_transactions_helper(self, types: Str, code: Str, since: Int, limit: Int, params: dict) -> list[Transaction]:
+    def fetch_transactions_helper(self, types: Str, code: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         request = {
@@ -2545,7 +2545,9 @@ class hitbtc(Exchange, ImplicitAPI):
         market = None
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchMarginMode', market, params)
         response: dict
         if marketType == 'margin':
@@ -2749,9 +2751,11 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {}
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
-            queryMarketIds = self.market_ids(symbolsNormalized)
-            request['symbols'] = ','.join(queryMarketIds)
+            normalizedLength = len(symbolsNormalized)
+            if normalizedLength > 0:
+                market = self.market(symbolsNormalized[0])
+                queryMarketIds = self.market_ids(symbolsNormalized)
+                request['symbols'] = ','.join(queryMarketIds)
         type, paramsMarketType = self.handle_market_type_and_params('fetchFundingRates', market, params)
         if type != 'swap':
             raise NotSupported(self.id + ' fetchFundingRates() does not support ' + type + ' markets')
@@ -3559,6 +3563,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         networks = self.safe_list(fee, 'networks', [])
         result = self.deposit_withdraw_fee(fee)
+        networkFees = {}
         for j in range(0, len(networks)):
             networkEntry = self.safe_dict(networks, j)
             networkId = self.safe_string(networkEntry, 'network')
@@ -3577,13 +3582,14 @@ class hitbtc(Exchange, ImplicitAPI):
             if isDefault:
                 result['withdraw'] = withdrawResult
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': None,
                         'percentage': None,
                     },
                 }
+        result['networks'] = networkFees
         return result
 
     def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:

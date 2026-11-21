@@ -268,7 +268,7 @@ export default class polymarket extends polymarketRest {
             }
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
-        const newTicker = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const newTicker: Dict = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
@@ -337,7 +337,7 @@ export default class polymarket extends polymarketRest {
             channels.push ('bbo::' + this.safeString (market, 'id', ''));
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
-        const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const ticker: Dict = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -453,12 +453,12 @@ export default class polymarket extends polymarketRest {
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        const data = this.safeValue (message, 'data');
+        const dataList = this.safeList (message, 'data');
         let rows = [];
-        if (Array.isArray (data)) {
-            rows = data;
+        if (dataList !== undefined) {
+            rows = dataList;
         } else {
-            rows.push (data);
+            rows.push (this.safeValue (message, 'data'));
         }
         const rowsLength = rows.length;
         if (rowsLength === 0) {
@@ -818,12 +818,12 @@ export default class polymarket extends polymarketRest {
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data');
+        const dataList = this.safeList (message, 'data');
         let rows = [];
-        if (Array.isArray (data)) {
-            rows = data;
+        if (dataList !== undefined) {
+            rows = dataList;
         } else {
-            rows.push (data);
+            rows.push (this.safeValue (message, 'data'));
         }
         const rowsLength = rows.length;
         if (rowsLength === 0) {

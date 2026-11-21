@@ -216,7 +216,7 @@ mod cargo_test_gate {
         let ex = &Value::Null;
         for k in ["s", "n", "b", "missing"] {
             for d in [vec![], vec![Value::Str("D".into())], vec![Value::Int(1)]] {
-                assert_eq!(ex.safe_string_opt(&entry, Value::Str(k.into()), &d), ex.safe_string(&entry, Value::Str(k.into()), &d).as_str().map(str::to_owned));
+                assert_eq!(ex.safe_string_opt(&entry, Value::Str(k.into()), &d.iter().map(|v| v as &dyn ccxt::value::ScalarArg).collect::<Vec<_>>()), ex.safe_string(&entry, Value::Str(k.into()), &d).as_str().map(str::to_owned));
                 assert_eq!(ex.safe_string_n_opt(&entry, Value::Array(vec![Value::Str(k.into()), Value::Str("s".into())]), &d), ex.safe_string_n(&entry, Value::Array(vec![Value::Str(k.into()), Value::Str("s".into())]), &d).as_str().map(str::to_owned));
             }
         }

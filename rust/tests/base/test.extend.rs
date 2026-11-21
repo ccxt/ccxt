@@ -14,7 +14,7 @@ pub fn testExtend() {
             m.insert("id".to_string(), Value::Str("regirock".into()));
         m
     }));
-    let mut obj1: Value = Value::Map({
+    let obj1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::from(vec![Value::Int(1), Value::Int(2)]));
@@ -44,7 +44,7 @@ pub fn testExtend() {
             m.insert("other1".to_string(), Value::Str("x".into()));
         m
     });
-    let mut obj2: Value = Value::Map({
+    let obj2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
@@ -75,14 +75,14 @@ pub fn testExtend() {
         m
     });
     // snapshot originals for mutation checks
-    let mut obj1SnapshotA: Value = obj1.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null);
-    let mut obj1SnapshotB0: Value = obj1.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut obj1SnapshotOther1: Value = obj1.as_map().and_then(|__m| __m.get("other1")).cloned().unwrap_or(Value::Null);
-    let mut obj2SnapshotA: Value = obj2.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null);
-    let mut obj2SnapshotB0: Value = obj2.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut obj2SnapshotOther2: Value = obj2.as_map().and_then(|__m| __m.get("other2")).cloned().unwrap_or(Value::Null);
+    let obj1SnapshotA: Value = obj1.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null);
+    let obj1SnapshotB0: Value = obj1.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let obj1SnapshotOther1: Value = obj1.as_map().and_then(|__m| __m.get("other1")).cloned().unwrap_or(Value::Null);
+    let obj2SnapshotA: Value = obj2.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null);
+    let obj2SnapshotB0: Value = obj2.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let obj2SnapshotOther2: Value = obj2.as_map().and_then(|__m| __m.get("other2")).cloned().unwrap_or(Value::Null);
     // --- test 1: basic extend ---
-    let mut extended: Value = exchange.extend(obj1.clone(), &[obj2.clone()]);
+    let extended: Value = exchange.extend(obj1.clone(), &[obj2.clone()]);
     tbfeCheckExtended(extended.clone(), Value::Bool(true));
     // --- mutation check: obj1 must NOT be mutated ---
     assert!(ccxt::runtime::is_true(&((obj1.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null).as_f64() == obj1SnapshotA.as_f64()))));
@@ -93,7 +93,7 @@ pub fn testExtend() {
     assert!(ccxt::runtime::is_true(&((obj2.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_f64() == obj2SnapshotB0.as_f64()))));
     assert!(ccxt::runtime::is_true(&((obj2.as_map().and_then(|__m| __m.get("other2")).cloned().unwrap_or(Value::Null).as_str() == obj2SnapshotOther2.as_str()))));
     // --- test 2: multi-step extend – apply a third patch on top of the first result ---
-    let mut obj3: Value = Value::Map({
+    let obj3: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(3));
             m.insert("b".to_string(), Value::from(vec![Value::Int(5), Value::Int(6)]));
@@ -108,7 +108,7 @@ pub fn testExtend() {
             m.insert("other3".to_string(), Value::Str("z".into()));
         m
     });
-    let mut extended2: Value = exchange.extend(extended.clone(), &[obj3.clone()]);
+    let extended2: Value = exchange.extend(extended.clone(), &[obj3]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended2, &Value::Str("a".into())), &Value::Int(3))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(5))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(1)), &Value::Int(6))))));
@@ -126,33 +126,33 @@ pub fn testExtend() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(3))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&extended, &Value::Str("other3".into()))))))));
     // --- test 3: four-step chained extend on same base object ---
-    let mut base: Value = Value::Map({
+    let base: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("x".to_string(), Value::Int(0));
             m.insert("keep".to_string(), Value::Str("yes".into()));
         m
     });
-    let mut patch1: Value = Value::Map({
+    let patch1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("x".to_string(), Value::Int(1));
             m.insert("p1".to_string(), Value::Bool(true));
         m
     });
-    let mut patch2: Value = Value::Map({
+    let patch2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("x".to_string(), Value::Int(2));
             m.insert("p2".to_string(), Value::Bool(true));
         m
     });
-    let mut patch3: Value = Value::Map({
+    let patch3: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("x".to_string(), Value::Int(3));
             m.insert("p3".to_string(), Value::Bool(true));
         m
     });
-    let mut r1: Value = exchange.extend(base.clone(), &[patch1.clone()]);
-    let mut r2: Value = exchange.extend(r1.clone(), &[patch2.clone()]);
-    let mut r3: Value = exchange.extend(r2.clone(), &[patch3.clone()]);
+    let r1: Value = exchange.extend(base.clone(), &[patch1]);
+    let r2: Value = exchange.extend(r1.clone(), &[patch2]);
+    let r3: Value = exchange.extend(r2.clone(), &[patch3]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("x".into())), &Value::Int(3))))));
     assert!(ccxt::runtime::is_true(&((get_value(&r3, &Value::Str("keep".into())).as_str() == Some("yes")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p1".into())), &Value::Bool(true))))));
@@ -165,20 +165,20 @@ pub fn testExtend() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&r1, &Value::Str("p3".into()))))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&base, Value::Dict(__d) if __d.contains_key("p2"))))))));
     // --- test 4: extend with undefined values does NOT overwrite existing keys ---
-    let mut withValues: Value = Value::Map({
+    let withValues: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("keep1".to_string(), Value::Str("A".into()));
             m.insert("keep2".to_string(), Value::Str("B".into()));
         m
     });
-    let mut withUndefs: Value = Value::Map({
+    let withUndefs: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("keep1".to_string(), Value::Null);
             m.insert("keep2".to_string(), Value::Null);
             m.insert("newKey".to_string(), Value::Str("C".into()));
         m
     });
-    let mut extUndef: Value = exchange.extend(withValues.clone(), &[withUndefs.clone()]);
+    let extUndef: Value = exchange.extend(withValues.clone(), &[withUndefs]);
     // extend() merges ALL keys (including undefined ones), so undefined wins over previous value
     assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep1".into())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep2".into())) == Value::Null))));

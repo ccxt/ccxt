@@ -2221,8 +2221,10 @@ export default class kalshi extends Exchange {
             const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
-                const m = parsedMarkets[mi];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString(parsedMarkets[mi], 'market');
+                if (marketKey !== undefined) {
+                    this.markets[marketKey] = parsedMarkets[mi];
+                }
             }
         }
         this.populateOutcomes();
@@ -2397,7 +2399,7 @@ export default class kalshi extends Exchange {
             let cursor = undefined;
             for (let page = 0; page < maxPages; page++) {
                 let reqLimit = pageLimit;
-                if (hasLimit && (limitValue !== undefined)) {
+                if (hasLimit) {
                     const collectedSoFar = rawEvents.length;
                     const remaining = this.parseToInt(limitValue - collectedSoFar);
                     if (remaining < reqLimit) {

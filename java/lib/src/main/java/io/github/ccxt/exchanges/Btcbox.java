@@ -285,86 +285,88 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            Object promise1 = this.publicGetTickers(new HashMap<String, Object>() {{}});
-            Object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true, (String) null, (String) null);
-            var response1response2Variable = (CompletableFuture.allOf(((CompletableFuture<?>) promise1), ((CompletableFuture<?>) promise2)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) promise1).join(), ((CompletableFuture<?>) promise2).join())))).join();
-            var response1 = ((List<Object>) response1response2Variable).get(0);
-            var response2 = ((List<Object>) response1response2Variable).get(1);
-            //
-            Map<String, Object> result2Data = this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
-            List<String> marketIds = new ArrayList<String>(((Map<String, Object>)response1).keySet());
-            List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < marketIds.size(); i++)
-            {
-                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(marketId.split(java.util.regex.Pattern.quote("_"))));
-                String baseCurr = this.safeString(symbolParts, 0, "");
-                String quote = this.safeString(symbolParts, 1, "");
-                String quoteId = quote.toLowerCase();
-                String id = baseCurr.toLowerCase();
-                Map<String, Object> res = this.safeDict(response1, marketId, new HashMap<String, Object>() {{}});
-                String symbol = ((baseCurr + "/") + quote);
-                Double fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
-                Map<String, Object> details = this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
-                Map<String, Object> tradeDetails = this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
-                ((List<Object>)markets).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("uppercaseId", null);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", baseCurr);
-                    j39v1.put("baseId", id);
-                    j39v1.put("quote", quote);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settle", null);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("taker", fee);
-                    j39v1.put("maker", fee);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("limits", new HashMap<String, Object>() {{
-                        put( "amount", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                        put( "price", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                        put( "cost", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                        put( "leverage", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                    }});
-                    j39v1.put("precision", new HashMap<String, Object>() {{
-                        put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(tradeDetails, "pricedecimal"))) );
-                        put( "amount", null );
-                    }});
-                    j39v1.put("active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"));
-                    j39v1.put("created", null);
-                    j39v1.put("info", res);
-                    yield j39v1; } })));
-            }
-            return markets;
-        });
+        Object promise1 = this.publicGetTickers(new HashMap<String, Object>() {{}});
+        Object promise2 = this.fetchWebEndpoint("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true, (String) null, (String) null);
+        var response1response2Variable = (CompletableFuture.allOf(((CompletableFuture<?>) promise1), ((CompletableFuture<?>) promise2)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) promise1).join(), ((CompletableFuture<?>) promise2).join())))).join();
+        var response1 = ((List<Object>) response1response2Variable).get(0);
+        var response2 = ((List<Object>) response1response2Variable).get(1);
+        //
+        Map<String, Object> result2Data = this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
+        List<String> marketIds = new ArrayList<String>(((Map<String, Object>)response1).keySet());
+        List<Object> markets = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < marketIds.size(); i++)
+        {
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(marketId.split(java.util.regex.Pattern.quote("_"))));
+            String baseCurr = this.safeString(symbolParts, 0, "");
+            String quote = this.safeString(symbolParts, 1, "");
+            String quoteId = quote.toLowerCase();
+            String id = baseCurr.toLowerCase();
+            Map<String, Object> res = this.safeDict(response1, marketId, new HashMap<String, Object>() {{}});
+            String symbol = ((baseCurr + "/") + quote);
+            Double fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
+            Map<String, Object> details = this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
+            Map<String, Object> tradeDetails = this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", id);
+            j39v1.put("uppercaseId", null);
+            j39v1.put("symbol", symbol);
+            j39v1.put("base", baseCurr);
+            j39v1.put("baseId", id);
+            j39v1.put("quote", quote);
+            j39v1.put("quoteId", quoteId);
+            j39v1.put("settle", null);
+            j39v1.put("settleId", null);
+            j39v1.put("type", "spot");
+            j39v1.put("spot", true);
+            j39v1.put("margin", false);
+            j39v1.put("swap", false);
+            j39v1.put("future", false);
+            j39v1.put("option", false);
+            j39v1.put("taker", fee);
+            j39v1.put("maker", fee);
+            j39v1.put("contract", false);
+            j39v1.put("linear", null);
+            j39v1.put("inverse", null);
+            j39v1.put("contractSize", null);
+            j39v1.put("expiry", null);
+            j39v1.put("expiryDatetime", null);
+            j39v1.put("strike", null);
+            j39v1.put("optionType", null);
+            j39v1.put("limits", new HashMap<String, Object>() {{
+                    put( "amount", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                    put( "price", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                    put( "cost", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                    put( "leverage", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                }});
+            j39v1.put("precision", new HashMap<String, Object>() {{
+                    put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(tradeDetails, "pricedecimal"))) );
+                    put( "amount", null );
+                }});
+            j39v1.put("active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"));
+            j39v1.put("created", null);
+            j39v1.put("info", res);
+            ((List<Object>)markets).add(this.safeMarketStructure(j39v1));
+        }
+        return markets;
 
     }
 
@@ -436,10 +438,10 @@ public class Btcbox extends BtcboxApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
+        List<String> codes = (this.currencies == null ? new ArrayList<String>() : new ArrayList<String>(this.currencies.keySet()));
         for (var i = 0; i < codes.size(); i++)
         {
-            String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency(code);
             String currencyId = this.safeString(currency, "id", "");
             String free = (currencyId + "_balance");
@@ -465,16 +467,18 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchBalanceCore(Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.privatePostBalance(parameters)).join();
-            return this.parseBalance(response);
-        }).thenApply(Balances::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.privatePostBalance(parameters)).join();
+        return this.parseBalance(response);
 
     }
 
@@ -490,23 +494,25 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBookCore(Object symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Integer numSymbols = ((List<?>)this.symbols).size();
-            if ((numSymbols != null && numSymbols > 1))
-            {
-                request.put("coin", market.get("baseId"));
-            }
-            Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
-        }).thenApply(OrderBook::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Integer numSymbols = ((List<?>)this.symbols).size();
+        if ((numSymbols != null && numSymbols > 1))
+        {
+            request.put("coin", market.get("baseId"));
+        }
+        Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
+        return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", 0, 1, 2);
 
     }
 
@@ -549,23 +555,25 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(symbol, parameters)).thenApply(Ticker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Integer numSymbols = ((List<?>)this.symbols).size();
-            if ((numSymbols != null && numSymbols > 1))
-            {
-                request.put("coin", market.get("baseId"));
-            }
-            Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            return this.parseTicker(response, market);
-        }).thenApply(Ticker::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Integer numSymbols = ((List<?>)this.symbols).size();
+        if ((numSymbols != null && numSymbols > 1))
+        {
+            request.put("coin", market.get("baseId"));
+        }
+        Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
+        return this.parseTicker(response, market);
 
     }
 
@@ -579,16 +587,18 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(symbols, parameters)).thenApply(Tickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            return this.parseTickers(response, symbols, new HashMap<String, Object>() {{}});
-        }).thenApply(Tickers::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> response = (this.publicGetTickers(parameters)).join();
+        return this.parseTickers(response, symbols, new HashMap<String, Object>() {{}});
 
     }
 
@@ -642,34 +652,36 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Integer numSymbols = ((List<?>)this.symbols).size();
-            if ((numSymbols != null && numSymbols > 1))
-            {
-                request.put("coin", market.get("baseId"));
-            }
-            List<Object> response = (this.publicGetOrders(this.extend(request, parameters))).join();
-            //
-            //     [
-            //          {
-            //              "date":"0",
-            //              "price":3,
-            //              "amount":0.1,
-            //              "tid":"1",
-            //              "type":"buy"
-            //          },
-            //     ]
-            //
-            return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        Integer numSymbols = ((List<?>)this.symbols).size();
+        if ((numSymbols != null && numSymbols > 1))
+        {
+            request.put("coin", market.get("baseId"));
+        }
+        List<Object> response = (this.publicGetOrders(this.extend(request, parameters))).join();
+        //
+        //     [
+        //          {
+        //              "date":"0",
+        //              "price":3,
+        //              "amount":0.1,
+        //              "tid":"1",
+        //              "type":"buy"
+        //          },
+        //     ]
+        //
+        return this.parseTrades(response, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -688,29 +700,31 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "amount", amount );
-                put( "price", price );
-                put( "type", side );
-                put( "coin", market.get("baseId") );
-            }};
-            Map<String, Object> response = (this.privatePostTradeAdd(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "result":true,
-            //         "id":"12"
-            //     }
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "amount", amount );
+            put( "price", price );
+            put( "type", side );
+            put( "coin", market.get("baseId") );
+        }};
+        Map<String, Object> response = (this.privatePostTradeAdd(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "result":true,
+        //         "id":"12"
+        //     }
+        //
+        return this.parseOrder(response, market);
 
     }
 
@@ -726,26 +740,28 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            // a special case for btcbox – default symbol is BTC/JPY
-            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
-            Map<String, Object> market = this.market(symbolResolved);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", id );
-                put( "coin", market.get("baseId") );
-            }};
-            Map<String, Object> response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
-            //
-            //     {"result":true, "id":"11"}
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        // a special case for btcbox – default symbol is BTC/JPY
+        String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
+        Map<String, Object> market = this.market(symbolResolved);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "coin", market.get("baseId") );
+        }};
+        Map<String, Object> response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
+        //
+        //     {"result":true, "id":"11"}
+        //
+        return this.parseOrder(response, market);
 
     }
 
@@ -839,75 +855,79 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            // a special case for btcbox – default symbol is BTC/JPY
-            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
-            Map<String, Object> market = this.market(symbolResolved);
-            Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
-                put( "id", id );
-                put( "coin", market.get("baseId") );
-            }}, parameters);
-            Map<String, Object> response = (this.privatePostTradeView(this.extend(request, parameters))).join();
-            //
-            //      {
-            //          "id":11,
-            //          "datetime":"2014-10-21 10:47:21",
-            //          "type":"sell",
-            //          "price":42000,
-            //          "amount_original":1.2,
-            //          "amount_outstanding":1.2,
-            //          "status":"closed",
-            //          "trades":[]
-            //      }
-            //
-            return this.parseOrder(response, market);
-        }).thenApply(Order::new);
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        // a special case for btcbox – default symbol is BTC/JPY
+        String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
+        Map<String, Object> market = this.market(symbolResolved);
+        Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "coin", market.get("baseId") );
+        }}, parameters);
+        Map<String, Object> response = (this.privatePostTradeView(this.extend(request, parameters))).join();
+        //
+        //      {
+        //          "id":11,
+        //          "datetime":"2014-10-21 10:47:21",
+        //          "type":"sell",
+        //          "price":42000,
+        //          "amount_original":1.2,
+        //          "amount_outstanding":1.2,
+        //          "status":"closed",
+        //          "trades":[]
+        //      }
+        //
+        return this.parseOrder(response, market);
 
     }
 
     public CompletableFuture<Object> fetchOrdersByType(String type, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByTypeCore(type, symbol, since, limit, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersByTypeCore(String type, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            // a special case for btcbox – default symbol is BTC/JPY
-            String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
-            Map<String, Object> market = this.market(symbolResolved);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("type", type);
-            request.put("coin", market.get("baseId"));
-            List<Object> response = (this.privatePostTradeList(this.extend(request, parameters))).join();
-            //
-            // [
-            //      {
-            //          "id":"7",
-            //          "datetime":"2014-10-20 13:27:38",
-            //          "type":"buy",
-            //          "price":42750,
-            //          "amount_original":0.235,
-            //          "amount_outstanding":0.235
-            //      },
-            // ]
-            //
-            // status (open/closed/canceled) is undefined
-            // btcbox does not return status, but we know it's 'open' as we queried for open orders
-            Map<String, Object> extra = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(type, "open"))
-            {
-                extra.put("status", "open");
-            }
-            return this.parseOrders(response, market, since, limit, extra);
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        // a special case for btcbox – default symbol is BTC/JPY
+        String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
+        Map<String, Object> market = this.market(symbolResolved);
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("type", type);
+        request.put("coin", market.get("baseId"));
+        List<Object> response = (this.privatePostTradeList(this.extend(request, parameters))).join();
+        //
+        // [
+        //      {
+        //          "id":"7",
+        //          "datetime":"2014-10-20 13:27:38",
+        //          "type":"buy",
+        //          "price":42750,
+        //          "amount_original":0.235,
+        //          "amount_outstanding":0.235
+        //      },
+        // ]
+        //
+        // status (open/closed/canceled) is undefined
+        // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        Map<String, Object> extra = new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(type, "open"))
+        {
+            extra.put("status", "open");
+        }
+        return this.parseOrders(response, market, since, limit, extra);
 
     }
 
@@ -924,11 +944,13 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            return (this.fetchOrdersByType("all", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return (this.fetchOrdersByType("all", symbol, since, limit, parameters)).join();
 
     }
 
@@ -945,11 +967,13 @@ public class Btcbox extends BtcboxApi
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            return (this.fetchOrdersByType("open", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return (this.fetchOrdersByType("open", symbol, since, limit, parameters)).join();
 
     }
 
@@ -1034,22 +1058,24 @@ public class Btcbox extends BtcboxApi
 
     public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
+        return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object requestCore(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
+    {
 
-            Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
-            if ((response instanceof String))
+        Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
+        if ((response instanceof String))
+        {
+            // sometimes the exchange returns whitespace prepended to json
+            String strippedResponse = this.strip(response);
+            if (!this.isJsonEncodedObject(strippedResponse))
             {
-                // sometimes the exchange returns whitespace prepended to json
-                String strippedResponse = this.strip(response);
-                if (!this.isJsonEncodedObject(strippedResponse))
-                {
-                    throw new ExchangeError(((this.id + " ") + strippedResponse)) ;
-                }
-                response = Helpers.parseJson(strippedResponse);
+                throw new ExchangeError(((this.id + " ") + strippedResponse)) ;
             }
-            return response;
-        });
+            response = Helpers.parseJson(strippedResponse);
+        }
+        return response;
 
     }
 }

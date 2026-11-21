@@ -911,7 +911,7 @@ public partial class toobit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < coins.Count; i++)
         {
-            object coin = coins[i];
+            IDictionary<string, object> coin = ((IDictionary<string, object>)coins[i]);
             Dictionary<string, object> parsed = this.parseCurrency(coin);
             if ((parsed != null))
             {
@@ -930,7 +930,7 @@ public partial class toobit : Exchange
         List<object> rawNetworks = this.safeList(rawCurrency, "chainTypes", new List<object>() {});
         for (int j = 0; j < rawNetworks.Count; j++)
         {
-            object rawNetwork = rawNetworks[j];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[j]);
             string? networkId = this.safeString(rawNetwork, "chainType");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -1493,8 +1493,9 @@ public partial class toobit : Exchange
         } else if (((since != null)) && ((limit != null)))
         {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            request["endTime"] = mathMin(((this.sum(since, (duration * limit))) - 1), this.milliseconds());
+            Int64 durationMs = (this.parseTimeframe(timeframeVar) * 1000L);
+            // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
+            request["endTime"] = Math.Min((since.Value - (1 - (durationMs * limit.Value))), this.milliseconds());
         }
         if ((limit != null))
         {
@@ -1545,7 +1546,7 @@ public partial class toobit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
@@ -1709,7 +1710,7 @@ public partial class toobit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -1744,7 +1745,7 @@ public partial class toobit : Exchange
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
             results.Add(ticker);
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
     }
 
@@ -3022,14 +3023,14 @@ public partial class toobit : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            results.Add(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+            results.Add(this.extend(this.parseTransactionWithType(this.safeDict(response, i, new Dictionary<string, object>() {}), currency, transactType), paramsUntil));
         }
         List<object> sorted = this.sortBy(results, "timestamp");
         string? currencyCode = ((string)(((currency != null)) ? (currency.ContainsKey("code") ? currency["code"] : null) : null));
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,currencyCode, since, limit));
     }
 
-    public virtual object parseTransactionWithType(object transaction, IDictionary<string, object>? currency = null, string? transactType = null)
+    public virtual object parseTransactionWithType(IDictionary<string, object> transaction, IDictionary<string, object>? currency = null, string? transactType = null)
     {
         Dictionary<string, object> result = this.parseTransaction(transaction, currency);
         if ((transactType != null))
@@ -3441,7 +3442,7 @@ public partial class toobit : Exchange
         //        }
         //    ]
         //
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbols));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -3536,7 +3537,7 @@ public partial class toobit : Exchange
             {
                 payload = (privateBody + queryString);
             }
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(payload, this.secret, sha256, "hex");
             if (queryString != "")
             {
                 queryString = queryString + ("&signature=" + signature);
@@ -3582,7 +3583,7 @@ public partial class toobit : Exchange
         if (((errorCode != null) && errorCode != "") && errorCode != "200" && errorCode != "0")
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

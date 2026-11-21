@@ -151,7 +151,9 @@ public partial class cex : ccxt.cex
         {
             throw new ArgumentsRequired ((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null))["symbol"] = symbol;
+        IDictionary<string, object> watchTradesDict = this.safeDict(this.options, "watchTrades", new Dictionary<string, object>() {});
+        watchTradesDict["symbol"] = symbol;
+        this.options["watchTrades"] = watchTradesDict;
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -818,7 +820,7 @@ public partial class cex : ccxt.cex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         bool isTransaction = (this.safeString(message, "e") == "tx");
         string? orderId = this.safeString2(data, "id", "order");
-        string? remains = this.safeString(data, "remains");
+        string? remainsPrecision = this.safeString(data, "remains");
         string? baseId = this.safeString(data, "symbol");
         string? quoteId = this.safeString(data, "symbol2");
         IDictionary<string, object> pair = this.safeDict(data, "pair");
@@ -835,7 +837,7 @@ public partial class cex : ccxt.cex
         }
         string symbol = ((bs + "/") + quote);
         Dictionary<string, object> market = this.safeMarket(symbol);
-        remains = this.currencyFromPrecision(bs, remains);
+        string? remains = this.currencyFromPrecision(bs, remainsPrecision);
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -843,35 +845,37 @@ public partial class cex : ccxt.cex
         }
         ccxt.pro.ArrayCache storedOrders = this.orders;
         IDictionary<string, object> ordersBySymbol = this.safeDict((storedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-        object order = this.safeValue(ordersBySymbol, orderId);
+        IDictionary<string, object> order = this.safeDict(ordersBySymbol, orderId);
         if ((order == null))
         {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             order = this.parseWsOrderUpdate(data, market);
         }
-        ((IDictionary<string,object>)order)["remaining"] = remains;
+        order["remaining"] = remains;
         bool? canceled = this.safeBool(data, "cancel", false);
         if ((canceled == true))
         {
-            ((IDictionary<string,object>)order)["status"] = "canceled";
+            order["status"] = "canceled";
         }
         if (isTransaction)
         {
-            ((IDictionary<string,object>)order)["status"] = "closed";
+            order["status"] = "closed";
         }
         double? fee = this.safeNumber(data, "fee");
         if ((fee != null))
         {
-            ((IDictionary<string,object>)order)["fee"] = new Dictionary<string, object>() {
+            order["fee"] = new Dictionary<string, object>() {
                 { "cost", fee },
                 { "currency", quote },
                 { "rate", null },
             };
         }
         Int64? timestamp = this.safeInteger(data, "time");
-        ((IDictionary<string,object>)order)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)order)["datetime"] = this.iso8601(timestamp);
-        order = ccxt.BaseExchange.FromOrder(this.safeOrder(order));
-        storedOrders.append(order);
+        order["timestamp"] = timestamp;
+        order["datetime"] = this.iso8601(timestamp);
+        // a fresh map copy: the cached entry is untyped
+        ccxt.Order parsedOrder = this.safeOrder(this.extend(order, new Dictionary<string, object>() {}));
+        storedOrders.append(ccxt.BaseExchange.FromOrder(parsedOrder));
         string messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);
     }
@@ -1007,7 +1011,7 @@ public partial class cex : ccxt.cex
             return null;
         }
         var precise = new Precise(amount);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger(new List<object>() {scale}, 0, 0));
         precise.reduce();
         return ((object)precise).ToString();
     }
@@ -1311,7 +1315,7 @@ public partial class cex : ccxt.cex
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["unknown"] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)["unknown"] = stored;
         }
         List<object> sorted = this.sortBy(data, 0);
         for (int i = 0; i < (sorted?.Count ?? 0); i++)
@@ -1385,7 +1389,7 @@ public partial class cex : ccxt.cex
         }
         string messageHash = ("ohlcv:" + symbol);
         // const stored = this.safeValue (this.ohlcvs, symbol);
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown"));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && ohlcvsRow1.TryGetValue("unknown", out var ohlcvsValue1) ? ohlcvsValue1 : null));
         for (int i = 0; i < data.Count; i++)
         {
             List<object> ohlcv = new List<object> {this.safeTimestamp(data[i], 0), this.safeNumber(data[i], 1), this.safeNumber(data[i], 2), this.safeNumber(data[i], 3), this.safeNumber(data[i], 4), this.safeNumber(data[i], 5)};
@@ -1692,7 +1696,7 @@ public partial class cex : ccxt.cex
             string? error = this.safeString(data, "error");
             string? eventVar = this.safeString(message, "e", "");
             string feedback = ((((this.id + " ") + eventVar) + " ") + error);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         } catch(Exception error)
@@ -1781,7 +1785,7 @@ public partial class cex : ccxt.cex
             this.checkRequiredCredentials();
             string nonce = this.seconds().ToString();
             string auth = (nonce + this.apiKey);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "e", "auth" },
                 { "auth", new Dictionary<string, object>() {

@@ -1890,7 +1890,7 @@ class foxbit extends foxbit$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    parseTransaction(transaction, currency = undefined, since = undefined, limit = undefined) {
+    parseTransaction(transaction, currency = undefined) {
         const cryptoDetails = this.safeDict(transaction, 'details_crypto');
         const address = this.safeString2(cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString(transaction, 'sn');
@@ -2046,12 +2046,11 @@ class foxbit extends foxbit$1["default"] {
             }
         }
         let requestBody = undefined;
-        if (method === 'POST' || method === 'PUT') {
-            requestBody = this.json(paramsOmitted);
-        }
         let bodyToSignature = '';
-        if (requestBody !== undefined) {
-            bodyToSignature = requestBody;
+        if (method === 'POST' || method === 'PUT') {
+            const jsonBody = this.json(paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         const headersValue = {
             'Content-Type': 'application/json',

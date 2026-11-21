@@ -9,18 +9,18 @@ import "strconv"
 
 func LogTemplate(exchange ccxt.ICoreExchange, method any, entry any) any {
 	// there are cases when exchange is undefined (eg. base tests)
-	var id any = func() any {
-		if !IsEqual(exchange, nil) {
-			return exchange.GetId()
-		}
-		return "undefined"
-	}()
-	var methodString any = func() any {
-		if method != nil {
-			return method
-		}
-		return "undefined"
-	}()
+	var id any
+	if !IsEqual(exchange, nil) {
+		id = exchange.GetId()
+	} else {
+		id = "undefined"
+	}
+	var methodString any
+	if method != nil {
+		methodString = method
+	} else {
+		methodString = "undefined"
+	}
 	var entryString string
 	if !IsEqual(exchange, nil) && (entry != nil) {
 		entryString = exchange.Json(entry)
@@ -470,7 +470,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	var bestAsk *float64 = nil
 	var usedMethod *string = nil
 	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
-		usedMethod = SafeStringPtr("fetchOrderBook")
+		usedMethodStr := "fetchOrderBook"
+		usedMethod = &usedMethodStr
 
 		r := <-exchange.(ccxt.IFetchOrderBook).FetchOrderBookAsync(StringArg(symbol))
 		if r.Err != nil {
@@ -487,7 +488,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		bestBid = exchange.SafeNumber(bestBidArray, 0)
 		bestAsk = exchange.SafeNumber(bestAskArray, 0)
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchBidsAsks"), false)) {
-		usedMethod = SafeStringPtr("fetchBidsAsks")
+		usedMethodStr2 := "fetchBidsAsks"
+		usedMethod = &usedMethodStr2
 
 		r1 := <-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsksAsync([]any{symbol})
 		if r1.Err != nil {
@@ -501,7 +503,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTicker"), false)) {
-		usedMethod = SafeStringPtr("fetchTicker")
+		usedMethodStr3 := "fetchTicker"
+		usedMethod = &usedMethodStr3
 
 		r2 := <-exchange.(ccxt.IFetchTicker).FetchTickerAsync(StringArg(symbol))
 		if r2.Err != nil {
@@ -514,7 +517,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	} else if (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchTickers"), false)) {
-		usedMethod = SafeStringPtr("fetchTickers")
+		usedMethodStr4 := "fetchTickers"
+		usedMethod = &usedMethodStr4
 
 		r3 := <-exchange.(ccxt.IFetchTickers).FetchTickersAsync([]any{symbol})
 		if r3.Err != nil {
@@ -619,12 +623,11 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var nonstrictOpen bool = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
 	if AssertedStatus == "open" {
-		condition = func() bool {
-			if EvalTruthy(strictCheck) {
-				return strictOpen
-			}
-			return nonstrictOpen
-		}()
+		if EvalTruthy(strictCheck) {
+			condition = strictOpen
+		} else {
+			condition = nonstrictOpen
+		}
 		Assert(condition, msg)
 		return
 	}
@@ -637,12 +640,11 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var closedNonStrict bool = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringEq(filled, amount))
 	// check
 	if AssertedStatus == "closed" {
-		condition = func() bool {
-			if EvalTruthy(strictCheck) {
-				return closedStrict
-			}
-			return closedNonStrict
-		}()
+		if EvalTruthy(strictCheck) {
+			condition = closedStrict
+		} else {
+			condition = closedNonStrict
+		}
 		Assert(condition, msg)
 		return
 	}
@@ -655,12 +657,11 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var canceledNonStrict bool = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
 	if AssertedStatus == "canceled" {
-		condition = func() bool {
-			if EvalTruthy(strictCheck) {
-				return canceledStrict
-			}
-			return canceledNonStrict
-		}()
+		if EvalTruthy(strictCheck) {
+			condition = canceledStrict
+		} else {
+			condition = canceledNonStrict
+		}
 		Assert(condition, msg)
 		return
 	}
@@ -668,12 +669,11 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	// ### CLOSED_or_CANCELED STATUS
 	//
 	if AssertedStatus == "closed_or_canceled" {
-		condition = func() any {
-			if EvalTruthy(strictCheck) {
-				return (closedStrict || canceledStrict)
-			}
-			return (closedNonStrict || canceledNonStrict)
-		}()
+		if EvalTruthy(strictCheck) {
+			condition = (closedStrict || canceledStrict)
+		} else {
+			condition = (closedNonStrict || canceledNonStrict)
+		}
 		Assert(condition, msg)
 		return
 	}

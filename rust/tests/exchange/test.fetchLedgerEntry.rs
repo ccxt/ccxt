@@ -10,16 +10,16 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("fetchLedgerEntry".into());
-    let mut items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger", vec![code.clone()]).await;
-    let mut length: i64 = items.len() as i64;
+    let method: Value = Value::Str("fetchLedgerEntry".into());
+    let items: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger", vec![code.clone()]).await;
+    let length: i64 = items.len() as i64;
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), items.clone(), code.clone()]);
     if length > 0 {
-        let mut firstItem: Value = items.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut id: Option<String> = ccxt::value::KeyRead::key_read(&&firstItem, "id").as_str().map(str::to_owned);
+        let firstItem: Value = items.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let id: Option<String> = ccxt::value::KeyRead::key_read(&&firstItem, "id").as_str().map(str::to_owned);
         if (id.is_some()) {
-            let mut item: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger_entry", vec![id.map(Value::from).unwrap_or(Value::Null)]).await;
-            let mut now: Value = Value::Int(exchange.milliseconds());
+            let item: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger_entry", vec![id.map(Value::from).unwrap_or(Value::Null)]).await;
+            let now: Value = Value::Int(exchange.milliseconds());
             testLedgerEntry(exchange.clone(), skippedProperties, method, item, code, now);
         }
     }

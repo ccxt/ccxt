@@ -1308,18 +1308,18 @@ class woo extends \ccxt\async\woo {
         //     }
         //
         $topic = $this->safe_string($message, 'topic');
-        $data = $this->safe_value($message, 'data');
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+        $dataList = $this->safe_list($message, 'data');
+        if ($dataList !== null) {
             // algoexecutionreportv2
-            for ($i = 0; $i < count($data); $i++) {
-                $order = $data[$i];
-                $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
+            for ($i = 0; $i < count($dataList); $i++) {
+                $tradeId = $this->omit_zero($this->safe_string($dataList, 'tradeId'));
                 if ($tradeId !== null) {
-                    $this->handle_my_trade($client, $order);
+                    $this->handle_my_trade($client, $dataList[$i]);
                 }
-                $this->handle_order($client, $order, $topic);
+                $this->handle_order($client, $dataList[$i], $topic);
             }
         } else {
+            $data = $this->safe_value($message, 'data');
             // executionreport
             $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
             if ($tradeId !== null) {
@@ -1724,8 +1724,8 @@ class woo extends \ccxt\async\woo {
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
         $unsubMessageHashes = $this->safe_list($subscription, 'unsubMessageHashes', array());
         for ($i = 0; $i < count($subMessageHashes); $i++) {
-            $subHash = $subMessageHashes[$i];
-            $unsubHash = $unsubMessageHashes[$i];
+            $subHash = $this->safe_string($subMessageHashes, $i);
+            $unsubHash = $this->safe_string($unsubMessageHashes, $i);
             $this->clean_unsubscription($client, $subHash, $unsubHash);
         }
         $this->clean_cache($subscription);
@@ -1829,7 +1829,7 @@ class woo extends \ccxt\async\woo {
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $method = $this->safe_value($subscription, 'method');
         if ($method !== null) {
-            $method($client, $message, $subscription);
+            $this->handle_order_book_subscription($client, $message, $subscription);
         }
         return $message;
     }

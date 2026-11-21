@@ -2286,8 +2286,8 @@ class limitless extends Exchange {
 
     public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         $rPadded = str_pad($r, 64, '0', STR_PAD_LEFT);
         $sPadded = str_pad($s, 64, '0', STR_PAD_LEFT);
@@ -2501,8 +2501,8 @@ class limitless extends Exchange {
          */
         $paramsValue = $params;
         if ($outcome !== null) {
-            $warn = true;
-            list($warn, $paramsValue) = $this->handle_option_and_params($paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', $warn);
+            list($warn, $paramsWarn) = $this->handle_option_bool_and_params($paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', true);
+            $paramsValue = $paramsWarn;
             if ($warn) {
                 throw new BadRequest($this->id . ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
@@ -2546,13 +2546,11 @@ class limitless extends Exchange {
             $outcomeObj = Async\await($this->load_outcome($outcome));
             $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome');
         }
-        $paginate = false;
         $maxLimit = 100;
-        $paramsValue = $params;
-        list($paginate, $paramsValue) = $this->handle_option_and_params($paramsValue, 'fetchMyTrades', 'paginate', $paginate);
+        list($paginate, $paramsValue) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
-            $paramsValue = $this->omit($paramsValue, 'paginate');
-            return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $outcome, $since, $limit, $paramsValue, 'nextCursor', 'cursor', null, $maxLimit));
+            $paramsCursor = $this->omit($paramsValue, 'paginate');
+            return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $outcome, $since, $limit, $paramsCursor, 'nextCursor', 'cursor', null, $maxLimit));
         }
         $request = array();
         if ($limit !== null) {
@@ -3191,9 +3189,6 @@ class limitless extends Exchange {
             $categoryId = $this->safe_string($category, 'id');
             $matched = false;
             for ($wi = 0; $wi < count($wanted); $wi++) {
-                if ($name === null) {
-                    throw new ExchangeError($this->id . ' fetchRawMarketsByTags() missing name');
-                }
                 if (mb_strpos($name, $wanted[$wi]) !== false) {
                     $matched = true;
                     break;

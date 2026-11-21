@@ -561,7 +561,7 @@ public final class Crypto {
     // EdDSA (Ed25519)
     // ====================================================
 
-    public static Object Eddsa(Object request, Object secret, Object alg) {
+    public static String Eddsa(Object request, Object secret, Object alg) {
         try {
             byte[] msg = (request instanceof String) ? toUtf8(request) : (byte[]) request;
             byte[] seed = extractEd25519Seed(secret);

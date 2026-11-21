@@ -212,7 +212,7 @@ public partial class bitfinex : ccxt.bitfinex
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message, object subscription)
+    public virtual void handleOHLCV(WebSocketClient client, IList<object> message, object subscription)
     {
         //
         // initial snapshot
@@ -286,7 +286,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         int ohlcvsLength = (ohlcvs?.Count ?? 0);
         for (Int64 i = 0; i < ohlcvsLength; i++)
@@ -394,7 +394,7 @@ public partial class bitfinex : ccxt.bitfinex
         return await this.unSubscribe("ticker", "ticker", symbol, parameters);
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleMyTrade(WebSocketClient client, IList<object> message, object subscription = null)
     {
         //
         // trade execution
@@ -441,7 +441,7 @@ public partial class bitfinex : ccxt.bitfinex
         client.resolve(tradesArray, messageHash);
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message, object subscription)
+    public virtual void handleTrades(WebSocketClient client, IList<object> message, object subscription)
     {
         //
         // initial snapshot
@@ -484,7 +484,7 @@ public partial class bitfinex : ccxt.bitfinex
             stored = new ArrayCache(tradesLimit);
             this.trades[(string)symbol] = stored;
         }
-        int messageLength = getArrayLength(message);
+        int messageLength = message?.Count ?? 0;
         if ((messageLength == 2))
         {
             // initial snapshot
@@ -640,7 +640,7 @@ public partial class bitfinex : ccxt.bitfinex
         }, marketResolved);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message, object subscription)
+    public virtual void handleTicker(WebSocketClient client, IList<object> message, object subscription)
     {
         //
         // [
@@ -748,7 +748,7 @@ public partial class bitfinex : ccxt.bitfinex
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBook(WebSocketClient client, IList<object> message, object subscription)
     {
         //
         // first message (snapshot)
@@ -938,7 +938,7 @@ public partial class bitfinex : ccxt.bitfinex
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message, object subscription)
+    public virtual void handleBalance(WebSocketClient client, IList<object> message, object subscription)
     {
         //
         // snapshot (exchange + margin together)
@@ -1163,7 +1163,7 @@ public partial class bitfinex : ccxt.bitfinex
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
             Int64? nonce = this.incrementingNonce();
             string payload = ("AUTH" + ((object)nonce).ToString());
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384, "hex");
+            string signature = this.hmac(payload, this.secret, sha384, "hex");
             string eventVar = "auth";
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "apiKey", this.apiKey },
@@ -1232,7 +1232,7 @@ public partial class bitfinex : ccxt.bitfinex
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limitResolved, true));
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrders(WebSocketClient client, IList<object> message, object subscription)
     {
         //
         // limit order
@@ -1420,7 +1420,7 @@ public partial class bitfinex : ccxt.bitfinex
         }, marketResolved);
     }
 
-    public override void handleListMessage(WebSocketClient client, object message)
+    public override void handleListMessage(WebSocketClient client, IList<object> message)
     {
         string? channelId = this.safeString(message, 0);
         string? heartbeat = this.safeString(message, 1);

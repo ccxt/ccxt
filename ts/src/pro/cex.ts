@@ -2,7 +2,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import cexRest from '../cex.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
@@ -147,7 +147,9 @@ export default class cex extends cexRest {
         if (currentSymbol !== undefined && currentSymbol !== symbol) {
             throw new ArgumentsRequired (this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        this.options['watchTrades']['symbol'] = symbol;
+        const watchTradesDict = this.safeDict (this.options, 'watchTrades', {});
+        watchTradesDict['symbol'] = symbol;
+        this.options['watchTrades'] = watchTradesDict;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -771,7 +773,7 @@ export default class cex extends cexRest {
         const data = this.safeDict (message, 'data', {});
         const isTransaction = this.safeString (message, 'e') === 'tx';
         const orderId = this.safeString2 (data, 'id', 'order');
-        let remains = this.safeString (data, 'remains');
+        const remainsPrecision = this.safeString (data, 'remains');
         let baseId = this.safeString (data, 'symbol');
         let quoteId = this.safeString (data, 'symbol2');
         const pair = this.safeDict (data, 'pair');
@@ -786,16 +788,17 @@ export default class cex extends cexRest {
         }
         const symbol = base + '/' + quote;
         const market = this.safeMarket (symbol);
-        remains = this.currencyFromPrecision (base, remains);
+        const remains = this.currencyFromPrecision (base, remainsPrecision);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const storedOrders = this.orders;
         const ordersBySymbol = this.safeDict (storedOrders.hashmap, symbol, {});
-        let order = this.safeValue (ordersBySymbol, orderId);
+        let order = this.safeDict (ordersBySymbol, orderId);
         if (order === undefined) {
-            order = this.parseWsOrderUpdate (data, market);
+            // market comes from safeMarket, so the parser never takes its undefined returns here
+            order = this.parseWsOrderUpdate (data, market) as Dict;
         }
         order['remaining'] = remains;
         const canceled = this.safeBool (data, 'cancel', false);
@@ -816,13 +819,14 @@ export default class cex extends cexRest {
         const timestamp = this.safeInteger (data, 'time');
         order['timestamp'] = timestamp;
         order['datetime'] = this.iso8601 (timestamp);
-        order = this.safeOrder (order);
-        storedOrders.append (order);
+        // a fresh map copy: the cached entry is untyped
+        const parsedOrder = this.safeOrder (this.extend (order, {}));
+        storedOrders.append (parsedOrder);
         const messageHash = 'orders:' + symbol;
         client.resolve (storedOrders, messageHash);
     }
 
-    parseWsOrderUpdate (order: Dict, market: Market = undefined) {
+    parseWsOrderUpdate (order: Dict, market: Market = undefined): NullableDict {
         //
         //      {
         //          "id": "150714937",
@@ -935,17 +939,17 @@ export default class cex extends cexRest {
         return this.safeOrder (parsedOrder, marketResolved);
     }
 
-    fromPrecision (amount: any, scale: any): Str {
+    fromPrecision (amount: Str, scale: Int): Str {
         if (amount === undefined) {
             return undefined;
         }
         const precise = new Precise (amount);
-        precise.decimals = this.sum (precise.decimals, scale);
+        precise.decimals = this.sum (precise.decimals, this.safeInteger ([ scale ], 0, 0));
         precise.reduce ();
         return precise.toString ();
     }
 
-    currencyFromPrecision (currency: string, amount: any): Str {
+    currencyFromPrecision (currency: string, amount: Str): Str {
         const scale = this.safeInteger (this.currencies[currency], 'precision', 0);
         return this.fromPrecision (amount, scale);
     }
@@ -1072,8 +1076,8 @@ export default class cex extends cexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    pairToSymbol (pair: any): string {
-        const parts = pair.split (':');
+    pairToSymbol (pair: Str): string {
+        const parts = (pair as string).split (':');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);

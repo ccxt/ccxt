@@ -71,7 +71,8 @@ public partial class woofipro : ccxt.woofipro
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        options[(string)url] = newValue;
+        this.options["requestId"] = options;
         return newValue;
     }
 
@@ -486,7 +487,7 @@ public partial class woofipro : ccxt.woofipro
             stored = new ArrayCacheByTimestamp(limit);
             if (((symbol != null)) && ((timeframe != null)))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
         }
         stored.append(parsed);
@@ -689,7 +690,7 @@ public partial class woofipro : ccxt.woofipro
                 List<object> parts = this.secret.Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
-            string signature = eddsa(this.encode(ts), this.base58ToBinary(secret), ed25519);
+            string signature = eddsa(ts, this.base58ToBinary(secret), ed25519);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "event", eventVar },
                 { "params", new Dictionary<string, object>() {
@@ -989,22 +990,22 @@ public partial class woofipro : ccxt.woofipro
         //     }
         //
         string? topic = this.safeString(message, "topic");
-        object data = this.safeValue(message, "data");
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> dataList = this.safeList(message, "data");
+        if ((dataList != null))
         {
             // algoexecutionreport
-            for (int i = 0; i < getArrayLength(data); i++)
+            for (int i = 0; i < dataList.Count; i++)
             {
-                object order = getValue(data, i);
-                string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
+                string? tradeId = ((string)this.omitZero(this.safeString(dataList, "tradeId")));
                 if ((tradeId != null))
                 {
-                    this.handleMyTrade(client, order);
+                    this.handleMyTrade(client, (dataList != null && i < dataList.Count ? dataList[i] : null));
                 }
-                this.handleOrder(client, order, topic);
+                this.handleOrder(client, (dataList != null && i < dataList.Count ? dataList[i] : null), topic);
             }
         } else
         {
+            object data = this.safeValue(message, "data");
             // executionreport
             string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
             if ((tradeId != null))
@@ -1119,7 +1120,7 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         List<object> messageHashes = new List<object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if (!this.isEmpty(symbolsNormalized))
         {
             if ((symbolsNormalized == null))
@@ -1444,7 +1445,7 @@ public partial class woofipro : ccxt.woofipro
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             }
             return false;
         } catch(Exception error)

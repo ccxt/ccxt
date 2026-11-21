@@ -336,166 +336,168 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMarketsCore(Map<String, Object> parameters)
+    {
 
-            List<Object> queries = this.parseSearchQueries(parameters);
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
-            // scope the listing: without a search query loadMarkets would otherwise page through
-            // every active limitless market. Cap the total number of markets collected.
-            Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
-            List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
-            Integer queriesLength = queries.size();
-            if ((queriesLength != null && queriesLength > 0))
+        List<Object> queries = this.parseSearchQueries(parameters);
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
+        // scope the listing: without a search query loadMarkets would otherwise page through
+        // every active limitless market. Cap the total number of markets collected.
+        Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
+        List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
+        Integer queriesLength = queries.size();
+        if ((queriesLength != null && queriesLength > 0))
+        {
+            Long requestedLimit = this.safeInteger(parameters, "limit", 50);
+            // the search endpoint rejects limit > 50 - cap the per-query request and let
+            // maxMarkets bound the overall collection
+            Long limit = 50L;
+            if ((!java.util.Objects.equals(requestedLimit, null)) && (((requestedLimit == null || requestedLimit < 50))))
             {
-                Long requestedLimit = this.safeInteger(parameters, "limit", 50);
-                // the search endpoint rejects limit > 50 - cap the per-query request and let
-                // maxMarkets bound the overall collection
-                Long limit = 50L;
-                if ((!java.util.Objects.equals(requestedLimit, null)) && (((requestedLimit == null || requestedLimit < 50))))
+                limit = requestedLimit;
+            }
+            Map<String, Object> searchRest = this.omit(rest, new ArrayList<Object>(Arrays.asList("limit")));
+            Map<String, Object> seen = new HashMap<String, Object>() {{}};
+            for (var i = 0; i < queries.size(); i++)
+            {
+                Object q = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("query", q);
+                mapLiteral1.put("limit", limit);
+                Map<String, Object> response = (this.limitlessPublicGetMarketsSearch(this.extend(mapLiteral1, searchRest))).join();
+                List<Object> found = this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
+                for (var j = 0; j < found.size(); j++)
                 {
-                    limit = requestedLimit;
-                }
-                Map<String, Object> searchRest = this.omit(rest, new ArrayList<Object>(Arrays.asList("limit")));
-                Map<String, Object> seen = new HashMap<String, Object>() {{}};
-                for (var i = 0; i < queries.size(); i++)
-                {
-                    Object q = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
-                    HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                    mapLiteral1.put("query", q);
-                    mapLiteral1.put("limit", limit);
-                    Map<String, Object> response = (this.limitlessPublicGetMarketsSearch(this.extend(mapLiteral1, searchRest))).join();
-                    List<Object> found = this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
-                    for (var j = 0; j < found.size(); j++)
+                    Object raw = (found == null || j < 0 || j >= found.size() ? null : found.get(j));
+                    String slug = this.safeString(raw, "slug");
+                    if ((!java.util.Objects.equals(slug, null) && !java.util.Objects.equals(slug, "")) && !(seen.containsKey(slug)))
                     {
-                        Object raw = (found == null || j < 0 || j >= found.size() ? null : found.get(j));
-                        String slug = this.safeString(raw, "slug");
-                        if ((!java.util.Objects.equals(slug, null) && !java.util.Objects.equals(slug, "")) && !(seen.containsKey(slug)))
-                        {
-                            seen.put(slug, true);
-                            ((List<Object>)allRaw).add(raw);
-                        }
+                        seen.put(slug, true);
+                        ((List<Object>)allRaw).add(raw);
                     }
                 }
-            } else
+            }
+        } else
+        {
+            Object page = 1;
+            Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("page", page);
+            request.put("limit", pageSize);
+            Map<String, Object> firstPageResponse = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
+            List<Object> firstData = this.safeList(firstPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
+            allRaw = (List<Object>) this.arrayConcat(allRaw, firstData);
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+            Double cappedPages = Math.ceil(Double.parseDouble(String.valueOf((((double) maxMarkets) / ((double) pageSize)))));
+            Long knownTotal = this.safeInteger(firstPageResponse, "totalMarketsCount", 0);
+            Long allPages = this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) knownTotal) / ((double) pageSize))))));
+            for (var i = 2; ((allPages != null && i <= allPages)); i++)
             {
-                Object page = 1;
-                Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("page", page);
-                request.put("limit", pageSize);
-                Map<String, Object> firstPageResponse = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
-                List<Object> firstData = this.safeList(firstPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
-                allRaw = (List<Object>) this.arrayConcat(allRaw, firstData);
-                List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                Double cappedPages = Math.ceil(Double.parseDouble(String.valueOf((((double) maxMarkets) / ((double) pageSize)))));
-                Long knownTotal = this.safeInteger(firstPageResponse, "totalMarketsCount", 0);
-                Long allPages = this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) knownTotal) / ((double) pageSize))))));
-                for (var i = 2; ((allPages != null && i <= allPages)); i++)
+                if (((cappedPages == null || i > cappedPages)))
                 {
-                    if (((cappedPages == null || i > cappedPages)))
+                    break;
+                }
+                page = i;
+                request.put("page", page);
+                promises.add(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
+            }
+            List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+            Integer length = responses.size();
+            for (var j = 0; (length != null && j < length); j++)
+            {
+                Map<String, Object> response = this.safeDict(responses, j, null);
+                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                allRaw = (List<Object>) this.arrayConcat(allRaw, data);
+            }
+            Map<String, Object> lastPageResponse = this.safeDict(responses, (((long) length) - 1L), null);
+            List<Object> lastPageData = this.safeList(lastPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer lastPageLength = lastPageData.size();
+            Integer allRawLength = allRaw.size();
+            if ((pageSize == null || (lastPageLength != null && lastPageLength >= pageSize)) && (maxMarkets != null && (allRawLength == null || allRawLength < maxMarkets)))
+            {
+                while (true)
+                {
+                    page = this.sum(page, 1);
+                    request.put("page", page);
+                    Map<String, Object> response = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
+                    List<Object> responseRows = new ArrayList<Object>(Arrays.asList());
+                    if ((response instanceof List))
+                    {
+                        responseRows = (List<Object>) response;
+                    }
+                    List<Object> page_markets = (List<Object>) this.safeList(response, "data", responseRows);
+                    Integer pageMarketsLength = page_markets.size();
+                    if (java.util.Objects.equals(pageMarketsLength, 0))
                     {
                         break;
                     }
-                    page = i;
-                    request.put("page", page);
-                    ((List<Object>)promises).add(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
-                }
-                List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                Integer length = responses.size();
-                for (var j = 0; (length != null && j < length); j++)
-                {
-                    Map<String, Object> response = this.safeDict(responses, j, null);
-                    List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                    allRaw = (List<Object>) this.arrayConcat(allRaw, data);
-                }
-                Map<String, Object> lastPageResponse = this.safeDict(responses, (((long) length) - 1L), null);
-                List<Object> lastPageData = this.safeList(lastPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
-                Integer lastPageLength = lastPageData.size();
-                Integer allRawLength = allRaw.size();
-                if ((pageSize == null || (lastPageLength != null && lastPageLength >= pageSize)) && (maxMarkets != null && (allRawLength == null || allRawLength < maxMarkets)))
-                {
-                    while (true)
+                    for (var i = 0; (pageMarketsLength != null && i < pageMarketsLength); i++)
                     {
-                        page = this.sum(page, 1);
-                        request.put("page", page);
-                        Map<String, Object> response = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
-                        List<Object> responseRows = new ArrayList<Object>(Arrays.asList());
-                        if ((response instanceof List))
-                        {
-                            responseRows = (List<Object>) response;
-                        }
-                        List<Object> page_markets = (List<Object>) this.safeList(response, "data", responseRows);
-                        Integer pageMarketsLength = page_markets.size();
-                        if (java.util.Objects.equals(pageMarketsLength, 0))
-                        {
-                            break;
-                        }
-                        for (var i = 0; (pageMarketsLength != null && i < pageMarketsLength); i++)
-                        {
-                            Map<String, Object> raw = this.safeDict(page_markets, i, null);
-                            ((List<Object>)allRaw).add(raw);
-                        }
-                        Integer allRawCount = allRaw.size();
-                        if ((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize)) || (maxMarkets == null || (allRawCount != null && allRawCount >= maxMarkets)))
-                        {
-                            break;
-                        }
+                        Map<String, Object> raw = this.safeDict(page_markets, i, null);
+                        ((List<Object>)allRaw).add(raw);
+                    }
+                    Integer allRawCount = allRaw.size();
+                    if ((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize)) || (maxMarkets == null || (allRawCount != null && allRawCount >= maxMarkets)))
+                    {
+                        break;
                     }
                 }
             }
-            List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> eventGroups = new HashMap<String, Object>() {{}};
-            // group rows carry their tradeable children in a nested `markets` list — expand them
-            // into regular rows before parsing (a group row itself has no tokens)
-            List<Object> expandedRaw = (List<Object>) this.expandGroupRows(allRaw);
-            for (var i = 0; i < expandedRaw.size(); i++)
+        }
+        List<Object> markets = new ArrayList<Object>(Arrays.asList());
+        Map<String, Map<String, Object>> eventGroups = new HashMap<String, Map<String, Object>>();
+        // group rows carry their tradeable children in a nested `markets` list — expand them
+        // into regular rows before parsing (a group row itself has no tokens)
+        List<Object> expandedRaw = (List<Object>) this.expandGroupRows(allRaw);
+        for (var i = 0; i < expandedRaw.size(); i++)
+        {
+            Object raw = (expandedRaw == null || i < 0 || i >= expandedRaw.size() ? null : expandedRaw.get(i));
+            String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
+            String eventKey = null;
+            if (!java.util.Objects.equals(groupId, null) && !java.util.Objects.equals(groupId, ""))
             {
-                Object raw = (expandedRaw == null || i < 0 || i >= expandedRaw.size() ? null : expandedRaw.get(i));
-                String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
-                String eventKey = null;
-                if (!java.util.Objects.equals(groupId, null) && !java.util.Objects.equals(groupId, ""))
+                eventKey = this.shortenSlug((String) (groupId));
+            }
+            MarketInterface m = this.parseMarket(raw);
+            ((List<Object>)markets).add(m);
+            if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
+            {
+                if (!(eventGroups.containsKey(eventKey)))
                 {
-                    eventKey = this.shortenSlug((String) (groupId));
+                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                    mapLiteral2.put("groupId", groupId);
+                    mapLiteral2.put("title", this.safeString2(raw, "groupTitle", "title", groupId));
+                    mapLiteral2.put("raw", raw);
+                    mapLiteral2.put("markets", new ArrayList<Object>(Arrays.asList()));
+                    eventGroups.put(eventKey, mapLiteral2);
                 }
-                MarketInterface m = this.parseMarket(raw);
-                ((List<Object>)markets).add(m);
-                if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
-                {
-                    if (!(eventGroups.containsKey(eventKey)))
-                    {
-                        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                        mapLiteral2.put("groupId", groupId);
-                        mapLiteral2.put("title", this.safeString2(raw, "groupTitle", "title", groupId));
-                        mapLiteral2.put("raw", raw);
-                        mapLiteral2.put("markets", new ArrayList<Object>(Arrays.asList()));
-                        eventGroups.put(eventKey, mapLiteral2);
-                    }
-                    Object eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
-                    // push through a local and write the slice back — the go transpiler's
-                    // AppendToArray reassigns only a local copy of a map-stored array, so a
-                    // direct push on eventGroup['markets'] loses the element in go
-                    Object groupMarkets = Helpers.GetValue(eventGroup, "markets");
-                    ((List<Object>)groupMarkets).add(m);
-                    Helpers.addElementToObject(eventGroup, "markets", groupMarkets);
-                }
+                Map<String, Object> eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on eventGroup['markets'] loses the element in go
+                Object groupMarkets = eventGroup.get("markets");
+                ((List<Object>)groupMarkets).add(m);
+                eventGroup.put("markets", groupMarkets);
             }
-            Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
-            List<String> eventKeys = new ArrayList<String>(eventGroups.keySet());
-            for (var i = 0; i < eventKeys.size(); i++)
-            {
-                String eventKey = (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i));
-                Map<String, Object> g = (Map<String, Object>) ((eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey)));
-                eventsDict.put(eventKey, this.parseEvent(g));
-            }
-            this.events = eventsDict;
-            Integer marketsLength = markets.size();
-            if ((marketsLength != null && (maxMarkets == null || marketsLength > maxMarkets)))
-            {
-                return this.arraySlice(markets, 0, maxMarkets);
-            }
-            return markets;
-        });
+        }
+        Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
+        List<String> eventKeys = new ArrayList<String>(eventGroups.keySet());
+        for (var i = 0; i < eventKeys.size(); i++)
+        {
+            String eventKey = (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i));
+            Map<String, Object> g = (Map<String, Object>) ((eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey)));
+            eventsDict.put(eventKey, this.parseEvent(g));
+        }
+        this.events = eventsDict;
+        Integer marketsLength = markets.size();
+        if ((marketsLength != null && (maxMarkets == null || marketsLength > maxMarkets)))
+        {
+            return this.arraySlice(markets, 0, maxMarkets);
+        }
+        return markets;
 
     }
 
@@ -629,7 +631,7 @@ public class Limitless extends LimitlessApi
                 legIndex = 1;
             }
             Boolean winnerRaw = null;
-            Object settleFractionRaw = null;
+            Integer settleFractionRaw = null;
             if (Boolean.TRUE.equals(marketResolved))
             {
                 winnerRaw = (java.util.Objects.equals(((Number) legIndex).longValue(), winningOutcomeIndex));
@@ -642,7 +644,7 @@ public class Limitless extends LimitlessApi
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
-            Object settleFraction = settleFractionRaw;
+            Integer settleFraction = settleFractionRaw;
             ((List<Object>)outcomes).add(new HashMap<String, Object>() {{
                 put( "outcome", outcomeHandle );
                 put( "outcomeId", tokenId );
@@ -740,24 +742,26 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<PredictionEvent> fetchEvent(String id, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchEventCore(id, parameters)).thenApply(PredictionEvent::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchEventCore(String id, Map<String, Object> parameters)
+    {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "addressOrSlug", id );
-            }};
-            Map<String, Object> response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters))).join();
-            // a group response carries its tradeable children in `markets` (each a full market row
-            // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
-            // and wraps as its own one-market event, which parseEvent's loop then parses
-            List<Object> rows = (List<Object>) this.expandGroupRows(new ArrayList<Object>(Arrays.asList(response)));
-            Map<String, Object> wrapped = this.extend(response, new HashMap<String, Object>() {{
-                put( "markets", rows );
-            }});
-            Map<String, Object> eventVar = this.parseEvent(wrapped);
-            this.indexEventOutcomes(eventVar);
-            return eventVar;
-        }).thenApply(PredictionEvent::new);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "addressOrSlug", id );
+        }};
+        Map<String, Object> response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters))).join();
+        // a group response carries its tradeable children in `markets` (each a full market row
+        // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
+        // and wraps as its own one-market event, which parseEvent's loop then parses
+        List<Object> rows = (List<Object>) this.expandGroupRows(new ArrayList<Object>(Arrays.asList(response)));
+        Map<String, Object> wrapped = this.extend(response, new HashMap<String, Object>() {{
+            put( "markets", rows );
+        }});
+        Map<String, Object> eventVar = this.parseEvent(wrapped);
+        this.indexEventOutcomes(eventVar);
+        return eventVar;
 
     }
 
@@ -1099,89 +1103,91 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickerCore(outcome, parameters)).thenApply(PredictionTicker::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickerCore(String outcome, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String slug = this.safeString(outcomeObj.get("info"), "slug");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "addressOrSlug", slug );
-            }};
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new HashMap<String, Object>() {{
-        put( "slug", slug );
-    }})));
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Object response = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
-            //
-            //     {
-            //         "id": "36814",
-            //         "automationType": "manual",
-            //         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
-            //         "negRiskRequestId": null,
-            //         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
-            //         "collateralToken": {
-            //             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-            //             "decimals": "6",
-            //             "symbol": "USDC"
-            //         },
-            //         "title": "Trump out as President before 2027?",
-            //         "proxyTitle": null,
-            //         "expirationDate": "Jan 1, 2027",
-            //         "expirationTimestamp": "1798779540000",
-            //         "createdAt": "2026-01-20T18:17:48.298Z",
-            //         "updatedAt": "2026-04-09T10:47:02.254Z",
-            //         "categories": [ "Politics" ],
-            //         "status": "FUNDED",
-            //         "expired": false,
-            //         "hidden": false,
-            //         "creator": {
-            //             "name": "Limitless",
-            //             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
-            //             "link": "https://x.com/trylimitless"
-            //         },
-            //         "tags": [ "Limitless" ],
-            //         "volume": "1032001807",
-            //         "volumeFormatted": "1032.001807",
-            //         "tokens": {
-            //             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
-            //             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
-            //         },
-            //         "prices": [ 0.155, 0.845 ],
-            //         "tradePrices": {
-            //             "buy": { "market": [Array], "limit": [Array] },
-            //             "sell": { "market": [Array], "limit": [Array] }
-            //         },
-            //         "isOther": false,
-            //         "isRewardable": true,
-            //         "slug": "trump-out-as-president-before-2027-1768933068297",
-            //         "tradeType": "clob",
-            //         "venue": {
-            //             "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
-            //             "adapter": null
-            //         },
-            //         "marketType": "single",
-            //         "priorityIndex": "0",
-            //         "winningOutcomeIndex": null,
-            //         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
-            //         "settings": {
-            //             "minSize": "100000000",
-            //             "maxSpread": "0.035",
-            //             "dailyReward": "5",
-            //             "rewardsEpoch": "0.003472222222222222",
-            //             "c": "3",
-            //             "rebateRate": "0"
-            //         },
-            //         "imageUrl": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
-            //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
-            //     }
-            //
-            Map<String, Object> tickerInput = new HashMap<String, Object>() {{
-                put( "market", response );
-                put( "book", (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)) );
-            }};
-            return this.parsePredictionTicker(tickerInput, outcomeObj);
-        }).thenApply(PredictionTicker::new);
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        String slug = this.safeString(outcomeObj.get("info"), "slug");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "addressOrSlug", slug );
+        }};
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new HashMap<String, Object>() {{
+    put( "slug", slug );
+}})));
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        Object response = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
+        //
+        //     {
+        //         "id": "36814",
+        //         "automationType": "manual",
+        //         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //         "negRiskRequestId": null,
+        //         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //         "collateralToken": {
+        //             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //             "decimals": "6",
+        //             "symbol": "USDC"
+        //         },
+        //         "title": "Trump out as President before 2027?",
+        //         "proxyTitle": null,
+        //         "expirationDate": "Jan 1, 2027",
+        //         "expirationTimestamp": "1798779540000",
+        //         "createdAt": "2026-01-20T18:17:48.298Z",
+        //         "updatedAt": "2026-04-09T10:47:02.254Z",
+        //         "categories": [ "Politics" ],
+        //         "status": "FUNDED",
+        //         "expired": false,
+        //         "hidden": false,
+        //         "creator": {
+        //             "name": "Limitless",
+        //             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+        //             "link": "https://x.com/trylimitless"
+        //         },
+        //         "tags": [ "Limitless" ],
+        //         "volume": "1032001807",
+        //         "volumeFormatted": "1032.001807",
+        //         "tokens": {
+        //             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //         },
+        //         "prices": [ 0.155, 0.845 ],
+        //         "tradePrices": {
+        //             "buy": { "market": [Array], "limit": [Array] },
+        //             "sell": { "market": [Array], "limit": [Array] }
+        //         },
+        //         "isOther": false,
+        //         "isRewardable": true,
+        //         "slug": "trump-out-as-president-before-2027-1768933068297",
+        //         "tradeType": "clob",
+        //         "venue": {
+        //             "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //             "adapter": null
+        //         },
+        //         "marketType": "single",
+        //         "priorityIndex": "0",
+        //         "winningOutcomeIndex": null,
+        //         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
+        //         "settings": {
+        //             "minSize": "100000000",
+        //             "maxSpread": "0.035",
+        //             "dailyReward": "5",
+        //             "rewardsEpoch": "0.003472222222222222",
+        //             "c": "3",
+        //             "rebateRate": "0"
+        //         },
+        //         "imageUrl": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        //     }
+        //
+        Map<String, Object> tickerInput = new HashMap<String, Object>() {{
+            put( "market", response );
+            put( "book", (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)) );
+        }};
+        return this.parsePredictionTicker(tickerInput, outcomeObj);
 
     }
 
@@ -1265,7 +1271,7 @@ public class Limitless extends LimitlessApi
         if (ticker.containsKey("market"))
         {
             raw = (Map<String, Object>) this.safeDict(ticker, "market", new HashMap<String, Object>() {{}});
-            book = (Map<String, Object>) this.safeDict(ticker, "book", null);
+            book = this.safeDict(ticker, "book", null);
         }
         String rawLabel = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(market.get("info"), "outcomeLabel", "yes")) : "yes";
         Boolean isYes = !java.util.Objects.equals(rawLabel.toLowerCase(), "no");
@@ -1348,31 +1354,31 @@ public class Limitless extends LimitlessApi
             askSizeStr = Precise.stringDiv(askSizeStr, "1000000");
         }
         Object outcomeSymbol = this.safeOutcomeSymbol((String) (null), market);
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("outcome", outcomeSymbol);
-            j39v1.put("outcomeId", this.safeString(market, "outcomeId"));
-            j39v1.put("label", this.safeString(market, "label"));
-            j39v1.put("market", this.safeString(market, "market"));
-            j39v1.put("timestamp", null);
-            j39v1.put("datetime", null);
-            j39v1.put("high", null);
-            j39v1.put("low", null);
-            j39v1.put("bid", this.parseNumber(bidStr));
-            j39v1.put("bidVolume", this.parseNumber(bidSizeStr));
-            j39v1.put("ask", this.parseNumber(askStr));
-            j39v1.put("askVolume", this.parseNumber(askSizeStr));
-            j39v1.put("vwap", null);
-            j39v1.put("open", null);
-            j39v1.put("close", this.parseNumber(lastStr));
-            j39v1.put("last", this.parseNumber(lastStr));
-            j39v1.put("previousClose", null);
-            j39v1.put("change", null);
-            j39v1.put("percentage", null);
-            j39v1.put("average", this.parseNumber(midStr));
-            j39v1.put("baseVolume", null);
-            j39v1.put("quoteVolume", this.parseNumber(volumeStr));
-            j39v1.put("info", ticker);
-            yield j39v1; } }), (Object) null));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("outcome", outcomeSymbol);
+        j39v1.put("outcomeId", this.safeString(market, "outcomeId"));
+        j39v1.put("label", this.safeString(market, "label"));
+        j39v1.put("market", this.safeString(market, "market"));
+        j39v1.put("timestamp", null);
+        j39v1.put("datetime", null);
+        j39v1.put("high", null);
+        j39v1.put("low", null);
+        j39v1.put("bid", this.parseNumber(bidStr));
+        j39v1.put("bidVolume", this.parseNumber(bidSizeStr));
+        j39v1.put("ask", this.parseNumber(askStr));
+        j39v1.put("askVolume", this.parseNumber(askSizeStr));
+        j39v1.put("vwap", null);
+        j39v1.put("open", null);
+        j39v1.put("close", this.parseNumber(lastStr));
+        j39v1.put("last", this.parseNumber(lastStr));
+        j39v1.put("previousClose", null);
+        j39v1.put("change", null);
+        j39v1.put("percentage", null);
+        j39v1.put("average", this.parseNumber(midStr));
+        j39v1.put("baseVolume", null);
+        j39v1.put("quoteVolume", this.parseNumber(volumeStr));
+        j39v1.put("info", ticker);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v1, (Object) null));
     }
 
     /**
@@ -1387,78 +1393,80 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTickersCore(Object outcomes, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(outcomes, null))
+        if (java.util.Objects.equals(outcomes, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+        }
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
+        // resolve the uncached outcomes first, then group by parent market to fetch each
+        // market and book only once
+        (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> outcomesBySlug = new HashMap<String, Object>() {{}};
+        List<String> slugs = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+        {
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            String slug = this.safeString(outcomeObj.get("info"), "slug");
+            if (java.util.Objects.equals(slug, null))
             {
-                throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+                throw new ExchangeError((this.id + " fetchTickers() missing slug")) ;
             }
-            Map<String, Object> result = new HashMap<String, Object>() {{}};
-            // resolve the uncached outcomes first, then group by parent market to fetch each
-            // market and book only once
-            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> outcomesBySlug = new HashMap<String, Object>() {{}};
-            List<String> slugs = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+            if (!(outcomesBySlug.containsKey(slug)))
             {
-                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                String slug = this.safeString(outcomeObj.get("info"), "slug");
-                if (java.util.Objects.equals(slug, null))
-                {
-                    throw new ExchangeError((this.id + " fetchTickers() missing slug")) ;
-                }
-                if (!(outcomesBySlug.containsKey(slug)))
-                {
-                    if (!java.util.Objects.equals(slug, null))
-                    {
-                        outcomesBySlug.put(slug, new ArrayList<Object>(Arrays.asList()));
-                    }
-                    slugs.add(slug);
-                }
-                // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-                List<Object> grouped = this.safeList(outcomesBySlug, slug, new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)grouped).add(outcomeObj);
                 if (!java.util.Objects.equals(slug, null))
                 {
-                    outcomesBySlug.put(slug, grouped);
+                    outcomesBySlug.put(slug, new ArrayList<Object>(Arrays.asList()));
                 }
+                slugs.add(slug);
             }
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < slugs.size(); i++)
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            List<Object> grouped = this.safeList(outcomesBySlug, slug, new ArrayList<Object>(Arrays.asList()));
+            ((List<Object>)grouped).add(outcomeObj);
+            if (!java.util.Objects.equals(slug, null))
             {
-                String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
-                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                mapLiteral5.put("addressOrSlug", slug);
-                ((List<Object>)promises).add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(mapLiteral5, parameters)));
-                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-                mapLiteral6.put("slug", slug);
-                ((List<Object>)promises).add(this.limitlessPublicGetMarketsSlugOrderbook(mapLiteral6));
+                outcomesBySlug.put(slug, grouped);
             }
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < slugs.size(); i++)
+        }
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        for (var i = 0; i < slugs.size(); i++)
+        {
+            String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("addressOrSlug", slug);
+            promises.add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(mapLiteral5, parameters)));
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("slug", slug);
+            promises.add(this.limitlessPublicGetMarketsSlugOrderbook(mapLiteral6));
+        }
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        for (var i = 0; i < slugs.size(); i++)
+        {
+            String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
+            Long detailIndex = (((long) i) * 2L);
+            Map<String, Object> detail = this.safeDict(responses, detailIndex, null);
+            Map<String, Object> book = this.safeDict(responses, this.sum(detailIndex, 1), null);
+            Map<String, Object> tickerInput = new HashMap<String, Object>() {{
+                put( "market", detail );
+                put( "book", book );
+            }};
+            List<Object> grouped = this.safeList(outcomesBySlug, slug, new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < grouped.size(); j++)
             {
-                String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
-                Long detailIndex = (((long) i) * 2L);
-                Map<String, Object> detail = this.safeDict(responses, detailIndex, null);
-                Map<String, Object> book = this.safeDict(responses, this.sum(detailIndex, 1), null);
-                Map<String, Object> tickerInput = new HashMap<String, Object>() {{
-                    put( "market", detail );
-                    put( "book", book );
-                }};
-                List<Object> grouped = this.safeList(outcomesBySlug, slug, new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < grouped.size(); j++)
+                Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) ((grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+                String symbolKey = this.safeString(ticker, "outcome");
+                if (!java.util.Objects.equals(symbolKey, null))
                 {
-                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) ((grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
-                    String symbolKey = this.safeString(ticker, "outcome");
-                    if (!java.util.Objects.equals(symbolKey, null))
-                    {
-                        result.put(symbolKey, ticker);
-                    }
+                    result.put(symbolKey, ticker);
                 }
             }
-            return result;
-        }).thenApply(PredictionTickers::new);
+        }
+        return result;
 
     }
 
@@ -1475,57 +1483,59 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String slug = this.safeString(outcomeObj.get("info"), "slug");
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "slug", slug );
-            }};
-            if (!java.util.Objects.equals(limit, null))
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        String slug = this.safeString(outcomeObj.get("info"), "slug");
+        String tokenId = this.safeString(outcomeObj, "outcomeId");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "slug", slug );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 100));
+        }
+        Map<String, Object> response = (this.limitlessPublicGetMarketsSlugEvents(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "events": [
+        //             {
+        //                 "createdAt": "2026-06-12T15:24:25.617Z",
+        //                 "makerAmount": "19996200",
+        //                 "matchedSize": "2500000",
+        //                 "price": 0.332,
+        //                 "profile": { "account": "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f" },
+        //                 "side": 0,
+        //                 "takerAmount": "830000",
+        //                 "title": "",
+        //                 "tokenId": "34504808738227095158010759634880534083339296329182698784451980951930485131851",
+        //                 "txHash": "0x432344fc63f26f37e3ffe3aca45bcfcba6b7addfc07d04de4410855c0a56a175"
+        //             }
+        //         ],
+        //         "limit": 30,
+        //         "page": 1,
+        //         "totalPages": 1,
+        //         "totalRows": 13
+        //     }
+        //
+        List<Object> rows = this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filtered = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < rows.size(); i++)
+        {
+            Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+            String rowTokenId = this.safeString(row, "tokenId");
+            if ((!java.util.Objects.equals(tokenId, null)) && (!java.util.Objects.equals(rowTokenId, null)) && (!java.util.Objects.equals(rowTokenId, tokenId)))
             {
-                request.put("limit", Math.min(limit, 100));
+                continue;
             }
-            Map<String, Object> response = (this.limitlessPublicGetMarketsSlugEvents(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "events": [
-            //             {
-            //                 "createdAt": "2026-06-12T15:24:25.617Z",
-            //                 "makerAmount": "19996200",
-            //                 "matchedSize": "2500000",
-            //                 "price": 0.332,
-            //                 "profile": { "account": "0x0572B4Aa431e730d1d19cc7CFea7D6C0Bc07096f" },
-            //                 "side": 0,
-            //                 "takerAmount": "830000",
-            //                 "title": "",
-            //                 "tokenId": "34504808738227095158010759634880534083339296329182698784451980951930485131851",
-            //                 "txHash": "0x432344fc63f26f37e3ffe3aca45bcfcba6b7addfc07d04de4410855c0a56a175"
-            //             }
-            //         ],
-            //         "limit": 30,
-            //         "page": 1,
-            //         "totalPages": 1,
-            //         "totalRows": 13
-            //     }
-            //
-            List<Object> rows = this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
-            List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < rows.size(); i++)
-            {
-                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                String rowTokenId = this.safeString(row, "tokenId");
-                if ((!java.util.Objects.equals(tokenId, null)) && (!java.util.Objects.equals(rowTokenId, null)) && (!java.util.Objects.equals(rowTokenId, tokenId)))
-                {
-                    continue;
-                }
-                ((List<Object>)filtered).add(row);
-            }
-            return this.parsePredictionTrades(filtered, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+            ((List<Object>)filtered).add(row);
+        }
+        return this.parsePredictionTrades(filtered, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1541,94 +1551,96 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderBookCore(outcome, limit, parameters)).thenApply(PredictionOrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderBookCore(Object outcome, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String slug = this.safeString(outcomeObj.get("info"), "slug");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "slug", slug );
-            }};
-            Map<String, Object> response = (this.limitlessPublicGetMarketsSlugOrderbook(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "bids": [
-            //             { "price": "0.14", "size": "12360330000", "side": "BUY" },
-            //             { "price": "0.1", "size": "1000000", "side": "BUY" },
-            //             { "price": "0.003", "size": "500000000", "side": "BUY" }
-            //         ],
-            //         "asks": [
-            //             { "price": "0.161", "size": "222000000", "side": "SELL" },
-            //             { "price": "0.996", "size": "5555000000", "side": "SELL" },
-            //             { "price": "0.997", "size": "500000000", "side": "SELL" }
-            //         ],
-            //         "tokenId": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
-            //         "adjustedMidpoint": "0.1505",
-            //         "midpoint": "0.1505",
-            //         "maxSpread": "0.035",
-            //         "minSize": "100000000",
-            //         "lastTradePrice": "0.161"
-            //     }
-            //
-            Long decimals = this.safeInteger(this.options, "usdcDecimals", 6);
-            // sizes are scaled by 10^decimals, USDC uses 6 decimals
-            String scaleStr = this.parsePrecision(this.numberToString((decimals == null ? null : -decimals)));
-            String outcomeLabel = this.safeStringLower(outcomeObj.get("info"), "outcomeLabel", "yes");
-            Boolean isYes = !java.util.Objects.equals(outcomeLabel, "no");
-            List<Object> rawBids = this.safeList(response, "bids", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rawAsks = this.safeList(response, "asks", new ArrayList<Object>(Arrays.asList()));
-            // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-            List<Object> bidsSource = rawAsks;
-            if (Boolean.TRUE.equals(isYes))
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        String slug = this.safeString(outcomeObj.get("info"), "slug");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "slug", slug );
+        }};
+        Map<String, Object> response = (this.limitlessPublicGetMarketsSlugOrderbook(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "bids": [
+        //             { "price": "0.14", "size": "12360330000", "side": "BUY" },
+        //             { "price": "0.1", "size": "1000000", "side": "BUY" },
+        //             { "price": "0.003", "size": "500000000", "side": "BUY" }
+        //         ],
+        //         "asks": [
+        //             { "price": "0.161", "size": "222000000", "side": "SELL" },
+        //             { "price": "0.996", "size": "5555000000", "side": "SELL" },
+        //             { "price": "0.997", "size": "500000000", "side": "SELL" }
+        //         ],
+        //         "tokenId": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //         "adjustedMidpoint": "0.1505",
+        //         "midpoint": "0.1505",
+        //         "maxSpread": "0.035",
+        //         "minSize": "100000000",
+        //         "lastTradePrice": "0.161"
+        //     }
+        //
+        Long decimals = this.safeInteger(this.options, "usdcDecimals", 6);
+        // sizes are scaled by 10^decimals, USDC uses 6 decimals
+        String scaleStr = this.parsePrecision(this.numberToString((-decimals)));
+        String outcomeLabel = this.safeStringLower(outcomeObj.get("info"), "outcomeLabel", "yes");
+        Boolean isYes = !java.util.Objects.equals(outcomeLabel, "no");
+        List<Object> rawBids = this.safeList(response, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawAsks = this.safeList(response, "asks", new ArrayList<Object>(Arrays.asList()));
+        // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
+        List<Object> bidsSource = rawAsks;
+        if (Boolean.TRUE.equals(isYes))
+        {
+            bidsSource = rawBids;
+        }
+        List<Object> asksSource = rawBids;
+        if (Boolean.TRUE.equals(isYes))
+        {
+            asksSource = rawAsks;
+        }
+        List<Object> bids = new ArrayList<Object>(Arrays.asList());
+        List<Object> asks = new ArrayList<Object>(Arrays.asList());
+        for (var bi = 0; bi < bidsSource.size(); bi++)
+        {
+            String priceStr = this.safeString(this.safeDict(bidsSource, bi, null), "price");
+            if (!Boolean.TRUE.equals(isYes) && (!java.util.Objects.equals(priceStr, null)))
             {
-                bidsSource = rawBids;
+                priceStr = Precise.stringSub("1", priceStr);
             }
-            List<Object> asksSource = rawBids;
-            if (Boolean.TRUE.equals(isYes))
+            String sizeStr = this.safeString(this.safeDict(bidsSource, bi, null), "size");
+            if (!java.util.Objects.equals(sizeStr, null))
             {
-                asksSource = rawAsks;
+                sizeStr = Precise.stringDiv(sizeStr, scaleStr);
             }
-            List<Object> bids = new ArrayList<Object>(Arrays.asList());
-            List<Object> asks = new ArrayList<Object>(Arrays.asList());
-            for (var bi = 0; bi < bidsSource.size(); bi++)
+            ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(priceStr), this.parseNumber(sizeStr))));
+        }
+        for (var ai = 0; ai < asksSource.size(); ai++)
+        {
+            String priceStr = this.safeString(this.safeDict(asksSource, ai, null), "price");
+            if (!Boolean.TRUE.equals(isYes) && (!java.util.Objects.equals(priceStr, null)))
             {
-                String priceStr = this.safeString(this.safeDict(bidsSource, bi, null), "price");
-                if (!Boolean.TRUE.equals(isYes) && (!java.util.Objects.equals(priceStr, null)))
-                {
-                    priceStr = Precise.stringSub("1", priceStr);
-                }
-                String sizeStr = this.safeString(this.safeDict(bidsSource, bi, null), "size");
-                if (!java.util.Objects.equals(sizeStr, null))
-                {
-                    sizeStr = Precise.stringDiv(sizeStr, scaleStr);
-                }
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(priceStr), this.parseNumber(sizeStr))));
+                priceStr = Precise.stringSub("1", priceStr);
             }
-            for (var ai = 0; ai < asksSource.size(); ai++)
+            String sizeStr = this.safeString(this.safeDict(asksSource, ai, null), "size");
+            if (!java.util.Objects.equals(sizeStr, null))
             {
-                String priceStr = this.safeString(this.safeDict(asksSource, ai, null), "price");
-                if (!Boolean.TRUE.equals(isYes) && (!java.util.Objects.equals(priceStr, null)))
-                {
-                    priceStr = Precise.stringSub("1", priceStr);
-                }
-                String sizeStr = this.safeString(this.safeDict(asksSource, ai, null), "size");
-                if (!java.util.Objects.equals(sizeStr, null))
-                {
-                    sizeStr = Precise.stringDiv(sizeStr, scaleStr);
-                }
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(priceStr), this.parseNumber(sizeStr))));
+                sizeStr = Precise.stringDiv(sizeStr, scaleStr);
             }
-            Map<String, Object> orderbook = new HashMap<String, Object>() {{
-                put( "outcome", Limitless.this.safeOutcomeSymbol((String) (outcome), outcomeObj) );
-                put( "bids", Limitless.this.sortBy(bids, 0, true) );
-                put( "asks", Limitless.this.sortBy(asks, 0) );
-                put( "timestamp", null );
-                put( "datetime", null );
-                put( "nonce", null );
-            }};
-            return this.safePredictionOrderBook(orderbook, outcomeObj);
-        }).thenApply(PredictionOrderBook::new);
+            ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(priceStr), this.parseNumber(sizeStr))));
+        }
+        Map<String, Object> orderbook = new HashMap<String, Object>() {{
+            put( "outcome", Limitless.this.safeOutcomeSymbol((String) (outcome), outcomeObj) );
+            put( "bids", Limitless.this.sortBy(bids, 0, true) );
+            put( "asks", Limitless.this.sortBy(asks, 0) );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "nonce", null );
+        }};
+        return this.safePredictionOrderBook(orderbook, outcomeObj);
 
     }
 
@@ -1646,161 +1658,163 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOHLCVCore(outcome, timeframe, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOHLCVCore(String outcome, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            String slug = this.safeString(outcomeObj.get("info"), "slug");
-            String outcomeLabel = this.safeStringUpper(outcomeObj.get("info"), "outcomeLabel");
-            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"), "1d");
-            Map<String, Object> response = (this.limitlessPublicGetMarketsSlugHistoricalPrice(this.extend(new HashMap<String, Object>() {{
-                put( "slug", slug );
-                put( "interval", interval );
-            }}, parameters))).join();
-            //
-            //     {
-            //         "data": [
-            //             {
-            //                  "timestamp": 1705318200000,
-            //                  "price": 0.1655
-            //             },
-            //         ]
-            //     }
-            //
-            //
-            //     [
-            //         {
-            //             "title": "YES Token",
-            //             "prices": [
-            //                 {
-            //                     "price": 0.75,
-            //                     "timestamp": "2024-01-15T10:30:00Z"
-            //                 },
-            //             ]
-            //         },
-            //         {
-            //             "title": "NO Token",
-            //             "prices": [
-            //                 {
-            //                     "price": 0.25,
-            //                     "timestamp": "2024-01-15T10:30:00Z"
-            //                 }
-            //             ]
-            //         }
-            //     ]
-            //
-            List<Object> responseRows = new ArrayList<Object>(Arrays.asList());
-            if ((response instanceof List))
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        String slug = this.safeString(outcomeObj.get("info"), "slug");
+        String outcomeLabel = this.safeStringUpper(outcomeObj.get("info"), "outcomeLabel");
+        String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1d"), "1d");
+        Map<String, Object> response = (this.limitlessPublicGetMarketsSlugHistoricalPrice(this.extend(new HashMap<String, Object>() {{
+            put( "slug", slug );
+            put( "interval", interval );
+        }}, parameters))).join();
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                  "timestamp": 1705318200000,
+        //                  "price": 0.1655
+        //             },
+        //         ]
+        //     }
+        //
+        //
+        //     [
+        //         {
+        //             "title": "YES Token",
+        //             "prices": [
+        //                 {
+        //                     "price": 0.75,
+        //                     "timestamp": "2024-01-15T10:30:00Z"
+        //                 },
+        //             ]
+        //         },
+        //         {
+        //             "title": "NO Token",
+        //             "prices": [
+        //                 {
+        //                     "price": 0.25,
+        //                     "timestamp": "2024-01-15T10:30:00Z"
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
+        List<Object> responseRows = new ArrayList<Object>(Arrays.asList());
+        if ((response instanceof List))
+        {
+            responseRows = (List<Object>) response;
+        }
+        List<Object> rawHistory = (List<Object>) this.safeList(response, "data", this.safeList(response, "prices", responseRows));
+        List<Object> history = rawHistory;
+        Integer rawHistoryLength = rawHistory.size();
+        if ((rawHistoryLength != null && rawHistoryLength > 0))
+        {
+            Map<String, Object> first = this.safeDict(rawHistory, 0, new HashMap<String, Object>() {{}});
+            List<Object> firstPrices = this.safeList(first, "prices", null);
+            if (!java.util.Objects.equals(firstPrices, null))
             {
-                responseRows = (List<Object>) response;
-            }
-            List<Object> rawHistory = (List<Object>) this.safeList(response, "data", this.safeList(response, "prices", responseRows));
-            List<Object> history = rawHistory;
-            Integer rawHistoryLength = rawHistory.size();
-            if ((rawHistoryLength != null && rawHistoryLength > 0))
-            {
-                Map<String, Object> first = this.safeDict(rawHistory, 0, new HashMap<String, Object>() {{}});
-                List<Object> firstPrices = this.safeList(first, "prices", null);
-                if (!java.util.Objects.equals(firstPrices, null))
+                Map<String, Object> selectedSeries = first;
+                for (var i = 0; (rawHistoryLength != null && i < rawHistoryLength); i++)
                 {
-                    Map<String, Object> selectedSeries = first;
-                    for (var i = 0; (rawHistoryLength != null && i < rawHistoryLength); i++)
+                    Map<String, Object> series = this.safeDict(rawHistory, i, new HashMap<String, Object>() {{}});
+                    String title = this.safeStringUpper(series, "title", "");
+                    if (java.util.Objects.equals(title, null))
                     {
-                        Map<String, Object> series = this.safeDict(rawHistory, i, new HashMap<String, Object>() {{}});
-                        String title = this.safeStringUpper(series, "title", "");
-                        if (java.util.Objects.equals(title, null))
-                        {
-                            throw new ExchangeError((this.id + " fetchOHLCV() missing title")) ;
-                        }
-                        if ((!java.util.Objects.equals(outcomeLabel, null)) && (((String)title).indexOf(((String)outcomeLabel)) >= 0))
-                        {
-                            selectedSeries = series;
-                            break;
-                        }
+                        throw new ExchangeError((this.id + " fetchOHLCV() missing title")) ;
                     }
-                    history = (List<Object>) this.safeList(selectedSeries, "prices", new ArrayList<Object>(Arrays.asList()));
-                }
-            }
-            // the endpoint returns raw price points, not candles - bucket them into
-            // timeframe-aligned candles (single points would carry unaligned timestamps)
-            List<Object> pseudoTrades = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < history.size(); i++)
-            {
-                Map<String, Object> point = this.safeDict(history, i, null);
-                Double pointPrice = this.safeNumber(point, "price", (Object) null);
-                Long rawTs = this.safeInteger(point, "timestamp");
-                Object pointTs = rawTs;
-                if (java.util.Objects.equals(rawTs, null))
-                {
-                    String tsString = this.safeString(point, "timestamp");
-                    pointTs = (((!java.util.Objects.equals(tsString, null) && !java.util.Objects.equals(tsString, "")))) ? this.parse8601(tsString) : null;
-                } else if (((rawTs == null || rawTs < 1000000000000L)))
-                {
-                    // old responses may return unix seconds
-                    pointTs = (rawTs * 1000L);
-                }
-                if ((!java.util.Objects.equals(pointPrice, null)) && (!java.util.Objects.equals(pointTs, null)))
-                {
-                    HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-                    mapLiteral7.put("timestamp", pointTs);
-                    mapLiteral7.put("price", pointPrice);
-                    mapLiteral7.put("amount", 0);
-                    ((List<Object>)pseudoTrades).add(mapLiteral7);
-                }
-            }
-            // the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
-            // otherwise candles come back descending and open/close are inverted within each bucket
-            // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
-            // timestamps keep their relative order consistently across languages
-            List<Object> sorted = this.sortBy(pseudoTrades, "timestamp");
-            Long ms = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1d"))) * 1000L);
-            Map<String, Object> candles = new HashMap<String, Object>() {{}};
-            List<String> bucketOrder = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < sorted.size(); i++)
-            {
-                Map<String, Object> point = this.safeDict(sorted, i, null);
-                Long pTs = this.safeInteger(point, "timestamp");
-                Double pPrice = this.safeNumber(point, "price", (Object) null);
-                if (java.util.Objects.equals(pTs, null))
-                {
-                    throw new ExchangeError((this.id + " method() missing pTs")) ;
-                }
-                if (java.util.Objects.equals(pPrice, null))
-                {
-                    throw new ExchangeError((this.id + " fetchOHLCV() missing pPrice")) ;
-                }
-                Long bucketIndex = this.parseToInt((((double) pTs) / ((double) ms)));
-                Long bucket = (bucketIndex * ms);
-                String key = String.valueOf(bucket);
-                if (!(candles.containsKey(key)))
-                {
-                    candles.put(key, new ArrayList<Object>(Arrays.asList(bucket, pPrice, pPrice, pPrice, pPrice, 0)));
-                    bucketOrder.add(key);
-                } else
-                {
-                    Object candle = (candles == null || key == null ? null : candles.get(key));
-                    Double prevHigh = this.safeNumber(candle, 2, (Object) null);
-                    if ((java.util.Objects.equals(prevHigh, null)) || ((pPrice != null && (prevHigh == null || pPrice > prevHigh))))
+                    if ((!java.util.Objects.equals(outcomeLabel, null)) && (((String)title).indexOf(((String)outcomeLabel)) >= 0))
                     {
-                        Helpers.addElementToObject(candle, 2, pPrice);
+                        selectedSeries = series;
+                        break;
                     }
-                    Double prevLow = this.safeNumber(candle, 3, (Object) null);
-                    if ((java.util.Objects.equals(prevLow, null)) || ((prevLow != null && (pPrice == null || prevLow > pPrice))))
-                    {
-                        Helpers.addElementToObject(candle, 3, pPrice);
-                    }
-                    Helpers.addElementToObject(candle, 4, pPrice);
-                    candles.put(key, candle); // php arrays are value types - write the mutation back
                 }
+                history = (List<Object>) this.safeList(selectedSeries, "prices", new ArrayList<Object>(Arrays.asList()));
             }
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < bucketOrder.size(); i++)
+        }
+        // the endpoint returns raw price points, not candles - bucket them into
+        // timeframe-aligned candles (single points would carry unaligned timestamps)
+        List<Object> pseudoTrades = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < history.size(); i++)
+        {
+            Map<String, Object> point = this.safeDict(history, i, null);
+            Double pointPrice = this.safeNumber(point, "price", (Object) null);
+            Long rawTs = this.safeInteger(point, "timestamp");
+            Object pointTs = rawTs;
+            if (java.util.Objects.equals(rawTs, null))
             {
-                ((List<Object>)result).add(this.safeValue(candles, (bucketOrder == null || i < 0 || i >= bucketOrder.size() ? null : bucketOrder.get(i))));
+                String tsString = this.safeString(point, "timestamp");
+                pointTs = (((!java.util.Objects.equals(tsString, null) && !java.util.Objects.equals(tsString, "")))) ? this.parse8601(tsString) : null;
+            } else if (((rawTs == null || rawTs < 1000000000000L)))
+            {
+                // old responses may return unix seconds
+                pointTs = (rawTs * 1000L);
             }
-            return this.filterBySinceLimit(result, since, limit, 0, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+            if ((!java.util.Objects.equals(pointPrice, null)) && (!java.util.Objects.equals(pointTs, null)))
+            {
+                HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                mapLiteral7.put("timestamp", pointTs);
+                mapLiteral7.put("price", pointPrice);
+                mapLiteral7.put("amount", 0);
+                ((List<Object>)pseudoTrades).add(mapLiteral7);
+            }
+        }
+        // the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
+        // otherwise candles come back descending and open/close are inverted within each bucket
+        // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
+        // timestamps keep their relative order consistently across languages
+        List<Object> sorted = this.sortBy(pseudoTrades, "timestamp");
+        Long ms = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1d"))) * 1000L);
+        Map<String, Object> candles = new HashMap<String, Object>() {{}};
+        List<String> bucketOrder = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < sorted.size(); i++)
+        {
+            Map<String, Object> point = this.safeDict(sorted, i, null);
+            Long pTs = this.safeInteger(point, "timestamp");
+            Double pPrice = this.safeNumber(point, "price", (Object) null);
+            if (java.util.Objects.equals(pTs, null))
+            {
+                throw new ExchangeError((this.id + " method() missing pTs")) ;
+            }
+            if (java.util.Objects.equals(pPrice, null))
+            {
+                throw new ExchangeError((this.id + " fetchOHLCV() missing pPrice")) ;
+            }
+            Long bucketIndex = this.parseToInt((((double) pTs) / ((double) ms)));
+            Long bucket = (bucketIndex * ms);
+            String key = String.valueOf(bucket);
+            if (!(candles.containsKey(key)))
+            {
+                candles.put(key, new ArrayList<Object>(Arrays.asList(bucket, pPrice, pPrice, pPrice, pPrice, 0)));
+                bucketOrder.add(key);
+            } else
+            {
+                Object candle = (candles == null || key == null ? null : candles.get(key));
+                Double prevHigh = this.safeNumber(candle, 2, (Object) null);
+                if ((java.util.Objects.equals(prevHigh, null)) || ((pPrice != null && (prevHigh == null || pPrice > prevHigh))))
+                {
+                    Helpers.addElementToObject(candle, 2, pPrice);
+                }
+                Double prevLow = this.safeNumber(candle, 3, (Object) null);
+                if ((java.util.Objects.equals(prevLow, null)) || ((prevLow != null && (pPrice == null || prevLow > pPrice))))
+                {
+                    Helpers.addElementToObject(candle, 3, pPrice);
+                }
+                Helpers.addElementToObject(candle, 4, pPrice);
+                candles.put(key, candle); // php arrays are value types - write the mutation back
+            }
+        }
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < bucketOrder.size(); i++)
+        {
+            ((List<Object>)result).add(this.safeValue(candles, (bucketOrder == null || i < 0 || i >= bucketOrder.size() ? null : bucketOrder.get(i))));
+        }
+        return this.filterBySinceLimit(result, since, limit, 0, false);
 
     }
 
@@ -1817,49 +1831,51 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(outcome, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchOrders requires an outcome argument")) ;
-            }
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = this.safeDict(outcomeObj, "info", null);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "slug", Limitless.this.safeString(info, "slug") );
-                put( "statuses", new ArrayList<Object>(Arrays.asList("LIVE", "MATCHED")) );
-            }};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", limit);
-            }
-            List<Object> response = (this.limitlessPrivateGetMarketsSlugUserOrders(this.extend(request, parameters))).join();
-            //
-            //     [
-            //         {
-            //             "createdAt": "2026-05-04T08:57:06.448Z",
-            //             "id": "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
-            //             "ownerId": 1315134,
-            //             "marketId": "112523",
-            //             "token": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-            //             "type": "GTC",
-            //             "status": "LIVE",
-            //             "side": "BUY",
-            //             "makerAmount": "1000040",
-            //             "takerAmount": "10870000",
-            //             "price": "0.092",
-            //             "originalSize": "10870000",
-            //             "remainingSize": "10870000"
-            //         }
-            //     ]
-            //
-            // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
-            // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
-            // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-            return this.parsePredictionOrders(this.toArray(response), (Object) null, since, limit, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(outcome, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchOrders requires an outcome argument")) ;
+        }
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "slug", Limitless.this.safeString(info, "slug") );
+            put( "statuses", new ArrayList<Object>(Arrays.asList("LIVE", "MATCHED")) );
+        }};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
+        List<Object> response = (this.limitlessPrivateGetMarketsSlugUserOrders(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         {
+        //             "createdAt": "2026-05-04T08:57:06.448Z",
+        //             "id": "c4b1a83a-219f-48db-a9be-1ddadf0bc14c",
+        //             "ownerId": 1315134,
+        //             "marketId": "112523",
+        //             "token": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //             "type": "GTC",
+        //             "status": "LIVE",
+        //             "side": "BUY",
+        //             "makerAmount": "1000040",
+        //             "takerAmount": "10870000",
+        //             "price": "0.092",
+        //             "originalSize": "10870000",
+        //             "remainingSize": "10870000"
+        //         }
+        //     ]
+        //
+        // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
+        // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
+        // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
+        return this.parsePredictionOrders(this.toArray(response), (Object) null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -1876,19 +1892,21 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchOpenOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOpenOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOpenOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(outcome, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchOpenOrders requires an outcome argument")) ;
-            }
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "statuses", new ArrayList<Object>(Arrays.asList("LIVE")) );
-            }});
-            return (this.fetchOrders(outcome, since, limit, paramsExtended)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(outcome, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchOpenOrders requires an outcome argument")) ;
+        }
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "statuses", new ArrayList<Object>(Arrays.asList("LIVE")) );
+        }});
+        return (this.fetchOrders(outcome, since, limit, paramsExtended)).join();
 
     }
 
@@ -1905,19 +1923,21 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<PredictionOrder>> fetchClosedOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchClosedOrdersCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchClosedOrdersCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(outcome, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchClosedOrders requires an outcome argument")) ;
-            }
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
-                put( "statuses", new ArrayList<Object>(Arrays.asList("MATCHED")) );
-            }});
-            return (this.fetchOrders(outcome, since, limit, paramsExtended)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(outcome, null))
+        {
+            throw new ArgumentsRequired((this.id + " fetchClosedOrders requires an outcome argument")) ;
+        }
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
+            put( "statuses", new ArrayList<Object>(Arrays.asList("MATCHED")) );
+        }});
+        return (this.fetchOrders(outcome, since, limit, paramsExtended)).join();
 
     }
 
@@ -1933,140 +1953,142 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<Object> fetchOrdersByIds(Object ids, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, outcome, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrdersByIdsCore(Object ids, String outcome, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcome), false)).join();
-            }
-            Integer length = (switch ((Object)(ids)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
-            if ((length != null && length > 50))
-            {
-                throw new BadRequest((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
-            }
-            List<Object> items = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; (length != null && i < length); i++)
-            {
-                String id = this.safeString(ids, i);
-                Map<String, Object> item = new HashMap<String, Object>() {{
-                    put( "orderId", id );
-                }};
-                ((List<Object>)items).add(item);
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "items", items );
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+        }
+        Integer length = (switch ((Object)(ids)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
+        if ((length != null && length > 50))
+        {
+            throw new BadRequest((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
+        }
+        List<Object> items = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; (length != null && i < length); i++)
+        {
+            String id = this.safeString(ids, i);
+            Map<String, Object> item = new HashMap<String, Object>() {{
+                put( "orderId", id );
             }};
-            Map<String, Object> response = (this.limitlessPrivatePostOrdersStatusBatch(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "results": [
-            //             {
-            //                 "index": 0,
-            //                 "status": "found",
-            //                 "orderId": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
-            //                 "data": {
-            //                     "order": {
-            //                         "createdAt": "2026-05-04T10:26:01.334Z",
-            //                         "id": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
-            //                         "makerAmount": "9999360",
-            //                         "takerAmount": "10752000",
-            //                         "expiration": null,
-            //                         "signatureType": 2,
-            //                         "salt": "277966495716",
-            //                         "maker": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
-            //                         "signer": "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
-            //                         "taker": "0x0000000000000000000000000000000000000000",
-            //                         "tokenId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-            //                         "side": 0,
-            //                         "feeRateBps": 300,
-            //                         "nonce": "0",
-            //                         "signature": "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
-            //                         "orderType": "FAK",
-            //                         "price": "0.93",
-            //                         "marketId": 112523,
-            //                         "ownerId": 1315134,
-            //                         "market": {
-            //                             "id": 112523,
-            //                             "slug": "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
-            //                             "title": "DOGE above $0.10859 on May 4, 20:00 UTC?",
-            //                             "status": "FUNDED",
-            //                             "yesPositionId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
-            //                             "noPositionId": "101714389600295994108208140228744407174156865974966685440205519669272948152879"
-            //                         },
-            //                         "owner": {
-            //                             "id": 1315134,
-            //                             "account": "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
-            //                             "client": "eoa",
-            //                             "tradeWalletOption": "smartWallet",
-            //                             "smartWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
-            //                             "points": 0,
-            //                             "referredUsersCount": 0
-            //                         }
-            //                     },
-            //                     "makerMatches": [
-            //                         {
-            //                             "id": "be44a183-ec56-4076-a69c-10283321abd6",
-            //                             "matchedSize": "10752000",
-            //                             "fillPrice": "0.93",
-            //                             "fillCost": "9999360",
-            //                             "orderId": "3255c786-3f30-4115-a99f-72be478f2e44",
-            //                             "order": {
-            //                                 "id": "3255c786-3f30-4115-a99f-72be478f2e44",
-            //                                 "maker": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-            //                                 "price": "0.07",
-            //                                 "side": 0,
-            //                                 "tokenId": "101714389600295994108208140228744407174156865974966685440205519669272948152879",
-            //                                 "owner": {
-            //                                     "id": 202602,
-            //                                     "account": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-            //                                     "client": "eoa",
-            //                                     "tradeWalletOption": null,
-            //                                     "smartWallet": null,
-            //                                     "username": null,
-            //                                     "displayName": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
-            //                                     "pfpUrl": null,
-            //                                     "socialUrl": null,
-            //                                     "points": 0,
-            //                                     "referredUsersCount": 0
-            //                                 }
-            //                             }
-            //                         }
-            //                     ],
-            //                     "execution": {
-            //                         "feeRateBps": 300,
-            //                         "effectiveFeeBps": 59,
-            //                         "matched": true,
-            //                         "settlementStatus": "MINED",
-            //                         "tradeEventId": "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
-            //                         "txHash": "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
-            //                         "totalsRaw": {
-            //                             "contractsGross": "10752000",
-            //                             "contractsFee": "63436",
-            //                             "contractsNet": "10688564",
-            //                             "usdGross": "9999360",
-            //                             "usdFee": "0",
-            //                             "usdNet": "9999360"
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            List<Object> found = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < results.size(); i++)
+            ((List<Object>)items).add(item);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "items", items );
+        }};
+        Map<String, Object> response = (this.limitlessPrivatePostOrdersStatusBatch(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "index": 0,
+        //                 "status": "found",
+        //                 "orderId": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                 "data": {
+        //                     "order": {
+        //                         "createdAt": "2026-05-04T10:26:01.334Z",
+        //                         "id": "ff0dcbf1-f7de-43f0-b6f1-16b972a17f49",
+        //                         "makerAmount": "9999360",
+        //                         "takerAmount": "10752000",
+        //                         "expiration": null,
+        //                         "signatureType": 2,
+        //                         "salt": "277966495716",
+        //                         "maker": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                         "signer": "0x82a0f074C6C0C11aA370D7FBF077668c31fCc990",
+        //                         "taker": "0x0000000000000000000000000000000000000000",
+        //                         "tokenId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                         "side": 0,
+        //                         "feeRateBps": 300,
+        //                         "nonce": "0",
+        //                         "signature": "0x1640c8558d8c627017b2c6ac71a79770d177033afeb9be72842803afcd12938f23308c507935011ad6d10acc299e5367f76b4f806eb025c15cb05739de11260d1b",
+        //                         "orderType": "FAK",
+        //                         "price": "0.93",
+        //                         "marketId": 112523,
+        //                         "ownerId": 1315134,
+        //                         "market": {
+        //                             "id": 112523,
+        //                             "slug": "doge-above-dollar010859-on-may-4-2000-utc-1777838401426",
+        //                             "title": "DOGE above $0.10859 on May 4, 20:00 UTC?",
+        //                             "status": "FUNDED",
+        //                             "yesPositionId": "46235703925185836960484608024734446969378108670784413458211837874003718039438",
+        //                             "noPositionId": "101714389600295994108208140228744407174156865974966685440205519669272948152879"
+        //                         },
+        //                         "owner": {
+        //                             "id": 1315134,
+        //                             "account": "0x7CFF82f72b991B6B2b661e404389fD8a40bCD21B",
+        //                             "client": "eoa",
+        //                             "tradeWalletOption": "smartWallet",
+        //                             "smartWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+        //                             "points": 0,
+        //                             "referredUsersCount": 0
+        //                         }
+        //                     },
+        //                     "makerMatches": [
+        //                         {
+        //                             "id": "be44a183-ec56-4076-a69c-10283321abd6",
+        //                             "matchedSize": "10752000",
+        //                             "fillPrice": "0.93",
+        //                             "fillCost": "9999360",
+        //                             "orderId": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                             "order": {
+        //                                 "id": "3255c786-3f30-4115-a99f-72be478f2e44",
+        //                                 "maker": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                 "price": "0.07",
+        //                                 "side": 0,
+        //                                 "tokenId": "101714389600295994108208140228744407174156865974966685440205519669272948152879",
+        //                                 "owner": {
+        //                                     "id": 202602,
+        //                                     "account": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                     "client": "eoa",
+        //                                     "tradeWalletOption": null,
+        //                                     "smartWallet": null,
+        //                                     "username": null,
+        //                                     "displayName": "0x8274600A3a9DC84747E6dEb49380F6B1DE2C505d",
+        //                                     "pfpUrl": null,
+        //                                     "socialUrl": null,
+        //                                     "points": 0,
+        //                                     "referredUsersCount": 0
+        //                                 }
+        //                             }
+        //                         }
+        //                     ],
+        //                     "execution": {
+        //                         "feeRateBps": 300,
+        //                         "effectiveFeeBps": 59,
+        //                         "matched": true,
+        //                         "settlementStatus": "MINED",
+        //                         "tradeEventId": "44c46a93-f5cb-40f5-a52f-bd55bb97641e",
+        //                         "txHash": "0x101cda4b605007440b382c35a27531605c7fc1b29a7c803b19237586a74c10e8",
+        //                         "totalsRaw": {
+        //                             "contractsGross": "10752000",
+        //                             "contractsFee": "63436",
+        //                             "contractsNet": "10688564",
+        //                             "usdGross": "9999360",
+        //                             "usdFee": "0",
+        //                             "usdNet": "9999360"
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+        List<Object> found = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < results.size(); i++)
+        {
+            Map<String, Object> item = this.safeDict(results, i, new HashMap<String, Object>() {{}});
+            String itemStatus = this.safeString(item, "status");
+            if (java.util.Objects.equals(itemStatus, "found"))
             {
-                Map<String, Object> item = this.safeDict(results, i, new HashMap<String, Object>() {{}});
-                String itemStatus = this.safeString(item, "status");
-                if (java.util.Objects.equals(itemStatus, "found"))
-                {
-                    ((List<Object>)found).add(item);
-                }
+                ((List<Object>)found).add(item);
             }
-            return this.parsePredictionOrders(found, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        });
+        }
+        return this.parsePredictionOrders(found, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2082,21 +2104,23 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<PredictionOrder> fetchOrder(Object id, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchOrderCore(Object id, String outcome, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcome), false)).join();
-            }
-            Object orders = (this.fetchOrdersByIds(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
-            Map<String, Object> order = this.safeDict(orders, 0, null);
-            if (java.util.Objects.equals(order, null))
-            {
-                throw new OrderNotFound(((this.id + " fetchOrder() could not find order ") + id)) ;
-            }
-            return order;
-        }).thenApply(PredictionOrder::new);
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+        }
+        Object orders = (this.fetchOrdersByIds(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
+        Map<String, Object> order = this.safeDict(orders, 0, null);
+        if (java.util.Objects.equals(order, null))
+        {
+            throw new OrderNotFound(((this.id + " fetchOrder() could not find order ") + id)) ;
+        }
+        return order;
 
     }
 
@@ -2398,13 +2422,15 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchAccountsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchAccountsCore(Map<String, Object> parameters)
+    {
 
-            Map<String, Object> response = (this.limitlessPrivateGetProfilesMe(parameters)).join();
-            List<Object> responseList = new ArrayList<Object>(Arrays.asList(response));
-            return this.parseAccounts(responseList, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+        Map<String, Object> response = (this.limitlessPrivateGetProfilesMe(parameters)).join();
+        List<Object> responseList = new ArrayList<Object>(Arrays.asList(response));
+        return this.parseAccounts(responseList, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2423,192 +2449,194 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderCore(outcome, type, side, amount, price, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderCore(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            List<Account> accounts = (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-            (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> account = this.safeDict(accounts, 0, null);
-            Map<String, Object> accountInfo = this.safeDict(account, "info", null);
-            // the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
-            // the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
-            // smartWallet field can stay populated after switching to eoa, so key off the option here
-            String tradeWalletOption = this.safeString(accountInfo, "tradeWalletOption");
-            Boolean usesSmartWallet = (java.util.Objects.equals(tradeWalletOption, "smartWallet"));
-            String walletFromAccount = null;
-            if (Boolean.TRUE.equals(usesSmartWallet))
+        List<Account> accounts = (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+        (this.loadOutcome((String) (outcome), false)).join();
+        Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+        Map<String, Object> account = this.safeDict(accounts, 0, null);
+        Map<String, Object> accountInfo = this.safeDict(account, "info", null);
+        // the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
+        // the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
+        // smartWallet field can stay populated after switching to eoa, so key off the option here
+        String tradeWalletOption = this.safeString(accountInfo, "tradeWalletOption");
+        Boolean usesSmartWallet = (java.util.Objects.equals(tradeWalletOption, "smartWallet"));
+        String walletFromAccount = null;
+        if (Boolean.TRUE.equals(usesSmartWallet))
+        {
+            walletFromAccount = this.safeString(accountInfo, "smartWallet");
+        } else
+        {
+            walletFromAccount = this.safeString(accountInfo, "account");
+        }
+        Object maker = walletFromAccount;
+        if (!java.util.Objects.equals(this.walletAddress, ""))
+        {
+            maker = this.walletAddress;
+        }
+        Map<String, Object> paramsValue = parameters;
+        List<Object> makerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "maker", maker);
+        maker = ((List<Object>) makerparamsValueVariable).get(0);
+        paramsValue = (Map<String, Object>) ((List<Object>) makerparamsValueVariable).get(1);
+        try
+        {
+            this.checkAddress(java.util.Objects.toString(maker, null), (String) null, (String) null);
+        } catch(Exception e)
+        {
+            throw new InvalidAddress((this.id + " createOrder requires a valid maker address. Set the \"maker\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
+        }
+        // when the profile trades through a smart wallet the order must be signed by the
+        // linked embedded (owner) wallet, not by the smart wallet itself
+        String embeddedAddress = this.safeString(accountInfo, "embeddedAccount");
+        Boolean hasEmbedded = (!java.util.Objects.equals(embeddedAddress, null));
+        Boolean isSmartWallet = Boolean.TRUE.equals(usesSmartWallet) && Boolean.TRUE.equals(hasEmbedded);
+        Object signer = maker;
+        if (Boolean.TRUE.equals(isSmartWallet))
+        {
+            signer = embeddedAddress;
+        }
+        List<Object> signerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signer", signer);
+        signer = ((List<Object>) signerparamsValueVariable).get(0);
+        paramsValue = (Map<String, Object>) ((List<Object>) signerparamsValueVariable).get(1);
+        try
+        {
+            this.checkAddress(java.util.Objects.toString(signer, null), (String) null, (String) null);
+        } catch(Exception e)
+        {
+            throw new InvalidAddress((this.id + " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
+        }
+        Object taker = this.safeString(this.options, "nullAddress", "0x0000000000000000000000000000000000000000");
+        List<Object> takerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "taker", taker);
+        taker = ((List<Object>) takerparamsValueVariable).get(0);
+        paramsValue = (Map<String, Object>) ((List<Object>) takerparamsValueVariable).get(1);
+        try
+        {
+            this.checkAddress(java.util.Objects.toString(taker, null), (String) null, (String) null);
+        } catch(Exception e)
+        {
+            throw new InvalidAddress((this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;
+        }
+        Long nonce = this.incrementingNonce();
+        Map<String, Object> sides = new HashMap<String, Object>() {{
+            put( "buy", 0 );
+            put( "sell", 1 );
+        }};
+        this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
+        Long sideValue = this.safeInteger(sides, ((String)side).toLowerCase());
+        Map<String, Object> rank = this.safeDict(accountInfo, "rank", null);
+        // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
+        Object signatureType = ((Boolean.TRUE.equals(isSmartWallet))) ? 2 : 0;
+        List<Object> signatureTypeparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType);
+        signatureType = ((List<Object>) signatureTypeparamsValueVariable).get(0);
+        paramsValue = (Map<String, Object>) ((List<Object>) signatureTypeparamsValueVariable).get(1);
+        Map<String, Object> signRequest = new HashMap<String, Object>();
+        signRequest.put("salt", nonce);
+        signRequest.put("maker", maker);
+        signRequest.put("signer", signer);
+        signRequest.put("taker", taker);
+        signRequest.put("tokenId", outcomeObj.get("outcomeId"));
+        signRequest.put("nonce", 0);
+        signRequest.put("feeRateBps", this.safeInteger(rank, "feeRateBps", 0));
+        signRequest.put("side", sideValue);
+        signRequest.put("signatureType", signatureType);
+        // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
+        Long expirationInt = this.safeInteger(paramsValue, "expiration");
+        if (!java.util.Objects.equals(expirationInt, null))
+        {
+            paramsValue = this.omit(paramsValue, "expiration");
+            signRequest.put("expiration", this.numberToString(expirationInt));
+        } else
+        {
+            signRequest.put("expiration", "0");
+        }
+        String amountString = this.numberToString(amount);
+        String priceString = this.numberToString(price);
+        String makerAmount = null;
+        String takerAmount = null;
+        Boolean isMarket = java.util.Objects.equals(type, "market");
+        Boolean postOnly = false;
+        Pair<Boolean, Map<String, Object>> postOnlyparamsValueVariable = this.handlePostOnly(isMarket, false, paramsValue);
+        postOnly = postOnlyparamsValueVariable.first();
+        paramsValue = postOnlyparamsValueVariable.second();
+        String timeInForce = this.safeString(paramsValue, "timeInForce");
+        paramsValue = this.omit(paramsValue, "timeInForce");
+        if (java.util.Objects.equals(timeInForce, null))
+        {
+            timeInForce = ((Boolean.TRUE.equals(isMarket))) ? "FOK" : "GTC";
+        }
+        String marketSymbol = this.safeString(outcomeObj, "market");
+        if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")))
+        {
+            Boolean createMarketBuyOrderRequiresPrice = true;
+            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsValue), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.first();
+            paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.second();
+            Double cost = this.safeNumber(paramsValue, "cost", (Object) null);
+            paramsValue = this.omit(paramsValue, "cost");
+            if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
             {
-                walletFromAccount = this.safeString(accountInfo, "smartWallet");
-            } else
-            {
-                walletFromAccount = this.safeString(accountInfo, "account");
-            }
-            Object maker = walletFromAccount;
-            if (!java.util.Objects.equals(this.walletAddress, ""))
-            {
-                maker = this.walletAddress;
-            }
-            Map<String, Object> paramsValue = parameters;
-            List<Object> makerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "maker", maker);
-            maker = ((List<Object>) makerparamsValueVariable).get(0);
-            paramsValue = (Map<String, Object>) ((List<Object>) makerparamsValueVariable).get(1);
-            try
-            {
-                this.checkAddress(java.util.Objects.toString(maker, null), (String) null, (String) null);
-            } catch(Exception e)
-            {
-                throw new InvalidAddress((this.id + " createOrder requires a valid maker address. Set the \"maker\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
-            }
-            // when the profile trades through a smart wallet the order must be signed by the
-            // linked embedded (owner) wallet, not by the smart wallet itself
-            String embeddedAddress = this.safeString(accountInfo, "embeddedAccount");
-            Boolean hasEmbedded = (!java.util.Objects.equals(embeddedAddress, null));
-            Boolean isSmartWallet = Boolean.TRUE.equals(usesSmartWallet) && Boolean.TRUE.equals(hasEmbedded);
-            Object signer = maker;
-            if (Boolean.TRUE.equals(isSmartWallet))
-            {
-                signer = embeddedAddress;
-            }
-            List<Object> signerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signer", signer);
-            signer = ((List<Object>) signerparamsValueVariable).get(0);
-            paramsValue = (Map<String, Object>) ((List<Object>) signerparamsValueVariable).get(1);
-            try
-            {
-                this.checkAddress(java.util.Objects.toString(signer, null), (String) null, (String) null);
-            } catch(Exception e)
-            {
-                throw new InvalidAddress((this.id + " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
-            }
-            Object taker = this.safeString(this.options, "nullAddress", "0x0000000000000000000000000000000000000000");
-            List<Object> takerparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "taker", taker);
-            taker = ((List<Object>) takerparamsValueVariable).get(0);
-            paramsValue = (Map<String, Object>) ((List<Object>) takerparamsValueVariable).get(1);
-            try
-            {
-                this.checkAddress(java.util.Objects.toString(taker, null), (String) null, (String) null);
-            } catch(Exception e)
-            {
-                throw new InvalidAddress((this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;
-            }
-            Long nonce = this.incrementingNonce();
-            Map<String, Object> sides = new HashMap<String, Object>() {{
-                put( "buy", 0 );
-                put( "sell", 1 );
-            }};
-            this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Long sideValue = this.safeInteger(sides, ((String)side).toLowerCase());
-            Map<String, Object> rank = this.safeDict(accountInfo, "rank", null);
-            // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
-            Object signatureType = ((Boolean.TRUE.equals(isSmartWallet))) ? 2 : 0;
-            List<Object> signatureTypeparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType);
-            signatureType = ((List<Object>) signatureTypeparamsValueVariable).get(0);
-            paramsValue = (Map<String, Object>) ((List<Object>) signatureTypeparamsValueVariable).get(1);
-            Map<String, Object> signRequest = new HashMap<String, Object>();
-            signRequest.put("salt", nonce);
-            signRequest.put("maker", maker);
-            signRequest.put("signer", signer);
-            signRequest.put("taker", taker);
-            signRequest.put("tokenId", outcomeObj.get("outcomeId"));
-            signRequest.put("nonce", 0);
-            signRequest.put("feeRateBps", this.safeInteger(rank, "feeRateBps", 0));
-            signRequest.put("side", sideValue);
-            signRequest.put("signatureType", signatureType);
-            // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
-            Long expirationInt = this.safeInteger(paramsValue, "expiration");
-            if (!java.util.Objects.equals(expirationInt, null))
-            {
-                paramsValue = this.omit(paramsValue, "expiration");
-                signRequest.put("expiration", this.numberToString(expirationInt));
-            } else
-            {
-                signRequest.put("expiration", "0");
-            }
-            String amountString = this.numberToString(amount);
-            String priceString = this.numberToString(price);
-            String makerAmount = null;
-            String takerAmount = null;
-            Boolean isMarket = java.util.Objects.equals(type, "market");
-            Boolean postOnly = false;
-            List<Object> postOnlyparamsValueVariable = (List<Object>) this.handlePostOnly(isMarket, false, paramsValue);
-            postOnly = (Boolean) ((List<Object>) postOnlyparamsValueVariable).get(0);
-            paramsValue = (Map<String, Object>) ((List<Object>) postOnlyparamsValueVariable).get(1);
-            String timeInForce = this.safeString(paramsValue, "timeInForce");
-            paramsValue = this.omit(paramsValue, "timeInForce");
-            if (java.util.Objects.equals(timeInForce, null))
-            {
-                timeInForce = ((Boolean.TRUE.equals(isMarket))) ? "FOK" : "GTC";
-            }
-            String marketSymbol = this.safeString(outcomeObj, "market");
-            if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")))
-            {
-                Boolean createMarketBuyOrderRequiresPrice = true;
-                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsValue), "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.first();
-                paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.second();
-                Double cost = this.safeNumber(paramsValue, "cost", (Object) null);
-                paramsValue = this.omit(paramsValue, "cost");
-                if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
+                if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                 {
-                    if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
-                    {
-                        throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
-                    } else
-                    {
-                        Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                        Object costRequest = (((!java.util.Objects.equals(cost, null)))) ? cost : quoteAmount;
-                        makerAmount = this.costToPredictionPrecision((String) (outcome), costRequest);
-                    }
+                    throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
-                    makerAmount = this.costToPredictionPrecision((String) (outcome), amount);
+                    Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
+                    Object costRequest = (((!java.util.Objects.equals(cost, null)))) ? cost : quoteAmount;
+                    makerAmount = this.costToPredictionPrecision((String) (outcome), costRequest);
                 }
-            } else if (Boolean.TRUE.equals(isMarket))
+            } else
+            {
+                makerAmount = this.costToPredictionPrecision((String) (outcome), amount);
+            }
+        } else if (Boolean.TRUE.equals(isMarket))
+        {
+            makerAmount = this.amountToPredictionPrecision((String) (outcome), amount);
+        } else
+        {
+            String calculatedCost = Precise.stringMul(amountString, priceString);
+            if (java.util.Objects.equals(side, "buy"))
+            {
+                makerAmount = this.costToPredictionPrecision((String) (outcome), calculatedCost);
+                takerAmount = this.amountToPredictionPrecision((String) (outcome), amount);
+            } else
             {
                 makerAmount = this.amountToPredictionPrecision((String) (outcome), amount);
-            } else
-            {
-                String calculatedCost = Precise.stringMul(amountString, priceString);
-                if (java.util.Objects.equals(side, "buy"))
-                {
-                    makerAmount = this.costToPredictionPrecision((String) (outcome), calculatedCost);
-                    takerAmount = this.amountToPredictionPrecision((String) (outcome), amount);
-                } else
-                {
-                    makerAmount = this.amountToPredictionPrecision((String) (outcome), amount);
-                    takerAmount = this.costToPredictionPrecision((String) (outcome), calculatedCost);
-                }
+                takerAmount = this.costToPredictionPrecision((String) (outcome), calculatedCost);
             }
-            // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
-            signRequest.put("makerAmount", this.parseToInt(this.applyScale(makerAmount, true)));
-            signRequest.put("takerAmount", ((Boolean.TRUE.equals(isMarket))) ? 1 : ((Object) this.parseToInt(this.applyScale(takerAmount, true))));
-            String signature = this.signOrderRequest(signRequest, (String) (marketSymbol));
-            signRequest.put("signature", signature);
-            // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
-            if (!Boolean.TRUE.equals(isMarket) && (!java.util.Objects.equals(price, null)))
-            {
-                signRequest.put("price", this.parseNumber(priceString));
-            }
-            String slug = this.safeString(outcomeObj.get("info"), "slug");
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("ownerId", this.safeInteger(account, "id"));
-            request.put("order", signRequest);
-            request.put("marketSlug", slug);
-            request.put("orderType", timeInForce);
-            if (Boolean.TRUE.equals(postOnly))
-            {
-                request.put("postOnly", postOnly);
-            }
-            Map<String, Object> response = (this.limitlessPrivatePostOrders(this.extend(request, paramsValue))).join();
-            Map<String, Object> parsedOrder = this.parsePredictionOrder(response, outcomeObj);
-            // the create-order response omits a status field; a freshly accepted order is open
-            String parsedStatus = this.safeString(parsedOrder, "status");
-            if (java.util.Objects.equals(parsedStatus, null))
-            {
-                parsedOrder.put("status", "open");
-            }
-            return parsedOrder;
-        }).thenApply(PredictionOrder::new);
+        }
+        // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
+        signRequest.put("makerAmount", this.parseToInt(this.applyScale(makerAmount, true)));
+        signRequest.put("takerAmount", ((Boolean.TRUE.equals(isMarket))) ? 1 : ((Object) this.parseToInt(this.applyScale(takerAmount, true))));
+        String signature = this.signOrderRequest(signRequest, (String) (marketSymbol));
+        signRequest.put("signature", signature);
+        // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
+        if (!Boolean.TRUE.equals(isMarket) && (!java.util.Objects.equals(price, null)))
+        {
+            signRequest.put("price", this.parseNumber(priceString));
+        }
+        String slug = this.safeString(outcomeObj.get("info"), "slug");
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("ownerId", this.safeInteger(account, "id"));
+        request.put("order", signRequest);
+        request.put("marketSlug", slug);
+        request.put("orderType", timeInForce);
+        if (Boolean.TRUE.equals(postOnly))
+        {
+            request.put("postOnly", postOnly);
+        }
+        Map<String, Object> response = (this.limitlessPrivatePostOrders(this.extend(request, paramsValue))).join();
+        Map<String, Object> parsedOrder = this.parsePredictionOrder(response, outcomeObj);
+        // the create-order response omits a status field; a freshly accepted order is open
+        String parsedStatus = this.safeString(parsedOrder, "status");
+        if (java.util.Objects.equals(parsedStatus, null))
+        {
+            parsedOrder.put("status", "open");
+        }
+        return parsedOrder;
 
     }
 
@@ -2680,11 +2708,11 @@ public class Limitless extends LimitlessApi
     public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        String r = (String) signature.get("r");
-        String s = (String) signature.get("s");
+        String r = this.safeString(signature, "r", "");
+        String s = this.safeString(signature, "s", "");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
-        String rPadded = (r.length() >= 64 ? r.substring(r.length() - 64) : String.format("%" + (64 - r.length()) + "s", "").replace(' ', '0') + r);
-        String sPadded = (s.length() >= 64 ? s.substring(s.length() - 64) : String.format("%" + (64 - s.length()) + "s", "").replace(' ', '0') + s);
+        String rPadded = (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r));
+        String sPadded = (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s));
         String result = ((("0x" + rPadded) + sPadded) + v);
         return result.toLowerCase();
     }
@@ -2733,41 +2761,43 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<Object> approve(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.approveCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object approveCore(Map<String, Object> parameters)
+    {
 
-            this.checkRequiredCredentials(true);
-            if (java.util.Objects.equals(this.privateKey, null))
-            {
-                throw new ArgumentsRequired((this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
-            }
-            String rpcUrl = this.safeString(parameters, "rpcUrl", this.safeString(this.options, "rpcUrl"));
-            Long chainId = this.safeInteger(this.options, "chainId", 8453);
-            String token = this.safeString(parameters, "token", this.safeString(this.options, "collateralAddress"));
-            String spender = this.safeString(parameters, "spender", this.safeString(this.options, "exchangeAddress"));
-            String owner = this.safeString(parameters, "owner", this.walletAddress);
-            if (java.util.Objects.equals(owner, null))
-            {
-                owner = this.ethGetAddressFromPrivateKey(this.privateKey);
-            }
-            String gasLimit = this.safeString(parameters, "gasLimit", "0x186a0");
-            String maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-            String amountHex = maxUint;
-            String amount = this.safeString(parameters, "amount");
-            if (!java.util.Objects.equals(amount, null))
-            {
-                Long decimals = this.safeInteger(this.options, "usdcDecimals", 6);
-                // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
-                String scaled = Precise.stringDiv(amount, this.parsePrecision(this.numberToString(decimals)));
-                Long amountInt = this.parseToInt(scaled);
-                String amountBase16 = this.intToBase16(amountInt);
-                amountHex = (((String)amountBase16).length() >= 64 ? ((String)amountBase16).substring(((String)amountBase16).length() - 64) : String.format("%" + (64 - ((String)amountBase16).length()) + "s", "").replace(' ', '0') + ((String)amountBase16));
-            }
-            // approve(spender, amount) -> selector 0x095ea7b3
-            String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
-            String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-            return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
-        });
+        this.checkRequiredCredentials(true);
+        if (java.util.Objects.equals(this.privateKey, null))
+        {
+            throw new ArgumentsRequired((this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
+        }
+        String rpcUrl = this.safeString(parameters, "rpcUrl", this.safeString(this.options, "rpcUrl"));
+        Long chainId = this.safeInteger(this.options, "chainId", 8453);
+        String token = this.safeString(parameters, "token", this.safeString(this.options, "collateralAddress"));
+        String spender = this.safeString(parameters, "spender", this.safeString(this.options, "exchangeAddress"));
+        String owner = this.safeString(parameters, "owner", this.walletAddress);
+        if (java.util.Objects.equals(owner, null))
+        {
+            owner = this.ethGetAddressFromPrivateKey(this.privateKey);
+        }
+        String gasLimit = this.safeString(parameters, "gasLimit", "0x186a0");
+        String maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        String amountHex = maxUint;
+        String amount = this.safeString(parameters, "amount");
+        if (!java.util.Objects.equals(amount, null))
+        {
+            Long decimals = this.safeInteger(this.options, "usdcDecimals", 6);
+            // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
+            String scaled = Precise.stringDiv(amount, this.parsePrecision(this.numberToString(decimals)));
+            Long amountInt = this.parseToInt(scaled);
+            String amountBase16 = this.intToBase16(amountInt);
+            amountHex = (((String)amountBase16).length() >= 64 ? ((String)amountBase16).substring(((String)amountBase16).length() - 64) : String.format("%" + (64 - ((String)amountBase16).length()) + "s", "").replace(' ', '0') + ((String)amountBase16));
+        }
+        // approve(spender, amount) -> selector 0x095ea7b3
+        String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
+        String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
+        return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
 
     }
 
@@ -2783,31 +2813,33 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderCore(id, outcome, parameters)).thenApply(PredictionOrder::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderCore(String id, String outcome, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcome), false)).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", id );
-            }};
-            Map<String, Object> response = (this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters))).join();
-            // the delete response carries no order body, so backfill the id and the resulting status
-            Map<String, Object> order = this.parsePredictionOrder(response, (Map<String, Object>) null);
-            String orderId = this.safeString(order, "id");
-            if (java.util.Objects.equals(orderId, null))
-            {
-                order.put("id", id);
-            }
-            String orderStatus = this.safeString(order, "status");
-            if (java.util.Objects.equals(orderStatus, null))
-            {
-                order.put("status", "canceled");
-            }
-            return order;
-        }).thenApply(PredictionOrder::new);
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "order_id", id );
+        }};
+        Map<String, Object> response = (this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters))).join();
+        // the delete response carries no order body, so backfill the id and the resulting status
+        Map<String, Object> order = this.parsePredictionOrder(response, (Map<String, Object>) null);
+        String orderId = this.safeString(order, "id");
+        if (java.util.Objects.equals(orderId, null))
+        {
+            order.put("id", id);
+        }
+        String orderStatus = this.safeString(order, "status");
+        if (java.util.Objects.equals(orderStatus, null))
+        {
+            order.put("status", "canceled");
+        }
+        return order;
 
     }
 
@@ -2823,36 +2855,38 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<Object> redeem(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.redeemCore(outcome, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object redeemCore(String outcome, Map<String, Object> parameters)
+    {
 
-            String conditionId = this.safeString2(parameters, "conditionId", "condition_id");
-            if (java.util.Objects.equals(conditionId, null))
+        String conditionId = this.safeString2(parameters, "conditionId", "condition_id");
+        if (java.util.Objects.equals(conditionId, null))
+        {
+            if (java.util.Objects.equals(outcome, null))
             {
-                if (java.util.Objects.equals(outcome, null))
-                {
-                    throw new ArgumentsRequired((this.id + " redeem() requires an outcome or a params.conditionId")) ;
-                }
-                (this.loadOutcome((String) (outcome), false)).join();
-                Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-                conditionId = this.safeString(this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}}), "conditionId");
+                throw new ArgumentsRequired((this.id + " redeem() requires an outcome or a params.conditionId")) ;
             }
-            if (java.util.Objects.equals(conditionId, null))
-            {
-                throw new ArgumentsRequired((this.id + " redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("conditionId", conditionId);
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
-            Map<String, Object> response = (this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest))).join();
-            {
-                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-                h2kMap0.put("info", response);
-                h2kMap0.put("id", conditionId);
-                h2kMap0.put("conditionId", conditionId);
-                return h2kMap0;
-            }
-        });
+            (this.loadOutcome((String) (outcome), false)).join();
+            Map<String, Object> outcomeObj = this.outcome((String) (outcome));
+            conditionId = this.safeString(this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}}), "conditionId");
+        }
+        if (java.util.Objects.equals(conditionId, null))
+        {
+            throw new ArgumentsRequired((this.id + " redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("conditionId", conditionId);
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
+        Map<String, Object> response = (this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest))).join();
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", response);
+            h2kMap0.put("id", conditionId);
+            h2kMap0.put("conditionId", conditionId);
+            return h2kMap0;
+        }
 
     }
 
@@ -2868,28 +2902,30 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrdersCore(Object ids, String outcome, Map<String, Object> parameters)
+    {
 
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                (this.loadOutcome((String) (outcome), false)).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderIds", ids );
-            }};
-            Map<String, Object> response = (this.limitlessPrivatePostOrdersCancelBatch(this.extend(request, parameters))).join();
-            List<Object> canceled = this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
-            List<Object> failed = this.safeList(response, "failed", new ArrayList<Object>(Arrays.asList()));
-            Integer failedLethgn = failed.size();
-            if ((failedLethgn != null && failedLethgn > 0))
-            {
-                String message = this.json(response);
-                String feedback = ((this.id + " cancelOrders failed: ") + message);
-                throw new OrderNotFound(feedback) ;
-            }
-            return this.parsePredictionOrders(canceled, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            (this.loadOutcome((String) (outcome), false)).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "orderIds", ids );
+        }};
+        Map<String, Object> response = (this.limitlessPrivatePostOrdersCancelBatch(this.extend(request, parameters))).join();
+        List<Object> canceled = this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
+        List<Object> failed = this.safeList(response, "failed", new ArrayList<Object>(Arrays.asList()));
+        Integer failedLethgn = failed.size();
+        if ((failedLethgn != null && failedLethgn > 0))
+        {
+            String message = this.json(response);
+            String feedback = ((this.id + " cancelOrders failed: ") + message);
+            throw new OrderNotFound(feedback) ;
+        }
+        return this.parsePredictionOrders(canceled, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2905,41 +2941,43 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<PredictionOrder>> cancelAllOrders(String outcome, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersCore(outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersCore(String outcome, Map<String, Object> parameters)
+    {
 
-            Object paramsValue = parameters;
-            if (!java.util.Objects.equals(outcome, null))
+        Map<String, Object> paramsValue = parameters;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            Pair<Boolean, Map<String, Object>> warnparamsWarnVariable = this.handleOptionBoolAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", true);
+            Boolean warn = warnparamsWarnVariable.first();
+            Map<String, Object> paramsWarn = warnparamsWarnVariable.second();
+            paramsValue = paramsWarn;
+            if (Boolean.TRUE.equals(warn))
             {
-                Object warn = true;
-                List<Object> warnparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
-                warn = ((List<Object>) warnparamsValueVariable).get(0);
-                paramsValue = ((List<Object>) warnparamsValueVariable).get(1);
-                if (Boolean.TRUE.equals(warn))
-                {
-                    throw new BadRequest((this.id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")) ;
-                }
+                throw new BadRequest((this.id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")) ;
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String slug = this.safeString(paramsValue, "slug");
-            if (!java.util.Objects.equals(outcome, null))
-            {
-                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                request.put("slug", this.safeString(outcomeObj.get("info"), "slug"));
-            } else if (java.util.Objects.equals(slug, null))
-            {
-                throw new ArgumentsRequired((this.id + " cancelAllOrders requires either an outcome argument or a slug parameter")) ;
-            }
-            Map<String, Object> response = (this.limitlessPrivateDeleteOrdersAllSlug(this.extend(request, paramsValue))).join();
-            //
-            //     {
-            //         "message": "Orders canceled successfully"
-            //     }
-            //
-            return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder(new HashMap<String, Object>() {{
-        put( "info", response );
-    }}, (Object) null)));
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        String slug = this.safeString(paramsValue, "slug");
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+            request.put("slug", this.safeString(outcomeObj.get("info"), "slug"));
+        } else if (java.util.Objects.equals(slug, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelAllOrders requires either an outcome argument or a slug parameter")) ;
+        }
+        Map<String, Object> response = (this.limitlessPrivateDeleteOrdersAllSlug(this.extend(request, paramsValue))).join();
+        //
+        //     {
+        //         "message": "Orders canceled successfully"
+        //     }
+        //
+        return new ArrayList<Object>(Arrays.asList(this.safePredictionOrder(new HashMap<String, Object>() {{
+    put( "info", response );
+}}, (Object) null)));
 
     }
 
@@ -2956,116 +2994,116 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<PredictionTrade>> fetchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchMyTradesCore(outcome, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchMyTradesCore(String outcome, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            // resolve the handle for the final filter — the caller may have passed an outcomeId
-            String outcomeSymbol = outcome;
-            if (!java.util.Objects.equals(outcome, null))
+        // resolve the handle for the final filter — the caller may have passed an outcomeId
+        String outcomeSymbol = outcome;
+        if (!java.util.Objects.equals(outcome, null))
+        {
+            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
+            outcomeSymbol = this.safeString(outcomeObj, "outcome");
+        }
+        Long maxLimit = 100L;
+        Pair<Boolean, Map<String, Object>> paginateparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Boolean paginate = paginateparamsValueVariable.first();
+        Map<String, Object> paramsValue = paginateparamsValueVariable.second();
+        if (Boolean.TRUE.equals(paginate))
+        {
+            Map<String, Object> paramsCursor = this.omit(paramsValue, "paginate");
+            return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, paramsCursor, "nextCursor", "cursor", (Long) null, maxLimit)).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", Math.min(limit, 100));
+        }
+        Map<String, Object> response = (this.limitlessPrivateGetPortfolioHistory(this.extend(request, paramsValue))).join();
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "action": "loss",
+        //                 "blockTimestamp": 1778144400,
+        //                 "collateralAmount": "2",
+        //                 "collateralSymbol": "USDC",
+        //                 "collateralToken": "7",
+        //                 "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                 "market": {
+        //                     "closed": true,
+        //                     "collateral": {
+        //                     "symbol": "USDC",
+        //                     "id": "7",
+        //                     "decimals": 6},
+        //                     "group": null,
+        //                     "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "funding": "0",
+        //                     "id": "117515",
+        //                     "slug": "doge-up-or-down-1-hour-1778140801775",
+        //                     "title": "DOGE Up or Down - 1 hour",
+        //                     "expirationDate": "2026-05-07T09:00:00.000Z"
+        //                 },
+        //                 "outcomeIndex": 1,
+        //                 "pnl": "-2000000",
+        //                 "title": "DOGE Up or Down - 1 hour"
+        //             },
+        //             {
+        //                 "blockTimestamp": 1778144137,
+        //                 "collateralAmount": "2",
+        //                 "market": {
+        //                     "closed": true,
+        //                     "collateral": {
+        //                         "symbol": "USDC",
+        //                         "id": "7",
+        //                         "decimals": 6
+        //                     },
+        //                     "group": null,
+        //                     "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
+        //                     "funding": "0",
+        //                     "id": "117515",
+        //                     "slug": "doge-up-or-down-1-hour-1778140801775",
+        //                     "title": "DOGE Up or Down - 1 hour",
+        //                      "expirationDate": "2026-05-07T09:00:00.000Z"
+        //                 },
+        //                 "outcomeTokenAmount": "10",
+        //                 "outcomeTokenAmounts": [
+        //                     "10",
+        //                     "0"
+        //                 ],
+        //                 "outcomeIndex": 0,
+        //                 "outcomeTokenPrice": "0.2",
+        //                 "strategy": "Limit Buy",
+        //                 "transactionHash": "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
+        //             }
+        //         ],
+        //         "nextCursor": null
+        //     }
+        //
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        // response contains both trade, settlement, split and merge history
+        // we filter out the settlements here and only return the trades
+        List<Object> trades = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            Map<String, Object> item = this.safeDict(data, i, null);
+            String strategy = this.safeStringLower(item, "strategy");
+            if (!java.util.Objects.equals(strategy, null))
             {
-                Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                outcomeSymbol = this.safeString(outcomeObj, "outcome");
-            }
-            Object paginate = false;
-            Long maxLimit = 100L;
-            Map<String, Object> paramsValue = parameters;
-            List<Object> paginateparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate);
-            paginate = ((List<Object>) paginateparamsValueVariable).get(0);
-            paramsValue = (Map<String, Object>) ((List<Object>) paginateparamsValueVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
-            {
-                paramsValue = this.omit(paramsValue, "paginate");
-                return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, paramsValue, "nextCursor", "cursor", (Long) null, maxLimit)).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(limit, null))
-            {
-                request.put("limit", Math.min(limit, 100));
-            }
-            Map<String, Object> response = (this.limitlessPrivateGetPortfolioHistory(this.extend(request, paramsValue))).join();
-            //
-            //     {
-            //         "data": [
-            //             {
-            //                 "action": "loss",
-            //                 "blockTimestamp": 1778144400,
-            //                 "collateralAmount": "2",
-            //                 "collateralSymbol": "USDC",
-            //                 "collateralToken": "7",
-            //                 "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                 "market": {
-            //                     "closed": true,
-            //                     "collateral": {
-            //                     "symbol": "USDC",
-            //                     "id": "7",
-            //                     "decimals": 6},
-            //                     "group": null,
-            //                     "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                     "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                     "funding": "0",
-            //                     "id": "117515",
-            //                     "slug": "doge-up-or-down-1-hour-1778140801775",
-            //                     "title": "DOGE Up or Down - 1 hour",
-            //                     "expirationDate": "2026-05-07T09:00:00.000Z"
-            //                 },
-            //                 "outcomeIndex": 1,
-            //                 "pnl": "-2000000",
-            //                 "title": "DOGE Up or Down - 1 hour"
-            //             },
-            //             {
-            //                 "blockTimestamp": 1778144137,
-            //                 "collateralAmount": "2",
-            //                 "market": {
-            //                     "closed": true,
-            //                     "collateral": {
-            //                         "symbol": "USDC",
-            //                         "id": "7",
-            //                         "decimals": 6
-            //                     },
-            //                     "group": null,
-            //                     "condition_id": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                     "conditionId": "0x0c61db7449dd8f8c81cd856f53d4186cf30888e27eb025d10c7908fa94ba736e",
-            //                     "funding": "0",
-            //                     "id": "117515",
-            //                     "slug": "doge-up-or-down-1-hour-1778140801775",
-            //                     "title": "DOGE Up or Down - 1 hour",
-            //                      "expirationDate": "2026-05-07T09:00:00.000Z"
-            //                 },
-            //                 "outcomeTokenAmount": "10",
-            //                 "outcomeTokenAmounts": [
-            //                     "10",
-            //                     "0"
-            //                 ],
-            //                 "outcomeIndex": 0,
-            //                 "outcomeTokenPrice": "0.2",
-            //                 "strategy": "Limit Buy",
-            //                 "transactionHash": "0x1e1167f09bb65ad3037610ae4f2521b696f7109f535e148ea388d42fdb6e2a10"
-            //             }
-            //         ],
-            //         "nextCursor": null
-            //     }
-            //
-            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            // response contains both trade, settlement, split and merge history
-            // we filter out the settlements here and only return the trades
-            List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < data.size(); i++)
-            {
-                Map<String, Object> item = this.safeDict(data, i, null);
-                String strategy = this.safeStringLower(item, "strategy");
-                if (!java.util.Objects.equals(strategy, null))
+                Integer buyIndex = ((String)strategy).indexOf("buy");
+                Integer sellIndex = ((String)strategy).indexOf("sell");
+                if ((((buyIndex != null && buyIndex >= 0))) || (((sellIndex != null && sellIndex >= 0))))
                 {
-                    Object buyIndex = ((String)strategy).indexOf("buy");
-                    Object sellIndex = ((String)strategy).indexOf("sell");
-                    if (((((Integer) buyIndex) >= 0)) || ((((Integer) sellIndex) >= 0)))
-                    {
-                        ((List<Object>)trades).add(item);
-                    }
+                    ((List<Object>)trades).add(item);
                 }
             }
-            List<Object> parsedTrades = this.parsePredictionTrades(trades, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit, false);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        }
+        List<Object> parsedTrades = this.parsePredictionTrades(trades, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit, false);
 
     }
 
@@ -3162,9 +3200,9 @@ public class Limitless extends LimitlessApi
         {
             throw new ExchangeError((this.id + " parsePredictionTrade() missing rawSide")) ;
         }
-        Object sellIndex = ((String)rawSide).indexOf("sell");
+        Integer sellIndex = ((String)rawSide).indexOf("sell");
         String side = "buy";
-        if ((((Integer) sellIndex) >= 0))
+        if (((sellIndex != null && sellIndex >= 0)))
         {
             side = "sell";
         }
@@ -3244,119 +3282,121 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    {
 
-            Integer symbolsLength = 0;
-            if (!java.util.Objects.equals(outcomes, null))
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(outcomes, null))
+        {
+            symbolsLength = ((List<?>)outcomes).size();
+        }
+        if ((symbolsLength != null && symbolsLength > 0))
+        {
+            (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
+        }
+        // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
+        // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
+        Map<String, Object> response = (this.limitlessPrivateGetPortfolioPositions(parameters)).join();
+        //
+        //     {
+        //         "rewards": {
+        //                 "todaysRewards": "0",
+        //                 "totalUnpaidRewards": "0",
+        //                 "totalUserRewardsLastEpoch": "0",
+        //                 "rewardsChartData": [],
+        //                 "rewardsByEpoch": []
+        //         },
+        //         "points": "0.00000000",
+        //         "accumulativePoints": "0.00000000",
+        //         "amm": [],
+        //         "group": [],
+        //         "clob": [
+        //             {
+        //                 "market": {
+        //                     "slug": "btc-above-dollar7982448-on-may-11-1000-utc-1777888806248",
+        //                     "status": "FUNDED",
+        //                     "title": "BTC Up or Down - 1 week",
+        //                     "conditionId": "0xdcd8264cd09a6c50fca35eca24cda13e70f705e8b9ca7df7edb1c53d5e14ef91",
+        //                     "id": 113280,
+        //                     "address": null,
+        //                     "closed": false,
+        //                     "expirationDate": "2026-05-11T10:00:00.000Z",
+        //                     "deadline": "2026-05-11T10:00:00.000Z",
+        //                     "negRiskRequestId": null,
+        //                     "winningOutcomeIndex": null,
+        //                     "yesPositionId": "93872239373494820196551522390839917813776244436120184186867916673676200558660",
+        //                     "noPositionId": "63415751165356883207530164011662686422066216695676262832702521399916548381548",
+        //                     "collateralToken": {
+        //                         "id": 7,
+        //                         "decimals": 6,
+        //                         "symbol": "USDC",
+        //                         "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        //                     },
+        //                     "venue": {
+        //                         "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //                         "adapter": null,
+        //                         "operator": null
+        //                     },
+        //                     "group": {}
+        //                 },
+        //                 "latestTrade": {
+        //                     "outcomeTokenPrice": 0.991,
+        //                     "latestNoPrice": 0.009,
+        //                     "latestYesPrice": 0.991
+        //                 },
+        //                 "orders": {
+        //                     "liveOrders": [],
+        //                     "totalCollateralLocked": "0"
+        //                 },
+        //                 "positions": {
+        //                     "no": {
+        //                         "cost": "0",
+        //                         "fillPrice": "0",
+        //                         "marketValue": "0",
+        //                         "realisedPnl": "0",
+        //                         "unrealizedPnl": "0"
+        //                     },
+        //                     "yes": {
+        //                         "cost": "995720",
+        //                         "fillPrice": "991000",
+        //                         "marketValue": "999919",
+        //                         "realisedPnl": "0",
+        //                         "unrealizedPnl": "0"
+        //                     }
+        //                 },
+        //                 "tokensBalance": {
+        //                     "no": "0",
+        //                     "yes": "1004763"
+        //                 },
+        //                 "rewards": {
+        //                     "isEarning": false,
+        //                     "epochs": []
+        //                 },
+        //                 "makerAddress": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36"
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> clob = this.safeList(response, "clob", new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        List<String> labels = new ArrayList<String>(Arrays.asList("yes", "no"));
+        for (var i = 0; i < clob.size(); i++)
+        {
+            Map<String, Object> entry = this.safeDict(clob, i, null);
+            for (var j = 0; j < labels.size(); j++)
             {
-                symbolsLength = ((List<?>)outcomes).size();
-            }
-            if ((symbolsLength != null && symbolsLength > 0))
-            {
-                (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
-            }
-            // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
-            // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
-            Map<String, Object> response = (this.limitlessPrivateGetPortfolioPositions(parameters)).join();
-            //
-            //     {
-            //         "rewards": {
-            //                 "todaysRewards": "0",
-            //                 "totalUnpaidRewards": "0",
-            //                 "totalUserRewardsLastEpoch": "0",
-            //                 "rewardsChartData": [],
-            //                 "rewardsByEpoch": []
-            //         },
-            //         "points": "0.00000000",
-            //         "accumulativePoints": "0.00000000",
-            //         "amm": [],
-            //         "group": [],
-            //         "clob": [
-            //             {
-            //                 "market": {
-            //                     "slug": "btc-above-dollar7982448-on-may-11-1000-utc-1777888806248",
-            //                     "status": "FUNDED",
-            //                     "title": "BTC Up or Down - 1 week",
-            //                     "conditionId": "0xdcd8264cd09a6c50fca35eca24cda13e70f705e8b9ca7df7edb1c53d5e14ef91",
-            //                     "id": 113280,
-            //                     "address": null,
-            //                     "closed": false,
-            //                     "expirationDate": "2026-05-11T10:00:00.000Z",
-            //                     "deadline": "2026-05-11T10:00:00.000Z",
-            //                     "negRiskRequestId": null,
-            //                     "winningOutcomeIndex": null,
-            //                     "yesPositionId": "93872239373494820196551522390839917813776244436120184186867916673676200558660",
-            //                     "noPositionId": "63415751165356883207530164011662686422066216695676262832702521399916548381548",
-            //                     "collateralToken": {
-            //                         "id": 7,
-            //                         "decimals": 6,
-            //                         "symbol": "USDC",
-            //                         "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
-            //                     },
-            //                     "venue": {
-            //                         "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
-            //                         "adapter": null,
-            //                         "operator": null
-            //                     },
-            //                     "group": {}
-            //                 },
-            //                 "latestTrade": {
-            //                     "outcomeTokenPrice": 0.991,
-            //                     "latestNoPrice": 0.009,
-            //                     "latestYesPrice": 0.991
-            //                 },
-            //                 "orders": {
-            //                     "liveOrders": [],
-            //                     "totalCollateralLocked": "0"
-            //                 },
-            //                 "positions": {
-            //                     "no": {
-            //                         "cost": "0",
-            //                         "fillPrice": "0",
-            //                         "marketValue": "0",
-            //                         "realisedPnl": "0",
-            //                         "unrealizedPnl": "0"
-            //                     },
-            //                     "yes": {
-            //                         "cost": "995720",
-            //                         "fillPrice": "991000",
-            //                         "marketValue": "999919",
-            //                         "realisedPnl": "0",
-            //                         "unrealizedPnl": "0"
-            //                     }
-            //                 },
-            //                 "tokensBalance": {
-            //                     "no": "0",
-            //                     "yes": "1004763"
-            //                 },
-            //                 "rewards": {
-            //                     "isEarning": false,
-            //                     "epochs": []
-            //                 },
-            //                 "makerAddress": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36"
-            //             }
-            //         ]
-            //     }
-            //
-            List<Object> clob = this.safeList(response, "clob", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            List<String> labels = new ArrayList<String>(Arrays.asList("yes", "no"));
-            for (var i = 0; i < clob.size(); i++)
-            {
-                Map<String, Object> entry = this.safeDict(clob, i, null);
-                for (var j = 0; j < labels.size(); j++)
+                String label = this.safeString(labels, j);
+                Object position = this.getPositionFromClobEntry((String) (label), entry);
+                if (!java.util.Objects.equals(position, null))
                 {
-                    String label = this.safeString(labels, j);
-                    Object position = this.getPositionFromClobEntry((String) (label), entry);
-                    if (!java.util.Objects.equals(position, null))
-                    {
-                        ((List<Object>)result).add(position);
-                    }
+                    ((List<Object>)result).add(position);
                 }
             }
-            return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+        }
+        return result;
 
     }
 
@@ -3461,145 +3501,147 @@ public class Limitless extends LimitlessApi
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    public CompletableFuture<List<PredictionEvent>> fetchEvents(Object parameters)
+    public CompletableFuture<List<PredictionEvent>> fetchEvents(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchEventsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchEventsCore(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            this.requireEventQuery(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
-            List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
-            if (java.util.Objects.equals(queries, null))
+        this.requireEventQuery(parameters);
+        List<Object> queries = this.parseSearchQueries(parameters);
+        if (java.util.Objects.equals(queries, null))
+        {
+            throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
+        }
+        Integer queriesLength = queries.size();
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status")));
+        String eventId = this.safeString2(parameters, "eventId", "slug");
+        // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
+        // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
+        List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
+        if ((queriesLength != null && queriesLength > 0))
+        {
+            Long requestedLimit = this.safeInteger(parameters, "limit", 50);
+            // the search endpoint rejects limit > 50 - cap the per-query request
+            Long limit = 50L;
+            if ((!java.util.Objects.equals(requestedLimit, null)) && (((requestedLimit == null || requestedLimit < 50))))
             {
-                throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
+                limit = requestedLimit;
             }
-            Integer queriesLength = queries.size();
-            Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status")));
-            String eventId = this.safeString2(parameters, "eventId", "slug");
-            // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
-            // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
-            List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
-            if ((queriesLength != null && queriesLength > 0))
+            Map<String, Object> seen = new HashMap<String, Object>() {{}};
+            for (var i = 0; i < queries.size(); i++)
             {
-                Long requestedLimit = this.safeInteger(parameters, "limit", 50);
-                // the search endpoint rejects limit > 50 - cap the per-query request
-                Long limit = 50L;
-                if ((!java.util.Objects.equals(requestedLimit, null)) && (((requestedLimit == null || requestedLimit < 50))))
+                if (java.util.Objects.equals(queries, null))
                 {
-                    limit = requestedLimit;
+                    throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
                 }
-                Map<String, Object> seen = new HashMap<String, Object>() {{}};
-                for (var i = 0; i < queries.size(); i++)
+                Object q = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
+                HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+                mapLiteral11.put("query", q);
+                mapLiteral11.put("limit", limit);
+                Map<String, Object> response = (this.limitlessPublicGetMarketsSearch(this.extend(mapLiteral11, rest))).join();
+                List<Object> found = this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
+                for (var j = 0; j < found.size(); j++)
                 {
-                    if (java.util.Objects.equals(queries, null))
+                    Object raw = (found == null || j < 0 || j >= found.size() ? null : found.get(j));
+                    String rawSlug = this.safeString(raw, "slug");
+                    if ((!java.util.Objects.equals(rawSlug, null) && !java.util.Objects.equals(rawSlug, "")) && !(seen.containsKey(rawSlug)))
                     {
-                        throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
-                    }
-                    Object q = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
-                    HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-                    mapLiteral11.put("query", q);
-                    mapLiteral11.put("limit", limit);
-                    Map<String, Object> response = (this.limitlessPublicGetMarketsSearch(this.extend(mapLiteral11, rest))).join();
-                    List<Object> found = this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
-                    for (var j = 0; j < found.size(); j++)
-                    {
-                        Object raw = (found == null || j < 0 || j >= found.size() ? null : found.get(j));
-                        String rawSlug = this.safeString(raw, "slug");
-                        if ((!java.util.Objects.equals(rawSlug, null) && !java.util.Objects.equals(rawSlug, "")) && !(seen.containsKey(rawSlug)))
-                        {
-                            seen.put(rawSlug, true);
-                            ((List<Object>)rawMarkets).add(raw);
-                        }
+                        seen.put(rawSlug, true);
+                        ((List<Object>)rawMarkets).add(raw);
                     }
                 }
-            } else if (!java.util.Objects.equals(eventId, null))
+            }
+        } else if (!java.util.Objects.equals(eventId, null))
+        {
+            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+            mapLiteral12.put("addressOrSlug", eventId);
+            Map<String, Object> response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(mapLiteral12, rest))).join();
+            ((List<Object>)rawMarkets).add(response);
+        } else
+        {
+            // tags scope: resolve the tags to limitless categories and page only those
+            // categories' listings server-side — never the whole active listing
+            List<Object> requestedTags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+            List<Object> listRaw = (this.fetchRawMarketsByTags(requestedTags, parameters)).join();
+            Integer listRawLength = listRaw.size();
+            for (var i = 0; (listRawLength != null && i < listRawLength); i++)
             {
-                HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-                mapLiteral12.put("addressOrSlug", eventId);
-                Map<String, Object> response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(mapLiteral12, rest))).join();
-                ((List<Object>)rawMarkets).add(response);
-            } else
+                ((List<Object>)rawMarkets).add((listRaw == null || i < 0 || i >= listRaw.size() ? null : listRaw.get(i)));
+            }
+        }
+        if (java.util.Objects.equals(this.events, null))
+        {
+            this.events = new HashMap<String, Object>() {{}};
+        }
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            this.markets = this.createSafeDictionary();
+        }
+        Map<String, Map<String, Object>> eventGroups = new HashMap<String, Map<String, Object>>();
+        // group rows carry their tradeable children in a nested `markets` list — expand them
+        // into regular rows before parsing (a group row itself has no tokens)
+        List<Object> expandedMarkets = this.expandGroupRows(rawMarkets);
+        Integer rawMarketsLength = expandedMarkets.size();
+        for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
+        {
+            Object raw = (expandedMarkets == null || i < 0 || i >= expandedMarkets.size() ? null : expandedMarkets.get(i));
+            String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
+            String eventKey = null;
+            if (!java.util.Objects.equals(groupId, null) && !java.util.Objects.equals(groupId, ""))
             {
-                // tags scope: resolve the tags to limitless categories and page only those
-                // categories' listings server-side — never the whole active listing
-                List<Object> requestedTags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-                List<Object> listRaw = (this.fetchRawMarketsByTags(requestedTags, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
-                Integer listRawLength = listRaw.size();
-                for (var i = 0; (listRawLength != null && i < listRawLength); i++)
+                eventKey = this.shortenSlug((String) (groupId));
+            }
+            Map<String, Object> m = (Map<String, Object>) this.parseMarket(raw);
+            if (java.util.Objects.equals(m, null))
+            {
+                throw new ExchangeError((this.id + " fetchEvents() missing m")) ;
+            }
+            ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
+            if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
+            {
+                if (!(eventGroups.containsKey(eventKey)))
                 {
-                    ((List<Object>)rawMarkets).add((listRaw == null || i < 0 || i >= listRaw.size() ? null : listRaw.get(i)));
+                    HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+                    mapLiteral13.put("groupId", groupId);
+                    mapLiteral13.put("title", this.safeString2(raw, "groupTitle", "title", groupId));
+                    mapLiteral13.put("raw", raw);
+                    mapLiteral13.put("markets", new ArrayList<Object>(Arrays.asList()));
+                    eventGroups.put(eventKey, mapLiteral13);
                 }
+                Map<String, Object> eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array, so a
+                // direct push on eventGroup['markets'] loses the element in go
+                Object groupMarkets = eventGroup.get("markets");
+                ((List<Object>)groupMarkets).add(m);
+                eventGroup.put("markets", groupMarkets);
             }
-            if (java.util.Objects.equals(this.events, null))
-            {
-                this.events = new HashMap<String, Object>() {{}};
-            }
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                this.markets = this.createSafeDictionary();
-            }
-            Map<String, Object> eventGroups = new HashMap<String, Object>() {{}};
-            // group rows carry their tradeable children in a nested `markets` list — expand them
-            // into regular rows before parsing (a group row itself has no tokens)
-            List<Object> expandedMarkets = this.expandGroupRows(rawMarkets);
-            Integer rawMarketsLength = expandedMarkets.size();
-            for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
-            {
-                Object raw = (expandedMarkets == null || i < 0 || i >= expandedMarkets.size() ? null : expandedMarkets.get(i));
-                String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
-                String eventKey = null;
-                if (!java.util.Objects.equals(groupId, null) && !java.util.Objects.equals(groupId, ""))
-                {
-                    eventKey = this.shortenSlug((String) (groupId));
-                }
-                Map<String, Object> m = (Map<String, Object>) this.parseMarket(raw);
-                if (java.util.Objects.equals(m, null))
-                {
-                    throw new ExchangeError((this.id + " fetchEvents() missing m")) ;
-                }
-                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
-                if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")))
-                {
-                    if (!(eventGroups.containsKey(eventKey)))
-                    {
-                        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-                        mapLiteral13.put("groupId", groupId);
-                        mapLiteral13.put("title", this.safeString2(raw, "groupTitle", "title", groupId));
-                        mapLiteral13.put("raw", raw);
-                        mapLiteral13.put("markets", new ArrayList<Object>(Arrays.asList()));
-                        eventGroups.put(eventKey, mapLiteral13);
-                    }
-                    Object eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
-                    // push through a local and write the slice back — the go transpiler's
-                    // AppendToArray reassigns only a local copy of a map-stored array, so a
-                    // direct push on eventGroup['markets'] loses the element in go
-                    Object groupMarkets = Helpers.GetValue(eventGroup, "markets");
-                    ((List<Object>)groupMarkets).add(m);
-                    Helpers.addElementToObject(eventGroup, "markets", groupMarkets);
-                }
-            }
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            List<String> eventKeys = new ArrayList<String>(eventGroups.keySet());
-            Integer eventKeysLength = eventKeys.size();
-            for (var i = 0; (eventKeysLength != null && i < eventKeysLength); i++)
-            {
-                Map<String, Object> ev = this.parseEvent((Map<String, Object>) (this.safeDict(eventGroups, (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i)), new HashMap<String, Object>() {{}})));
-                ((List<Object>)result).add(ev);
-            }
-            // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
-            this.setEvents(result);
-            this.populateOutcomes();
-            // the limitless search endpoint is FUZZY — it returns nearest-neighbour markets even
-            // for queries that match nothing — so default searchIn to 'both' to post-filter the
-            // results literally by title/description (an explicit params.searchIn still wins).
-            // tags were already applied server-side (category-scoped listing); strip them before the
-            // client-side pass — events built from raw markets carry venue tags, not category names,
-            // so the base tag filter would wrongly drop server-matched events
-            Map<String, Object> searchParams = this.extend(new HashMap<String, Object>() {{
-                put( "searchIn", "both" );
-            }}, parameters);
-            Map<String, Object> postParams = this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
-            return this.applyEventFetchParams(result, postParams, queries);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
+        }
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        List<String> eventKeys = new ArrayList<String>(eventGroups.keySet());
+        Integer eventKeysLength = eventKeys.size();
+        for (var i = 0; (eventKeysLength != null && i < eventKeysLength); i++)
+        {
+            Map<String, Object> ev = this.parseEvent((Map<String, Object>) (this.safeDict(eventGroups, (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i)), new HashMap<String, Object>() {{}})));
+            ((List<Object>)result).add(ev);
+        }
+        // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
+        this.setEvents(result);
+        this.populateOutcomes();
+        // the limitless search endpoint is FUZZY — it returns nearest-neighbour markets even
+        // for queries that match nothing — so default searchIn to 'both' to post-filter the
+        // results literally by title/description (an explicit params.searchIn still wins).
+        // tags were already applied server-side (category-scoped listing); strip them before the
+        // client-side pass — events built from raw markets carry venue tags, not category names,
+        // so the base tag filter would wrongly drop server-matched events
+        Map<String, Object> searchParams = this.extend(new HashMap<String, Object>() {{
+            put( "searchIn", "both" );
+        }}, parameters);
+        Map<String, Object> postParams = this.omit(searchParams, new ArrayList<Object>(Arrays.asList("tags")));
+        return this.applyEventFetchParams(result, postParams, queries);
 
     }
 
@@ -3615,51 +3657,53 @@ public class Limitless extends LimitlessApi
      */
     public CompletableFuture<List<Object>> fetchRawActiveMarkets(Map<String, Object> parameters, String categoryId)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchRawActiveMarketsCore(parameters, categoryId));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private List<Object> fetchRawActiveMarketsCore(Map<String, Object> parameters, String categoryId)
+    {
 
-            Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
-            Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
-            Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
-            List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
-            Object page = 1;
-            while (true)
+        Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
+        Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
+        Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
+        List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
+        Long page = 1L;
+        while (true)
+        {
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("page", page);
+            request.put("limit", pageSize);
+            Map<String, Object> response = null;
+            if (!java.util.Objects.equals(categoryId, null))
             {
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("page", page);
-                request.put("limit", pageSize);
-                Map<String, Object> response = null;
-                if (!java.util.Objects.equals(categoryId, null))
+                request.put("categoryId", categoryId);
+                response = (this.limitlessPublicGetMarketsActiveCategoryId(this.extend(request, rest))).join();
+            } else
+            {
+                response = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
+            }
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer dataLength = data.size();
+            if (java.util.Objects.equals(dataLength, 0))
+            {
+                break;
+            }
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
+            {
+                Integer collected = allRaw.size();
+                if ((maxMarkets != null && (collected == null || collected < maxMarkets)))
                 {
-                    request.put("categoryId", categoryId);
-                    response = (this.limitlessPublicGetMarketsActiveCategoryId(this.extend(request, rest))).join();
-                } else
-                {
-                    response = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
-                }
-                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                Integer dataLength = data.size();
-                if (java.util.Objects.equals(dataLength, 0))
-                {
-                    break;
-                }
-                for (var i = 0; (dataLength != null && i < dataLength); i++)
-                {
-                    Integer collected = allRaw.size();
-                    if ((maxMarkets != null && (collected == null || collected < maxMarkets)))
-                    {
-                        ((List<Object>)allRaw).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
-                    }
-                }
-                page = this.sum(page, 1);
-                Integer collectedTotal = allRaw.size();
-                if ((pageSize != null && (dataLength == null || dataLength < pageSize)) || (maxMarkets == null || (collectedTotal != null && collectedTotal >= maxMarkets)))
-                {
-                    break;
+                    ((List<Object>)allRaw).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
                 }
             }
-            return allRaw;
-        });
+            page = (page + 1L);
+            Integer collectedTotal = allRaw.size();
+            if ((pageSize != null && (dataLength == null || dataLength < pageSize)) || (maxMarkets == null || (collectedTotal != null && collectedTotal >= maxMarkets)))
+            {
+                break;
+            }
+        }
+        return allRaw;
 
     }
 
@@ -3673,71 +3717,69 @@ public class Limitless extends LimitlessApi
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    public CompletableFuture<List<Object>> fetchRawMarketsByTags(Object tags, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawMarketsByTags(List<Object> tags, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchRawMarketsByTagsCore(tags, parameters));
+    }
+
+    private List<Object> fetchRawMarketsByTagsCore(List<Object> tags, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            List<Object> categoriesResponse = (this.limitlessPublicGetCategories(new HashMap<String, Object>() {{}})).join();
-            List<Object> categories = new ArrayList<Object>(Arrays.asList());
-            if ((categoriesResponse instanceof List))
+        List<Object> categoriesResponse = (this.limitlessPublicGetCategories(new HashMap<String, Object>() {{}})).join();
+        List<Object> categories = new ArrayList<Object>(Arrays.asList());
+        if ((categoriesResponse instanceof List))
+        {
+            categories = categoriesResponse;
+        }
+        List<String> wanted = new ArrayList<String>(Arrays.asList());
+        for (var i = 0; i < tags.size(); i++)
+        {
+            wanted.add(((String)(tags == null || i < 0 || i >= tags.size() ? null : tags.get(i))).toLowerCase());
+        }
+        List<String> categoryIds = new ArrayList<String>(Arrays.asList());
+        Integer categoriesLength = categories.size();
+        for (var i = 0; (categoriesLength != null && i < categoriesLength); i++)
+        {
+            Map<String, Object> category = this.safeDict(categories, i, null);
+            String name = this.safeStringLower(category, "name", "");
+            String categoryId = this.safeString(category, "id");
+            Boolean matched = false;
+            for (var wi = 0; wi < wanted.size(); wi++)
             {
-                categories = categoriesResponse;
-            }
-            List<Object> wanted = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)tags).size(); i++)
-            {
-                ((List<Object>)wanted).add(((String)(tags == null || i < 0 || i >= ((List<?>)tags).size() ? null : ((List<?>)tags).get(i))).toLowerCase());
-            }
-            List<String> categoryIds = new ArrayList<String>(Arrays.asList());
-            Integer categoriesLength = categories.size();
-            for (var i = 0; (categoriesLength != null && i < categoriesLength); i++)
-            {
-                Map<String, Object> category = this.safeDict(categories, i, null);
-                String name = this.safeStringLower(category, "name", "");
-                String categoryId = this.safeString(category, "id");
-                Boolean matched = false;
-                for (var wi = 0; wi < wanted.size(); wi++)
+                if ((name == null || wanted == null || wi < 0 || wi >= wanted.size() || wanted.get(wi) == null ? -1 : name.indexOf(wanted.get(wi))) >= 0)
                 {
-                    if (java.util.Objects.equals(name, null))
-                    {
-                        throw new ExchangeError((this.id + " fetchRawMarketsByTags() missing name")) ;
-                    }
-                    if (Helpers.getIndexOf(name, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-                if (Boolean.TRUE.equals(matched) && (!java.util.Objects.equals(categoryId, null)))
-                {
-                    categoryIds.add(categoryId);
+                    matched = true;
+                    break;
                 }
             }
-            Integer categoryIdsLength = categoryIds.size();
-            if (java.util.Objects.equals(categoryIdsLength, 0))
+            if (Boolean.TRUE.equals(matched) && (!java.util.Objects.equals(categoryId, null)))
             {
-                throw new BadRequest((this.id + " fetchEvents() could not match the requested tags to any limitless category — GET /categories lists the valid names")) ;
+                categoryIds.add(categoryId);
             }
-            Map<String, Object> seen = new HashMap<String, Object>() {{}};
-            List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
-            for (var ci = 0; (categoryIdsLength != null && ci < categoryIdsLength); ci++)
+        }
+        Integer categoryIdsLength = categoryIds.size();
+        if (java.util.Objects.equals(categoryIdsLength, 0))
+        {
+            throw new BadRequest((this.id + " fetchEvents() could not match the requested tags to any limitless category — GET /categories lists the valid names")) ;
+        }
+        Map<String, Object> seen = new HashMap<String, Object>() {{}};
+        List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
+        for (var ci = 0; (categoryIdsLength != null && ci < categoryIdsLength); ci++)
+        {
+            List<Object> categoryMarkets = (this.fetchRawActiveMarkets(parameters, (categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci)))).join();
+            Integer categoryMarketsLength = categoryMarkets.size();
+            for (var mi = 0; (categoryMarketsLength != null && mi < categoryMarketsLength); mi++)
             {
-                List<Object> categoryMarkets = (this.fetchRawActiveMarkets(parameters, (categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci)))).join();
-                Integer categoryMarketsLength = categoryMarkets.size();
-                for (var mi = 0; (categoryMarketsLength != null && mi < categoryMarketsLength); mi++)
+                Object raw = (categoryMarkets == null || mi < 0 || mi >= categoryMarkets.size() ? null : categoryMarkets.get(mi));
+                String slug = this.safeString(raw, "slug");
+                if ((!java.util.Objects.equals(slug, null)) && !(seen.containsKey(slug)))
                 {
-                    Object raw = (categoryMarkets == null || mi < 0 || mi >= categoryMarkets.size() ? null : categoryMarkets.get(mi));
-                    String slug = this.safeString(raw, "slug");
-                    if ((!java.util.Objects.equals(slug, null)) && !(seen.containsKey(slug)))
-                    {
-                        seen.put(slug, true);
-                        ((List<Object>)allRaw).add(raw);
-                    }
+                    seen.put(slug, true);
+                    ((List<Object>)allRaw).add(raw);
                 }
             }
-            return allRaw;
-        });
+        }
+        return allRaw;
 
     }
 
@@ -3790,7 +3832,7 @@ public class Limitless extends LimitlessApi
             String timestamp = this.iso8601(this.milliseconds());
             String newline = "\n"; // eslint-disable-line quotes
             String payload = ((((((timestamp + newline) + java.util.Objects.requireNonNullElse(method, "GET")) + newline) + url) + newline) + bodyString);
-            String signature = (String) this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
             HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
             mapLiteral14.put("lmts-timestamp", timestamp);
             mapLiteral14.put("lmts-signature", signature);

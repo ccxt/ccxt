@@ -1183,7 +1183,7 @@ public partial class coincheck : Exchange
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-NONCE", nonce },
-                { "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
+                { "ACCESS-SIGNATURE", this.hmac(auth, this.secret, sha256) },
             };
         }
         Dictionary<string, object> headersResolved = headersSigned;
@@ -1211,7 +1211,7 @@ public partial class coincheck : Exchange
         {
             string? error = this.safeString(response, "error");
             string feedback = ((this.id + " ") + this.json(response));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
             throw new ExchangeError (feedback) ;
         }

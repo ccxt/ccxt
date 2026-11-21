@@ -106,12 +106,12 @@ func (this *Polymarket) SendSubscription(action string, channels any, messageHas
 	// subscribed yet, so a pending entry is registered under the same
 	// condition - otherwise no ack would ever arrive to consume it, the
 	// private channels register a shared hash next to narrowed ones
-	var hashesToCheck any = func() any {
-		if checkHashes == nil {
-			return messageHashes
-		}
-		return checkHashes
-	}()
+	var hashesToCheck any
+	if checkHashes == nil {
+		hashesToCheck = messageHashes
+	} else {
+		hashesToCheck = checkHashes
+	}
 	var willSend bool = false
 	for i := 0; i < ccxt.GetArrayLength(hashesToCheck); i++ {
 		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(hashesToCheck, i))) {
@@ -256,7 +256,11 @@ func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 	snapshot["nonce"] = this.SafeInteger(message, "sq")
@@ -392,8 +396,8 @@ func (this *Polymarket) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var messageHashes []any = []any{}
-	var channels []any = []any{}
+	var messageHashes []string = []string{}
+	var channels []string = []string{}
 	if symbolsNormalized == nil {
 		messageHashes = append(messageHashes, "tickers")
 		channels = append(channels, "tickers::all")
@@ -441,7 +445,11 @@ func (this *Polymarket) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -489,8 +497,8 @@ func (this *Polymarket) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var messageHashes []any = []any{}
-	var channels []any = []any{}
+	var messageHashes []string = []string{}
+	var channels []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		messageHashes = append(messageHashes, "bidask:"+*this.SafeString(market, "symbol", ""))
@@ -530,7 +538,11 @@ func (this *Polymarket) HandleBidAsk(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -675,12 +687,12 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	// the asyncapi spec describes the data field as an array of trade objects while typing it
 	// as a single object, so both shapes are handled here
 	//
-	var data any = this.SafeValue(message, "data")
+	var dataList, _ = message["data"].([]any)
 	var rows []any = []any{}
-	if ccxt.IsArray(data) {
-		rows = ccxt.ArrayTyped(data)
+	if dataList != nil {
+		rows = ccxt.ArrayTyped(dataList)
 	} else {
-		rows = append(rows, data)
+		rows = append(rows, this.SafeValue(message, "data"))
 	}
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
@@ -723,9 +735,11 @@ func (this *Polymarket) ParseWsTrade(trade any, optionalArgs ...any) map[string]
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var side *string = this.SafeStringLower(trade, "side")
 	if side != nil && *side == "long" {
-		side = ccxt.SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "short" {
-		side = ccxt.SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           this.SafeString(trade, "tid"),
@@ -779,7 +793,7 @@ func (this *Polymarket) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
-	var wsTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "wsTimeframes")
+	var wsTimeframes, _ = this.Options["wsTimeframes"].(map[string]any)
 	var interval *string = this.SafeString(wsTimeframes, timeframe)
 	if interval == nil {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV() does not support the " + timeframe + " timeframe over the websocket"))
@@ -832,7 +846,7 @@ func (this *Polymarket) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
-	var wsTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "wsTimeframes")
+	var wsTimeframes, _ = this.Options["wsTimeframes"].(map[string]any)
 	var interval *string = this.SafeString(wsTimeframes, timeframe, timeframe)
 	var subMessageHash string = "candles:" + timeframe + ":" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -888,7 +902,7 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	var rows []any = ccxt.SafeListTyped(message, "data")
+	var rows, _ = message["data"].([]any)
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
 		return
@@ -1043,7 +1057,7 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Polymarket) HandleOrder(client any, message any) {
+func (this *Polymarket) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "ch": "orders",
@@ -1101,8 +1115,8 @@ func (this *Polymarket) HandleOrder(client any, message any) {
 		}
 	}
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbol *string = this.SafeString(symbolKeys, i, "")
-		client.(ccxt.ClientInterface).Resolve(stored, "orders:"+*symbol)
+		var symbol string = symbolKeys[i]
+		client.(ccxt.ClientInterface).Resolve(stored, "orders:"+symbol)
 	}
 }
 
@@ -1195,12 +1209,12 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(message, "data")
+	var dataList, _ = message["data"].([]any)
 	var rows []any = []any{}
-	if ccxt.IsArray(data) {
-		rows = ccxt.ArrayTyped(data)
+	if dataList != nil {
+		rows = ccxt.ArrayTyped(dataList)
 	} else {
-		rows = append(rows, data)
+		rows = append(rows, this.SafeValue(message, "data"))
 	}
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
@@ -1230,8 +1244,8 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbol *string = this.SafeString(symbolKeys, i, "")
-		client.(ccxt.ClientInterface).Resolve(stored, "myTrades:"+*symbol)
+		var symbol string = symbolKeys[i]
+		client.(ccxt.ClientInterface).Resolve(stored, "myTrades:"+symbol)
 	}
 }
 
@@ -1486,13 +1500,17 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
-	var rows []any = ccxt.SafeListTyped(data, "positions")
+	var rows, _ = data["positions"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
@@ -1504,7 +1522,7 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 		cache.Append(position)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
-	var margin map[string]any = ccxt.SafeMapTyped(data, "margin")
+	var margin, _ = data["margin"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info":      data,
 		"timestamp": timestamp,
@@ -1597,12 +1615,10 @@ func (this *Polymarket) HandleAck(client any, message any) {
 				client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			}
 			if action != nil && *action == "sub" {
-				var subMessageHash any = func() any {
-					if i >= 0 && i < len(subMessageHashes) {
-						return subMessageHashes[i]
-					}
-					return nil
-				}()
+				var subMessageHash any = nil
+				if i >= 0 && i < len(subMessageHashes) {
+					subMessageHash = subMessageHashes[i]
+				}
 				if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
 					client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
 				}

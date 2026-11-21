@@ -1214,7 +1214,7 @@ public partial class whitebit : Exchange
         {
             string? entry = ((string)currencyIds[i]);
             List<object> splitEntry = entry.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
-            object currencyId = (splitEntry != null && 0 < splitEntry.Count ? splitEntry[0] : null);
+            string? currencyId = ((string)(splitEntry != null && 0 < splitEntry.Count ? splitEntry[0] : null));
             IDictionary<string, object> feeInfo = this.safeDict(response, entry);
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && (((codesValue == null)) || (this.inArray(code, codesValue))))
@@ -1224,7 +1224,10 @@ public partial class whitebit : Exchange
                 {
                     depositWithdrawFees[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                 }
-                ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "info"))[(string)entry] = feeInfo;
+                IDictionary<string, object> feeEntry = this.safeDict(depositWithdrawFees, code, new Dictionary<string, object>() {});
+                IDictionary<string, object> feeEntryInfo = this.safeDict(feeEntry, "info", new Dictionary<string, object>() {});
+                feeEntryInfo[(string)entry] = feeInfo;
+                feeEntry["info"] = feeEntryInfo;
                 string? networkId = this.safeString(splitEntry, 1);
                 IDictionary<string, object> withdraw = this.safeDict(feeInfo, "withdraw");
                 IDictionary<string, object> deposit = this.safeDict(feeInfo, "deposit");
@@ -1240,20 +1243,22 @@ public partial class whitebit : Exchange
                 };
                 if ((networkId != null))
                 {
-                    int networkLength = networkId.Length;
-                    string? networkCode = this.networkIdToCode(((networkId == null) ? null : networkId.Substring(Math.Min(1, networkId.Length), Math.Max(Math.Max(Math.Min(((networkLength - 1) < 0 ? networkId.Length + ((networkLength - 1)) : (networkLength - 1)), networkId.Length), 0) - Math.Min(1, networkId.Length), 0))), code);
+                    string? networkCode = this.networkIdToCode(((networkId == null) ? null : networkId.Substring(Math.Min(1, networkId.Length), Math.Max(Math.Max(networkId.Length - 1, 0) - Math.Min(1, networkId.Length), 0))), code);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        IDictionary<string, object> feeEntryNetworks = this.safeDict(feeEntry, "networks", new Dictionary<string, object>() {});
+                        feeEntryNetworks[(string)networkCode] = new Dictionary<string, object>() {
                             { "withdraw", withdrawResult },
                             { "deposit", depositResult },
                         };
+                        feeEntry["networks"] = feeEntryNetworks;
                     }
                 } else
                 {
-                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["withdraw"] = withdrawResult;
-                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["deposit"] = depositResult;
+                    feeEntry["withdraw"] = withdrawResult;
+                    feeEntry["deposit"] = depositResult;
                 }
+                depositWithdrawFees[(string)code] = feeEntry;
             }
         }
         List<object> depositWithdrawCodes = new List<object>(depositWithdrawFees.Keys);
@@ -1811,7 +1816,7 @@ public partial class whitebit : Exchange
             {
                 List<object> response = await this.v4PrivatePostOrders(this.extend(request, paramsOmitted));
                 // Search for order in active orders response (array format)
-                IList<object> orders = this.toArray(response);
+                IList<object> orders = response;
                 for (int i = 0; i < (orders?.Count ?? 0); i++)
                 {
                     IDictionary<string, object> order = ((IDictionary<string, object>)orders[i]);
@@ -1883,7 +1888,7 @@ public partial class whitebit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         bool onlyContractSymbols = true;
         if ((symbolsNormalized != null))
         {
@@ -2281,8 +2286,16 @@ public partial class whitebit : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        Int64? cappedLimit = (((limit == null)) || ((limit > 1440))) ? 1440 : limit;
-        Int64? limitResolved = ((since != null)) ? cappedLimit : limit;
+        Int64? cappedLimit = 1440;
+        if (((limit != null)) && ((limit < 1440)))
+        {
+            cappedLimit = limit;
+        }
+        Int64? limitResolved = limit;
+        if ((since != null))
+        {
+            limitResolved = cappedLimit;
+        }
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
         if (((since != null)) || ((until != null)))
@@ -2294,19 +2307,19 @@ public partial class whitebit : Exchange
             Int64? endTime = null;
             if ((until != null))
             {
-                endTime = this.sum(this.parseToInt(((double?)until / 1000)), duration);
+                endTime = this.parseToInt(this.sum(this.parseToInt(((double?)until / 1000)), duration));
             }
             if ((since != null))
             {
                 Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
-                Int64 rangeEnd = this.sum(start, (duration * cappedLimit));
-                if (((endTime == null)) || ((rangeEnd < endTime)))
+                Int64? rangeEnd = this.parseToInt(this.sum(start, (duration * cappedLimit)));
+                if (((endTime == null)) || ((endTime != null && (rangeEnd == null || rangeEnd < endTime))))
                 {
                     endTime = rangeEnd;
                 }
             }
-            if (((endTime != null)) && (isLessThan(this.sum(endTime, duration), this.seconds())))
+            if (((endTime != null)) && ((this.sum(endTime, duration) < this.seconds())))
             {
                 request["end"] = endTime;
             }
@@ -4662,7 +4675,7 @@ public partial class whitebit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.v4PrivatePostCollateralAccountPositionsOpen(parameters);
         //
         //     [
@@ -4932,7 +4945,7 @@ public partial class whitebit : Exchange
             this.checkRequiredCredentials();
             // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
             string nonce = ((object)this.incrementingNonce()).ToString();
-            string? secret = this.encode(this.secret);
+            string? secret = this.secret;
             string request = (((("/" + "api") + "/") + version) + pathWithParams);
             (bool?, IDictionary<string, object>) nonceWindowrequestParamsVariable = this.handleOptionBoolAndParams(parameters, "sign", "nonceWindow", false);
             bool? nonceWindow = nonceWindowrequestParamsVariable.Item1;
@@ -4943,7 +4956,7 @@ public partial class whitebit : Exchange
                 { "nonceWindow", nonceWindow },
             }, requestParams));
             string payload = this.stringToBase64(privateBody);
-            string signature = this.hmac(this.encode(payload), secret, sha512);
+            string signature = this.hmac(payload, secret, sha512);
             privateHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-TXC-APIKEY", this.apiKey },
@@ -5006,7 +5019,7 @@ public partial class whitebit : Exchange
                         errorInfo = this.safeString(errorMessageArray, 0, body);
                     }
                 }
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorInfo, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorInfo, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
                 throw new ExchangeError (feedback) ;
             }
@@ -5025,7 +5038,7 @@ public partial class whitebit : Exchange
                     errorInfo = this.safeString(errorMessageArray, 0, body);
                 }
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorInfo, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorInfo, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
                 throw new ExchangeError (feedback) ;
             }

@@ -123,7 +123,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Int64? limitResolved = 50;
@@ -142,7 +142,9 @@ public partial class cryptocom : ccxt.cryptocom
         (string?, IDictionary<string, object>) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
         string? bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.Item1;
         IDictionary<string, object> paramsBookSubscriptionType2 = (bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
-        ((IDictionary<string,object>)(paramsBookSubscriptionType2 != null && paramsBookSubscriptionType2.ContainsKey("params") ? paramsBookSubscriptionType2["params"] : null))["bookSubscriptionType"] = bookSubscriptionType2;
+        IDictionary<string, object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new Dictionary<string, object>() {});
+        bookParams["bookSubscriptionType"] = bookSubscriptionType2;
+        paramsBookSubscriptionType2["params"] = bookParams;
         (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
         string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
         IDictionary<string, object> paramsBookUpdateFrequency = (bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
@@ -151,7 +153,9 @@ public partial class cryptocom : ccxt.cryptocom
         IDictionary<string, object> paramsBookUpdateFrequency2 = (bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
         if ((bookUpdateFrequency2 != null))
         {
-            ((IDictionary<string,object>)(paramsBookUpdateFrequency2 != null && paramsBookUpdateFrequency2.ContainsKey("params") ? paramsBookUpdateFrequency2["params"] : null))["bookSubscriptionType"] = bookUpdateFrequency2;
+            IDictionary<string, object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new Dictionary<string, object>() {});
+            frequencyParams["bookSubscriptionType"] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2["params"] = frequencyParams;
         }
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -200,7 +204,9 @@ public partial class cryptocom : ccxt.cryptocom
         (string?, IDictionary<string, object>) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
         string? bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.Item1;
         IDictionary<string, object> paramsBookSubscriptionType2 = (bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
-        ((IDictionary<string,object>)(paramsBookSubscriptionType2 != null && paramsBookSubscriptionType2.ContainsKey("params") ? paramsBookSubscriptionType2["params"] : null))["bookSubscriptionType"] = bookSubscriptionType2;
+        IDictionary<string, object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new Dictionary<string, object>() {});
+        bookParams["bookSubscriptionType"] = bookSubscriptionType2;
+        paramsBookSubscriptionType2["params"] = bookParams;
         (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
         string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
         IDictionary<string, object> paramsBookUpdateFrequency = (bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
@@ -209,7 +215,9 @@ public partial class cryptocom : ccxt.cryptocom
         IDictionary<string, object> paramsBookUpdateFrequency2 = (bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
         if ((bookUpdateFrequency2 != null))
         {
-            ((IDictionary<string,object>)(paramsBookUpdateFrequency2 != null && paramsBookUpdateFrequency2.ContainsKey("params") ? paramsBookUpdateFrequency2["params"] : null))["bookSubscriptionType"] = bookUpdateFrequency2;
+            IDictionary<string, object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new Dictionary<string, object>() {});
+            frequencyParams["bookSubscriptionType"] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2["params"] = frequencyParams;
         }
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -388,7 +396,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -907,7 +915,7 @@ public partial class cryptocom : ccxt.cryptocom
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (timeframe != null))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
@@ -1044,7 +1052,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "nonce", id },
         };
         string messageHash = "positions";
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if (!this.isEmpty(symbolsNormalized))
         {
             if ((symbolsNormalized == null))
@@ -1060,7 +1068,7 @@ public partial class cryptocom : ccxt.cryptocom
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, this.extend(request, parameters));
         if (this.newUpdates)
@@ -1382,15 +1390,16 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "private/cancel-all-orders" },
-            { "params", this.extend(new Dictionary<string, object>() {}, parameters) },
-        };
+        Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request["params"])["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
+            requestParams["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "private/cancel-all-orders" },
+            { "params", requestParams },
+        };
         Int64? messageHash = this.incrementingNonce();
         return ccxt.BaseExchange.ToOrderList(await this.watchPrivateRequest(messageHash, request));
     }
@@ -1510,7 +1519,7 @@ public partial class cryptocom : ccxt.cryptocom
             if (((errorCode != null) && errorCode != "") && errorCode != "0")
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                 string? messageString = this.safeString(message, "message");
                 if ((messageString != null))
                 {
@@ -1550,7 +1559,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "user.balance", this.handleBalance },
             { "user.position_balance", this.handlePositions },
         };
-        object result = this.safeValue2(message, "result", "info");
+        IDictionary<string, object> result = this.safeDict2(message, "result", "info", new Dictionary<string, object>() {});
         string? channel = this.safeString(result, "channel");
         if (((channel != null)) && channel.IndexOf("user.trade", StringComparison.Ordinal) > -1)
         {
@@ -1643,7 +1652,7 @@ public partial class cryptocom : ccxt.cryptocom
             Int64? nonceValue = this.incrementingNonce();
             string? nonce = this.numberToString(nonceValue);
             string auth = (((method + nonce) + this.apiKey) + nonce);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", nonce },
                 { "nonce", nonce },

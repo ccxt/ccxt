@@ -474,7 +474,9 @@ class hyperliquid extends Exchange {
         $id = $this->safe_string($rawCurrency, 'index');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($name);
-        $this->options['cachedCurrenciesById'][$id] = $name;
+        $cachedCurrenciesByIdDict1 = $this->safe_dict($this->options, 'cachedCurrenciesById', array());
+        $cachedCurrenciesByIdDict1[$id] = $name;
+        $this->options['cachedCurrenciesById'] = $cachedCurrenciesByIdDict1;
         $result = $this->safe_currency_structure(array(
             'id' => $id,
             'name' => $name,
@@ -510,7 +512,9 @@ class hyperliquid extends Exchange {
                 }
                 $baseCode = $this->safe_currency_code($nameWithoutU);
                 if ($code !== null) {
-                    $this->options['spotCurrencyMapping'][$code] = $baseCode;
+                    $spotCurrencyMappingDict2 = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+                    $spotCurrencyMappingDict2[$code] = $baseCode;
+                    $this->options['spotCurrencyMapping'] = $spotCurrencyMappingDict2;
                 }
             }
         }
@@ -630,7 +634,7 @@ class hyperliquid extends Exchange {
         $this->options['hip3TokensByName'] = array();
         $markets = array();
         for ($i = 0; $i < count($promises); $i++) {
-            $dexName = $fetchDexesList[$i];
+            $dexName = $this->safe_string($fetchDexesList, $i);
             $offset = $this->safe_integer($perpDexesOffset, $dexName);
             $response = $this->safe_list($promises, $i);
             $meta = $this->safe_dict($response, 0, array());
@@ -658,10 +662,12 @@ class hyperliquid extends Exchange {
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     $safeCode = $this->safe_currency_code($name);
                     $hip3Code = ($safeCode === null) ? $name : str_replace(':', '-', $safeCode);
-                    $this->options['hip3TokensByName'][$name] = array(
+                    $hip3TokensByName = $this->safe_dict($this->options, 'hip3TokensByName', array());
+                    $hip3TokensByName[$name] = array(
                         'quote' => $collateralTokenCode,
                         'code' => $hip3Code,
                     );
+                    $this->options['hip3TokensByName'] = $hip3TokensByName;
                 }
                 $result[] = $data;
             }
@@ -924,7 +930,8 @@ class hyperliquid extends Exchange {
             }
             $pricePrecisionStr = $this->number_to_string($pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            $baseId = $this->number_to_string($index + 10000);
+            $indexInt = $this->safe_integer($market, 'index', 0);
+            $baseId = $this->number_to_string($indexInt + 10000);
             $entry = array(
                 'id' => $marketName,
                 'symbol' => $mappedSymbol,
@@ -1143,8 +1150,7 @@ class hyperliquid extends Exchange {
          */
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         $shouldRefresh = ($this->safe_string_2($params, 'user', 'address') !== null) && $this->safe_bool($params, 'enableUnifiedMargin') === null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchBalance', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchBalance', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchBalance', $params);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $paramsPublicAddress);
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchBalance', $paramsMarketType);
         list($isUnifiedEnabled, $paramsValue) = $this->is_unified_enabled('fetchBalance', $userAddress, $shouldRefresh, $paramsMarginMode);
@@ -1550,7 +1556,8 @@ class hyperliquid extends Exchange {
                 'endTime' => $until,
             ),
         );
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $candlesResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $candles = $this->info_list($candlesResponse);
         //
         //     [
         //         {
@@ -1567,10 +1574,6 @@ class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        $candles = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $candles = $response;
-        }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $originalSince, $limit, $useTail);
     }
 
@@ -1616,8 +1619,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->subAccountAddress] sub account user address
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchTrades', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchTrades', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchTrades', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1639,7 +1641,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fillsResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fills = $this->info_list($fillsResponse);
         //
         //     [
         //         {
@@ -1660,10 +1663,6 @@ class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        $fills = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $fills = $response;
-        }
         return $this->parse_trades($fills, $market, $since, $limit);
     }
 
@@ -1989,8 +1988,7 @@ class hyperliquid extends Exchange {
         $publicAddress = null;
         $paramsPublicAddress = array();
         if ($address === null) {
-            $publicAddress = $this->safe_string($this->handle_public_address('isUnifiedEnabled', $params), 0);
-            $paramsPublicAddress = $this->safe_dict($this->handle_public_address('isUnifiedEnabled', $params), 1, array());
+            list($publicAddress, $paramsPublicAddress) = $this->handle_public_address('isUnifiedEnabled', $params);
         }
         $userAddress = ($address !== null) ? $address : $publicAddress;
         $paramsAddress = ($address !== null) ? $params : $paramsPublicAddress;
@@ -2653,7 +2651,7 @@ class hyperliquid extends Exchange {
          * @return {array} the raw $request object to be sent to the exchange
          */
         $market = $this->market($symbol);
-        $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
+        $clientOrderIds = $this->safe_string_list($params, array( 'clientOrderId', 'client_id' ));
         $fast = $this->safe_bool($params, 'fast', false);
         $params2 = $this->omit($params, array( 'clientOrderId', 'client_id', 'fast' ));
         $nonce = $this->incrementing_nonce();
@@ -2667,15 +2665,12 @@ class hyperliquid extends Exchange {
             'cancels' => array(),
         );
         $baseId = $this->parse_to_numeric($market['baseId']);
-        if ($clientOrderId !== null) {
-            if ((gettype($clientOrderId) !== 'array' || array_keys($clientOrderId) !== array_keys(array_keys($clientOrderId)))) {
-                $clientOrderId = array( $clientOrderId );
-            }
+        if ($clientOrderIds !== null) {
             $cancelAction['type'] = 'cancelByCloid';
-            for ($i = 0; $i < count($clientOrderId); $i++) {
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $cancelReq[] = array(
                     'asset' => $baseId,
-                    'cloid' => $this->safe_string($clientOrderId, $i),
+                    'cloid' => $this->safe_string($clientOrderIds, $i),
                 );
             }
         } else {
@@ -3130,7 +3125,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fundingsResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fundings = $this->info_list($fundingsResponse);
         //
         //     [
         //         {
@@ -3142,10 +3138,6 @@ class hyperliquid extends Exchange {
         //     ]
         //
         $result = array();
-        $fundings = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $fundings = $response;
-        }
         for ($i = 0; $i < count($fundings); $i++) {
             $entry = $this->safe_dict($fundings, $i);
             $timestamp = $this->safe_integer($entry, 'time');
@@ -3187,8 +3179,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->dex] perp dex name. default is null
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchOpenOrders', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchOpenOrders', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOpenOrders', $params);
         list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if ($this->markets === null) {
             $this->load_markets();
@@ -3206,7 +3197,8 @@ class hyperliquid extends Exchange {
                 $request['dex'] = $dexName;
             }
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsMethod));
+        $rawOrdersResponse = $this->publicPostInfo($this->extend($request, $paramsMethod));
+        $rawOrders = $this->info_list($rawOrdersResponse);
         //
         //     [
         //         {
@@ -3221,10 +3213,6 @@ class hyperliquid extends Exchange {
         //     ]
         //
         $orderWithStatus = array();
-        $rawOrders = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $rawOrders = $response;
-        }
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->safe_dict($rawOrders, $i);
             $extendOrder = array();
@@ -3302,8 +3290,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->dex] perp dex name. default is null
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchOrders', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchOrders', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOrders', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3320,7 +3307,8 @@ class hyperliquid extends Exchange {
                 $request['dex'] = $dexName;
             }
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        $historicalOrdersResponse = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        $historicalOrders = $this->info_list($historicalOrdersResponse);
         //
         //     [
         //         {
@@ -3342,10 +3330,6 @@ class hyperliquid extends Exchange {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         $deduplicatedByOid = array();
-        $historicalOrders = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $historicalOrders = $response;
-        }
         for ($i = 0; $i < count($historicalOrders); $i++) {
             $rawOrder = $historicalOrders[$i];
             $entry = $this->safe_dict($rawOrder, 'order', $rawOrder);
@@ -3382,8 +3366,7 @@ class hyperliquid extends Exchange {
          */
         $userAddress = null;
         $params2 = null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchOrder', $params), 0);
-        $params2 = $this->safe_dict($this->handle_public_address('fetchOrder', $params), 1, array());
+        list($userAddress, $params2) = $this->handle_public_address('fetchOrder', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3569,7 +3552,10 @@ class hyperliquid extends Exchange {
             $postOnly = ($tif === 'ALO');
         }
         $isTrigger = $this->safe_bool($entry, 'isTrigger', false);
-        $triggerPx = $isTrigger ? $this->safe_number($entry, 'triggerPx') : null;
+        $triggerPx = null;
+        if ($isTrigger) {
+            $triggerPx = $this->safe_number($entry, 'triggerPx');
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
@@ -3655,8 +3641,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->subAccountAddress] sub account user address
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchMyTrades', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchMyTrades', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchMyTrades', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3678,7 +3663,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $myFillsResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $myFills = $this->info_list($myFillsResponse);
         //
         //     [
         //         {
@@ -3700,10 +3686,6 @@ class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        $myFills = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $myFills = $response;
-        }
         return $this->parse_trades($myFills, $market, $since, $limit);
     }
 
@@ -3784,8 +3766,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->user] $user address, will default to $this->walletAddress if not provided
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=$liquidation-structure $liquidation structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchMyLiquidations', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchMyLiquidations', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchMyLiquidations', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3807,7 +3788,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $infoResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $response = $this->info_list($infoResponse);
         //
         //     [
         //         {
@@ -3835,15 +3817,13 @@ class hyperliquid extends Exchange {
         //     ]
         //
         $fills = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $user = $this->safe_string_lower($request, 'user');
-            for ($i = 0; $i < count($response); $i++) {
-                $fill = $this->safe_dict($response, $i, array());
-                $liquidation = $this->safe_dict($fill, 'liquidation', array());
-                // liquidator fills carry the liquidated counterparty here
-                if ($this->safe_string_lower($liquidation, 'liquidatedUser') === $user) {
-                    $fills[] = $fill;
-                }
+        $user = $this->safe_string_lower($request, 'user');
+        for ($i = 0; $i < count($response); $i++) {
+            $fill = $this->safe_dict($response, $i, array());
+            $liquidation = $this->safe_dict($fill, 'liquidation', array());
+            // liquidator fills carry the liquidated counterparty here
+            if ($this->safe_string_lower($liquidation, 'liquidatedUser') === $user) {
+                $fills[] = $fill;
             }
         }
         return $this->parse_liquidations($fills, $market, $since, $limit);
@@ -3933,8 +3913,7 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $userAddress = $this->safe_string($this->handle_public_address('fetchPositions', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchPositions', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchPositions', $params);
         $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'type' => 'clearinghouseState',
@@ -4371,12 +4350,9 @@ class hyperliquid extends Exchange {
         $transferType = $this->safe_string($params, 'type');
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
-        $transferMethod = null;
-        $query = $params;
-        list($transferMethod, $query) = $this->handle_option_string_and_params($query, 'transfer', 'method');
-        $masterAddress = null;
-        $masterAddress = $this->safe_string($this->handle_public_address('transfer', $query), 0);
-        $query = $this->safe_dict($this->handle_public_address('transfer', $query), 1, array());
+        list($transferMethod, $paramsMethod) = $this->handle_option_string_and_params($params, 'transfer', 'method');
+        list($masterAddress, $paramsAddress) = $this->handle_public_address('transfer', $paramsMethod);
+        $query = $paramsAddress;
         $useSendAsset = ($transferMethod === 'sendAsset');
         if ($transferMethod === null) {
             $isUnified = null;
@@ -4622,8 +4598,7 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $userAddress = $this->safe_string($this->handle_public_address('fetchTradingFee', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchTradingFee', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchTradingFee', $params);
         $market = $this->market($symbol);
         $request = array(
             'type' => 'userFees',
@@ -4735,8 +4710,7 @@ class hyperliquid extends Exchange {
         }
         $userAddress = null;
         $params2 = null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchLedger', $params), 0);
-        $params2 = $this->safe_dict($this->handle_public_address('fetchLedger', $params), 1, array());
+        list($userAddress, $params2) = $this->handle_public_address('fetchLedger', $params);
         $request = array(
             'type' => 'userNonFundingLedgerUpdates',
             'user' => $userAddress,
@@ -4763,7 +4737,8 @@ class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        return $this->parse_ledger($response, null, $since, $limit);
+        $rows = $this->info_list($response);
+        return $this->parse_ledger($rows, null, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -4834,8 +4809,7 @@ class hyperliquid extends Exchange {
         }
         $userAddress = null;
         $params2 = null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchDepositsWithdrawals', $params), 0);
-        $params2 = $this->safe_dict($this->handle_public_address('fetchDepositsWithdrawals', $params), 1, array());
+        list($userAddress, $params2) = $this->handle_public_address('fetchDepositsWithdrawals', $params);
         $request = array(
             'type' => 'userNonFundingLedgerUpdates',
             'user' => $userAddress,
@@ -4851,7 +4825,8 @@ class hyperliquid extends Exchange {
             $request['endTime'] = $until;
             $params2 = $this->omit($params2, array( 'until' ));
         }
-        $response = $this->publicPostInfo($this->extend($request, $params2));
+        $depositLedgerResponse = $this->publicPostInfo($this->extend($request, $params2));
+        $depositLedger = $this->info_list($depositLedgerResponse);
         //
         // [
         //     {
@@ -4865,10 +4840,6 @@ class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        $depositLedger = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $depositLedger = $response;
-        }
         $records = $this->extract_type_from_delta($depositLedger);
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -4907,8 +4878,7 @@ class hyperliquid extends Exchange {
         }
         $userAddress = null;
         $params2 = null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchDepositsWithdrawals', $params), 0);
-        $params2 = $this->safe_dict($this->handle_public_address('fetchDepositsWithdrawals', $params), 1, array());
+        list($userAddress, $params2) = $this->handle_public_address('fetchDepositsWithdrawals', $params);
         $request = array(
             'type' => 'userNonFundingLedgerUpdates',
             'user' => $userAddress,
@@ -4921,7 +4891,8 @@ class hyperliquid extends Exchange {
             $request['endTime'] = $until;
             $params2 = $this->omit($params2, array( 'until' ));
         }
-        $response = $this->publicPostInfo($this->extend($request, $params2));
+        $withdrawalLedgerResponse = $this->publicPostInfo($this->extend($request, $params2));
+        $withdrawalLedger = $this->info_list($withdrawalLedgerResponse);
         //
         // [
         //     {
@@ -4935,10 +4906,6 @@ class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        $withdrawalLedger = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $withdrawalLedger = $response;
-        }
         $records = $this->extract_type_from_delta($withdrawalLedger);
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'fetchDepositsWithdrawals', 'vaultAddress');
@@ -5049,8 +5016,7 @@ class hyperliquid extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $userAddress = $this->safe_string($this->handle_public_address('fetchFundingHistory', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchFundingHistory', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchFundingHistory', $params);
         $request = array(
             'user' => $userAddress,
             'type' => 'userFunding',
@@ -5063,7 +5029,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fundingResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $response = $this->info_list($fundingResponse);
         //
         // [
         //     {
@@ -5171,7 +5138,7 @@ class hyperliquid extends Exchange {
         return $response;
     }
 
-    public function extract_type_from_delta(array $data = array()): array {
+    public function extract_type_from_delta(array $data): array {
         $records = array();
         for ($i = 0; $i < count($data); $i++) {
             $record = $this->safe_dict($data, $i, array());
@@ -5255,8 +5222,9 @@ class hyperliquid extends Exchange {
             $data = $this->safe_dict($responsePayload, 'data', array());
             $statuses = $this->safe_list($data, 'statuses', array());
             for ($i = 0; $i < count($statuses); $i++) {
-                $message = $this->safe_string($statuses[$i], 'error');
-                if ($message !== null) {
+                $statusError = $this->safe_string($statuses[$i], 'error');
+                if ($statusError !== null) {
+                    $message = $statusError;
                     break;
                 }
             }
@@ -5301,7 +5269,7 @@ class hyperliquid extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $this->safe_dict($config, 'byType', array());
@@ -5333,5 +5301,19 @@ class hyperliquid extends Exchange {
             $order['id'] = $id;
         }
         return array( $order, $globalParams );
+    }
+
+    public function info_list(mixed $response): array {
+        /**
+         * @ignore
+         * narrows an info endpoint $response for a request type that answers with a JSON array
+         * @param {object|array[]|string} $response the info endpoint $response
+         * @return {array[]} the $response array, or an empty array for any other $response
+         */
+        $result = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $result = $response;
+        }
+        return $result;
     }
 }

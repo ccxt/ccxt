@@ -1685,7 +1685,7 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        const operatorId = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId')[0];
+        const [ operatorId ] = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
@@ -2645,12 +2645,14 @@ export default class bitvavo extends Exchange {
             networkId = currencyCode;
         }
         const networkCode = this.networkIdToCode (networkId, currencyCode);
+        const networkFees: Dict = {};
         if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'deposit': result['deposit'],
                 'withdraw': result['withdraw'],
             };
         }
+        result['networks'] = networkFees;
         return result;
     }
 
@@ -2753,7 +2755,7 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

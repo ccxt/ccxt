@@ -761,12 +761,20 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     createSubAccount(name: string, params?: Dict): Promise<Dict>;
-    extractTypeFromDelta(data?: Dict[]): Dict[];
+    extractTypeFromDelta(data: Dict[]): Dict[];
     formatVaultAddress(address?: Str): Str;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     coinToMarketId(coin: Str): Str;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: Dict, config?: Dict): any;
     parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): [Dict, Dict];
+    /**
+     * @ignore
+     * @method
+     * @description narrows an info endpoint response for a request type that answers with a JSON array
+     * @param {object|object[]|string} response the info endpoint response
+     * @returns {object[]} the response array, or an empty array for any other response
+     */
+    infoList(response: Dict | List | string): Dict[];
 }

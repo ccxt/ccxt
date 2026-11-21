@@ -3465,8 +3465,15 @@ class woofipro extends woofipro$1["default"] {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(requestParams, 'orders', []);
+                        const taggedOrders = [];
+                        let hasOrders = false;
                         for (let i = 0; i < ordersList.length; i++) {
-                            requestParams['orders'][i]['order_tag'] = brokerId;
+                            const orderRow = this.extend(ordersList[i], { 'order_tag': brokerId });
+                            taggedOrders.push(orderRow);
+                            hasOrders = true;
+                        }
+                        if (hasOrders) {
+                            requestParams['orders'] = taggedOrders;
                         }
                     }
                     else {

@@ -1213,7 +1213,7 @@ class dydx extends Exchange {
         return $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey): array {
+    public function sign_hash(string $hash, mixed $privateKey): array {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $this->safe_string($signature, 'r', '');
         $s = $this->safe_string($signature, 's', '');
@@ -1458,9 +1458,15 @@ class dydx extends Exchange {
         $paramsOmitted = $this->omit($paramsGoodTillBlockTimeInSeconds, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
         $walletAddress = $this->get_wallet_address();
         $clobPairId = $this->safe_integer($marketInfo, 'clobPairId', 0);
-        $subaccountIdValue = ($subaccountIdOption === null) ? 0 : $subaccountIdOption;
+        $subaccountIdValue = 0;
+        if ($subaccountIdOption !== null) {
+            $subaccountIdValue = $subaccountIdOption;
+        }
         $clientOrderIdValue = ($clientOrderId === null) ? 0 : $clientOrderId;
-        $orderFlagValue = ($orderFlag === null) ? 0 : $orderFlag;
+        $orderFlagValue = 0;
+        if ($orderFlag !== null) {
+            $orderFlagValue = $orderFlag;
+        }
         $clobPairIdValue = ($clobPairId === null) ? 0 : $clobPairId;
         $orderId = $this->create_order_id_from_parts($walletAddress, $subaccountIdValue, $clientOrderIdValue, $orderFlagValue, $clobPairIdValue);
         return array( $orderId, $this->extend($signingPayload, $paramsOmitted) );
@@ -1865,8 +1871,9 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->fetch_transactions_helper('fetchLedger', $code, $since, $limit, $this->omit($params, 'methodName'));
-        return $this->parse_ledger($response, $currency, $since, $limit);
+        $rows = array();
+        $rows = $this->fetch_transactions_helper('fetchLedger', $code, $since, $limit, $this->omit($params, 'methodName'));
+        return $this->parse_ledger($rows, $currency, $since, $limit);
     }
 
     public function estimate_tx_fee(array $message, ?string $memo, array $account): array {
@@ -2569,6 +2576,8 @@ class dydx extends Exchange {
         // rewrite testnet parameters
         $this->options['chainName'] = 'dydx-testnet-4';
         $this->options['chainId'] = 11155111;
-        $this->options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        $feeDenomDict = $this->safe_dict($this->options, 'feeDenom', array());
+        $feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt';
+        $this->options['feeDenom'] = $feeDenomDict;
     }
 }

@@ -1117,7 +1117,7 @@ public partial class woofipro : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
+    public virtual Dictionary<string, object> parseTokenAndFeeTemp(object item, string feeTokenKey, string feeAmountKey)
     {
         string? feeCost = this.safeString(item, feeAmountKey);
         Dictionary<string, object> fee = null;
@@ -1506,7 +1506,7 @@ public partial class woofipro : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.v1PublicGetPublicFutures(parameters);
         //
         // {
@@ -1743,7 +1743,7 @@ public partial class woofipro : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "funding_rate_timestamp");
             rates.Add(new Dictionary<string, object>() {
@@ -3561,7 +3561,7 @@ public partial class woofipro : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data, currency));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3571,11 +3571,11 @@ public partial class woofipro : Exchange
         //
         string? marketId = this.safeString(marginMode, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "marginMode", this.safeStringLower(marginMode, "default_margin_mode") },
-        };
+        })));
     }
 
     /**
@@ -4042,7 +4042,7 @@ public partial class woofipro : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(result, "rows", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
     public override Int64 nonce()
@@ -4086,9 +4086,19 @@ public partial class woofipro : Exchange
                     if ((path == "batch-order"))
                     {
                         List<object> ordersList = this.safeList(requestParams, "orders", new List<object>() {});
+                        List<object> taggedOrders = new List<object>() {};
+                        bool hasOrders = false;
                         for (int i = 0; i < ordersList.Count; i++)
                         {
-                            ((IDictionary<string,object>)getValue((requestParams != null && requestParams.ContainsKey("orders") ? requestParams["orders"] : null), i))["order_tag"] = brokerId;
+                            Dictionary<string, object> orderRow = this.extend(ordersList[i], new Dictionary<string, object>() {
+                                { "order_tag", brokerId },
+                            });
+                            taggedOrders.Add(orderRow);
+                            hasOrders = true;
+                        }
+                        if (hasOrders)
+                        {
+                            requestParams["orders"] = taggedOrders;
                         }
                     } else
                     {
@@ -4132,7 +4142,7 @@ public partial class woofipro : Exchange
                 List<object> parts = this.secret.Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
-            string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
+            string signature = eddsa(auth, this.base58ToBinary(secret), ed25519);
             authHeaders["orderly-signature"] = this.urlencodeBase64(this.base64ToBinary(signature));
             requestHeaders = authHeaders;
         }
@@ -4160,7 +4170,7 @@ public partial class woofipro : Exchange
         {
             string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

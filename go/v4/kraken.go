@@ -124,8 +124,8 @@ func (this *Kraken) Describe() map[string]any {
 				"taker":      this.ParseNumber("0.0026"),
 				"maker":      this.ParseNumber("0.0016"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0026")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0024")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0022")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0001")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("50000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0")}},
+					"taker": []any{[]any{0.0, 0.0026}, []any{50000.0, 0.0024}, []any{100000.0, 0.0022}, []any{250000.0, 0.0020}, []any{500000.0, 0.0018}, []any{1000000.0, 0.0016}, []any{2500000.0, 0.0014}, []any{5000000.0, 0.0012}, []any{10000000.0, 0.0001}},
+					"maker": []any{[]any{0.0, 0.0016}, []any{50000.0, 0.0014}, []any{100000.0, 0.0012}, []any{250000.0, 0.0010}, []any{500000.0, 0.0008}, []any{1000000.0, 0.0006}, []any{2500000.0, 0.0004}, []any{5000000.0, 0.0002}, []any{10000000.0, 0.0}},
 				},
 			},
 		},
@@ -704,7 +704,7 @@ func (this *Kraken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	var assetsResponse map[string]any = SafeMapTyped(responses, 0)
 	//
 	//     {
@@ -754,7 +754,7 @@ func (this *Kraken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//     }
 	//
 	var markets map[string]any = SafeMapTyped(assetsResponse, "result")
-	var cachedCurrencies map[string]any = SafeMapTyped(this.Options, "cachedCurrencies")
+	var cachedCurrencies, _ = this.Options["cachedCurrencies"].(map[string]any)
 	var keys []string = nil
 	if markets != nil {
 		keys = make([]string, 0, len(markets))
@@ -895,31 +895,29 @@ func (this *Kraken) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetSystemStatus(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetSystemStatus(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// {
 	//     error: [],
 	//     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
 	// }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var statusRaw *string = this.SafeString(result, "status")
-
+	var ternaryStr78322 string = "maintenance"
+	if statusRaw != nil && *statusRaw == "online" {
+		ternaryStr78322 = "ok"
+	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() string {
-			if statusRaw != nil && *statusRaw == "online" {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status":  ternaryStr78322,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -1002,7 +1000,11 @@ func (this *Kraken) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//         },
 	//     }
 	//
-	var currencies map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var currencies map[string]any
+	currencies, _ = response["result"].(map[string]any)
+	if currencies == nil {
+		currencies = map[string]any{}
+	}
 	var enhancedArray any = this.AddKeyInArrayItems(currencies, "_coin_id")
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(enhancedArray)}
@@ -1050,18 +1052,17 @@ func (this *Kraken) ParseCurrency(rawCurrency any) map[string]any {
 	}
 	var isFiat bool = (strings.Index(*code, ".HOLD") >= 0)
 	var rawCurrencyOmitted any = this.Omit(rawCurrency, "_coin_id")
+	var ternaryStr90820 string = "crypto"
+	if isFiat {
+		ternaryStr90820 = "fiat"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":     id,
-		"code":   code,
-		"info":   rawCurrencyOmitted,
-		"name":   this.SafeString(rawCurrencyOmitted, "altname"),
-		"active": (this.SafeString(rawCurrencyOmitted, "status") != nil && *this.SafeString(rawCurrencyOmitted, "status") == "enabled"),
-		"type": func() string {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"id":        id,
+		"code":      code,
+		"info":      rawCurrencyOmitted,
+		"name":      this.SafeString(rawCurrencyOmitted, "altname"),
+		"active":    (this.SafeString(rawCurrencyOmitted, "status") != nil && *this.SafeString(rawCurrencyOmitted, "status") == "enabled"),
+		"type":      ternaryStr90820,
 		"deposit":   nil,
 		"withdraw":  nil,
 		"fee":       nil,
@@ -1090,7 +1091,11 @@ func (this *Kraken) SafeCurrencyCode(currencyId any, optionalArgs ...any) *strin
 		var parts []string = Split(currencyId, ".")
 		var firstPart *string = this.SafeString(parts, 0)
 		var secondPart *string = this.SafeString(parts, 1)
-		return SafeStringPtr(Add(Add(this.Exchange.SafeCurrencyCode(firstPart, currency), "."), secondPart))
+		if retPiece := this.Exchange.SafeCurrencyCode(firstPart, currency); retPiece != nil && secondPart != nil {
+			retStr := *retPiece + "." + *secondPart
+			return &retStr
+		}
+		return nil
 	}
 	return SafeStringPtr(this.Exchange.SafeCurrencyCode(currencyId, currency))
 }
@@ -1161,14 +1166,18 @@ func (this *Kraken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 	//        }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(result, market)}
 	return nil
 }
 func (this *Kraken) ParseTradingFee(fee map[string]any, market map[string]any) TradingFeeInterface {
-	var makerFees map[string]any = SafeMapTyped(fee, "fees_maker")
-	var takerFees map[string]any = SafeMapTyped(fee, "fees")
+	var makerFees, _ = fee["fees_maker"].(map[string]any)
+	var takerFees, _ = fee["fees"].(map[string]any)
 	var symbolMakerFee map[string]any = SafeMapTyped(makerFees, market["id"])
 	var symbolTakerFee map[string]any = SafeMapTyped(takerFees, market["id"])
 	return TradingFeeInterfaceFromMap(map[string]any{
@@ -1227,7 +1236,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		"pair": market["id"],
 	}
 	if limit != nil {
-		request["count"] = limit // 100
+		request["count"] = *limit // 100
 	}
 
 	r1 := <-this.PublicGetDepth(this.Extend(request, params))
@@ -1254,7 +1263,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//         }
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var orderbook any = this.SafeDict(result, market["id"])
 	// sometimes kraken returns wsname instead of market id
 	// https://github.com/ccxt/ccxt/issues/8662
@@ -1366,7 +1375,7 @@ func (this *Kraken) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers map[string]any = SafeMapTyped(response, "result")
+	var tickers, _ = response["result"].(map[string]any)
 	var ids []string = nil
 	if tickers != nil {
 		ids = make([]string, 0, len(tickers))
@@ -1425,7 +1434,7 @@ func (this *Kraken) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickerResult map[string]any = SafeMapTyped(response, "result")
+	var tickerResult, _ = response["result"].(map[string]any)
 	var ticker any = this.SafeValue(tickerResult, market["id"])
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
@@ -1537,8 +1546,8 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//             "last":1591517580
 	//         }
 	//     }
-	var result map[string]any = SafeMapTyped(response, "result")
-	var ohlcvs []any = SafeListTypedDefault(result, market["id"], []any{})
+	var result, _ = response["result"].(map[string]any)
+	var ohlcvs []any = this.SafeListSlice(result, market["id"], []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
@@ -1657,12 +1666,12 @@ func (this *Kraken) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until", "till"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, []any{"until", "till"})
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		var untilDivided *string = Precise.StringDiv(until, "1000")
 		request["end"] = this.ParseToInt(Precise.StringAdd(untilDivided, "1"))
@@ -1682,8 +1691,8 @@ func (this *Kraken) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	//                                                 "amount": "-0.2805800000",
 	//                                                    "fee": "0.0050000000",
 	//                                                "balance": "0.0000051000"           },
-	var result map[string]any = SafeMapTyped(response, "result")
-	var ledger map[string]any = SafeMapTyped(result, "ledger")
+	var result, _ = response["result"].(map[string]any)
+	var ledger, _ = result["ledger"].(map[string]any)
 	var keys []string = nil
 	if ledger != nil {
 		keys = make([]string, 0, len(ledger))
@@ -1702,12 +1711,12 @@ func (this *Kraken) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(items, currency, since, limit))}
 	return nil
 }
-func (this *Kraken) FetchLedgerEntriesByIdsAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry] {
+func (this *Kraken) FetchLedgerEntriesByIdsAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry] {
 	ch := make(chan AsyncResult[[]LedgerEntry], 1)
 	go this.fetchLedgerEntriesByIdsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[[]LedgerEntry], ids any, optionalArgs ...any) any {
+func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[[]LedgerEntry], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// https://www.kraken.com/features/api#query-ledgers
@@ -1722,7 +1731,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[[]LedgerEntr
 			panic(r.Err)
 		}
 	}
-	var idsValue string = Join(ids, ",")
+	var idsValue string = strings.Join(ids, ",")
 	var request map[string]any = this.Extend(map[string]any{
 		"id": idsValue,
 	}, params)
@@ -1741,7 +1750,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan AsyncResult[[]LedgerEntr
 	//                                       "amount": "-0.2805800000",
 	//                                          "fee": "0.0050000000",
 	//                                      "balance": "0.0000051000"           } } }
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var keys []string = nil
 	if result != nil {
 		keys = make([]string, 0, len(result))
@@ -1773,14 +1782,17 @@ func (this *Kraken) fetchLedgerEntryBody(ch chan AsyncResult[LedgerEntry], id st
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.FetchLedgerEntriesByIdsAsync([]any{id}, code, params)
+	r := <-this.FetchLedgerEntriesByIdsAsync([]string{id}, code, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var items []any = LedgerEntriesToList(r.Value)
-	var entry map[string]any = SafeMapTyped(items, 0)
+	var items []LedgerEntry = r.Value
+	var entry LedgerEntry
+	if len(items) > 0 {
+		entry = items[0]
+	}
 
-	ch <- AsyncResult[LedgerEntry]{Value: LedgerEntryFromMap(entry)}
+	ch <- AsyncResult[LedgerEntry]{Value: entry}
 	return nil
 }
 func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1865,29 +1877,39 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
-		side = SafeStringPtr(func() string {
-			if this.SafeString(trade, 3) != nil && *this.SafeString(trade, 3) == "s" {
-				return "sell"
-			}
-			return "buy"
-		}())
-		typeVar = SafeStringPtr(func() string {
-			if this.SafeString(trade, 4) != nil && *this.SafeString(trade, 4) == "l" {
-				return "limit"
-			}
-			return "market"
-		}())
+		var sideStr string
+		if this.SafeString(trade, 3) != nil && *this.SafeString(trade, 3) == "s" {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
+		side = &sideStr
+		var typeVarStr string
+		if this.SafeString(trade, 4) != nil && *this.SafeString(trade, 4) == "l" {
+			typeVarStr = "limit"
+		} else {
+			typeVarStr = "market"
+		}
+		typeVar = &typeVarStr
 		price = this.SafeString(trade, 0)
 		amount = this.SafeString(trade, 1)
 		var tradeLength int = GetArrayLength(trade)
 		if tradeLength > 6 {
-			id = DerefScalar(this.SafeString(trade, 6)) // artificially added as per #1794
+			if derefPtr := this.SafeString(trade, 6); derefPtr != nil { // artificially added as per #1794
+				id = *derefPtr
+			} else {
+				id = nil
+			}
 		}
 	} else if IsString(trade) {
 		id = trade
 	} else if isOrderTrade {
 		orderId = this.SafeString(trade, "ordertxid")
-		id = DerefScalar(this.SafeString2(trade, "id", "postxid"))
+		if derefPtr := this.SafeString2(trade, "id", "postxid"); derefPtr != nil {
+			id = *derefPtr
+		} else {
+			id = nil
+		}
 		timestamp = this.SafeTimestamp(trade, "time")
 		side = this.SafeString(trade, "type")
 		typeVar = this.SafeString(trade, "ordertype")
@@ -1923,33 +1945,50 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var maker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker *string = nil
 	if maker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
-			if maker != nil && *maker {
-				return "maker"
-			}
-			return "taker"
-		}())
+		var takerOrMakerStr string
+		if maker != nil && *maker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
+		takerOrMaker = &takerOrMakerStr
 	}
 	if datetime == nil {
 		datetime = this.Iso8601(timestamp)
 	} else {
 		timestamp = this.Parse8601(datetime)
 	}
-	return this.SafeTrade(map[string]any{
+	var literal155231 map[string]any = map[string]any{
 		"id":           id,
-		"order":        orderId,
+		"order":        nil,
 		"info":         trade,
 		"timestamp":    timestamp,
-		"datetime":     datetime,
-		"symbol":       symbol,
+		"datetime":     nil,
+		"symbol":       nil,
 		"type":         typeVar,
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
-		"price":        price,
-		"amount":       amount,
+		"price":        nil,
+		"amount":       nil,
 		"cost":         cost,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if orderId != nil {
+		literal155231["order"] = *orderId
+	}
+	if datetime != nil {
+		literal155231["datetime"] = *datetime
+	}
+	if symbol != nil {
+		literal155231["symbol"] = *symbol
+	}
+	if price != nil {
+		literal155231["price"] = *price
+	}
+	if amount != nil {
+		literal155231["amount"] = *amount
+	}
+	return this.SafeTrade(literal155231, marketResolved)
 }
 
 /**
@@ -1963,12 +2002,12 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Kraken) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Kraken) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1995,7 +2034,7 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		request["since"] = this.NumberToString(this.ParseToInt(float64(*since) / 1000)) // expected to be in seconds
 	}
 	if limit != nil {
-		request["count"] = limit
+		request["count"] = *limit
 	}
 
 	r1 := <-this.PublicGetTrades(this.Extend(request, params))
@@ -2014,7 +2053,7 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	//         }
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var trades any = this.SafeList(result, id, []any{})
 	// trades is a sorted array: last (most recent trade) goes last
 	var length int = GetArrayLength(trades)
@@ -2031,8 +2070,8 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
 }
-func (this *Kraken) ParseBalance(response any) map[string]any {
-	var balances map[string]any = SafeMapTyped(response, "result")
+func (this *Kraken) ParseBalance(response map[string]any) map[string]any {
+	var balances, _ = response["result"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -2229,18 +2268,21 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":      market["id"],
+		"pair":      nil,
 		"type":      side,
 		"ordertype": typeVar,
 		"volume":    this.AmountToPrecision(symbol, amount),
 	}
-	var orderRequest any = this.OrderRequest("createOrder", &symbol, &typeVar, request, amount, price, params)
-	var flags string = *this.SafeString(GetValue(orderRequest, 0), "oflags", "")
+	if market.Id != nil {
+		request["pair"] = *market.Id
+	}
+	var orderRequest []any = this.OrderRequest("createOrder", &symbol, &typeVar, request, amount, price, params)
+	var flags string = *this.SafeString(orderRequest[0], "oflags", "")
 	var isUsingCost bool = (strings.Index(flags, "viqc") > -1)
 
-	r1 := <-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1)))
+	r1 := <-this.PrivatePostAddOrder(this.Extend(orderRequest[0], orderRequest[1]))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2254,7 +2296,11 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	result["usingCost"] = isUsingCost
 
 	// it's impossible to know if the order was created using cost or base currency
@@ -2273,12 +2319,12 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Kraken) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2295,7 +2341,7 @@ func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	var symbol *string = nil
 	var market map[string]any = nil
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
 			symbol = marketId
@@ -2317,8 +2363,8 @@ func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 			"ordertype": typeVar,
 			"volume":    parsedAmount,
 		}
-		var orderRequest any = this.OrderRequest("createOrders", marketId, typeVar, req, amount, price, orderParams)
-		ordersRequests = append(ordersRequests, GetValue(orderRequest, 0))
+		var orderRequest []any = this.OrderRequest("createOrders", marketId, typeVar, req, amount, price, orderParams)
+		ordersRequests = append(ordersRequests, orderRequest[0])
 	}
 	this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var response map[string]any = nil
@@ -2354,13 +2400,13 @@ func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	//       ]
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.SafeList(result, "orders")))}
 	return nil
 }
 func (this *Kraken) FindMarketByAltnameOrId(id any) any {
-	var marketsByAltname map[string]any = SafeMapTyped(this.Options, "marketsByAltname")
+	var marketsByAltname, _ = this.Options["marketsByAltname"].(map[string]any)
 	if InOp(marketsByAltname, id) {
 		return this.SafeDict(marketsByAltname, id)
 	} else {
@@ -2417,7 +2463,13 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 		"baseId":  baseId,
 		"quoteId": quoteId,
 	}
-	AddElementToObject(this.Options["delistedMarketsById"], id, market)
+	var delistedMarketsByIdDict map[string]any
+	delistedMarketsByIdDict, _ = this.Options["delistedMarketsById"].(map[string]any)
+	if delistedMarketsByIdDict == nil {
+		delistedMarketsByIdDict = map[string]any{}
+	}
+	AddElementToObject(delistedMarketsByIdDict, id, market)
+	this.Options["delistedMarketsById"] = delistedMarketsByIdDict
 	return market
 }
 func (this *Kraken) ParseOrderStatus(status *string) *string {
@@ -2582,10 +2634,11 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		} else {
 			descriptionType = Add(Add(part4, " "), part5) // eg. stop loss, take profit, trailing stop
 		}
-		if IsEqual(descriptionType, "stop loss") || IsEqual(descriptionType, "take profit") {
+		// split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+		if ((part4 != nil && *part4 == "stop") && (part5 != nil && *part5 == "loss")) || ((part4 != nil && *part4 == "take") && (part5 != nil && *part5 == "profit")) {
 			triggerPrice = this.SafeString(parts, 6)
 			price = this.SafeString(parts, 9)
-		} else if IsEqual(descriptionType, "limit") {
+		} else if part4 != nil && *part4 == "limit" {
 			price = this.SafeString(parts, 5)
 		}
 	}
@@ -2594,7 +2647,11 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		side = descriptionSide
 	}
 	var rawType *string = this.SafeString(description, "ordertype", descriptionType) // orderType has dash, e.g. trailing-stop
-	marketId = DerefScalar(this.SafeString(description, "pair", marketId))
+	if derefPtr := this.SafeString(description, "pair", marketId); derefPtr != nil {
+		marketId = *derefPtr
+	} else {
+		marketId = nil
+	}
 	var marketResolved any = this.ResolveMarketByAltnameOrId(marketId, market)
 	var symbol *string = nil
 	var timestamp *int64 = this.SafeTimestamp(orderOmitted, "opentm")
@@ -2632,9 +2689,21 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 				"rate": nil,
 			}
 			if strings.Index(flags, "fciq") >= 0 {
-				AddElementToObject(fee, "currency", this.SafeString(marketResolved, "quote"))
+				if fee != nil {
+					if ptrValue := this.SafeString(marketResolved, "quote"); ptrValue != nil {
+						fee["currency"] = *ptrValue
+					} else {
+						fee["currency"] = nil
+					}
+				}
 			} else if strings.Index(flags, "fcib") >= 0 {
-				AddElementToObject(fee, "currency", this.SafeString(marketResolved, "base"))
+				if fee != nil {
+					if ptrValue := this.SafeString(marketResolved, "base"); ptrValue != nil {
+						fee["currency"] = *ptrValue
+					} else {
+						fee["currency"] = nil
+					}
+				}
 			}
 		}
 	}
@@ -2691,18 +2760,19 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	// for "space-delimited" orders we dont have market/limit suffixes, their format is
 	// eg: `stop loss > limit 123`, so we need to parse them manually
 	if this.InArray(typeParsed, []any{"stop loss", "take profit"}) {
-		typeParsed = SafeStringPtr(func() string {
-			if price == nil {
-				return "market"
-			}
-			return "limit"
-		}())
+		var typeParsedStr string
+		if price == nil {
+			typeParsedStr = "market"
+		} else {
+			typeParsedStr = "limit"
+		}
+		typeParsed = &typeParsedStr
 	}
 	var amendId *string = this.SafeString(orderOmitted, "amend_id")
 	if amendId != nil {
 		isPostOnly = nil
 	}
-	return this.SafeOrder(map[string]any{
+	var literal217531 map[string]any = map[string]any{
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
 		"info":                orderOmitted,
@@ -2711,24 +2781,43 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		"lastTradeTimestamp":  nil,
 		"lastUpdateTimestamp": this.SafeTimestamp(orderOmitted, "closetm"),
 		"status":              status,
-		"symbol":              symbol,
+		"symbol":              nil,
 		"type":                typeParsed,
 		"timeInForce":         nil,
 		"postOnly":            isPostOnly,
-		"side":                side,
+		"side":                nil,
 		"price":               price,
 		"triggerPrice":        triggerPrice,
-		"takeProfitPrice":     takeProfitPrice,
-		"stopLossPrice":       stopLossPrice,
-		"cost":                cost,
-		"amount":              amount,
+		"takeProfitPrice":     nil,
+		"stopLossPrice":       nil,
+		"cost":                nil,
+		"amount":              nil,
 		"filled":              filled,
 		"average":             average,
 		"remaining":           nil,
 		"reduceOnly":          this.SafeBool2(orderOmitted, "reduceOnly", "reduce_only"),
 		"fee":                 fee,
 		"trades":              trades,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal217531["symbol"] = *symbol
+	}
+	if side != nil {
+		literal217531["side"] = *side
+	}
+	if takeProfitPrice != nil {
+		literal217531["takeProfitPrice"] = *takeProfitPrice
+	}
+	if stopLossPrice != nil {
+		literal217531["stopLossPrice"] = *stopLossPrice
+	}
+	if cost != nil {
+		literal217531["cost"] = *cost
+	}
+	if amount != nil {
+		literal217531["amount"] = *amount
+	}
+	return this.SafeOrder(literal217531, marketResolved)
 }
 func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string, request map[string]any, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2794,26 +2883,26 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 	} else if isTrailingAmountOrder || isTrailingPercentOrder {
 		var trailingPercentString any = nil
 		if trailingPercent != nil {
-			trailingPercentString = func() any {
-				if strings.HasSuffix(*trailingPercent, "%") {
-					return ("+" + *trailingPercent)
-				}
-				return ("+" + *trailingPercent + "%")
-			}()
+			if strings.HasSuffix(*trailingPercent, "%") {
+				trailingPercentString = ("+" + *trailingPercent)
+			} else {
+				trailingPercentString = ("+" + *trailingPercent + "%")
+			}
 		}
-		var trailingAmountString *string = func() *string {
-			if trailingAmount != nil {
-				return SafeStringPtr("+" + *trailingAmount)
-			}
-			return nil
-		}() // must use + for this
+		var trailingAmountString *string
+		if trailingAmount != nil {
+			retStr := "+" + *trailingAmount
+			trailingAmountString = &retStr
+		} else {
+			trailingAmountString = nil
+		} // must use + for this
 		var offset string = *this.SafeString(paramsOmitted2, "offset", "-") // can use + or - for this
-		var trailingLimitAmountString any = func() any {
-			if trailingLimitAmount != nil {
-				return Add(offset, this.NumberToString(trailingLimitAmount))
-			}
-			return nil
-		}()
+		var trailingLimitAmountString any
+		if trailingLimitAmount != nil {
+			trailingLimitAmountString = Add(offset, this.NumberToString(trailingLimitAmount))
+		} else {
+			trailingLimitAmountString = nil
+		}
 		var trailingActivationPriceType *string = this.SafeString(paramsOmitted2, "trigger", "last")
 		request["trigger"] = trailingActivationPriceType
 		if isLimitOrder || (trailingLimitAmount != nil) || (trailingLimitPercent != nil) {
@@ -2905,12 +2994,12 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
  * @param {string} [params.clientOrderId] the orders client order id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kraken) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2934,53 +3023,50 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		"txid": id,
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "cl_ord_id")
-	var paramsOmitted any = func() any {
-		if clientOrderId != nil {
-			return this.Omit(params, []any{"clientOrderId", "cl_ord_id"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(params, []any{"clientOrderId", "cl_ord_id"})
+	} else {
+		paramsOmitted = params
+	}
 	if clientOrderId != nil {
 		request["cl_ord_id"] = *clientOrderId
 		request = this.OmitDict(request, "txid")
 	}
-	var isMarket bool = (IsEqual(typeVar, "market"))
+	var isMarket bool = (typeVar == "market")
 	var postOnly bool
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted)
 	postOnly = postOnlyparamsOmittedVariable[0].(bool)
-	paramsOmitted = postOnlyparamsOmittedVariable[1]
+	paramsOmitted = postOnlyparamsOmittedVariable[1].(map[string]any)
 	if postOnly {
 		request["post_only"] = "true" // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
 	if amount != nil {
-		request["order_qty"] = func() any {
-			if v := this.AmountToPrecision(symbol, amount); v != nil {
-				return *v
-			}
-			return nil
-		}()
+		if ptrValue := this.AmountToPrecision(symbol, amount); ptrValue != nil {
+			request["order_qty"] = *ptrValue
+		} else {
+			request["order_qty"] = nil
+		}
 	}
 	if price != nil {
-		request["limit_price"] = func() any {
-			if v := this.PriceToPrecision(symbol, price); v != nil {
-				return *v
-			}
-			return nil
-		}()
+		if ptrValue := this.PriceToPrecision(symbol, price); ptrValue != nil {
+			request["limit_price"] = *ptrValue
+		} else {
+			request["limit_price"] = nil
+		}
 	}
 	var allTriggerPrices *string = this.SafeStringN(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"})
 	if allTriggerPrices != nil {
 		var offset *string = this.SafeString(paramsOmitted, "offset")
-		paramsOmitted = this.Omit(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
+		paramsOmitted = this.OmitDict(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
 		if offset != nil {
 			request["trigger_price"] = *offset + *allTriggerPrices
 		} else {
-			request["trigger_price"] = func() any {
-				if v := this.PriceToPrecision(symbol, allTriggerPrices); v != nil {
-					return *v
-				}
-				return nil
-			}()
+			if ptrValue := this.PriceToPrecision(symbol, allTriggerPrices); ptrValue != nil {
+				request["trigger_price"] = *ptrValue
+			} else {
+				request["trigger_price"] = nil
+			}
 		}
 	}
 
@@ -2997,7 +3083,11 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -3145,13 +3235,14 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
-	var options map[string]any = SafeMapTyped(this.Options, "fetchOrderTrades")
+	var symbolResolved *string
+	if symbol != nil {
+		retStr := this.Symbol(symbol)
+		symbolResolved = &retStr
+	} else {
+		symbolResolved = symbol
+	}
+	var options, _ = this.Options["fetchOrderTrades"].(map[string]any)
 	var batchSize int64 = *this.SafeInteger(options, "batchSize", 20)
 	var numTradeIds int = len(tradeIds)
 	// full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
@@ -3250,7 +3341,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan AsyncResult[[]Order], ids []str
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var orders []any = []any{}
 	var orderIds []string = nil
 	if result != nil {
@@ -3313,12 +3404,12 @@ func (this *Kraken) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until", "till"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, []any{"until", "till"})
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		var untilDivided *string = Precise.StringDiv(until, "1000")
 		request["end"] = this.ParseToInt(Precise.StringAdd(untilDivided, "1"))
@@ -3357,8 +3448,12 @@ func (this *Kraken) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//         },
 	//     }
 	//
-	var tradesResult map[string]any = SafeMapTyped(response, "result")
-	var trades map[string]any = this.SafeDictMap(tradesResult, "trades", map[string]any{})
+	var tradesResult, _ = response["result"].(map[string]any)
+	var trades map[string]any
+	trades, _ = tradesResult["trades"].(map[string]any)
+	if trades == nil {
+		trades = map[string]any{}
+	}
 	var ids []string = nil
 	if trades != nil {
 		ids = make([]string, 0, len(trades))
@@ -3417,12 +3512,12 @@ func (this *Kraken) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		"txid": requestId,
 	}
 	var clientOrderId *string = this.SafeString2(paramsUserref, "clientOrderId", "cl_ord_id")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if clientOrderId != nil {
-			return this.OmitDict(paramsUserref, []any{"clientOrderId", "cl_ord_id"})
-		}
-		return paramsUserref
-	}()
+	var paramsOmitted map[string]any
+	if clientOrderId != nil {
+		paramsOmitted = this.OmitDict(paramsUserref, []any{"clientOrderId", "cl_ord_id"})
+	} else {
+		paramsOmitted = paramsUserref
+	}
 	if clientOrderId != nil {
 		request["cl_ord_id"] = *clientOrderId
 		request = this.OmitDict(request, "txid")
@@ -3595,20 +3690,21 @@ func (this *Kraken) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any]
 	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
+	var timeoutValue int64
+	if timeout > 0 {
+		timeoutValue = (this.ParseToInt(float64(timeout) / 1000))
+	} else {
+		timeoutValue = int64(0)
+	}
 	var request map[string]any = map[string]any{
-		"timeout": func() any {
-			if timeout > 0 {
-				return (this.ParseToInt(float64(timeout) / 1000))
-			}
-			return 0
-		}(),
+		"timeout": timeoutValue,
 	}
 
 	r1 := <-this.PrivatePostCancelAllOrdersAfter(this.Extend(request, params))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -3664,19 +3760,19 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
-	var paramsOmitted any = func() any {
-		if userref != nil {
-			return this.Omit(params, "userref")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if userref != nil {
+		paramsOmitted = this.OmitDict(params, "userref")
+	} else {
+		paramsOmitted = params
+	}
 	if userref != nil {
 		request["userref"] = userref
 	}
 	var clientOrderId *string = this.SafeString(paramsOmitted, "clientOrderId")
 	if clientOrderId != nil {
 		request["cl_ord_id"] = clientOrderId
-		paramsOmitted = this.Omit(paramsOmitted, "clientOrderId")
+		paramsOmitted = this.OmitDict(paramsOmitted, "clientOrderId")
 	}
 
 	r1 := <-this.PrivatePostOpenOrders(this.Extend(request, paramsOmitted))
@@ -3725,8 +3821,8 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var result map[string]any = SafeMapTyped(response, "result")
-	var open map[string]any = SafeMapTyped(result, "open")
+	var result, _ = response["result"].(map[string]any)
+	var open, _ = result["open"].(map[string]any)
 	var orders []any = []any{}
 	var orderIds []string = nil
 	if open != nil {
@@ -3789,19 +3885,19 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
-	var paramsOmitted any = func() any {
-		if userref != nil {
-			return this.Omit(params, "userref")
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if userref != nil {
+		paramsOmitted = this.OmitDict(params, "userref")
+	} else {
+		paramsOmitted = params
+	}
 	if userref != nil {
 		request["userref"] = userref
 	}
 	var clientOrderId *string = this.SafeString(paramsOmitted, "clientOrderId")
 	if clientOrderId != nil {
 		request["cl_ord_id"] = clientOrderId
-		paramsOmitted = this.Omit(paramsOmitted, "clientOrderId")
+		paramsOmitted = this.OmitDict(paramsOmitted, "clientOrderId")
 	}
 	request, paramsOmitted = this.HandleUntilOption("end", request, paramsOmitted)
 
@@ -3853,8 +3949,8 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var result map[string]any = SafeMapTyped(response, "result")
-	var closed map[string]any = SafeMapTyped(result, "closed")
+	var result, _ = response["result"].(map[string]any)
+	var closed, _ = result["closed"].(map[string]any)
 	var orders []any = []any{}
 	var orderIds []string = nil
 	if closed != nil {
@@ -3887,7 +3983,7 @@ func (this *Kraken) ParseTransactionStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Kraken) ParseNetwork(network *string) *string {
-	var withdrawMethods map[string]any = SafeMapTyped(this.Options, "withdrawMethods")
+	var withdrawMethods, _ = this.Options["withdrawMethods"].(map[string]any)
 	return this.SafeString(withdrawMethods, network, network)
 }
 func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
@@ -3966,7 +4062,8 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var isCancellationRequest bool = (statusProp != nil && *statusProp == "cancel-pending")
 	var isOnHoldWithdrawal bool = (statusProp != nil && *statusProp == "onhold")
 	if isOnHoldDeposit || isCancellationRequest || isOnHoldWithdrawal {
-		status = SafeStringPtr("pending")
+		statusStr := "pending"
+		status = &statusStr
 	}
 	var typeVar *string = this.SafeString(transaction, "type") // injected from the outside
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
@@ -4058,20 +4155,23 @@ func (this *Kraken) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	}
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		var currency map[string]any = this.Currency(code)
-		request["asset"] = currency["id"]
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		request["asset"] = nil
+		if currency.Id != nil {
+			request["asset"] = *currency.Id
+		}
 	}
 	if since != nil {
 		var sinceString *string = this.NumberToString(since)
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
 	var until *string = this.SafeString2(params, "until", "till")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(params, []any{"until", "till"})
-		}
-		return params
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(params, []any{"until", "till"})
+	} else {
+		paramsOmitted = params
+	}
 	if until != nil {
 		var untilDivided *string = Precise.StringDiv(until, "1000")
 		request["end"] = Precise.StringAdd(untilDivided, "1")
@@ -4095,7 +4195,11 @@ func (this *Kraken) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//                       "time":  1529223212,
 	//                     "status": "Success"                                                       } ] }
 	//
-	var depositResult []any = SafeListTypedDefault(response, "result", []any{})
+	var depositResult []any
+	depositResult, _ = response["result"].([]any)
+	if depositResult == nil {
+		depositResult = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactionsByType("deposit", depositResult, code, since, limit))}
 	return nil
@@ -4135,7 +4239,7 @@ func (this *Kraken) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...a
 	//        }
 	//    }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[*int64]{Value: this.SafeTimestamp(result, "unixtime")}
 	return nil
@@ -4188,30 +4292,33 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322019 []any = r1.Value
-		if retRes322019 == nil {
+		var retRes322319 []any = r1.Value
+		if retRes322319 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes322019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes322319)}
 		}
 		return nil
 	}
 	var request map[string]any = map[string]any{}
 	if code != nil {
-		var currency map[string]any = this.Currency(code)
-		request["asset"] = currency["id"]
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		request["asset"] = nil
+		if currency.Id != nil {
+			request["asset"] = *currency.Id
+		}
 	}
 	if since != nil {
 		var sinceString *string = this.NumberToString(since)
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
 	var until *string = this.SafeString2(paramsPaginate, "until", "till")
-	var paramsOmitted map[string]any = func() map[string]any {
-		if until != nil {
-			return this.OmitDict(paramsPaginate, []any{"until", "till"})
-		}
-		return paramsPaginate
-	}()
+	var paramsOmitted map[string]any
+	if until != nil {
+		paramsOmitted = this.OmitDict(paramsPaginate, []any{"until", "till"})
+	} else {
+		paramsOmitted = paramsPaginate
+	}
 	if until != nil {
 		var untilDivided *string = Precise.StringDiv(until, "1000")
 		request["end"] = Precise.StringAdd(untilDivided, "1")
@@ -4260,12 +4367,12 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//        }
 	//     }
 	//
-	var rawWithdrawals any = nil
+	var rawWithdrawals any = []any{}
 	var result any = this.SafeValue(response, "result")
 	if !IsArray(result) {
 		rawWithdrawals = this.AddPaginationCursorToResult(result)
 	} else {
-		rawWithdrawals = result
+		rawWithdrawals = this.SafeList(response, "result", []any{})
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactionsByType("withdrawal", rawWithdrawals, code, since, limit))}
@@ -4340,9 +4447,12 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan AsyncResult[[]map[string]any
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"asset": currency["id"],
+		"asset": nil,
+	}
+	if currency.Id != nil {
+		request["asset"] = *currency.Id
 	}
 
 	r1 := <-this.PrivatePostDepositMethods(this.Extend(request, params))
@@ -4373,7 +4483,11 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan AsyncResult[[]map[string]any
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTypedDefault(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(result)}
 	return nil
@@ -4415,7 +4529,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	if (code == "USDT") && (network != nil && *network == "TRC20") {
 		codeResolved = code + "-" + *network
 	}
-	var defaultDepositMethods map[string]any = SafeMapTyped(this.Options, "depositMethods")
+	var defaultDepositMethods, _ = this.Options["depositMethods"].(map[string]any)
 	var defaultDepositMethod *string = this.SafeString(defaultDepositMethods, codeResolved)
 	var depositMethod *string = this.SafeString(paramsOmitted, "method", defaultDepositMethod)
 	// if the user has specified an exchange-specific method in params
@@ -4465,8 +4579,15 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTyped(response, "result")
-	var firstResult map[string]any = this.SafeDictMap(result, 0, map[string]any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	var firstResult map[string]any
+	if 0 < len(result) {
+		firstResult, _ = result[0].(map[string]any)
+	}
+	if firstResult == nil {
+		firstResult = map[string]any{}
+	}
 	if firstResult == nil {
 		panic(InvalidAddress(this.Id + " privatePostDepositAddresses() returned no addresses for " + codeResolved))
 	}
@@ -4485,8 +4606,8 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	var tag *string = this.SafeString(depositAddress, "tag")
-	var currencyResolved map[string]any = this.SafeCurrency(nil, currency)
-	var code *string = SafeStringPtr(currencyResolved["code"])
+	var currencyResolved Currency = CurrencyFromMap(this.SafeCurrency(nil, currency))
+	var code *string = currencyResolved.Code
 	this.CheckAddress(address)
 	return DepositAddressFromMap(map[string]any{
 		"info":     depositAddress,
@@ -4509,12 +4630,12 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Kraken) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Kraken) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4522,7 +4643,7 @@ func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	tagAndParamsSlot0, tagAndParamsSlot1 := this.HandleParamString(params, "tag")
 	var tagWithdrawTag *string = tagAndParamsSlot0
 	paramsWithdrawTag := tagAndParamsSlot1
-	if InOp(paramsWithdrawTag, "key") {
+	if _, ok := paramsWithdrawTag["key"]; ok {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4533,7 +4654,7 @@ func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 			"asset":  currency["id"],
 			"amount": amount,
 		}
-		if (!IsEqual(address, nil)) && (!IsEqual(address, "")) {
+		if true && (address != "") {
 			request["address"] = address
 			this.CheckAddress(address, code, tagWithdrawTag)
 		}
@@ -4551,7 +4672,11 @@ func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		//         }
 		//     }
 		//
-		var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+		var result map[string]any
+		result, _ = response["result"].(map[string]any)
+		if result == nil {
+			result = map[string]any{}
+		}
 
 		ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(result, currency)}
 		return nil
@@ -4643,7 +4768,8 @@ func (this *Kraken) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	//     }
 	//
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var result []any = SafeListTyped(response, "result")
+	var result []any
+	result, _ = response["result"].([]any)
 	var results []any = this.ParsePositions(result, symbolsNormalized)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(results, "symbol", symbolsNormalized))}
@@ -4779,7 +4905,11 @@ func (this *Kraken) transferBody(ch chan AsyncResult[TransferEntry], code string
 		"asset":  currency["id"],
 	}
 	if fromAccountParsed == nil || *fromAccountParsed != "Spot Wallet" {
-		panic(BadRequest(Add(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")))
+		if fromAccountParsed != nil && toAccountParsed != nil {
+			messageText := this.Id + " transfer cannot transfer from " + *fromAccountParsed + " to " + *toAccountParsed + ". Use krakenfutures instead to transfer from the futures account."
+			panic(BadRequest(messageText))
+		}
+		panic(BadRequest(nil))
 	}
 
 	r1 := <-this.PrivatePostWalletTransfer(this.Extend(request, params))
@@ -4851,12 +4981,11 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) map[string]any {
 		var price *string = this.SafeString(params, "price")
 		var isTriggerPercent bool = false
 		if price != nil {
-			isTriggerPercent = func() bool {
-				if strings.HasSuffix(*price, "%") {
-					return true
-				}
-				return false
-			}()
+			if strings.HasSuffix(*price, "%") {
+				isTriggerPercent = true
+			} else {
+				isTriggerPercent = false
+			}
 		}
 		var isCancelOrderBatch bool = (path == "CancelOrderBatch")
 		var isBatchOrder bool = (path == "AddOrderBatch")
@@ -5355,7 +5484,7 @@ func (this *Kraken) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

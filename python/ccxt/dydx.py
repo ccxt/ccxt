@@ -1179,7 +1179,7 @@ class dydx(Exchange, ImplicitAPI):
     def hash_message(self, message: object) -> str:
         return self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object) -> dict:
+    def sign_hash(self, hash: str, privateKey: object) -> dict:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = self.safe_string(signature, 'r', '')
         s = self.safe_string(signature, 's', '')
@@ -1395,9 +1395,13 @@ class dydx(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGoodTillBlockTimeInSeconds, ['reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId'])
         walletAddress = self.get_wallet_address()
         clobPairId = self.safe_integer(marketInfo, 'clobPairId', 0)
-        subaccountIdValue = 0 if (subaccountIdOption is None) else subaccountIdOption
+        subaccountIdValue = 0
+        if subaccountIdOption is not None:
+            subaccountIdValue = subaccountIdOption
         clientOrderIdValue = 0 if (clientOrderId is None) else clientOrderId
-        orderFlagValue = 0 if (orderFlag is None) else orderFlag
+        orderFlagValue = 0
+        if orderFlag is not None:
+            orderFlagValue = orderFlag
         clobPairIdValue = 0 if (clobPairId is None) else clobPairId
         orderId = self.create_order_id_from_parts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
         return [orderId, self.extend(signingPayload, paramsOmitted)]
@@ -1774,8 +1778,9 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = self.fetch_transactions_helper('fetchLedger', code, since, limit, self.omit(params, 'methodName'))
-        return self.parse_ledger(response, currency, since, limit)
+        rows = []
+        rows = self.fetch_transactions_helper('fetchLedger', code, since, limit, self.omit(params, 'methodName'))
+        return self.parse_ledger(rows, currency, since, limit)
 
     def estimate_tx_fee(self, message: dict, memo: Str, account: dict) -> dict:
         txBytes = self.encode_dydx_tx_for_simulation(message, memo, self.safe_string(account, 'sequence'), self.safe_dict(account, 'pub_key', {}))
@@ -2424,4 +2429,6 @@ class dydx(Exchange, ImplicitAPI):
         # rewrite testnet parameters
         self.options['chainName'] = 'dydx-testnet-4'
         self.options['chainId'] = 11155111
-        self.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt'
+        feeDenomDict = self.safe_dict(self.options, 'feeDenom', {})
+        feeDenomDict['CHAINTOKEN_DENOM'] = 'adv4tnt'
+        self.options['feeDenom'] = feeDenomDict

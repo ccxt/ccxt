@@ -289,8 +289,8 @@ public partial class luno : Exchange
                     { "taker", this.parseNumber("0.006") },
                     { "maker", this.parseNumber("0.004") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("40000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("80000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("120000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("160000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0005")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("40000000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("80000000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("120000000"), this.parseNumber("-0.0002")}, new List<object> {this.parseNumber("160000000"), this.parseNumber("-0.0002")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("-0.0002")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.006}, new List<object> {20000.0, 0.005}, new List<object> {200000.0, 0.004}, new List<object> {1000000.0, 0.003}, new List<object> {2000000.0, 0.002}, new List<object> {5000000.0, 0.0015}, new List<object> {10000000.0, 0.001}, new List<object> {20000000.0, 0.0009}, new List<object> {40000000.0, 0.0008}, new List<object> {80000000.0, 0.0007}, new List<object> {120000000.0, 0.0006}, new List<object> {160000000.0, 0.0005}, new List<object> {300000000.0, 0.0005}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.004}, new List<object> {20000.0, 0.003}, new List<object> {200000.0, 0.002}, new List<object> {1000000.0, 0.001}, new List<object> {2000000.0, 0.0008}, new List<object> {5000000.0, 0.0006}, new List<object> {10000000.0, 0.0}, new List<object> {20000000.0, 0.0}, new List<object> {40000000.0, -0.0001}, new List<object> {80000000.0, -0.0001}, new List<object> {120000000.0, -0.0002}, new List<object> {160000000.0, -0.0002}, new List<object> {300000000.0, -0.0002}} },
                     } },
                 } },
             } },
@@ -606,7 +606,7 @@ public partial class luno : Exchange
         List<object> markets = this.safeList(response, "markets", new List<object>() {});
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "market_id");
             string? baseId = this.safeString(market, "base_currency");
             string? quoteId = this.safeString(market, "counter_currency");
@@ -1069,7 +1069,7 @@ public partial class luno : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         List<object> rawTickers = this.safeList(response, "tickers", new List<object>() {});
         Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
@@ -1564,14 +1564,14 @@ public partial class luno : Exchange
         }
         Int64? maxRowBase = this.safeInteger(parameters, "max_row", 0); // Default to most recent transactions
         Int64? minRowBase = this.safeInteger(parameters, "min_row", -1000); // Maximum number of records supported
-        bool limitApplies = ((limit != null)) && (((limit == null || (maxRowBase - minRowBase) > limit)));
+        bool limitApplies = ((limit != null)) && (((maxRowBase - minRowBase) > limit));
         object min_row = (limitApplies && ((limit != null)) && (maxRowBase == null || maxRowBase <= 0)) ? (maxRowBase - limit) : minRowBase;
         object max_row = maxRowBase;
-        if (limitApplies && (maxRowBase > 0) && (minRowBase > 0))
+        if (limitApplies && maxRowBase > 0 && minRowBase > 0)
         {
             max_row = add(minRowBase, limit);
         }
-        bool limitAdjusts = limitApplies && ((maxRowBase == null || maxRowBase <= 0) || (minRowBase > 0)); // max_row - min_row becomes limit
+        bool limitAdjusts = limitApplies && ((maxRowBase == null || maxRowBase <= 0) || minRowBase > 0); // max_row - min_row becomes limit
         if ((limitAdjusts && (limit > 1000)) || (!limitAdjusts && ((maxRowBase - minRowBase) > 1000)))
         {
             throw new ExchangeError ((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
@@ -1891,7 +1891,7 @@ public partial class luno : Exchange
         {
             string feedback = ((this.id + " ") + this.json(response));
             string? errorCode = this.safeString(response, "error_code");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

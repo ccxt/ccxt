@@ -1213,8 +1213,8 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         orders = []
         for i in range(0, len(payload)):
-            id = payload[i]
-            orders.append(self.parse_order(id, market))
+            id = self.safe_string(payload, i)
+            orders.append(self.safe_order({'info': self.safe_string(payload, i), 'id': id, 'symbol': self.safe_symbol(None, market, '_')}, market))
         return orders
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
@@ -1239,8 +1239,8 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         canceledOrders = []
         for i in range(0, len(payload)):
-            order = self.parse_order(payload[i])
-            canceledOrders.append(order)
+            id = self.safe_string(payload, i)
+            canceledOrders.append(self.safe_order({'info': self.safe_string(payload, i), 'id': id, 'symbol': self.safe_symbol(None, None, '_')}))
         return canceledOrders
 
     def parse_order_status(self, status: Str) -> Str:
@@ -1253,16 +1253,7 @@ class bitso(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
-        #
-        #
-        # canceledOrder
-        # yWTQGxDMZ0VimZgZ
-        #
-        id = None
-        if isinstance(order, str):
-            id = order
-        else:
-            id = self.safe_string(order, 'oid')
+        id = self.safe_string(order, 'oid')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'book')
@@ -1754,8 +1745,18 @@ class bitso(Exchange, ImplicitAPI):
             'address': address,
             'destination_tag': tagWithdrawTag,
         }
-        classMethod = 'privatePost' + method + 'Withdrawal'
-        response = await getattr(self, classMethod)(self.extend(request, paramsWithdrawTag))
+        withdrawRequest = self.extend(request, paramsWithdrawTag)
+        response = None
+        if method == 'Bitcoin':
+            response = await self.privatePostBitcoinWithdrawal(withdrawRequest)
+        elif method == 'Ether':
+            response = await self.privatePostEtherWithdrawal(withdrawRequest)
+        elif method == 'Ripple':
+            response = await self.privatePostRippleWithdrawal(withdrawRequest)
+        elif method == 'Bcash':
+            response = await self.privatePostBcashWithdrawal(withdrawRequest)
+        else:
+            response = await self.privatePostLitecoinWithdrawal(withdrawRequest)
         #
         #     {
         #         "success": true,

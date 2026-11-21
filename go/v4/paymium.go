@@ -214,7 +214,7 @@ func (this *Paymium) Describe() map[string]any {
 		},
 	})
 }
-func (this *Paymium) ParseBalance(response any) map[string]any {
+func (this *Paymium) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -227,8 +227,8 @@ func (this *Paymium) ParseBalance(response any) map[string]any {
 	}
 	for i := 0; i < len(currencies); i++ {
 		var code string = currencies[i]
-		var currency map[string]any = this.Currency(code)
-		var currencyId *string = SafeStringPtr(currency["id"])
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		var currencyId *string = currency.Id
 		var freeAmount *string = this.SafeString(response, "balance_"+*currencyId)
 		if freeAmount != nil {
 			var account map[string]any = this.Account()
@@ -305,9 +305,12 @@ func (this *Paymium) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency": market["id"],
+		"currency": nil,
+	}
+	if market.Id != nil {
+		request["currency"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetDataCurrencyDepth(this.Extend(request, params))
@@ -316,7 +319,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "price", "amount"))}
 	return nil
 }
 func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -467,12 +470,12 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Paymium) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Paymium) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -709,14 +712,14 @@ func (this *Paymium) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["price"] = price
 	}
 
-	r1 := <-this.PrivatePostUserOrders(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostUserOrders(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 		"id":   this.SafeString(response, "uuid"),
 	}, market)}
 	return nil

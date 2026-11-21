@@ -1665,7 +1665,7 @@ class bitvavo extends bitvavo$1["default"] {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        const operatorId = this.handleOptionAndParams(paramsOmitted, 'editOrder', 'operatorId')[0];
+        const [operatorId] = this.handleOptionAndParams(paramsOmitted, 'editOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
@@ -2604,12 +2604,14 @@ class bitvavo extends bitvavo$1["default"] {
             networkId = currencyCode;
         }
         const networkCode = this.networkIdToCode(networkId, currencyCode);
+        const networkFees = {};
         if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'deposit': result['deposit'],
                 'withdraw': result['withdraw'],
             };
         }
+        result['networks'] = networkFees;
         return result;
     }
     /**

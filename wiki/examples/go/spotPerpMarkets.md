@@ -20,9 +20,9 @@ func spotPerpMarkets() {
 
 	for _, elem := range allMarkets {
 		if elem.Spot {
-			spotMarkets = append(spotMarkets, *elem.Symbol)
+			spotMarkets = append(spotMarkets, elem.Symbol)
 		} else if elem.Swap {
-			swapMarkets = append(swapMarkets, *elem.Symbol)
+			swapMarkets = append(swapMarkets, elem.Symbol)
 		}
 	}
 

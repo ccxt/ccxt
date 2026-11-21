@@ -769,7 +769,7 @@ public partial class paymium : Exchange
                     url = url + ("?" + queryString);
                 }
             }
-            signedHeaders["Api-Signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            signedHeaders["Api-Signature"] = this.hmac(auth, this.secret, sha256);
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },

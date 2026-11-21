@@ -90,8 +90,9 @@ func (this *Coinone) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	messageHashStr := "orderbook:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "ORDERBOOK",
@@ -136,7 +137,7 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var baseId *string = this.SafeStringUpper(data, "target_currency")
 	var quoteId *string = this.SafeStringUpper(data, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -144,25 +145,23 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	if (base == nil) || (quote == nil) {
 		return
 	}
-	var symbol any = this.Symbol(*base + "/" + *quote)
+	var symbol string = this.Symbol(*base + "/" + *quote)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol.(string)]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if orderbook == nil {
 		orderbook = this.OrderBook()
 	} else {
 		orderbook.Reset()
 	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
-	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
+	orderbook.SetSymbol(&symbol)
+	var asks []any = this.SafeListSlice(data, "asks", []any{})
+	var bids []any = this.SafeListSlice(data, "bids", []any{})
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
-	if wsKey, ok := symbol.(string); ok {
-		this.Orderbooks[wsKey] = orderbook
-	}
+	var messageHash string = "orderbook:" + symbol
+	this.Orderbooks[symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Coinone) HandleDelta(bookside any, delta any) {
@@ -197,8 +196,9 @@ func (this *Coinone) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("ticker:" + market["symbol"].(string))
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	messageHashStr := "ticker:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "TICKER",
@@ -246,7 +246,11 @@ func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = this.ParseWsTicker(data)
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol == nil {
@@ -290,9 +294,10 @@ func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) m
 	var quoteId *string = this.SafeString(ticker, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = this.Symbol(*base + "/" + *quote)
+		symbolText := this.Symbol(*base + "/" + *quote)
+		symbol = &symbolText
 	}
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -351,8 +356,9 @@ func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("trade:" + market["symbol"].(string))
-	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	messageHashStr := "trade:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
+	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
 		"channel":      "TRADE",
@@ -392,7 +398,11 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var trade map[string]any = this.ParseWsTrade(data)
 	var symbol string = *this.SafeString(trade, "symbol", "")
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
@@ -423,21 +433,23 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	var quoteId *string = this.SafeStringUpper(trade, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var marketResolved map[string]any = this.SafeMarket(symbol, market)
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side *string = nil
 	if isSellerMaker != nil {
-		side = ccxt.SafeStringPtr(func() string {
-			if isSellerMaker != nil && *isSellerMaker {
-				return "sell"
-			}
-			return "buy"
-		}())
+		var sideStr string
+		if isSellerMaker != nil && *isSellerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
+		side = &sideStr
 	}
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
@@ -514,7 +526,7 @@ func (this *Coinone) Ping(client any) any {
 		"request_type": "PING",
 	}
 }
-func (this *Coinone) HandlePong(client any, message map[string]any) any {
+func (this *Coinone) HandlePong(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "response_type":"PONG"

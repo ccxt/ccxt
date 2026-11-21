@@ -490,12 +490,12 @@ class polymarket extends \ccxt\async\polymarket {
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        $data = $this->safe_value($message, 'data');
+        $dataList = $this->safe_list($message, 'data');
         $rows = array();
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $rows = $data;
+        if ($dataList !== null) {
+            $rows = $dataList;
         } else {
-            $rows[] = $data;
+            $rows[] = $this->safe_value($message, 'data');
         }
         $rowsLength = count($rows);
         if ($rowsLength === 0) {
@@ -873,12 +873,12 @@ class polymarket extends \ccxt\async\polymarket {
         //         ]
         //     }
         //
-        $data = $this->safe_value($message, 'data');
+        $dataList = $this->safe_list($message, 'data');
         $rows = array();
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $rows = $data;
+        if ($dataList !== null) {
+            $rows = $dataList;
         } else {
-            $rows[] = $data;
+            $rows[] = $this->safe_value($message, 'data');
         }
         $rowsLength = count($rows);
         if ($rowsLength === 0) {

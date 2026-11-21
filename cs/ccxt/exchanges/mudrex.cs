@@ -305,8 +305,8 @@ public partial class mudrex : Exchange
             IDictionary<string, object> first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
             string? text = this.safeString(first, "text", this.json(response));
             string? errCode = this.safeString(first, "code");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), text, ((this.id + " ") + text));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errCode, ((this.id + " ") + text));
+            this.throwExactlyMatchedException(this.exceptionsExact, text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException(this.exceptionsExact, errCode, ((this.id + " ") + text));
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = text.ToLower();
@@ -380,10 +380,10 @@ public partial class mudrex : Exchange
         Int64? windowLength = (duration * requestLimit);
         Int64? defaultStart = (now - windowLength);
         Int64? startTime = this.parseToInt(((since != null)) ? (((double?)since / 1000)) : defaultStart);
-        Int64? windowEnd = this.parseToInt(add(startTime, (duration * requestLimit)));
+        Int64? windowEnd = this.parseToInt((startTime + (duration * requestLimit)));
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
-        Int64? cappedEnd = ((windowEnd > now)) ? now : windowEnd;
+        Int64? cappedEnd = (windowEnd > now) ? now : windowEnd;
         Int64? endTime = this.parseToInt(((until != null)) ? (((double?)until / 1000)) : cappedEnd);
         request["start_time"] = startTime;
         request["end_time"] = endTime;
@@ -477,19 +477,17 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.privateGetFutures(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
-        IList<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> rows = new List<object>() {};
+        rows = this.safeList(response, "data", new List<object>() {});
+        int rowsLength = (rows?.Count ?? 0);
+        if ((rowsLength == 0))
         {
-            rows = this.toArray(data);
-        } else
-        {
-            rows = this.safeList(data, "items", new List<object>() {});
+            rows = this.safeList(this.safeDict(response, "data", new Dictionary<string, object>() {}), "items", new List<object>() {});
         }
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object t = rows[i];
+            IDictionary<string, object> t = ((IDictionary<string, object>)rows[i]);
             string? sym = this.safeString(t, "symbol");
             if ((sym == null))
             {
@@ -548,7 +546,7 @@ public partial class mudrex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> aggregated = new List<object>() {};
-        object offset = 0;
+        Int64 offset = 0;
         int pageLimit = 100;
         bool paging = true;
         while (paging)
@@ -1231,7 +1229,7 @@ public partial class mudrex : Exchange
         List<object> outPos = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object p = rows[i];
+            IDictionary<string, object> p = ((IDictionary<string, object>)rows[i]);
             string? symRaw = this.safeString(p, "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);
             Dictionary<string, object> pos = this.parsePosition(p, m);
@@ -1259,7 +1257,7 @@ public partial class mudrex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((limit != null))
         {
@@ -1384,7 +1382,7 @@ public partial class mudrex : Exchange
             int numCandidates = (candidates?.Count ?? 0);
             if (numCandidates > 0)
             {
-                object found = (candidates != null && 0 < candidates.Count ? candidates[0] : null);
+                IDictionary<string, object> found = ((IDictionary<string, object>)(candidates != null && 0 < candidates.Count ? candidates[0] : null));
                 positionId = this.safeString(found, "id");
             }
         }
@@ -1442,7 +1440,7 @@ public partial class mudrex : Exchange
             int numMatches = (matches?.Count ?? 0);
             if (numMatches > 0)
             {
-                object found = (matches != null && 0 < matches.Count ? matches[0] : null);
+                IDictionary<string, object> found = ((IDictionary<string, object>)(matches != null && 0 < matches.Count ? matches[0] : null));
                 positionId = this.safeString(found, "id");
             }
         }
@@ -1524,7 +1522,7 @@ public partial class mudrex : Exchange
             int dataLength = data.Count;
             for (int i = 0; i < data.Count; i++)
             {
-                object entry = data[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
                 allRows.Add(entry);
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
@@ -1555,7 +1553,7 @@ public partial class mudrex : Exchange
         List<object> transactionKeys = new List<object>() {};
         for (int i = 0; i < (allRows?.Count ?? 0); i++)
         {
-            object entry = allRows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)allRows[i]);
             string? feeType = this.safeString(entry, "fee_type");
             string pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
             if (feeType == "TRANSACTION")

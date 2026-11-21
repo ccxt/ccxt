@@ -279,7 +279,8 @@ class toobit extends toobit$1["default"] {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -301,15 +302,15 @@ class toobit extends toobit$1["default"] {
         const messageHashes = [];
         const timeframes = this.safeDict(this.options['ws'], 'timeframes', {});
         const marketIds = [];
-        let selectedTimeframe = undefined;
+        let selectedTimeframe = '';
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList(symbolsAndTimeframes, i);
             const symbolStr = this.safeString(data, 0, '');
             const market = this.market(symbolStr);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id', '');
             const unfiedTimeframe = this.safeString(data, 1, '1m');
             const rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
-            if (selectedTimeframe !== undefined && selectedTimeframe !== rawTimeframe) {
+            if (selectedTimeframe !== '' && selectedTimeframe !== rawTimeframe) {
                 throw new errors.NotSupported(this.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             }
             else {
@@ -760,8 +761,9 @@ class toobit extends toobit$1["default"] {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = this.safeList(message, 'B', []);
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        const typeBalance = this.safeDict(this.balance, type, {});
+        typeBalance['timestamp'] = timestamp;
+        typeBalance['datetime'] = this.iso8601(timestamp);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
@@ -771,10 +773,10 @@ class toobit extends toobit$1["default"] {
             account['used'] = this.safeString(balance, 'l');
             account['free'] = this.safeString(balance, 'f');
             if (code !== undefined) {
-                this.balance[type][code] = account;
+                typeBalance[code] = account;
             }
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(typeBalance);
         client.resolve(this.balance[type], type + ':balance');
     }
     async loadBalanceSnapshot(client, messageHash, marketType) {

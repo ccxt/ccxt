@@ -269,7 +269,7 @@ public partial class woo : ccxt.woo
                     {
                         return;
                     }
-                    if ((ts != null && (timestamp == null || ts > timestamp)))
+                    if (ts.Value > timestamp.Value)
                     {
                         this.handleOrderBookMessage(client, message, orderbook);
                         client.resolve(orderbook, topic);
@@ -301,7 +301,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
     {
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
@@ -349,7 +349,7 @@ public partial class woo : ccxt.woo
                     continue;
                 }
                 Int64? orderbookTimestamp = this.safeInteger(orderbook, "timestamp");
-                if (((orderbookTimestamp != null)) && ((ts < orderbookTimestamp)))
+                if (((orderbookTimestamp != null)) && (ts.Value < orderbookTimestamp.Value))
                 {
                     continue;
                 } else
@@ -848,7 +848,7 @@ public partial class woo : ccxt.woo
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (timeframe != null))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
         }
         stored.append(parsed);
@@ -1062,7 +1062,7 @@ public partial class woo : ccxt.woo
         {
             string ts = this.nonce().ToString();
             string auth = ("|" + ts);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "event", eventVar },
                 { "params", new Dictionary<string, object>() {
@@ -1354,22 +1354,22 @@ public partial class woo : ccxt.woo
         //     }
         //
         string? topic = this.safeString(message, "topic");
-        object data = this.safeValue(message, "data");
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> dataList = this.safeList(message, "data");
+        if ((dataList != null))
         {
             // algoexecutionreportv2
-            for (int i = 0; i < getArrayLength(data); i++)
+            for (int i = 0; i < dataList.Count; i++)
             {
-                object order = getValue(data, i);
-                string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
+                string? tradeId = ((string)this.omitZero(this.safeString(dataList, "tradeId")));
                 if ((tradeId != null))
                 {
-                    this.handleMyTrade(client, order);
+                    this.handleMyTrade(client, (dataList != null && i < dataList.Count ? dataList[i] : null));
                 }
-                this.handleOrder(client, order, topic);
+                this.handleOrder(client, (dataList != null && i < dataList.Count ? dataList[i] : null), topic);
             }
         } else
         {
+            object data = this.safeValue(message, "data");
             // executionreport
             string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
             if ((tradeId != null))
@@ -1484,7 +1484,7 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         List<object> messageHashes = new List<object>() {};
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if (!this.isEmpty(symbolsNormalized))
         {
             if ((symbolsNormalized == null))
@@ -1513,7 +1513,7 @@ public partial class woo : ccxt.woo
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1771,7 +1771,7 @@ public partial class woo : ccxt.woo
             if ((errorMessage != null))
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             }
             return ((bool?)((object)(false)));
         } catch(Exception error)
@@ -1810,8 +1810,8 @@ public partial class woo : ccxt.woo
         List<object> unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new List<object>() {});
         for (int i = 0; i < subMessageHashes.Count; i++)
         {
-            string? subHash = ((string)subMessageHashes[i]);
-            string? unsubHash = ((string)(unsubMessageHashes != null && i < unsubMessageHashes.Count ? unsubMessageHashes[i] : null));
+            string? subHash = this.safeString(subMessageHashes, i);
+            string? unsubHash = this.safeString(unsubMessageHashes, i);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
@@ -1931,7 +1931,7 @@ public partial class woo : ccxt.woo
         object method = this.safeValue(subscription, "method");
         if ((method != null))
         {
-            DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         return message;
     }

@@ -161,7 +161,7 @@ class paradex extends \ccxt\async\paradex {
          * @param {string} [$subscribeHash] the $subscription the $request opens, the $request id when null
          * @return {array} the reply
          */
-        $requestHash = 'request:' . $this->safe_string($request, 'id');
+        $requestHash = 'request:' . $this->safe_string($request, 'id', '');
         $subscription = array(
             'id' => $request['id'],
             'messageHashes' => array( $requestHash ),
@@ -281,11 +281,11 @@ class paradex extends \ccxt\async\paradex {
         return true;
     }
 
-    public function unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $start, $params = array()): PromiseInterface {
+    public function unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, int $start, $params = array()): PromiseInterface {
         return Async\async(self::do_unsubscribe_channels_from(...))($url, $topic, $channels, $subMessageHashes, $symbols, $start, $params);
     }
 
-    private function do_unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $start, $params = array()) {
+    private function do_unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, int $start, $params = array()) {
         /**
          * @ignore
          * unsubscribes from the $channels from an index on, after one was $refused, their errors are dropped as the first one is thrown
@@ -311,11 +311,11 @@ class paradex extends \ccxt\async\paradex {
         return $refused;
     }
 
-    public function unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $index, $params = array()): PromiseInterface {
+    public function unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, int $index, $params = array()): PromiseInterface {
         return Async\async(self::do_unsubscribe_channel_at(...))($url, $topic, $channels, $subMessageHashes, $symbols, $index, $params);
     }
 
-    private function do_unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $index, $params = array()) {
+    private function do_unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, int $index, $params = array()) {
         /**
          * @ignore
          * unsubscribes from one $channel of a list, the reply forgets its $subscription and rejects its watchers, the liquidations of a market with its trades
@@ -822,7 +822,7 @@ class paradex extends \ccxt\async\paradex {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        list($deltasOption, $paramsDeltas) = $this->handle_option_and_params($params, 'watchOrderBook', 'deltas', false);
+        list($deltasOption, $paramsDeltas) = $this->handle_option_bool_and_params($params, 'watchOrderBook', 'deltas', false);
         $deltas = ($deltasOption === true) || (($limit !== null) && ($limit > 15));
         $url = $this->get_ws_url();
         // an unwatch in flight decides which feed each market is on once acknowledged
@@ -901,7 +901,7 @@ class paradex extends \ccxt\async\paradex {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
-        list($deltasOption, $paramsDeltas) = $this->handle_option_and_params($params, 'watchOrderBook', 'deltas', false);
+        list($deltasOption, $paramsDeltas) = $this->handle_option_bool_and_params($params, 'watchOrderBook', 'deltas', false);
         $url = $this->get_ws_url();
         $client = $this->client($url);
         $channels = array();
@@ -1073,7 +1073,7 @@ class paradex extends \ccxt\async\paradex {
         // the whole connection
         $unsubscribe = $this->unsubscribe_request($channel);
         $subscribe = $this->subscribe_request($channel);
-        $unsubscribeHash = 'request:' . $this->safe_string($unsubscribe, 'id');
+        $unsubscribeHash = 'request:' . $this->safe_string($unsubscribe, 'id', '');
         $client->subscriptions[$unsubscribeHash] = array(
             'id' => $unsubscribe['id'],
             'messageHashes' => array(),
@@ -1197,9 +1197,9 @@ class paradex extends \ccxt\async\paradex {
 
     private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
         /**
-         * stops watching the market summaries of a list of markets, they are removed from the scoped $subscription in place, the last ones $unsubscribe it
+         * stops watching the $market summaries of a list of markets, they are removed from the scoped $subscription in place, the last ones $unsubscribe it
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-$symbol
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-$market-symbol/markets-summary-$market-$symbol
          *
          * @param {string[]} [$symbols] unified $symbols of the markets, the whole $channel when null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1222,7 +1222,8 @@ class paradex extends \ccxt\async\paradex {
         $subMessageHashes = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
             $symbol = ($symbolsNormalized)[$i];
-            $marketId = $this->market($symbol)['id'];
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
             $marketIds[] = $marketId;
             $subscribeHashes[] = $channel . '.' . $marketId;
             $subMessageHashes[] = $channel . '.' . $symbol;
@@ -1237,14 +1238,14 @@ class paradex extends \ccxt\async\paradex {
             return true;
         }
         // the markets left in the scoped subscription once these are removed
-        $remaining = 0;
+        $othersRemain = false;
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {
             if ((mb_strpos($keys[$i], $channel . '.') === 0) && !$this->in_array($keys[$i], $subscribeHashes)) {
-                $remaining = $remaining + 1;
+                $othersRemain = true;
             }
         }
-        if (($symbolsLength === 0) || ((is_array($client->subscriptions) && array_key_exists($scopedHash ?? '', $client->subscriptions)) && ($remaining === 0))) {
+        if (($symbolsLength === 0) || ((is_array($client->subscriptions) && array_key_exists($scopedHash ?? '', $client->subscriptions)) && !$othersRemain)) {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             $channelSubscription = array(
                 'topic' => 'ticker',
@@ -1282,9 +1283,9 @@ class paradex extends \ccxt\async\paradex {
     private function do_subscribe_markets_summary(array $symbols, array $messageHashes, $params = array()) {
         /**
          * @ignore
-         * watches the market summaries of a list of markets over one scoped $subscription, the markets not in it yet are added in place
+         * watches the $market summaries of a list of markets over one scoped $subscription, the markets not in it yet are added in place
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-$market-symbol/markets-summary-$market-symbol
          *
          * @param {string[]} $symbols unified $symbols of the markets
          * @param {string[]} $messageHashes the message hashes to wait on
@@ -1295,7 +1296,8 @@ class paradex extends \ccxt\async\paradex {
         $channel = 'markets_summary';
         $pendingHashes = array( $channel, $channel . ':scoped' );
         for ($i = 0; $i < count($symbols); $i++) {
-            $pendingHashes[] = $channel . '.' . $this->market($symbols[$i])['id'];
+            $market = $this->market($symbols[$i]);
+            $pendingHashes[] = $channel . '.' . $market['id'];
         }
         Async\await($this->wait_for_pending_unsubscribe($url, $pendingHashes));
         $client = $this->client($url);
@@ -1311,7 +1313,8 @@ class paradex extends \ccxt\async\paradex {
         $missingHashes = array();
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for ($i = 0; $i < count($symbols); $i++) {
-            $marketId = $this->market($symbols[$i])['id'];
+            $market = $this->market($symbols[$i]);
+            $marketId = $market['id'];
             $subscribeHash = $channel . '.' . $marketId;
             $subscribeHashes[] = $subscribeHash;
             if (!(is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions))) {

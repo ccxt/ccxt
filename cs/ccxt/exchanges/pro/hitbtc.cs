@@ -106,7 +106,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 timestampEncoded = "";
             }
-            string signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(timestampEncoded, this.secret, sha256, "hex");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "method", "login" },
                 { "params", new Dictionary<string, object>() {
@@ -129,16 +129,16 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string[]} [symbols] unified CCXT symbol(s)
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> subscribePublic(object name, object messageHashPrefix, object symbols = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> subscribePublic(string? name, string? messageHashPrefix, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
-        bool isBatch = ((string)name).IndexOf("batch", StringComparison.Ordinal) >= 0;
-        bool resolvedPerSymbol = !isBatch || ((messageHashPrefix is "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        bool isBatch = name.IndexOf("batch", StringComparison.Ordinal) >= 0;
+        bool resolvedPerSymbol = !isBatch || ((messageHashPrefix == "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         IDictionary<string, object> wsUrls = this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         string? url = this.safeString(wsUrls, "public");
         List<object> messageHashes = new List<object>() {};
@@ -147,7 +147,7 @@ public partial class hitbtc : ccxt.hitbtc
             for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
             {
                 string? symbolId = ((string)symbolsNormalized[i]);
-                messageHashes.Add(add(add(messageHashPrefix, "::"), symbolId));
+                messageHashes.Add(((messageHashPrefix + "::") + symbolId));
             }
         } else
         {
@@ -177,15 +177,15 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the hitbtc api
      * @returns {boolean} true once the exchange acknowledges the unsubscribe
      */
-    public async virtual Task<object> unSubscribePublic(object name, object messageHashPrefix, object symbols, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribePublic(object name, string? messageHashPrefix, IList<object> symbols, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? subMessageHash = ((string)(add(add(messageHashPrefix, "::"), getValue(symbols, i))));
+            string? subMessageHash = ((string)(((messageHashPrefix + "::") + (symbols != null && i < symbols.Count ? symbols[i] : null))));
             subMessageHashes.Add(subMessageHash);
             messageHashes.Add(("unsubscribe:" + subMessageHash));
         }
@@ -195,7 +195,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "id", requestId },
             { "ch", name },
             { "params", new Dictionary<string, object>() {
-                { "symbols", this.marketIds(this.toArray(symbols)) },
+                { "symbols", this.marketIds(symbols) },
             } },
         };
         Dictionary<string, object> unsubscription = this.extend(subscription, new Dictionary<string, object>() {
@@ -1006,7 +1006,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
             List<object> rawOhlcvs = this.safeList(data, marketId, new List<object>() {});
@@ -1149,11 +1149,11 @@ public partial class hitbtc : ccxt.hitbtc
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         List<object> data = ((List<object>)this.safeValue(message, "params", new List<object>() {}));
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((data is IList<object> hxList49580))
         {
-            for (int i = 0; i < (data?.Count ?? 0); i++)
+            for (int i = 0; i < hxList49580.Count; i++)
             {
-                object order = data[i];
+                object order = hxList49580[i];
                 this.handleOrderHelper(client, message, order);
             }
         } else
@@ -1615,12 +1615,12 @@ public partial class hitbtc : ccxt.hitbtc
         //
         string? messageHash = this.safeString(message, "id");
         object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
-        if (((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((result is IList<object> hxList69410))
         {
             List<object> parsedOrders = new List<object>() {};
-            for (int i = 0; i < getArrayLength(result); i++)
+            for (int i = 0; i < hxList69410.Count; i++)
             {
-                ccxt.Order parsedOrder = this.parseWsOrder(getValue(result, i));
+                ccxt.Order parsedOrder = this.parseWsOrder(hxList69410[i]);
                 parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
             }
             client.resolve(parsedOrders, messageHash);
@@ -1689,11 +1689,11 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if (((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((result is IList<object> hxList72009))
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
-                int arrayLength = getArrayLength(result);
+                int arrayLength = hxList72009.Count;
                 if (((arrayLength == 0)) || (first.ContainsKey("client_order_id")))
                 {
                     this.handleOrderRequest(client, message);
@@ -1786,7 +1786,7 @@ public partial class hitbtc : ccxt.hitbtc
                 string? errorMessage = this.safeString(error, "message");
                 string? description = this.safeString(error, "description");
                 string feedback = ((this.id + " ") + description);
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
                 throw new ExchangeError (feedback) ;
             } catch(Exception e)

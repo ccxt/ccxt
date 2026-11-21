@@ -795,11 +795,12 @@ export default class deribit extends deribitRest {
         }
         const params: Dict = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
-        const data = this.safeValue (params, 'data', {});
+        const dataList = this.safeList (params, 'data');
         let orders: Order[] = [];
-        if (Array.isArray (data)) {
-            orders = this.parseOrders (data) as Order[];
+        if (dataList !== undefined) {
+            orders = this.parseOrders (dataList) as Order[];
         } else {
+            const data = this.safeValue (params, 'data', {});
             const order = this.parseOrder (data);
             orders = [ order ] as Order[];
         }
@@ -828,7 +829,8 @@ export default class deribit extends deribitRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const ohlcvs = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, params);
-        return ohlcvs[symbolValue][timeframe];
+        const bySymbol: Dict = ohlcvs[symbolValue];
+        return bySymbol[timeframe];
     }
 
     /**

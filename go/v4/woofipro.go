@@ -804,11 +804,11 @@ func (this *Woofipro) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.V1PublicGetPublicSystemInfo(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.V1PublicGetPublicSystemInfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "success": true,
@@ -819,14 +819,17 @@ func (this *Woofipro) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	//         "timestamp": "1709274106602"
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var status *string = this.SafeString(data, "status")
 	if status == nil {
-		status = SafeStringPtr("error")
+		statusStr := "error"
+		status = &statusStr
 	} else if status != nil && *status == "0" {
-		status = SafeStringPtr("ok")
+		statusStr2 := "ok"
+		status = &statusStr2
 	} else {
-		status = SafeStringPtr("maintenance")
+		statusStr3 := "maintenance"
+		status = &statusStr3
 	}
 
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
@@ -834,7 +837,7 @@ func (this *Woofipro) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -1031,8 +1034,12 @@ func (this *Woofipro) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//     }
 	//   }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(rows))}
 	return nil
@@ -1087,14 +1094,8 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		panic(r.Err)
 	}
 	var tokenResponsechainResponseVariable []map[string]any = r.Value
-	var tokenResponse any = nil
-	if tokenResponsechainResponseVariable[0] != nil {
-		tokenResponse = tokenResponsechainResponseVariable[0]
-	}
-	var chainResponse any = nil
-	if tokenResponsechainResponseVariable[1] != nil {
-		chainResponse = tokenResponsechainResponseVariable[1]
-	}
+	var tokenResponse map[string]any = tokenResponsechainResponseVariable[0]
+	var chainResponse map[string]any = tokenResponsechainResponseVariable[1]
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
 	var tokenRows []any = SafeListTyped(tokenData, "rows")
 	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
@@ -1234,12 +1235,13 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")
-		takerOrMaker = SafeStringPtr(func() string {
-			if isMaker {
-				return "maker"
-			}
-			return "taker"
-		}())
+		var takerOrMakerStr string
+		if isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
+		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1269,12 +1271,12 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Woofipro) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Woofipro) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1295,7 +1297,7 @@ func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	r1 := <-this.V1PublicGetPublicMarketTrades(this.Extend(request, params))
@@ -1318,8 +1320,12 @@ func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rows, market, since, limit))}
 	return nil
@@ -1457,7 +1463,11 @@ func (this *Woofipro) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
 	return nil
@@ -1515,8 +1525,12 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rows, symbolsNormalized))}
 	return nil
@@ -1629,7 +1643,11 @@ func (this *Woofipro) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
@@ -1695,19 +1713,20 @@ func (this *Woofipro) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = rows[i]
+		var row, _ = rows[i].(map[string]any)
 		var marketId string = *this.SafeString(row, "symbol", "")
 		if _, ok := this.Markets_by_id[marketId]; (this.Markets_by_id == nil) || !ok {
 			continue
 		}
 		var ticker map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
-		}, row)
+		}, rows[i])
 		result = append(result, TickerToMap(this.ParseTicker(ticker)))
 	}
 
@@ -1795,7 +1814,11 @@ func (this *Woofipro) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(data, market)}
@@ -1853,19 +1876,20 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = rows[i]
+		var row, _ = rows[i].(map[string]any)
 		var marketId string = *this.SafeString(row, "symbol", "")
 		if _, ok := this.Markets_by_id[marketId]; (this.Markets_by_id == nil) || !ok {
 			continue
 		}
 		var interest map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
-		}, row)
+		}, rows[i])
 		result = append(result, OpenInterestToMap(this.ParseOpenInterest(interest)))
 	}
 
@@ -1932,7 +1956,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_t", request, paramsPaginate, 0.001)
 
@@ -1960,7 +1984,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var result []map[string]any = this.SafeListMapsTyped(data, "rows")
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
@@ -1980,7 +2004,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil
 }
-func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//         "symbol": "PERP_ETH_USDC",
@@ -1997,20 +2021,14 @@ func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any
-	if derefPtr := this.SafeString(income, "funding_fee"); derefPtr != nil {
-		amount = *derefPtr
-	}
+	var amount *string = this.SafeString(income, "funding_fee")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
 	var rate *float64 = this.SafeNumber(income, "funding_rate")
 	var paymentType *string = this.SafeString(income, "payment_type")
-	amount = func() any {
-		if paymentType != nil && *paymentType == "Pay" {
-			return Precise.StringNeg(amount)
-		}
-		return amount
-	}()
+	if paymentType != nil && *paymentType == "Pay" {
+		amount = Precise.StringNeg(amount)
+	}
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
@@ -2080,7 +2098,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
@@ -2119,8 +2137,12 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(rows, market, since, limit))}
 	return nil
@@ -2152,11 +2174,11 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 		}
 	}
 
-	r1 := <-this.V1PrivateGetClientInfo(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V1PrivateGetClientInfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// {
 	//     "success": true,
@@ -2192,7 +2214,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
-			"info":       response,
+			"info":       responseReply.Raw,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
 			"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
@@ -2234,9 +2256,12 @@ func (this *Woofipro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["max_level"] = min(*limit, 1000)
@@ -2264,7 +2289,11 @@ func (this *Woofipro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
@@ -2325,7 +2354,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	//
 	// {
 	//     "success": true,
@@ -2346,7 +2375,11 @@ func (this *Woofipro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//     }
 	// }
 	//
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limit))}
 	return nil
@@ -2412,12 +2445,13 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		status = SafeStringPtr(func() string {
-			if success != nil && *success {
-				return "NEW"
-			}
-			return "REJECTED"
-		}())
+		var statusStr string
+		if success != nil && *success {
+			statusStr = "NEW"
+		} else {
+			statusStr = "REJECTED"
+		}
+		status = &statusStr
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
@@ -2534,11 +2568,14 @@ func (this *Woofipro) CreateOrderRequest(symbol *string, typeVar *string, side *
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrderRequest() requires a side argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var orderSide string = strings.ToUpper(*side)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
 		"side":   orderSide,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
@@ -2629,10 +2666,13 @@ func (this *Woofipro) CreateOrderRequest(symbol *string, typeVar *string, side *
 			childOrders = append(childOrders, takeProfitOrder)
 		}
 		var outterOrder map[string]any = map[string]any{
-			"symbol":       market["id"],
+			"symbol":       nil,
 			"reduce_only":  false,
 			"algo_type":    "POSITIONAL_TP_SL",
 			"child_orders": childOrders,
+		}
+		if market.Id != nil {
+			outterOrder["symbol"] = *market.Id
 		}
 		request["child_orders"] = []any{outterOrder}
 	}
@@ -2704,7 +2744,11 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 	var order map[string]any = OrderToMap(this.ParseOrder(data, market))
 	order["type"] = typeVar
@@ -2722,12 +2766,12 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woofipro) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Woofipro) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2741,7 +2785,7 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -2785,8 +2829,12 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(rows))}
 	return nil
@@ -2810,12 +2858,12 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
  * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woofipro) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Woofipro) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2871,8 +2919,8 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		response = r1.Value
 	} else {
 		request["symbol"] = market["id"]
-		request["side"] = ToUpper(side)
-		var orderType string = ToUpper(typeVar)
+		request["side"] = strings.ToUpper(side)
+		var orderType string = strings.ToUpper(typeVar)
 		var timeInForce *string = this.SafeStringLower(paramsOmitted, "timeInForce")
 		var isMarket bool = (orderType == "MARKET")
 		var postOnly bool = this.IsPostOnly(isMarket, nil, paramsOmitted)
@@ -2908,7 +2956,11 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
@@ -3028,12 +3080,12 @@ func (this *Woofipro) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		extendParams["id"] = id
 	}
 	if trigger != nil && *trigger {
-		var parsedResponse any = func() any {
-			if response == nil {
-				return map[string]any{}
-			}
-			return response
-		}()
+		var parsedResponse map[string]any
+		if response == nil {
+			parsedResponse = map[string]any{}
+		} else {
+			parsedResponse = response
+		}
 
 		ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(parsedResponse)), extendParams))}
 		return nil
@@ -3146,8 +3198,11 @@ func (this *Woofipro) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["symbol"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["symbol"] = nil
+		if market.Id != nil {
+			request["symbol"] = *market.Id
+		}
 	}
 	var response any = nil
 	if trigger != nil && *trigger == true {
@@ -3295,7 +3350,7 @@ func (this *Woofipro) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	// }
 	//
 	var parsedOrders any = this.SafeDict(response, "data", response)
-	if IsEqual(parsedOrders, nil) {
+	if parsedOrders == nil {
 		parsedOrders = map[string]any{}
 	}
 
@@ -3344,12 +3399,12 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		}
 	}
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var maxLimit int = func() int {
-		if isTrigger != nil && *isTrigger {
-			return 100
-		}
-		return 500
-	}()
+	var maxLimit int
+	if isTrigger != nil && *isTrigger {
+		maxLimit = 100
+	} else {
+		maxLimit = 500
+	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOrders", "paginate", false)
 	if paginate {
 
@@ -3373,10 +3428,10 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	} else {
 		request["size"] = maxLimit
 	}
@@ -3434,7 +3489,11 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", response)
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = response
+	}
 	var orders []any = SafeListTyped(data, "rows")
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
@@ -3624,8 +3683,12 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["rows"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, params))}
 	return nil
@@ -3689,10 +3752,10 @@ func (this *Woofipro) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
-		request["size"] = limit
+		request["size"] = *limit
 	} else {
 		request["size"] = 500
 	}
@@ -3729,8 +3792,12 @@ func (this *Woofipro) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["rows"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, paramsUntil))}
 	return nil
@@ -3739,9 +3806,10 @@ func (this *Woofipro) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances []any = SafeListTyped(response, "holding")
+	var balances []any
+	balances, _ = response["holding"].([]any)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "holding")
@@ -3799,7 +3867,11 @@ func (this *Woofipro) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil
@@ -3834,10 +3906,10 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], option
 		request["balance_token"] = this.SafeString(currency, "id")
 	}
 	if since != nil {
-		request["start_t"] = since
+		request["start_t"] = *since
 	}
 	if limit != nil {
-		request["pageSize"] = limit
+		request["pageSize"] = *limit
 	}
 	var transactionType *string = this.SafeString(params, "type")
 	var paramsOmitted map[string]any = this.OmitDict(params, "type")
@@ -3875,8 +3947,12 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], option
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
@@ -3974,7 +4050,8 @@ func (this *Woofipro) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var code *string = this.SafeString(transaction, "token")
 	var movementDirection *string = this.SafeStringLower(transaction, "token_side")
 	if movementDirection != nil && *movementDirection == "withdraw" {
-		movementDirection = SafeStringPtr("withdrawal")
+		movementDirectionStr := "withdrawal"
+		movementDirection = &movementDirectionStr
 	}
 	var fee any = this.ParseTokenAndFeeTemp(transaction, "fee_token", "fee_amount")
 	var addressTo *string = this.SafeString(transaction, "target_address")
@@ -4183,17 +4260,17 @@ func (this *Woofipro) getWithdrawNonceBody(ch chan AsyncResult[*float64], option
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- AsyncResult[*float64]{Value: this.SafeNumber(data, "withdraw_nonce")}
 	return nil
 }
-func (this *Woofipro) HashMessage(message any) any {
-	var hashed any = this.Hash(message, keccak, "hex")
-	return Add("0x", hashed)
+func (this *Woofipro) HashMessage(message any) string {
+	var hashed string = this.HashString(message, keccak, "hex")
+	return "0x" + hashed
 }
-func (this *Woofipro) SignHash(hash any, privateKey string) string {
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+func (this *Woofipro) SignHash(hash string, privateKey string) string {
+	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r string = *this.SafeString(signature, "r", "")
 	var s string = *this.SafeString(signature, "s", "")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -4215,12 +4292,12 @@ func (this *Woofipro) SignMessage(message any, privateKey string) string {
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Woofipro) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Woofipro) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Woofipro) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4316,7 +4393,11 @@ func (this *Woofipro) withdrawBody(ch chan AsyncResult[Transaction], code string
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil
@@ -4386,8 +4467,12 @@ func (this *Woofipro) fetchMarginModesBody(ch chan AsyncResult[map[string]Margin
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTypedDefault(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(rows, symbolsNormalized, "symbol"))}
 	return nil
@@ -4402,12 +4487,12 @@ func (this *Woofipro) fetchMarginModesBody(ch chan AsyncResult[map[string]Margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
-func (this *Woofipro) FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
+func (this *Woofipro) FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode] {
 	ch := make(chan AsyncResult[MarginMode], 1)
 	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol any, optionalArgs ...any) any {
+func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4419,9 +4504,9 @@ func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 
-	r1 := <-this.FetchMarginModesAsync([]any{market["symbol"]}, params)
+	r1 := <-this.FetchMarginModesAsync([]any{market.Symbol}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4429,9 +4514,9 @@ func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 	if !StructAbsent(r1.Value) {
 		marginModes = StructBox(r1.Value, MarginModeMapToMap)
 	}
-	var marginMode map[string]any = SafeMapTyped(marginModes, market["symbol"])
+	var marginMode map[string]any = SafeMapTyped(marginModes, market.Symbol)
 	if marginMode == nil {
-		panic(BadSymbol(this.Id + " fetchMarginMode() did not return a margin mode for " + market["symbol"].(string)))
+		panic(BadSymbol(this.Id + " fetchMarginMode() did not return a margin mode for " + market.Symbol))
 	}
 
 	ch <- AsyncResult[MarginMode]{Value: MarginModeFromMap(marginMode)}
@@ -4474,10 +4559,13 @@ func (this *Woofipro) setMarginModeBody(ch chan AsyncResult[map[string]any], mar
 	if (marginModeValue != "cross") && (marginModeValue != "isolated") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode must be either cross or isolated"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":              market["id"],
+		"symbol":              nil,
 		"default_margin_mode": strings.ToUpper(marginModeValue),
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	//
@@ -4504,6 +4592,10 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 	_ = market
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var success *bool = this.SafeBool(data, "success", false)
+	var ternaryStr316722 string = "failed"
+	if success != nil && *success {
+		ternaryStr316722 = "ok"
+	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
@@ -4512,14 +4604,9 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 		"amount":     nil,
 		"total":      nil,
 		"code":       this.SafeString(market, "settle"),
-		"status": func() string {
-			if success != nil && *success {
-				return "ok"
-			}
-			return "failed"
-		}(),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"status":     ternaryStr316722,
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
 	}
 }
 
@@ -4571,12 +4658,11 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan AsyncResult[MarginModificat
 	// }
 	//
 	var modification map[string]any = this.ParseMarginModification(response, market)
-	modification["type"] = func() string {
-		if typeVar == "ADD" {
-			return "add"
-		}
-		return "reduce"
-	}()
+	if typeVar == "ADD" {
+		modification["type"] = "add"
+	} else {
+		modification["type"] = "reduce"
+	}
 	modification["amount"] = this.ParseNumber(this.NumberToString(amount))
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(modification)}
@@ -4662,12 +4748,12 @@ func (this *Woofipro) ParseLeverage(leverage any, optionalArgs ...any) Leverage 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Woofipro) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+func (this *Woofipro) FetchLeverageAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Leverage] {
 	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+func (this *Woofipro) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4713,7 +4799,11 @@ func (this *Woofipro) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol an
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
@@ -4843,12 +4933,12 @@ func (this *Woofipro) ParsePosition(position any, optionalArgs ...any) Position 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Woofipro) FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Position] {
+func (this *Woofipro) FetchPositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Position] {
 	ch := make(chan AsyncResult[Position], 1)
 	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) fetchPositionBody(ch chan AsyncResult[Position], symbol any, optionalArgs ...any) any {
+func (this *Woofipro) fetchPositionBody(ch chan AsyncResult[Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4896,7 +4986,11 @@ func (this *Woofipro) fetchPositionBody(ch chan AsyncResult[Position], symbol an
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(data, market)}
 	return nil
@@ -4974,8 +5068,12 @@ func (this *Woofipro) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	//     }
 	// }
 	//
-	var result map[string]any = SafeMapTyped(response, "data")
-	var positions []any = SafeListTypedDefault(result, "rows", []any{})
+	var result, _ = response["data"].(map[string]any)
+	var positions []any
+	positions, _ = result["rows"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbols))}
 	return nil
@@ -5014,8 +5112,17 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 				var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
 				if path == "batch-order" {
 					var ordersList []any = SafeListTyped(requestParams, "orders")
+					var taggedOrders []any = []any{}
+					var hasOrders bool = false
 					for i := 0; i < len(ordersList); i++ {
-						AddElementToObject(GetValue(requestParams["orders"], i), "order_tag", brokerId)
+						var orderRow map[string]any = this.Extend(ordersList[i], map[string]any{
+							"order_tag": brokerId,
+						})
+						taggedOrders = append(taggedOrders, orderRow)
+						hasOrders = true
+					}
+					if hasOrders {
+						requestParams["orders"] = taggedOrders
 					}
 				} else {
 					requestParams["order_tag"] = brokerId
@@ -5023,7 +5130,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 			requestParams = this.Keysort(requestParams)
 		}
-		var auth any = ""
+		var auth string = ""
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		url += pathWithParams
 		var hasKeyPrefix bool = (strings.Index(this.ApiKey, "ed25519:") >= 0)
@@ -5040,28 +5147,24 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		auth = ts + method + "/" + version + "/" + pathWithParams
 		if (method == "POST") || (method == "PUT") {
-			requestBody = this.Json(requestParams)
-			auth = Add(auth, requestBody)
+			var requestBodyText string = this.Json(requestParams)
+			requestBody = requestBodyText
+			auth += requestBodyText
 			authHeaders["content-type"] = "application/json"
 		} else {
 			if len(requestParams) > 0 {
 				url += "?" + this.Urlencode(requestParams)
-				auth = Add(auth, "?"+this.Rawencode(requestParams))
+				auth += "?" + this.Rawencode(requestParams)
 			}
 			authHeaders["content-type"] = "application/x-www-form-urlencoded"
 			if method == "DELETE" {
 				requestBody = ""
 			}
 		}
-		var secret any = this.Secret
+		var secret string = this.Secret
 		if strings.Index(this.Secret, "ed25519:") >= 0 {
 			var parts []string = strings.Split(this.Secret, "ed25519:")
-			secret = func() any {
-				if 1 >= 0 && 1 < len(parts) {
-					return parts[1]
-				}
-				return nil
-			}()
+			secret = parts[1]
 		}
 		var signature string = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
 		authHeaders["orderly-signature"] = this.UrlencodeBase64(this.Base64ToBinary(signature))
@@ -5550,7 +5653,7 @@ func (this *Woofipro) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

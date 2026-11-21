@@ -172,7 +172,7 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $options = $this->safe_dict($this->options, 'watchTicker', array());
         $topic = $this->safe_string($options, 'name', 'market.{marketId}.detail');
         if ($topic === 'market.{marketId}.ticker' && $market['type'] !== 'spot') {
@@ -257,7 +257,7 @@ class htx extends \ccxt\async\htx {
         $timestamp = $this->safe_integer($message, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         if ($symbol !== null) {
             $this->tickers[$symbol] = $ticker;
         }
@@ -287,7 +287,7 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $marketId = $this->safe_string($market, 'id', '');
         $messageHash = 'market.' . $marketId . '.trade.detail';
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
@@ -356,7 +356,7 @@ class htx extends \ccxt\async\htx {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $tradesCache = $this->safe_value($this->trades, $symbol);
         if ($tradesCache === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -394,7 +394,7 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $marketId = $this->safe_string($market, 'id', '');
         $messageHash = 'market.' . $marketId . '.kline.' . $interval;
@@ -461,7 +461,7 @@ class htx extends \ccxt\async\htx {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_string($parts, 3);
         $timeframe = $this->find_timeframe($interval);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
@@ -500,7 +500,7 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $allowedLimits = array( 5, 20, 150, 400 );
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
@@ -603,7 +603,7 @@ class htx extends \ccxt\async\htx {
             $messages = $orderbook->cache;
             $firstMessage = $this->safe_dict($messages, 0, array());
             $snapshot = $this->parse_order_book($data, $symbol);
-            $tick = $this->safe_dict($firstMessage, 'tick');
+            $tick = $this->safe_dict($firstMessage, 'tick', array());
             $sequence = $this->safe_integer($tick, 'prevSeqNum');
             $nonce = $this->safe_integer($data, 'seqNum');
             if ($nonce === null) {
@@ -783,7 +783,7 @@ class htx extends \ccxt\async\htx {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $orderbook = $this->orderbooks[$symbol];
         $tick = $this->safe_dict($message, 'tick', array());
         $seqNum = $this->safe_integer($tick, 'seqNum');
@@ -990,10 +990,8 @@ class htx extends \ccxt\async\htx {
     }
 
     public function get_order_channel_and_message_hash(?string $type, ?string $subType, ?array $market = null, $params = array()): array {
-        $messageHash = null;
-        $channel = null;
-        $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
-        $orderType = $this->safe_string($params, 'orderType', $orderType);
+        $defaultOrderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
+        $orderType = $this->safe_string($params, 'orderType', $defaultOrderType);
         $paramsOmitted = $this->omit($params, 'orderType');
         $marketCode = null;
         if ($market !== null) {
@@ -1001,10 +999,11 @@ class htx extends \ccxt\async\htx {
         }
         $baseId = null;
         if ($market !== null) {
-            $baseId = $market['baseId'];
+            $baseId = $this->safe_string($market, 'baseId');
         }
         $prefix = $orderType;
         $messageHash = $prefix;
+        $channel = $prefix . '.' . '*';
         if ($subType === 'linear') {
             // USDT Margined Contracts Example: LTC/USDT:USDT
             $marginMode = $this->safe_string($paramsOmitted, 'margin', 'cross');
@@ -1014,24 +1013,28 @@ class htx extends \ccxt\async\htx {
             }
             $messageHash = $marginPrefix;
             if ($marketCode !== null) {
-                $messageHash = $marginPrefix . '.' . $marketCode;
-                $channel = $messageHash;
+                $marketTopic = $marginPrefix . '.' . $marketCode;
+                $messageHash = $marketTopic;
+                $channel = $marketTopic;
             } else {
                 $channel = $marginPrefix . '.' . '*';
             }
         } elseif ($type === 'future') {
             // inverse futures Example: BCH/USD:BCH-220408
             if ($baseId !== null) {
-                $channel = $prefix . '.' . strtolower($baseId);
-                $messageHash = $channel;
+                $lowerBaseId = strtolower($baseId);
+                $baseTopic = $prefix . '.' . $lowerBaseId;
+                $channel = $baseTopic;
+                $messageHash = $baseTopic;
             } else {
                 $channel = $prefix . '.' . '*';
             }
         } else {
             // inverse swaps: Example: BTC/USD:BTC
             if ($marketCode !== null) {
-                $channel = $prefix . '.' . $marketCode;
-                $messageHash = $channel;
+                $swapTopic = $prefix . '.' . $marketCode;
+                $channel = $swapTopic;
+                $messageHash = $swapTopic;
             } else {
                 $channel = $prefix . '.' . '*';
             }
@@ -1042,7 +1045,7 @@ class htx extends \ccxt\async\htx {
     public function get_v5_linear_channel_and_message_hash(?string $topic, ?array $market = null, $params = array()): array {
         $contractCode = null;
         if ($market !== null) {
-            $contractCode = $market['id'];
+            $contractCode = $this->safe_string($market, 'id');
         } else {
             $contractCode = $this->safe_string($params, 'contract_code', '*');
         }
@@ -1949,7 +1952,7 @@ class htx extends \ccxt\async\htx {
                     if ($marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
                         if (($symbol !== null) && ($market !== null)) {
-                            $messageHash .= '.' . $this->safe_string($market, 'id', '');
+                            $messageHash = $prefix . '.' . $this->safe_string($market, 'id', '');
                             $channel = $messageHash;
                         } else {
                             // subscribe to all
@@ -1969,7 +1972,7 @@ class htx extends \ccxt\async\htx {
             } elseif ($type === 'future') {
                 // inverse futures account
                 if ($currencyCode !== null) {
-                    $messageHash .= '.' . $this->safe_string($currencyCode, 'id', '');
+                    $messageHash = $prefix . '.' . $this->safe_string($currencyCode, 'id', '');
                     $channel = $messageHash;
                 } else {
                     // subscribe to all
@@ -1978,7 +1981,7 @@ class htx extends \ccxt\async\htx {
             } else {
                 // inverse swaps account
                 if ($market !== null) {
-                    $messageHash .= '.' . $this->safe_string($market, 'id', '');
+                    $messageHash = $prefix . '.' . $this->safe_string($market, 'id', '');
                     $channel = $messageHash;
                 } else {
                     // subscribe to all
@@ -2559,7 +2562,7 @@ class htx extends \ccxt\async\htx {
             if ($subscription !== null) {
                 $errorCode = $this->safe_string($message, 'err-code');
                 try {
-                    $this->throw_exactly_matched_exception($wsExceptions['exact'], $errorCode, $this->json($message));
+                    $this->throw_exactly_matched_exception($this->safe_dict($wsExceptions, 'exact', array()), $errorCode, $this->json($message));
                     throw new ExchangeError($this->json($message));
                 } catch (Exception $e) {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
@@ -2945,12 +2948,12 @@ class htx extends \ccxt\async\htx {
         if ($type === 'spot') {
             $spotUrls = $this->safe_dict($typeUrlsByApi, 'spot', array());
             if ($isPrivate) {
-                $hostnameURL = $spotUrls['private'];
+                $hostnameURL = $this->safe_string($spotUrls, 'private');
             } else {
                 if ($isFeed) {
-                    $hostnameURL = $spotUrls['feed'];
+                    $hostnameURL = $this->safe_string($spotUrls, 'feed');
                 } else {
-                    $hostnameURL = $spotUrls['public'];
+                    $hostnameURL = $this->safe_string($spotUrls, 'public');
                 }
             }
             $url = $this->implode_params($hostnameURL, $hostname);
@@ -2964,12 +2967,12 @@ class htx extends \ccxt\async\htx {
             }
             if ($isPrivate) {
                 if ($isV5 && $isLinear) {
-                    $url = $this->safe_string($subTypeUrl, 'privateV5', $subTypeUrl['private']);
+                    $url = $this->safe_string_2($subTypeUrl, 'privateV5', 'private');
                 } else {
-                    $url = $subTypeUrl['private'];
+                    $url = $this->safe_string($subTypeUrl, 'private');
                 }
             } else {
-                $url = $subTypeUrl['public'];
+                $url = $this->safe_string($subTypeUrl, 'public');
             }
         }
         return $url;

@@ -729,7 +729,9 @@ export default class mexc extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
+    parseLeverageList(leverages: Dict[], market?: Market): Leverage;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
+    handleMarginModeAndParams(methodName: string, params: Dict, defaultValue: string): [string, Dict];
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     /**
      * @method

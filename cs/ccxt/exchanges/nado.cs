@@ -587,15 +587,17 @@ public partial class nado : Exchange
         if (isStopOrder)
         {
             // the final omit drops triggerDirection from the request
-            string? triggerDirection = this.safeString(this.handleTriggerDirectionAndParams(paramsRecvWindow), 0);
+            IList<object> triggerDirectionVariable = (IList<object>)this.handleTriggerDirectionAndParams(((IDictionary<string, object>)paramsRecvWindow));
+            string? triggerDirection = (string)triggerDirectionVariable[0];
             string directionSuffix = "below";
-            if (triggerDirection == "ascending")
+            if ((triggerDirection == "ascending"))
             {
                 directionSuffix = "above";
             }
             string? triggerPriceX18 = this.convertToX18(triggerPrice);
             Dictionary<string, object> priceRequirement = new Dictionary<string, object>() {};
-            priceRequirement[(string)("oracle_price_" + directionSuffix)] = triggerPriceX18;
+            string oracleKey = ("oracle_price_" + directionSuffix);
+            priceRequirement[(string)oracleKey] = triggerPriceX18;
             Dictionary<string, object> trigger = new Dictionary<string, object>() {
                 { "price_trigger", new Dictionary<string, object>() {
                     { "price_requirement", priceRequirement },
@@ -621,7 +623,8 @@ public partial class nado : Exchange
             }
             string? triggerPriceX18 = this.convertToX18(triggerPrice);
             Dictionary<string, object> priceRequirement = new Dictionary<string, object>() {};
-            priceRequirement[(string)("oracle_price_" + oracleSide)] = triggerPriceX18;
+            string oracleKey = ("oracle_price_" + oracleSide);
+            priceRequirement[(string)oracleKey] = triggerPriceX18;
             Dictionary<string, object> trigger = new Dictionary<string, object>() {
                 { "price_trigger", new Dictionary<string, object>() {
                     { "price_requirement", priceRequirement },
@@ -1680,7 +1683,7 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((this.id + " fetchPositions() requires walletAddress")) ;
         }
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         (string?, IDictionary<string, object>) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
         IDictionary<string, object> paramsSubaccount = (subaccountparamsSubaccountVariable.Item2);
@@ -1825,7 +1828,7 @@ public partial class nado : Exchange
         Dictionary<string, object> pairsById = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; i++)
         {
-            object rawPair = pairs[i];
+            IDictionary<string, object> rawPair = ((IDictionary<string, object>)pairs[i]);
             string? pairProductId = this.safeString(rawPair, "product_id");
             if ((pairProductId != null))
             {
@@ -1835,7 +1838,7 @@ public partial class nado : Exchange
         Dictionary<string, object> assetsById = new Dictionary<string, object>() {};
         for (int i = 0; i < assets.Count; i++)
         {
-            object rawAsset = assets[i];
+            IDictionary<string, object> rawAsset = ((IDictionary<string, object>)assets[i]);
             string? assetProductId = this.safeString(rawAsset, "product_id");
             if ((assetProductId != null))
             {
@@ -1845,7 +1848,7 @@ public partial class nado : Exchange
         Dictionary<string, object> assetsByCode = new Dictionary<string, object>() {};
         for (int i = 0; i < assets.Count; i++)
         {
-            object rawAsset = assets[i];
+            IDictionary<string, object> rawAsset = ((IDictionary<string, object>)assets[i]);
             string? assetSymbol = this.safeString(rawAsset, "symbol");
             string? assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
             if ((assetCode == null))
@@ -1985,7 +1988,7 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.gatewayV2PublicGetAssets(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> assets = this.toArray(response);
+        IList<object> assets = response;
         for (int i = 0; i < (assets?.Count ?? 0); i++)
         {
             object currency = this.safeValue(assets, i);
@@ -2027,7 +2030,7 @@ public partial class nado : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.archiveV2PublicGetTickers(parameters);
         //
         //     {
@@ -2043,7 +2046,7 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        IList<object> tickers = this.toArray(response);
+        IList<object> tickers = (response == null ? null : new List<object>(response.Values));
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
@@ -3105,7 +3108,10 @@ public partial class nado : Exchange
             }
             filled = this.parseX18(Precise.stringAbs(archiveFilled));
             string? costString = this.safeString(order, "quote_filled");
-            cost = ((costString == null)) ? null : this.parseX18(Precise.stringAbs(costString));
+            if ((costString != null))
+            {
+                cost = this.parseX18(Precise.stringAbs(costString));
+            }
             if (((filled != null)) && ((cost != null)))
             {
                 average = Precise.stringDiv(this.numberToString(cost), this.numberToString(filled));
@@ -3363,7 +3369,8 @@ public partial class nado : Exchange
             return ((string?)((object)(slice(paddedLeft, start, paddedLeft.Length))));
         }
         string paddedRight = (value + zeros);
-        return ((string?)((object)(slice(paddedRight, 0, length))));
+        Int64? end = this.parseToInt(length);
+        return ((string?)((object)(((paddedRight == null) ? null : paddedRight.Substring(0, ((int)Math.Max(Math.Min(((end ?? 0L) < 0 ? ((Int64)paddedRight.Length) + ((end ?? 0L)) : (end ?? 0L)), ((Int64)paddedRight.Length)), 0L)))))));
     }
 
     public virtual string? signOrder(IDictionary<string, object> order, object productId, object chainId)
@@ -3497,18 +3504,22 @@ public partial class nado : Exchange
         return ((string?)((object)(marketId)));
     }
 
-    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
+        if (((IDictionary<string, object>)config).ContainsKey("byType"))
         {
-            object queryType = getValue(parameters, "type");
             object byType = ((IDictionary<string,object>)config)["byType"];
-            if (inOp(byType, queryType))
+            string? queryType = this.safeString(parameters, "type");
+            if ((queryType != null))
             {
-                return getValue(byType, queryType);
+                Int64? typeCost = this.safeInteger(byType, queryType);
+                if ((typeCost != null))
+                {
+                    return typeCost;
+                }
             }
         }
         IDictionary<string, object> byQuery = this.safeDict(config, "byQuery");
@@ -3615,7 +3626,7 @@ public partial class nado : Exchange
         if ((status == "failure") || ((errorCode != null)) || ((error != null)))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }

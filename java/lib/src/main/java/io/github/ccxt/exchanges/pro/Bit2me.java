@@ -74,21 +74,23 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<Object> subscribePublic(String name, String symbol, String messageHash, Object parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.subscribePublicCore(name, symbol, messageHash, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object subscribePublicCore(String name, String symbol, String messageHash, Object parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "event", "subscribe" );
-                put( "symbol", market.get("id") );
-                put( "subscription", new HashMap<String, Object>() {{
-                    put( "name", name );
-                }} );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        });
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "event", "subscribe" );
+            put( "symbol", market.get("id") );
+            put( "subscription", new HashMap<String, Object>() {{
+                put( "name", name );
+            }} );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
 
@@ -104,20 +106,22 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<Object> subscribePrivate(String name, String messageHash, Object parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.subscribePrivateCore(name, messageHash, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object subscribePrivateCore(String name, String messageHash, Object parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "event", "subscribe" );
-                put( "subscription", new HashMap<String, Object>() {{
-                    put( "name", name );
-                }} );
-            }};
-            return (this.watch(url, messageHash, this.extend(request, parameters), name, null)).join();
-        });
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "event", "subscribe" );
+            put( "subscription", new HashMap<String, Object>() {{
+                put( "name", name );
+            }} );
+        }};
+        return (this.watch(url, messageHash, this.extend(request, parameters), name, null)).join();
 
     }
 
@@ -133,15 +137,17 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrderBookCore(symbol, limit, parameters)).thenApply(OrderBook::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("orderbook:" + market.get("symbol"));
-            Object orderbook = (this.subscribePublic("order-book", (String) (symbol), messageHash, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
-        }).thenApply(OrderBook::new);
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("orderbook:" + market.get("symbol"));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic("order-book", (String) (symbol), messageHash, parameters)).join();
+        return orderbook.limit();
 
     }
 
@@ -168,7 +174,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         Long timestamp = this.safeInteger(data, "nonce");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", timestamp);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
@@ -190,20 +196,22 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            String messageHash = ("trades:" + market.get("symbol"));
-            List<Object> trades = (List<Object>) (this.subscribePublic("public-trades", (String) (symbol), messageHash, parameters)).join();
-            Long finalLimit = limit;
-            if (this.newUpdates)
-            {
-                finalLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
-            }
-            return this.filterBySinceLimit(trades, since, finalLimit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("trades:" + market.get("symbol"));
+        List<Object> trades = (List<Object>) (this.subscribePublic("public-trades", (String) (symbol), messageHash, parameters)).join();
+        Long finalLimit = limit;
+        if (this.newUpdates)
+        {
+            finalLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
+        }
+        return this.filterBySinceLimit(trades, since, finalLimit, "timestamp", true);
 
     }
 
@@ -323,26 +331,29 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchOrdersCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            String messageHash = "orders";
-            String unifiedSymbol = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                unifiedSymbol = java.util.Objects.toString(market.get("symbol"), null);
-                messageHash = ((messageHash + ":") + unifiedSymbol);
-            }
-            List<Object> orders = (List<Object>) (this.subscribePrivate("my-orders", messageHash, parameters)).join();
-            Long finalLimit = limit;
-            if (this.newUpdates)
-            {
-                finalLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, unifiedSymbol, limit);
-            }
-            return this.filterBySymbolSinceLimit(orders, unifiedSymbol, since, finalLimit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        String messageHash = "orders";
+        String unifiedSymbol = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            String marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ("orders:" + marketSymbol);
+            unifiedSymbol = marketSymbol;
+        }
+        List<Object> orders = (List<Object>) (this.subscribePrivate("my-orders", messageHash, parameters)).join();
+        Long finalLimit = limit;
+        if (this.newUpdates)
+        {
+            finalLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, unifiedSymbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, unifiedSymbol, since, finalLimit, true);
 
     }
 
@@ -383,7 +394,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         orders.append(order);
         client.resolve(orders, "orders");
-        client.resolve(orders, ("orders:" + order.get("symbol")));
+        client.resolve(orders, ("orders:" + this.safeString(order, "symbol", "")));
     }
 
     public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
@@ -466,26 +477,29 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchMyTradesCore(symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            String messageHash = "myTrades";
-            String unifiedSymbol = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                Map<String, Object> market = this.market(symbol);
-                unifiedSymbol = java.util.Objects.toString(market.get("symbol"), null);
-                messageHash = ((messageHash + ":") + unifiedSymbol);
-            }
-            List<Object> trades = (List<Object>) (this.subscribePrivate("my-trades", messageHash, parameters)).join();
-            Long finalLimit = limit;
-            if (this.newUpdates)
-            {
-                finalLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, unifiedSymbol, limit);
-            }
-            return this.filterBySymbolSinceLimit(trades, unifiedSymbol, since, finalLimit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        String messageHash = "myTrades";
+        String unifiedSymbol = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            Map<String, Object> market = this.market(symbol);
+            String marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ("myTrades:" + marketSymbol);
+            unifiedSymbol = marketSymbol;
+        }
+        List<Object> trades = (List<Object>) (this.subscribePrivate("my-trades", messageHash, parameters)).join();
+        Long finalLimit = limit;
+        if (this.newUpdates)
+        {
+            finalLimit = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, unifiedSymbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, unifiedSymbol, since, finalLimit, true);
 
     }
 
@@ -521,7 +535,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         myTrades.append(trade);
         client.resolve(myTrades, "myTrades");
-        client.resolve(myTrades, ("myTrades:" + trade.get("symbol")));
+        client.resolve(myTrades, ("myTrades:" + this.safeString(trade, "symbol", "")));
     }
 
     /**
@@ -534,11 +548,13 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.watchBalanceCore(parameters)).thenApply(Balances::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object watchBalanceCore(Map<String, Object> parameters)
+    {
 
-            return (this.subscribePrivate("my-balance", "balance", parameters)).join();
-        }).thenApply(Balances::new);
+        return (this.subscribePrivate("my-balance", "balance", parameters)).join();
 
     }
 
@@ -580,32 +596,34 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.createOrderWsCore(symbol, type, side, amount, price, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object createOrderWsCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> restRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            String orderType = this.safeString(restRequest, "orderType");
-            if (java.util.Objects.equals(orderType, "oco"))
-            {
-                throw new NotSupported((this.id + " createOrderWs() does not support oco orders, use createOrder() instead")) ;
-            }
-            // createOrderRequest always sets a CCXT-<id> clientOrderId, the response is matched by it
-            String clientOrderId = this.safeString(restRequest, "clientOrderId");
-            Map<String, Object> request = this.omit(restRequest, "orderType");
-            request.put("event", "add-order");
-            request.put("type", orderType);
-            request.put("clientOrderId", clientOrderId);
-            // the response carries no request id, it is matched by the client order id, and an error only by the symbol
-            Map<String, Object> pending = this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(pending, clientOrderId, market.get("id"));
-            this.options.put("pendingWsOrders", pending);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String messageHash = ("added-order:" + clientOrderId);
-            return (this.watch(url, messageHash, request, messageHash, null)).join();
-        }).thenApply(Order::new);
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> restRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+        String orderType = this.safeString(restRequest, "orderType");
+        if (java.util.Objects.equals(orderType, "oco"))
+        {
+            throw new NotSupported((this.id + " createOrderWs() does not support oco orders, use createOrder() instead")) ;
+        }
+        // createOrderRequest always sets a CCXT-<id> clientOrderId, the response is matched by it
+        String clientOrderId = this.safeString(restRequest, "clientOrderId");
+        Map<String, Object> request = this.omit(restRequest, "orderType");
+        request.put("event", "add-order");
+        request.put("type", orderType);
+        request.put("clientOrderId", clientOrderId);
+        // the response carries no request id, it is matched by the client order id, and an error only by the symbol
+        Map<String, Object> pending = this.safeDict(this.options, "pendingWsOrders", new HashMap<String, Object>() {{}});
+        pending.put(clientOrderId, market.get("id"));
+        this.options.put("pendingWsOrders", pending);
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String messageHash = ("added-order:" + clientOrderId);
+        return (this.watch(url, messageHash, request, messageHash, null)).join();
 
     }
 
@@ -686,19 +704,21 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrderWsCore(id, symbol, parameters)).thenApply(Order::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrderWsCore(String id, String symbol, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "event", "cancel-order" );
-                put( "orderId", id );
-            }};
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String messageHash = ("canceled-order:" + id);
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        }).thenApply(Order::new);
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "event", "cancel-order" );
+            put( "orderId", id );
+        }};
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String messageHash = ("canceled-order:" + id);
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
 
@@ -724,7 +744,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             put( "symbol", market.get("symbol") );
             put( "status", Bit2me.this.parseOrderStatus(Bit2me.this.safeString(data, "status")) );
         }}, market);
-        this.settleRequest(client, (String) (("canceled-order:" + orderId)), order, (Object) null);
+        this.settleRequest(client, ("canceled-order:" + this.safeString(data, "orderId", "")), order, (Object) null);
     }
 
     /**
@@ -739,19 +759,21 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelOrdersWsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelOrdersWsCore(Object ids, String symbol, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "event", "cancel-orders" );
-                put( "ordersId", ids );
-            }};
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String messageHash = "canceled-orders";
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "event", "cancel-orders" );
+            put( "ordersId", ids );
+        }};
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String messageHash = "canceled-orders";
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
 
@@ -812,24 +834,26 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<List<Order>> cancelAllOrdersWs(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.cancelAllOrdersWsCore(symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object cancelAllOrdersWsCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " cancelAllOrdersWs() requires a symbol argument")) ;
-            }
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "event", "cancel-all-orders" );
-                put( "symbol", market.get("id") );
-            }};
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            String messageHash = ("canceled-all-orders:" + market.get("id"));
-            return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        if (java.util.Objects.equals(symbol, null))
+        {
+            throw new ArgumentsRequired((this.id + " cancelAllOrdersWs() requires a symbol argument")) ;
+        }
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "event", "cancel-all-orders" );
+            put( "symbol", market.get("id") );
+        }};
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String messageHash = ("canceled-all-orders:" + this.safeString(market, "id", ""));
+        return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
 
     }
 
@@ -852,14 +876,14 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ids.size(); i++)
         {
-            ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("info", message);
-                j39v1.put("id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
-                j39v1.put("symbol", market.get("symbol"));
-                j39v1.put("status", "canceled");
-                yield j39v1; } }), market));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("info", message);
+            mapLiteral3.put("id", this.safeString(ids, i));
+            mapLiteral3.put("symbol", this.safeString(market, "symbol"));
+            mapLiteral3.put("status", "canceled");
+            ((List<Object>)orders).add(this.safeOrder(mapLiteral3, market));
         }
-        this.settleRequest(client, (String) (("canceled-all-orders:" + marketId)), orders, (Object) null);
+        this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), orders, (Object) null);
     }
 
     /**
@@ -872,30 +896,32 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
      */
     public CompletableFuture<Object> authenticate(Object parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object authenticateCore(Object parameters)
+    {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Client client = this.client(url);
-            String messageHash = "authenticated";
-            io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
-            if (!authenticated)
-            {
-                // the token is valid for one minute, it is only used to open the session
-                Map<String, Object> response = (this.privatePostV1SigninApikey(parameters)).join();
-                //
-                //     { "accessToken": { "token": "header.payload.signature", "expirationTime": 1794378427 } }
-                //
-                Map<String, Object> accessToken = this.safeDict(response, "accessToken", new HashMap<String, Object>() {{}});
-                Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "event", "authenticate" );
-                    put( "token", Bit2me.this.safeString(accessToken, "token") );
-                }};
-                this.watch(url, messageHash, request, messageHash, null);
-            }
-            return future.getFuture().join();
-        });
+        String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+        Client client = this.client(url);
+        String messageHash = "authenticated";
+        io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
+        boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
+        {
+            // the token is valid for one minute, it is only used to open the session
+            Map<String, Object> response = (this.privatePostV1SigninApikey(parameters)).join();
+            //
+            //     { "accessToken": { "token": "header.payload.signature", "expirationTime": 1794378427 } }
+            //
+            Map<String, Object> accessToken = this.safeDict(response, "accessToken", new HashMap<String, Object>() {{}});
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "event", "authenticate" );
+                put( "token", Bit2me.this.safeString(accessToken, "token") );
+            }};
+            this.watch(url, messageHash, request, messageHash, null);
+        }
+        return future.getFuture().join();
 
     }
 
@@ -970,13 +996,13 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             }
         } else if (java.util.Objects.equals(eventVar, "canceled-order"))
         {
-            this.settleRequest(client, (String) (("canceled-order:" + this.safeString(message, "orderId"))), null, exception);
+            this.settleRequest(client, ("canceled-order:" + this.safeString(message, "orderId", "")), null, exception);
         } else if (java.util.Objects.equals(eventVar, "canceled-orders"))
         {
             this.settleRequest(client, "canceled-orders", null, exception);
         } else if (java.util.Objects.equals(eventVar, "canceled-all-orders"))
         {
-            this.settleRequest(client, (String) (("canceled-all-orders:" + this.safeString(message, "symbol"))), null, exception);
+            this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), null, exception);
         } else if (java.util.Objects.equals(eventVar, "subscribe"))
         {
             // a refused subscription names the channel and the symbol it was asked for
@@ -999,10 +1025,10 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                 {
                     // the private channels are account-wide, a symbol-scoped watchOrders / watchMyTrades waits on orders:SYMBOL / myTrades:SYMBOL
                     String scopedPrefix = (messageHash + ":");
-                    List<Object> pendingHashes = new ArrayList<Object>(client.futures.keySet());
+                    List<String> pendingHashes = new ArrayList<String>(client.futures.keySet());
                     for (var i = 0; i < pendingHashes.size(); i++)
                     {
-                        String pendingHash = (String) (pendingHashes == null || i < 0 || i >= pendingHashes.size() ? null : pendingHashes.get(i));
+                        String pendingHash = (pendingHashes == null || i < 0 || i >= pendingHashes.size() ? null : pendingHashes.get(i));
                         if ((pendingHash.startsWith(((String)scopedPrefix))))
                         {
                             client.reject(exception, pendingHash);

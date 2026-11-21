@@ -120,7 +120,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
-    parseTicker(ticker: object, market?: Market): Ticker;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name coinbaseinternational#fetchOrderBook

@@ -840,11 +840,12 @@ class deribit extends \ccxt\async\deribit {
         }
         $params = $this->safe_dict($message, 'params', array());
         $channel = $this->safe_string($params, 'channel', '');
-        $data = $this->safe_value($params, 'data', array());
+        $dataList = $this->safe_list($params, 'data');
         $orders = array();
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $orders = $this->parse_orders($data);
+        if ($dataList !== null) {
+            $orders = $this->parse_orders($dataList);
         } else {
+            $data = $this->safe_value($params, 'data', array());
             $order = $this->parse_order($data);
             $orders = array( $order );
         }
@@ -877,7 +878,8 @@ class deribit extends \ccxt\async\deribit {
         }
         $symbolValue = $this->symbol($symbol);
         $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $ohlcvs[$symbolValue][$timeframe];
+        $bySymbol = $ohlcvs[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {

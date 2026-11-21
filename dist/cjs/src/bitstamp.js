@@ -1223,7 +1223,8 @@ class bitstamp extends bitstamp$1["default"] {
             }
         }
         // if it is a private trade
-        if ('id' in trade) {
+        const tradeId = this.safeString(trade, 'id');
+        if (tradeId !== undefined) {
             if (amountString !== undefined) {
                 const isAmountNeg = Precise["default"].stringLt(amountString, '0');
                 if (isAmountNeg) {
@@ -1638,6 +1639,7 @@ class bitstamp extends bitstamp$1["default"] {
         const result = this.depositWithdrawFee(fee);
         const code = this.safeString(currency, 'code');
         const feeEntries = this.toArray(fee);
+        const networks = {};
         for (let j = 0; j < feeEntries.length; j++) {
             const networkEntry = this.safeDict(feeEntries, j);
             const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'network'), code);
@@ -1647,7 +1649,7 @@ class bitstamp extends bitstamp$1["default"] {
                 'percentage': undefined,
             };
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -1659,6 +1661,7 @@ class bitstamp extends bitstamp$1["default"] {
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -2159,8 +2162,9 @@ class bitstamp extends bitstamp$1["default"] {
         const feeCost = this.safeString(transaction, 'fee');
         let feeCurrency = undefined;
         let amount = undefined;
-        if ('amount' in transaction) {
-            amount = this.safeString(transaction, 'amount');
+        const transactionAmount = this.safeString(transaction, 'amount');
+        if (transactionAmount !== undefined) {
+            amount = transactionAmount;
         }
         else if (currency !== undefined) {
             amount = this.safeString(transaction, currency['id']);
@@ -2175,13 +2179,14 @@ class bitstamp extends bitstamp$1["default"] {
             amount = Precise["default"].stringAbs(amount);
         }
         let status = 'ok';
-        if ('status' in transaction) {
-            status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
+        const rawStatus = this.safeString(transaction, 'status');
+        if (rawStatus !== undefined) {
+            status = this.parseTransactionStatus(rawStatus);
         }
         let type = undefined;
-        if ('type' in transaction) {
+        const rawType = this.safeString(transaction, 'type');
+        if (rawType !== undefined) {
             // from fetchDepositsWithdrawals
-            const rawType = this.safeString(transaction, 'type');
             if (rawType === '0') {
                 type = 'deposit';
             }
@@ -2431,14 +2436,14 @@ class bitstamp extends bitstamp$1["default"] {
             const parsedTransaction = this.parseTransaction(item, currency);
             let direction = undefined;
             const transactionCurrency = this.safeString(parsedTransaction, 'currency');
-            const hasTransactionCurrency = !('amount' in item) && (transactionCurrency !== undefined);
+            const itemAmount = this.safeString(item, 'amount');
+            const hasTransactionCurrency = (itemAmount === undefined) && (transactionCurrency !== undefined);
             let currencyResolved = currency;
             if (hasTransactionCurrency) {
                 currencyResolved = this.currency(this.safeString(parsedTransaction, 'currency'));
             }
-            if ('amount' in item) {
-                const amount = this.safeString(item, 'amount');
-                direction = Precise["default"].stringGt(amount, '0') ? 'in' : 'out';
+            if (itemAmount !== undefined) {
+                direction = Precise["default"].stringGt(itemAmount, '0') ? 'in' : 'out';
             }
             else if (transactionCurrency !== undefined) {
                 const amount = this.safeString(item, this.safeString(currencyResolved, 'id'));

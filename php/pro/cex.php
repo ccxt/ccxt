@@ -161,7 +161,9 @@ class cex extends \ccxt\async\cex {
         if ($currentSymbol !== null && $currentSymbol !== $symbol) {
             throw new ArgumentsRequired($this->id . ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        $this->options['watchTrades']['symbol'] = $symbol;
+        $watchTradesDict = $this->safe_dict($this->options, 'watchTrades', array());
+        $watchTradesDict['symbol'] = $symbol;
+        $this->options['watchTrades'] = $watchTradesDict;
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -809,7 +811,7 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_dict($message, 'data', array());
         $isTransaction = $this->safe_string($message, 'e') === 'tx';
         $orderId = $this->safe_string_2($data, 'id', 'order');
-        $remains = $this->safe_string($data, 'remains');
+        $remainsPrecision = $this->safe_string($data, 'remains');
         $baseId = $this->safe_string($data, 'symbol');
         $quoteId = $this->safe_string($data, 'symbol2');
         $pair = $this->safe_dict($data, 'pair');
@@ -824,15 +826,16 @@ class cex extends \ccxt\async\cex {
         }
         $symbol = $base . '/' . $quote;
         $market = $this->safe_market($symbol);
-        $remains = $this->currency_from_precision($base, $remains);
+        $remains = $this->currency_from_precision($base, $remainsPrecision);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $storedOrders = $this->orders;
         $ordersBySymbol = $this->safe_dict($storedOrders->hashmap, $symbol, array());
-        $order = $this->safe_value($ordersBySymbol, $orderId);
+        $order = $this->safe_dict($ordersBySymbol, $orderId);
         if ($order === null) {
+            // market comes from safeMarket, so the parser never takes its undefined returns here
             $order = $this->parse_ws_order_update($data, $market);
         }
         $order['remaining'] = $remains;
@@ -854,13 +857,14 @@ class cex extends \ccxt\async\cex {
         $timestamp = $this->safe_integer($data, 'time');
         $order['timestamp'] = $timestamp;
         $order['datetime'] = $this->iso8601($timestamp);
-        $order = $this->safe_order($order);
-        $storedOrders->append($order);
+        // a fresh map copy: the cached entry is untyped
+        $parsedOrder = $this->safe_order($this->extend($order, array()));
+        $storedOrders->append($parsedOrder);
         $messageHash = 'orders:' . $symbol;
         $client->resolve($storedOrders, $messageHash);
     }
 
-    public function parse_ws_order_update(array $order, ?array $market = null) {
+    public function parse_ws_order_update(array $order, ?array $market = null): ?array {
         //
         //      {
         //          "id": "150714937",
@@ -973,17 +977,17 @@ class cex extends \ccxt\async\cex {
         return $this->safe_order($parsedOrder, $marketResolved);
     }
 
-    public function from_precision(mixed $amount, mixed $scale): ?string {
+    public function from_precision(?string $amount, ?int $scale): ?string {
         if ($amount === null) {
             return null;
         }
         $precise = new Precise($amount);
-        $precise->decimals = $this->sum($precise->decimals, $scale);
+        $precise->decimals = $this->sum($precise->decimals, $this->safe_integer(array( $scale ), 0, 0));
         $precise->reduce();
         return (string) $precise;
     }
 
-    public function currency_from_precision(string $currency, mixed $amount): ?string {
+    public function currency_from_precision(string $currency, ?string $amount): ?string {
         $scale = $this->safe_integer($this->currencies[$currency], 'precision', 0);
         return $this->from_precision($amount, $scale);
     }
@@ -1114,7 +1118,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function pair_to_symbol(mixed $pair): string {
+    public function pair_to_symbol(?string $pair): string {
         $parts = explode(':', $pair);
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);

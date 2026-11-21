@@ -7,7 +7,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ChecksumError, ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Liquidation, Market, Num, FeeString, NullableList, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Liquidation, Market, Num, FeeString, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
@@ -221,7 +221,8 @@ export default class binance extends binanceRest {
         const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        options[url] = newValue;
+        this.options['requestId'] = options;
         return newValue;
     }
 
@@ -229,7 +230,7 @@ export default class binance extends binanceRest {
         return (client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('demo-stream') > -1);
     }
 
-    stream (type: Str, subscriptionHash: Str, numSubscriptions: Int = 1): Str {
+    stream (type: Str, subscriptionHash: Str, numSubscriptions: Int = 1): string {
         const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash', this.createSafeDictionary ());
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
@@ -241,7 +242,8 @@ export default class binance extends binanceRest {
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
             if (subscriptionHash !== undefined) {
-                this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+                streamBySubscriptionsHash[subscriptionHash] = stream;
+                this.options['streamBySubscriptionsHash'] = streamBySubscriptionsHash;
             }
             const subscriptionsByStreams = this.safeDict (this.options, 'numSubscriptionsByStream');
             if (subscriptionsByStreams === undefined) {
@@ -259,7 +261,8 @@ export default class binance extends binanceRest {
     }
 
     getWsUrl (type: string, category: string): string {
-        const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         if ((type === 'option') || (type === 'optionMarket') || (type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -302,7 +305,8 @@ export default class binance extends binanceRest {
         if (type === 'linear') {
             return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
-        const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsUrl = this.safeString (wsUrls, type);
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' getPrivateWsUrl() has no websocket url for this market type');
@@ -311,7 +315,8 @@ export default class binance extends binanceRest {
     }
 
     getStockWsUrl (streamType: Str = 'market'): string {
-        const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const baseUrl = wsUrls['stock'];
         if (streamType === 'combined') {
             return baseUrl.replace ('/ws', '/stream');
@@ -795,7 +800,7 @@ export default class binance extends binanceRest {
         const [ rpi, paramsRpi ] = this.handleOptionBoolAndParams (paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
         if (rpi && type === 'linear') {
             name = 'rpiDepth';
-            watchOrderBookRate = '500';
+            watchOrderBookRate = this.numberToString (500);
         }
         const subParams: string[] = [];
         const messageHashes: string[] = [];
@@ -809,7 +814,7 @@ export default class binance extends binanceRest {
             if (watchOrderBookRate === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() watchOrderBookRate is required');
             }
-            const symbolHash = subscriptionHash + '@' + watchOrderBookRate.toString () + 'ms';
+            const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
         const messageHashesLength = messageHashes.length;
@@ -948,7 +953,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'linear') {
             throw new BadRequest (this.id + ' fetchOrderBookWs only supports swap markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
@@ -1709,7 +1715,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const [ stock, paramsStock ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock');
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'stock', false);
         if (stock === true) {
             if ((timeframe !== '5m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
                 throw new BadRequest (this.id + ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes');
@@ -1718,7 +1724,8 @@ export default class binance extends binanceRest {
         }
         paramsStock['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, paramsStock);
-        return result[symbolValue][timeframe];
+        const bySymbol: Dict = result[symbolValue];
+        return bySymbol[timeframe];
     }
 
     /**
@@ -2039,7 +2046,8 @@ export default class binance extends binanceRest {
         if (type !== 'linear') {
             throw new BadRequest (this.id + ' fetchTickerWs only supports swap markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -2088,7 +2096,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'linear') {
             throw new BadRequest (this.id + ' fetchOHLCVWs only supports spot or swap markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
@@ -2428,7 +2437,10 @@ export default class binance extends binanceRest {
         let firstMarket: Market = undefined;
         const symbolsDefined = (symbolsNormalized !== undefined);
         if (symbolsNormalized !== undefined) {
-            firstMarket = this.market (symbolsNormalized[0]);
+            const normalizedLength = symbolsNormalized.length;
+            if (normalizedLength > 0) {
+                firstMarket = this.market (symbolsNormalized[0]);
+            }
         }
         const userDefaultType = this.safeString (this.options, 'defaultType');
         let defaultMarket: Str = undefined;
@@ -2925,7 +2937,8 @@ export default class binance extends binanceRest {
      * @returns Promise<number> The subscription ID for the user data stream
      */
     async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
@@ -3010,8 +3023,9 @@ export default class binance extends binanceRest {
      * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
-    async ensureUserDataStreamWsSubscribeListenToken (marketType: string = 'margin', params: Dict = {}) {
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+    async ensureUserDataStreamWsSubscribeListenToken (marketType: string, params: Dict = {}) {
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, 'spot');
         if (url === undefined) {
@@ -3400,7 +3414,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'linear' && type !== 'inverse') {
             throw new BadRequest (this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -3428,17 +3443,16 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        let rawBalance: NullableList = undefined;
         if (Array.isArray (message['result'])) {
             // account.balance
-            rawBalance = this.safeList (message, 'result', []);
-        } else {
-            // account.status
-            const result = this.safeDict (message, 'result', {});
-            rawBalance = this.safeList (result, 'assets', []);
+            const rawBalance = this.safeList (message, 'result', []);
+            client.resolve (this.parseBalanceList (rawBalance), messageHash);
+            return;
         }
-        const parsedBalances = this.parseBalanceCustom (rawBalance);
-        client.resolve (parsedBalances, messageHash);
+        // account.status
+        const result = this.safeDict (message, 'result', {});
+        const assets = this.safeList (result, 'assets', []);
+        client.resolve (this.parseBalanceList (assets), messageHash);
     }
 
     handleAccountStatusWs (client: Client, message: Dict) {
@@ -3542,7 +3556,8 @@ export default class binance extends binanceRest {
         if (type !== 'linear' && type !== 'inverse') {
             throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -3632,7 +3647,8 @@ export default class binance extends binanceRest {
         let urlType = type;
         if (type === 'spot' || type === 'margin') {
             // route to WebSocket API connection where the user data stream is subscribed
-            const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+            const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+            const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
             const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
             url = this.safeString (wsApiDict, 'spot', '');
         } else {
@@ -3738,6 +3754,7 @@ export default class binance extends binanceRest {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
+        const balance = this.safeDict (this.balance, accountType, {});
         const event = this.safeString (message, 'e');
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         const balanceMessage = this.safeDict (message, 'a', message);
@@ -3746,8 +3763,8 @@ export default class binance extends binanceRest {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const delta = this.safeString (message, 'd');
-            if ((code !== undefined) && (code in this.balance[accountType])) {
-                let previousValue = this.safeValue (this.balance[accountType][code], 'free');
+            if ((code !== undefined) && (code in balance)) {
+                let previousValue = this.safeValue (balance[code], 'free');
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString (previousValue);
                 }
@@ -3756,7 +3773,7 @@ export default class binance extends binanceRest {
                 account['free'] = delta;
             }
             if (code !== undefined) {
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         } else {
             const B: Dict[] | undefined = this.safeList (balanceMessage, 'B');
@@ -3772,14 +3789,14 @@ export default class binance extends binanceRest {
                 account['used'] = this.safeString (entry, 'l');
                 account['total'] = this.safeString (entry, wallet);
                 if (code !== undefined) {
-                    this.balance[accountType][code] = account;
+                    balance[code] = account;
                 }
             }
         }
         const timestamp = this.safeInteger (balanceMessage, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
-        this.balance[accountType] = this.safeBalance (this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601 (timestamp);
+        this.balance[accountType] = this.safeBalance (balance);
         client.resolve (this.balance[accountType], messageHash);
     }
 
@@ -3858,7 +3875,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'linear' && marketType !== 'inverse') {
             throw new BadRequest (this.id + ' createOrderWs only supports spot or swap markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
@@ -4025,7 +4043,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'linear' && marketType !== 'inverse') {
             throw new BadRequest (this.id + ' editOrderWs only supports spot or swap markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
@@ -4188,7 +4207,8 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelOrderWs', market, params);
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -4253,7 +4273,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -4301,7 +4322,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'linear' && type !== 'inverse') {
             throw new BadRequest (this.id + ' fetchOrderWs only supports spot or swap markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -4358,7 +4380,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersWs only supports spot markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -4426,7 +4449,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOpenOrdersWs only supports spot markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -4529,7 +4553,8 @@ export default class binance extends binanceRest {
         let url = '';
         if (type === 'spot' || type === 'margin') {
             // route orders to ws-api user data stream
-            const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+            const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+            const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
             const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
             url = this.safeString (wsApiDict, 'spot', '');
         } else {
@@ -5321,7 +5346,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position: NullableDict, market: Market = undefined) {
+    parseWsPosition (position: NullableDict, market: Market = undefined): Position {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -5449,7 +5474,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'linear') {
             throw new BadRequest (this.id + ' fetchMyTradesWs does not support ' + type + ' markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -5507,7 +5533,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'linear') {
             throw new BadRequest (this.id + ' fetchTradesWs does not support ' + type + ' markets');
         }
-        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+        const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
         const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
         const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
@@ -5603,10 +5630,11 @@ export default class binance extends binanceRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbolResolved = this.symbol (symbol);
         }
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         const [ type, subType, paramsAuth ] = this.resolveAuthType ('watchMyTrades', market, params);
         let messageHash = 'myTrades';
         let symbolParams: Dict = {};
@@ -5624,7 +5652,8 @@ export default class binance extends binanceRest {
         const isPortfolioMargin: Bool = portfolioMarginAndParams[0];
         let url = '';
         if (type === 'spot' || type === 'margin') {
-            const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+            const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
+            const wsApiUrls: Dict = this.safeDict (urlsApi, 'ws', {});
             const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
             url = this.safeString (wsApiDict, 'spot', '');
         } else {
@@ -5694,7 +5723,8 @@ export default class binance extends binanceRest {
                                 if (feeCostString === undefined) {
                                     feeCostString = '0';
                                 }
-                                order['fee']['cost'] = parseFloat (feeCostString);
+                                fee['cost'] = parseFloat (feeCostString);
+                                order['fee'] = fee;
                             } else if (fee['currency'] === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
@@ -5799,7 +5829,8 @@ export default class binance extends binanceRest {
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
         }
-        this.balance[accountType]['info'] = message;
+        const balance = this.safeDict (this.balance, accountType, {});
+        balance['info'] = message;
         const B: Dict[] = this.safeList (message, 'B', []);
         for (let i = 0; i < B.length; i++) {
             const entry = this.safeDict (B, i);
@@ -5808,13 +5839,13 @@ export default class binance extends binanceRest {
             if (code !== undefined) {
                 const account = this.account ();
                 account['total'] = this.safeString (entry, 'b');
-                this.balance[accountType][code] = account;
+                balance[code] = account;
             }
         }
         const timestamp = this.safeInteger (message, 'E');
-        this.balance[accountType]['timestamp'] = timestamp;
-        this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
-        this.balance[accountType] = this.safeBalance (this.balance[accountType]);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601 (timestamp);
+        this.balance[accountType] = this.safeBalance (balance);
         client.resolve (this.balance[accountType], accountType + ':balance');
         // --- positions ---
         if (!(accountType in this.positionsByType)) {
@@ -5887,7 +5918,7 @@ export default class binance extends binanceRest {
         }
         // reset connection if 5xx error
         const codeString = this.safeString (error, 'code');
-        if ((codeString !== undefined) && (codeString[0] === '5')) {
+        if ((codeString !== undefined) && codeString.startsWith ('5')) {
             const resetError = new ExchangeError (this.id + ' ' + this.json (message));
             client.reset (resetError);
         }

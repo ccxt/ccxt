@@ -10,28 +10,28 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOHLCVForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchOHLCVForSymbols".into());
+    let method: Value = Value::Str("watchOHLCVForSymbols".into());
     let mut now: Value = Value::Int(exchange.milliseconds());
-    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".into())));
+    let ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+    let timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".into())));
     assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // prefer 1m timeframe if available, otherwise return the first one
     let mut chosenTimeframeKey: Value = Value::Str("1m".into());
     if !exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone()) {
         chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     }
-    let mut limit: Value = Value::Int(10);
-    let mut duration: Value = Value::Int(exchange.parse_timeframe(chosenTimeframeKey.clone()));
-    let mut since: Value = (match (&((match (&(Value::Int(exchange.milliseconds())), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+    let limit: Value = Value::Int(10);
+    let duration: Value = Value::Int(exchange.parse_timeframe(&chosenTimeframeKey));
+    let since: Value = (match (&((match (&(Value::Int(exchange.milliseconds())), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
         Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
         _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x),
         Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-    let mut maxIdleTime: Value = Value::Int(5000);
+    let maxIdleTime: Value = Value::Int(5000);
     let mut idle: bool = false;
     while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !idle {
         let mut response: Value = Value::Null;
         let mut success: bool = true;
-        let mut startTime: Value = Value::Int(exchange.milliseconds());
+        let startTime: Value = Value::Int(exchange.milliseconds());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_ohlcv_for_symbols", vec![Value::from(vec![Value::from(vec![symbol.clone(), chosenTimeframeKey.clone()])]), since.clone(), limit.clone()]).await;
             if (response == Value::Null) {
@@ -46,19 +46,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         now = Value::Int(exchange.milliseconds());
         if success && (response != Value::Null) {
-            let mut assertionMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), " ").into()),
-                symbol).into()), " ").into()), chosenTimeframeKey).into()), " | ").into()), exchange.json(response.clone()));
+            let assertionMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), " ").into()), symbol).into()),
+                " ").into()), chosenTimeframeKey).into()), " | ").into()), exchange.json(response.clone()));
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             assert!(ccxt::runtime::is_true(&((in_op(&response, &symbol)))));
-            let mut symbolObj: Value = get_value(&response, &symbol);
+            let symbolObj: Value = get_value(&response, &symbol);
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(symbolObj.clone()))));
             assert!(ccxt::runtime::is_true(&((in_op(&symbolObj, &chosenTimeframeKey)))));
-            let mut ohlcvs: Value = get_value(&symbolObj, &chosenTimeframeKey);
+            let ohlcvs: Value = get_value(&symbolObj, &chosenTimeframeKey);
             assert!(ccxt::runtime::is_true(&((matches!(&ohlcvs, Value::Arr(_))))));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1612: bool = true;
-                while { if !__for_first_1612 { i += 1; } __for_first_1612 = false; i < (ohlcvs.len() as i64) } {
+                let mut __for_first_0: bool = true;
+                while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (ohlcvs.len() as i64) } {
                 testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
             }
             }

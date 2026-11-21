@@ -96,7 +96,18 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($singleQuery !== null) {
             return array( $singleQuery );
         }
-        return $this->safe_list($params, 'queries', array());
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        $rawQueries = $this->to_array($this->safe_list($params, 'queries', array()));
+        $rawQueriesLength = count($rawQueries);
+        $queries = array();
+        for ($i = 0; $i < $rawQueriesLength; $i++) {
+            $query = $this->safe_string($rawQueries, $i);
+            if ($query === null) {
+                throw new BadRequest($this->id . ' params.queries must be a list of strings');
+            }
+            $queries[] = $query;
+        }
+        return $queries;
     }
 
     public function require_event_query($params = array()) {
@@ -231,15 +242,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $matched = false;
             for ($qi = 0; $qi < $queriesLength; $qi++) {
                 $q = strtolower($this->safe_string($queries, $qi, ''));
-                if ($title === null) {
-                    throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing title');
-                }
                 if ($checkTitle && (mb_strpos($title, $q) !== false)) {
                     $matched = true;
                     break;
-                }
-                if ($description === null) {
-                    throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing description');
                 }
                 if ($checkDescription && (mb_strpos($description, $q) !== false)) {
                     $matched = true;
@@ -1658,6 +1663,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         $byteLength = $this->parse_to_int(strlen($hex) / 2);
+        if ($byteLength === null) {
+            return '';
+        }
         if ($byteLength === 0) {
             return '80';
         }
@@ -1668,7 +1676,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return $this->int_to_base16(128 . $byteLength) . $hex;
         }
         $lengthHex = $this->int_to_base16($byteLength);
-        $lengthHex = $this->pad_hex_to_even($lengthHex);
+        $lengthHexLength = count($lengthHex);
+        if ((fmod($lengthHexLength, 2)) !== 0) {
+            $lengthHex = '0' . $lengthHex;
+        }
         $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
         return $this->int_to_base16(183 . $lengthOfLength) . $lengthHex . $hex;
     }
@@ -1679,11 +1690,17 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $concatenated = $concatenated . $this->safe_string($items, $i, '');
         }
         $byteLength = $this->parse_to_int(strlen($concatenated) / 2);
+        if ($byteLength === null) {
+            return '';
+        }
         if ($byteLength < 56) {
             return $this->int_to_base16(192 . $byteLength) . $concatenated;
         }
         $lengthHex = $this->int_to_base16($byteLength);
-        $lengthHex = $this->pad_hex_to_even($lengthHex);
+        $lengthHexLength = count($lengthHex);
+        if ((fmod($lengthHexLength, 2)) !== 0) {
+            $lengthHex = '0' . $lengthHex;
+        }
         $lengthOfLength = $this->parse_to_int(strlen($lengthHex) / 2);
         return $this->int_to_base16(247 . $lengthOfLength) . $lengthHex . $concatenated;
     }
@@ -1697,7 +1714,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return '';
         }
         $hex = $this->int_to_base16($value);
-        $hex = $this->pad_hex_to_even($hex);
+        $hexLength = count($hex);
+        if ((fmod($hexLength, 2)) !== 0) {
+            $hex = '0' . $hex;
+        }
         return $hex;
     }
 

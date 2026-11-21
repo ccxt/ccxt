@@ -127,11 +127,15 @@ class cryptocom extends cryptocom$1["default"] {
         }
         const [bookSubscriptionType, paramsBookSubscriptionType] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         const [bookSubscriptionType2, paramsBookSubscriptionType2] = this.handleOptionStringAndParams(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        const bookParams = this.safeDict(paramsBookSubscriptionType2, 'params', {});
+        bookParams['bookSubscriptionType'] = bookSubscriptionType2;
+        paramsBookSubscriptionType2['params'] = bookParams;
         const [bookUpdateFrequency, paramsBookUpdateFrequency] = this.handleOptionStringAndParams(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
         const [bookUpdateFrequency2, paramsBookUpdateFrequency2] = this.handleOptionStringAndParams(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            const frequencyParams = this.safeDict(paramsBookUpdateFrequency2, 'params', {});
+            frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2['params'] = frequencyParams;
         }
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
@@ -170,11 +174,15 @@ class cryptocom extends cryptocom$1["default"] {
         }
         const [bookSubscriptionType, paramsBookSubscriptionType] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
         const [bookSubscriptionType2, paramsBookSubscriptionType2] = this.handleOptionStringAndParams(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
-        paramsBookSubscriptionType2['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        const bookParams = this.safeDict(paramsBookSubscriptionType2, 'params', {});
+        bookParams['bookSubscriptionType'] = bookSubscriptionType2;
+        paramsBookSubscriptionType2['params'] = bookParams;
         const [bookUpdateFrequency, paramsBookUpdateFrequency] = this.handleOptionStringAndParams(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
         const [bookUpdateFrequency2, paramsBookUpdateFrequency2] = this.handleOptionStringAndParams(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
         if (bookUpdateFrequency2 !== undefined) {
-            paramsBookUpdateFrequency2['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+            const frequencyParams = this.safeDict(paramsBookUpdateFrequency2, 'params', {});
+            frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2;
+            paramsBookUpdateFrequency2['params'] = frequencyParams;
         }
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
@@ -1188,14 +1196,15 @@ class cryptocom extends cryptocom$1["default"] {
             await this.loadMarkets();
         }
         let market = undefined;
-        const request = {
-            'method': 'private/cancel-all-orders',
-            'params': this.extend({}, params),
-        };
+        const requestParams = this.extend({}, params);
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['params']['instrument_name'] = market['id'];
+            requestParams['instrument_name'] = market['id'];
         }
+        const request = {
+            'method': 'private/cancel-all-orders',
+            'params': requestParams,
+        };
         const messageHash = this.incrementingNonce();
         return await this.watchPrivateRequest(messageHash, request);
     }
@@ -1328,7 +1337,7 @@ class cryptocom extends cryptocom$1["default"] {
             'user.balance': this.handleBalance,
             'user.position_balance': this.handlePositions,
         };
-        const result = this.safeValue2(message, 'result', 'info');
+        const result = this.safeDict2(message, 'result', 'info', {});
         const channel = this.safeString(result, 'channel');
         if ((channel !== undefined) && channel.indexOf('user.trade') > -1) {
             // channel might be user.trade.BTC_USDT

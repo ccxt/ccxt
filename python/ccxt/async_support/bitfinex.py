@@ -555,8 +555,9 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def get_currency_name(self, code: str) -> str:
         # temporary fix for transpiler recognition, even though this is in parent class
-        if code in self.options['currencyNames']:
-            return self.options['currencyNames'][code]
+        name = self.safe_string(self.options['currencyNames'], code)
+        if name is not None:
+            return name
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
     def amount_to_precision(self, symbol: Str, amount: object) -> str:
@@ -1153,10 +1154,10 @@ class bitfinex(Exchange, ImplicitAPI):
         fullRequest = self.extend(request, params)
         orderbook = await self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
+        bids = []
+        asks = []
         result = {
             'symbol': market['symbol'],
-            'bids': [],
-            'asks': [],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'nonce': None,
@@ -1168,15 +1169,15 @@ class bitfinex(Exchange, ImplicitAPI):
             price = self.safe_number(order, priceIndex)
             signedAmount = self.safe_string(order, 2)
             amount = Precise.string_abs(signedAmount)
-            side = 'asks'
             if Precise.string_gt(signedAmount, '0'):
-                side = 'bids'
-            result[side].append([price, self.parse_number(amount)])
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
+                bids.append([price, self.parse_number(amount)])
+            else:
+                asks.append([price, self.parse_number(amount)])
+        result['bids'] = self.sort_by(bids, 0, True)
+        result['asks'] = self.sort_by(asks, 0)
         return result
 
-    def parse_ticker(self, ticker: list, market: Market = None) -> Ticker:
+    def parse_ticker_list(self, ticker: list, market: Market = None) -> Ticker:
         #
         # on trading pairs (ex. tBTCUSD)
         #
@@ -1348,7 +1349,10 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_tickers(tickers, symbolsNormalized)
+        results = []
+        for i in range(0, len(tickers)):
+            results.append(self.parse_ticker_list(self.safe_list(tickers, i, [])))
+        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -1367,7 +1371,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         ticker = await self.publicGetTickerSymbol(self.extend(request, params))
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker_list(ticker, market)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -2373,7 +2377,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction: list, currency: Currency = None) -> Transaction:
+    def parse_transaction_row(self, transaction: list, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -2676,7 +2680,11 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        return self.parse_transactions(response, currency, since, limit)
+        result = []
+        for i in range(0, len(response)):
+            result.append(self.parse_transaction_row(self.safe_list(response, i, []), currency))
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, self.safe_string(currency, 'code'), since, limit)
 
     async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
@@ -2761,7 +2769,7 @@ class bitfinex(Exchange, ImplicitAPI):
         text = self.safe_string(response, 7)
         if text != 'success':
             self.throw_broadly_matched_exception(self.exceptions['broad'], text, text)
-        return self.parse_transaction(response, currency)
+        return self.parse_transaction_row(response, currency)
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """

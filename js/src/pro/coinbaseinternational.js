@@ -421,12 +421,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const params = this.safeDict(message, 'params', {});
         const channel = this.safeString(params, 'channel');
-        const data = this.safeValue(params, 'data', {});
+        const dataList = this.safeList(params, 'data');
         let orders = [];
-        if (Array.isArray(data)) {
-            orders = this.parseOrders(data);
+        if (dataList !== undefined) {
+            orders = this.parseOrders(dataList);
         }
         else {
+            const data = this.safeValue(params, 'data', {});
             orders = [this.parseOrder(data)];
         }
         const ordersLength = orders.length;
@@ -878,7 +879,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const symbolResolved = this.symbol(symbol);
         const ohlcvs = await this.watchOHLCVForSymbols([[symbolResolved, timeframe]], since, limit, paramsResolved);
-        return ohlcvs[symbolResolved][timeframe];
+        const bySymbol = ohlcvs[symbolResolved];
+        return bySymbol[timeframe];
     }
     /**
      * @method

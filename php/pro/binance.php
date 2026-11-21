@@ -226,7 +226,8 @@ class binance extends \ccxt\async\binance {
         $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
-        $this->options['requestId'][$url] = $newValue;
+        $options[$url] = $newValue;
+        $this->options['requestId'] = $options;
         return $newValue;
     }
 
@@ -234,7 +235,7 @@ class binance extends \ccxt\async\binance {
         return (mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, 'demo-stream') > -1);
     }
 
-    public function stream(?string $type, ?string $subscriptionHash, ?int $numSubscriptions = 1): ?string {
+    public function stream(?string $type, ?string $subscriptionHash, ?int $numSubscriptions = 1): string {
         $streamBySubscriptionsHash = $this->safe_dict($this->options, 'streamBySubscriptionsHash', $this->create_safe_dictionary());
         $stream = $this->safe_string($streamBySubscriptionsHash, $subscriptionHash);
         if ($stream === null) {
@@ -246,7 +247,8 @@ class binance extends \ccxt\async\binance {
             $this->options['streamIndex'] = $streamIndex;
             $stream = $this->number_to_string($normalizedIndex);
             if ($subscriptionHash !== null) {
-                $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
+                $streamBySubscriptionsHash[$subscriptionHash] = $stream;
+                $this->options['streamBySubscriptionsHash'] = $streamBySubscriptionsHash;
             }
             $subscriptionsByStreams = $this->safe_dict($this->options, 'numSubscriptionsByStream');
             if ($subscriptionsByStreams === null) {
@@ -264,7 +266,8 @@ class binance extends \ccxt\async\binance {
     }
 
     public function get_ws_url(string $type, string $category): string {
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         if (($type === 'option') || ($type === 'optionMarket') || ($type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -307,7 +310,8 @@ class binance extends \ccxt\async\binance {
         if ($type === 'linear') {
             return $this->get_ws_url($type, 'private') . '?listenKey=' . $listenKey;
         }
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsUrl = $this->safe_string($wsUrls, $type);
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' getPrivateWsUrl() has no websocket url for this market type');
@@ -316,7 +320,8 @@ class binance extends \ccxt\async\binance {
     }
 
     public function get_stock_ws_url(?string $streamType = 'market'): string {
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $baseUrl = $wsUrls['stock'];
         if ($streamType === 'combined') {
             return str_replace('/ws', '/stream', $baseUrl);
@@ -826,7 +831,7 @@ class binance extends \ccxt\async\binance {
         list($rpi, $paramsRpi) = $this->handle_option_bool_and_params($paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
         if ($rpi && $type === 'linear') {
             $name = 'rpiDepth';
-            $watchOrderBookRate = '500';
+            $watchOrderBookRate = $this->number_to_string(500);
         }
         $subParams = array();
         $messageHashes = array();
@@ -840,7 +845,7 @@ class binance extends \ccxt\async\binance {
             if ($watchOrderBookRate === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() watchOrderBookRate is required');
             }
-            $symbolHash = $subscriptionHash . '@' . (string) $watchOrderBookRate . 'ms';
+            $symbolHash = $subscriptionHash . '@' . $watchOrderBookRate . 'ms';
             $subParams[] = $symbolHash;
         }
         $messageHashesLength = count($messageHashes);
@@ -991,7 +996,8 @@ class binance extends \ccxt\async\binance {
         if ($marketType !== 'linear') {
             throw new BadRequest($this->id . ' fetchOrderBookWs only supports swap markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $marketType);
         if ($url === null) {
@@ -1776,7 +1782,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        list($stock, $paramsStock) = $this->handle_option_and_params($params, 'watchOHLCV', 'stock');
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'stock', false);
         if ($stock === true) {
             if (($timeframe !== '5m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
                 throw new BadRequest($this->id . ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes');
@@ -1785,7 +1791,8 @@ class binance extends \ccxt\async\binance {
         }
         $paramsStock['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $paramsStock));
-        return $result[$symbolValue][$timeframe];
+        $bySymbol = $result[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -2120,7 +2127,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'linear') {
             throw new BadRequest($this->id . ' fetchTickerWs only supports swap markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -2173,7 +2181,8 @@ class binance extends \ccxt\async\binance {
         if ($marketType !== 'spot' && $marketType !== 'linear') {
             throw new BadRequest($this->id . ' fetchOHLCVWs only supports spot or swap markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $marketType);
         if ($url === null) {
@@ -2557,7 +2566,10 @@ class binance extends \ccxt\async\binance {
         $firstMarket = null;
         $symbolsDefined = ($symbolsNormalized !== null);
         if ($symbolsNormalized !== null) {
-            $firstMarket = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $firstMarket = $this->market($symbolsNormalized[0]);
+            }
         }
         $userDefaultType = $this->safe_string($this->options, 'defaultType');
         $defaultMarket = null;
@@ -3059,7 +3071,8 @@ class binance extends \ccxt\async\binance {
          *
          * @return Promise<number> The $subscription ID for the user data stream
          */
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $marketType);
         if ($url === null) {
@@ -3132,11 +3145,11 @@ class binance extends \ccxt\async\binance {
         $client->resolve($message, $messageHash);
     }
 
-    public function ensure_user_data_stream_ws_subscribe_listen_token(string $marketType = 'margin', $params = array()) {
+    public function ensure_user_data_stream_ws_subscribe_listen_token(string $marketType, $params = array()) {
         return Async\async(self::do_ensure_user_data_stream_ws_subscribe_listen_token(...))($marketType, $params);
     }
 
-    private function do_ensure_user_data_stream_ws_subscribe_listen_token(string $marketType = 'margin', $params = array()) {
+    private function do_ensure_user_data_stream_ws_subscribe_listen_token(string $marketType, $params = array()) {
         /**
          * subscribes to user data stream using $listenToken (for margin)
          * @param {string} $marketType - the market type ($e->g., 'margin')
@@ -3150,7 +3163,8 @@ class binance extends \ccxt\async\binance {
          *
          * @return Promise<void>
          */
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, 'spot');
         if ($url === null) {
@@ -3559,7 +3573,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot' && $type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchBalanceWs only supports spot or swap markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -3587,17 +3602,16 @@ class binance extends \ccxt\async\binance {
         //
         //
         $messageHash = $this->safe_string($message, 'id');
-        $rawBalance = null;
         if ((gettype($message['result']) === 'array' && array_keys($message['result']) === array_keys(array_keys($message['result'])))) {
             // account.balance
             $rawBalance = $this->safe_list($message, 'result', array());
-        } else {
-            // account.status
-            $result = $this->safe_dict($message, 'result', array());
-            $rawBalance = $this->safe_list($result, 'assets', array());
+            $client->resolve($this->parseBalanceList($rawBalance), $messageHash);
+            return;
         }
-        $parsedBalances = $this->parseBalanceCustom($rawBalance);
-        $client->resolve($parsedBalances, $messageHash);
+        // account.status
+        $result = $this->safe_dict($message, 'result', array());
+        $assets = $this->safe_list($result, 'assets', array());
+        $client->resolve($this->parseBalanceList($assets), $messageHash);
     }
 
     public function handle_account_status_ws(Client $client, array $message) {
@@ -3709,7 +3723,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchPositionsWs only supports swap markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -3801,7 +3816,8 @@ class binance extends \ccxt\async\binance {
         $urlType = $type;
         if ($type === 'spot' || $type === 'margin') {
             // route to WebSocket API connection where the user data stream is subscribed
-            $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+            $urlsApi = $this->safe_dict($this->urls, 'api', array());
+            $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
             $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
             $url = $this->safe_string($wsApiDict, 'spot', '');
         } else {
@@ -3907,6 +3923,7 @@ class binance extends \ccxt\async\binance {
             $this->balance[$accountType] = array();
         }
         $this->balance[$accountType]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $accountType, array());
         $event = $this->safe_string($message, 'e');
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         $balanceMessage = $this->safe_dict($message, 'a', $message);
@@ -3915,8 +3932,8 @@ class binance extends \ccxt\async\binance {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $delta = $this->safe_string($message, 'd');
-            if (($code !== null) && (is_array($this->balance[$accountType]) && array_key_exists($code ?? '', $this->balance[$accountType]))) {
-                $previousValue = $this->safe_value($this->balance[$accountType][$code], 'free');
+            if (($code !== null) && (is_array($balance) && array_key_exists($code ?? '', $balance))) {
+                $previousValue = $this->safe_value($balance[$code], 'free');
                 if (gettype($previousValue) !== 'string') {
                     $previousValue = $this->number_to_string($previousValue);
                 }
@@ -3925,7 +3942,7 @@ class binance extends \ccxt\async\binance {
                 $account['free'] = $delta;
             }
             if ($code !== null) {
-                $this->balance[$accountType][$code] = $account;
+                $balance[$code] = $account;
             }
         } else {
             $B = $this->safe_list($balanceMessage, 'B');
@@ -3941,14 +3958,14 @@ class binance extends \ccxt\async\binance {
                 $account['used'] = $this->safe_string($entry, 'l');
                 $account['total'] = $this->safe_string($entry, $wallet);
                 if ($code !== null) {
-                    $this->balance[$accountType][$code] = $account;
+                    $balance[$code] = $account;
                 }
             }
         }
         $timestamp = $this->safe_integer($balanceMessage, 'E');
-        $this->balance[$accountType]['timestamp'] = $timestamp;
-        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($balance);
         $client->resolve($this->balance[$accountType], $messageHash);
     }
 
@@ -4031,7 +4048,8 @@ class binance extends \ccxt\async\binance {
         if ($marketType !== 'spot' && $marketType !== 'linear' && $marketType !== 'inverse') {
             throw new BadRequest($this->id . ' createOrderWs only supports spot or swap markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $marketType);
         if ($url === null) {
@@ -4202,7 +4220,8 @@ class binance extends \ccxt\async\binance {
         if ($marketType !== 'spot' && $marketType !== 'linear' && $marketType !== 'inverse') {
             throw new BadRequest($this->id . ' editOrderWs only supports spot or swap markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $marketType);
         if ($url === null) {
@@ -4368,7 +4387,8 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('cancelOrderWs', $market, $params);
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -4437,7 +4457,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot') {
             throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -4489,7 +4510,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot' && $type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchOrderWs only supports spot or swap markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -4550,7 +4572,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot') {
             throw new BadRequest($this->id . ' fetchOrdersWs only supports spot markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -4626,7 +4649,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot') {
             throw new BadRequest($this->id . ' fetchOpenOrdersWs only supports spot markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -4733,7 +4757,8 @@ class binance extends \ccxt\async\binance {
         $url = '';
         if ($type === 'spot' || $type === 'margin') {
             // route orders to ws-api user data stream
-            $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+            $urlsApi = $this->safe_dict($this->urls, 'api', array());
+            $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
             $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
             $url = $this->safe_string($wsApiDict, 'spot', '');
         } else {
@@ -5531,7 +5556,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($newPositions, $accountType . ':positions');
     }
 
-    public function parse_ws_position(?array $position, ?array $market = null) {
+    public function parse_ws_position(?array $position, ?array $market = null): array {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -5663,7 +5688,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot' && $type !== 'linear') {
             throw new BadRequest($this->id . ' fetchMyTradesWs does not support ' . $type . ' markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -5725,7 +5751,8 @@ class binance extends \ccxt\async\binance {
         if ($type !== 'spot' && $type !== 'linear') {
             throw new BadRequest($this->id . ' fetchTradesWs does not support ' . $type . ' markets');
         }
-        $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
         $url = $this->safe_string($wsApiDict, $type);
         if ($url === null) {
@@ -5823,10 +5850,11 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $market = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbolResolved = $this->symbol($symbol);
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         list($type, $subType, $paramsAuth) = $this->resolve_auth_type('watchMyTrades', $market, $params);
         $messageHash = 'myTrades';
         $symbolParams = array();
@@ -5844,7 +5872,8 @@ class binance extends \ccxt\async\binance {
         $isPortfolioMargin = $portfolioMarginAndParams[0];
         $url = '';
         if ($type === 'spot' || $type === 'margin') {
-            $wsApiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+            $urlsApi = $this->safe_dict($this->urls, 'api', array());
+            $wsApiUrls = $this->safe_dict($urlsApi, 'ws', array());
             $wsApiDict = $this->safe_dict($wsApiUrls, 'ws-api', array());
             $url = $this->safe_string($wsApiDict, 'spot', '');
         } else {
@@ -5914,7 +5943,8 @@ class binance extends \ccxt\async\binance {
                                 if ($feeCostString === null) {
                                     $feeCostString = '0';
                                 }
-                                $order['fee']['cost'] = floatval($feeCostString);
+                                $fee['cost'] = floatval($feeCostString);
+                                $order['fee'] = $fee;
                             } elseif ($fee['currency'] === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
@@ -6019,7 +6049,8 @@ class binance extends \ccxt\async\binance {
         if ($this->balance[$accountType] === null) {
             $this->balance[$accountType] = array();
         }
-        $this->balance[$accountType]['info'] = $message;
+        $balance = $this->safe_dict($this->balance, $accountType, array());
+        $balance['info'] = $message;
         $B = $this->safe_list($message, 'B', array());
         for ($i = 0; $i < count($B); $i++) {
             $entry = $this->safe_dict($B, $i);
@@ -6028,13 +6059,13 @@ class binance extends \ccxt\async\binance {
             if ($code !== null) {
                 $account = $this->account();
                 $account['total'] = $this->safe_string($entry, 'b');
-                $this->balance[$accountType][$code] = $account;
+                $balance[$code] = $account;
             }
         }
         $timestamp = $this->safe_integer($message, 'E');
-        $this->balance[$accountType]['timestamp'] = $timestamp;
-        $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
-        $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
+        $balance['timestamp'] = $timestamp;
+        $balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance[$accountType] = $this->safe_balance($balance);
         $client->resolve($this->balance[$accountType], $accountType . ':balance');
         // --- positions ---
         if (!(is_array($this->positionsByType) && array_key_exists($accountType ?? '', $this->positionsByType))) {
@@ -6107,7 +6138,7 @@ class binance extends \ccxt\async\binance {
         }
         // reset connection if 5xx error
         $codeString = $this->safe_string($error, 'code');
-        if (($codeString !== null) && ($codeString[0] === '5')) {
+        if (($codeString !== null) && str_starts_with($codeString, '5')) {
             $resetError = new ExchangeError($this->id . ' ' . $this->json($message));
             $client->reset($resetError);
         }

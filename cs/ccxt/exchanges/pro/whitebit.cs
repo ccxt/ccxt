@@ -123,7 +123,7 @@ public partial class whitebit : ccxt.whitebit
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
         for (int i = 0; i < parameters.Count; i++)
         {
-            object data = parameters[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)parameters[i]);
             string? marketId = this.safeString(data, 7);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -133,13 +133,13 @@ public partial class whitebit : ccxt.whitebit
             {
                 this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
             }
-            if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown")))
+            if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && ohlcvsRow1.ContainsKey("unknown"))))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 var stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["unknown"] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)["unknown"] = stored;
             }
-            ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown"));
+            ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && ohlcvsRow2.TryGetValue("unknown", out var ohlcvsValue2) ? ohlcvsValue2 : null));
             ohlcv.append(parsed);
             client.resolve(ohlcv, messageHash);
         }
@@ -853,7 +853,7 @@ public partial class whitebit : ccxt.whitebit
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, method, new List<object>() {}, paramsAwaitBalanceSnapshot));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, string subscriptionHash)
+    public virtual void setBalanceCache(WebSocketClient client, string? type, string subscriptionHash)
     {
         if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
@@ -862,7 +862,7 @@ public partial class whitebit : ccxt.whitebit
         bool fetchBalanceSnapshot = ((bool)this.handleOption("watchBalance", "fetchBalanceSnapshot", true));
         if ((fetchBalanceSnapshot == true))
         {
-            string? messageHash = ((string)(add(type, ":fetchBalanceSnapshot")));
+            string? messageHash = ((string)((type + ":fetchBalanceSnapshot")));
             if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
@@ -1175,7 +1175,7 @@ public partial class whitebit : ccxt.whitebit
         return authorized;
     }
 
-    public virtual object handleAuthenticate(WebSocketClient client, Dictionary<string, object> message)
+    public virtual object handleAuthenticate(WebSocketClient client, object message)
     {
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1201,7 +1201,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsWsExact, code, feedback);
             }
         } catch(Exception e)
         {
@@ -1262,7 +1262,7 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message, object id)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message, Int64? id)
     {
         // not every method stores its subscription
         // as an object so we can't do indeById here
@@ -1274,12 +1274,12 @@ public partial class whitebit : ccxt.whitebit
             if (!(subscription is true))
             {
                 Int64? subId = this.safeInteger(subscription, "id");
-                if (((subId != null)) && (isEqual(subId, id)))
+                if (((subId != null)) && ((subId == id)))
                 {
                     object method = this.safeValue(subscription, "method");
                     if ((method != null))
                     {
-                        DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+                        this.handleAuthenticate(client, message);
                         return;
                     }
                 }

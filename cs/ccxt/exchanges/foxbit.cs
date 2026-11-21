@@ -675,7 +675,7 @@ public partial class foxbit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.v3PublicGetMarketsTicker24hr(parameters);
         //  {
         //    "data": [
@@ -729,7 +729,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "market_symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -889,7 +889,7 @@ public partial class foxbit : Exchange
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,interval, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,interval, since, limit));
     }
 
     /**
@@ -2215,7 +2215,7 @@ public partial class foxbit : Exchange
         {
             throw new ExchangeError ((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        object before = null;
+        double? before = null;
         if ((amount != null) && (balance != null))
         {
             before = (balance - amount);
@@ -2292,14 +2292,12 @@ public partial class foxbit : Exchange
             }
         }
         string? requestBody = null;
+        string bodyToSignature = "";
         if ((method == "POST") || (method == "PUT"))
         {
-            requestBody = this.json(paramsOmitted);
-        }
-        string? bodyToSignature = "";
-        if ((requestBody != null))
-        {
-            bodyToSignature = requestBody;
+            string jsonBody = this.json(paramsOmitted);
+            requestBody = jsonBody;
+            bodyToSignature = jsonBody;
         }
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
@@ -2310,7 +2308,7 @@ public partial class foxbit : Exchange
         {
             this.checkRequiredCredentials();
             string preHash = ((((timestamp.ToString() + method) + fullPath) + signatureQuery) + bodyToSignature);
-            string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(preHash, this.secret, sha256, "hex");
             headersValue["X-FB-ACCESS-KEY"] = this.apiKey;
             headersValue["X-FB-ACCESS-TIMESTAMP"] = timestamp.ToString();
             headersValue["X-FB-ACCESS-SIGNATURE"] = signature;
@@ -2346,7 +2344,7 @@ public partial class foxbit : Exchange
             string feedback = ((((this.id + " ") + message) + " details: ") + detailsString);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), detailsString, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

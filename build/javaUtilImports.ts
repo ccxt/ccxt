@@ -1,33 +1,6 @@
-// Import collapsing for generated Java, shared by every generator that writes Java under
-// java/lib and java/tests (javaTranspiler.ts, generateJavaWrappers.ts, generateImplicitAPI.ts).
-//
-// The ast-transpiler Java printer spells the JDK collection types out in full at every use
-// site (`new java.util.HashMap<String, Object>()`, `java.util.List<Object>`,
-// `java.util.concurrent.CompletableFuture<Object>`, ...), and the typed-core pass spells the
-// CCXT unified types the same way (`CompletableFuture<io.github.ccxt.types.Ticker>`,
-// `.thenApply(io.github.ccxt.types.Ticker::new)`). The helpers below rewrite those references
-// to their simple names and add the matching single-type `import` declarations once at the top
-// of the compilation unit. They run at WRITE time, after every upstream regex pass (which still
-// match on the qualified spelling), so no pass and no pinned dependency needs patching.
-//
-// Scope is deliberately a closed allow-list of unambiguous names. A single-type import shadows
-// on-demand (`.*`) imports and same-package types (JLS 6.4.1), so the rewrite can only change
-// resolution if a nested type of the same simple name is inherited into the class body — no
-// generated or hand-written type under java/ (including nested types, tests, examples, cli),
-// no java.lang / java.util / java.security / io.netty.channel type and no exchange, ws, base
-// or error class is named like any entry below
-// (`grep -rE '\b(class|interface|enum|record)\s+(List|Map|Order|...)\b' java/`).
-// Wildcard imports are never emitted: they would re-introduce exactly that ambiguity.
-// Deliberately NOT collapsed (ambiguity or <60 uses): Function, Set, Map.Entry,
-// ConcurrentHashMap, Callable, Collections, Locale, Base64, zip.*, io.github.ccxt.ws.*.
-//
-// The rewrite is source-aware: string / char / text-block literals, `//` and `/* */` comments
-// and existing `import` declarations are left untouched, so it is idempotent and cannot
-// corrupt an already-shortened file or a literal that happens to mention a package name.
-// A reference to a type of the compilation unit's own package (its `package` declaration) is
-// shortened without an import: the package is already in scope (JLS 6.3).
-// This module has no dependencies on purpose: the standalone generators import it without
-// pulling in the transpiler driver.
+// Import collapsing for generated Java (javaTranspiler.ts, generateJavaWrappers.ts, generateImplicitAPI.ts):
+// rewrites a closed allow-list of unambiguous qualified names (no java/ type shares a simple name;
+// wildcards never emitted) to simple names plus single-type imports, outside literals/comments/imports.
 export const JAVA_UTIL_IMPORTS: Record<string, string> = {
     'ArrayList': 'java.util.ArrayList',
     'Arrays': 'java.util.Arrays',
@@ -64,13 +37,8 @@ export const CCXT_TYPE_IMPORTS: Record<string, string> = Object.fromEntries (
 // simple name -> fully-qualified name, every collapsed type
 export const JAVA_IMPORTS: Record<string, string> = { ...JAVA_UTIL_IMPORTS, ...CCXT_TYPE_IMPORTS };
 
-// Native spelling of the `Helpers.toTypedList` runtime helper: the element type of a typed-list
-// return is statically known to the generator (TS return annotation), so the raw list is mapped
-// through the typed constructor reference inline. `res` is the raw result the call site holds;
-// the expression is the helper's body verbatim (the cast to `List<?>` erases identically), so
-// null / non-list / element behaviour matches. `List<?>` rather than `List<Object>`: the raw
-// future may already be statically typed (`List<Order>`), from which `List<Object>` is
-// inconvertible.
+// Native body of `Helpers.toTypedList` for a statically known element type; `List<?>` because
+// the raw future may already be typed (`List<Order>`), from which `List<Object>` is inconvertible.
 export function nativeTypedList (elementType: string, rawVar = 'res'): string {
     return `((java.util.List<?>) ${rawVar}).stream().map(${elementType}::new).collect(java.util.stream.Collectors.toList())`;
 }
@@ -128,11 +96,8 @@ function isCoveredByExistingImport (fqn: string, existing: Set<string>): boolean
     return existing.has (fqn) || existing.has (packageOf (fqn) + '.*');
 }
 
-// Add `import <fqn>;` for every name in `fqns` that the compilation unit does not already import
-// (explicitly, via an on-demand import of the same package, or because the type lives in the
-// unit's own package). New declarations are appended, sorted, directly after the last existing
-// import — or after the `package` line when the file has no imports yet — so the output is
-// stable across repeated runs.
+// Add `import <fqn>;` for every name not already imported (explicitly, on demand, or own package),
+// sorted, after the last import or else after the `package` line.
 export function ensureJavaImports (source: string, fqns: string[]): string {
     const existing = new Set<string> ();
     let lastImportEnd = -1;

@@ -496,6 +496,8 @@ class Transpiler {
             [ /if\s+\((.*)\)\s*[\n]/g, "if $1:\n" ],
             [ /\}\s*else\s*\{/g, 'else:' ],
             [ /else\s*[\n]/g, "else:\n" ],
+            // `<=` is inclusive and range() stops before its end: print `end + 1`
+            [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+\<=\s*(\w+(?:\.(?!length\b)\w+)*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3 + 1):'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, len($3)):'],
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],
@@ -1624,7 +1626,7 @@ class Transpiler {
         return phpBody
     }
 
-    transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
+    transpileJavaScriptToPHP ({ js, variables, arrayVariables }: any, async = false) {
 
         // match all local variables (let, const or var)
         let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
@@ -1662,6 +1664,12 @@ class Transpiler {
         }
 
         allVariables = allVariables.map ((error:any) => this.regexAll (error, this.getCommonRegexes ()))
+
+        // `.length` on a name declared as an array (`x: T[]` param or local) is count(), never strlen()
+        const arrayNames = (arrayVariables || []).concat ([ ... js.matchAll (/(?:let|const|var)\s+(\w+)\s*:\s*[\w<>]+\[\]\s*=/g) ].map ((m: any) => m[1]))
+        for (const name of arrayNames) {
+            js = js.replace (new RegExp ('(?<![\\w$.])' + name + '\\.length\\b', 'g'), 'count(' + name + ')')
+        }
 
         // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
         // some exchange/base methods use a parameter named like a php language construct
@@ -2292,7 +2300,7 @@ class Transpiler {
             }
             // strip TypeScript overload signature lines (body-less declarations ending with ';')
             // they carry no runtime code and the implementation signature below handles all cases
-            while (lines.length > 1 && /^\s*(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
+            while (lines.length > 1 && /^\s*(?:override\s+)?(?:async\s+)?[a-zA-Z0-9_$]+(?:\s*<[^>]+>)?\s*\([^{]*\)\s*:\s*[^{};]+;\s*$/.test (lines[0])) {
                 lines.shift ()
             }
             // re-strip any blanks/comments left between overloads and the implementation
@@ -2351,6 +2359,7 @@ class Transpiler {
 
             // get names of all method arguments for later substitutions
             let variables = argsArray.map (arg => arg.split ('=').map (x => x.split (':')[0].trim ().replace (/\?$/, '')) [0])
+            const arrayVariables = argsArray.filter (arg => /^[\w?]+\s*:\s*[\w<>]+\[\]\s*(=|$)/.test (arg)).map (arg => arg.split (':')[0].trim ().replace (/\?$/, ''))
 
             let phpArgs = ''
             let syncPhpSignature = ''
@@ -2457,7 +2466,9 @@ class Transpiler {
                         // overrides as `params: Dict = {}`, which would emit `array` here, so keep
                         // any `params` argument that defaults to `{}` untyped to match the base.
                         const isUntypedParamsBag = (variable === 'params') && (secondPart.length === 2) && (secondPart[1].trim () === '{}')
-                        if (isUntypedParamsBag) {
+                        // an override cannot narrow the base's untyped `params` box either (PHP contravariance)
+                        const isNarrowedOverrideParams = (variable === 'params') && (secondPart.length === 1) && /^\s*override\s/.test (lines[0])
+                        if (isUntypedParamsBag || isNarrowedOverrideParams) {
                             return '$' + variable + endpart
                         }
                         // Normalise union parameter types so we never emit invalid PHP like
@@ -2550,7 +2561,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, arrayVariables, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature

@@ -1550,11 +1550,11 @@ class hitbtc extends Exchange {
         ), $marketResolved);
     }
 
-    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params): PromiseInterface {
+    public function fetch_transactions_helper(?string $types, ?string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($types, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(?string $types, ?string $code, ?int $since, ?int $limit, array $params) {
+    private function do_fetch_transactions_helper(?string $types, ?string $code, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2794,7 +2794,10 @@ class hitbtc extends Exchange {
         $market = null;
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+            }
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchMarginMode', $market, $params);
         if ($marketType === 'margin') {
@@ -3034,9 +3037,12 @@ class hitbtc extends Exchange {
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
-            $queryMarketIds = $this->market_ids($symbolsNormalized);
-            $request['symbols'] = implode(',', $queryMarketIds);
+            $normalizedLength = count($symbolsNormalized);
+            if ($normalizedLength > 0) {
+                $market = $this->market($symbolsNormalized[0]);
+                $queryMarketIds = $this->market_ids($symbolsNormalized);
+                $request['symbols'] = implode(',', $queryMarketIds);
+            }
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchFundingRates', $market, $params);
         if ($type !== 'swap') {
@@ -3949,6 +3955,7 @@ class hitbtc extends Exchange {
         //
         $networks = $this->safe_list($fee, 'networks', array());
         $result = $this->deposit_withdraw_fee($fee);
+        $networkFees = array();
         for ($j = 0; $j < count($networks); $j++) {
             $networkEntry = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
@@ -3969,7 +3976,7 @@ class hitbtc extends Exchange {
                 $result['withdraw'] = $withdrawResult;
             }
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networkFees[$networkCode] = array(
                     'withdraw' => $withdrawResult,
                     'deposit' => array(
                         'fee' => null,
@@ -3978,6 +3985,7 @@ class hitbtc extends Exchange {
                 );
             }
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 

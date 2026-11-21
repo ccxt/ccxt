@@ -1110,7 +1110,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1225,7 +1225,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1303,7 +1303,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1435,17 +1435,17 @@ public partial class hibachi : Exchange
         return this.milliseconds();
     }
 
-    public virtual string? signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, string? privateKey)
     {
-        if ((((string)privateKey).Length == 44))
+        if ((privateKey.Length == 44))
         {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
-            return this.hmac(message, this.encode(privateKey), sha256, "hex");
+            return this.hmac(message, privateKey, sha256, "hex");
         } else
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             string hash = ((string)this.hash(message, sha256, "hex"));
-            Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+            Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
             string? r = this.safeString(signature, "r", "");
             string? s = this.safeString(signature, "s", "");
             string v = this.intToBase16((signature != null && signature.ContainsKey("v") ? signature["v"] : null));
@@ -1844,7 +1844,7 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
         };
@@ -2008,9 +2008,9 @@ public partial class hibachi : Exchange
                 string? codeError = this.safeString(response, "errorCode");
                 string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
                 string? message = this.safeString(response, "message");
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }
@@ -2390,9 +2390,9 @@ public partial class hibachi : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
+    public virtual List<Dictionary<string, object>> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
     {
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
             result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
@@ -2459,9 +2459,9 @@ public partial class hibachi : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "settlements", new List<object>() {});
-        List<object> settlements = this.parseSettlements(data, market);
-        List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit));
+        List<Dictionary<string, object>> settlements = this.parseSettlements(data, market);
+        List<Dictionary<string, object>> sorted = this.sortBy(settlements, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
 
     /**

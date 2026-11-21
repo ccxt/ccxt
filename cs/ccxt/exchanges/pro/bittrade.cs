@@ -317,7 +317,7 @@ public partial class bittrade : ccxt.bittrade
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         IDictionary<string, object> tick = this.safeDict(message, "tick");
         IList<object> parsed = this.parseOHLCV(tick, market);
@@ -370,13 +370,13 @@ public partial class bittrade : ccxt.bittrade
             { "symbol", symbolValue },
             { "limit", limitValue },
             { "params", parameters },
-            { "method", this.handleOrderBookSubscription },
+            { "method", "handleOrderBookSubscription" },
         };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSnapshot(WebSocketClient client, object message, object subscription)
     {
         //
         //     {
@@ -453,7 +453,7 @@ public partial class bittrade : ccxt.bittrade
                 { "symbol", symbol },
                 { "limit", limit },
                 { "params", parameters },
-                { "method", this.handleOrderBookSnapshot },
+                { "method", "handleOrderBookSnapshot" },
             };
             ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId.ToString(), request, requestId.ToString(), snapshotSubscription));
             return (orderbook as IOrderBook).limit();
@@ -472,7 +472,7 @@ public partial class bittrade : ccxt.bittrade
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
     {
         //
         //     {
@@ -502,16 +502,16 @@ public partial class bittrade : ccxt.bittrade
             return orderbook;
         }
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        if (((nonce != null)) && ((prevSeqNum == null || prevSeqNum <= nonce)) && ((seqNum != null && (nonce == null || seqNum > nonce))))
+        if (((nonce != null)) && (prevSeqNum.Value <= nonce.Value) && (seqNum.Value > nonce.Value))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});
             List<object> bids = this.safeList(tick, "bids", new List<object>() {});
-            this.handleDeltas(getValue(orderbook, "asks"), asks);
-            this.handleDeltas(getValue(orderbook, "bids"), bids);
-            ((IDictionary<string,object>)orderbook)["nonce"] = seqNum;
+            this.handleDeltas(orderbook?.asks, asks);
+            this.handleDeltas(orderbook?.bids, bids);
+            orderbook["nonce"] = seqNum;
             Int64? timestamp = this.safeInteger(message, "ts");
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
         return orderbook;
     }
@@ -565,7 +565,7 @@ public partial class bittrade : ccxt.bittrade
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         if ((symbol == null))
@@ -603,10 +603,15 @@ public partial class bittrade : ccxt.bittrade
         IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
         if ((subscription != null))
         {
-            object method = this.safeValue(subscription, "method");
-            if ((method != null))
+            string? method = this.safeString(subscription, "method");
+            if (method == "handleOrderBookSnapshot")
             {
-                return DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+                this.handleOrderBookSnapshot(client, message, subscription);
+                return null;
+            } else if (method == "handleOrderBookSubscription")
+            {
+                this.handleOrderBookSubscription(client, message, subscription);
+                return null;
             }
             // clean up
             if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
@@ -722,7 +727,7 @@ public partial class bittrade : ccxt.bittrade
                 try
                 {
                     this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
-                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                    this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
                     throw new ExchangeError (feedback) ;
                 } catch(Exception e)
                 {

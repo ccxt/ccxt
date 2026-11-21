@@ -276,7 +276,8 @@ class toobit(ccxt.async_support.toobit):
         """
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
-        return result[symbol][timeframe]
+        bySymbol = result[symbol]
+        return bySymbol[timeframe]
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -297,15 +298,15 @@ class toobit(ccxt.async_support.toobit):
         messageHashes = []
         timeframes = self.safe_dict(self.options['ws'], 'timeframes', {})
         marketIds = []
-        selectedTimeframe = None
+        selectedTimeframe = ''
         for i in range(0, len(symbolsAndTimeframes)):
             data = self.safe_list(symbolsAndTimeframes, i)
             symbolStr = self.safe_string(data, 0, '')
             market = self.market(symbolStr)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id', '')
             unfiedTimeframe = self.safe_string(data, 1, '1m')
             rawTimeframe = self.safe_string(timeframes, unfiedTimeframe, unfiedTimeframe)
-            if selectedTimeframe is not None and selectedTimeframe != rawTimeframe:
+            if selectedTimeframe != '' and selectedTimeframe != rawTimeframe:
                 raise NotSupported(self.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols')
             else:
                 selectedTimeframe = rawTimeframe
@@ -722,8 +723,9 @@ class toobit(ccxt.async_support.toobit):
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = self.safe_list(message, 'B', [])
-        self.balance[type]['timestamp'] = timestamp
-        self.balance[type]['datetime'] = self.iso8601(timestamp)
+        typeBalance = self.safe_dict(self.balance, type, {})
+        typeBalance['timestamp'] = timestamp
+        typeBalance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
@@ -733,8 +735,8 @@ class toobit(ccxt.async_support.toobit):
             account['used'] = self.safe_string(balance, 'l')
             account['free'] = self.safe_string(balance, 'f')
             if code is not None:
-                self.balance[type][code] = account
-        self.balance[type] = self.safe_balance(self.balance[type])
+                typeBalance[code] = account
+        self.balance[type] = self.safe_balance(typeBalance)
         client.resolve(self.balance[type], type + ':balance')
 
     async def load_balance_snapshot(self, client: Client, messageHash: str, marketType: Str):

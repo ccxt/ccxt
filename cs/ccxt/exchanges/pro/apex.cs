@@ -87,7 +87,7 @@ public partial class apex : ccxt.apex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -113,7 +113,7 @@ public partial class apex : ccxt.apex
         {
             limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -235,7 +235,7 @@ public partial class apex : ccxt.apex
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         int symbolsLength = (symbolsNormalized?.Count ?? 0);
         if ((symbolsLength == 0))
         {
@@ -491,8 +491,8 @@ public partial class apex : ccxt.apex
         string? topic = this.safeString(message, "topic", "");
         string? updateType = this.safeString(message, "type", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        string? symbol = null;
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
+        string? symbol = this.safeString(parsed, "symbol");
         if ((updateType == "snapshot"))
         {
             parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(data));
@@ -508,6 +508,9 @@ public partial class apex : ccxt.apex
             IDictionary<string, object> rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
             Dictionary<string, object> merged = this.extend(rawTicker, data);
             parsed = ccxt.BaseExchange.FromTicker(this.parseTicker(merged));
+        } else
+        {
+            symbol = null;
         }
         Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         parsed["timestamp"] = timestamp;
@@ -535,8 +538,9 @@ public partial class apex : ccxt.apex
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         parameters["callerMethodName"] = "watchOHLCV";
-        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters);
+
+        return ccxt.BaseExchange.ToOHLCVList((result != null && symbol != null && result.ContainsKey(symbol) && result[symbol] != null && timeframeVar != null && result[symbol].ContainsKey(timeframeVar) ? result[symbol][timeframeVar] : null));
     }
 
     /**
@@ -629,7 +633,7 @@ public partial class apex : ccxt.apex
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         for (int i = 0; i < data.Count; i++)
         {
@@ -695,7 +699,7 @@ public partial class apex : ccxt.apex
         {
             limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -723,7 +727,7 @@ public partial class apex : ccxt.apex
             symbolsNormalized2 = symbols;
         } else
         {
-            symbolsNormalized2 = this.marketSymbols(this.toArray(symbols));
+            symbolsNormalized2 = this.marketSymbols(symbols);
         }
         if (!this.isEmpty(symbols))
         {
@@ -738,7 +742,7 @@ public partial class apex : ccxt.apex
         if ((cache == null))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized2, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized2, since, limit, true));
         }
         List<object> topics = new List<object>() {"positions"};
         object newPositions = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
@@ -783,10 +787,10 @@ public partial class apex : ccxt.apex
         {
             limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object lists)
+    public virtual void handleMyTrades(WebSocketClient client, IList<object> lists)
     {
         // [
         //     {
@@ -812,7 +816,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (lists?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawTrade = this.safeDict(lists, i, new Dictionary<string, object>() {});
             ccxt.Trade parsed = this.parseWsTrade(rawTrade);
@@ -832,7 +836,7 @@ public partial class apex : ccxt.apex
         client.resolve(trades, messageHash);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object lists)
+    public virtual void handleOrder(WebSocketClient client, IList<object> lists)
     {
         // [
         //     {
@@ -870,7 +874,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache orders = this.orders;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (lists?.Count ?? 0); i++)
         {
             ccxt.Order parsed = this.parseOrder(this.safeDict(lists, i, new Dictionary<string, object>() {}));
             string? symbol = parsed.symbol;
@@ -926,7 +930,7 @@ public partial class apex : ccxt.apex
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object lists)
+    public virtual void handlePositions(WebSocketClient client, IList<object> lists)
     {
         //
         // [
@@ -956,7 +960,7 @@ public partial class apex : ccxt.apex
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(lists); i++)
+        for (int i = 0; i < (lists?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawPosition = this.safeDict(lists, i, new Dictionary<string, object>() {});
             Dictionary<string, object> position = this.parsePosition(rawPosition);
@@ -1003,7 +1007,7 @@ public partial class apex : ccxt.apex
         string request_path = "/ws/accounts";
         string http_method = "GET";
         string messageString = (((timestamp + http_method) + request_path));
-        string signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
+        string signature = this.hmac(messageString, this.stringToBase64(this.secret), sha256, "base64");
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
@@ -1080,7 +1084,7 @@ public partial class apex : ccxt.apex
             if ((code != null) && code != "0")
             {
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
                 string? msg = this.safeString2(message, "retMsg", "ret_msg");
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;

@@ -1321,10 +1321,16 @@ class bullish extends Exchange {
         while ($errors <= $maxRetries) {
             try {
                 if ($method === 'fetchOHLCV') {
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' market() requires a symbol argument');
+                    }
                     return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $paramsOmitted);
                 } elseif ($method === 'fetchFundingRateHistory') {
                     return $this->fetch_funding_rate_history($symbol, $since, $limit, $paramsOmitted);
                 } else {
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' market() requires a symbol argument');
+                    }
                     return $this->fetch_trades($symbol, $since, $limit, $paramsOmitted);
                 }
             } catch (Exception $e) {
@@ -2468,7 +2474,7 @@ class bullish extends Exchange {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
-         * @param {string} [$params->code] unified currency $code, default is null
+         * @param {string} [$params->code] unified $currency $code, default is null
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         array( $this->load_markets(), $this->handle_token() );
@@ -2476,10 +2482,10 @@ class bullish extends Exchange {
         $request = array(
             'tradingAccountId' => $tradingAccountId,
         );
-        $response = null;
         $code = $this->safe_string($params, 'code');
         if ($code !== null) {
-            $request['symbol'] = $this->currency($code)['id'];
+            $currency = $this->currency($code);
+            $request['symbol'] = $currency['id'];
             $response = $this->privateGetV1AccountsAssetSymbol($this->extend($request, $params));
             return $this->parse_balance_for_single_currency($response, $code);
         } else {

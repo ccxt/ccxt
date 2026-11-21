@@ -481,10 +481,10 @@ func (this *Bit2me) ParseMarket(market any) map[string]any {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var status *string = this.SafeString(market, "marketEnabled")
-	var fees any = this.Fees
-	return this.SafeMarketStructure(map[string]any{
+	var tradingFees any = this.SafeValue(this.Fees, "trading")
+	var literal43341 map[string]any = map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         nil,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -506,8 +506,8 @@ func (this *Bit2me) ParseMarket(market any) map[string]any {
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"taker":          GetValue(GetValue(fees, "trading"), "taker"),
-		"maker":          GetValue(GetValue(fees, "trading"), "maker"),
+		"taker":          this.SafeNumber(tradingFees, "taker"),
+		"maker":          this.SafeNumber(tradingFees, "maker"),
 		"precision": map[string]any{
 			"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "amountPrecision"))),
 			"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision"))),
@@ -533,7 +533,11 @@ func (this *Bit2me) ParseMarket(market any) map[string]any {
 		},
 		"created": this.Parse8601(this.SafeString(market, "marketEnabledAt")),
 		"info":    market,
-	})
+	}
+	if base != nil && quote != nil {
+		literal43341["symbol"] = *base + "/" + *quote
+	}
+	return this.SafeMarketStructure(literal43341)
 }
 
 /**
@@ -556,13 +560,12 @@ func (this *Bit2me) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	includeTestnet, query := this.HandleOptionBoolAndParams(params, "fetchCurrencies", "includeTestnet", false)
+	var ternaryStr49930 string = "false"
+	if includeTestnet {
+		ternaryStr49930 = "true"
+	}
 	var request map[string]any = map[string]any{
-		"includeTestnet": func() string {
-			if includeTestnet {
-				return "true"
-			}
-			return "false"
-		}(),
+		"includeTestnet": ternaryStr49930,
 	}
 	var promises []any = []any{this.PublicGetV2CurrencyAssets(this.Extend(request, query)), this.PublicGetV1WalletSettingsAssets(query)}
 
@@ -570,7 +573,7 @@ func (this *Bit2me) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	//
 	// assets
 	//
@@ -609,8 +612,14 @@ func (this *Bit2me) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//         }
 	//     ]
 	//
-	var assets map[string]any = SafeMapTyped(responses, 0)
-	var settings []any = SafeListTyped(responses, 1)
+	var assets map[string]any
+	if 0 < len(responses) {
+		assets, _ = responses[0].(map[string]any)
+	}
+	var settings []any
+	if 1 < len(responses) {
+		settings, _ = responses[1].([]any)
+	}
 	var settingsById map[string]any = this.IndexBy(settings, "symbol")
 	var ids []string = nil
 	if assets != nil {
@@ -625,7 +634,7 @@ func (this *Bit2me) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 		var asset map[string]any = this.SafeDictMap(assets, id, map[string]any{})
 		var assetSettings map[string]any = SafeMapTyped(settingsById, id)
 		// an operation that is not listed for an asset is not available for it
-		var actions []any = SafeListTypedDefault(assetSettings, "actions", []any{})
+		var actions []any = this.SafeListSlice(assetSettings, "actions", []any{})
 		var currency map[string]any = this.ParseCurrency(this.Extend(asset, map[string]any{
 			"actions": actions,
 		}))
@@ -645,7 +654,7 @@ func (this *Bit2me) ParseCurrency(rawCurrency any) map[string]any {
 	var enabled *bool = this.SafeBool(rawCurrency, "enabled", false)
 	var removedAt *string = this.SafeString(rawCurrency, "removedAt")
 	var active bool = (enabled != nil && *enabled) && (removedAt == nil)
-	var actions []any = SafeListTypedDefault(rawCurrency, "actions", []any{})
+	var actions []any = this.SafeListSlice(rawCurrency, "actions", []any{})
 	var deposit bool = this.InArray("deposit", actions)
 	var withdraw bool = this.InArray("withdrawal", actions)
 	// the exponent is only published for a handful of assets, fall back to the usual decimals
@@ -681,6 +690,10 @@ func (this *Bit2me) ParseCurrency(rawCurrency any) map[string]any {
 			},
 		}
 	}
+	var ternaryStr61120 string = "crypto"
+	if assetType != nil && *assetType == "fiat" {
+		ternaryStr61120 = "fiat"
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
 		"id":        id,
@@ -692,12 +705,7 @@ func (this *Bit2me) ParseCurrency(rawCurrency any) map[string]any {
 		"networks":  networks,
 		"fee":       nil,
 		"precision": precision,
-		"type": func() string {
-			if assetType != nil && *assetType == "fiat" {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"type":      ternaryStr61120,
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,
@@ -821,7 +829,13 @@ func (this *Bit2me) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	//         }
 	//     ]
 	//
-	var ticker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var ticker map[string]any
+	if 0 < len(response) {
+		ticker, _ = response[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -899,9 +913,12 @@ func (this *Bit2me) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetV2TradingOrderBook(this.Extend(request, params))
@@ -919,7 +936,7 @@ func (this *Bit2me) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", 0, 1))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "bids", "asks", 0, 1))}
 	return nil
 }
 
@@ -934,12 +951,12 @@ func (this *Bit2me) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *Bit2me) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Bit2me) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bit2me) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Bit2me) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1042,12 +1059,13 @@ func (this *Bit2me) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMaker = SafeStringPtr(func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}())
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
+		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "feeAmount")
@@ -1152,16 +1170,16 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"limit":    requestLimit,
 	}
 	if since != nil {
-		request["startTime"] = since
+		request["startTime"] = *since
 	} else {
 		// the endpoint returns the oldest candles first, so request a window that covers `limit` candles
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		var end any = func() any {
-			if until != nil {
-				return until
-			}
-			return this.Milliseconds()
-		}()
+		var end any
+		if until != nil {
+			end = until
+		} else {
+			end = this.Milliseconds()
+		}
 		request["startTime"] = Subtract(end, requestLimit*duration)
 	}
 	if until != nil {
@@ -1240,12 +1258,12 @@ func (this *Bit2me) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
-func (this *Bit2me) ParseBalanceList(response any) map[string]any {
+func (this *Bit2me) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var wallet map[string]any = MapTyped(GetValue(response, i))
+	for i := 0; i < len(response); i++ {
+		var wallet map[string]any = MapTyped(response[i])
 		var currencyId *string = this.SafeString(wallet, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1368,7 +1386,7 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var isMarketOrder bool = (typeVar == "market")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
@@ -1382,7 +1400,8 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 	if clientOrderId == nil {
 		var brokerId string = *this.SafeString(this.Options, "brokerId", "CCXT")
 		var prefix string = brokerId + "-"
-		clientOrderId = SafeStringPtr(prefix + this.Uuid())
+		clientOrderIdStr := prefix + this.Uuid()
+		clientOrderId = &clientOrderIdStr
 	}
 	var query any = this.Omit(params, []any{"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLimitPrice", "cost", "clientOrderId"})
 	var postOnly bool = false
@@ -1392,9 +1411,12 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 	var timeInForce *string = this.SafeStringUpper(query, "timeInForce")
 	query = this.Omit(query, "timeInForce")
 	var request map[string]any = map[string]any{
-		"symbol":    market["id"],
+		"symbol":    nil,
 		"side":      side,
 		"orderType": typeVar,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if isOco {
 		if side != "sell" {
@@ -1409,12 +1431,15 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 		request["stopPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 		var stopLossLimit any = stopLimitPrice
 		if IsEqual(stopLossLimit, nil) {
-			stopLossLimit = func() any {
-				if price != nil {
-					return this.NumberToString(price)
+			if price != nil {
+				if derefPtr := this.NumberToString(price); derefPtr != nil {
+					stopLossLimit = *derefPtr
+				} else {
+					stopLossLimit = nil
 				}
-				return stopLossPrice
-			}()
+			} else {
+				stopLossLimit = stopLossPrice
+			}
 		}
 		request["stopLimitPrice"] = this.PriceToPrecision(symbol, stopLossLimit)
 	} else if isMarketOrder {
@@ -1640,7 +1665,10 @@ func (this *Bit2me) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		if numOrders == 0 {
 			panic(OrderNotFound(this.Id + " fetchOrder() could not find an order with clientOrderId " + *clientOrderId))
 		}
-		var first map[string]any = this.SafeDictMap(orders, 0, map[string]any{})
+		var first, _ = orders[0].(map[string]any)
+		if first == nil {
+			first = map[string]any{}
+		}
 
 		ch <- AsyncResult[Order]{Value: this.ParseOrder(first, market)}
 		return nil
@@ -1745,12 +1773,12 @@ func (this *Bit2me) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		} else {
 			start = 0
 		}
-		var end any = func() any {
-			if until != nil {
-				return until
-			}
-			return this.Milliseconds()
-		}()
+		var end any
+		if until != nil {
+			end = until
+		} else {
+			end = this.Milliseconds()
+		}
 		request["startTime"] = this.Iso8601(start)
 		request["endTime"] = this.Iso8601(end)
 	}
@@ -2114,12 +2142,12 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		} else {
 			start = 0
 		}
-		var end any = func() any {
-			if until != nil {
-				return until
-			}
-			return this.Milliseconds()
-		}()
+		var end any
+		if until != nil {
+			end = until
+		} else {
+			end = this.Milliseconds()
+		}
 		request["startTime"] = this.Iso8601(start)
 		request["endTime"] = this.Iso8601(end)
 	}
@@ -2155,7 +2183,11 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//         "total": 12
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -2266,7 +2298,7 @@ func (this *Bit2me) transferBody(ch chan AsyncResult[TransferEntry], code string
 		panic(r.Err)
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -2418,7 +2450,7 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "currency")
 	var movementType *string = this.SafeString(transfer, "movementType")
-	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
+	var accountsById, _ = this.Options["accountsById"].(map[string]any)
 	var fromAccount any = nil
 	var toAccount any = nil
 	var id *string = nil
@@ -2431,33 +2463,39 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		status = this.ParseTransferStatus(this.SafeString(transfer, "status"))
 		var wallet *string = this.SafeString(accountsById, "wallet")
 		var trading *string = this.SafeString(accountsById, "trading")
-		fromAccount = func() any {
-			if movementType != nil && *movementType == "deposit" {
-				return wallet
-			}
-			return trading
-		}()
-		toAccount = func() any {
-			if movementType != nil && *movementType == "deposit" {
-				return trading
-			}
-			return wallet
-		}()
+		if movementType != nil && *movementType == "deposit" {
+			fromAccount = wallet
+		} else {
+			fromAccount = trading
+		}
+		if movementType != nil && *movementType == "deposit" {
+			toAccount = trading
+		} else {
+			toAccount = wallet
+		}
 	} else {
 		// the trading wallet returned by deposit/withdraw, createdAt is the wallet creation date
-		status = SafeStringPtr("ok")
+		statusStr := "ok"
+		status = &statusStr
 	}
-	return TransferEntryFromMap(map[string]any{
+	var literal180315 map[string]any = map[string]any{
 		"info":        transfer,
-		"id":          id,
+		"id":          nil,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    this.SafeCurrencyCode(currencyId, currency),
 		"amount":      this.SafeNumber(transfer, "amount"),
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-		"status":      status,
-	})
+		"status":      nil,
+	}
+	if id != nil {
+		literal180315["id"] = *id
+	}
+	if status != nil {
+		literal180315["status"] = *status
+	}
+	return TransferEntryFromMap(literal180315)
 }
 func (this *Bit2me) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2503,7 +2541,8 @@ func (this *Bit2me) Sign(path string, optionalArgs ...any) map[string]any {
 				jsonText := this.Json(query)
 				requestBody = &jsonText
 			} else {
-				requestBody = SafeStringPtr("{}")
+				requestBodyStr := "{}"
+				requestBody = &requestBodyStr
 			}
 			message += ":" + *requestBody
 		}

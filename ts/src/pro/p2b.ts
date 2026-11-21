@@ -253,7 +253,7 @@ export default class p2b extends p2bRest {
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];
         const interval = this.safeString (params, 'interval', '0.001');
-        const limitResolved = (limit === undefined) ? 100 : limit;
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const request = [
             market['id'],
             limitResolved,
@@ -293,7 +293,7 @@ export default class p2b extends p2bRest {
         const timeframe = this.findTimeframe (channel, timeframes);
         const symbol = this.safeString (market, 'symbol');
         const parsed = this.parseOHLCV (data, market);
-        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol as string] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol as string], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {

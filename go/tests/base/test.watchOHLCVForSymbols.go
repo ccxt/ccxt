@@ -57,7 +57,7 @@ func testWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.I
 				}()
 				// try block:
 
-				r := <-exchange.WatchOHLCVForSymbolsAsync([]any{[]any{symbol, chosenTimeframeKey}}, since, limit)
+				r := <-exchange.WatchOHLCVForSymbolsAsync([][]any{[]any{symbol, chosenTimeframeKey}}, since, limit)
 				if r.Err != nil {
 					panic(r.Err)
 				}

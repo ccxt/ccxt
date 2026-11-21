@@ -2310,8 +2310,10 @@ class kalshi extends Exchange {
             $parsedMarkets = $parsedEvent['markets'];
             $parsedMarketsLength = count($parsedMarkets);
             for ($mi = 0; $mi < $parsedMarketsLength; $mi++) {
-                $m = $parsedMarkets[$mi];
-                $this->markets[$m['market']] = $m;
+                $marketKey = $this->safe_string($parsedMarkets[$mi], 'market');
+                if ($marketKey !== null) {
+                    $this->markets[$marketKey] = $parsedMarkets[$mi];
+                }
             }
         }
         $this->populate_outcomes();
@@ -2497,7 +2499,7 @@ class kalshi extends Exchange {
             $cursor = null;
             for ($page = 0; $page < $maxPages; $page++) {
                 $reqLimit = $pageLimit;
-                if ($hasLimit && ($limitValue !== null)) {
+                if ($hasLimit) {
                     $collectedSoFar = count($rawEvents);
                     $remaining = $this->parse_to_int($limitValue - $collectedSoFar);
                     if ($remaining < $reqLimit) {

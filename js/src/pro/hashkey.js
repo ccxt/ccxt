@@ -798,15 +798,16 @@ export default class hashkey extends hashkeyRest {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = message;
+        const balance = this.safeDict(this.balance, type, {});
         const currencyId = this.safeString(balanceUpdate, 'a');
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
         account['free'] = this.safeString(balanceUpdate, 'f');
         account['used'] = this.safeString(balanceUpdate, 'l');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         const messageHash = 'balance:' + type;
         client.resolve(this.balance[type], messageHash);
     }

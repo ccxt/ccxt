@@ -1130,7 +1130,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    override parseTicker (ticker: object, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "timestamp": 1788867258984,
@@ -3170,10 +3170,12 @@ export default class coinbaseinternational extends Exchange {
     createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa: boolean = false) {
         let uri: Str = undefined;
         if ((url !== undefined) && (method !== undefined)) {
-            uri = method + ' ' + url.replace ('https://', '');
-            const quesPos = uri.indexOf ('?');
+            const fullUri: string = method + ' ' + url.replace ('https://', '');
+            const quesPos = fullUri.indexOf ('?');
             if (quesPos > 0) {
-                uri = uri.slice (0, quesPos);
+                uri = fullUri.slice (0, quesPos);
+            } else {
+                uri = fullUri;
             }
         }
         const nonce = this.randomBytes (16);

@@ -1532,7 +1532,8 @@ class htx extends htx$1["default"] {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(cost, number.TRUNCATE, market['precision']['cost'], this.precisionMode);
     }
     /**
      * @method
@@ -1960,12 +1961,16 @@ class htx extends htx$1["default"] {
                 constructedId = marketBase + '_' + contractSuffix;
             }
             if (constructedId === symbolOrMarketId) {
-                this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = marketSymbol;
+                const futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
+                futureMarketIdsForSymbolsDict1[symbolOrMarketId] = marketSymbol;
+                this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict1;
                 return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId;
+        const futureMarketIdsForSymbolsDict2 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
+        futureMarketIdsForSymbolsDict2[symbolOrMarketId] = symbolOrMarketId;
+        this.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict2;
         return symbolOrMarketId;
     }
     parseTicker(ticker, market = undefined) {
@@ -2495,10 +2500,10 @@ class htx extends htx$1["default"] {
             throw new errors.NullResponse(this.id + ' fetchOrderBook() returned empty response');
         }
         if ('tick' in response) {
-            if (this.safeValue(response, 'tick') === undefined) {
+            const tick = this.safeDict(response, 'tick');
+            if (tick === undefined) {
                 throw new errors.BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
             }
-            const tick = this.safeDict(response, 'tick');
             const timestamp = this.safeInteger(tick, 'ts', this.safeInteger(response, 'ts'));
             const result = this.parseOrderBook(tick, symbol, timestamp);
             result['nonce'] = this.safeInteger(tick, 'version');
@@ -3364,7 +3369,9 @@ class htx extends htx$1["default"] {
             type = 'crypto';
         }
         if (code !== undefined) {
-            this.options['networkChainIdsByNames'][code] = {};
+            const chainIdsByNames = this.safeDict(this.options, 'networkChainIdsByNames', {});
+            chainIdsByNames[code] = {};
+            this.options['networkChainIdsByNames'] = chainIdsByNames;
         }
         const chains = this.safeList(rawCurrency, 'chains', []);
         const networks = {};
@@ -3373,10 +3380,16 @@ class htx extends htx$1["default"] {
             const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             const title = this.safeString2(chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if (code !== undefined && title !== undefined) {
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+                const chainIdsByNamesDict = this.safeDict(this.options, 'networkChainIdsByNames', {});
+                const chainIdsByTitle = this.safeDict(chainIdsByNamesDict, code, {});
+                chainIdsByTitle[title] = uniqueChainId;
+                chainIdsByNamesDict[code] = chainIdsByTitle;
+                this.options['networkChainIdsByNames'] = chainIdsByNamesDict;
             }
             if (uniqueChainId !== undefined) {
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
+                const networkNamesByChainIdsDict3 = this.safeDict(this.options, 'networkNamesByChainIds', {});
+                networkNamesByChainIdsDict3[uniqueChainId] = title;
+                this.options['networkNamesByChainIds'] = networkNamesByChainIdsDict3;
             }
             const networkCode = this.networkIdToCode(uniqueChainId, code);
             if (networkCode !== undefined) {
@@ -6146,23 +6159,12 @@ class htx extends htx$1["default"] {
         let query = this.omit(paramsMarketType, ['stop', 'stopLossTakeProfit', 'trigger']);
         let response = undefined;
         if (marketType === 'spot') {
-            let clientOrderIds = this.safeValue2(query, 'client-order-id', 'clientOrderId');
-            clientOrderIds = this.safeValue2(query, 'client-order-ids', 'clientOrderIds', clientOrderIds);
+            const clientOrderIds = this.safeStringList(query, ['client-order-ids', 'clientOrderIds', 'client-order-id', 'clientOrderId']);
             if (clientOrderIds === undefined) {
-                if (typeof clientOrderIds === 'string') {
-                    request['order-ids'] = [ids];
-                }
-                else {
-                    request['order-ids'] = ids;
-                }
+                request['order-ids'] = ids;
             }
             else {
-                if (typeof clientOrderIds === 'string') {
-                    request['client-order-ids'] = [clientOrderIds];
-                }
-                else {
-                    request['client-order-ids'] = clientOrderIds;
-                }
+                request['client-order-ids'] = clientOrderIds;
                 query = this.omit(query, ['client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds']);
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchcancel(this.extend(request, query));
@@ -9648,6 +9650,7 @@ class htx extends htx$1["default"] {
         const chains = this.safeList(fee, 'chains', []);
         const code = this.safeString(currency, 'code');
         const result = this.depositWithdrawFee(fee);
+        const networks = {};
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = this.safeDict(chains, j);
             const networkId = this.safeString(chainEntry, 'chain');
@@ -9670,13 +9673,14 @@ class htx extends htx$1["default"] {
                 };
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined,
                     },
                 };
+                result['networks'] = networks;
             }
             this.assignDefaultDepositWithdrawFees(result, currency);
         }
@@ -9736,8 +9740,7 @@ class htx extends htx$1["default"] {
             const settlement = this.safeDict(settlements, i);
             const list = this.safeList(settlement, 'list');
             if (this.safeBool(market, 'linear', false)) {
-                const parsedSettlement = this.parseSettlement(settlement, market);
-                result.push(parsedSettlement);
+                result.push(this.parseSettlement(settlement, market));
             }
             else if (list !== undefined) {
                 const timestamp = this.safeInteger(settlement, 'settlement_time');

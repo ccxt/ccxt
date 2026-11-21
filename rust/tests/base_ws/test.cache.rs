@@ -128,31 +128,31 @@ pub fn testWsCache() {
 })])))));
     // ----------------------------------------------------------------------------
     let mut timestampCache: ccxt::pro::cache::Cache = ArrayCacheByTimestamp::new(Value::Null);
-    let mut ohlcv1: Value = Value::from(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3)]);
-    let mut ohlcv2: Value = Value::from(vec![Value::Int(200), Value::Int(5), Value::Int(6), Value::Int(7)]);
+    let ohlcv1: Value = Value::from(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3)]);
+    let ohlcv2: Value = Value::from(vec![Value::Int(200), Value::Int(5), Value::Int(6), Value::Int(7)]);
     timestampCache.append(ohlcv1.clone());
     timestampCache.append(ohlcv2.clone());
     assert!(ccxt::runtime::is_true(&(equals(Value::from(&timestampCache), Value::from(vec![ohlcv1.clone(), ohlcv2])))));
-    let mut modify2: Value = Value::from(vec![Value::Int(200), Value::Int(10), Value::Int(11), Value::Int(12)]);
+    let modify2: Value = Value::from(vec![Value::Int(200), Value::Int(10), Value::Int(11), Value::Int(12)]);
     timestampCache.append(modify2.clone());
     assert!(ccxt::runtime::is_true(&(equals(Value::from(&timestampCache), Value::from(vec![ohlcv1, modify2])))));
     // ----------------------------------------------------------------------------
     let mut cacheSymbolId: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Null);
-    let mut object1: Value = Value::Map({
+    let object1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("id".to_string(), Value::Str("abcdef".into()));
             m.insert("i".to_string(), Value::Int(1));
         m
     });
-    let mut object2: Value = Value::Map({
+    let object2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("ETH/USDT".into()));
             m.insert("id".to_string(), Value::Str("qwerty".into()));
             m.insert("i".to_string(), Value::Int(2));
         m
     });
-    let mut object3: Value = Value::Map({
+    let object3: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("id".to_string(), Value::Str("abcdef".into()));
@@ -167,8 +167,8 @@ pub fn testWsCache() {
     let mut cacheSymbolId5: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Int(5));
     {
                 let mut i: i64 = 1;
-        let mut __for_first_1541: bool = true;
-        while { if !__for_first_1541 { i += 1; } __for_first_1541 = false; (i as f64) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; (i as f64) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
@@ -211,8 +211,8 @@ pub fn testWsCache() {
 })])))));
     {
                 let mut i: i64 = 1;
-        let mut __for_first_1542: bool = true;
-        while { if !__for_first_1542 { i += 1; } __for_first_1542 = false; (i as f64) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1: bool = true;
+        while { if !__for_first_1 { i += 1; } __for_first_1 = false; (i as f64) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
@@ -253,7 +253,7 @@ pub fn testWsCache() {
         m.insert("i".to_string(), Value::Int(20));
     m
 })])))));
-    let mut middle: Value = Value::Map({
+    let middle: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("id".to_string(), Value::Str("8".into()));
@@ -292,7 +292,7 @@ pub fn testWsCache() {
         m.insert("i".to_string(), Value::Int(28));
     m
 })])))));
-    let mut otherMiddle: Value = Value::Map({
+    let otherMiddle: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("id".to_string(), Value::Str("7".into()));
@@ -333,8 +333,8 @@ pub fn testWsCache() {
 })])))));
     {
                 let mut i: i64 = 30;
-        let mut __for_first_1543: bool = true;
-        while { if !__for_first_1543 { i += 1; } __for_first_1543 = false; (i as f64) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_2: bool = true;
+        while { if !__for_first_2 { i += 1; } __for_first_2 = false; (i as f64) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
@@ -375,7 +375,7 @@ pub fn testWsCache() {
         m.insert("i".to_string(), Value::Int(42));
     m
 })])))));
-    let mut first: Value = Value::Map({
+    let first: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("id".to_string(), Value::Str("8".into()));
@@ -414,7 +414,7 @@ pub fn testWsCache() {
         m.insert("i".to_string(), Value::Int(38));
     m
 })])))));
-    let mut another: Value = Value::Map({
+    let another: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
             m.insert("id".to_string(), Value::Str("30".into()));
@@ -460,8 +460,8 @@ pub fn testWsCache() {
     let mut initialLength: Value = Value::Int(5);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1544: bool = true;
-        while { if !__for_first_1544 { i += 1; } __for_first_1544 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_3: bool = true;
+        while { if !__for_first_3 { i += 1; } __for_first_3 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId2.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -478,8 +478,8 @@ pub fn testWsCache() {
     let mut appendItemsLength: Value = Value::Int(3);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1545: bool = true;
-        while { if !__for_first_1545 { i += 1; } __for_first_1545 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_4: bool = true;
+        while { if !__for_first_4 { i += 1; } __for_first_4 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId3.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -502,8 +502,8 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1546: bool = true;
-        while { if !__for_first_1546 { i += 1; } __for_first_1546 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_5: bool = true;
+        while { if !__for_first_5 { i += 1; } __for_first_5 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId4.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -520,8 +520,8 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1547: bool = true;
-        while { if !__for_first_1547 { i += 1; } __for_first_1547 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_6: bool = true;
+        while { if !__for_first_6 { i += 1; } __for_first_6 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId6.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -541,7 +541,7 @@ pub fn testWsCache() {
     // test ArrayCacheBySymbolById, same order should not increase the limit
     let mut cacheSymbolId7: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Null);
     symbol = Value::Str("BTC/USDT".into());
-    let mut otherSymbol: String = "ETH/USDT".to_string();
+    let otherSymbol: String = "ETH/USDT".to_string();
     cacheSymbolId7.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
@@ -565,7 +565,7 @@ pub fn testWsCache() {
     }));
     outsideLimit = Value::Int(5);
     limited = Value::from(cacheSymbolId7.get_limit(symbol.as_str(), outsideLimit.as_i64()));
-    let mut limited2: Value = Value::from(cacheSymbolId7.get_limit(None::<&str>, outsideLimit.as_i64()));
+    let limited2: Value = Value::from(cacheSymbolId7.get_limit(None::<&str>, outsideLimit.as_i64()));
     assert!(ccxt::runtime::is_true(&(Value::Bool(limited.as_f64() == Some(1.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(limited2.as_f64() == Some(2.0)))));
     // ----------------------------------------------------------------------------
@@ -574,8 +574,8 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1548: bool = true;
-        while { if !__for_first_1548 { i += 1; } __for_first_1548 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_7: bool = true;
+        while { if !__for_first_7 { i += 1; } __for_first_7 = false; (i as f64) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         timestampCache2.append(Value::from(vec![Value::Int((i * 10)), Value::Int((i * 10)), Value::Int((i * 10)), Value::Int((i * 10))]));
     }
     }
@@ -584,8 +584,8 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1549: bool = true;
-        while { if !__for_first_1549 { i += 1; } __for_first_1549 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_8: bool = true;
+        while { if !__for_first_8 { i += 1; } __for_first_8 = false; (i as f64) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         timestampCache2.append(Value::from(vec![Value::Int((i * 4)), Value::Int((i * 4)), Value::Int((i * 4)), Value::Int((i * 4))]));
     }
     }
@@ -808,7 +808,7 @@ pub fn testWsCache() {
     let mut cacheSymbolSide4: ccxt::pro::cache::Cache = ArrayCacheBySymbolBySide::new(Value::Null);
     symbol = Value::Str("BTC/USDT".into());
     symbol2 = Value::Str("ETH/USDT".into());
-    let mut symbol3: Value = Value::Str("XRP/USDT".into());
+    let symbol3: Value = Value::Str("XRP/USDT".into());
     cacheSymbolSide4.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
@@ -842,7 +842,7 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&Value::from(&cacheSymbolSide4), &Value::Int(0)), &Value::Str("contracts".into())), &Value::Int(1)) && is_equal(&get_value(&get_value(&Value::from(&cacheSymbolSide4), &Value::Int(0)), &Value::Str("symbol".into())), &symbol)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&Value::from(&cacheSymbolSide4), &Value::Int(1)), &Value::Str("contracts".into())), &Value::Int(3)) && is_equal(&get_value(&get_value(&Value::from(&cacheSymbolSide4), &Value::Int(1)), &Value::Str("symbol".into())), &symbol3)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&Value::from(&cacheSymbolSide4), &Value::Int(2)), &Value::Str("contracts".into())), &Value::Int(4)) && is_equal(&get_value(&get_value(&Value::from(&cacheSymbolSide4), &Value::Int(2)), &Value::Str("symbol".into())), &symbol2)))));
-    let mut arrayLength: i64 = get_array_length(&Value::from(&cacheSymbolSide4)).as_i64().unwrap_or_default();
+    let arrayLength: i64 = get_array_length(&Value::from(&cacheSymbolSide4)).as_i64().unwrap_or_default();
     assert!(ccxt::runtime::is_true(&(Value::Bool(arrayLength == 3))));
     // ----------------------------------------------------------------------------
     // test clear () really resets ArrayCacheBySymbolById - the hashmap used to keep
@@ -923,7 +923,7 @@ pub fn testWsCache() {
         m
     }));
     cacheClearBySide.clear();
-    let mut clearedBySideLength: i64 = get_array_length(&Value::from(&cacheClearBySide)).as_i64().unwrap_or_default();
+    let clearedBySideLength: i64 = get_array_length(&Value::from(&cacheClearBySide)).as_i64().unwrap_or_default();
     assert!(ccxt::runtime::is_true(&(Value::Bool(clearedBySideLength == 0))));
     cacheClearBySide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -939,7 +939,7 @@ pub fn testWsCache() {
             m.insert("contracts".to_string(), Value::Int(4));
         m
     }));
-    let mut reappendedBySideLength: i64 = get_array_length(&Value::from(&cacheClearBySide)).as_i64().unwrap_or_default();
+    let reappendedBySideLength: i64 = get_array_length(&Value::from(&cacheClearBySide)).as_i64().unwrap_or_default();
     assert!(ccxt::runtime::is_true(&(Value::Bool(reappendedBySideLength == 2))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&Value::from(&cacheClearBySide), &Value::Int(0)), &Value::Str("contracts".into())), &Value::Int(3))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&Value::from(&cacheClearBySide), &Value::Int(1)), &Value::Str("contracts".into())), &Value::Int(4))))));
@@ -1055,8 +1055,8 @@ pub fn testWsCache() {
     let mut cacheTimestampLimited: ccxt::pro::cache::Cache = ArrayCacheByTimestamp::new(Value::Int(3));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1550: bool = true;
-        while { if !__for_first_1550 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1550 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(7).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_9: bool = true;
+        while { if !__for_first_9 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_9 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(7).as_f64().unwrap_or(f64::NAN) } {
         cacheTimestampLimited.append(Value::from(vec![(match (&(i), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), i.clone(), i.clone(), i.clone()]));
     }
     }
@@ -1146,8 +1146,8 @@ pub fn testWsCache() {
     let mut cacheEvictBuckets: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Int(3));
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1551: bool = true;
-        while { if !__for_first_1551 { i += 1; } __for_first_1551 = false; (i as f64) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_10: bool = true;
+        while { if !__for_first_10 { i += 1; } __for_first_10 = false; (i as f64) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
         cacheEvictBuckets.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), Value::Str(format!("{}", i).into())).into()), "/USDT").into()));
@@ -1157,10 +1157,10 @@ pub fn testWsCache() {
         }));
     }
     }
-    let mut evictedLength: i64 = get_array_length(&Value::from(&cacheEvictBuckets)).as_i64().unwrap_or_default();
+    let evictedLength: i64 = get_array_length(&Value::from(&cacheEvictBuckets)).as_i64().unwrap_or_default();
     assert!(ccxt::runtime::is_true(&(Value::Bool(evictedLength == 3))));
-    let mut bucketKeys: Vec<Value> = object_keys(&cacheEvictBuckets.hashmap()).as_array().cloned().unwrap_or_default();
-    let mut bucketCount: i64 = bucketKeys.len() as i64;
+    let bucketKeys: Vec<Value> = object_keys(&cacheEvictBuckets.hashmap()).as_array().cloned().unwrap_or_default();
+    let bucketCount: i64 = bucketKeys.len() as i64;
     assert!(ccxt::runtime::is_true(&(Value::Bool(bucketCount == 3)))); // no empty leftover buckets
     // ----------------------------------------------------------------------------
     // test the symbol-scoped and the global getLimit scopes count independently -
@@ -1181,7 +1181,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(2));
         m
     }));
-    let mut symbolScopeFirst: Value = Value::from(cacheTwoScopes.get_limit(Some("BTC/USDT"), Some(100)));
+    let symbolScopeFirst: Value = Value::from(cacheTwoScopes.get_limit(Some("BTC/USDT"), Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(symbolScopeFirst.as_f64() == Some(2.0)))));
     cacheTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -1190,9 +1190,9 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(3));
         m
     }));
-    let mut globalScope: Value = Value::from(cacheTwoScopes.get_limit(None::<&str>, Some(100)));
+    let globalScope: Value = Value::from(cacheTwoScopes.get_limit(None::<&str>, Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(globalScope.as_f64() == Some(2.0))))); // distinct ids a and b since no global poll happened - id a must not double-count
-    let mut symbolScopeSecond: Value = Value::from(cacheTwoScopes.get_limit(Some("BTC/USDT"), Some(100)));
+    let symbolScopeSecond: Value = Value::from(cacheTwoScopes.get_limit(Some("BTC/USDT"), Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(symbolScopeSecond.as_f64() == Some(1.0))))); // id a since the last symbol-scoped poll
     // the inverse direction: a global poll (and the append that fires its
     // deferred reset) must not erase the symbol scope's window
@@ -1210,7 +1210,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(5));
         m
     }));
-    let mut globalScopeSecond: Value = Value::from(cacheTwoScopes.get_limit(None::<&str>, Some(100)));
+    let globalScopeSecond: Value = Value::from(cacheTwoScopes.get_limit(None::<&str>, Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(globalScopeSecond.as_f64() == Some(2.0))))); // ids d and e since the first global poll - id a was consumed by it
     cacheTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -1219,7 +1219,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(6));
         m
     }));
-    let mut symbolScopeThird: Value = Value::from(cacheTwoScopes.get_limit(Some("BTC/USDT"), Some(100)));
+    let symbolScopeThird: Value = Value::from(cacheTwoScopes.get_limit(Some("BTC/USDT"), Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(symbolScopeThird.as_f64() == Some(2.0))))); // ids d, e since the last symbol poll - the global poll in between must not reset this window
     // ----------------------------------------------------------------------------
     // the BySide twin of the two-scope case, covering both directions
@@ -1238,7 +1238,7 @@ pub fn testWsCache() {
             m.insert("contracts".to_string(), Value::Int(1));
         m
     }));
-    let mut sideSymbolFirst: Value = Value::from(sideTwoScopes.get_limit(Some("BTC/USDT:USDT"), Some(100)));
+    let sideSymbolFirst: Value = Value::from(sideTwoScopes.get_limit(Some("BTC/USDT:USDT"), Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(sideSymbolFirst.as_f64() == Some(2.0)))));
     sideTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -1247,7 +1247,7 @@ pub fn testWsCache() {
             m.insert("contracts".to_string(), Value::Int(2));
         m
     }));
-    let mut sideGlobal: Value = Value::from(sideTwoScopes.get_limit(None::<&str>, Some(100)));
+    let sideGlobal: Value = Value::from(sideTwoScopes.get_limit(None::<&str>, Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(sideGlobal.as_f64() == Some(2.0))))); // long and short distinct since no global poll - the re-updated long must not double-count
     sideTwoScopes.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -1256,7 +1256,7 @@ pub fn testWsCache() {
             m.insert("contracts".to_string(), Value::Int(2));
         m
     }));
-    let mut sideSymbolSecond: Value = Value::from(sideTwoScopes.get_limit(Some("BTC/USDT:USDT"), Some(100)));
+    let sideSymbolSecond: Value = Value::from(sideTwoScopes.get_limit(Some("BTC/USDT:USDT"), Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(sideSymbolSecond.as_f64() == Some(2.0))))); // long and short since the last symbol poll - the global poll must not reset this window
     // ----------------------------------------------------------------------------
     // eviction bounds the seen scopes: an id evicted by maxSize leaves both seen
@@ -1284,7 +1284,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(3));
         m
     })); // evicts id a
-    let mut evictSymbolCount: Value = Value::from(cacheEvictSeen.get_limit(Some("BTC/USDT"), Some(100)));
+    let evictSymbolCount: Value = Value::from(cacheEvictSeen.get_limit(Some("BTC/USDT"), Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(evictSymbolCount.as_f64() == Some(2.0))))); // ids b and c - the evicted id a no longer counts
     cacheEvictSeen.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -1293,6 +1293,6 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(4));
         m
     })); // evicts id b
-    let mut evictGlobalCount: Value = Value::from(cacheEvictSeen.get_limit(None::<&str>, Some(100)));
+    let evictGlobalCount: Value = Value::from(cacheEvictSeen.get_limit(None::<&str>, Some(100)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(evictGlobalCount.as_f64() == Some(2.0))))); // ids c and d - the counts track distinct ids within the retained window in both scopes
 }

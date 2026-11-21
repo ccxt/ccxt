@@ -79,7 +79,11 @@ public partial class pacifica : ccxt.pacifica
                 headers["PF-API-KEY"] = (this.options != null && this.options.ContainsKey("apiKey") ? this.options["apiKey"] : null);
             }
         }
-        ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
+        IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsSubOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
+        wsSubOptions["headers"] = headers;
+        wsOptions["options"] = wsSubOptions;
+        this.options["ws"] = wsOptions;
     }
 
     /**
@@ -332,7 +336,7 @@ public partial class pacifica : ccxt.pacifica
         List<object> ordersToReturn = new List<object>() {};
         for (int i = 0; i < results.Count; i++)
         {
-            IDictionary<string, object> order = this.safeDict(results, i);
+            IDictionary<string, object> order = this.safeDict(results, i, new Dictionary<string, object>() {});
             string? error = this.safeString(order, "error");
             bool? success = this.safeBool(order, "success", false);
             string? marketId = this.safeString(order, "symbol");
@@ -622,7 +626,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> entry = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(entry, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         List<object> levels = this.safeList(entry, "l", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "bids", this.safeList(levels, 0, new List<object>() {}) },
@@ -636,7 +640,7 @@ public partial class pacifica : ccxt.pacifica
             snapshot.nonce = ccxt.BaseExchange.StructInt64(nonce);
         }
         string messageHash = ("orderbook:" + symbol);
-        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ccxt.pro.OrderBook ob = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -883,10 +887,10 @@ public partial class pacifica : ccxt.pacifica
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object info = data[i];
+            IDictionary<string, object> info = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(info, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             ccxt.Ticker ticker = this.parseWsTicker(info, market);
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             parsedTickers.Add(ccxt.BaseExchange.FromTicker(ticker));
@@ -981,7 +985,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("trade:" + symbolValue);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
@@ -1030,7 +1034,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string subMessageHash = ("trade:" + symbolValue);
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
@@ -1080,9 +1084,9 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> first = this.safeDict(entry, 0, new Dictionary<string, object>() {});
         string? marketId = this.safeString(first, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("trade:" + symbol);
-        if (!(((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
@@ -1139,7 +1143,7 @@ public partial class pacifica : ccxt.pacifica
         string? amount = this.safeString(trade, "a");
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString(trade, "h");
         string? fee = this.safeString(trade, "f");
         string? side = this.safeString2(trade, "ts", "d");
@@ -1210,7 +1214,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         bool isTestnet = this.isSandboxModeEnabled;
         string? parsedTf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string urlKey = "api";
@@ -1264,7 +1268,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
         if (isTestnet)
@@ -1330,7 +1334,7 @@ public partial class pacifica : ccxt.pacifica
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = ohlcv;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = ohlcv;
         }
         IList<object> parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
@@ -1595,9 +1599,9 @@ public partial class pacifica : ccxt.pacifica
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (((symbol != null)) && (((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
-            if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+            if ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe)))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
             }
         }
     }

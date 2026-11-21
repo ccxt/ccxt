@@ -1816,7 +1816,9 @@ class kraken(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
         }
-        self.options['delistedMarketsById'][id] = market
+        delistedMarketsByIdDict = self.safe_dict(self.options, 'delistedMarketsById', {})
+        delistedMarketsByIdDict[id] = market
+        self.options['delistedMarketsById'] = delistedMarketsByIdDict
         return market
 
     def parse_order_status(self, status: Str) -> Str:
@@ -1969,10 +1971,11 @@ class kraken(Exchange, ImplicitAPI):
                 descriptionType = part4  # eg, limit, market
             else:
                 descriptionType = part4 + ' ' + part5  # eg. stop loss, take profit, trailing stop
-            if descriptionType == 'stop loss' or descriptionType == 'take profit':
+            # split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if (part4 == 'stop' and part5 == 'loss') or (part4 == 'take' and part5 == 'profit'):
                 triggerPrice = self.safe_string(parts, 6)
                 price = self.safe_string(parts, 9)
-            elif descriptionType == 'limit':
+            elif part4 == 'limit':
                 price = self.safe_string(parts, 5)
         descriptionSide = self.safe_string(description, 'type')
         if descriptionSide is not None:
@@ -2911,7 +2914,7 @@ class kraken(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transactions_by_type(self, type: str, transactions: object, code: Str = None, since: Int = None, limit: Int = None) -> list[Transaction]:
+    def parse_transactions_by_type(self, type: str, transactions: list[dict], code: Str = None, since: Int = None, limit: Int = None) -> list[Transaction]:
         result = []
         for i in range(0, len(transactions)):
             transaction = self.parse_transaction(self.extend({
@@ -3061,12 +3064,12 @@ class kraken(Exchange, ImplicitAPI):
         #        }
         #     }
         #
-        rawWithdrawals = None
+        rawWithdrawals = []
         result = self.safe_value(response, 'result')
         if not isinstance(result, list):
             rawWithdrawals = self.add_pagination_cursor_to_result(result)
         else:
-            rawWithdrawals = result
+            rawWithdrawals = self.safe_list(response, 'result', [])
         return self.parse_transactions_by_type('withdrawal', rawWithdrawals, code, since, limit)
 
     def add_pagination_cursor_to_result(self, result: dict) -> list:

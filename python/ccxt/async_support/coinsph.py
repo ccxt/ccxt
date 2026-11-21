@@ -690,7 +690,7 @@ class coinsph(Exchange, ImplicitAPI):
             'limits': {},
         })
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         hasSymbolParam = ('symbol' in params)
         hasSymbolsParam = ('symbols' in params)
         limit = self.safe_integer(params, 'limit')
@@ -1434,7 +1434,7 @@ class coinsph(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         paramsRequest = self.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response = {}
+        response = None
         if testOrder:
             response = await self.privatePostOpenapiV1OrderTest(self.extend(request, paramsRequest))
         else:

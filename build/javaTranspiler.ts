@@ -18,22 +18,23 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites, resetJavaVenueIndexes, javaVenueTupleCoreProven, javaVenueFileAsyncReturns } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaRowAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites, resetJavaVenueIndexes, javaVenueTupleCoreProven, javaVenueFileAsyncReturns } from './java-local-types.js';
 import { installJavaFreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
-import { nativeJavaTypedArithmetic } from './java-local-types.js';
 import { nativeJavaParamCompare } from './java-local-types.js';
 import { nativeJavaTypedArithmetic, nativeJavaPrimitiveArithmetic, nativeJavaNumericLocalsRetype, nativeJavaSumLongLocals } from './java-local-types.js';
-import { nativeJavaIntegralMultiplySubtract, nativeJavaNumberDivModNeg, nativeJavaInlineDivModNeg } from './java-local-types.js';
+import { nativeJavaIntegralMultiplySubtract, nativeJavaNumberDivModNeg, nativeJavaInlineDivModNeg, nativeJavaLongBoxLocals } from './java-local-types.js';
 import { installJavaStringCoreArgs } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJavaLiteralReplace } from './java-local-types.js';
 import { installJavaCounterTypes } from './java-local-types.js';
 import { installJavaMapLocalTypes } from './java-local-types.js';
 import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
+import { installJavaTypedBaseFields } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaJ8CopyLocals } from './java-local-types.js';
 import { installJavaR84j1StringElementLocals, installJavaR84j1BoxElementLocals } from './java-local-types.js';
+import { installJavaH26j01MapRowLists } from './java-local-types.js';
 import { installJavaR84j2ContainerLocals } from './java-local-types.js';
 import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
@@ -69,6 +70,13 @@ import { installJavaR93j2ListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
+import { installJavaPredictionMapLocals } from './java-local-types.js';
+import { installJavaListParamSlots } from './java-local-types.js';
+import { installJavaEventsParamsSlots, installJavaCurrenciesByIdReads, installJavaSourceExchangeReads, installJavaTypedOrderbooksField, installJavaNullSeedStructureLocals } from './java-local-types.js';
+import { installJavaNonNullMapPuts } from './java-local-types.js';
+import { installJavaLocalElementWrites } from './java-local-types.js';
+import { installJavaStringListIndexOf } from './java-local-types.js';
+import { installJavaMapCopyLocals } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
 import { installJ6ReaderLocals } from './java-local-types.js';
 import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
@@ -176,14 +184,6 @@ function javaIntCounterIndex (lines: string[], lineIndex: number, name: string):
     return false;
 }
 
-function javaMemberRange (lines: string[], lineIndex: number): [number, number] {
-    let start = lineIndex;
-    while (start > 0 && !JAVA_MEMBER_START_RE.test(lines[start])) start--;
-    let end = lineIndex + 1;
-    while (end < lines.length && !JAVA_MEMBER_START_RE.test(lines[end])) end++;
-    return [start, end];
-}
-
 // `Helpers.GetValue(x, k)` on a receiver whose printed declaration is `List<Object>` (int literal or int
 // counter index) or `WsOrderBook` (a key its containsKey always answers) -> the helper's own branch,
 // with its null / out-of-range answers kept explicit; every other receiver keeps the helper
@@ -256,15 +256,13 @@ if (platform === 'win32') {
     }
 }
 
-const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
-const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
 // hand-written above the delimiter of BaseExchange.java with typed Pair returns
 const JAVA_HAND_WRITTEN_PAIR_METHODS = [
     'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
-    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption',
+    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption', 'handlePostOnly',
 ];
 // Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
 // methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the
@@ -275,14 +273,10 @@ const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
-const GENERATED_TESTS_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const BASE_TESTS_FOLDER = 'java/tests/src/main/java/tests/base/';
 const BASE_TESTS_FILE = './java/tests/src/main/java/tests/exchange/TestMain.java';
 const EXCHANGE_BASE_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const EXCHANGE_GENERATED_FOLDER = './java/tests/src/main/java/tests/exchange/';
-const EXAMPLES_INPUT_FOLDER = './examples/ts/';
-const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
-const csharpComments: any = {};
 
 // the raw-text `final Object finalX = x;` hoists and the async-param snapshots are emitted
 // as plain text, so no local-type family can re-type them; this pass copies the source
@@ -381,21 +375,20 @@ function retypeParameterType (signature: string, name: string): string | undefin
 
 // a name mention inside a string/char literal or a comment is not a use —
 // `throw new ArgumentsRequired((this.id + " requires a symbol argument"))` must not block.
-function retypeCodeOnly (line: string): string {
+function retypeCodeOnly (line: string, inComment = false): [string, boolean] {
     let out = '';
     let i = 0;
-    let state = 0;
     while (i < line.length) {
-        if (state === 1) {
+        if (inComment) {
             const j = line.indexOf ('*/', i);
-            if (j === -1) return out;
-            i = j + 2; state = 0; continue;
+            if (j === -1) return [out, true];
+            i = j + 2; inComment = false; continue;
         }
         const c = line[i];
         if (line.startsWith ('//', i)) break;
         if (line.startsWith ('/*', i)) {
             const j = line.indexOf ('*/', i + 2);
-            if (j === -1) { state = 1; break; }
+            if (j === -1) { inComment = true; break; }
             i = j + 2; continue;
         }
         if (c === '"') {
@@ -414,7 +407,7 @@ function retypeCodeOnly (line: string): string {
         }
         out += c; i++;
     }
-    return out;
+    return [out, inComment];
 }
 
 // a mention of local NAME: member accesses (`x.NAME()`) and method calls are other symbols
@@ -472,122 +465,7 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     // Guarded native replaceFirst is a String (null arm included)
     if ((token === 'String' || token === 'java.lang.String') && /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/.test (value)) return true;
     if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
-    // a checkcast proves the value only when it wraps the whole expression, not one argument
-    if (new RegExp (`^\\(\\s*${token}\\s*\\)`).test (value) && retypeCastSpansValue (value)) return true;
     return false;
-}
-
-// `(T) expr` where expr is one operand: an identifier/call chain, or a parenthesised expression
-function retypeCastSpansValue (value: string): boolean {
-    const rest = value.replace (/^\(\s*[^()]+\s*\)\s*/, '');
-    if (rest.startsWith ('(')) {
-        let depth = 0;
-        for (let k = 0; k < rest.length; k++) {
-            if (rest[k] === '(') depth++;
-            else if (rest[k] === ')') { depth--; if (depth === 0) return k === rest.length - 1; }
-        }
-        return false;
-    }
-    return /^[\w$.]+(\((?:[^()]|\([^()]*\))*\))?(\.[\w$]+(\((?:[^()]|\([^()]*\))*\))?)*$/.test (rest);
-}
-
-// async-param copy `x = x3` writes the typed snapshot token admits: returns the printed write
-// (a checkcast or `L` suffix where javac needs one) or undefined when the value may be another box.
-// Map sources: omit of a Map, extend/deepExtend/keysort, safeDict and handle*-tuple element reads.
-const RETYPE_COPY_MAP_TOKEN = /^(?:java\.util\.)?Map<String, Object>$/;
-const RETYPE_COPY_EXTRA_CALLEES = /^(?:Helpers\.(?:mathMin|mathMax|subtract|isLessThanOrEqual|isGreaterThanOrEqual|callDynamically|addElementToObject)|io\.github\.ccxt\.ws\.ArrayCache\.getLimitOf|String\.valueOf)$/;
-
-function retypeTopLevelArgCount (args: string): number {
-    let depth = 0;
-    let count = 1;
-    let quoted = false;
-    for (let k = 0; k < args.length; k++) {
-        const c = args[k];
-        if (c === '\\' && quoted) { k++; continue; }
-        if (c === '"') quoted = !quoted;
-        if (quoted) continue;
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') depth--;
-        else if (c === ',' && depth === 0) count++;
-    }
-    return count;
-}
-
-function retypeCopyWrite (rhs: string, token: string, name: string): string | undefined {
-    const tail = rhs.match (/;\s*(\/\/.*)?$/);
-    const comment = tail !== null && tail[1] !== undefined ? ' ' + tail[1] : '';
-    const value = rhs.replace (/;\s*(\/\/.*)?$/, '').trim ();
-    const write = (v: string) => `${v};${comment}`;
-    if (value === 'null' || retypeWrittenValueMatches (value, token)) return rhs;
-    // the pass runs before applyJavaImports, so the printed casts are still `java.util.`-qualified
-    // second() of a typed handle* Pair is its params Map in every Pair the base declares
-    const pairRead = value.match (/^[A-Za-z_$][\w$]*Variable\.(first|second)\(\)$/)?.[1];
-    const tupleRead = /^\(\((?:java\.util\.)?List<Object>\) [A-Za-z_$][\w$]*Variable\)\.get\(\d\)$/.test (value);
-    if (RETYPE_COPY_MAP_TOKEN.test (token)) {
-        const extend = value.match (/^this\.extend\((.*)\)$/);
-        if (extend !== null) {
-            const fixed = retypeTopLevelArgCount (extend[1]) === 2 && extend[1].indexOf ('...') === -1;
-            return fixed ? rhs : write (`(${token}) ${value}`);
-        }
-        if (/^this\.(?:deepExtend|keysort)\(/.test (value)) return rhs;
-        if (pairRead === 'second') return rhs;
-        const castable = tupleRead
-            || new RegExp (`^this\\.omit\\(${name},`).test (value)
-            || /^this\.safeDict\(/.test (value);
-        return castable ? write (`(${token}) ${value}`) : undefined;
-    }
-    if (token === 'Long') {
-        if (/^-?\d+$/.test (value)) return write (`${value}L`);
-        if (/^this\.(?:safeInteger|parseToInt|milliseconds)\(/.test (value)) return rhs;
-        return undefined;
-    }
-    if (token === 'String') {
-        if (/^\(\((?:java\.util\.)?Map<String, Object>\)[A-Za-z_$][\w$]*\)\.get\("[^"]*"\)$/.test (value)) return write (`(String) ${value}`);
-        if (tupleRead && value.endsWith ('.get(0)')) return write (`(String) ${value}`);
-        if (new RegExp (`^\\(\\(String\\)${name}\\)\\.to(?:Upper|Lower)Case\\(\\)$`).test (value)) return rhs;
-    }
-    return undefined;
-}
-
-// a use of the copy may sit on a continuation line of a multi-line call: resolve its callee
-// over the preceding code, and admit the Object-parameter Helpers the base declares
-function retypeCopyUseIsAudited (lines: string[], j: number, from: number, name: string, token: string): boolean {
-    if (retypeUseIsAudited (lines[j], name, token)) return true;
-    const code = retypeCodeOnly (lines[j]);
-    let prefix = '';
-    // a Helpers.newMap literal spans one line per property: look back over the whole literal
-    for (let k = Math.max (from, j - 400); k < j; k++) prefix += retypeCodeOnly (lines[k]);
-    const re = retypeMentionRegex (name, 'g');
-    let m: RegExpExecArray | null;
-    while ((m = re.exec (code)) !== null) {
-        const pre = prefix + code.slice (0, m.index);
-        let depth = 0;
-        let callee: string | undefined = undefined;
-        for (let k = pre.length - 1; k >= 0; k--) {
-            const c = pre[k];
-            if (c === ')') depth++;
-            else if (c === '(') {
-                if (depth === 0) {
-                    const head = pre.slice (0, k).trim ().match (/([\w$.]+)\s*$/);
-                    callee = head !== null ? head[1] : undefined;
-                    break;
-                }
-                depth--;
-            }
-        }
-        if (callee !== undefined && (RETYPE_AUDITED_CALLEES.test (callee) || RETYPE_COPY_EXTRA_CALLEES.test (callee))) continue;
-        const local = code.slice (0, m.index);
-        if ((/\+\s*$/.test (local) || /^\s*\+/.test (code.slice (m.index + name.length))) && /"/.test (lines[j])) continue;
-        const cast = local.match (/\(([\w$.<>,? ]+)\)\s*\(?\s*$/);
-        if (cast !== null) {
-            const c = cast[1].replace (/\s+/g, '').replace (/^java\.util\./, '');
-            const own = token.replace (/\s+/g, '').replace (/^java\.util\./, '');
-            if (c === own || c === 'Object' || c === 'java.lang.Object') continue;
-            if (RETYPE_COPY_MAP_TOKEN.test (token) && c === 'Map<?,?>') continue;
-        }
-        return false;
-    }
-    return true;
 }
 
 // a later declaration of the same name is a DIFFERENT variable (Java forbids
@@ -597,7 +475,7 @@ function retypeDeclaresName (code: string, name: string): boolean {
 }
 
 function retypeUseIsAudited (line: string, name: string, token?: string): boolean {
-    const code = retypeCodeOnly (line);
+    const [code] = retypeCodeOnly (line);
     if (retypeDeclaresName (code, name)) return true;
     if (!retypeMentionRegex (name).test (code)) return true;   // no mention outside literals
     for (const shape of RETYPE_AUDITED_USE_SHAPES) {
@@ -614,37 +492,8 @@ function retypeDepthScan (lines: string[]): number[] {
     let depth = 0;
     let inComment = false;
     for (const line of lines) {
-        let code = '';
-        let i = 0;
-        while (i < line.length) {
-            if (inComment) {
-                const j = line.indexOf ('*/', i);
-                if (j === -1) { i = line.length; break; }
-                i = j + 2; inComment = false; continue;
-            }
-            if (line.startsWith ('//', i)) break;
-            if (line.startsWith ('/*', i)) {
-                const j = line.indexOf ('*/', i + 2);
-                if (j === -1) { inComment = true; break; }
-                i = j + 2; continue;
-            }
-            const c = line[i];
-            if (c === '"') {
-                i++;
-                while (i < line.length) {
-                    if (line[i] === '\\') { i += 2; continue; }
-                    if (line[i] === '"') { i++; break; }
-                    i++;
-                }
-                continue;
-            }
-            if (c === "'") {
-                const j = line.indexOf ("'", i + 1);
-                if (j !== -1 && j - i <= 3) { i = j + 1; continue; }
-                code += c; i++; continue;
-            }
-            code += c; i++;
-        }
+        const [code, open] = retypeCodeOnly (line, inComment);
+        inComment = open;
         depths.push (depth);
         depth += (code.match (/{/g) ?? []).length - (code.match (/}/g) ?? []).length;
     }
@@ -1092,6 +941,7 @@ function jsAddFirstOperand (content: string, addStart: number): { text: string; 
     return { text: content.slice(start, end), start };
 }
 
+
 // every Identifier node in `scope`, by source name. Not cached: the Java printer
 // renames identifiers inside object literals in place (`x` → `finalX`) while a
 // function body is being printed, so the walk must read the live AST each time.
@@ -1128,18 +978,6 @@ function isAsyncMethodCall (printer: any, callNode: any): boolean {
         && ts.isIdentifier (returnType.typeName) && returnType.typeName.text === 'Promise';
 }
 
-// env-gated calibration trace (same convention as the module's
-// CCXT_JAVA_LOCAL_TYPES_DEBUG / JAVA_STRING_HELPERS_DEBUG): CCXT_JAVA_SAFESTRING_DEBUG=1
-// prints one line per rejected safeString-family declaration with the reason the
-// use-scan declined it (write-rhs / write-plus-safe / write-plus-unsafe /
-// compound-plus-unsafe / compound-plus-ws / compound-assign / pro-async / ...).
-const SAFESTRING_DEBUG = process.env['CCXT_JAVA_SAFESTRING_DEBUG'] === '1';
-let safeStringRejectReason: string | undefined;
-function safeStringReject (reason: string): boolean {
-    safeStringRejectReason = reason;
-    return false;
-}
-
 // would postProcessWsJava's "String type fixes" pass rewrite this declaration back to
 // `Object`? (mirror of build/java-local-types.js#dataflowWsReverts): pro/prediction source
 // file + a printed value starting with `this.<m>(` / `Helpers.<...>(`. The SS-03 `+`
@@ -1168,9 +1006,6 @@ function wsPostProcessReverts (declaration: any): boolean {
 
 // reject the refinement when a later use needs the local to stay `Object`
 function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, plusRelaxationAllowed = false): boolean {
-    if (SAFESTRING_DEBUG) {
-        safeStringRejectReason = undefined;
-    }
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -1193,18 +1028,18 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
             const op = parent.operator;
             if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
-                return SAFESTRING_DEBUG ? safeStringReject ('inc-dec') : false;
+                return false;
             }
         }
         if (ts.isSpreadElement (parent)) {
-            return SAFESTRING_DEBUG ? safeStringReject ('spread') : false;
+            return false;
         }
         if (ts.isTypeOfExpression (parent)) {
-            return SAFESTRING_DEBUG ? safeStringReject ('typeof') : false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
+            return false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-            return SAFESTRING_DEBUG ? safeStringReject ('destructure') : false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
+            return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
@@ -1217,12 +1052,6 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
                     || isProvablyStringReassignment (printer, parent.right, sourceName)
                     || (plusRelaxationAllowed && plusWriteRightIsSafe (printer, parent.right, sourceName));
                 if (!provable) {
-                    if (SAFESTRING_DEBUG) {
-                        const right = unwrapParensAll (parent.right);
-                        const isPlus = right !== undefined && ts.isBinaryExpression (right)
-                            && right.operatorToken.kind === ts.SyntaxKind.PlusToken;
-                        safeStringReject (isPlus ? 'write-plus-unsafe' : 'write-rhs');
-                    }
                     return false;
                 }
             } else if (op === ts.SyntaxKind.PlusEqualsToken) {
@@ -1233,10 +1062,10 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
                 const plusOk = (plusRelaxationAllowed && isProvablyNonNullStringExpression (printer, parent.right, sourceName))
                     || isProvablyNonNullStringOperand (printer, parent.right, sourceName);
                 if (!plusOk) {
-                    return SAFESTRING_DEBUG ? safeStringReject (plusRelaxationAllowed ? 'compound-plus-unsafe' : 'compound-plus-ws') : false;
+                    return false;
                 }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                return SAFESTRING_DEBUG ? safeStringReject ('compound-assign') : false;
+                return false;
             }
         }
         // A pro core extends the REST *wrapper* class, whose typed overloads
@@ -1246,7 +1075,7 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         // `Helpers.add(String, String)` also returns String) so the call keeps
         // binding to the core.
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
-            return SAFESTRING_DEBUG ? safeStringReject ('pro-async') : false;
+            return false;
         }
     }
     return true;
@@ -1502,10 +1331,6 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
     if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, plusRelaxationAllowed)) {
-        if (SAFESTRING_DEBUG) {
-            console.error (`[java-safestring] reject ${fileName}:${declaration.getStart ()} ${sourceName} (${safeStringRejectReason ?? 'unknown'})`);
-            safeStringRejectReason = undefined;
-        }
         return undefined;
     }
     return 'String';
@@ -1540,7 +1365,6 @@ export function patchJavaLocalTypes (transpiler: any): void {
             return printed;
         }
         const javaType = javaLocalType (printer, declaration);
-        if (SS02_CENSUS) ss02Record (printer, declaration, javaType, printed, identation);
         if (javaType === undefined) {
             return printed;
         }
@@ -1844,7 +1668,13 @@ export function installJavaOwnerStores (transpiler: any): void {
     for (const m of header.matchAll (/^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*=\s*new\s+HashMap<>\s*\(\s*\)\s*;/gm)) {
         const handAssigns = [ ...header.matchAll (new RegExp (`\\bthis\\.${m[1]}\\s*=(?!=)\\s*([^;]*)`, 'g')) ];
         const tsAssigns = [ ...tsMethods.matchAll (new RegExp (`\\bthis\\.${m[1]}\\s*=(?!=)\\s*([^;]*)`, 'g')) ];
-        if (handAssigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))
+        // a describe () key the base declares as an object literal reaches the field as a fresh deepExtend map
+        const describedLiteral = new RegExp (`^ {12}'${m[1]}': \\{`, 'm').test (tsMethods);
+        const fromDescribe = (x: string) => describedLiteral && x === `(Map<String, Object>) this.safeValue(extendedProperties, "${m[1]}")`;
+        // a constructor read that defaults to the field itself, when every TS write first reassigns it to `{}`
+        const selfDefault = (x: string) => x === `(Map<String, Object>) this.safeValue(extendedProperties, "${m[1]}", this.${m[1]})`
+            && new RegExp (`\\bthis\\.${m[1]}\\s*=\\s*\\{\\s*\\}`).test (tsMethods);
+        if (handAssigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()) || fromDescribe (x[1].trim ()) || selfDefault (x[1].trim ()))
             && tsAssigns.every ((x) => /^(?:\{\s*\}|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))) {
             caches.add (m[1]);
         }
@@ -1934,219 +1764,6 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
     printer._javaExpressionTypeResolverInstalled = true;
 }
 
-// ===== SS-02 census: safeString-family locals with later writes (env-gated) =====
-//
-// Read-only instrumentation for the SS-02 slice — one JSON line per local whose
-// initializer is a whole `this.safeString*`-family call, appended to
-// CCXT_SS02_CENSUS_OUT (default /tmp/ss02-census.jsonl) when CCXT_SS02_CENSUS=1.
-// Piscina workers inherit the env and share the file (one atomic O_APPEND write per
-// line). Nothing below changes what the printer emits.
-//
-// Each record carries
-//   * this engine's verdict (`javaLocalType`) and whether a retype would survive
-//     postProcessWsJava's `String x = this.<m>(` revert for a ws-tier file,
-//   * the blockers of a replica of isSafeToNarrow that keeps scanning after a reject
-//     (`mismatch` flags replica drift against the real verdict),
-//   * one entry per later assignment with the shape flags a reassignment acceptance
-//     reads: the isProvablyStringExpression verdict, string-element element reads,
-//     `+` left spines, reads of another local's decision, String-candidate calls.
-const SS02_CENSUS = process.env['CCXT_SS02_CENSUS'] === '1';
-const SS02_CENSUS_OUT = process.env['CCXT_SS02_CENSUS_OUT'] ?? '/tmp/ss02-census.jsonl';
-
-function ss02Brief (node: any, limit = 110): string {
-    try { return String (node?.getText?.() ?? '').replace (/\s+/g, ' ').slice (0, limit); } catch (e) { return '<no-text>'; }
-}
-
-function ss02Kind (node: any): string {
-    try { return String ((ts.SyntaxKind as any)[node?.kind] ?? node?.kind); } catch (e) { return '<kind>'; }
-}
-
-function ss02Append (record: any): void {
-    try { fs.appendFileSync (SS02_CENSUS_OUT, JSON.stringify (record) + '\n'); } catch (e) {}
-}
-
-// the `this.safeString*` initializer call of a candidate declaration, or undefined
-function ss02FamilyInitializer (declaration: any): any {
-    let initializer = declaration?.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
-        initializer = (initializer as any).expression;
-    }
-    if (!isThisCall (initializer)) {
-        return undefined;
-    }
-    const name = String ((initializer as any).expression.name.text);
-    return name.startsWith ('safeString') ? { name, node: initializer } : undefined;
-}
-
-// replica of isSafeToNarrow that keeps collecting after the first reject (the engine
-// stops there); a record whose accepted flag disagrees with the real verdict is flagged
-function ss02ScanUses (printer: any, declaration: any, sourceName: string, isProFile: boolean): any {
-    const scope = enclosingFunction (declaration);
-    const blockers: any[] = [];
-    if (scope === undefined) {
-        return { accepted: false, blockers: [{ reason: 'no-scope' }] };
-    }
-    const uses = identifierIndex (scope).get (sourceName) ?? [];
-    for (const n of uses) {
-        if (n === declaration.name) continue;
-        const parent = n.parent;
-        if (parent === undefined) continue;
-        if (ts.isVariableDeclaration (parent) && parent.name === n) continue;
-        if (ts.isPropertyAccessExpression (parent) && parent.name === n) continue;
-        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
-            const op = parent.operator;
-            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
-                blockers.push ({ reason: 'increment', text: ss02Brief (n) });
-            }
-        }
-        if (ts.isSpreadElement (parent)) blockers.push ({ reason: 'spread', text: ss02Brief (n) });
-        if (ts.isTypeOfExpression (parent)) blockers.push ({ reason: 'typeof', text: ss02Brief (n) });
-        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-            blockers.push ({ reason: 'array-destructuring', text: ss02Brief (n) });
-        }
-        if (ts.isBinaryExpression (parent) && parent.left === n) {
-            const op = parent.operatorToken.kind;
-            if (op === ts.SyntaxKind.EqualsToken) {
-                const provable = isProvablyStringExpression (printer, parent.right, sourceName)
-                    || isProvablyStringReassignment (printer, parent.right, sourceName);
-                if (!provable) {
-                    blockers.push ({ reason: 'write', kind: ss02Kind (parent.right), text: ss02Brief (parent.right) });
-                }
-            } else if (op === ts.SyntaxKind.PlusEqualsToken) {
-                if (!isProvablyNonNullStringOperand (printer, parent.right, sourceName)) {
-                    blockers.push ({ reason: 'compound-write', kind: ss02Kind (op), text: ss02Brief (parent) });
-                }
-            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                blockers.push ({ reason: 'compound-write', kind: ss02Kind (op), text: ss02Brief (parent) });
-            }
-        }
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
-            blockers.push ({ reason: 'pro-inherited-async', text: ss02Brief (n) });
-        }
-    }
-    return { accepted: blockers.length === 0, blockers };
-}
-
-// the engine's own decision for the declaration an identifier reads, 'Object' when the
-// local stays Object, undefined when the identifier is not a single local binding
-function ss02LocalDecision (printer: any, identifier: any): any {
-    try {
-        const symbol = printer.getChecker ().getSymbolAtLocation (identifier);
-        const declaration = symbol?.valueDeclaration?.resolve ();
-        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
-            return undefined;
-        }
-        return javaLocalType (printer, declaration) ?? 'Object';
-    } catch (e) {
-        return 'error';
-    }
-}
-
-function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
-    let opText = '<op>';
-    try { opText = String (parent.operatorToken?.getText?.() ?? '<op>'); } catch (e) {}
-    const info: any = {
-        op: opText,
-        kind: ss02Kind (parent.right),
-        text: ss02Brief (parent.right, 100),
-    };
-    if (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-        info.provable = isProvablyStringExpression (printer, parent.right, sourceName);
-        info.extended = isProvablyStringReassignment (printer, parent.right, sourceName);
-        let right = parent.right;
-        while (ts.isParenthesizedExpression (right)) right = right.expression;
-        if (ts.isCallExpression (right)) {
-            if (isBaseStringAccessorCall (printer, right)) {
-                info.shape = 'base-accessor';
-            } else if (ts.isPropertyAccessExpression (right.expression)) {
-                const method = String (right.expression.name.text);
-                const isThis = right.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
-                const isPrecise = ts.isIdentifier (right.expression.expression) && (right.expression.expression as any).text === 'Precise';
-                info.shape = (isThis ? 'this-call:' : (isPrecise ? 'precise:' : 'call:')) + method;
-                info.resolvesToMethod = isThis ? resolvesToMethodNamed (printer, right, method) : false;
-                info.stringDeclared = isThis ? isStringDeclaredThisCall (printer, right) : false;
-            } else {
-                info.shape = 'call';
-            }
-        } else if (ts.isBinaryExpression (right) && right.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-            info.shape = 'plus';
-            info.leftKind = ss02Kind (right.left);
-            info.leftText = ss02Brief (right.left, 50);
-            info.leftProvable = plusChainIsValuePreserving (printer, right, sourceName);
-        } else if (ts.isElementAccessExpression (right)) {
-            info.shape = 'element-access';
-            info.receiver = ss02Brief (right.expression, 40);
-            info.stringElements = elementAccessHasStringElements (right);
-        } else if (ts.isIdentifier (right)) {
-            info.shape = 'identifier';
-            info.target = String (right.text);
-            info.targetSelf = right.text === sourceName;
-            info.targetDecision = ss02LocalDecision (printer, right);
-        } else if (ts.isConditionalExpression (right)) {
-            info.shape = 'ternary';
-            info.armKinds = [ ss02Kind (right.whenTrue), ss02Kind (right.whenFalse) ];
-            info.armsProvable = isProvablyStringExpression (printer, right.whenTrue, sourceName)
-                && isProvablyStringExpression (printer, right.whenFalse, sourceName);
-        } else {
-            info.shape = 'other:' + info.kind;
-        }
-    } else if (parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken) {
-        info.provable = false;
-        info.extended = isProvablyNonNullStringOperand (printer, parent.right, sourceName);
-    }
-    return info;
-}
-
-function ss02Writes (printer: any, declaration: any, sourceName: string): any[] {
-    const scope = enclosingFunction (declaration);
-    if (scope === undefined) return [];
-    const writes: any[] = [];
-    for (const n of (identifierIndex (scope).get (sourceName) ?? [])) {
-        if (n === declaration.name) continue;
-        const parent = n.parent;
-        if (parent === undefined || !ts.isBinaryExpression (parent) || parent.left !== n) continue;
-        const op = parent.operatorToken.kind;
-        if (op < ts.SyntaxKind.FirstAssignment || op > ts.SyntaxKind.LastAssignment) continue;
-        writes.push (ss02WriteInfo (printer, parent, sourceName));
-    }
-    return writes;
-}
-
-function ss02Record (printer: any, declaration: any, javaType: string | undefined, printed: string, identation: number): void {
-    try {
-        const candidate = ss02FamilyInitializer (declaration);
-        if (candidate === undefined) return;
-        const sourceName = String (declaration.name.text);
-        const fileName = declaration.getSourceFile ().fileName;
-        const isProFile = /[\\/]pro[\\/]/.test (fileName);
-        const isPredictionFile = /[\\/]prediction[\\/]/.test (fileName);
-        const isWsFile = isProFile || isPredictionFile;
-        const iden = printer.getIden (identation);
-        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name)} = `;
-        const at = printed.lastIndexOf (marker);
-        const value = at === -1 ? undefined : printed.slice (at + marker.length);
-        const retyped = javaType !== undefined && value !== undefined && value.startsWith ('this.');
-        const scan = ss02ScanUses (printer, declaration, sourceName, isProFile);
-        let realVerdict = false;
-        try { realVerdict = isSafeToNarrow (printer, declaration, sourceName, isProFile); } catch (e) {}
-        ss02Append ({
-            file: fileName.replace (/^.*[\\/]ts[\\/]/, 'ts/'),
-            name: sourceName,
-            accessor: candidate.name,
-            classifies: isBaseStringAccessorCall (printer, candidate.node),
-            ws: isWsFile, pro: isProFile, prediction: isPredictionFile,
-            verdict: javaType ?? 'Object',
-            retyped,
-            accepted: realVerdict,
-            mismatch: scan.accepted !== realVerdict,
-            blockers: scan.blockers,
-            writes: ss02Writes (printer, declaration, sourceName),
-        });
-    } catch (e) {
-        ss02Append ({ error: String ((e as any)?.stack ?? e) });
-    }
-}
 
 // default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores.
 // Override with CCXT_TRANSPILE_PROCESSES.
@@ -2161,7 +1778,6 @@ function javaWorkerThreads () {
 class NewTranspiler {
 
     transpiler!: Transpiler;
-    pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
     // lazily created in webworkerTranspile and kept alive for the lifetime of the
     // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
@@ -2181,60 +1797,9 @@ class NewTranspiler {
     }
 
     constructor() {
-
         this.setupTranspiler()
-        // this.transpiler.csharpTranspiler.VAR_TOKEN = 'var'; // tmp fix
-
-
-        this.pythonStandardLibraries = {
-            'hashlib': 'hashlib',
-            'math': 'math',
-            'json.loads': 'json',
-            'json.dumps': 'json',
-            'sys': 'sys',
-        }
     }
 
-    getWsRegexes() {
-        // hoplefully we won't need this in the future by having everything typed properly in the typescript side
-        return [
-            [/new (\w+)Rest\(\)/, 'new ccxt.$1()'],
-            [/return await (\w+);/gm, 'return await ($1 as Exchange.Future);'],
-            // [/typeof\(client\)/gm, 'client'],
-            // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
-            [/new\sgetValue\((\w+),\s(\w+)\)\((\w+)\)/gm, 'this.newException(getValue($1, $2), $3)'],
-            [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
-            [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
-            [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
-            [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
-            [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
-            [/(object \w+) = client\.futures/, '$1 = (client as WebSocketClient).futures'],
-            [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
-            [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
-            //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
-            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
-            [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)(\.storeArray\(.+\))/gm, '($1 as IOrderBookSide)$2'],
-            // [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
-            [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
-            [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
-            [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
-            // [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
-            // [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
-            // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
-            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
-            [/future(\.reject.+)/gm, '((Future)future)$1'],
-            [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
-            [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
-            [/\(client,/g, '(client as WebSocketClient,'],
-            [/\(object client,/gm, '(WebSocketClient client,'],
-            [/\(object client\)/gm, '(WebSocketClient client)'],
-            [/object client =/gm, 'var client ='],
-            [/object future =/gm, 'var future ='],
-        ]
-    }
 
     getJavaWsRegexes() {
         // Java-specific WS regexes — converts transpiled code for WS exchange classes
@@ -2246,13 +1811,14 @@ class NewTranspiler {
             [/\(Object client,/gm, '(Client client,'],
             [/\(Object client\)/gm, '(Client client)'],
             [/Object client =/gm, 'Client client ='],
-            [/Object future =/gm, 'Object future ='],
 
             // client.subscriptions / client.futures — these are Object type fields
             // transpiled code tries to cast them to Map, which works since they're ConcurrentHashMaps
             [/\(java\.util\.Map<String, Object>\)client\.futures/gm, '(java.util.Map)client.futures'],
             [/\(java\.util\.Map<String, Object>\)client\.subscriptions/gm, '(java.util.Map)client.subscriptions'],
             [/\(java\.util\.Map<String, Object>\)this\.clients/gm, '(java.util.Map)this.clients'],
+            // `clients` is the typed Map<String, Client> field: `delete this.clients[k]` needs no cast
+            [/\(\((?:java\.util\.)?Map<String,\s?Object>\)this\.clients\)\.remove\(/gm, 'this.clients.remove('],
 
             // new XyzRest() → new Xyz() for instantiating REST parent
             [/new (\w+)Rest\(\)/g, 'new io.github.ccxt.exchanges.$1()'],
@@ -2270,33 +1836,17 @@ class NewTranspiler {
         ]
     }
 
-    // c# custom method
-    customCSharpPropAssignment(node: any, identation: any) {
-        const stringValue = node.getFullText().trim();
-        if (Object.keys(errors).includes(stringValue)) {
-            return `typeof(${stringValue})`;
-        }
-        return undefined;
-    }
 
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
 
     regexAll(text: string, array: any[]) {
-        for (const i in array) {
-            let regex = array[i][0]
-            const flags = (typeof regex === 'string') ? 'g' : undefined
-            regex = new RegExp(regex, flags)
-            text = text.replace(regex, array[i][1])
+        for (const [regex, substitution] of array) {
+            text = text.replace(new RegExp(regex, (typeof regex === 'string') ? 'g' : undefined), substitution)
         }
         return text
     }
 
-    // ============================================================================
-
-    iden(level = 1) {
-        return '    '.repeat(level)
-    }
     // ============================================================================
 
     getTranspilerConfig() {
@@ -2306,118 +1856,18 @@ class NewTranspiler {
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
-                    // "VAR_TOKEN": "var",
                 }
             },
             "java": {
                 // generated async lambdas go through BaseExchange.supplyAsync, which
                 // defaults to VIRTUAL_EXECUTOR so no tier lands on the ForkJoinPool common pool
                 "asyncSupplier": JAVA_ASYNC_SUPPLIER,
+                // library async methods print a private sync <name>Core plus a one-line supplier wrapper
+                "asyncCoreSplit": "/ts/src/(?!test/)",
             },
         }
     }
 
-    createSee(link: string) {
-        return `/// See <see href="${link}"/>  <br/>`
-    }
-
-    createParam(param: any) {
-        return `/// <item>
-    /// <term>${param.name}</term>
-    /// <description>
-    /// ${param.type} : ${param.description}
-    /// </description>
-    /// </item>`
-    }
-
-    createCsharpCommentTemplate(name: string, desc: string, see: string[], params: string[], returnType: string, returnDesc: string) {
-        //
-        // Summary:
-        //     Converts the value of the specified 16-bit signed integer to an equivalent 64-bit
-        //     signed integer.
-        //
-        // Parameters:
-        //   value:
-        //     The 16-bit signed integer to convert.
-        //
-        // Returns:
-        //     A 64-bit signed integer that is equivalent to value
-        const comment = `
-    /// <summary>
-    /// ${desc}
-    /// </summary>
-    /// <remarks>
-    ${see.map(l => this.createSee(l)).join("\n    ")}
-    /// <list type="table">
-    ${params.map(p => this.createParam(p)).join("\n    ")}
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`
-        const commentWithoutEmptyLines = comment.replace(/^\s*[\r\n]/gm, "");
-        return commentWithoutEmptyLines;
-    }
-
-    transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params: string[], returnType: string, returnDesc: string) {
-        return this.createCsharpCommentTemplate(name, desc, sees, params, returnType, returnDesc);
-    }
-
-    transformLeadingComment(comment: any) {
-        // parse comment
-        // /**
-        //  * @method
-        //  * @name binance#fetchTime
-        //  * @description fetches the current integer timestamp in milliseconds from the exchange server
-        //  * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       // spot
-        //  * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
-        //  * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
-        //  * @param {object} [params] extra parameters specific to the exchange API endpoint
-        //  * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        //  */
-        // return comment;
-        const commentNameRegex = /@name\s(\w+)#(\w+)/;
-        const nameMatches = comment.match(commentNameRegex);
-        const exchangeName = nameMatches ? nameMatches[1] : undefined;
-        if (!exchangeName) {
-            return comment;
-        }
-        const methodName = nameMatches[2];
-        const commentDescriptionRegex = /@description\s(.+)/;
-        const descriptionMatches = comment.match(commentDescriptionRegex);
-        const description = descriptionMatches ? descriptionMatches[1] : undefined;
-        const seeRegex = /@see\s(.+)/g;
-        const seeMatches = comment.match(seeRegex);
-        const sees: string[] = [];
-        if (seeMatches) {
-            seeMatches.forEach((match: any) => {
-                const [, link] = match.split(' ');
-                sees.push(link);
-            });
-        }
-        // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
-        const paramRegex = /@param\s{(\w+[?]?)}\s\[(\w+\.?\w+?)]\s(.+)/g;
-        const params = [] as any;
-        let paramMatch;
-        while ((paramMatch = paramRegex.exec(comment)) !== null) {
-            const [, type, name, description] = paramMatch;
-            params.push({ type, name, description });
-        }
-        const returnRegex = /@returns\s{(\w+\[?\]?\[?\]?)}\s(.+)/;
-        const returnMatch = comment.match(returnRegex);
-        const returnType = returnMatch ? returnMatch[1] : undefined;
-        const returnDescription = returnMatch && returnMatch.length > 1 ? returnMatch[2] : undefined;
-        let exchangeData = csharpComments[exchangeName];
-        if (!exchangeData) {
-            exchangeData = csharpComments[exchangeName] = {}
-        }
-        let exchangeMethods = csharpComments[exchangeName];
-        if (!exchangeMethods) {
-            exchangeMethods = {}
-        }
-        const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees, params, returnType, returnDescription);
-        exchangeMethods[methodName] = transformedComment;
-        csharpComments[exchangeName] = exchangeMethods
-        return comment;
-    }
 
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
@@ -2425,155 +1875,117 @@ class NewTranspiler {
         // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
         (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
         installJavaOwnerStores(this.transpiler);
-        this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
-        // narrows `Object x = this.safeString(...)` locals to `String` — see
-        // patchJavaLocalTypes above (also applied per worker thread in java-worker.ts)
-        patchJavaLocalTypes(this.transpiler);
-        // JAVA-15: parse* return signatures (String / java.util.List<Object>) and the
-        // parse* body locals fed by them + the timestamp/symbol/currency accessors —
-        // see build/java-local-types.js (also applied per worker thread in java-worker.ts)
-        installJavaLocalTypes(this.transpiler);
-        // JAVA-RE-4: literal / boolean-expression locals (`Object x = "lit"` -> String,
-        // `Object ok = Helpers.isEqual(...)` -> Boolean, object/array literals ->
-        // Map<String,Object>/List<Object>) — additive slice of the same module, also
-        // applied per worker thread in java-worker.ts
-        patchJavaLiteralLocalTypes(this.transpiler);
-        // JAVA-RE-7: numeric helper locals (safeInteger*/safeFloat*/safeNumber*/parseToInt/
-        // milliseconds/seconds/parse8601/parseTimeframe) -> Long/Double/int, the generated
-        // method returns those locals rely on, and the conditional-arm restorations —
-        // same module, additive section (also applied per worker thread in java-worker.ts)
-        installJavaNumericLocalTypes(this.transpiler);
-        // SS-06: the four Object-parameter consumers (Helpers.isEqual / isTrue / inOp and
-        // this.safeValue*) take a String directly — drop the redundant `((String)x)`
-        // checkcast at their argument positions when the operand's declaration already
-        // printed `String`. Installed LAST so the print-order proof sees the declaration
-        // text every other local-typing slice rewrote (also applied in java-worker.ts).
-        patchJavaConsumerStringCasts(this.transpiler);
-        // SS-09: the map put/get channel (Helpers.addElementToObject / Helpers.GetValue /
-        // put(...) object-literal emits) takes String operands with no cast — drop the
-        // redundant ((String)x) checkcast an `x as string` assertion prints at those
-        // positions when the operand's declaration printed `String`. Installed LAST so the
-        // print-order proof sees every other local-typing pass's rewritten declaration text
-        // (also applied per worker thread in java-worker.ts)
-        patchJavaMapChannelStringCasts(this.transpiler);
-        // SS-12: drop the redundant (String) wrapper on the receiver slot of the
-        // string-method prints (x.toUpperCase()/x.length()/Helpers.replace((String)x,..))
-        // when the receiver local's emitted Java declaration is `String` — installed
-        // LAST so its declaration observer sees the final text of the whole chain
-        // (also applied per worker thread in java-worker.ts)
-        patchJavaStringReceiverCasts(this.transpiler);
-        // java-09: record the Java type every rewritten declaration carries and hand the
-        // table to the printer, so `Helpers.GetValue(x, "lit")` on a declared map local
-        // prints `x.get("lit")`. Installed LAST so the observer sees the final text
-        // (also applied per worker thread in java-worker.ts)
-        installJavaDeclaredLocalTypes(this.transpiler);
-        // Box the row-builder parameter positions the pin types `Map<String, Object>`
-        // although the exchange hands them a raw row/list response (parseCurrency / parseTicker /
-        // parseTransfer — the java STATIC_RESPONSE ArrayList->Map sites). Installed LAST so no
-        // earlier installer's proof reads a native type this one removes
-        // (also applied per worker thread in java-worker.ts)
-        installJavaObjectParamPositions(this.transpiler);
-        // java-13: hand the generator the printed-Java String proof for a `+` concat
-        // anchor (declared-String locals + hand-written String runtime calls) — installed
-        // LAST for the same reason (also applied per worker thread in java-worker.ts)
-        installJavaExpressionTypeResolver(this.transpiler);
-        // default-valued Strings params answer their printed List<String> (also in java-worker.ts)
-        installJavaStringListParamTypes(this.transpiler);
-        // null-initialised scalar locals joined over their writes (also in java-worker.ts)
-        installJavaNullScalarLocalTypes(this.transpiler);
-        // omit-of-Map locals (section 25; also in java-worker.ts)
-        patchJavaOmitLocalTypes(this.transpiler);
-        // element reads of awaited qualified DTO lists (section 27; also in java-worker.ts)
-        patchJavaQualifiedDtoListElementLocals(this.transpiler);
-        patchJavaStringAccumulatorLists(this.transpiler);
-        // element reads of audited handle* tuple holders (section 28; also in java-worker.ts)
-        patchJavaTupleHolderElementLocals(this.transpiler);
-        // ws order-book cache locals (section 30; also in java-worker.ts)
-        patchJavaOrderBookCacheLocals(this.transpiler);
-        // casts on receivers already declared Map<String, Object> (section 31; also in java-worker.ts)
-        patchJavaDeclaredMapReceiverCasts(this.transpiler);
-        patchJavaBaseMapFieldReceiverCasts(this.transpiler);
-        // element writes on fresh unshared local maps (section 33; also in java-worker.ts)
-        patchJavaFreshMapElementWrites(this.transpiler);
-        // numeric-literal equality on declared Long/Double params and tuple bindings (section 35)
-        patchJavaDeclaredBoxLiteralEquality(this.transpiler);
-        patchJavaObjectKeysLength(this.transpiler);
-        patchJavaMapArgIdentity(this.transpiler);
-        patchJavaNonNullStringLocals(this.transpiler);
-        patchJavaNonNullLongSubtract(this.transpiler);
-        installJavaBooleanParams(this.transpiler);
-        installJavaStringDefaultParams(this.transpiler);
-        // typed Pair returns of handle*AndParams (section 46; also in java-worker.ts)
-        installJavaTuplePairReturns(this.transpiler);
-        // List<String> core arguments printed natively (section 47; also in java-worker.ts)
-        installJavaStringListArgs(this.transpiler);
-        // Long slots that already receive a Long (section 48; also in java-worker.ts)
-        installJavaLongSlots(this.transpiler);
-        // Map locals over proven Map writes (section 50; before 49, whose receivers read Map declarations)
-        installJavaMapLocals(this.transpiler);
-        // element writes on handleUntilOption slot 0 / omit-of-Map locals (section 49; also in java-worker.ts)
-        patchJavaUntilOmitMapWrites(this.transpiler);
-        // fixed boolean parameters print Boolean (section 51; also in java-worker.ts)
-        installJavaBooleanFixedParams(this.transpiler);
-        installJavaBooleanWriteLocals(this.transpiler);
-        // native String.replaceFirst/replace for literal replace/replaceAll (section 52; also in java-worker.ts)
-        installJavaNativeReplace(this.transpiler);
-        // String.replace / native-concat return sites of `: Str` methods (section 53; also in java-worker.ts)
-        installJavaStringReturnSites(this.transpiler);
-        installJavaFreshObjectMapWrites(this.transpiler);
-        installJavaStringCoreArgs(this.transpiler);
-        installJavaNativePadStartFirst(this.transpiler);
-        installJavaLiteralReplace(this.transpiler);
-        installJavaCounterTypes(this.transpiler);
-        installJavaMapLocalTypes(this.transpiler);
-        installJavaParamTypes(this.transpiler);
-        installJavaMapArgAlreadyTyped(this.transpiler);
-        installJavaRepoMethodUses(this.transpiler);
-        installJavaListLocals(this.transpiler);
-        installJavaScalarLocals(this.transpiler);
-        installJavaParamTypesPreScan(this.transpiler);
-        installJavaStringReturns(this.transpiler);
-        installJavaR77j2ConditionalLocals(this.transpiler);
-        installJ6ReaderLocals(this.transpiler);
-        installJavaJ8CopyLocals(this.transpiler);
-        installJavaR84j1StringElementLocals(this.transpiler);
-        installJavaR84j1BoxElementLocals(this.transpiler);
-        installJavaR84j2ContainerLocals(this.transpiler);
-        installJavaR84j2GuardedListLocals(this.transpiler);
-        installJavaR84j2MapConditionalLocals(this.transpiler);
-        installJ84j6TrueOnlyLocals(this.transpiler);
-        installJ84j6StringListLocals(this.transpiler);
-        installJavaR84j8Locals(this.transpiler);
-        installJavaR87j2WsLocals(this.transpiler);
-        installJavaR87j2UrlLocals(this.transpiler);
-        installJavaR87j3SumCounterLocals(this.transpiler);
-        installJavaR87j4SplitLists(this.transpiler);
-        installJavaR87j5CalleeStringArgs(this.transpiler);
-        installJavaR87j8CopyStringResolver(this.transpiler);
-        installJavaR90j2ElementListLocals(this.transpiler);
-        installJavaR90j2PromiseAllLocals(this.transpiler);
-        installJavaR90j2ElementMapLocals(this.transpiler);
-        installJavaR90j3NativeSumLocals(this.transpiler);
-        installJavaR90j3CounterLoops(this.transpiler);
-        installJavaR90j6StringListReaders(this.transpiler);
-        installJavaR90j6AsStringListReaders(this.transpiler);
-        installJavaR90j6PairLocals(this.transpiler);
-        installJavaR90j6ListCopyLocals(this.transpiler);
-        installJavaR90j7MapDelete(this.transpiler);
-        installJavaR92j3LongDefaultParams(this.transpiler);
-        installJavaR92j3LongFixedParams(this.transpiler);
-        installJavaR92j3ParseToIntCompare(this.transpiler);
-        installJavaR92j3SafeIntegerOperands(this.transpiler);
-        installJavaR92j3HexStringCalls(this.transpiler);
-        installJavaR90j8OmitParamLocals(this.transpiler);
-        installJavaR92j1AssertedStringLocals(this.transpiler);
-        installJavaR92j1StringRowLocals(this.transpiler);
-        installJavaR92j2MarketTypeParams(this.transpiler);
-        installJavaTypedDefaultReaders(this.transpiler);
-        installJavaR92j2MapSlotHandOff(this.transpiler);
-        installJavaR92j2StringSlotLocals(this.transpiler);
-        installJavaR93j2ListLocals(this.transpiler);
+        // the local-typing installers, in order (each is also applied per worker thread in java-worker.ts);
+        // later installers' proofs read the declaration text the earlier ones rewrote
+        const installers = [
+            patchJavaLocalTypes,
+            installJavaLocalTypes,
+            patchJavaLiteralLocalTypes,
+            installJavaNumericLocalTypes,
+            patchJavaConsumerStringCasts,
+            patchJavaMapChannelStringCasts,
+            patchJavaStringReceiverCasts,
+            installJavaDeclaredLocalTypes,
+            installJavaObjectParamPositions,
+            installJavaExpressionTypeResolver,
+            installJavaStringListParamTypes,
+            installJavaNullScalarLocalTypes,
+            patchJavaOmitLocalTypes,
+            patchJavaQualifiedDtoListElementLocals,
+            patchJavaStringAccumulatorLists,
+            patchJavaRowAccumulatorLists,
+            patchJavaTupleHolderElementLocals,
+            patchJavaOrderBookCacheLocals,
+            patchJavaDeclaredMapReceiverCasts,
+            patchJavaBaseMapFieldReceiverCasts,
+            patchJavaFreshMapElementWrites,
+            patchJavaDeclaredBoxLiteralEquality,
+            patchJavaObjectKeysLength,
+            patchJavaMapArgIdentity,
+            patchJavaNonNullStringLocals,
+            patchJavaNonNullLongSubtract,
+            installJavaBooleanParams,
+            installJavaStringDefaultParams,
+            installJavaTuplePairReturns,
+            installJavaStringListArgs,
+            installJavaLongSlots,
+            installJavaMapLocals,
+            patchJavaUntilOmitMapWrites,
+            installJavaBooleanFixedParams,
+            installJavaBooleanWriteLocals,
+            installJavaNativeReplace,
+            installJavaStringReturnSites,
+            installJavaFreshObjectMapWrites,
+            installJavaStringCoreArgs,
+            installJavaNativePadStartFirst,
+            installJavaLiteralReplace,
+            installJavaCounterTypes,
+            installJavaMapLocalTypes,
+            installJavaParamTypes,
+            installJavaMapArgAlreadyTyped,
+            installJavaRepoMethodUses,
+            installJavaListLocals,
+            installJavaScalarLocals,
+            installJavaParamTypesPreScan,
+            installJavaStringReturns,
+            installJavaPredictionMapLocals,
+            installJavaListParamSlots,
+            installJavaTypedBaseFields,
+            installJavaNonNullMapPuts,
+            installJavaLocalElementWrites,
+            installJavaStringListIndexOf,
+            installJavaR77j2ConditionalLocals,
+            installJ6ReaderLocals,
+            installJavaJ8CopyLocals,
+            installJavaR84j1StringElementLocals,
+            installJavaR84j1BoxElementLocals,
+            installJavaH26j01MapRowLists,
+            installJavaR84j2ContainerLocals,
+            installJavaR84j2GuardedListLocals,
+            installJavaR84j2MapConditionalLocals,
+            installJ84j6TrueOnlyLocals,
+            installJ84j6StringListLocals,
+            installJavaR84j8Locals,
+            installJavaR87j2WsLocals,
+            installJavaR87j2UrlLocals,
+            installJavaR87j3SumCounterLocals,
+            installJavaR87j4SplitLists,
+            installJavaR87j5CalleeStringArgs,
+            installJavaR87j8CopyStringResolver,
+            installJavaR90j2ElementListLocals,
+            installJavaR90j2PromiseAllLocals,
+            installJavaR90j2ElementMapLocals,
+            installJavaR90j3NativeSumLocals,
+            installJavaR90j3CounterLoops,
+            installJavaR90j6StringListReaders,
+            installJavaR90j6AsStringListReaders,
+            installJavaR90j6PairLocals,
+            installJavaR90j6ListCopyLocals,
+            installJavaR90j7MapDelete,
+            installJavaR92j3LongDefaultParams,
+            installJavaR92j3LongFixedParams,
+            installJavaR92j3ParseToIntCompare,
+            installJavaR92j3SafeIntegerOperands,
+            installJavaR92j3HexStringCalls,
+            installJavaR90j8OmitParamLocals,
+            installJavaR92j1AssertedStringLocals,
+            installJavaR92j1StringRowLocals,
+            installJavaR92j2MarketTypeParams,
+            installJavaTypedDefaultReaders,
+            installJavaR92j2MapSlotHandOff,
+            installJavaR92j2StringSlotLocals,
+            installJavaR93j2ListLocals,
+            installJavaMapCopyLocals,
+            installJavaEventsParamsSlots,
+            installJavaCurrenciesByIdReads,
+            installJavaSourceExchangeReads,
+            installJavaTypedOrderbooksField,
+            installJavaNullSeedStructureLocals,
+        ];
+        for (const install of installers) {
+            install(this.transpiler);
+        }
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -2660,374 +2072,6 @@ class NewTranspiler {
         return values;
     }
 
-    isObject(type: string) {
-        return (type === 'any') || (type === 'unknown');
-    }
-
-    isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
-    }
-
-    isStringType(type: string) {
-        return (type === 'Str') || (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"))
-    }
-
-    isNumberType(type: string) {
-        return (type === 'Num') || (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
-    }
-
-    isIntegerType(type: string) {
-        return type !== undefined && (type.toLowerCase() === 'int');
-    }
-
-    isBooleanType(type: string) {
-        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool')
-    }
-
-    convertJavascriptTypeToJavaType(name: string, type: string, isReturn = false): string | undefined {
-
-        if (name === 'fetchTime') {
-            return `CompletableFuture<Long>`; // custom handling for now
-        }
-
-        const isPromise = type.startsWith('Promise<') && type.endsWith('>');
-        let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
-        let isList = false;
-
-        function addFutureIfNeeded(t: string) {
-            if (t === 'void') {
-                return isPromise ? `CompletableFuture<Void>` : 'void';
-            } else if (isList) {
-                return isPromise ? `CompletableFuture<List<${t}>>` : `List<${t}>`;
-            }
-            return isPromise ? `CompletableFuture<${t}>` : t;
-        }
-
-        const javaReplacements: dict = {
-            'OrderType': 'String',
-            'OrderSide': 'String', // tmp
-        };
-
-        if (wrappedType === undefined || wrappedType === 'Undefined') {
-            return addFutureIfNeeded('Object'); // default if type is unknown
-        }
-
-        if (wrappedType === 'string[][]') {
-            return addFutureIfNeeded('List<List<String>>');
-        }
-
-        // check if returns a list
-        if (wrappedType.endsWith('[]')) {
-            isList = true;
-            wrappedType = wrappedType.substring(0, wrappedType.length - 2);
-        }
-
-        if (this.isObject(wrappedType)) {
-            if (isReturn) {
-                return addFutureIfNeeded('Map<String, Object>');
-            }
-            return addFutureIfNeeded('Object');
-        }
-        if (this.isDictionary(wrappedType)) {
-            return addFutureIfNeeded('Map<String, Object>');
-        }
-        if (this.isStringType(wrappedType)) {
-            return addFutureIfNeeded('String');
-        }
-        if (this.isIntegerType(wrappedType)) {
-            return addFutureIfNeeded('long');
-        }
-        if (this.isNumberType(wrappedType)) {
-            return addFutureIfNeeded('double');
-        }
-        if (this.isBooleanType(wrappedType)) {
-            return addFutureIfNeeded('boolean');
-        }
-        if (wrappedType === 'Strings') {
-            return addFutureIfNeeded('List<String>');
-        }
-        if (javaReplacements[wrappedType] !== undefined) {
-            return addFutureIfNeeded(javaReplacements[wrappedType]);
-        }
-
-        // Convert Dictionary<...> -> Map<String, ...>
-        if (wrappedType.startsWith('Dictionary<')) {
-            let inner = wrappedType.substring(11, wrappedType.length - 1);
-            if (inner.startsWith('Dictionary<')) {
-                inner = this.convertJavascriptTypeToJavaType(name, inner) as any;
-            }
-            return addFutureIfNeeded(`Map<String, ${inner}>`);
-        }
-
-        return addFutureIfNeeded(wrappedType);
-    }
-
-    safeJavaName(name: string): string {
-        const javaReservedWordsReplacement: dict = {
-            'params': 'parameters',
-            'base': 'baseArg',
-        }
-        return javaReservedWordsReplacement[name] || name;
-    }
-
-    convertJavascriptParamToJavaParam(param: any): string | undefined {
-        const name = param.name;
-        const safeName = this.safeJavaName(name);
-        const isOptional = param.optional || param.initializer !== undefined;
-
-        let paramType: any = undefined;
-
-        if (name === 'sourceExchange' && param.type === undefined) {
-            paramType = 'BaseExchange';
-        } else if (param.type == undefined) {
-            paramType = 'Object';
-        } else {
-            paramType = this.convertJavascriptTypeToJavaType(name, param.type);
-        }
-
-        const isNonNullableType =
-            this.isNumberType(param.type) ||
-            this.isBooleanType(param.type) ||
-            this.isIntegerType(param.type);
-
-        if (isOptional && isNonNullableType) {
-            if (paramType === 'boolean') paramType = 'Boolean';
-            else if (paramType === 'double') paramType = 'Double';
-            else if (paramType === 'float') paramType = 'Float';
-            else if (paramType === 'long') paramType = 'Long';
-            else if (paramType === 'int') paramType = 'Integer';
-        }
-
-        if (isOptional) {
-            if (param.initializer !== undefined && param.initializer !== 'undefined') {
-                const init =
-                    typeof param.initializer === 'string'
-                        ? param.initializer.replaceAll("'", '"')
-                        : param.initializer;
-                return `${paramType} ${safeName} = ${init}`;
-            }
-
-            return `${paramType} ${safeName} = null`;
-        }
-
-        return `${paramType} ${safeName}`;
-    }
-
-
-    shouldCreateWrapper(methodName: string, isWs = false): boolean {
-        const allowedPrefixes = [
-            'fetch',
-            'create',
-            'edit',
-            'cancel',
-            'setP',
-            'setM',
-            'setL',
-            'transfer',
-            'withdraw',
-            'watch',
-            // 'load',
-        ];
-        // const allowedPrefixesWs = [
-        //     ''
-        // ]
-        const blacklistMethods = [
-            'fetch',
-            'setSandBoxMode',
-            'loadOrderBook',
-            'fetchCurrencies',
-            'loadMarketsHelper',
-            'setMarketsFromExchange',
-            'setLastRequest',
-            'setLastRestRequestTimestamp',
-            'setProperty',
-            'setProxyAgents',
-            'watch',
-            'watchMultipleSubscription',
-            'watchMultiple',
-            'watchPrivate',
-            'watchPublic',
-            'setPositionsCache',
-            'setPositionCache'
-        ] // improve this later
-        if (isWs) {
-            if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
-                return false;
-            }
-        }
-        const isBlackListed = blacklistMethods.includes(methodName);
-        const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
-        return !isBlackListed && startsWithAllowedPrefix;
-    }
-
-    unwrapTaskIfNeeded(type: string): string {
-        return type.startsWith('Task<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
-    }
-
-    unwrapListIfNeeded(type: string): string {
-        return type.startsWith('List<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
-    }
-
-    unwrapDictionaryIfNeeded(type: string): string {
-        return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
-    }
-
-    createReturnStatement(methodName: string, unwrappedType: string) {
-        // handle watchOrderBook exception here
-        if (methodName.startsWith('watchOrderBook')) {
-            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
-        }
-
-        if (methodName === 'watchOHLCVForSymbols') {
-            return `return Helper.ConvertToDictionaryOHLCVList(res);`
-        }
-
-        // custom handling for now
-        if (methodName === 'fetchTime') {
-            return `return (Int64)res;`;
-        }
-
-        // handle the typescript type Dict
-        if (unwrappedType === 'Dict') {
-            return `return (Dictionary<string, object>)res;`;
-        }
-
-        const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
-        let returnStatement = "";
-        if (unwrappedType.startsWith('List<')) {
-            if (unwrappedType === 'List<Dictionary<string, object>>') {
-                returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
-            } else {
-                returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
-            }
-        } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>' && !unwrappedType.startsWith('Dictionary')) {
-            const type = this.unwrapDictionaryIfNeeded(unwrappedType);
-            const returnParts = [
-                `var keys = ((IDictionary<string, object>)res).Keys.ToList();`,
-                `        var result = new Dictionary<string, ${type}>();`,
-                `        foreach (var key in keys)`,
-                `        {`,
-                `            result[key] = new ${type}(((IDictionary<string,object>)res)[key]);`,
-                `        }`,
-                `        return result;`,
-            ].join("\n");
-            return returnParts;
-        } else {
-            returnStatement = needsToInstantiate ? `return new ${unwrappedType}(res);` : `return ((${unwrappedType})res);`;;
-        }
-        return returnStatement;
-    }
-
-    getDefaultParamsWrappers(rawParameters: any[]) {
-        const res: string[] = [];
-
-        rawParameters.forEach(param => {
-            const isOptional = param.optional || param.initializer === 'undefined';
-            // const isOptional =  param.optional || param.initializer !== undefined;
-            if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
-                const decl = `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
-                res.push(decl);
-            }
-        });
-
-        return res.join("\n");
-    }
-
-    inden(level: number) {
-        return '    '.repeat(level);
-    }
-
-    createWrapper(exchangeName: string, methodWrapper: any, isWs = false) {
-        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
-        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
-        const methodName = methodWrapper.name;
-        if (!this.shouldCreateWrapper(methodName, isWs)) {
-            return ''; // skip aux methods like encodeUrl, parseOrder, etc
-        }
-        const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        const returnType = this.convertJavascriptTypeToJavaType(methodName, methodWrapper.returnType, true);
-        const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
-        const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToJavaParam(param));
-        const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        const params = methodWrapper.parameters.map((param: any) => this.safeJavaName(param.name)).join(', ');
-
-        const one = this.inden(1);
-        const two = this.inden(2);
-        const methodDoc = [] as any[];
-        if (csharpComments[exchangeName] && csharpComments[exchangeName][methodName]) {
-            methodDoc.push(csharpComments[exchangeName][methodName]);
-        }
-        const method = [
-            `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
-            `${one}{`,
-            this.getDefaultParamsWrappers(methodWrapper.parameters),
-            `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
-            `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
-            `${one}}`
-        ];
-        return methodDoc.concat(method).filter(e => !!e).join('\n')
-    }
-
-    createExchangesWrappers(): string[] {
-        const res: string[] = ['// class wrappers'];
-
-        exchangeIds.forEach(exchange => {
-            const capitalizedExchange = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-            const capitalName = capitalizedExchange.replace('.ts', '');
-
-            const className = exchange.replace('.ts', '');
-            const constructor1 = `    public ${capitalName}() { super(null); }`;
-            const constructor2 = `    public ${capitalName}(Object args) { super(args); }`;
-
-            const cls = [
-                `public class ${capitalName} extends ${className} {`,
-                constructor1,
-                constructor2,
-                `}`
-            ].join('\n');
-
-            res.push(cls);
-        });
-
-        return res;
-    }
-
-    createJavaWrappers(exchange: string, path: string, wrappers: any[], ws = false) {
-        const wrappersIndented = wrappers
-            .map(wrapper => this.createWrapper(exchange, wrapper, ws))
-            .filter(wrapper => wrapper !== '')
-            .join('\n');
-
-        const shouldCreateClassWrappers = exchange === 'Exchange';
-        const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e => !!e).join('\n') : '';
-
-        const pkg = ws ? 'package ccxt.pro;' : 'package io.github.ccxt;';
-        const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-
-        const capitalizeStatement = ws
-            ? [
-                `public class ${capitizedName} extends ${exchange} {`,
-                `    public ${capitizedName}() { super(null); }`,
-                `    public ${capitizedName}(Object args) { super(args); }`,
-                `}`
-            ].join('\n')
-            : '';
-
-        const file = [
-            pkg,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            capitalizeStatement,
-            `public class ${exchange} {`,
-            wrappersIndented,
-            `}`,
-            classes
-        ].filter(s => s !== '').join('\n');
-
-        log.magenta('→', (path as any).yellow);
-        overwriteFileAndFolder(path, file);
-    }
-
 
     transpileErrorHierarchy(force = true) {
 
@@ -3075,10 +2119,6 @@ class NewTranspiler {
         }
 
 
-        // JAVA ----------------------------------------------------------------
-
-        // ---------------------------------------------------------------------
-
         function javaMakeErrorClassFile(name: string, parent: string) {
             const exception =
                 `public class ${name} extends ${parent}
@@ -3115,12 +2155,6 @@ class NewTranspiler {
             log.bright.cyan(message, (fileName as any).yellow)
             overwriteFileAndFolder(fileName, file)
         }
-        // const javaBodyIntellisense = '\npackage io.github.ccxt;\n' + this.createGeneratedHeader().join('\n') + '\n' + javaBaseError + '\n' + javaErrors.join ('\n') + '\n'
-        // if (fs.existsSync (ERRORS_FILE)) {
-        //     log.bright.cyan (message, (ERRORS_FILE as any).yellow)
-        //     overwriteFileAndFolder (ERRORS_FILE, javaBodyIntellisense)
-        // }
-        // log.bright.cyan (message, (ERRORS_FILE as any).yellow)
     }
 
     // Common regex/AST-artifact fixes applied to the whole transpiled Exchange.ts
@@ -3134,37 +2168,37 @@ class NewTranspiler {
         // the qualified-this used inside anonymous-class initializers must name the enclosing class
         // BaseExchange, not Exchange. (The Exchange-tier trading methods have no such put(...,this.X)
         // initializers, so this is a no-op there.)
-        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1BaseExchange.$2");
+        baseClass = this.applyTierJavaFixes(baseClass, 'BaseExchange', [
+            [/(\b\w*)RestInstance.describe/g, "(\(BaseExchange\)$1RestInstance).describe"],
+            [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(BaseExchange sourceExchange)"],
+            // cast callDynamically to CompletableFuture when .join() is called on the result
+            [/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()'],
+            // Strip invalid parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`
+            [/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1('],
+        ]);
+        baseClass = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(baseClass));
+        baseClass = nativeJavaIntegralMultiplySubtract(baseClass);
+        baseClass = nativeJavaNumberDivModNeg(baseClass, true);
+        baseClass = nativeJavaLongBoxLocals(baseClass, (c: string) => nativeJavaNumberDivModNeg(nativeJavaIntegralMultiplySubtract(nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(nativeJavaOrderedComparisons(c)))), true));
+        baseClass = nativeJavaMapLocalOps(baseClass);
+        return baseClass;
+    }
+
+    // fixes shared by every transpiled base tier: the qualified-this inside anonymous-class
+    // initializers names the class the methods physically live on (`owner`), Client-typed
+    // params/locals, order-book side casts, then the tier's own `extraRules`
+    applyTierJavaFixes(baseClass: string, owner: string, extraRules: any[]): string {
+        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, `$1${owner}.$2`);
         baseClass = this.regexAll(baseClass, [
             [/\(Object client, /g, '(Client client, '],
             [/Object client = (.+)/g, 'Client client = (Client)$1'],
             [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
-            [/(\b\w*)RestInstance.describe/g, "(\(BaseExchange\)$1RestInstance).describe"],
-
-            // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1BaseExchange.$2"],
-            [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(BaseExchange sourceExchange)"]
+            ...extraRules,
         ]);
-        // cast callDynamically to CompletableFuture when .join() is called on the result
-        baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Strip invalid parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`
-        // (see createJavaClass for the full rationale).
-        baseClass = baseClass.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
-        // Null-safe Array.isArray (see Helpers.isArrayJs comment).
-        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
-
-        // Remove unreachable "return null;" after throw/return statements (ast-transpiler 0.0.80)
-        // Pattern 1: throw directly followed by return null (same block)
+        // Remove unreachable "return null;" after throw statements / a throwing plain else
         baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
-        // Pattern 2: if/else where the else throws, followed by return null before });
-        // Only safe when else contains throw (not return) — throw always terminates
         baseClass = this.removeUnreachableReturnNull(baseClass);
-
-        baseClass = this.addDeprecatedAnnotations(baseClass);
-        baseClass = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(baseClass));
-        baseClass = nativeJavaIntegralMultiplySubtract(baseClass);
-        baseClass = nativeJavaNumberDivModNeg(baseClass, true);
-        baseClass = nativeJavaMapLocalOps(baseClass);
-        return baseClass;
+        return this.addDeprecatedAnnotations(baseClass);
     }
 
     // Return the transpiled+fixed body (no outer braces) of the TS `Exchange extends
@@ -3232,7 +2266,8 @@ class NewTranspiler {
             classBody = out;
             out = this.removeFirstJavaMethod(classBody, methodName);
         }
-        return out;
+        // an async method's private sync core goes with it
+        return methodName.endsWith('Core') ? out : this.removeJavaMethod(out, methodName + 'Core');
     }
 
     removeFirstJavaMethod(classBody: string, methodName: string): string {
@@ -3264,14 +2299,6 @@ class NewTranspiler {
             else if (ch === '}') { depth--; if (depth === 0) { j++; break; } }
         }
         return classBody.slice(0, start) + classBody.slice(j);
-    }
-
-    // String-safe file replace: unlike replaceInFile, the replacement is supplied via a
-    // callback so `$`-sequences in transpiled Java are treated literally.
-    replaceInFileLiteral(filename: string, regex: RegExp, replacement: string) {
-        const contents = fs.readFileSync(filename, 'utf8');
-        const newContents = contents.replace(regex, () => replacement);
-        fs.writeFileSync(filename, newContents);
     }
 
     transpileBaseMethods(baseExchangeFile: string, force = true) {
@@ -3338,7 +2365,8 @@ class NewTranspiler {
         const shortened = shortenJavaReferences(javaBaseNativePasses(this, body, filename));
         const replacement = javaDelimiter + '\n' + shortened.source;
         if (literal) {
-            this.replaceInFileLiteral(filename, pattern, replacement);
+            // the replacement is supplied via a callback so `$`-sequences in transpiled Java are treated literally
+            fs.writeFileSync(filename, fs.readFileSync(filename, 'utf8').replace(pattern, () => replacement));
         } else {
             replaceInFile(filename, pattern, replacement);
         }
@@ -3367,20 +2395,10 @@ class NewTranspiler {
         const baseFile: any = this.transpiler.transpileJavaByPath(predictionBaseFile);
         // the base-tier returns just printed here are handed to the venue workers with each task
         this.javaCoreHanded = javaCoreBaseTierSpellings ((this.transpiler as any).javaTranspiler, [ 'predictionBase', 'exchange', 'base' ]);
-        let baseClass = baseFile.content as any;
-        // qualified-this inside anonymous-class initializers names the lexically enclosing class,
-        // which for these methods is PredictionExchange (not Exchange/BaseExchange).
-        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1PredictionExchange.$2");
-        baseClass = this.regexAll(baseClass, [
-            [/\(Object client, /g, '(Client client, '],
-            [/Object client = (.+)/g, 'Client client = (Client)$1'],
-            [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
+        const baseClass = this.applyTierJavaFixes(baseFile.content as string, 'PredictionExchange', [
+            // cast callDynamically to CompletableFuture when .join() is called on the result
+            [/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()'],
         ]);
-        baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
-        baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
-        baseClass = this.removeUnreachableReturnNull(baseClass);
-        baseClass = this.addDeprecatedAnnotations(baseClass);
         const javaDelimiter = '// ' + delimiter + '\n';
         const restOfFile = '([^\n]*\n)+'
         const parts = baseClass.split(javaDelimiter)
@@ -3409,8 +2427,9 @@ class NewTranspiler {
             // fetchTicker, ...); drop the symbol-based surface no prediction venue supports so
             // PredictionExchange.java doesn't carry (and leak) closePosition/fetchGreeks/etc.
             const predImplemented = this.getPredictionImplementedNames();
-            for (const name of this.extractJavaMethodNames('\n' + extras)) {
-                if (!predImplemented.has(name)) {
+            const extrasNames = this.extractJavaMethodNames('\n' + extras);
+            for (const name of extrasNames) {
+                if (!predImplemented.has(name) && !(name.endsWith('Core') && extrasNames.has(name.slice(0, -4)))) {
                     extras = this.removeJavaMethod(extras, name);
                 }
             }
@@ -3424,67 +2443,6 @@ class NewTranspiler {
         }
     }
 
-    camelize(str: string) {
-        var res = str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
-            if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
-            return index === 0 ? match.toLowerCase() : match.toUpperCase();
-        });
-        return res.replaceAll('-', '');
-    }
-
-
-    getCsharpExamplesWarning() {
-        return [
-            '',
-            '    // !!Warning!! This example was automatically transpiled',
-            '    // from the TS version, meaning that the code is overly',
-            '    // complex and illegible compared to the code you would need to write',
-            '    // normally. Use it only to get an idea of how things are done.',
-            '    // Additionally always choose the typed version of the method instead of the generic one',
-            '    // (e.g. CreateOrder (typed) instead of createOrder (generic)',
-            ''
-        ].join('\n')
-    }
-
-    transpileExamples() {
-        return;
-        // currently disabled!, the generated code is too complex and illegible
-        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
-
-        const allTsExamplesFiles = fs.readdirSync(EXAMPLES_INPUT_FOLDER).filter((f) => f.endsWith('.ts'));
-        for (const filenameWithExtenstion of allTsExamplesFiles) {
-            const tsFile = path.join(EXAMPLES_INPUT_FOLDER, filenameWithExtenstion)
-            let tsContent = fs.readFileSync(tsFile).toString()
-            if (tsContent.indexOf(transpileFlagPhrase) > -1) {
-                const fileName = filenameWithExtenstion.replace('.ts', '')
-                log.magenta('[C#] Transpiling example from', (tsFile as any).yellow)
-                const csharp = this.transpiler.transpileCSharp(tsContent);
-
-                const transpiledFixed = this.regexAll(
-                    csharp.content,
-                    [
-                        [/object exchange/, 'Exchange exchange'],
-                        [/async public Task example/gm, 'async public Task ' + this.camelize(fileName)],
-                        [/(^\s+)object\s(\w+)\s=/gm, '$1var $2 ='],
-                        [/^await.+$/gm, '']
-                    ]
-                )
-
-                const finalFile = [
-                    'using ccxt;',
-                    'using ccxt.pro;',
-                    'namespace examples;',
-                    // this.getCsharpExamplesWarning(),
-                    'partial class Examples',
-                    '{',
-                    transpiledFixed,
-                    '}'
-                ].join('\n');
-
-                overwriteFileAndFolder(EXAMPLES_OUTPUT_FOLDER + fileName + '.cs', finalFile);
-            }
-        }
-    }
 
     async transpileWS(force = false) {
         const tsFolder = './ts/src/pro/';
@@ -3655,23 +2613,6 @@ class NewTranspiler {
             ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig())
             : allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
 
-        if (!ws) {
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchangeFiles[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + this.capitalize(exchangeName) + '.java';
-                // this.createJavaWrappers(exchangeName, path, transpiled.methodsTypes)
-                // break;
-            }
-        } else {
-            //
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                // const transpiled = transpiledFiles[i];
-                // const exchangeName = exchanges[i].replace('.ts','');
-                // const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
-                // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
-            }
-        }
         exchangeFiles.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
@@ -3698,12 +2639,10 @@ class NewTranspiler {
             ''
         ].join('\n');
 
-        const regex = /class (\w+) extends (\w+)/
-        // const res = content.match(regex)
-        // const parentExchange = res[1].toLowerCase();
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
         content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
+        // twice: a `g` match consumes the comma the next hash name needs (`, sha1, sha256)`)
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public) Object describe\(\)/g, '$1 java.util.Map<String, Object> describe()')
@@ -3722,43 +2661,15 @@ class NewTranspiler {
         );
         // cast callDynamically to CompletableFuture when .join() is called on the result
         content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Null-safe Array.isArray rewrite. ast-transpiler emits the bare
-        // `(X instanceof java.util.List) || (X.getClass().isArray())` form,
-        // which NPEs when X is null (JS Array.isArray(null) is false). Route
-        // all such checks through Helpers.isArrayJs which guards null first.
-        content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
-
-        // Remove unreachable "return null;" after throw/return statements (ast-transpiler 0.0.80)
+        // Remove unreachable "return null;" after throw statements / a throwing plain else
         content = content.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
         content = this.removeUnreachableReturnNull(content);
-        // Remove unreachable "return null;" after simple if/else where both branches
-        // directly return (single-line return in each branch, no nested control flow)
-        // Handle if/else where else has return (not throw): remove unreachable return null
-        // Pattern: "return X;\n    } else\n    {\n    return Y;\n    }\n    return null;\n    });"
-        // Safe because plain "} else" covers all paths, and else block ends with return
-        // Pattern: any line ending with "return X;\n  }\n  return null;\n  });" where the line
-        // before "}" starts the else block with "} else\n  {"
-        // Uses the removeReturnNullAfterElseReturn method for multi-line else blocks
-        // Handle simple if/else where both branches have a direct return as last line:
-        // } else\n {\n    return X;\n }\n return null;\n });
-        // Remove unreachable "return null;" for simple if/else where else ends with return.
-        // Uses line-by-line function to avoid greedy regex issues.
 
-        // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
-        // const baseWsClassExec = baseWsClassRegex.exec(content);
-        // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
-        // if (!ws) {
-        //     content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
-        // } else {
-        //     const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
-        //     content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
-        // }
-        // content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
         if (ws) {
             const wsRegexes = this.getJavaWsRegexes();
             content = this.regexAll (content, wsRegexes);
-            content = this.replaceImportedRestClasses (content, javaVersion.imports);
+            content = this.replaceImportedRestClasses (content, javaVersion.imports ?? []);
             // WS classes extend the REST class: pro.Binance extends io.github.ccxt.exchanges.Binance
             const restTypedFqn = `io.github.ccxt.exchanges.${this.capitalize(name)}`;
             content = content.replace(/extends\s\w+Api/g, `extends ${restTypedFqn}`);
@@ -3793,180 +2704,16 @@ class NewTranspiler {
         content = nativeJavaParamCompare(content);
         content = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(content));
         content = nativeJavaSumLongLocals(content);
+        // a min over a sum local retyped Long just above
+        content = content.includes('Helpers.mathMin(') ? nativeJavaLongLimitLocals(content) : content;
         content = nativeJavaIntegralMultiplySubtract(content);
         content = nativeJavaNumberDivModNeg(content);
+        // Object locals holding only Long boxes retype to Long, then the typed arithmetic/compare passes re-run
+        content = nativeJavaLongBoxLocals(content, (c: string) => nativeJavaNumberDivModNeg(nativeJavaIntegralMultiplySubtract(nativeJavaSumLongLocals(nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(nativeJavaParamCompare(nativeJavaNonNullCompare(nativeJavaOrderedComparisons(nativeJavaTypedArithmetic(c))))))))));
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
-    /**
-     * Remove unreachable "return null;" lines that appear after if/else blocks where
-     * both branches terminate (return or throw). The ast-transpiler 0.0.80 adds these
-     * for safety but Java treats them as compilation errors.
-     */
-    removeUnreachableReturnNull(content: string): string {
-        const lines = content.split('\n');
-        const result: string[] = [];
-        for (let i = 0; i < lines.length; i++) {
-            // Check if this line is "return null;" and the next is "});" (lambda end)
-            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
-                // Check if the preceding non-empty line is "}" closing an else/else-if block
-                // that contains a throw or return
-                let j = i - 1;
-                while (j >= 0 && lines[j].trim() === '') j--;
-                if (j >= 0 && lines[j].trim() === '}') {
-                    // Look back further to check if the block contains throw or return
-                    let k = j - 1;
-                    while (k >= 0 && lines[k].trim() !== '{') k--;
-                    // Check the else block for throw (guaranteed unconditional termination).
-                    // We don't check for return because return might be inside a nested
-                    // if/for and not guaranteed to execute on all paths.
-                    let hasThrow = false;
-                    for (let l = k; l <= j; l++) {
-                        const trimmed = lines[l].trim();
-                        if (trimmed.startsWith('throw ')) {
-                            hasThrow = true;
-                            break;
-                        }
-                    }
-                    // Only safe with plain "} else" (not "} else if")
-                    let hasPlainElse = false;
-                    if (k > 0) {
-                        const beforeBlock = lines[k - 1].trim();
-                        hasPlainElse = beforeBlock === '} else';
-                    }
-                    if (hasThrow && hasPlainElse) {
-                        // Skip this "return null;" line — it's unreachable
-                        continue;
-                    }
-                }
-            }
-            result.push(lines[i]);
-        }
-        return result.join('\n');
-    }
-
-    /**
-     * Remove "return null;" after if/else where the else block's last statement is a return.
-     * More conservative than removeUnreachableReturnNull — only handles the else-return pattern.
-     */
-    removeReturnNullAfterElseReturn(content: string): string {
-        const lines = content.split('\n');
-        const result: string[] = [];
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim() === 'return null;'
-                && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
-                // Check: preceding } then scan backward for "} else" + "{" pair
-                let j = i - 1;
-                while (j >= 0 && lines[j].trim() === '') j--;
-                if (j >= 0 && lines[j].trim() === '}') {
-                    const elseClose = j;
-                    // Scan backward to find "} else" line, tracking brace depth
-                    let depth = 1; // start with 1 for the closing }
-                    let elseStart = -1;
-                    for (let k = elseClose - 1; k >= 0; k--) {
-                        const t = lines[k].trim();
-                        if (t === '}') depth++;
-                        else if (t === '{') {
-                            depth--;
-                            if (depth === 0) {
-                                // Found the opening { of this block
-                                if (k > 0 && lines[k - 1].trim() === '} else') {
-                                    elseStart = k;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    if (elseStart >= 0) {
-                        // Check that the last non-comment statement before } is a return
-                        let lastReturn = false;
-                        for (let k = elseClose - 1; k > elseStart; k--) {
-                            const t = lines[k].trim();
-                            if (t === '' || t.startsWith('//') || t === '}') continue;
-                            lastReturn = t.startsWith('return ');
-                            break;
-                        }
-                        if (lastReturn) {
-                            continue; // Skip return null — else block ends with return
-                        }
-                    }
-                }
-            }
-            result.push(lines[i]);
-        }
-        return result.join('\n');
-    }
-
-    /**
-     * Remove "return null;" after if { return } else { ...return } where BOTH branches
-     * guarantee a return. Uses brace-depth to find the exact else block boundaries,
-     * then checks that the else block's last statement (at depth 0 within the block) is a return
-     * and the if block's statement just before "} else" is also a return.
-     */
-    removeReturnNullAfterCompleteIfElse(content: string): string {
-        const lines = content.split('\n');
-        const result: string[] = [];
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim() === 'return null;'
-                && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
-                let j = i - 1;
-                while (j >= 0 && lines[j].trim() === '') j--;
-                if (j >= 0 && lines[j].trim() === '}') {
-                    // Find matching { using depth tracking
-                    let depth = 0;
-                    let elseOpen = -1;
-                    for (let k = j; k >= 0; k--) {
-                        for (let c = lines[k].length - 1; c >= 0; c--) {
-                            if (lines[k][c] === '}') depth++;
-                            else if (lines[k][c] === '{') depth--;
-                        }
-                        if (depth === 0) {
-                            elseOpen = k;
-                            break;
-                        }
-                    }
-                    if (elseOpen >= 0 && elseOpen > 0 && lines[elseOpen - 1].trim() === '} else') {
-                        // Check else block: last non-empty/non-comment/non-brace line is return
-                        let elseLastReturn = false;
-                        for (let k = j - 1; k > elseOpen; k--) {
-                            const t = lines[k].trim();
-                            if (t === '' || t.startsWith('//') || t === '}' || t === '{') continue;
-                            elseLastReturn = t.startsWith('return ');
-                            break;
-                        }
-                        // Check if block: line before "} else" should be return
-                        let ifLastReturn = false;
-                        const elseKeyLine = elseOpen - 1; // "} else" line
-                        // Find the line before } in "} else" — scan backward
-                        for (let k = elseKeyLine - 1; k >= 0; k--) {
-                            const t = lines[k].trim();
-                            if (t === '' || t.startsWith('//') || t === '}' || t === '{') continue;
-                            ifLastReturn = t.startsWith('return ');
-                            break;
-                        }
-                        if (elseLastReturn && ifLastReturn) {
-                            continue; // Skip unreachable return null;
-                        }
-                    }
-                }
-            }
-            result.push(lines[i]);
-        }
-        return result.join('\n');
-    }
-
-    replaceImportedRestClasses(content: string, imports: any[]) {
-        for (const imp of imports) {
-            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
-            // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
-            const name = imp.name;
-            if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
-            }
-        }
-        return content;
-    }
 
     /**
      * Insert `@Deprecated` annotation on every method whose preceding JSDoc
@@ -4079,6 +2826,107 @@ class NewTranspiler {
         return out;
     }
 
+
+    // true when the text proves the identifier `name` at offset `pos` is Java-`String`:
+    // the NEAREST PRECEDING declaration of `name` inside the same method must be
+    // `String ...` AND its value must survive the "String type fixes" revert below
+    // (`String x = this.<m>(...)` / `Helpers.<...>(...)` are rewritten back to Object,
+    // so they prove nothing). Used by the ws post-passes: the `(String)` hash cast they
+    // add around `client.future(name)` / `client.reusableFuture(name)` is redundant when
+    // the hash local is already declared String (WsClient.future/reusableFuture take
+    // `String`). A field/param not declared in the file proves nothing -> keep the cast.
+    provablyStringLocal (content: string, name: string, pos: number): boolean {
+        return this.provablyTypedLocal (content, name, pos, 'String');
+    }
+
+    // the same nearest-preceding-declaration proof for any declared Java type: ws locals the printer
+    // declares `io.github.ccxt.ws.Future` (a read out of client.futures) need no checkcast at their uses
+    provablyTypedLocal (content: string, name: string, pos: number, type: string): boolean {
+        const masked = maskJavaComments(content);
+        const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const before = masked.slice(0, pos);
+        // the enclosing method: the last member-modifier line before `pos`; a use that has
+        // no declaration inside its own method binds to a field/param -> keep the cast
+        const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
+        const windowStart = breaks.length > 0 ? breaks[breaks.length - 1].index : 0;
+        const window = masked.slice(windowStart, pos);
+        const decl = new RegExp(`\\b(String|Object|Integer|Long|Double|Boolean|var|char|io\\.github\\.ccxt\\.ws\\.Future)\\s+${escaped}\\s*(?=[=;,)])`, 'g');
+        let last = null;
+        let m;
+        while ((m = decl.exec(window)) !== null) {
+            last = m;
+        }
+        if (last === null || last[1] !== type) {
+            return false;
+        }
+        const rest = window.slice(last.index + last[0].length);
+        const value = /^\s*=\s*([^\n;]*)/.exec(rest);
+        if (type === 'String' && value !== null && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test(value[1].trim())) {
+            return false;
+        }
+        return true;
+    }
+
+
+    removeUnreachableReturnNull(content: string): string {
+        const lines = content.split('\n');
+        const result: string[] = [];
+        for (let i = 0; i < lines.length; i++) {
+            // Check if this line is "return null;" and the next is "});" (lambda end)
+            let after = i + 1;
+            while (after < lines.length && lines[after].trim() === '') after++;
+            let head = i;
+            while (head > 0 && !/^ {0,4}(?:public|private|protected) /.test(lines[head])) head--;
+            const coreClose = lines[i].startsWith('        return null;') && lines[after] === '    }' && /^ {0,4}private \S.* \w+Core\(/.test(lines[head]);
+            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && (isAsyncLambdaClose(lines[i + 1].trim()) || coreClose)) {
+                // Check if the preceding non-empty line is "}" closing an else/else-if block
+                // that contains a throw or return
+                let j = i - 1;
+                while (j >= 0 && lines[j].trim() === '') j--;
+                if (j >= 0 && lines[j].trim() === '}') {
+                    // Look back further to check if the block contains throw or return
+                    let k = j - 1;
+                    while (k >= 0 && lines[k].trim() !== '{') k--;
+                    // Check the else block for throw (guaranteed unconditional termination).
+                    // We don't check for return because return might be inside a nested
+                    // if/for and not guaranteed to execute on all paths.
+                    let hasThrow = false;
+                    for (let l = k; l <= j; l++) {
+                        const trimmed = lines[l].trim();
+                        if (trimmed.startsWith('throw ')) {
+                            hasThrow = true;
+                            break;
+                        }
+                    }
+                    // Only safe with plain "} else" (not "} else if")
+                    let hasPlainElse = false;
+                    if (k > 0) {
+                        const beforeBlock = lines[k - 1].trim();
+                        hasPlainElse = beforeBlock === '} else';
+                    }
+                    if (hasThrow && hasPlainElse) {
+                        // Skip this "return null;" line — it's unreachable
+                        continue;
+                    }
+                }
+            }
+            result.push(lines[i]);
+        }
+        return result.join('\n');
+    }
+
+    replaceImportedRestClasses(content: string, imports: any[]) {
+        for (const imp of imports) {
+            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
+            // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
+            const name = imp.name;
+            if (name.endsWith('Rest')) {
+                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
+            }
+        }
+        return content;
+    }
+
     fixVoidReturnNull(content: string): string {
         const lines = content.split('\n');
         let depth = 0;
@@ -4145,52 +2993,6 @@ class NewTranspiler {
         return lines.join('\n');
     }
 
-    // true when the text proves the identifier `name` at offset `pos` is Java-`String`:
-    // the NEAREST PRECEDING declaration of `name` inside the same method must be
-    // `String ...` AND its value must survive the "String type fixes" revert below
-    // (`String x = this.<m>(...)` / `Helpers.<...>(...)` are rewritten back to Object,
-    // so they prove nothing). Used by the ws post-passes: the `(String)` hash cast they
-    // add around `client.future(name)` / `client.reusableFuture(name)` is redundant when
-    // the hash local is already declared String (WsClient.future/reusableFuture take
-    // `String`). A field/param not declared in the file proves nothing -> keep the cast.
-    provablyStringLocal (content: string, name: string, pos: number): boolean {
-        return this.provablyTypedLocal (content, name, pos, 'String');
-    }
-
-    // the same nearest-preceding-declaration proof for any declared Java type: ws locals the printer
-    // declares `io.github.ccxt.ws.Future` (a read out of client.futures) need no checkcast at their uses
-    provablyTypedLocal (content: string, name: string, pos: number, type: string): boolean {
-        const masked = maskJavaComments(content);
-        const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const before = masked.slice(0, pos);
-        // the enclosing method: the last member-modifier line before `pos`; a use that has
-        // no declaration inside its own method binds to a field/param -> keep the cast
-        const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
-        const windowStart = breaks.length > 0 ? breaks[breaks.length - 1].index : 0;
-        const window = masked.slice(windowStart, pos);
-        const decl = new RegExp(`\\b(String|Object|Integer|Long|Double|Boolean|var|char|io\\.github\\.ccxt\\.ws\\.Future)\\s+${escaped}\\s*(?=[=;,)])`, 'g');
-        let last = null;
-        let m;
-        while ((m = decl.exec(window)) !== null) {
-            last = m;
-        }
-        if (last === null || last[1] !== type) {
-            return false;
-        }
-        const rest = window.slice(last.index + last[0].length);
-        const value = /^\s*=\s*([^\n;]*)/.exec(rest);
-        if (type === 'String' && value !== null && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test(value[1].trim())) {
-            return false;
-        }
-        return true;
-    }
-
-    // SS-04: true when the `Helpers.add(...)` call starting at `addStart` has a FIRST operand
-    // that is statically String in Java — javac then picks the String-returning
-    // `add(String, *)` overload (Helpers.java), so an outer `(String)` checkcast is redundant.
-    // Text-level proof for the shapes the ws post-passes meet: a string literal, an audited
-    // `this.<member>` String field, a local whose same-method nearest declaration proves
-    // String, or a nested `Helpers.add(...)` chain that itself starts with one.
     addChainStartsWithString (content: string, addStart: number): boolean {
         const first = jsAddFirstOperand(content, addStart);
         if (first === undefined) {
@@ -4218,24 +3020,11 @@ class NewTranspiler {
         const cap = this.capitalize(name);
 
         // ── Fix broken method references: ClassName."methodName" → "methodName" ──
-        // The transpiler generates method references as ClassName."methodName" which is
-        // invalid Java (string template syntax). These are used as map values for
-        // message handler dispatch tables. Replace with just the string literal.
         content = content.replace(new RegExp(`${cap}\\.("\\w+")`, 'gm'), '$1');
 
         // ── Pattern 12: Map casts for client.subscriptions/futures access ──
         content = content.replace(/\(\(Object\)client\)\.subscriptions/gm, '((java.util.Map)client.subscriptions)');
         content = content.replace(/\(\(Object\)client\)\.futures/gm, '((java.util.Map)client.futures)');
-
-        // WsClient.subscriptions/rejections/futures are owner-thread maps behind OwnerMap views, so the
-        // helper's put branch and a plain put agree; the generated text stays as the base prints it.
-
-        // Object.keys / Object.values / Array.isArray are now emitted as
-        // `Helpers.objectKeys(x)` / `objectValues(x)` / `isArray(x)` directly
-        // by ast-transpiler (PR #48). The earlier regex post-process here
-        // routed the older `new ArrayList<>(((Map<String,Object>)x).keySet())`
-        // shape; it's been removed since #48 covers every argument shape
-        // (this.x, Helpers.GetValue(...), nested casts) that the regex missed.
 
         // ── Pattern 6: Method reference for ping ──
         content = content.replace(new RegExp(`${cap}\\.this::ping`, 'gm'),
@@ -4303,9 +3092,7 @@ class NewTranspiler {
         content = content.replace(/\(\(io\.github\.ccxt\.ws\.Future\)(\(io\.github\.ccxt\.ws\.Future\))/gm, '($1');
 
         // ── Pattern 10: (String) cast on Helpers.add() for exception constructors and client.future() ──
-        // SS-04: only when the add-chain's FIRST operand is not already String — javac picks a
-        // String-returning `add(String, *)` overload exactly when it is, and the printer already
-        // emits the cast on every shape it cannot prove
+        // only when the add-chain's FIRST operand is not already String
         content = content.replace(/(throw new \w+\()Helpers\.add\(/gm,
             (match: string, prefix: string, offset: number) =>
                 this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
@@ -4316,15 +3103,15 @@ class NewTranspiler {
                     ? match : `${prefix}(String)Helpers.add(`);
 
         // ── Pattern 5: ArrayCache .hashmap access ──
-        // Only match local variables, not this.xxx
-        content = content.replace(/(?<!this\.)(?<![\w.])([a-z]\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
-        // this.xxx.hashmap → ((ArrayCache)this.xxx).hashmap
-        content = content.replace(/(this\.\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
-        // Prevent double-wrapping
-        content = content.replace(/\(\(io\.github\.ccxt\.ws\.ArrayCache\)\(\(io\.github\.ccxt\.ws\.ArrayCache\)/gm,
-            '((io.github.ccxt.ws.ArrayCache)');
+        content = this.regexAll(content, [
+            // Only match local variables, not this.xxx
+            [/(?<!this\.)(?<![\w.])([a-z]\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap'],
+            // this.xxx.hashmap → ((ArrayCache)this.xxx).hashmap
+            [/(this\.\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap'],
+            // Prevent double-wrapping
+            [/\(\(io\.github\.ccxt\.ws\.ArrayCache\)\(\(io\.github\.ccxt\.ws\.ArrayCache\)/gm, '((io.github.ccxt.ws.ArrayCache)'],
+        ]);
 
-        // ── Pattern: future.resolve(...) on Object-typed future variable ──
         // future.resolve(x) where future is Object → cast
         content = content.replace(/(?<!\w)future\.resolve\(([^)]+)\)/gm,
             (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.resolve(${args})`);
@@ -4340,9 +3127,10 @@ class NewTranspiler {
             (varName, args) => `io.github.ccxt.ws.ArrayCache.getLimitOf(${varName}, ${args})`);
 
         // ── Property access on Object-typed variables ──
-        content = content.replace(/(?<![.\w])([a-z]\w+)\.cache\b(?!\()/gm,
-            '((java.util.List<Object>)Helpers.GetValue($1, "cache"))');
-        content = content.replace(/(?<![.\w])([a-z]\w+)\.nonce\b(?!\()/gm, 'Helpers.GetValue($1, "nonce")');
+        content = this.regexAll(content, [
+            [/(?<![.\w])([a-z]\w+)\.cache\b(?!\()/gm, '((java.util.List<Object>)Helpers.GetValue($1, "cache"))'],
+            [/(?<![.\w])([a-z]\w+)\.nonce\b(?!\()/gm, 'Helpers.GetValue($1, "nonce")'],
+        ]);
 
         // ── Method references in subscription maps → string name ──
         // Dynamically detect every method defined in this class, plus a fixed
@@ -4358,49 +3146,32 @@ class NewTranspiler {
         ];
         const methodNames = this.collectMethodNamesInClass(content);
         for (const b of baseClassCallbacks) methodNames.add(b);
-        if (methodNames.size > 0) {
-            const namesPattern = Array.from(methodNames).join('|');
+        const namesPattern = Array.from(methodNames).join('|');
+        content = this.regexAll(content, [
             // ClassName.this.method (as value)
-            content = content.replace(
-                new RegExp(`${cap}\\.this\\.(${namesPattern})\\s*(?=[,;)\\s])`, 'gm'),
-                '"$1"'
-            );
+            [new RegExp(`${cap}\\.this\\.(${namesPattern})\\s*(?=[,;)\\s])`, 'gm'), '"$1"'],
             // this.method (as value, not preceded by '=' which would be wrong context)
-            content = content.replace(
-                new RegExp(`(?<!=\\s)this\\.(${namesPattern})\\s*(?=[,;)\\s])`, 'gm'),
-                '"$1"'
-            );
+            [new RegExp(`(?<!=\\s)this\\.(${namesPattern})\\s*(?=[,;)\\s])`, 'gm'), '"$1"'],
             // var = this.method;  → var = "method";
-            content = content.replace(
-                new RegExp(`=\\s*this\\.(${namesPattern})\\s*;`, 'gm'),
-                '= "$1";'
-            );
-        }
+            [new RegExp(`=\\s*this\\.(${namesPattern})\\s*;`, 'gm'), '= "$1";'],
+        ]);
 
         // ── .call(this, args) → reflection dispatch — use balanced parens ──
         content = this.replaceCallPattern(content);
 
         // ── this.spawn(this.method, args) → lambda (as statement ending with ;) ──
-        content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm, (match: string, method: string, args: string) => {
-            return `this.spawn(() -> { try { this.${method}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`;
-        });
+        content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm,
+            'this.spawn(() -> { try { this.$1($2); } catch(Exception _e) { throw new RuntimeException(_e); } });');
         // this.spawn("methodName", arg1, arg2, ...) → this.spawn(() -> { ... }) (as statement)
-        content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm, (match: string, method: string, args: string) => {
-            return `this.spawn(() -> { try { this.${method}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`;
-        });
+        content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm,
+            'this.spawn(() -> { try { this.$1($2); } catch(Exception _e) { throw new RuntimeException(_e); } });');
         // this.spawn(this.method, args) used as expression (value) — NOT ending with ;
-        content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm,
-            (match: string, method: string, args: string) => {
-                return `this.${method}(${args})`;
-            });
+        content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm, 'this.$1($2)');
         // this.spawn("methodName", args) as expression — the method-ref-as-string
         // pass above has already converted this.methodRef → "methodRef" by the time
         // we get here. Rewrite to spawnWithResult which returns a Future capturing
         // the async call's outcome.
-        content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm,
-            (match: string, methodName: string, args: string) => {
-                return `this.spawnWithResult("${methodName}", ${args})`;
-            });
+        content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm, 'this.spawnWithResult("$1", $2)');
 
         // ── watch/watchMultiple missing 5th arg ──
         for (const method of ['watch', 'watchMultiple']) {
@@ -4428,36 +3199,28 @@ class NewTranspiler {
                 }
                 const argCount = topLevelCommas + 1;
                 result2 += content.substring(lastIdx2, m2.index);
-                const callee = `this.${m2[1] ?? ''}${method}`;
-                if (argCount === 4) {
-                    result2 += `${callee}(${args2}, null)`;
-                } else if (argCount === 3) {
-                    result2 += `${callee}(${args2}, null, null)`;
-                } else if (argCount === 2) {
-                    result2 += `${callee}(${args2}, null, null, null)`;
-                } else {
-                    result2 += `${callee}(${args2})`;
-                }
+                const missing = (argCount >= 2 && argCount <= 4) ? 5 - argCount : 0;
+                result2 += `this.${m2[1] ?? ''}${method}(${args2}${', null'.repeat(missing)})`;
                 lastIdx2 = j2;
             }
             result2 += content.substring(lastIdx2);
             content = result2;
         }
 
-        // ── Client type handling ──
-        content = content.replace(/WsClient\b/gm, 'Client');
-        content = content.replace(/\(Object client\)/gm, '(Client client)');
-        content = content.replace(/\(Object client,/gm, '(Client client,');
-        content = content.replace(/,\s*Object client,/gm, ', Client client,');
-        content = content.replace(/,\s*Object client\)/gm, ', Client client)');
-        content = content.replace(/Object client =/gm, 'Client client =');
-        content = content.replace(/Object client = this\.client\(/gm, 'Client client = this.client(');
-        content = content.replace(/Client\s+client\s*=\s*Helpers\.GetValue\((\w+),\s*(\w+)\)/gm,
-            'Client client = (Client)Helpers.GetValue($1, $2)');
-        content = content.replace(/Client\s+client\s*=\s*this\.(safeValue|safeDict)\(/gm,
-            'Client client = (Client)this.$1(');
-
-        // ── Pattern 9: int/long from Object ──
+        // ── Client type handling, Pattern 9: int/long from Object ──
+        const longField = (match: string, field: string, rhs: string) =>
+            (rhs.startsWith('((Number)') || /^\d+L?$/.test(rhs.trim())) ? match : `client.${field} = ((Number)${rhs}).longValue();`;
+        content = this.regexAll(content, [
+            [/WsClient\b/gm, 'Client'],
+            [/\(Object client\)/gm, '(Client client)'],
+            [/\(Object client,/gm, '(Client client,'],
+            [/,\s*Object client,/gm, ', Client client,'],
+            [/,\s*Object client\)/gm, ', Client client)'],
+            [/Object client =/gm, 'Client client ='],
+            [/Object client = this\.client\(/gm, 'Client client = this.client('],
+            [/Client\s+client\s*=\s*Helpers\.GetValue\((\w+),\s*(\w+)\)/gm, 'Client client = (Client)Helpers.GetValue($1, $2)'],
+            [/Client\s+client\s*=\s*this\.(safeValue|safeDict)\(/gm, 'Client client = (Client)this.$1('],
+        ]);
         // parseTimeframe is declared primitive int, so its local keeps `int`; any other reverted
         // local may box an Integer, which a printer `((long) x)` cast would reject at runtime
         const revertedInts = new Set<string>();
@@ -4465,36 +3228,19 @@ class NewTranspiler {
         for (const n of revertedInts) {
             content = content.replace(new RegExp('\\(\\(long\\) ' + n + '\\)', 'g'), '((Number) ' + n + ').longValue()');
         }
-        content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
-            'new ArrayCache(((Number)this.$1).intValue())');
-        content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
-            'new ArrayCache(((Number)this.$1).intValue())');
-        content = content.replace(/client\.lastPong\s*=\s*([^;]+);/gm, (match: string, rhs: string) => {
-            if (rhs.startsWith('((Number)') || /^\d+L?$/.test(rhs.trim())) return match;
-            return `client.lastPong = ((Number)${rhs}).longValue();`;
-        });
-        content = content.replace(/client\.keepAlive\s*=\s*([^;]+);/gm, (match: string, rhs: string) => {
-            if (rhs.startsWith('((Number)') || /^\d+L?$/.test(rhs.trim())) return match;
-            return `client.keepAlive = ((Number)${rhs}).longValue();`;
-        });
+        content = this.regexAll(content, [
+            [/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm, 'new ArrayCache(((Number)this.$1).intValue())'],
+            [/client\.(lastPong|keepAlive)\s*=\s*([^;]+);/gm, longField],
+            // ── this.delay(ms, this.method[, args]) → spawn with sleep ──
+            [/this\.delay\(([^,]+),\s*this\.(\w+),\s*([^)]+)\)/gm, 'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2($3); } catch(Exception _e) {} })'],
+            [/this\.delay\(([^,]+),\s*this\.(\w+)\)/gm, 'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2(); } catch(Exception _e) {} })'],
+        ]);
 
         // ── this.delay → spawn with sleep ──
-        // Existing forms: `this.delay(ms, this.methodName, args...)` where callback
-        // is a method reference. Handled first.
-        content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+),\s*([^)]+)\)/gm,
-            'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2($3); } catch(Exception _e) {} })');
-        content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+)\)/gm,
-            'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2(); } catch(Exception _e) {} })');
-        // Generalized form: `this.delay(ms, "methodName", ...args)` where the callback
+        // `this.delay(ms, "methodName", ...args)` where the callback
         // is already a string literal (the method-ref-as-string rewrite above converts
         // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
         content = this.rewriteDelayWithStringCallback(content);
-
-        // ── String type fixes: revert pass REMOVED (SS-07 / SS-15) ──
-        // The pass rewrote every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
-        // declaration in pro/prediction files back to `Object`. The local-typing layers emit a
-        // String declaration only when every reaching value is provably String-or-null, so the
-        // pass only de-typed the WS tree; pro/prediction now match the REST tier.
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
@@ -4503,57 +3249,41 @@ class NewTranspiler {
         content = this.fixSynchronizedScoping(content);
 
         // ── super.describeData() → call WS parent method ──
-        content = content.replace(/super\.describeData\(\)/gm, (match: string) => {
-            return `new io.github.ccxt.exchanges.pro.Binance().describeData()`;
-        });
+        content = content.replace(/super\.describeData\(\)/gm, 'new io.github.ccxt.exchanges.pro.Binance().describeData()');
 
         // ── Fix extra args in method calls when definition has fewer params ──
-        {
-            const defMatch = content.match(/loadPositionsSnapshot\(Client\s+\w+,\s*Object\s+\w+,\s*Object\s+\w+\)\s*$/m);
-            const callMatch = content.match(/this\.loadPositionsSnapshot\(\w+,\s*\w+,\s*\w+,\s*\w+\)/);
-            if (defMatch && callMatch) {
-                content = content.replace(
-                    /loadPositionsSnapshot\(Client\s+(\w+),\s*Object\s+(\w+),\s*Object\s+(\w+)\)\s*$/m,
-                    'loadPositionsSnapshot(Client $1, Object $2, Object $3, Object... _extraArgs)'
-                );
-            }
+        if (/loadPositionsSnapshot\(Client\s+\w+,\s*Object\s+\w+,\s*Object\s+\w+\)\s*$/m.test(content) && /this\.loadPositionsSnapshot\(\w+,\s*\w+,\s*\w+,\s*\w+\)/.test(content)) {
+            content = content.replace(/loadPositionsSnapshot\(Client\s+(\w+),\s*Object\s+(\w+),\s*Object\s+(\w+)\)\s*$/m,
+                'loadPositionsSnapshot(Client $1, Object $2, Object $3, Object... _extraArgs)');
         }
 
-        // ── Bids/Asks class references ──
-        content = content.replace(/new Bids\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Bids(');
-        content = content.replace(/new Asks\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Asks(');
-
-        // ── Exchange class name capitalization ──
-        content = content.replace(/new io\.github\.ccxt\.exchanges\.([a-z])(\w+)\(\)/gm,
-            (m: string, first: string, rest: string) => `new io.github.ccxt.exchanges.${first.toUpperCase()}${rest}()`);
-
-        // ── Assignment to map.get() → Helpers.addElementToObject ──
-        content = content.replace(/\(\(java\.util\.HashMap<String, Object>\)(\w+)\)\.get\("(\w+)"\)\s*=\s*([^;]+);/gm,
-            'Helpers.addElementToObject($1, "$2", $3);');
-        content = content.replace(/\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\s*=\s*([^;]+);/gm,
-            'Helpers.addElementToObject($1, "$2", $3);');
-        content = content.replace(/\(\(java\.util\.List<Object>\)\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\)\s*=\s*([^;]+);/gm,
-            'Helpers.addElementToObject($1, "$2", $3);');
-
-        // ── (List<String>) cast fix for ArrayList<Object> → List<String> ──
-        content = content.replace(/\(java\.util\.List<String>\)new java\.util\.ArrayList<Object>/gm,
-            '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>');
+        content = this.regexAll(content, [
+            // ── Bids/Asks class references ──
+            [/new Bids\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Bids('],
+            [/new Asks\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Asks('],
+            // ── Exchange class name capitalization ──
+            [/new io\.github\.ccxt\.exchanges\.([a-z])(\w+)\(\)/gm,
+                (m: string, first: string, rest: string) => `new io.github.ccxt.exchanges.${first.toUpperCase()}${rest}()`],
+            // ── Assignment to map.get() → Helpers.addElementToObject ──
+            [/\(\(java\.util\.HashMap<String, Object>\)(\w+)\)\.get\("(\w+)"\)\s*=\s*([^;]+);/gm, 'Helpers.addElementToObject($1, "$2", $3);'],
+            [/\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\s*=\s*([^;]+);/gm, 'Helpers.addElementToObject($1, "$2", $3);'],
+            // ── (List<String>) cast fix for ArrayList<Object> → List<String> ──
+            [/\(\(java\.util\.List<Object>\)\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\)\s*=\s*([^;]+);/gm, 'Helpers.addElementToObject($1, "$2", $3);'],
+            [/\(java\.util\.List<String>\)new java\.util\.ArrayList<Object>/gm, '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>'],
+        ]);
 
         // ── spawn lambdas whose argument is a reassigned local: pass the arguments by value ──
         if (!skipEffectivelyFinal) {
             content = this.spawnReassignedArgsByValue(content);
         }
 
-        // ── Void supplyAsync return null insertion ──
+        // ── Void supplyAsync return null insertion, then `return null;` leakage out of void handlers ──
         content = this.insertReturnNullInSupplyAsync(content);
-
-        // Runs AFTER insertReturnNullInSupplyAsync to fix `return null;` leakage
-        // into void event-handler methods. Uses comment/string-aware brace tracking
-        // to avoid false state from brace chars in `//` comment blocks.
         content = this.fixVoidReturnNull(content);
 
         return content;
     }
+
 
     fixSynchronizedScoping(content: string): string {
         content = content.replace(/this\.lockId\(\);/gm, 'synchronized (this) {');
@@ -4610,7 +3340,7 @@ class NewTranspiler {
 
         let inSupplyAsync = 0;
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes(JAVA_ASYNC_SUPPLIER + '(')) inSupplyAsync++;
+            if (lines[i].includes(JAVA_ASYNC_SUPPLIER + '(') && lines[i].trimEnd().endsWith('{')) inSupplyAsync++;
             if (inSupplyAsync > 0 && lines[i].trim() === '});') inSupplyAsync--;
             if (inSupplyAsync > 0 && lines[i].trim() === 'return;') {
                 lines[i] = lines[i].replace('return;', 'return null;');
@@ -4621,7 +3351,7 @@ class NewTranspiler {
         let depth = 0;
         for (let i = 0; i < lines.length; i++) {
             const t = lines[i].trim();
-            if (t.includes(JAVA_ASYNC_SUPPLIER + '(')) { depth = 1; continue; }
+            if (t.includes(JAVA_ASYNC_SUPPLIER + '(') && t.endsWith('{')) { depth = 1; continue; }
             if (depth === 0) continue;
             if (t.endsWith('{') && !t.startsWith('}')) { depth++; continue; }
             if (t === '}' || t === '});' || t.startsWith('} ')) { depth--; }
@@ -4708,94 +3438,58 @@ class NewTranspiler {
     // fixed-parameter Object position keeps the line as the transpiler printed it
     retypeFinalVarDeclarations (content: string): string {
         const lines = content.split ('\n');
-        const debug = process.env.CCXT_JAVA_FINAL_HOIST_DEBUG === '1';
         for (let i = 0; i < lines.length; i++) {
-            const hoistMatch = lines[i].match (RETYPE_HOIST_LINE);
-            const snapshotMatch = hoistMatch === null ? lines[i].match (RETYPE_SNAPSHOT_LINE) : null;
-            const copyMatch = hoistMatch === null && snapshotMatch === null ? lines[i].match (RETYPE_COPY_LINE) : null;
-            const match = hoistMatch !== null ? hoistMatch : (snapshotMatch !== null ? snapshotMatch : copyMatch);
-            if (match === null || match === undefined) continue;
-            const isSnapshot = hoistMatch === null && snapshotMatch !== null;
-            const isCopy = copyMatch !== null && copyMatch !== undefined;
+            const match = lines[i].match (RETYPE_COPY_LINE);
+            if (match === null) continue;
             const indent = match[1];
             const hoistedName = match[2];
             const sourceName = match[3];
             const start = retypeMemberStart (lines, i);
             const end = retypeMemberEnd (lines, i);
 
-            // 1. the source type: the nearest preceding declaration of the same name inside the
-            //    member, or — for the async snapshot shape — the parameter type from the signature
+            // 1. the source type: the nearest preceding declaration of the same name inside the member
             let typeToken: string | undefined;
-            if (!isSnapshot) {
-                const depths = retypeDepthScan (lines);
-                let sawDeclaration = false;
-                for (let j = i - 1; j > start; j--) {
-                    const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
-                    if (decl !== null) {
-                        sawDeclaration = true;
-                        // in scope = the declaration's block is still open at the
-                        // hoist (brace depth never drops below it), not the printer's text indent.
-                        let inScope = true;
-                        for (let k = j; k < i; k++) {
-                            if (depths[k] < depths[j]) { inScope = false; break; }
-                        }
-                        if (!inScope) continue;                 // a closed block: keep scanning outward
-                        typeToken = decl[2];
-                        break;
+            const depths = retypeDepthScan (lines);
+            let sawDeclaration = false;
+            for (let j = i - 1; j > start; j--) {
+                const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
+                if (decl !== null) {
+                    sawDeclaration = true;
+                    // in scope = the declaration's block is still open at the
+                    // hoist (brace depth never drops below it), not the printer's text indent.
+                    let inScope = true;
+                    for (let k = j; k < i; k++) {
+                        if (depths[k] < depths[j]) { inScope = false; break; }
                     }
+                    if (!inScope) continue;                 // a closed block: keep scanning outward
+                    typeToken = decl[2];
+                    break;
                 }
-                // the source may be a fixed parameter (the printed signature
-                // carries its own type) even when no declaration exists in the member.
-                if (typeToken === undefined && !sawDeclaration) {
-                    const signature = retypeSignatureLine (lines, start, i - 1);
-                    if (signature !== -1) typeToken = retypeParameterType (lines[signature], sourceName);
-                }
-            } else {
+            }
+            // the source may be a fixed parameter (the printed signature
+            // carries its own type) even when no declaration exists in the member.
+            if (typeToken === undefined && !sawDeclaration) {
                 const signature = retypeSignatureLine (lines, start, i - 1);
                 if (signature !== -1) typeToken = retypeParameterType (lines[signature], sourceName);
             }
             const reference = retypeReferenceToken (typeToken);
-            if (reference === undefined) {
-                if (debug) console.log (`final-hoist decline ${hoistedName} (source ${typeToken === undefined ? 'not found' : typeToken})`);
-                continue;
-            }
+            if (reference === undefined) continue;
 
             // 2. every later mention of the hoisted name inside the member must be an audited
             //    fixed-parameter Object position
             let audited = true;
-            // the async-param copy `x = x3` joins its writes against the snapshot type
-            const isParamCopy = isCopy && sourceName === `${hoistedName}3`;
-            const rewrites: [number, string][] = [];
             for (let j = i + 1; j <= end; j++) {
-                if (isCopy) {
-                    // the copy is not final, so every later write is audited too
-                    const write = lines[j].match (new RegExp (`^(\\s*${hoistedName}\\s*=\\s*)(?!=)(.+)$`));
-                    if (write !== null) {
-                        if (isParamCopy) {
-                            const printed = retypeCopyWrite (write[2], reference, hoistedName);
-                            if (printed === undefined) { audited = false; break; }
-                            if (printed !== write[2]) rewrites.push ([j, write[1] + printed]);
-                            continue;
-                        }
-                        if (!retypeWrittenValueMatches (write[2], reference)) { audited = false; break; }
-                        continue;
-                    }
+                // the copy is not final, so every later write is audited too
+                const write = lines[j].match (new RegExp (`^(\\s*${hoistedName}\\s*=\\s*)(?!=)(.+)$`));
+                if (write !== null) {
+                    if (!retypeWrittenValueMatches (write[2], reference)) { audited = false; break; }
+                    continue;
                 }
-                const useOk = isParamCopy
-                    ? retypeCopyUseIsAudited (lines, j, i, hoistedName, reference)
-                    : retypeUseIsAudited (lines[j], hoistedName, reference);
-                if (!useOk) { audited = false; break; }
+                if (!retypeUseIsAudited (lines[j], hoistedName, reference)) { audited = false; break; }
             }
-            if (!audited) {
-                if (debug) console.log (`final-hoist decline ${hoistedName} (use not audited)`);
-                continue;
-            }
-            for (const [j, text] of rewrites) lines[j] = text;
+            if (!audited) continue;
 
-            lines[i] = isCopy
-                ? `${indent}${reference} ${hoistedName} = ${sourceName};`
-                : `${indent}final ${reference} ${hoistedName} = ${sourceName};`;
-            if (debug) console.log (`final-hoist retype ${hoistedName} -> ${reference} (source ${sourceName})`);
+            lines[i] = `${indent}${reference} ${hoistedName} = ${sourceName};`;
         }
         return lines.join ('\n');
     }
@@ -4978,25 +3672,25 @@ class NewTranspiler {
 
         const { csharpFolder: javaFolder } = options
 
-        const javaName = filename.replace('.ts', '.java')
-
         const fileNameNoExt = filename.replace('.ts', '')
-
-        const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest'), tsPath))
-        javaSource = nativeJavaMapLocalsRetype(javaSource)
-        javaSource = nativeJavaCoreArgIdentities(javaSource)
-        javaSource = nativeJavaNumberParamCompare(javaSource)
-        javaSource = nativeJavaWsOrderBookContainers(javaSource)
-        javaSource = nativeJavaBoxLocalsCoreArgs(javaSource)
-        javaSource = nativeJavaNumberProvenCompare(javaSource)
-        javaSource = nativeJavaMapLocalOps(javaSource)
-        javaSource = nativeJavaRemainingCoreArgs(javaSource)
-        javaSource = nativeJavaInlineDivModNeg(javaSource)
-        javaSource = nativeJavaInlineCompare(javaSource)
-        javaSource = nativeJavaContainerOps(javaSource)
+        const nativePasses = [
+            nativeJavaMapLocalsRetype, nativeJavaCoreArgIdentities, nativeJavaNumberParamCompare, nativeJavaWsOrderBookContainers,
+            nativeJavaBoxLocalsCoreArgs, nativeJavaNumberProvenCompare, nativeJavaMapLocalOps, nativeJavaRemainingCoreArgs,
+            nativeJavaInlineDivModNeg, nativeJavaInlineCompare, nativeJavaContainerOps,
+        ];
+        for (const pass of nativePasses) {
+            javaSource = pass(javaSource)
+        }
+        if (ws) {
+            javaSource = nativeJavaWsHandlerDispatch(javaSource)
+        }
+        const apiPath = path.join(javaFolder ?? '', '..', 'api', this.capitalize(fileNameNoExt) + 'Api.java')
+        if (!ws && !prediction && fs.existsSync(apiPath)) {
+            javaSource = nativeJavaLiteralApiDispatch(javaSource, fs.readFileSync(apiPath, 'utf8'))
+        }
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
@@ -5004,87 +3698,6 @@ class NewTranspiler {
         }
     }
 
-    // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToCSharp(outDir: string) {
-
-        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
-        const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
-
-        log.magenta('Transpiling from', (jsFile as any).yellow)
-
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
-        const splitParts = content.split('// --------------------------------------------------------------------------------------------------------------------');
-        splitParts.shift();
-        content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
-        content = this.regexAll(content, [
-            [/typeof\((\w+)\)/g, '$1'], // tmp fix
-            [/object\s*(\w+)\s=\sgetValue\((\w+),\s*"(bids|asks)".+/g, 'var $1 = $2.$3;'], // tmp fix
-            [/object  = functions;/g, ''], // tmp fix
-            [/\s*public\sobject\sequals(([^}]|\n)+)+}/gm, ''], // remove equals
-            [/assert/g, 'Assert'],
-        ]).trim()
-
-        const contentLines = content.split('\n');
-        const contentIdented = contentLines.map(line => '        ' + line).join('\n');
-
-        const file = [
-            'using ccxt.pro;',
-            'namespace Tests;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
-        ].join('\n')
-
-        log.magenta('→', (csharpFile as any).yellow)
-
-        overwriteFileAndFolder(csharpFile, file);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToCSharp(outDir: string) {
-
-        const jsFile = './ts/src/pro/test/base/test.cache.ts';
-        const csharpFile = `${outDir}/Ws/test.cache.cs`;
-
-        log.magenta('Transpiling from', (jsFile as any).yellow)
-
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
-        const splitParts = content.split('// ----------------------------------------------------------------------------');
-        splitParts.shift();
-        content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
-        content = this.regexAll(content, [
-            [/typeof\((\w+)\)/g, '$1'], // tmp fix
-            [/typeof\(timestampCache\)/g, 'timestampCache'], // tmp fix
-            [/object  = functions;/g, ''], // tmp fix
-            [/\s*public\sobject\sequals(([^}]|\n)+)+}/gm, ''], // remove equals
-            [/assert/g, 'Assert'],
-        ]).trim()
-
-        const contentLines = content.split('\n');
-        const contentIdented = contentLines.map(line => '        ' + line).join('\n');
-
-        const file = [
-            'using ccxt.pro;',
-            'namespace Tests;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
-        ].join('\n')
-
-        log.magenta('→', (csharpFile as any).yellow)
-
-        overwriteFileAndFolder(csharpFile, file);
-    }
-
-    // ---------------------------------------------------------------------------------------------
 
     transpileCryptoTestsToJava(outDir: string, force = true) {
 
@@ -5104,7 +3717,6 @@ class NewTranspiler {
             [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`],
             [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`], // quick fix to replace twice
             [/assert/g, 'Assert'],
-            // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim()
 
         const contentLines = content.split('\n');
@@ -5125,64 +3737,6 @@ class NewTranspiler {
         log.magenta('→', (csharpFile as any).yellow)
 
         overwriteFileAndFolder(csharpFile, file);
-    }
-
-    transpileExchangeTest(name: string, path: string): [string, string] {
-        const java = this.transpiler.transpileJavaByPath(path);
-        let content = java.content;
-
-        const parsedName = name.replace('.ts', '');
-        const parsedParts = parsedName.split('.');
-        const finalName = parsedParts[0] + this.capitalize(parsedParts[1]);
-
-        content = this.regexAll(content, [
-            [/assert/g, 'Assert'],
-            [/object exchange/g, 'Exchange exchange'],
-            [/function test/g, finalName],
-        ]).trim()
-        // cast callDynamically to CompletableFuture when .join() is called on the result
-        content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-
-        const contentLines = content.split('\n');
-        const contentIdented = contentLines.map(line => '    ' + line).join('\n');
-
-        const className = 'Test' + this.capitalize(parsedName.replace('test.', ''))
-        const file = [
-            'package tests.exchange;',
-            'import io.github.ccxt.Helpers;',
-            'import io.github.ccxt.Exchange;',
-            JAVA_ASYNC_SUPPLIER_IMPORT,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            `public class ${className} {`,
-            contentIdented,
-            '}',
-        ].join('\n')
-        return [className, file];
-    }
-
-    async transpileExchangeTestsToJava() {
-        const inputDir = './ts/src/test/exchange/';
-        const outDir = GENERATED_TESTS_FOLDER;
-        const ignore = [
-            // 'exportTests.ts',
-            // 'test.fetchLedger.ts',
-            'test.throttler.ts',
-            // 'test.fetchOrderBooks.ts', // uses spread operator
-        ]
-
-        const inputFiles = fs.readdirSync('./ts/src/test/exchange');
-        const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file));
-        const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all(transpiledFiles.map((file, idx) => writeFile(outDir + file[0] + '.java', file[1])))
-    }
-
-    transpileBaseTestsToJava(force = true) {
-        const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir, force);
-        this.transpileCryptoTestsToJava(outDir, force);
-        // this.transpileWsCacheTestsToCSharp(outDir);
-        // this.transpileWsOrderbookTestsToCSharp(outDir);
     }
 
     transpileBaseTests(outDir: string, force = true) {
@@ -5220,16 +3774,11 @@ class NewTranspiler {
                 [/\s*public\sObject\sequals(([^}]|\n)+)+}/gm, ''], // remove equals
                 [/testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual'], // deepEqual added
             ]).trim()
-        // cast callDynamically to CompletableFuture when .join() is called on the result
-        content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Strip parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`.
-        // ast-transpiler 0.0.86 emits this invalid form when destructuring the tuple return
-        // of a method called with its optional trailing arg (handleSubTypeAndParams(..., 'linear')).
-        // Java never needs parens around the callee. Anchored on `)(` right after the name so
-        // it never touches the valid whole-call form `(this.watch(...)).join()`.
-        content = content.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
-            // Null-safe Array.isArray (see Helpers.isArrayJs comment).
-            content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
+            // cast callDynamically to CompletableFuture when .join() is called on the result
+            content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+            // Strip parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`
+            content = content.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
+            // Null-safe Array.isArray (see Helpers.isArrayJs).
 
             if (correctedTestName === 'TestInit') {
                 content = this.regexAll(content, [
@@ -5333,7 +3882,6 @@ class NewTranspiler {
         log.magenta('[java] Transpiling from', files.tsFile.yellow)
         // by path, so the program includes the base Exchange the `any`-typed receivers bind to
         const java = this.transpiler.transpileJavaByPath(files.tsFile);
-        // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = java.content;
 
 
@@ -5367,7 +3915,6 @@ class NewTranspiler {
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).
-        contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
         contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
 
         const file = [
@@ -5523,12 +4070,8 @@ class NewTranspiler {
                 ]);
             }
 
-            // Java's System.out.println accepts a single argument; the transpiled
-            // output of `console.log(a, b, c)` is `System.out.println(a, b, c)`,
-            // which doesn't compile. Collapse multi-arg println calls into a
-            // single space-separated string. Walks paren depth and respects
-            // string literals so that `()` inside a quoted message doesn't
-            // confuse the matcher.
+            // Java's System.out.println accepts a single argument: collapse multi-arg println calls
+            // into one space-separated string (paren-depth and string-literal aware)
             {
                 let cursor = 0;
                 let rebuilt = '';
@@ -5540,12 +4083,7 @@ class NewTranspiler {
                     }
                     rebuilt += contentIndentend.slice(cursor, found.start);
                     const parts = splitTopLevelArgs(found.args);
-                    if (parts.length <= 1) {
-                        rebuilt += `System.out.println(${found.args})`;
-                    } else {
-                        const joined = parts.map(p => `String.valueOf(${p.trim()})`).join(' + " " + ');
-                        rebuilt += `System.out.println(${joined})`;
-                    }
+                    rebuilt += parts.length <= 1 ? `System.out.println(${found.args})` : `System.out.println(${parts.map(p => `String.valueOf(${p.trim()})`).join(' + " " + ')})`;
                     cursor = found.end;
                 }
                 contentIndentend = rebuilt;
@@ -5558,8 +4096,7 @@ class NewTranspiler {
 
             contentIndentend = this.regexAll(contentIndentend, regexes)
             // cast callDynamically to CompletableFuture when .join() is called on the result.
-            // The simple regex form only handles one level of nested parens; some WS tests
-            // pass arrays-of-lists which the regex can't reach, so do a paren-counting pass too.
+            // The simple regex form only handles one level of nested parens, so a paren-counting pass follows.
             contentIndentend = contentIndentend.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
             {
                 const marker = '(Helpers.callDynamically(';
@@ -5583,11 +4120,10 @@ class NewTranspiler {
                         else if (ch === ')') depth--;
                         i++;
                     }
-                    // i now points one past the inner closing `)`. Need to also match `).join()`.
+                    // i is one past the inner closing `)`; the outer `).join()` must follow
                     if (depth === 0 && contentIndentend.slice(i, i + 8) === ').join()') {
-                        const args = contentIndentend.slice(start + marker.length, i - 1);
                         rebuilt += contentIndentend.slice(cursor, start);
-                        rebuilt += `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(${args})).join()`;
+                        rebuilt += `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(${contentIndentend.slice(start + marker.length, i - 1)})).join()`;
                         cursor = i + 8;
                     } else {
                         rebuilt += contentIndentend.slice(cursor, start + 1);
@@ -5597,7 +4133,6 @@ class NewTranspiler {
                 contentIndentend = rebuilt;
             }
             // Null-safe Array.isArray (see Helpers.isArrayJs).
-            contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
             if (!isWs) {
                 // late-bind awaited unified-method calls: the exchange param is BaseExchange
                 // (common tier base) but fetchTicker/createOrder/… live on the concrete tiers,
@@ -5610,7 +4145,6 @@ class NewTranspiler {
             } else {
                 contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
             }
-            // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
 
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
             const packageName = isWs ? 'tests.exchange.ws' : 'tests.exchange';
@@ -5635,7 +4169,6 @@ class NewTranspiler {
                     [/public (java\.util\.concurrent\.CompletableFuture<\w+>) /g, 'public static $1 '], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
-                // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
                 java = [
                     ...fileHeaders,
                     contentIndentend,
@@ -5666,7 +4199,8 @@ class NewTranspiler {
         // promises floating meant transpileEverything logged "Transpiled successfully" and
         // runMain started transpileWS with ~84 test files still in flight — three root sets
         // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
-        await this.transpileBaseTestsToJava(force);
+        this.transpileBaseTests(BASE_TESTS_FOLDER, force);
+        this.transpileCryptoTestsToJava(BASE_TESTS_FOLDER, force);
         const baseTestsOnly = process.argv.includes('--baseTests')
         if (baseTestsOnly) return;
         await this.transpileExchangeTests(force);
@@ -5702,33 +4236,15 @@ function auditGit (repo: string, args: string[]): string {
     return execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
 }
 
-// `((String)<balanced-expr>)` -> `<balanced-expr>`; `foo((String)x)` is a call, not a wrapper
-function auditStripWrappedStringCasts (s: string): string {
-    const open = '((String)';
-    for (;;) {
-        let at = -1;
-        for (let k = s.indexOf(open); k !== -1; k = s.indexOf(open, k + 1)) {
-            if (k === 0 || !/[A-Za-z0-9_$]/.test(s[k - 1])) { at = k; break; }
-        }
-        if (at === -1) return s;
-        let depth = 1, j = at + open.length, closed = -1;
-        for (; j < s.length; j++) {
-            const ch = s[j];
-            if (ch === '"') { j++; while (j < s.length && s[j] !== '"') { if (s[j] === '\\') j++; j++; } continue; }
-            if (ch === '(') depth++;
-            else if (ch === ')') { depth--; if (depth === 0) { closed = j; break; } }
-        }
-        if (closed === -1) return s;
-        s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
-    }
-}
-// `F(<balanced-expr>)` -> `<balanced-expr>` for the two truthiness wrappers the handle* tuple
-// coercion (build/java-local-types.js section 4b) injects on the element write; the read spellings
-// themselves are untouched by that section, so both sides strip symmetrically
-function auditStripTruthinessCoercion (s: string): string {
-    for (const open of ['Boolean.TRUE.equals(', 'Helpers.isTrue(']) {
+// `<open><balanced-expr>)` -> `<balanced-expr>` per rule in order: `((String)x)` wrappers (`foo((String)x)` is a
+// call, not a wrapper) and the two truthiness wrappers the handle* tuple coercion (build/java-local-types.js
+// section 4b) injects on the element write; the read spellings are untouched, so both sides strip symmetrically
+const AUDIT_STRIP_WRAPPERS: [string, RegExp | undefined][] = [ [ '((String)', /[A-Za-z0-9_$]/ ], [ 'Boolean.TRUE.equals(', undefined ], [ 'Helpers.isTrue(', undefined ] ];
+function auditStripCasts (s: string): string {
+    for (const [ open, word ] of AUDIT_STRIP_WRAPPERS) {
         for (;;) {
-            const at = s.indexOf(open);
+            let at = s.indexOf(open);
+            while (word && at > 0 && word.test(s[at - 1])) at = s.indexOf(open, at + 1);
             if (at === -1) break;
             let depth = 1, j = at + open.length, closed = -1;
             for (; j < s.length; j++) {
@@ -5741,10 +4257,7 @@ function auditStripTruthinessCoercion (s: string): string {
             s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
         }
     }
-    return s;
-}
-function auditStripCasts (s: string): string {
-    return auditStripTruthinessCoercion(auditStripWrappedStringCasts(s))
+    return s
         .replace(/\(String\)[ \t]*/g, '')
         .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, '')
         .replace(/([(,=] ?)\(([A-Za-z_$][A-Za-z0-9_$]*)\)(?=[,;)])/g, '$1$2');
@@ -5864,6 +4377,50 @@ function auditClassify (repo: string, target: string | null, files: Map<string, 
 }
 
 // synthetic repo: the gate must flag an injected ternary and an 'other' edit, and pass a clean retype
+// Writes throwaway ts/src probe files (first one transpiled), lets `check` inspect the Java, then removes them
+function probeSelfTest (files: [string, string[]][], check: (out: string, problems: string[]) => void, threw = 'self-test threw'): string[] {
+    const problems: string[] = [];
+    const paths = files.map(([ name ]) => path.join(process.cwd(), 'ts', 'src', `${name}${process.pid}.ts`));
+    try {
+        files.forEach(([ , lines ], i) => fs.writeFileSync(paths[i], lines.join('\n')));
+        check(new NewTranspiler().transpiler.transpileJavaByPath(paths[0]).content as string, problems);
+    } catch (e: any) {
+        problems.push(`${threw}: ${e.message}`);
+    } finally {
+        for (const p of paths) fs.rmSync(p, { force: true });
+    }
+    return problems;
+}
+
+type SnippetCase = [string, string, string | undefined];
+
+// expect set: pass(wrap(body)) must include it and satisfy `extra`; unset: it must equal `unchanged(body)`
+function runSnippetCases (cases: SnippetCase[], wrap: (body: string) => string, pass: (src: string) => string, label: (name: string, out: string) => string, unchanged = wrap, extra = (out: string) => true): string[] {
+    const problems: string[] = [];
+    for (const [ name, body, expect ] of cases) {
+        const out = pass (wrap (body));
+        const ok = expect === undefined ? out === unchanged (body) : out.includes (expect) && extra (out);
+        if (!ok) problems.push (label (name, out));
+    }
+    return problems;
+}
+
+// [regex(es), mustMatch, message]: mustMatch fails unless every regex matches, else fails if any matches
+type JavaProbeCheck = [RegExp | RegExp[], boolean, string];
+type JavaProbeSpec = { cls?: string, members?: string[], files?: [string, string[]][], checks: JavaProbeCheck[], threw?: string, output?: boolean };
+
+// probeSelfTest over a binance-derived class `cls` holding `members` (or explicit `files`); `output` appends the Java on failure
+function javaProbeCases (spec: JavaProbeSpec): string[] {
+    const files = spec.files ?? [ [ spec.cls ?? '', [ "import Exchange from './abstract/binance.js';", `export default class ${spec.cls} extends Exchange {`, ...spec.members ?? [], '}' ] ] ];
+    return probeSelfTest(files, (out, problems) => {
+        for (const [ rx, mustMatch, message ] of spec.checks) {
+            const rxs = Array.isArray(rx) ? rx : [ rx ];
+            if (mustMatch ? !rxs.every((r) => r.test(out)) : rxs.some((r) => r.test(out))) problems.push(message);
+        }
+        if (spec.output && problems.length) problems.push('output:\n' + out);
+    }, spec.threw);
+}
+
 function auditSelfTest (): string[] {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'java-string-audit-'));
     const problems: string[] = [];
@@ -5905,7 +4462,81 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest(), javaR92j2MarketTypeParamsSelfTest(), javaR92j2SlotHandOffSelfTest(), javaR92j2ElementMapWritesSelfTest(), javaR92j2StringSlotLocalsSelfTest(), javaR92j4NullSeedConsumerSelfTest(), javaR92j8LocalsSelfTest(), javaR93j2ListLocalsSelfTest(), javaR93j8LocalsSelfTest());
+    const wired = [
+        mapLocalsSelfTest,
+        javaFreshObjectMapWritesSelfTest,
+        javaPredictionMapLocalsSelfTest,
+        javaFreshMapParameterSelfTest,
+        javaCounterLocalsSelfTest,
+        javaMapLocalsSelfTest,
+        javaTypedArithmeticSelfTest,
+        javaParamTypesSelfTest,
+        javaListLocalsSelfTest,
+        javaScalarLocalsSelfTest,
+        javaParamTypesPreScanSelfTest,
+        javaStringReturnsSelfTest,
+        javaNonNullCompareSelfTest,
+        javaParamCompareSelfTest,
+        javaCoreArgIdentitiesSelfTest,
+        javaPrimitiveArithmeticSelfTest,
+        javaNumericLocalsRetypeSelfTest,
+        javaMapLocalsRetypeSelfTest,
+        javaNumberParamCompareSelfTest,
+        javaWsOrderBookContainersSelfTest,
+        javaBoxLocalsCoreArgsSelfTest,
+        javaIntegralMultiplySubtractSelfTest,
+        javaNumberDivModNegSelfTest,
+        javaInlineDivModNegSelfTest,
+        javaInlineCompareSelfTest,
+        javaContainerOpsSelfTest,
+        javaCoreArgHelpersSelfTest,
+        javaIsEqualSelfTest,
+        x21SelfTest,
+        x22SelfTest,
+        javaPaginationCursorSelfTest,
+        javaNonNullMapPutsSelfTest,
+        javaTypedCoreDirectReturnSelfTest,
+        javaR77j2ConditionalLocalsSelfTest,
+        javaNullSeedJoinSelfTest,
+        javaBaseProducerLocalsSelfTest,
+        j6ReaderLocalsSelfTest,
+        javaJ8CopyLocalsSelfTest,
+        javaR84j1StringElementLocalsSelfTest,
+        javaR84j2ContainerLocalsSelfTest,
+        javaR84j2GuardedListLocalsSelfTest,
+        javaR84j2MapConditionalLocalsSelfTest,
+        javaR84j4NullSeedSelfTest,
+        javaR84j5CalleeReturnsSelfTest,
+        javaR87j5CalleeReturnsSelfTest,
+        j84j6TrueOnlyLocalsSelfTest,
+        javaR84j8LocalsSelfTest,
+        javaR87j2WsLocalsSelfTest,
+        javaR87j2LengthListLocalsSelfTest,
+        javaR87j2UrlLocalsSelfTest,
+        javaR87j4SplitSeedSelfTest,
+        javaR87j8LocalsSelfTest,
+        javaR90j2ElementListLocalsSelfTest,
+        javaR90j2PromiseAllLocalsSelfTest,
+        javaR90j2ElementMapLocalsSelfTest,
+        javaR90j2ElementMapSlotSelfTest,
+        javaR90j4NullSeedSelfTest,
+        javaR90j6ReaderLocalsSelfTest,
+        javaR90j8LocalsSelfTest,
+        javaR92j2MarketTypeParamsSelfTest,
+        javaR92j2SlotHandOffSelfTest,
+        javaR92j2ElementMapWritesSelfTest,
+        javaR92j2StringSlotLocalsSelfTest,
+        javaR92j4NullSeedConsumerSelfTest,
+        javaR92j8LocalsSelfTest,
+        javaR93j2ListLocalsSelfTest,
+        javaR93j8LocalsSelfTest,
+        javaH26J03AsDictReaderSelfTest,
+        h27J05HoistPureValuesSelfTest,
+        h28J05HoistSelfTest,
+        h29J05HoistSelfTest,
+        h30J05HoistSelfTest,
+    ];
+    return problems.concat(...wired.map((selfTest) => selfTest()));
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -6466,6 +5097,54 @@ function javaFreshObjectMapWritesSelfTest (): string[] {
     return problems;
 }
 
+// a prediction-venue const fed by a fresh-map producer up the abstract chain types Map and puts natively
+function javaPredictionMapLocalsSelfTest (): string[] {
+    const M = '(?:java\\.util\\.)?Map<String, Object>';
+    return javaProbeCases({ files: [ [ 'prediction/zzpredmapselftest', [ "import Exchange from '../abstract/prediction/kalshi.js';", 'export default class zzpredmapselftest extends Exchange {',
+        "    fresh (r: any) { const a = this.safePredictionOrder ({ 'id': r }); a['status'] = 'open'; a['x'] = r; return a; }",
+        "    parseOwn (r: any) { return this.safePredictionOrder ({ 'id': r }); }",
+        "    viaVenue (r: any) { const b = this.parseOwn (r); b['status'] = r; return b; }",
+        "    unwritten (r: any) { const c = this.safePredictionOrder ({ 'id': r }); return this.safeString (c, 'id'); }",
+        "    unknown (r: any) { const d = this.parsePredictionOrder (r); d['status'] = r; return d; }",
+        "    keyed (r: any, k: any) { const e = this.safePredictionOrder ({ 'id': r }); e[k] = 1; return e; }",
+        '}' ] ] ], checks: [
+        [ [ new RegExp(`${M} a = \\(${M}\\) this\\.safePredictionOrder\\(`), /\ba\.put\("status", "open"\)/, /\ba\.put\("x", r\)/ ], true, "prediction map locals: 'a' must type Map and put natively" ],
+        [ [ new RegExp(`${M} b = `), /\bb\.put\("status", r\)/ ], true, "prediction map locals: 'b' (venue fresh producer) must put natively" ],
+        [ new RegExp(`${M} c = \\(`), false, "prediction map locals: 'c' has no element write and must not gain a cast" ],
+        [ /Helpers\.addElementToObject\(d, "status", r\)/, true, "prediction map locals: 'd' (base parsePredictionOrder, not a fresh producer) must keep the helper" ],
+        [ /Helpers\.addElementToObject\(e, /, true, "prediction map locals: 'e' (any key) must keep the helper" ],
+    ] });
+}
+
+// a never-written Dict parameter fed only const object literals from its own file puts natively
+function javaFreshMapParameterSelfTest (): string[] {
+    const cls = 'zzfreshparamselftest';
+    return javaProbeCases({ files: [ [ cls, [ "import Exchange from './abstract/binance.js';", "import type { Dict } from './base/types.js';", `export default class ${cls} extends Exchange {`,
+        "    zzBuildA (request: Dict, v: any) { request['k'] = v; return request; }",
+        "    zzCallA (v: any) { const request: Dict = { 'a': 1 }; return this.zzBuildA (request, v); }",
+        "    zzBuildB (request: Dict, v: any) { request['k'] = v; return request; }",
+        "    zzCallB (v: any, params: Dict = {}) { const request: Dict = { 'a': 1 }; this.zzBuildB (request, v); return this.zzBuildB (params, v); }",
+        "    zzBuildC (request: Dict, v: any) { request = this.extend (request, {}); request['k'] = v; return request; }",
+        "    zzCallC (v: any) { const request: Dict = { 'a': 1 }; return this.zzBuildC (request, v); }",
+    '}' ] ] ], checks: [
+        [ /\brequest\.put\("k", v\);\s*return request;\s*}\s*public Object zzCallA/, true, "fresh param: 'zzBuildA' request must put natively" ],
+        [ /zzBuildB[\s\S]*?Helpers\.addElementToObject\(request, "k", v\)/, true, "fresh param: 'zzBuildB' (a params caller) must keep the helper" ],
+        [ /zzBuildC[\s\S]*?Helpers\.addElementToObject\(request, "k", v\)/, true, "fresh param: 'zzBuildC' (written param) must keep the helper" ],
+    ] });
+}
+
+// a declared-Map receiver written with a never-null value puts natively; a nullable value keeps the helper
+function javaNonNullMapPutsSelfTest (): string[] {
+    const cls = 'zznonnullputselftest';
+    return javaProbeCases({ files: [ [ cls, [ "import Exchange from './abstract/binance.js';", "import type { Dict, Str } from './base/types.js';", `export default class ${cls} extends Exchange {`,
+        "    zzEnc (t: Str): Str { const m: Dict = { 'a': 'A' }; return this.safeString (m, t, t); }",
+        "    zzPut (symbol: Str, price: any, t: Str, params: Dict = {}) { if (price !== undefined) { params['p'] = this.priceToPrecision (symbol, price); } const kind = this.safeString (params, 'kind'); if (kind !== undefined) { params['k'] = this.zzEnc (kind); } params['d'] = this.safeString (params, 'd', 'x'); params['n'] = this.safeString (params, 'n'); params['q'] = this.priceToPrecision (symbol, price); return params; }",
+    '}' ] ] ], checks: [
+        [ [ /parameters\.put\("p", this\.priceToPrecision\(/, /parameters\.put\("k", this\.zzEnc\(/, /parameters\.put\("d", this\.safeString\(/ ], true, "non-null puts: guarded / defaulted values must put natively" ],
+        [ [ /Helpers\.addElementToObject\(parameters, "n", /, /Helpers\.addElementToObject\(parameters, "q", / ], true, "non-null puts: nullable values must keep the helper" ],
+    ], output: true });
+}
+
 function runStringTypeAudit (): void {
     const argv = process.argv.slice(2);
     const flag = (name: string) => { const i = argv.indexOf(name); return i === -1 ? undefined : argv[i + 1]; };
@@ -6546,12 +5225,11 @@ async function runMain() {
 // plain HashMap filled in argument order; the map is unreachable until filled, so order is moot.
 const JAVA_NEW_MAP_DECL_HEAD = /^(\s*)(?:(Map<String, Object>|java\.util\.Map<String, Object>) ([A-Za-z_$][\w$]*) = |return )Helpers\.newMap\(/;
 
-// top-level args of the call opened at `start` (index after `(`): [{text, comment}] + end index after `)`
-function newMapScanArgs (src: string, start: number): { args: { text: string, comment: string }[], end: number } | undefined {
-    const args: { text: string, comment: string }[] = [];
+// top-level args of the call opened at `start` (index after `(`) + end index after `)`; comments fail closed
+function newMapScanArgs (src: string, start: number): { args: string[], end: number } | undefined {
+    const args: string[] = [];
     let depth = 0;
     let buf = '';
-    let comment = '';
     for (let i = start; i < src.length; i++) {
         const ch = src[i];
         if (ch === '"' || ch === '\'') {
@@ -6565,18 +5243,7 @@ function newMapScanArgs (src: string, start: number): { args: { text: string, co
             i = j;
             continue;
         }
-        if (ch === '/' && src[i + 1] === '*') return undefined;
-        if (ch === '/' && src[i + 1] === '/') {
-            const nl = src.indexOf ('\n', i);
-            if (depth !== 0 || nl < 0) return undefined; // comment inside a nested value
-            const text = src.slice (i, nl).trim ();
-            // `v // c` (last pair) is the open arg's; `v, // c` the previous one's
-            if (buf.trim () !== '') comment += (comment ? ' ' : '') + text;
-            else if (args.length > 0) args[args.length - 1].comment += (args[args.length - 1].comment ? ' ' : '') + text;
-            else return undefined;
-            i = nl - 1;
-            continue;
-        }
+        if (ch === '/' && (src[i + 1] === '*' || src[i + 1] === '/')) return undefined;
         // a type argument list (`HashMap<String, Object>(`, `(Map<String, Object>) x`) is one atom
         const generic = ch === '<' && /[\w$]$/.test (buf) ? /^<[\w$.?, <>]*>(?=[(\[)])/.exec (src.slice (i, i + 200)) : null;
         if (generic !== null) { buf += generic[0]; i += generic[0].length - 1; continue; }
@@ -6584,21 +5251,31 @@ function newMapScanArgs (src: string, start: number): { args: { text: string, co
         else if (ch === ')' || ch === ']' || ch === '}') {
             if (depth === 0) {
                 if (ch !== ')') return undefined;
-                if (buf.trim () !== '') args.push ({ text: buf, comment });
+                if (buf.trim () !== '') args.push (buf);
                 else if (args.length > 0) return undefined; // trailing comma
                 return { args, end: i + 1 };
             }
             depth--;
         }
         if (ch === ',' && depth === 0) {
-            args.push ({ text: buf, comment });
+            args.push (buf);
             buf = '';
-            comment = '';
             continue;
         }
         buf += ch;
     }
     return undefined;
+}
+
+// the even-arity, literal-keyed `Helpers.newMap(` call whose args open at `head` on lines[i] and end in `;` + EOL:
+// trimmed args + the number of lines it spans, else undefined (fail closed)
+function newMapPairsAt (lines: string[], i: number, head: number): { pairs: string[], consumed: number } | undefined {
+    const rest = lines.slice (i).join ('\n');
+    const scan = newMapScanArgs (rest, head);
+    const tail = scan === undefined ? null : /^;[ \t]*(?=\n|$)/.exec (rest.slice (scan.end));
+    if (scan === undefined || tail === null || scan.args.length === 0 || scan.args.length % 2 !== 0) return undefined;
+    if (!scan.args.every ((a, k) => k % 2 === 1 || /^\s*"(?:[^"\\]|\\.)*"\s*$/.test (a))) return undefined;
+    return { pairs: scan.args.map ((a) => a.trim ()), consumed: rest.slice (0, scan.end + tail[0].length).split ('\n').length };
 }
 
 export function nativeJavaTopLevelNewMap (content: string): string {
@@ -6607,34 +5284,16 @@ export function nativeJavaTopLevelNewMap (content: string): string {
     let temp = 0;
     for (let i = 0; i < lines.length; i++) {
         const m = JAVA_NEW_MAP_DECL_HEAD.exec (lines[i]);
-        if (m === null) { out.push (lines[i]); continue; }
-        const rest = lines.slice (i).join ('\n');
-        const scan = newMapScanArgs (rest, m[0].length);
-        const tail = scan === undefined ? undefined : /^;[ \t]*(\/\/[^\n]*)?(?=\n|$)/.exec (rest.slice (scan.end));
-        const pairs = scan?.args ?? [];
-        // fail closed: odd arity, non-literal keys, comments the scan cannot place
-        const ok = scan !== undefined && tail !== null && pairs.length > 0 && pairs.length % 2 === 0
-            && pairs.every ((a, k) => k % 2 === 1 || (/^\s*"(?:[^"\\]|\\.)*"\s*$/.test (a.text) && a.comment === ''));
-        if (!ok) { out.push (lines[i]); continue; }
+        const map = m === null ? undefined : newMapPairsAt (lines, i, m[0].length);
+        if (m === null || map === undefined) { out.push (lines[i]); continue; }
         const indent = m[1];
         const inner = m[3] === undefined ? indent + '    ' : indent;
         const name = m[3] ?? ('h2kMap' + (temp++));
-        const block: string[] = [];
-        if (m[3] === undefined) block.push (indent + '{');
-        block.push (`${inner}${m[2] ?? 'java.util.HashMap<String, Object>'} ${name} = new java.util.HashMap<String, Object>();`);
-        for (let k = 0; k < pairs.length; k += 2) {
-            const v = pairs[k + 1];
-            block.push (`${inner}${name}.put(${pairs[k].text.trim ()}, ${v.text.trim ()});${v.comment ? ' ' + v.comment : ''}`);
-        }
-        if (m[3] === undefined) {
-            block.push (`${inner}return ${name};${tail![1] ? ' ' + tail![1] : ''}`);
-            block.push (indent + '}');
-        } else if (tail![1]) {
-            block[0] += ' ' + tail![1];
-        }
-        out.push (...block);
-        const consumed = rest.slice (0, scan!.end + tail![0].length).split ('\n').length;
-        i += consumed - 1;
+        if (m[3] === undefined) out.push (indent + '{');
+        out.push (`${inner}${m[2] ?? 'java.util.HashMap<String, Object>'} ${name} = new java.util.HashMap<String, Object>();`);
+        for (let k = 0; k < map.pairs.length; k += 2) out.push (`${inner}${name}.put(${map.pairs[k]}, ${map.pairs[k + 1]});`);
+        if (m[3] === undefined) out.push (`${inner}return ${name};`, indent + '}');
+        i += map.consumed - 1;
     }
     return out.join ('\n');
 }
@@ -6676,7 +5335,6 @@ function elementReadIntIndex (lines: string[], i: number, key: string): { guard:
         return { guard: '', idx: key };
     }
     const t = elementReadDeclaredTypeOf(lines, i, key);
-    if (t === 'int') return { guard: '', idx: key };
     if (t === 'long') return { guard: '', idx: '((int) ' + key + ')' };
     if (t === 'Long' || t === 'Integer') return { guard: key + ' == null || ', idx: key + '.intValue()' };
     return undefined;
@@ -6816,7 +5474,6 @@ function stringAddIsString (raw: string, m: string, masked: string, pos: number,
         return terms.some(([a, b]) => stringAddIsString(r.slice(a, b), k.slice(a, b), masked, pos, ownMethods));
     }
     if (/^"/.test(r) && k.length === r.length && /^"\s*"$/.test(k)) { return true; }
-    if (/^\(String\)/.test(k)) { return stringAddIsPrimary(k.slice('(String)'.length)); }
     const field = /^this\.([A-Za-z_]\w*)$/.exec(k);
     if (field !== null) { return JS_STRING_MEMBER_FIELDS.has(field[1]) && !ownMethods.has('field:' + field[1]); }
     const call = JAVA_STRING_PRODUCER_CALLS.exec(k) || /^(String)\.valueOf\(/.exec(k);
@@ -6918,7 +5575,8 @@ function orderedCompareStripParens (text: string): string {
 function orderedCompareDeclaredType (member: string, name: string, fields: Set<string>): { kind: string, boxed: boolean } | undefined {
     if (fields.has (name)) return undefined;
     const esc = name.replace (/\$/g, '\\$');
-    const decl = new RegExp ('(?:^|[\\s(,])([\\w.$]+(?:<[\\w.<>, ?]*>)?(?:\\[\\])?)\\s+' + esc + '\\s*(=|;|,|\\)|:)', 'gm');
+    // type and name on one line: a comment line ending in a word is not the type of the next line's write
+    const decl = new RegExp ('(?:^|[\\s(,])([\\w.$]+(?:<[\\w.<>, ?]*>)?(?:\\[\\])?)[ \\t]+' + esc + '\\s*(=|;|,|\\)|:)', 'gm');
     const found: string[] = [];
     let m;
     while ((m = decl.exec (member)) !== null) {
@@ -6971,47 +5629,78 @@ function orderedCompareNative (helper: string, l, r): string | undefined {
     return undefined;
 }
 
-export function nativeJavaOrderedComparisons (content: string): string {
-    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
-    const lines = content.split ('\n');
+// names of the fields a printed Java class declares (4-space member lines ending in `=` or `;`)
+function javaClassFields (lines: string[]): Set<string> {
     const fields = new Set<string> ();
     for (const line of lines) {
         const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
         if (f !== null) fields.add (f[1]);
     }
+    return fields;
+}
+
+// line indexes of the printed class's member heads; `withParen` keeps only method/ctor heads
+function javaMemberStarts (lines: string[], withParen = false, from = 0): number[] {
+    const head = withParen ? /^    (?:public|private|protected)\b.*\(/ : /^    (?:public|private|protected)\b/;
     const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
+    for (let i = from; i < lines.length; i++) if (head.test (lines[i])) starts.push (i);
+    return starts;
+}
+
+// rewrites each member of a printed class; text before the first member is kept. undefined: no member
+function mapJavaMembers (content: string, withParen: boolean, rewrite: (member: string) => string): string | undefined {
+    const lines = content.split ('\n');
+    const starts = javaMemberStarts (lines, withParen);
+    if (starts.length === 0) return undefined;
+    starts.push (lines.length);
+    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (rewrite (lines.slice (starts[s], starts[s + 1]).join ('\n')));
+    return parts.join ('\n');
+}
+
+// innermost-last rewrite of the two-argument helper calls `re` finds on one printed line: the line is
+// re-scanned after every rewrite; comment lines are kept
+function rewriteHelperCalls (line: string, re: RegExp, native: (m: RegExpExecArray, args: string[], line: string) => string | undefined): string {
+    const trimmed = line.trim ();
+    if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) return line;
+    for (let again = true; again;) {
+        again = false;
+        re.lastIndex = 0;
+        let m;
+        while ((m = re.exec (line)) !== null) {
+            const split = orderedCompareSplitArgs (line, m.index + m[0].length);
+            if (split === undefined || split.args.length !== 2) continue;
+            const text = native (m, split.args, line);
+            if (text === undefined) continue;
+            line = line.slice (0, m.index) + text + line.slice (split.end + 1);
+            again = true;
+            break;
+        }
     }
+    return line;
+}
+
+// the per-member compare skeleton: every method whose text matches `memberRe` gets its `re` calls rewritten
+function rewriteMemberHelperCalls (content: string, re: RegExp, memberRe: RegExp, native: (m: RegExpExecArray, args: string[], member: string, fields: Set<string>) => string | undefined): string {
+    const lines = content.split ('\n');
+    const fields = javaClassFields (lines);
+    const starts = javaMemberStarts (lines, true);
     for (let s = 0; s < starts.length; s++) {
         const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
         const member = lines.slice (from, to).join ('\n');
-        if (!member.includes ('Helpers.is')) continue;
-        for (let i = from; i < to; i++) {
-            const trimmed = lines[i].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[i], again = true;
-            while (again) { // innermost-last: re-scan after each rewrite
-                again = false;
-                ORDERED_COMPARE_CALL.lastIndex = 0;
-                let m;
-                while ((m = ORDERED_COMPARE_CALL.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = orderedCompareOperand (split.args[0], member, fields);
-                    const r = orderedCompareOperand (split.args[1], member, fields);
-                    if (l === undefined || r === undefined) continue;
-                    const native = orderedCompareNative (m[1], l, r);
-                    if (native === undefined) continue;
-                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[i] = line;
-        }
+        if (!memberRe.test (member)) continue;
+        for (let i = from; i < to; i++) lines[i] = rewriteHelperCalls (lines[i], re, (m, args) => native (m, args, member, fields));
     }
     return lines.join ('\n');
+}
+
+export function nativeJavaOrderedComparisons (content: string): string {
+    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
+    return rewriteMemberHelperCalls (content, ORDERED_COMPARE_CALL, /Helpers\.is/, (m, args, member, fields) => {
+        const l = orderedCompareOperand (args[0], member, fields);
+        const r = orderedCompareOperand (args[1], member, fields);
+        return l === undefined || r === undefined ? undefined : orderedCompareNative (m[1], l, r);
+    });
 }
 
 // Native promiseAll / objectValues / opNeg (post-print text pass)
@@ -7035,7 +5724,9 @@ function promiseAllClose (s: string, open: number): number {
 export function javaNestedNewMapStats (): Record<string, number> { return (globalThis as any).__javaNestedNewMapStats ??= {}; }
 function nestedNewMapCount (k: string) { const s = javaNestedNewMapStats (); s[k] = (s[k] || 0) + 1; }
 // base readers that write no state (BaseExchange.java / Exchange.java / java.util)
-function nestedNewMapPureCall (n: string): boolean { return /^(?:this\.(?:safe(?:String|StringLower|StringUpper|Integer|IntegerProduct|Number|Float|Value|Bool|Dict|List|String2|Integer2|Number2|Value2|Bool2|Dict2|List2|StringN|IntegerN|NumberN|ValueN|Timestamp|Timestamp2|TimestampN)|iso8601|parseNumber|numberToString|omitZero)|java\.util\.Objects\.equals|java\.util\.Objects\.requireNonNullElse|Helpers\.newMap|Precise\.string(?:Abs|Mul|Add|Sub|Div))$/.test (n); }
+const NESTED_NEW_MAP_PURE_SAFE = [ 'String', 'StringLower', 'StringUpper', 'Integer', 'IntegerProduct', 'Number', 'Float', 'Value', 'Bool', 'Dict', 'List', 'String2', 'Integer2', 'Number2', 'Value2', 'Bool2', 'Dict2', 'List2', 'StringN', 'IntegerN', 'NumberN', 'ValueN', 'Timestamp', 'Timestamp2', 'TimestampN' ];
+const NESTED_NEW_MAP_PURE_CALL = new RegExp ('^(?:this\\.(?:safe(?:' + NESTED_NEW_MAP_PURE_SAFE.join ('|') + ')|iso8601|parseNumber|numberToString|omitZero)|java\\.util\\.Objects\\.equals|java\\.util\\.Objects\\.requireNonNullElse|Helpers\\.newMap|Precise\\.string(?:Abs|Mul|Add|Sub|Div))$');
+function nestedNewMapPureCall (n: string): boolean { return NESTED_NEW_MAP_PURE_CALL.test (n); }
 
 // blank string/char literals and comments (length-preserving) so brackets can be matched
 function nestedNewMapMask (s: string): string {
@@ -7233,26 +5924,16 @@ export function nativeJavaReassignedNewMap (content: string): string {
     while (content.includes ('hx4NewMap' + temp)) temp++;
     for (let i = 0; i < lines.length; i++) {
         const m = head.exec (lines[i]);
-        if (m === null) { out.push (lines[i]); continue; }
-        const rest = lines.slice (i).join ('\n');
-        const scan = newMapScanArgs (rest, m[0].length);
-        const tail = scan === undefined ? undefined : /^;[ \t]*(\/\/[^\n]*)?(?=\n|$)/.exec (rest.slice (scan.end));
-        const pairs = scan?.args ?? [];
-        const ok = scan !== undefined && tail !== null && pairs.length > 0 && pairs.length % 2 === 0
-            && pairs.every ((a, k) => k % 2 === 1 || (/^\s*"(?:[^"\\]|\\.)*"\s*$/.test (a.text) && a.comment === ''));
-        if (!ok) { out.push (lines[i]); continue; }
+        const map = m === null ? undefined : newMapPairsAt (lines, i, m[0].length);
+        if (m === null || map === undefined) { out.push (lines[i]); continue; }
         const indent = m[1];
         const inner = indent + '    ';
         const name = 'hx4NewMap' + (temp++);
         out.push (indent + '{');
         out.push (`${inner}java.util.HashMap<String, Object> ${name} = new java.util.HashMap<String, Object>();`);
-        for (let k = 0; k < pairs.length; k += 2) {
-            const v = pairs[k + 1];
-            out.push (`${inner}${name}.put(${pairs[k].text.trim ()}, ${v.text.trim ()});${v.comment ? ' ' + v.comment : ''}`);
-        }
-        out.push (`${inner}${m[2]} = ${name};${tail![1] ? ' ' + tail![1] : ''}`);
-        out.push (indent + '}');
-        i += rest.slice (0, scan!.end + tail![0].length).split ('\n').length - 1;
+        for (let k = 0; k < map.pairs.length; k += 2) out.push (`${inner}${name}.put(${map.pairs[k]}, ${map.pairs[k + 1]});`);
+        out.push (`${inner}${m[2]} = ${name};`, indent + '}');
+        i += map.consumed - 1;
     }
     return out.join ('\n');
 }
@@ -7269,147 +5950,81 @@ if (isMainEntry(metaUrl)) {
 
 // Integer-literal counters print `long`; a counter read as a value (map literal, call argument) or captured stays Object
 function javaCounterLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj10selftest${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        'export default class zzj10selftest extends Exchange {',
+    return javaProbeCases({ cls: 'zzj10selftest', members: [
         "    pos (s: string, max: number) { let a = 0; let b = 1; while (a <= max && s[a] === '0') { a = a + 1; } b += 2; b++; return [ a > 3, a === 2, b - 1 ]; }",
         "    neg (params = {}) { let c = 0; c += 1; let d = 0; d = d + 1; const r = { 'page': d }; let e = 0; const f = () => { e = e + 1; }; f (); return [ this.safeString (params, c), r, e > 1 ]; }",
-        '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        for (const name of [ 'a', 'b' ]) {
-            if (!new RegExp(`\\blong ${name} = `).test(out)) problems.push(`counter '${name}' must print long`);
-        }
-        if (!/a = \(a \+ 1L\);/.test(out) || !/b = \(b \+ 2L\);/.test(out)) problems.push('counter writes must print native long arithmetic');
-        for (const name of [ 'c', 'd', 'e' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' is read as a value or captured and must stay Object`);
-        }
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    ], checks: [
+        ...[ 'a', 'b' ].map((n): JavaProbeCheck => [ new RegExp(`\\blong ${n} = `), true, `counter '${n}' must print long` ]),
+        [ [ /a = \(a \+ 1L\);/, /b = \(b \+ 2L\);/ ], true, 'counter writes must print native long arithmetic' ],
+        ...[ 'c', 'd', 'e' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' is read as a value or captured and must stay Object` ]),
+    ] });
 }
 
 // Object locals whose init and every write are Maps print Map<String, Object>; any other write keeps Object
 function javaMapLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj11selftest${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        'export default class zzj11selftest extends Exchange {',
+    return javaProbeCases({ cls: 'zzj11selftest', members: [
         "    omitted (r: any) { let a = this.safeDict (r, 'k', {}); a = this.omit (a, 'x'); a['p'] = 1; return a['q']; }",
         "    fees (info: any) { const b = this.depositWithdrawFee (info); b['info'] = info; return b['networks']; }",
         "    copied (r: any) { const d = this.safeDict (r, 'z', {}); let c = this.safeDict (r, 'k'); if (d['y'] !== undefined) { c = d; } return c['q']; }",
         "    anyWrite (r: any) { let e = this.safeDict (r, 'k', {}); e = this.safeValue (r, 'v'); return e['q']; }",
         "    fieldWrite (code: string) { let f = this.account (); if (code in this.balance) { f = this.balance[code]; } f['free'] = '1'; return f; }",
         "    otherDefault (r: any) { const g = this.safeDict (r, 'k', r); return g['q']; }",
-        '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Map<String, Object> a = (\(java\.util\.Map<String, Object>\) )?this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object>");
-        if (!/Map<String, Object> b = (\(java\.util\.Map<String, Object>\) )?this\.depositWithdrawFee\(/.test(out)) problems.push("'b' (fresh-map method) must print Map<String, Object>");
-        if (!/Map<String, Object> c = /.test(out)) problems.push("'c' (safeDict + Map copy) must print Map<String, Object>");
-        if (/Helpers\.addElementToObject\(a, /.test(out) || /Helpers\.GetValue\(a, /.test(out)) problems.push("'a' put/get must go native");
-        for (const name of [ 'e', 'f', 'g' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
-        }
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    ], checks: [
+        [ /Map<String, Object> a = (\(java\.util\.Map<String, Object>\) )?this\.safeDict\(/, true, "'a' (safeDict + omit-self) must print Map<String, Object>" ],
+        [ /Map<String, Object> b = (\(java\.util\.Map<String, Object>\) )?this\.depositWithdrawFee\(/, true, "'b' (fresh-map method) must print Map<String, Object>" ],
+        [ /Map<String, Object> c = /, true, "'c' (safeDict + Map copy) must print Map<String, Object>" ],
+        [ [ /Helpers\.addElementToObject\(a, /, /Helpers\.GetValue\(a, / ], false, "'a' put/get must go native" ],
+        ...[ 'e', 'f', 'g' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' has an unproven write/default and must stay Object` ]),
+    ] });
 }
 
 // Snippet checks for the native arithmetic pass (`--audit-string-types --self-test`)
 function javaTypedArithmeticSelfTest (): string[] {
-    const problems: string[] = [];
-    {
-        const assert = {
-            ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`arithmetic: ${String (msg).slice (0, 300)}`); } },
-            strictEqual: (a: any, b: any) => { if (a !== b) { problems.push (`arithmetic: ${a} !== ${b}`); } },
-        };
-        const console = { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`arithmetic: ${s.slice (0, 300)}`); } } };
-
-        const member = (body: string) => `    public Object m(Long since, Long limit, Object x)\n    {\n${body}\n    }\n`;
-        const run = (body: string) => nativeJavaTypedArithmetic (member (body));
-        const cases: [string, string, string | undefined][] = [
-            // positives
-            [ 'getArrayLength local', '        Integer n = Helpers.getArrayLength(x);\n        Object a = Helpers.GetValue(x, Helpers.subtract(n, 1));', 'Helpers.GetValue(x, (n - 1L))' ],
-            [ 'block guard', '        if (!java.util.Objects.equals(limit, null))\n        {\n            Object p = Helpers.multiply(limit, 2);\n        }', 'Object p = (limit * 2L);' ],
-            [ 'early exit', '        if (java.util.Objects.equals(since, null))\n        {\n            throw new Error("x") ;\n        }\n        Object e = Helpers.add(this.seconds(), since);', 'Object e = (this.seconds() + since);' ],
-            [ 'all-int widened', '        int d = this.parseTimeframe(x);\n        Object e = this.sum(x, Helpers.multiply(d, d));', 'this.sum(x, (((long) d) * d))' ],
-            [ 'divide as double', '        Long n = 5L;\n        Object e = this.sum(x, Helpers.divide(n, 1000));', 'this.sum(x, (((double) n) / ((double) 1000)))' ],
-            [ 'ternary default', '        Long r = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;\n        Object e = this.sum(x, Helpers.multiply(r, 3));', 'this.sum(x, (r * 3L))' ],
-            // negatives: nullable, unguarded, guard after a later write, ternary arm, Object operand, double operand
-            [ 'nullable param', '        Object p = Helpers.multiply(limit, 2);', undefined ],
-            [ 'safeInteger no default', '        Long v = this.safeInteger(x, "k");\n        Object p = Helpers.subtract(v, 1);', undefined ],
-            [ 'ternary arm', '        Long n = 5L;\n        Object p = (x == null) ? Helpers.add(n, 1) : x;', undefined ],
-            [ 'object operand', '        Object p = Helpers.add(x, 1);', undefined ],
-            [ 'double multiply', '        Double d = 1.5;\n        Object p = this.sum(x, Helpers.multiply(d, 2));', undefined ],
-            [ 'guard then write', '        if (!java.util.Objects.equals(limit, null))\n        {\n            limit = this.safeInteger(x, "k");\n            Object p = Helpers.multiply(limit, 2);\n        }', undefined ],
-        ];
-        let failed = 0;
-        for (const [ name, body, expect ] of cases) {
-            const out = run (body);
-            const ok = expect === undefined ? out === member (body) : out.includes (expect);
-            if (!ok) { failed++; console.log ('FAIL', name, '\n', out); }
-        }
-        assert.strictEqual (failed, 0);
-    }
+    const member = (body: string) => `    public Object m(Long since, Long limit, Object x)\n    {\n${body}\n    }\n`;
+    const cases: [string, string, string | undefined][] = [
+        // positives
+        [ 'getArrayLength local', '        Integer n = Helpers.getArrayLength(x);\n        Object a = Helpers.GetValue(x, Helpers.subtract(n, 1));', 'Helpers.GetValue(x, (n - 1L))' ],
+        [ 'block guard', '        if (!java.util.Objects.equals(limit, null))\n        {\n            Object p = Helpers.multiply(limit, 2);\n        }', 'Object p = (limit * 2L);' ],
+        [ 'early exit', '        if (java.util.Objects.equals(since, null))\n        {\n            throw new Error("x") ;\n        }\n        Object e = Helpers.add(this.seconds(), since);', 'Object e = (this.seconds() + since);' ],
+        [ 'all-int widened', '        int d = this.parseTimeframe(x);\n        Object e = this.sum(x, Helpers.multiply(d, d));', 'this.sum(x, (((long) d) * d))' ],
+        [ 'divide as double', '        Long n = 5L;\n        Object e = this.sum(x, Helpers.divide(n, 1000));', 'this.sum(x, (((double) n) / ((double) 1000)))' ],
+        [ 'ternary default', '        Long r = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;\n        Object e = this.sum(x, Helpers.multiply(r, 3));', 'this.sum(x, (r * 3L))' ],
+        // negatives: nullable, unguarded, guard after a later write, ternary arm, Object operand, double operand
+        [ 'nullable param', '        Object p = Helpers.multiply(limit, 2);', undefined ],
+        [ 'safeInteger no default', '        Long v = this.safeInteger(x, "k");\n        Object p = Helpers.subtract(v, 1);', undefined ],
+        [ 'ternary arm', '        Long n = 5L;\n        Object p = (x == null) ? Helpers.add(n, 1) : x;', undefined ],
+        [ 'object operand', '        Object p = Helpers.add(x, 1);', undefined ],
+        [ 'double multiply', '        Double d = 1.5;\n        Object p = this.sum(x, Helpers.multiply(d, 2));', undefined ],
+        [ 'guard then write', '        if (!java.util.Objects.equals(limit, null))\n        {\n            limit = this.safeInteger(x, "k");\n            Object p = Helpers.multiply(limit, 2);\n        }', undefined ],
+    ];
+    const problems = runSnippetCases(cases, member, nativeJavaTypedArithmetic, (name, out) => `arithmetic: ${[ 'FAIL', name, '\n', out ].join (' ').slice (0, 300)}`);
+    if (problems.length) problems.push (`arithmetic: ${problems.length} !== 0`);
     return problems;
 }
 
 // Venue-only methods called with typed arguments print typed parameters; a written,
 // mistyped, `+`-left or name-referenced parameter keeps Object
 function javaParamTypesSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj12selftest${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        'export default class zzj12selftest extends Exchange {',
+    return javaProbeCases({ cls: 'zzj12selftest', members: [
         "    run (r: any) { const s = this.safeString (r, 'a'); this.zzjA (s, s === 'b', this.safeList (r, 'l', [])); this.zzjB (s); this.zzjC (s); this.zzjD (r); const f = this.zzjE; return f; }",
         "    zzjA (code: string, flag: boolean, rows: any[]) { return [ code.length, flag, rows.length ]; }",
         "    zzjB (code: string) { code = code + 'x'; return code; }",
         "    zzjC (code: string) { return code + this.id; }",
         "    zzjD (code: string) { return code; }",
         "    zzjE (code: string) { return code; }",
-        '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/.test(out)) problems.push('zzjA must print String/Boolean/List<Object> params');
-        if (!/this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/.test(out)) problems.push('zzjA call must pass the String local bare and checkcast the List');
+    ], checks: [
+        [ /zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/, true, 'zzjA must print String/Boolean/List<Object> params' ],
+        [ /this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/, true, 'zzjA call must pass the String local bare and checkcast the List' ],
         // A plain `string` annotation prints String on a generated venue method whether the
         // parameter is written, `+`-left or handed an unproven caller, because writes are cast and the
         // caller carries the checkcast
-        for (const name of [ 'zzjB', 'zzjC', 'zzjD', 'zzjE' ]) {
-            if (!new RegExp(`${name}\\(String code\\)`).test(out)) problems.push(`java param types self test: ${name} must print String code`);
-        }
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+        ...[ 'zzjB', 'zzjC', 'zzjD', 'zzjE' ].map((n): JavaProbeCheck => [ new RegExp(`${n}\\(String code\\)`), true, `java param types self test: ${n} must print String code` ]),
+    ] });
 }
 
 // Object locals whose init and every write are Lists print List<Object>; any other write keeps Object
 function javaListLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj13selftest${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        'export default class zzj13selftest extends Exchange {',
+    return javaProbeCases({ cls: 'zzj13selftest', output: true, members: [
         "    acc (r: any) { let a = []; for (let i = 0; i < 3; i++) { a = this.arrayConcat (a, [ i ]); } return [ a.length, a[0] ]; }",
         "    lst (r: any) { let b = this.safeList (r, 'k', []); if (b.length === 0) { b = this.safeList (r, 'z', []); } return b[0]; }",
         "    keys (r: any) { const c = Object.keys (r); return c.length; }",
@@ -7423,35 +6038,23 @@ function javaListLocalsSelfTest (): string[] {
         "    strs (r: any) { const q = this.safeList (r, 'k', []) as string[]; return q.length; }",
         "    anyCast (r: any) { const s = this.toArray (r) as any; let t = s; t = this.sortBy (t, 'x'); return t.length; }",
         "    fbl (r: any) { let o = this.filterBySinceLimit (r, 1, 2); if (o.length > 1) { o = this.sortBy (o, 'x'); } return o[0]; }",
-        '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/List<Object> a = /.test(out)) problems.push("'a' ([] + arrayConcat) must print List<Object>");
-        if (!/a = \(java\.util\.List<Object>\) this\.arrayConcat\(/.test(out)) problems.push("'a' arrayConcat write needs a checkcast");
-        if (!/List<Object> b = (\(java\.util\.List<Object>\) )?this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object>");
-        if (!/List<Object> c = /.test(out)) problems.push("'c' (Object.keys) must print List<Object>");
-        if (/Helpers\.getArrayLength\((a|b)\)/.test(out) || /Helpers\.GetValue\((a|b), /.test(out)) problems.push("'a'/'b' length/get must go native");
+    ], checks: [
+        [ /List<Object> a = /, true, "'a' ([] + arrayConcat) must print List<Object>" ],
+        [ /a = \(java\.util\.List<Object>\) this\.arrayConcat\(/, true, "'a' arrayConcat write needs a checkcast" ],
+        [ /List<Object> b = (\(java\.util\.List<Object>\) )?this\.safeList\(/, true, "'b' (safeList + safeList write) must print List<Object>" ],
+        [ /List<Object> c = /, true, "'c' (Object.keys) must print List<Object>" ],
+        [ [ /Helpers\.getArrayLength\((a|b)\)/, /Helpers\.GetValue\((a|b), / ], false, "'a'/'b' length/get must go native" ],
         // shapes no earlier section types: toArray / fresh-list method writes, a List<Object> core + sortBy
-        if (!/List<Object> m = /.test(out) || !/m = \(java\.util\.List<Object>\) this\.convertTradingViewToOHLCV\(/.test(out)) problems.push("'m' ([] + toArray + fresh-list method) must print List<Object> with a write checkcast");
-        if (!/List<Object> o = this\.filterBySinceLimit\(/.test(out)) problems.push("'o' (filterBySinceLimit + sortBy) must print List<Object>");
-        if (/Helpers\.getArrayLength\([mo]\)/.test(out) || /Helpers\.GetValue\(o, /.test(out)) problems.push("'m'/'o' length/get must go native");
-        if (/List<Object> q = /.test(out)) problems.push("'q' (as string[] prints a List<String> cast) must not print List<Object>");
-        if (/List<Object> s = (?!\(java\.util\.List<Object>\) \(\(Object\))/.test(out)) problems.push("'s' (as any prints ((Object)v)) needs the List checkcast");
-        for (const name of [ 'e', 'f' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
-        }
-        // 'k': safeList with a [] default plus a write guarded by Array.isArray (k's source) is a List on every path (77j8)
-        if (!/\bObject k = /.test(out) && !/k = \(java\.util\.List<Object>\) response;/.test(out)) problems.push("'k' guarded write must take the List checkcast");
-        if (/List<Object> g = /.test(out)) problems.push("'g' has no List write and must not print List<Object>");
-        if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+        [ [ /List<Object> m = /, /m = \(java\.util\.List<Object>\) this\.convertTradingViewToOHLCV\(/ ], true, "'m' ([] + toArray + fresh-list method) must print List<Object> with a write checkcast" ],
+        [ /List<Object> o = this\.filterBySinceLimit\(/, true, "'o' (filterBySinceLimit + sortBy) must print List<Object>" ],
+        [ [ /Helpers\.getArrayLength\([mo]\)/, /Helpers\.GetValue\(o, / ], false, "'m'/'o' length/get must go native" ],
+        [ /List<Object> q = /, false, "'q' (as string[] prints a List<String> cast) must not print List<Object>" ],
+        [ /List<Object> s = (?!\(java\.util\.List<Object>\) \(\(Object\))/, false, "'s' (as any prints ((Object)v)) needs the List checkcast" ],
+        ...[ 'e', 'f' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' has an unproven write/default and must stay Object` ]),
+        // 'k': safeList with a [] default plus a write guarded by Array.isArray (k's source) is a List on every path
+        [ /\bObject k = |k = \(java\.util\.List<Object>\) response;/, true, "'k' guarded write must take the List checkcast" ],
+        [ /List<Object> g = /, false, "'g' has no List write and must not print List<Object>" ],
+    ] });
 }
 
 // r77j2: conditional initialisers whose arms prove one box print it; an Integer-only or unproven arm keeps Object
@@ -7490,35 +6093,20 @@ function javaR77j2ConditionalLocalsSelfTest (): string[] {
 
 // Object locals whose init and every write are one proven scalar box print it; a mixed write keeps Object
 function javaScalarLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj14selftest${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        'export default class zzj14selftest extends Exchange {',
+    return javaProbeCases({ cls: 'zzj14selftest', members: [
         "    ts (t: any) { const a = this.safeIntegerOmitZero (t, 'k'); return { 'a': a }; }",
         "    flag (p: any, d: boolean) { const b = this.safeBool (p, 'x', this.safeBool (p, 'y', false)); return [ b, p ]; }",
         "    str (t: any) { let c = this.safeString (t, 'v'); if (c === undefined) { c = this.safeString2 (t, 'w', 'z'); } return { 'c': c }; }",
         "    until (p: any) { let u = this.safeInteger (p, 'until'); if (u === undefined) { u = this.milliseconds (); } return u > 5; }",
         "    mixed (p: any) { let e = this.safeInteger (p, 'k'); e = this.sum (e, 1); return e; }",
         "    product (p: any) { const g = this.safeIntegerProduct2 (p, 'a', 'b', 1000, 0); return g; }",
-        '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Long a = \(Long\) this\.safeIntegerOmitZero\(/.test(out)) problems.push("'a' (safeIntegerOmitZero, no default) must print Long with a checkcast");
-        if (!/Boolean b = \(Boolean\) this\.safeBool\(/.test(out)) problems.push("'b' (safeBool, Boolean default) must print Boolean");
-        if (!/String c = this\.safeString\(/.test(out)) problems.push("'c' (safeString + safeString2 write) must print String");
-        if (!/Long u = this\.safeInteger\(/.test(out)) problems.push("'u' (safeInteger + milliseconds write) must print Long");
-        for (const name of [ 'e', 'g' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default/arm and must stay Object`);
-        }
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    ], checks: [
+        [ /Long a = \(Long\) this\.safeIntegerOmitZero\(/, true, "'a' (safeIntegerOmitZero, no default) must print Long with a checkcast" ],
+        [ /Boolean b = \(Boolean\) this\.safeBool\(/, true, "'b' (safeBool, Boolean default) must print Boolean" ],
+        [ /String c = this\.safeString\(/, true, "'c' (safeString + safeString2 write) must print String" ],
+        [ /Long u = this\.safeInteger\(/, true, "'u' (safeInteger + milliseconds write) must print Long" ],
+        ...[ 'e', 'g' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' has an unproven write/default/arm and must stay Object` ]),
+    ] });
 }
 
 // r77-j4: `let x = undefined` seeds joined over copy / sync-core writes print the written box
@@ -7593,36 +6181,19 @@ function javaJ8CopyLocalsSelfTest (): string[] {
 // Scalar-proven locals compared to each other print a value compare; a typed-param callee declared above its caller
 // still reads the caller's typed local
 function javaParamTypesPreScanSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj15selftest${process.pid}.ts`);
-    const body = [
-        "import Exchange from './abstract/binance.js';",
-        'export default class zzj15selftest extends Exchange {',
+    return javaProbeCases({ cls: 'zzj15selftest', output: true, members: [
         "    zzjHelper (code: string) { return code.length; }",
         "    seq (p: any) { const a = this.safeInteger (p, 'a'); const b = this.safeInteger (p, 'b'); if (a !== b) { return 1; } return a === b; }",
         "    run (r: any) { const s = this.safeString (r, 'a'); return this.zzjHelper (s); }",
-        '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Long a = this\.safeInteger\(/.test(out) || !/Long b = this\.safeInteger\(/.test(out)) problems.push("'a'/'b' compared box-to-box must print Long (box-to-box veto lifted)");
-        if (!/!java\.util\.Objects\.equals\(a, b\)/.test(out) || !/[^!]java\.util\.Objects\.equals\(a, b\)/.test(out)) problems.push('Long === / !== Long must print Objects.equals');
-        if (/\ba [!=]= b\b/.test(out)) problems.push('no reference ==/!= on two Long boxes');
-        if (!/zzjHelper\(String code\)/.test(out)) problems.push('zzjHelper above its caller must print String code (helper return pre-scan)');
-        if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    ], checks: [
+        [ [ /Long a = this\.safeInteger\(/, /Long b = this\.safeInteger\(/ ], true, "'a'/'b' compared box-to-box must print Long (box-to-box veto lifted)" ],
+        [ [ /!java\.util\.Objects\.equals\(a, b\)/, /[^!]java\.util\.Objects\.equals\(a, b\)/ ], true, 'Long === / !== Long must print Objects.equals' ],
+        [ /\ba [!=]= b\b/, false, 'no reference ==/!= on two Long boxes' ],
+        [ /zzjHelper\(String code\)/, true, 'zzjHelper above its caller must print String code (helper return pre-scan)' ],
+    ] });
 }
 // `: Str` / `: Int` / `: Num` venue methods print String / Long / Double once their bodies print
 function javaStringReturnsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj17selftest${process.pid}.ts`);
-    const child = path.join(process.cwd(), 'ts', 'src', `zzj17selftestchild${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         "import type { Str, Int, Num } from './base/types.js';",
@@ -7635,32 +6206,23 @@ function javaStringReturnsSelfTest (): string[] {
         "    useU (p: any) { const u = this.unboxed (p); return (u > 1) ? u : 0; }",
         "    over (x: any): Str { const u = this.safeString (x, 'u'); return u; }",
         '}',
-    ].join('\n');
+    ];
     const childBody = [
         `import base from './zzj17selftest${process.pid}.js';`,
         "import type { Str } from './base/types.js';",
         `export default class zzj17selftestchild${process.pid} extends base {`,
         "    over (x: any): Str { return this.safeValue (x, 'u'); }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        fs.writeFileSync(child, childBody);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/public String pairSym\(/.test(out)) problems.push("pairSym (callee printed after its caller, String local return) must print String");
-        if (!/String a = this\.pairSym\(/.test(out)) problems.push("the caller local of pairSym must print String");
-        if (!/public Long tif\(/.test(out)) problems.push("tif (Int, safeInteger return) must print Long");
-        if (!/Long c = this\.tif\(/.test(out)) problems.push("the caller local of tif must print Long");
-        if (!/public Double fromW\(/.test(out)) problems.push("fromW (Num, parseNumber/undefined arms) must print Double");
-        if (!/public Object unboxed\(/.test(out)) problems.push("unboxed has a ternary-arm caller and must stay Object");
-        if (!/public Object over\(/.test(out)) problems.push("over is redeclared by a descendant and must stay Object");
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-        fs.rmSync(child, { force: true });
-    }
-    return problems;
+    ];
+    return javaProbeCases({ files: [ [ 'zzj17selftest', body ], [ 'zzj17selftestchild', childBody ] ], checks: [
+        [ /public String pairSym\(/, true, "pairSym (callee printed after its caller, String local return) must print String" ],
+        [ /String a = this\.pairSym\(/, true, "the caller local of pairSym must print String" ],
+        [ /public Long tif\(/, true, "tif (Int, safeInteger return) must print Long" ],
+        [ /Long c = this\.tif\(/, true, "the caller local of tif must print Long" ],
+        [ /public Double fromW\(/, true, "fromW (Num, parseNumber/undefined arms) must print Double" ],
+        [ /public Object unboxed\(/, true, "unboxed has a ternary-arm caller and must stay Object" ],
+        [ /public Object over\(/, true, "over is redeclared by a descendant and must stay Object" ],
+    ] });
 }
 
 // Ordered comparisons / Math.max-min over non-null numeric expressions (runs after the typed arithmetic + long-limit passes)
@@ -7742,49 +6304,16 @@ function nonNullCompareMathNative (helper: string, l, r, args: string[], member:
 
 export function nativeJavaNonNullCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than|mathM(?:in|ax))/.test (content)) return content;
-    const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
     const re = /Helpers\.(is(?:GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)|mathMin|mathMax)\(/g;
-    for (let s = 0; s < starts.length; s++) {
-        const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
-        const member = lines.slice (from, to).join ('\n');
-        if (!/Helpers\.(?:is|math)/.test (member)) continue;
-        for (let i = from; i < to; i++) {
-            const trimmed = lines[i].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[i], again = true;
-            while (again) {
-                again = false;
-                re.lastIndex = 0;
-                let m;
-                while ((m = re.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = nonNullCompareOperand (split.args[0], member, fields, content);
-                    const r = nonNullCompareOperand (split.args[1], member, fields, content);
-                    if (l === undefined || r === undefined) continue;
-                    const helper = m[1].replace (/^is/, '');
-                    const native = m[1].startsWith ('math') ? nonNullCompareMathNative (m[1], l, r, split.args, member) : orderedCompareNative (helper, l, r);
-                    if (native === undefined) continue;
-                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[i] = line;
-        }
-    }
-    return lines.join ('\n');
+    return rewriteMemberHelperCalls (content, re, /Helpers\.(?:is|math)/, (m, args, member, fields) => {
+        const l = nonNullCompareOperand (args[0], member, fields, content);
+        const r = nonNullCompareOperand (args[1], member, fields, content);
+        if (l === undefined || r === undefined) return undefined;
+        return m[1].startsWith ('math') ? nonNullCompareMathNative (m[1], l, r, args, member) : orderedCompareNative (m[1].replace (/^is/, ''), l, r);
+    });
 }
 
 function javaNonNullCompareSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         [ 'diff vs literal', '        Long a = 5L;\n        boolean b = Helpers.isGreaterThan((a - since), 86400000);', 'boolean b = ((a - since) > 86400000);' ],
@@ -7803,12 +6332,7 @@ function javaNonNullCompareSelfTest (): string[] {
         [ 'double lt compound', '        boolean b = Helpers.isLessThan((d * 2.0), since);', undefined ],
         [ 'override ms', '        boolean b = Helpers.isLessThan(this.milliseconds(), 5L);\n    }\n    public Long milliseconds()\n    {\n        return 1L;', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaNonNullCompare (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) problems.push (`compare ${name}: ${out.slice (0, 400)}`);
-    }
-    return problems;
+    return runSnippetCases(cases, member, nativeJavaNonNullCompare, (name, out) => `compare ${name}: ${out.slice (0, 400)}`);
 }
 
 // The unwritten first parameter of setLeverage / cancelAllOrdersAfter / handleErrors compared to,
@@ -7862,6 +6386,26 @@ function javaBaseNativePasses (transpiler: any, body: string, sourcePath?: strin
     return content;
 }
 
+// the single declared type of a name in a printed member (params included); undefined when the name
+// is shadowed by a lambda parameter or declared with mixed types. Memoised per member.
+function memberDeclaredTypeOf (member: string, skipYield = false): (name: string) => string | undefined {
+    const typeCache = new Map<string, string | undefined> ();
+    const keywords = [ 'return', 'new', 'else', 'case', 'throw', 'instanceof', ...(skipYield ? [ 'yield' ] : []) ];
+    return (name: string): string | undefined => {
+        if (typeCache.has (name)) return typeCache.get (name);
+        const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
+        const types = new Set<string> ();
+        for (const m of member.matchAll (re)) {
+            const t = m[1].replace (/^final /, '');
+            if (!keywords.includes (t)) types.add (t);
+        }
+        const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
+        const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
+        typeCache.set (name, out);
+        return out;
+    };
+}
+
 // Helpers.toMapArg/toStringArg/toLongOrNull/toStringListArg are identities on a value that already
 // prints the slot type: a name the member declares that type only, or a base call that returns it.
 export function nativeJavaCoreArgIdentities (content: string): string {
@@ -7872,11 +6416,8 @@ export function nativeJavaCoreArgIdentities (content: string): string {
     const DECLARED: Record<string, string> = { toMapArg: MAP, toStringArg: 'String', toLongOrNull: 'Long', toStringListArg: LIST_STRING };
     // base Java methods whose every overload prints that core type
     const MAP_CALLS = /^this\.(?:market|currency|safeMarket|safeCurrency|keysort|deepExtend)\($/;
-    const STRING_CALLS = /^this\.(?:safeString|safeString2|safeStringN|safeStringUpper|safeStringUpper2|safeStringLower|safeStringLower2|symbol|marketId|safeSymbol|safeCurrencyCode)\($/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     // closing index of the paren opened at text[open]; strings skipped
     const closeOf = (text: string, open: number): number => {
         let depth = 0;
@@ -7894,24 +6435,7 @@ export function nativeJavaCoreArgIdentities (content: string): string {
         const to = starts[s + 1];
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!H.test (member)) continue;
-        // the single declaration type of a name in this member (params included), else undefined
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            let count = 0;
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t); count++;
-            }
-            // lambda parameters `(name) ->` / `name ->` shadow the declaration
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && count >= 1 && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         for (let i = from; i < to; i++) {
             let line = lines[i];
             if (!H.test (line)) continue;
@@ -7930,13 +6454,12 @@ export function nativeJavaCoreArgIdentities (content: string): string {
                 if (/^[A-Za-z_]\w*$/.test (arg)) {
                     const t = declaredType (arg);
                     native = t !== undefined && want.test (t);
-                } else if (helper === 'toMapArg' || helper === 'toStringArg') {
+                } else if (helper === 'toMapArg') {
                     const call = /^this\.\w+\(/.exec (arg);
                     if (call !== null && closeOf (arg, call[0].length - 1) === arg.length - 1) {
                         const head = call[0];
-                        if (helper === 'toMapArg' && MAP_CALLS.test (head)) native = true;
-                        if (helper === 'toStringArg' && STRING_CALLS.test (head)) native = true;
-                        if (helper === 'toMapArg' && head === 'this.omit(') {
+                        if (MAP_CALLS.test (head)) native = true;
+                        if (head === 'this.omit(') {
                             // the omit(Map<String, Object>, ..) overloads return a Map
                             const first = /^this\.omit\(([A-Za-z_]\w*), /.exec (arg);
                             native = first !== null && want.test (declaredType (first[1]) ?? '');
@@ -7944,7 +6467,6 @@ export function nativeJavaCoreArgIdentities (content: string): string {
                     }
                 }
                 // String.toLowerCase()/toUpperCase() on a cast receiver already prints a String
-                if (helper === 'toStringArg' && /^\(\(String\)[A-Za-z_]\w*\)\.to(?:Lower|Upper)Case\(\)$/.test (arg)) native = true;
                 if (!native) continue;
                 out += line.slice (at, m.index) + arg;
                 at = close + 1;
@@ -8005,7 +6527,6 @@ function javaCoreArgIdentitiesSelfTest (): string[] {
 
 // Snippet checks for the extended native arithmetic pass (`--audit-string-types --self-test`)
 function javaPrimitiveArithmeticSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         // positives
@@ -8022,18 +6543,18 @@ function javaPrimitiveArithmeticSelfTest (): string[] {
         [ 'ternary arm wrong guard', '        Long w = 5L;\n        Object r = (((java.util.Objects.equals(limit, null)))) ? Helpers.subtract(this.milliseconds(), w) : since;', undefined ],
         [ 'object operand', '        Object e = this.sum(x, Helpers.add(this.parseToInt(x), 1));', undefined ],
         [ 'nullable Double', '        Object e = this.sum(x, Helpers.add(d, 1));', undefined ],
+        [ 'loop-exit guarded parseToInt chain', '        for (var j = 0; j < 3; j++)\n        {\n            Long w = (this.parseToInt(x) * 1000L);\n            Long t = this.safeInteger(x, 0);\n            if (java.util.Objects.equals(t, null))\n            {\n                continue;\n            }\n            Long c = this.parseToInt(Helpers.multiply(((((double) t) / ((double) w))), w));\n        }', 'Long c = this.parseToInt(((((double) t) / ((double) w)) * w));' ],
+        [ 'unguarded nullable beside parseToInt chain', '        Long w = (this.parseToInt(x) * 1000L);\n        Long t = this.safeInteger(x, 0);\n        Long c = this.parseToInt(Helpers.multiply(((((double) t) / ((double) w))), w));', undefined ],
+        [ 'rewritten after loop-exit guard', '        for (var j = 0; j < 3; j++)\n        {\n            Long w = (this.parseToInt(x) * 1000L);\n            Long t = this.safeInteger(x, 0);\n            if (java.util.Objects.equals(t, null))\n            {\n                continue;\n            }\n            t = this.safeInteger(x, 1);\n            Long c = this.parseToInt(Helpers.multiply(((((double) t) / ((double) w))), w));\n        }', undefined ],
+        [ 'safeInteger string key literal default', '        Long t = this.safeInteger(x, "expires_in", 900);\n        Object e = this.sum(x, this.parseToInt(Helpers.multiply((t * 1000L), 0.8)));', 'this.parseToInt(((t * 1000L) * 0.8))' ],
+        [ 'safeInteger string key no default', '        Long t = this.safeInteger(x, "expires_in");\n        Object e = this.sum(x, this.parseToInt(Helpers.multiply((t * 1000L), 0.8)));', undefined ],
+        [ 'safeInteger string key null default', '        Long t = this.safeInteger(x, "expires_in", null);\n        Object e = this.sum(x, Helpers.multiply(t, 3));', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaPrimitiveArithmetic (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
-    }
-    return problems;
+    return runSnippetCases(cases, member, nativeJavaPrimitiveArithmetic, (name, out) => `arithmetic: ${name}\n${out}`);
 }
 
 // Snippet checks for the Object-local retype that lets the primitive arithmetic go native
 function javaNumericLocalsRetypeSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s)\n    {\n        Long now = this.milliseconds();\n        int duration = 60;\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         // positives
@@ -8046,12 +6567,7 @@ function javaNumericLocalsRetypeSelfTest (): string[] {
         [ 'object write', '        Object delta = (duration * 2L);\n        delta = x;\n        Object t = Helpers.subtract(now, delta);', undefined ],
         [ 'ternary arm read', '        Object delta = (duration * 2L);\n        Object t = Helpers.subtract(now, delta);\n        Object u = (s == null) ? delta : x;', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaNumericLocalsRetype (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
-    }
-    return problems;
+    return runSnippetCases(cases, member, nativeJavaNumericLocalsRetype, (name, out) => `arithmetic: ${name}\n${out}`);
 }
 
 // Object/var locals whose every write is a proven Map (null, a Map literal / newMap, a Map-declared
@@ -8132,9 +6648,17 @@ function memberSplitTernary (e: string): [string, string, string] | undefined {
     return undefined;
 }
 
+// greatest fixpoint: drop every assumed name with a write `proves` rejects under the current set
+function shrinkAssumed<W> (assumed: Set<string>, writes: Map<string, W[]>, proves: (w: W, assumed: Set<string>) => boolean): void {
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const n of [ ...assumed ]) if (!(writes.get (n) ?? []).every ((w) => proves (w, assumed))) { assumed.delete (n); changed = true; }
+    }
+}
+
 function mapLocalsRetypeMember (member: string, className: string): string {
     if (!member.includes ('Helpers.toMapArg(')) return member;
-    const header = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n'));
+    const header = member.split ('\n', 1)[0];
     // declared names: name -> list of declared types (params included)
     const declTypes = new Map<string, string[]> ();
     const declRe = /(?:^|[\s(,])((?:final )?[\w.]+(?:<[\w.<>, ?]*>)?) ([A-Za-z_]\w*)(?=\s*(?:=(?!=)|[,);:]))/g;
@@ -8222,12 +6746,7 @@ function mapLocalsRetypeMember (member: string, className: string): string {
     };
     // greatest fixpoint over the candidates
     const assumed = new Set (candidates);
-    for (let changed = true; changed;) {
-        changed = false;
-        for (const n of [ ...assumed ]) {
-            if (!(writes.get (n) ?? []).every ((w) => proves (w.rhs, assumed))) { assumed.delete (n); changed = true; }
-        }
-    }
+    shrinkAssumed (assumed, writes, (w, a) => proves (w.rhs, a));
     // retype the toMapArg names and the candidates their proofs read (static omit/arg types must line up)
     const wanted = new Set<string> ();
     const visit = (n: string) => {
@@ -8261,19 +6780,11 @@ export function nativeJavaMapLocalsRetype (content: string): string {
     if (!content.includes ('Helpers.toMapArg(')) return content;
     const cls = /^public (?:abstract )?class (\w+)/m.exec (content);
     const className = cls === null ? '' : cls[1];
-    const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (mapLocalsRetypeMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), className));
-    return parts.join ('\n');
+    return mapJavaMembers (content, false, (member) => mapLocalsRetypeMember (member, className)) ?? content;
 }
 
 // Snippet checks for the Map-local retype (`--audit-string-types --self-test`)
 function javaMapLocalsRetypeSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Bitget extends BitgetApi\n{\n    public Object m(Map<String, Object> parameters, Object p)\n    {\n${body}\n    }\n}`;
     const run = (body: string) => nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (cls (body)));
     const cases: [string, string, string | undefined][] = [
@@ -8292,15 +6803,8 @@ function javaMapLocalsRetypeSelfTest (): string[] {
         [ 'String cast use', '        Object o = this.omit(parameters, "a");\n        String s = (String) o;\n        return this.f(Helpers.toMapArg(o));', undefined ],
         [ 'other write', '        Object o = this.omit(parameters, "a");\n        o = this.safeValue(parameters, "x");\n        return this.f(Helpers.toMapArg(o));', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = run (body);
-        const ok = expect === undefined ? out === nativeJavaCoreArgIdentities (cls (body)) : out.includes (expect);
-        if (!ok) problems.push (`map locals: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, (src) => nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (src)), (name, out) => `map locals: ${name}\n${out}`, (body) => nativeJavaCoreArgIdentities (cls (body)));
 }
-
-// Snippet checks for the Object-local box retype (`--audit-string-types --self-test`)
 
 // ordered compares whose operand is an unwritten TS-`number` parameter printed `Object` (audited table, tier/class/method)
 // or a `this.sum(..)` (Generic.sum: a non-null Long/Double); the other side an int literal, a `var i = <int>` counter or
@@ -8349,11 +6853,7 @@ export function nativeJavaNumberParamCompare (content: string): string {
     const table = key === undefined ? {} : (numberParamTable ()[key] ?? {});
     const sumOverridden = /^    (?:public|private|protected)[^\n(]* sum\(/m.test (content);
     const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
+    const fields = javaClassFields (lines);
     const re = /Helpers\.(isGreaterThanOrEqual|isGreaterThan|isLessThanOrEqual|isLessThan)\(/g;
     for (let i = 0; i < lines.length; i++) {
         const head = lines[i].match (/^    public [^(]* (\w+)\(([^)]*)\)$/);
@@ -8382,24 +6882,10 @@ export function nativeJavaNumberParamCompare (content: string): string {
             return undefined;
         };
         for (let k = i + 1; k < end; k++) {
-            const trimmed = lines[k].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[k], again = true;
-            while (again) {
-                again = false;
-                re.lastIndex = 0;
-                let m;
-                while ((m = re.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = operand (split.args[0]), r = operand (split.args[1]);
-                    if (l === undefined || r === undefined || !(l.mine || r.mine)) continue;
-                    line = line.slice (0, m.index) + nullSafeCompareNative (m[1], l, r) + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[k] = line;
+            lines[k] = rewriteHelperCalls (lines[k], re, (m, args) => {
+                const l = operand (args[0]), r = operand (args[1]);
+                return l === undefined || r === undefined || !(l.mine || r.mine) ? undefined : nullSafeCompareNative (m[1], l, r);
+            });
         }
         i = end;
     }
@@ -8407,7 +6893,6 @@ export function nativeJavaNumberParamCompare (content: string): string {
 }
 
 function javaNumberParamCompareSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (pkg: string, name: string, member: string) => `package io.github.ccxt.exchanges${pkg};\n\npublic class ${name} extends X\n{\n${member}    }\n}\n`;
     const sbe = (body: string) => cls ('.pro', 'Paradex', `    public Map<String, Object> parseSbeTrade(Object frameHex, Object blockLength, Object frameLength)\n    {\n${body}\n`);
     const cases: [string, string, string | undefined][] = [
@@ -8423,12 +6908,7 @@ function javaNumberParamCompareSelfTest (): string[] {
         [ 'object local', cls ('', 'Bitget', '    public Object m(Object a, Object b)\n    {\n        Object x = a;\n        if (Helpers.isGreaterThan(this.sum(a, b), x))\n'), undefined ],
         [ 'sum override', cls ('', 'Bitget', '    public Object m(Object a, Object b)\n    {\n        if (Helpers.isGreaterThan(this.sum(a, b), 1))\n    }\n    public Object sum(Object a, Object b)\n    {\n        return a;\n'), undefined ],
     ];
-    for (const [ name, src, expect ] of cases) {
-        const out = nativeJavaNumberParamCompare (src);
-        const ok = expect === undefined ? out === src : out.includes (expect);
-        if (!ok) problems.push (`compare ${name}: ${out.slice (0, 600)}`);
-    }
-    return problems;
+    return runSnippetCases(cases, (src) => src, nativeJavaNumberParamCompare, (name, out) => `compare ${name}: ${out.slice (0, 600)}`);
 }
 
 // Helpers.addElementToObject / Helpers.GetValue on locals whose single member-wide declaration
@@ -8438,31 +6918,14 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
     const WS_BOOK = /^(?:io\.github\.ccxt\.ws\.)?WsOrderBook(?:\.(?:Counted|Indexed)OrderBook)?$/;
     const LIST_STRING = /^(?:java\.util\.)?List<String>$/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     let changed = false;
     for (let s = 0; s + 1 < starts.length; s++) {
         const from = starts[s];
         const to = starts[s + 1];
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!/Helpers\.(?:addElementToObject|GetValue)\(/.test (member)) continue;
-        // the single declared type of a name in this member (params included), undefined when shadowed/mixed
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t);
-            }
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         const counter = (name: string): boolean => declaredType (name) === 'var'
             && new RegExp (`\\bfor \\(var ${name} = \\d+;`).test (member);
         for (let i = from; i < to; i++) {
@@ -8494,7 +6957,6 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
 
 // Snippet checks for the WsOrderBook / List<String> container pass (`--audit-string-types --self-test`)
 function javaWsOrderBookContainersSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (sig: string, body: string) => `public class Gemini extends GeminiRest\n{\n    public void m(${sig})\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string, string | undefined][] = [
         [ 'book literal put', 'Object client', '        io.github.ccxt.ws.WsOrderBook orderbook = this.orderbook(null);\n        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));', '        orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));' ],
@@ -8509,13 +6971,8 @@ function javaWsOrderBookContainersSelfTest (): string[] {
         [ 'Object index', 'Object i', '        List<String> keys = this.sort(raw);\n        Object key = Helpers.GetValue(keys, i);', undefined ],
         [ 'List<Object> left to the list-local pass', 'Object client', '        List<String> keys = this.sort(raw);\n        Object key = Helpers.GetValue(keys, 0);', undefined ],
     ];
-    for (const [ name, sig, body, expect ] of cases) {
-        const input = cls (sig, body);
-        const out = nativeJavaWsOrderBookContainers (input);
-        const ok = expect === undefined ? out === input : out.includes (expect);
-        if (!ok) problems.push (`containers: ${name}\n${out}`);
-    }
-    return problems;
+    const wrapped = cases.map(([ name, sig, body, expect ]): SnippetCase => [ name, cls (sig, body), expect ]);
+    return runSnippetCases(wrapped, (src) => src, nativeJavaWsOrderBookContainers, (name, out) => `containers: ${name}\n${out}`);
 }
 
 // Object/var locals whose every write proves one box: String / Long (`this.sum` of Long-or-int operands) /
@@ -8535,7 +6992,7 @@ function boxLocalsBaseReturnTypes (): Record<string, string> {
 
 function boxLocalsCoreArgsMember (member: string, content: string): string {
     if (!/Helpers\.(?:toStringArg|toLongOrNull|toStringListArg|isTrue|isEqual)\(/.test (member)) return member;
-    const header = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n'));
+    const header = member.split ('\n', 1)[0];
     const declTypes = new Map<string, string[]> ();
     const declRe = /(?:^|[\s(,])((?:final )?[\w.]+(?:<[\w.<>, ?]*>)?) ([A-Za-z_]\w*)(?=\s*(?:=(?!=)|[,);:]))/g;
     for (const m of member.matchAll (declRe)) {
@@ -8599,14 +7056,7 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
         if (kind === 'String' && /^"(?:[^"\\]|\\.)*"$/.test (e)) return true;
         if (kind === 'Integer') return INT_LIT.test (e) || (/\.size\(\)$/.test (e) && /^\(\(\(?(?:java\.util\.)?List<\?>\)\s*[A-Za-z_]\w*\)\)?\.size\(\)$|^[A-Za-z_]\w*\.size\(\)$/.test (e));
         if (kind === 'Boolean') {
-            if (/^java\.util\.Objects\.equals\(|^Boolean\.TRUE\.equals\(|^Helpers\.isEqual\(/.test (e) && memberCloseParen (e, e.indexOf ('(')) === e.length - 1) return true;
-            if (e.startsWith ('!') && !e.startsWith ('!=')) return true;
-            const sb = /^this\.safeBool\(/.exec (e);
-            if (sb !== null && memberCloseParen (e, sb[0].length - 1) === e.length - 1 && callType ('safeBool') === undefined) {
-                const args = memberCallArgs (e, sb[0].length - 1) ?? [];
-                return args.length === 3 && /^(?:true|false|null|\(Object\) null)$/.test (args[2]);
-            }
-            return false;
+            return e.startsWith ('!') && !e.startsWith ('!=');
         }
         const call = /^this\.(\w+)\(/.exec (e);
         if (call === null || memberCloseParen (e, call[0].length - 1) !== e.length - 1) return false;
@@ -8625,10 +7075,7 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
     for (const helper of Object.keys (kindOf)) {
         const kind = kindOf[helper];
         const assumed = new Set ([ ...candidates ].filter ((n) => !retyped.has (n) && (castsOf.get (n) ?? []).every ((c) => castOk[kind].test (c))));
-        for (let changed = true; changed;) {
-            changed = false;
-            for (const n of [ ...assumed ]) if (!(writes.get (n) ?? []).every ((w) => proves (kind, w, assumed))) { assumed.delete (n); changed = true; }
-        }
+        shrinkAssumed (assumed, writes, (w, a) => proves (kind, w, a));
         const wanted = new Set<string> ();
         const visit = (n: string) => {
             if (wanted.has (n) || !assumed.has (n)) return;
@@ -8657,23 +7104,12 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
     // isTrue / isEqual on proven (not retyped) Object locals and declared boxes
     const bAssumed = new Set ([ ...candidates ].filter ((n) => !retyped.has (n)));
     const iAssumed = new Set (bAssumed);
-    for (let changed = true; changed;) {
-        changed = false;
-        for (const n of [ ...bAssumed ]) if (!(writes.get (n) ?? []).every ((w) => proves ('Boolean', w, bAssumed))) { bAssumed.delete (n); changed = true; }
-    }
-    for (let changed = true; changed;) {
-        changed = false;
-        for (const n of [ ...iAssumed ]) if (!(writes.get (n) ?? []).every ((w) => proves ('Integer', w, iAssumed))) { iAssumed.delete (n); changed = true; }
-    }
+    shrinkAssumed (bAssumed, writes, (w, a) => proves ('Boolean', w, a));
+    shrinkAssumed (iAssumed, writes, (w, a) => proves ('Integer', w, a));
     out = out.replace (/Helpers\.isTrue\(([A-Za-z_]\w*)\)/g, (all, n) => (bAssumed.has (n) || declaredAs (n, /^Boolean$/)) ? `Boolean.TRUE.equals(${n})` : all);
     out = out.replace (/Helpers\.isEqual\(([A-Za-z_]\w*), (-?\d+)\)/g, (all, n, lit) => {
         if (iAssumed.has (n) || declaredAs (n, /^Integer$/)) return `java.util.Objects.equals(${n}, ${lit})`;
         if (declaredAs (n, /^Long$/)) return `(${n} != null && ${n} == ${lit}L)`;
-        if (declaredAs (n, /^(?:long|int)$/)) return `(${n} == ${lit})`;
-        return all;
-    });
-    out = out.replace (/Helpers\.isEqual\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)/g, (all, a, b) => {
-        for (const re of [ /^Long$/, /^Integer$/, /^String$/ ]) if (declaredAs (a, re) && declaredAs (b, re)) return `java.util.Objects.equals(${a}, ${b})`;
         return all;
     });
     return out;
@@ -8681,19 +7117,12 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
 
 export function nativeJavaBoxLocalsCoreArgs (content: string): string {
     if (!/Helpers\.(?:toStringArg|toLongOrNull|toStringListArg|isTrue|isEqual)\(/.test (content)) return content;
-    const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (boxLocalsCoreArgsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), content));
-    return nativeJavaCoreArgIdentities (parts.join ('\n'));
+    const out = mapJavaMembers (content, false, (member) => boxLocalsCoreArgsMember (member, content));
+    return out === undefined ? content : nativeJavaCoreArgIdentities (out);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaBoxLocalsCoreArgsSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> parameters, Object p, Long n)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'sum Long', '        Object id;\n        synchronized (this) {\n        id = this.sum(this.safeInteger(this.options, "requestId", 0), 1);\n        }\n        return Helpers.toLongOrNull(id);',
@@ -8711,17 +7140,11 @@ function javaBoxLocalsCoreArgsSelfTest (): string[] {
         [ 'sum of Object', '        Object x = this.sum(p, 1);\n        return this.f(Helpers.toLongOrNull(x));', undefined ],
         [ 'Integer vs Long write', '        Object c = this.sum(n, 1);\n        if (Helpers.isEqual(c, 1)) {}', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaBoxLocalsCoreArgs (cls (body));
-        const ok = expect === undefined ? out === nativeJavaCoreArgIdentities (cls (body)) : out.includes (expect);
-        if (!ok) problems.push (`java box locals core args: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaBoxLocalsCoreArgs, (name, out) => `java box locals core args: ${name}\n${out}`, (body) => nativeJavaCoreArgIdentities (cls (body)));
 }
 
 // Snippet checks for multiply/subtract over Long/Integer/integral-Object locals (`--audit-string-types --self-test`)
 function javaIntegralMultiplySubtractSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Object o, Long since, Long limit, String s)\n    {\n        int duration = 60;\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         // positives: string-literal ternary, safeInteger default, integral Object local, Generic.sum of integral args
@@ -8735,17 +7158,11 @@ function javaIntegralMultiplySubtractSelfTest (): string[] {
         [ 'object default', '        Long f = this.safeInteger(o, "k", o);\n        Object st = Helpers.multiply(f, 60);', undefined ],
         [ 'unknown object write', '        Object r = limit;\n        r = o;\n        Object e = Helpers.multiply(r, 2);', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaIntegralMultiplySubtract (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
-    }
-    return problems;
+    return runSnippetCases(cases, member, nativeJavaIntegralMultiplySubtract, (name, out) => `arithmetic: ${name}\n${out}`);
 }
 
 // Snippet checks for native divide / mod / opNeg (`--audit-string-types --self-test`)
 function javaNumberDivModNegSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Object p, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         [ 'long param divide', '        Long s = this.parseToInt(Helpers.divide(since, 1000));', '(since == null ? null : ((double) since) / ((double) 1000))' ],
@@ -8759,11 +7176,7 @@ function javaNumberDivModNegSelfTest (): string[] {
         [ 'operator operand', '        Object r = this.f(Helpers.divide(since, 1000) + 1);', undefined ],
         [ 'opNeg on object', '        Object r = this.f(Helpers.opNeg(p));', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaNumberDivModNeg (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`java number div mod neg: ${name}\n${out}`); }
-    }
+    const problems = runSnippetCases(cases, member, nativeJavaNumberDivModNeg, (name, out) => `java number div mod neg: ${name}\n${out}`);
     const overridden = `    public Object sum(Object a, Object b)\n    {\n        return a;\n    }\n${member ('        Object r = this.f(Helpers.divide(this.sum(since, 1), 2));')}`;
     if (nativeJavaNumberDivModNeg (overridden) !== overridden) problems.push ('an overridden sum keeps the helper');
     return problems;
@@ -8783,7 +7196,7 @@ function numberProvenCalls (): Record<string, boolean> {
 
 function numberProvenCompareMember (member: string, content: string, fields: Set<string>): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than(?:OrEqual)?|mathM(?:in|ax))\(/.test (member)) return member;
-    const header = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n'));
+    const header = member.split ('\n', 1)[0];
     const declTypes = new Map<string, string[]> ();
     const declRe = /(?:^|[\s(,])((?:final )?[\w.]+(?:<[\w.<>, ?]*>)?) ([A-Za-z_]\w*)(?=\s*(?:=(?!=)|[,);:]))/g;
     for (const m of member.matchAll (declRe)) {
@@ -8879,59 +7292,29 @@ function numberProvenCompareMember (member: string, content: string, fields: Set
     const re = /Helpers\.(isGreaterThanOrEqual|isGreaterThan|isLessThanOrEqual|isLessThan|mathMin|mathMax)\(/g;
     const lines = member.split ('\n');
     for (let k = 1; k < lines.length; k++) {
-        const trimmed = lines[k].trim ();
-        if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-        let line = lines[k], again = true;
-        while (again) {
-            again = false;
-            re.lastIndex = 0;
-            let m;
-            while ((m = re.exec (line)) !== null) {
-                const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                if (split === undefined || split.args.length !== 2) continue;
-                const l = operand (split.args[0]), r = operand (split.args[1]);
-                if (l === undefined || r === undefined) continue;
-                let native: string;
-                if (m[1].startsWith ('math')) {
-                    // helper: null if either is null, else the ORIGINAL box of the toDouble-smaller (larger) side
-                    if (!l.pure || !r.pure) continue;
-                    const a = orderedCompareStripParens (split.args[0]), b = orderedCompareStripParens (split.args[1]);
-                    const pick = `(${l.num} ${m[1] === 'mathMin' ? '<' : '>'} ${r.num} ? (Object) (${a}) : (Object) (${b}))`;
-                    const nulls = [ l.nullName, r.nullName ].filter ((x) => x !== undefined).map ((x) => `${x} == null`);
-                    native = nulls.length === 0 ? pick : `(${nulls.join (' || ')} ? null : ${pick})`;
-                } else {
-                    native = nullSafeCompareNative (m[1], l, r);
-                }
-                line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                again = true;
-                break;
-            }
-        }
-        lines[k] = line;
+        lines[k] = rewriteHelperCalls (lines[k], re, (m, args) => {
+            const l = operand (args[0]), r = operand (args[1]);
+            if (l === undefined || r === undefined) return undefined;
+            if (!m[1].startsWith ('math')) return nullSafeCompareNative (m[1], l, r);
+            // helper: null if either is null, else the ORIGINAL box of the toDouble-smaller (larger) side
+            if (!l.pure || !r.pure) return undefined;
+            const a = orderedCompareStripParens (args[0]), b = orderedCompareStripParens (args[1]);
+            const pick = `(${l.num} ${m[1] === 'mathMin' ? '<' : '>'} ${r.num} ? (Object) (${a}) : (Object) (${b}))`;
+            const nulls = [ l.nullName, r.nullName ].filter ((x) => x !== undefined).map ((x) => `${x} == null`);
+            return nulls.length === 0 ? pick : `(${nulls.join (' || ')} ? null : ${pick})`;
+        });
     }
     return lines.join ('\n');
 }
 
 export function nativeJavaNumberProvenCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than(?:OrEqual)?|mathM(?:in|ax))\(/.test (content)) return content;
-    const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (numberProvenCompareMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), content, fields));
-    return parts.join ('\n');
+    const fields = javaClassFields (content.split ('\n'));
+    return mapJavaMembers (content, true, (member) => numberProvenCompareMember (member, content, fields)) ?? content;
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaNumberProvenCompareSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object since, Object limit, Long n, Double d)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'sum local gt', '        Object e = this.sum(since, 5);\n        if (Helpers.isGreaterThan(e, n)) {}', 'if (((n == null || ((Number) e).doubleValue() > n))) {}' ],
@@ -8949,12 +7332,7 @@ function javaNumberProvenCompareSelfTest (): string[] {
         [ 'string local', '        Object s = \"a\";\n        if (Helpers.isLessThan(s, \"b\")) {}', undefined ],
         [ 'sum override', '        Object e = this.sum(since, 5);\n        if (Helpers.isGreaterThan(e, 1)) {}\n    }\n    public Object sum(Object a, Object b)\n    {\n        return a;', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaNumberProvenCompare (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`java number proven compare self: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaNumberProvenCompare, (name, out) => `java number proven compare self: ${name}\n${out}`);
 }
 
 // Every write to this.urls in the file is the base ctor deepExtend read or an omit() result (never a ConcurrentHashMap)
@@ -9016,7 +7394,6 @@ export function nativeJavaPaginationCursorPuts (content: string): string {
 }
 
 export function javaPaginationCursorSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (sig: string, body: string) => `public class X\n{\n    public List<Object> addPaginationCursorToResult(${sig})\n    {\n${body}\n        return data;\n    }\n}\n`;
     const guard = '        Integer dataLength = ((List<?>)data).size();\n        if (!java.util.Objects.equals(cursor, null) && (dataLength != null && dataLength > 0))\n        {\n';
     const first = '            Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));\n';
@@ -9026,15 +7403,9 @@ export function javaPaginationCursorSelfTest (): string[] {
         [ 'bare size on declared List (ral-84j7)', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n' + guard.replace ('((List<?>)data).size()', 'data.size()') + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', '((Map<String, Object>)first).put("k", cursor);\n            data.set(0, first);' ],
         [ 'unguarded cursor keeps helper', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n        Integer dataLength = ((List<?>)data).size();\n        if (dataLength != null && dataLength > 0)\n        {\n' + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', 'data.set(0, first)' ],
     ];
-    for (const [ name, sig, body, expect ] of cases) {
-        const input = cls (sig, body);
-        const out = nativeJavaPaginationCursorPuts (input);
-        const ok = name === 'unguarded cursor keeps helper'
-            ? out.includes ('Helpers.addElementToObject(first, "k", cursor)') && out.includes ('data.set(0, first)')
-            : out.includes (expect!);
-        if (!ok) problems.push (`pagination ${name}\n${out}`);
-    }
-    return problems;
+    const wrapped = cases.map (([ name, sig, body, expect ]): SnippetCase => [ name, cls (sig, body), expect ]);
+    const keepsHelper = (out: string) => out.includes ('Helpers.addElementToObject(first, "k", cursor)');
+    return wrapped.flatMap ((c) => runSnippetCases ([ c ], (src) => src, nativeJavaPaginationCursorPuts, (name, out) => `pagination ${name}\n${out}`, (src) => src, c[0] === 'unguarded cursor keeps helper' ? keepsHelper : () => true));
 }
 
 // Helpers.addElementToObject / GetValue / inOp / objectKeys on locals declared once per member as Map<String, Object>.
@@ -9043,9 +7414,7 @@ export function nativeJavaMapLocalOps (content: string): string {
     if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (content)) return content;
     const MAP = /^(?:java\.util\.)?(?:Map|HashMap|LinkedHashMap)<String, Object>$/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     let changed = false;
     for (let s = 0; s + 1 < starts.length; s++) {
         const from = starts[s];
@@ -9064,21 +7433,7 @@ export function nativeJavaMapLocalOps (content: string): string {
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (member)) continue;
         const sig = lines[from];
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t);
-            }
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         const isMap = (n: string) => MAP.test (declaredType (n) ?? '');
         const isParam = (n: string) => new RegExp (`[(,]\\s*[\\w.<>, ?]+ ${n}\\s*[,)]`).test (sig.replace (/\{.*$/, ''));
         // every write is a fresh HashMap / LinkedHashMap built by a base producer (never a ConcurrentHashMap)
@@ -9116,7 +7471,17 @@ export function nativeJavaMapLocalOps (content: string): string {
         const nonNull = (v: string): boolean => {
             v = memberStripParens (v);
             return /^(?:"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?[LD]?|true|false)$/.test (v)
-                || /^new [\w.]+(?:<[\w.<>, ?]*>)?\(/.test (v);
+                || /^new [\w.]+(?:<[\w.<>, ?]*>)?\(/.test (v)
+                // primitive long arithmetic over a `for (var i` counter, or a Long whose only write is Generic.sum (never null)
+                || ((c) => c !== null && declaredType (c[1]) === 'var' && new RegExp (`\\bfor \\(var ${c[1]} = \\d+;`).test (member))
+                    (/^\(\(long\) ([A-Za-z_]\w*)\) [-+] \d+L$/.exec (v))
+                || (/^[A-Za-z_]\w*$/.test (v) && declaredType (v) === 'Long' && soleSumWrite (v));
+        };
+        // `Long x = (Long) this.sum(a, b);` with no other write: the base sum boxes a long/double, never null
+        const soleSumWrite = (n: string): boolean => {
+            const writes = [ ...member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(?:=(?!=)|\\+=|-=|\\+\\+|--)`, 'g')) ];
+            return writes.length === 1 && new RegExp (`\\bLong ${n} = \\(Long\\) this\\.sum\\([^;]*\\);`).test (member)
+                && !/public [\w.<>]+ sum\(/.test (content.replace (/^[\s\S]*?\bclass \w+ extends Exchange\b/, '')) ;
         };
         const stringKey = (k: string) => /^"(?:[^"\\]|\\.)*"$/.test (k);
         for (let i = from; i < to; i++) {
@@ -9140,8 +7505,10 @@ export function nativeJavaMapLocalOps (content: string): string {
                 }
             }
             let next = line;
-            next = next.replace (/^(\s*)Helpers\.addElementToObject\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*), (.*)\);(\s*\/\/.*)?$/, (whole, ind, recv, key, value, tail) => {
+            next = next.replace (/^(\s*)Helpers\.addElementToObject\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*|\(\(String\)[A-Za-z_]\w*\)), (.*)\);(\s*\/\/.*)?$/, (whole, ind, recv, key, value, tail) => {
                 if (!isMap (recv)) return whole;
+                // `((String)k)` over a String-declared name is that String; it binds only with a never-null value
+                if (key.startsWith ('((String)')) return (declaredType (key.slice (9, -1)) === 'String' && nonNull (value)) ? `${ind}${recv}.put(${key}, ${value});${tail ?? ''}` : whole;
                 const args = memberCallArgs (`(${key}, ${value})`, 0);
                 if (args === undefined || args.length !== 2) return whole;
                 if (!(fresh (recv) || nonNull (value))) return whole;
@@ -9172,17 +7539,7 @@ export function nativeJavaMapLocalOps (content: string): string {
                 if (declaredType (key) === 'String') return `(${recv} == null || ${key} == null ? null : ${recv}.get(${key}))`;
                 return whole;
             });
-            next = next.replace (/Helpers\.inOp\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*)\)/g, (whole, recv, key) => {
-                if (!isMap (recv)) return whole;
-                if (stringKey (key)) return `(${recv} != null && ${recv}.containsKey(${key}))`;
-                if (declaredType (key) === 'String') return `(${recv} != null && ${key} != null && ${recv}.containsKey(${key}))`;
-                return whole;
-            });
             // objectKeys snapshots under the map's monitor: only an unshared fresh local skips it
-            next = next.replace (/Helpers\.objectKeys\(([A-Za-z_]\w*)\)/g, (whole, recv) => {
-                if (!isMap (recv) || !fresh (recv)) return whole;
-                return `(${recv} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${recv}.keySet()))`;
-            });
             if (next !== line) { lines[i] = next; changed = true; }
         }
     }
@@ -9191,7 +7548,6 @@ export function nativeJavaMapLocalOps (content: string): string {
 
 // Snippet checks for the Map-local put/get/in/keys pass (`--audit-string-types --self-test`)
 function javaMapLocalOpsSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (sig: string, body: string) => `public class Gemini extends GeminiRest\n{\n    public Object m(${sig})\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string, string | undefined][] = [
         [ 'fresh literal put', 'Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        Helpers.addElementToObject(r, "a", v);', '        r.put("a", v);' ],
@@ -9212,6 +7568,11 @@ function javaMapLocalOpsSelfTest (): string[] {
         [ 'field options', 'Object v', '        Helpers.addElementToObject(this.options, \"a\", \"x\");', undefined ],
         [ 'field extend of 3', 'Object p, Object q', '        Helpers.addElementToObject(this.balance, \"a\", this.extend(p, q, p));', undefined ],
         // negatives: nullable value on a possibly concurrent map, Object receiver, Object key read, shared map keys, mixed decls, 3-arg extend
+        [ 'String-cast key, counter sum', 'Map<String, Object> p, String k', '        for (var i = 0; i < 3; i++)\n        {\n            Helpers.addElementToObject(p, ((String)k), (((long) i) + 1L));\n        }', '            p.put(((String)k), (((long) i) + 1L));' ],
+        [ 'sum-only Long value', 'Map<String, Object> p, String k', '        Long n = (Long) this.sum(this.safeInteger(p, k, 0), 1);\n        Helpers.addElementToObject(p, k, n);', '        p.put(k, n);' ],
+        [ 'String-cast key, nullable value keeps helper', 'Map<String, Object> p, String k, Object v', '        Helpers.addElementToObject(p, ((String)k), v);', undefined ],
+        [ 'Object-cast-key keeps helper', 'Map<String, Object> p, Object k', '        for (var i = 0; i < 3; i++)\n        {\n            Helpers.addElementToObject(p, ((String)k), (((long) i) + 1L));\n        }', undefined ],
+        [ 'rewritten Long keeps helper', 'Map<String, Object> p, String k, Long m', '        Long n = (Long) this.sum(m, 1);\n        n = m;\n        Helpers.addElementToObject(p, k, n);', undefined ],
         [ 'nullable on param map', 'Map<String, Object> p, Object v', '        Helpers.addElementToObject(p, "a", v);', undefined ],
         [ 'nullable on safeDict map', 'Object o, Object v', '        Map<String, Object> r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", v);', undefined ],
         [ 'Object receiver', 'Object p', '        Helpers.addElementToObject(p, "a", "x");\n        return Helpers.GetValue(p, "a");', undefined ],
@@ -9231,13 +7592,8 @@ function javaMapLocalOpsSelfTest (): string[] {
         [ 'super parseTrade local reassigned keeps helper', 'Object t, Object v', '        Object p = super.parseTrade((Object) (t), (Map<String, Object>) null);\n        p = v;\n        Helpers.addElementToObject(p, \"side\", v);', undefined ],
         [ 'extend of 3', 'Object p, Object q, Object v', '        Map<String, Object> r = (Map<String, Object>) this.extend(p, q, new HashMap<String, Object>() {{}});\n        Helpers.addElementToObject(r, "a", v);', undefined ],
     ];
-    for (const [ name, sig, body, expect ] of cases) {
-        const input = cls (sig, body);
-        const out = nativeJavaMapLocalOps (input);
-        const ok = expect === undefined ? out === input : out.includes (expect);
-        if (!ok) problems.push (`map locals: ${name}\n${out}`);
-    }
-    return problems;
+    const wrapped = cases.map(([ name, sig, body, expect ]): SnippetCase => [ name, cls (sig, body), expect ]);
+    return runSnippetCases(wrapped, (src) => src, nativeJavaMapLocalOps, (name, out) => `map locals: ${name}\n${out}`);
 }
 
 // Native forms for the remaining core-arg / isEqual / isTrue sites: the Map-locals and box-locals passes re-run with `//` comments masked,
@@ -9292,7 +7648,7 @@ function remainingCoreArgsMember (member: string, content: string): string {
         list.push (t);
         declTypes.set (m[2], list);
     }
-    const header = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n'));
+    const header = member.split ('\n', 1)[0];
     const lambdaShadow = (n: string) => new RegExp (`(?:\\(|, )${n}\\) ->|(?<![\\w.])${n} ->`).test (member);
     const isParam = (n: string) => new RegExp (`[(,] ?(?:final )?[\\w.<>, ?]+ ${n}[,)]`).test (header);
     const single = (n: string) => { const t = declTypes.get (n); return t !== undefined && t.length === 1 && !lambdaShadow (n) ? t[0] : undefined; };
@@ -9337,7 +7693,6 @@ function remainingCoreArgsMember (member: string, content: string): string {
         const t = single (n);
         if (t === 'Long') return 'L';
         if (t === 'Integer') return 'N';
-        if (t === 'long' || t === 'int') return 'p';
         if (counter (n)) return 'p';
         return objAssumed.has (n) ? 'n' : undefined;
     };
@@ -9432,22 +7787,14 @@ function remainingCoreArgsMember (member: string, content: string): string {
 }
 
 export function nativeJavaRemainingCoreArgs (content: string): string {
-    let out = commentMaskedRerun (content);
-
+    const out = commentMaskedRerun (content);
     if (!/Helpers\.(?:isEqual|toMapArg)\(/.test (out)) return out;
-    const lines = out.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return out;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (remainingCoreArgsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), out));
-    return nativeJavaCoreArgIdentities (parts.join ('\n'));
+    const parts = mapJavaMembers (out, false, (member) => remainingCoreArgsMember (member, out));
+    return parts === undefined ? out : nativeJavaCoreArgIdentities (parts);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaRemainingCoreArgsSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> parameters, Object p, Long n, String outcome)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'comment masked', '        Object l = this.safeInteger(p, "limit", n); // limit=1000\n        return this.f(Helpers.toLongOrNull(l));', 'Long l = this.safeInteger(p, "limit", n); // limit=1000\n        return this.f(l);' ],
@@ -9464,17 +7811,11 @@ function javaRemainingCoreArgsSelfTest (): string[] {
         [ 'Object isTrue', '        if (Helpers.isTrue(p)) {}', undefined ],
         [ 'ternary isTrue', '        if (Helpers.isTrue(p == null ? n : p)) {}', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaRemainingCoreArgs (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`java remaining core args self: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaRemainingCoreArgs, (name, out) => `java remaining core args self: ${name}\n${out}`);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaInlineDivModNegSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Object p, Object d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string[]][] = [
         [ 'nested divide', '        Object r = this.f(Helpers.divide(Helpers.divide(d, 1000), 60));', [ '}).apply(((java.util.function.BinaryOperator<Object>)', '}).apply(d, 1000), 60))' ] ],
@@ -9482,10 +7823,8 @@ function javaInlineDivModNegSelfTest (): string[] {
         [ 'opNeg box', '        Object r = this.g(Helpers.opNeg(p));', [ 'if (j37a instanceof Integer j37v) return -j37v;', '}).apply(p))' ] ],
         [ 'string arg kept', '        Object r = this.f(Helpers.divide(p, "a,b)"));', [ '}).apply(p, "a,b)"))' ] ],
     ];
-    for (const [ name, body, expects ] of cases) {
-        const out = nativeJavaInlineDivModNeg (member (body));
-        if (/Helpers\.(?:divide|mod|opNeg)\(/.test (out) || !expects.every ((e) => out.includes (e))) problems.push (`java inline div mod neg: ${name}\n${out}`);
-    }
+    const problems = cases.flatMap (([ name, body, expects ]) => runSnippetCases ([ [ name, body, '' ] ], member, nativeJavaInlineDivModNeg, (n, out) => `java inline div mod neg: ${n}\n${out}`, member,
+        (out) => !/Helpers\.(?:divide|mod|opNeg)\(/.test (out) && expects.every ((e) => out.includes (e))));
     const other = member ('        Object r = this.f(MyHelpers.divide(p, 1));');
     if (nativeJavaInlineDivModNeg (other) !== other) problems.push ('a foreign divide must stay');
     return problems;
@@ -9512,41 +7851,23 @@ export function nativeJavaInlineCompare (content: string): string {
     const re = /\bHelpers\.(isGreaterThanOrEqual|isLessThanOrEqual|isGreaterThan|isLessThan|mathMin|mathMax)\(/g;
     const lines = content.split ('\n');
     for (let i = 0; i < lines.length; i++) {
-        const trimmed = lines[i].trim ();
-        if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-        let line = lines[i], again = true;
-        while (again) {
-            again = false;
-            re.lastIndex = 0;
-            let m;
-            while ((m = re.exec (line)) !== null) {
-                const before = line.slice (0, m.index);
-                if (before.includes ('//') || (before.split ('"').length - 1) % 2 === 1) continue;
-                const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                if (split === undefined || split.args.length !== 2) continue;
-                line = before + inlineCompareLambda (m[1], split.args[0], split.args[1]) + line.slice (split.end + 1);
-                again = true;
-                break;
-            }
-        }
-        lines[i] = line;
+        lines[i] = rewriteHelperCalls (lines[i], re, (m, args, line) => {
+            const before = line.slice (0, m.index);
+            return before.includes ('//') || (before.split ('"').length - 1) % 2 === 1 ? undefined : inlineCompareLambda (m[1], args[0], args[1]);
+        });
     }
     return lines.join ('\n');
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaInlineCompareSelfTest (): string[] {
-    const problems: string[] = [];
     const cases: [string, string][] = [
         [ '        if (Helpers.isLessThan(a, Helpers.mathMax(b, 1))) {}', '(java.util.function.BiPredicate<Object, Object>)' ],
         [ '        Object x = Helpers.mathMin(limit, 1000);', '.apply(limit, 1000);' ],
         [ '        // Helpers.isLessThan(a, b)', '// Helpers.isLessThan(a, b)' ],
         [ '        if (Helpers.isLessThanOrEqual(a, 0)) {}', '(java.util.function.BiPredicate<Object, Object>)' ],
     ];
-    for (const [ body, expect ] of cases) {
-        const out = nativeJavaInlineCompare (body);
-        if (!out.includes (expect)) problems.push (`java inline compare self test: ${body}\n${out}`);
-    }
+    const problems = runSnippetCases (cases.map (([ body, expect ]): SnippetCase => [ body, body, expect ]), (body) => body, nativeJavaInlineCompare, (body, out) => `java inline compare self test: ${body}\n${out}`);
     if (nativeJavaInlineCompare (cases[0][0]).includes ('Helpers.')) problems.push ('nested helper left behind');
     return problems;
 }
@@ -9608,37 +7929,42 @@ function containerOpsUnparen (e: string): string {
     return e;
 }
 
-// A newMap literal that is the whole argument of a statement-level `((List<Object>)x).add(...)` becomes
-// statement-level puts instead of a `switch (0)` lambda blob. Unbraced control bodies keep the switch form.
+// A newMap literal whose statement evaluates nothing before it (only casts, first-argument call openers and
+// local/literal leading args; no field reads that the values could reorder) becomes statement-level puts on a fresh local instead of a `switch (0)` blob.
+function containerOpsHoistPrefix (): RegExp {
+    const pureArg = String.raw`(?:"(?:[^"\\]|\\.)*"|\d+L?|(?:\(String\))?[A-Za-z_]\w*), `;
+    return new RegExp (String.raw`^[ \t]*(?:return |[\w.]+(?:<[\w.?, <>]*>)? [A-Za-z_]\w* = |[A-Za-z_]\w* = )?`
+    + String.raw`(?:\((?:\(?[\w.]+(?:<[\w.?, <>]*>)?\)\s?)?|(?:this|[A-Za-z_]\w*|\(\([\w.]+(?:<[\w.?, <>]*>)?\)[A-Za-z_]\w*\))\.\w+\(|new [\w.]+(?:<[\w.?, <>]*>)?\(|`
+    + pureArg + ')*$');
+}
 function containerOpsHoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
     if (args.length === 0 || args.length % 2 !== 0 || args.some ((a, i) => i % 2 === 0 && !/^"(?:[^"\\]|\\.)*"$/.test (a))) return undefined;
+    const h27 = h27J05HoistPureValues (t, at, close, args, lineStart, indent, fresh); if (h27 !== undefined) return h27;
+    const h28 = h28J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h28 !== undefined) return h28;
+    const h29 = h29J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h29 !== undefined) return h29;
+    const h30 = h30J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h30 !== undefined) return h30;
     const prefix = t.slice (lineStart, at);
-    if (!/^[ \t]*\(\([A-Za-z.<>?, ]+\)[A-Za-z_]\w*\)\.add\($/.test (prefix) || t.slice (close + 1, close + 3) !== ');') return undefined;
+    if (!containerOpsHoistPrefix ().test (prefix) || /^\s*(?:if|for|while|switch|else|case|do|try|catch|synchronized)\b/.test (prefix)) return undefined;
     const before = t.slice (0, lineStart).trimEnd ();
     if (!/[;{}]$/.test (before) || /^\s*\/\//.test (before.slice (before.lastIndexOf ('\n') + 1))) return undefined;
     const n = fresh ();
     const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
     for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
-    lines.push (`${prefix}${n});`);
-    return { text: lines.join ('\n'), end: close + 3 };
+    lines.push (`${prefix}${n}`);
+    return { text: lines.join ('\n'), end: close + 1 };
+}
+
+function containerOpsNextNewMap (t: string, from: number): number {
+    for (let k = from; k < t.length; k++) {
+        const s = containerOpsSkipLiteral (t, k);
+        if (s !== -1) { k = s; continue; }
+        if (t.startsWith ('Helpers.newMap(', k) && !/[\w.]/.test (t[k - 1] ?? '')) return k;
+    }
+    return -1;
 }
 
 function containerOpsMember (member: string, fresh: () => string): string {
-    const typeCache = new Map<string, string | undefined> ();
-    const declaredType = (name: string): string | undefined => {
-        if (typeCache.has (name)) return typeCache.get (name);
-        const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-        const types = new Set<string> ();
-        for (const m of member.matchAll (re)) {
-            const t = m[1].replace (/^final /, '');
-            if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'yield' ].includes (t)) continue;
-            types.add (t);
-        }
-        const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-        const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-        typeCache.set (name, out);
-        return out;
-    };
+    const declaredType = memberDeclaredTypeOf (member, true);
     const ident = (e: string) => /^[A-Za-z_]\w*$/.test (e) && !/^(?:this|null|true|false)$/.test (e);
     const strLit = (e: string) => /^"(?:[^"\\]|\\.)*"$/.test (e);
     const numLit = (e: string) => /^\d+L?$/.test (e);
@@ -9652,12 +7978,25 @@ function containerOpsMember (member: string, fresh: () => string): string {
     };
     const asObject = (e: string) => (strLit (e) ? e : `((Object)(${e}))`);
     const rewrite = (helper: string, args: string[], statement: boolean, indent: string): string | undefined => {
+        // operand declared List/ArrayCache/String/Map in this member: the type's own op, null as the helper answers
+        const declared = ident (args[0] ?? '') ? declaredType (args[0]) : undefined;
+        const listLike = declared !== undefined && /^(?:(?:java\.util\.)?(?:List|ArrayList)<[\w.?<>, ]*>|(?:io\.github\.ccxt\.ws\.)?ArrayCache)$/.test (declared);
+        const mapLike = declared !== undefined && /^(?:java\.util\.)?(?:Map|HashMap)<String, Object>$/.test (declared);
+        if (helper === 'getArrayLength' && args.length === 1 && (listLike || declared === 'String')) {
+            return `(${args[0]} == null ? 0 : ${args[0]}.${listLike ? 'size' : 'length'}())`;
+        }
+        if (helper === 'objectKeys' && args.length === 1 && mapLike) {
+            return `(${args[0]} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${args[0]}.keySet()))`;
+        }
+        if (helper === 'inOp' && args.length === 2 && strLit (args[1]) && (mapLike || listLike)) {
+            return `(${args[0]} != null && ${args[0]}.${mapLike ? 'containsKey' : 'contains'}(${args[1]}))`;
+        }
         if (helper === 'getArrayLength' && args.length === 1) {
             const l = fresh (), s = fresh (), o = fresh ();
             return `(switch ((Object)(${args[0]})) { case null -> 0; case java.util.List<?> ${l} -> ${l}.size(); case String ${s} -> ${s}.length(); case Object ${o} -> ${o}.getClass().isArray() ? java.lang.reflect.Array.getLength(${o}) : 0; })`;
         }
-        if (helper === 'objectKeys' && args.length === 1 && /^this\.(?:currencies|timeframes)$/.test (args[0])) {
-            // BaseExchange declares both fields Map<String, Object> and replaces (never mutates) the map
+        if (helper === 'objectKeys' && args.length === 1 && /^this\.(?:currencies|timeframes|requiredCredentials|events)$/.test (args[0])) {
+            // declared Map<String, Object> fields (BaseExchange, PredictionExchange); Helpers.objectKeys takes no lock either
             return `(${args[0]} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${args[0]}.keySet()))`;
         }
         if (helper === 'objectKeys' && args.length === 1) {
@@ -9693,6 +8032,22 @@ function containerOpsMember (member: string, fresh: () => string): string {
         if (member[k] === 'H' && !/[\w.]/.test (member[k - 1] ?? '')) { head.lastIndex = k; if (head.test (member)) starts.push (k); }
     }
     let out = member;
+    for (let from = 0; ;) {
+        const at = containerOpsNextNewMap (out, from);
+        if (at === -1) break;
+        const open = at + 'Helpers.newMap'.length, close = containerOpsClose (out, open);
+        const lineStart = out.lastIndexOf ('\n', at - 1) + 1;
+        const hoisted = close === -1 ? undefined : containerOpsHoistStatement (out, at, close, containerOpsSplitArgs (out.slice (open + 1, close)), lineStart, /^\s*/.exec (out.slice (lineStart))![0], fresh);
+        if (hoisted === undefined) { from = at + 1; continue; }
+        out = out.slice (0, lineStart) + hoisted.text + out.slice (hoisted.end);
+        from = lineStart;
+    }
+    starts.length = 0;
+    for (let k = 0; k < out.length; k++) {
+        const s = containerOpsSkipLiteral (out, k);
+        if (s !== -1) { k = s; continue; }
+        if (out[k] === 'H' && !/[\w.]/.test (out[k - 1] ?? '')) { head.lastIndex = k; if (head.test (out)) starts.push (k); }
+    }
     for (let i = starts.length - 1; i >= 0; i--) {
         const at = starts[i];
         const helper = /^Helpers\.(\w+)\(/.exec (out.slice (at))![1];
@@ -9703,8 +8058,6 @@ function containerOpsMember (member: string, fresh: () => string): string {
         const lineStart = out.lastIndexOf ('\n', at - 1) + 1;
         const indent = /^\s*/.exec (out.slice (lineStart))![0];
         const statement = out.slice (lineStart, at).trim () === '' && out[close + 1] === ';';
-        const hoisted = helper === 'newMap' ? containerOpsHoistStatement (out, at, close, args, lineStart, indent, fresh) : undefined;
-        if (hoisted !== undefined) { out = out.slice (0, lineStart) + hoisted.text + out.slice (hoisted.end); continue; }
         const text = rewrite (helper, args, statement, indent);
         if (text === undefined) continue;
         out = statement && helper === 'addElementToObject' ? out.slice (0, at) + text + out.slice (close + 2) : out.slice (0, at) + text + out.slice (close + 1);
@@ -9718,9 +8071,7 @@ export function nativeJavaContainerOps (content: string): string {
     let counter = 0;
     const fresh = () => `${prefix}v${++counter}`;
     const lines = content.split ('\n');
-    const starts: number[] = [ 0 ];
-    for (let i = 1; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ 0, ...javaMemberStarts (lines, false, 1), lines.length ];
     const parts: string[] = [];
     for (let s = 0; s + 1 < starts.length; s++) parts.push (containerOpsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), fresh));
     return parts.join ('\n');
@@ -9728,18 +8079,24 @@ export function nativeJavaContainerOps (content: string): string {
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaContainerOpsSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'length', '        return Helpers.getArrayLength(o);', 'case java.util.List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length()' ],
         [ 'keys', '        return Helpers.objectKeys(o);', 'synchronized (j39v1) { yield new java.util.ArrayList<Object>(j39v1.keySet()); }' ],
         [ 'inOp lit', '        return Helpers.inOp(o, "a");', 'j39v2.contains("a"); case java.util.Map<?, ?> j39v1 -> j39v1.containsKey("a")' ],
         [ 'inOp id', '        return Helpers.inOp(o, s);', '((Object)(s)) instanceof String && j39v1.containsKey(s)' ],
-        [ 'newMap', '        return this.f(Helpers.newMap("a", o));', 'switch (0) { default -> { java.util.HashMap<String, Object> j39v1 = new java.util.HashMap<String, Object>(); j39v1.put("a", o); yield j39v1; } }' ],
+        [ 'newMap', '        return this.f(Helpers.newMap("a", o));', 'j39v1.put("a", o);\n        return this.f(j39v1);' ],
+        [ 'newMap expr', '        return this.f(this.g(), Helpers.newMap("a", o));', 'switch (0) { default -> { java.util.HashMap<String, Object> j39v1 = new java.util.HashMap<String, Object>(); j39v1.put("a", o); yield j39v1; } }' ],
+        [ 'newMap field recv', '        this.options.put("x", Helpers.newMap("a", o));', 'switch (0) { default -> {' ],
+        [ 'newMap if', '        if (this.f(Helpers.newMap("a", o)) != null) return null;', 'if (this.f((switch (0) { default -> {' ],
+        [ 'typed length', '        return Helpers.getArrayLength(l);', '(l == null ? 0 : l.size())' ],
+        [ 'typed keys', '        return Helpers.objectKeys(p);', '(p == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(p.keySet()))' ],
+        [ 'typed inOp', '        return Helpers.inOp(p, "a");', '(p != null && p.containsKey("a"))' ],
+        [ 'typed string length', '        return Helpers.getArrayLength(s);', '(s == null ? 0 : s.length())' ],
         [ 'newMap add hoist', '        Object r = null;\n        ((List<Object>)r).add(Helpers.newMap(\"a\", o));\n        return r;', 'j39v1.put(\"a\", o);\n        ((List<Object>)r).add(j39v1);' ],
         [ 'newMap add unbraced', '        if (o != null)\n            ((List<Object>)l).add(Helpers.newMap(\"a\", o));\n        return l;', 'add((switch (0) { default -> {' ],
-        [ 'newMap add in call', '        ((List<Object>)l).add(this.f(Helpers.newMap(\"a\", o)));\n        return l;', 'add(this.f((switch (0) { default -> {' ],
-        [ 'nested', '        return Helpers.inOp(Helpers.newMap("a", Helpers.getArrayLength(o)), "a");', 'j39v4.put("a", (switch ((Object)(o))' ],
+        [ 'newMap add in call', '        ((List<Object>)l).add(this.f(Helpers.newMap(\"a\", o)));\n        return l;', 'j39v1.put(\"a\", o);\n        ((List<Object>)l).add(this.f(j39v1));' ],
+        [ 'nested', '        return Helpers.inOp(Helpers.newMap("a", Helpers.getArrayLength(o)), "a");', 'j39v1.put("a", (switch ((Object)(o))' ],
         // negatives: Object receiver put/get, impure inOp key, odd newMap, string-literal content, expression GetValue
         [ 'put Object', '        Helpers.addElementToObject(o, "a", 1);', undefined ],
         [ 'get Object', '        return Helpers.GetValue(o, "a");', undefined ],
@@ -9748,12 +8105,7 @@ function javaContainerOpsSelfTest (): string[] {
         [ 'newMap id key', '        return Helpers.newMap(s, o);', undefined ],
         [ 'in string', '        return "Helpers.inOp(o, s)";', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaContainerOps (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`java container ops self test: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `java container ops self test: ${name}\n${out}`);
 }
 
 // Core-arg / truthiness / literal-equality / literal-add helpers as inline pattern switches
@@ -9887,7 +8239,23 @@ export function nativeJavaCoreArgHelpers (content: string): string {
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaCoreArgHelpersSelfTest (): string[] {
-    const problems: string[] = javaIsTrueSelfTest();
+    const isTrueCls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Boolean q, boolean r)\n    {\n${body}\n    }\n}`;
+    const isTrueCases: [string, string, string | undefined][] = [
+        [ 'Boolean param', '        if (Helpers.isTrue(q)) {}', 'if (Boolean.TRUE.equals(q)) {}' ],
+        [ 'boolean param', '        if (Helpers.isTrue(r)) {}', 'if (r) {}' ],
+        [ 'Boolean local', '        Boolean b = null;\n        if (Helpers.isTrue(b)) {}', 'if (Boolean.TRUE.equals(b)) {}' ],
+        [ 'paren Boolean', '        if (Helpers.isTrue((q))) {}', 'if (Boolean.TRUE.equals((q))) {}' ],
+        [ 'requireNonNullElse', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(q, false))) {}', 'if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(q, false))) {}' ],
+        [ 'java boolean expr', '        if (Helpers.isTrue(p == null)) {}', 'if ((p == null)) {}' ],
+        [ 'TRUE.equals && call', '        if (Helpers.isTrue(Boolean.TRUE.equals(q) && this.inArray(p, p))) {}', 'if ((Boolean.TRUE.equals(q) && this.inArray(p, p))) {}' ],
+        [ 'ternary', '        if (Helpers.isTrue(r ? p : q)) {}', undefined ],
+        // helper left alone: Object param, Object local, mixed declarations, requireNonNullElse on Object, call result
+        [ 'Object param', '        if (Helpers.isTrue(p)) {}', undefined ],
+        [ 'Object local', '        Object b = p;\n        if (Helpers.isTrue(b)) {}', undefined ],
+        [ 'mixed decls', '        { Object b = p; }\n        Boolean b = q;\n        if (Helpers.isTrue(b)) {}', undefined ],
+        [ 'rNNE Object', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(p, false))) {}', undefined ],
+        [ 'call', '        if (Helpers.isTrue(this.safeBool(p, "a"))) {}', undefined ],
+    ];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'isEqual null', '        if (Helpers.isEqual(p, null)) {}', 'if ((((Object) (p)) == null)) {}' ],
@@ -9903,12 +8271,8 @@ function javaCoreArgHelpersSelfTest (): string[] {
         [ 'add String', '        return Helpers.add(s, 1);', undefined ],
         [ 'statement', '        Helpers.toMapArg(p);', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaCoreArgHelpers (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.');
-        if (!ok) problems.push (`java core arg helpers self: ${name}\n${out}`);
-    }
-    return problems;
+    const isTrue = runSnippetCases(isTrueCases, isTrueCls, nativeJavaCoreArgHelpers, (name, out) => `java is true self test: ${name}\n${out}`, isTrueCls, (out) => !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out);
+    return isTrue.concat(runSnippetCases(cases, cls, nativeJavaCoreArgHelpers, (name, out) => `java core arg helpers self: ${name}\n${out}`, cls, (out) => !out.includes ('Helpers.')));
 }
 
 // Truthiness. Helpers.isTrue tests null, Boolean, Long, Integer, Double, String, List, Map in
@@ -9995,33 +8359,6 @@ function nativeIsTrue (x: string, ctx: CoreArgHelperCtx): string | undefined {
     return undefined;
 }
 
-function javaIsTrueSelfTest (): string[] {
-    const problems: string[] = [];
-    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Boolean q, boolean r)\n    {\n${body}\n    }\n}`;
-    const cases: [string, string, string | undefined][] = [
-        [ 'Boolean param', '        if (Helpers.isTrue(q)) {}', 'if (Boolean.TRUE.equals(q)) {}' ],
-        [ 'boolean param', '        if (Helpers.isTrue(r)) {}', 'if (r) {}' ],
-        [ 'Boolean local', '        Boolean b = null;\n        if (Helpers.isTrue(b)) {}', 'if (Boolean.TRUE.equals(b)) {}' ],
-        [ 'paren Boolean', '        if (Helpers.isTrue((q))) {}', 'if (Boolean.TRUE.equals((q))) {}' ],
-        [ 'requireNonNullElse', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(q, false))) {}', 'if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(q, false))) {}' ],
-        [ 'java boolean expr', '        if (Helpers.isTrue(p == null)) {}', 'if ((p == null)) {}' ],
-        [ 'TRUE.equals && call', '        if (Helpers.isTrue(Boolean.TRUE.equals(q) && this.inArray(p, p))) {}', 'if ((Boolean.TRUE.equals(q) && this.inArray(p, p))) {}' ],
-        [ 'ternary', '        if (Helpers.isTrue(r ? p : q)) {}', undefined ],
-        // helper left alone: Object param, Object local, mixed declarations, requireNonNullElse on Object, call result
-        [ 'Object param', '        if (Helpers.isTrue(p)) {}', undefined ],
-        [ 'Object local', '        Object b = p;\n        if (Helpers.isTrue(b)) {}', undefined ],
-        [ 'mixed decls', '        { Object b = p; }\n        Boolean b = q;\n        if (Helpers.isTrue(b)) {}', undefined ],
-        [ 'rNNE Object', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(p, false))) {}', undefined ],
-        [ 'call', '        if (Helpers.isTrue(this.safeBool(p, "a"))) {}', undefined ],
-    ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaCoreArgHelpers (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out;
-        if (!ok) problems.push (`java is true self test: ${name}\n${out}`);
-    }
-    return problems;
-}
-
 // Literal equality. Exactly two outcomes per Helpers.isEqual site:
 // a proven operand type -> plain native `==` / `.equals`; anything else -> the helper call, untouched.
 // `==` is only emitted between proven primitives (boxed `==` is reference identity, and the helper
@@ -10029,7 +8366,6 @@ function javaIsTrueSelfTest (): string[] {
 function nativeIsEqual (a: string, b: string, intConsts: Set<string>, ctx: CoreArgHelperCtx): string | undefined {
     // isEqual(x, null) is x == null for every x
     if (b === 'null') { return `(((Object) (${a})) == null)`; }
-    if (a === 'null') { return `(((Object) (${b})) == null)`; }
     const strLit = (t: string) => /^"(?:[^"\\]|\\.)*"$/.test(t);
     // primitive long/int/double: a declared local/param, a numeric literal, a static final int constant,
     // or a `((double) x) op ((double) y)` expression
@@ -10043,13 +8379,11 @@ function nativeIsEqual (a: string, b: string, intConsts: Set<string>, ctx: CoreA
     // so it only goes native against a declared String operand
     const isStr = (t: string) => /^[A-Za-z_]\w*$/.test(t) && coreArgDeclType(ctx.masked, t, ctx.pos) === 'String';
     if (strLit(b) && !strLit(a) && (isUnparseableNumberLiteral(b) || isStr(a))) { return `${b}.equals(${a})`; }
-    if (strLit(a) && !strLit(b) && (isUnparseableNumberLiteral(a) || isStr(b))) { return `${a}.equals(${b})`; }
     return undefined;
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaIsEqualSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n, long k, double d)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'null', '        if (Helpers.isEqual(p, null)) {}', 'if ((((Object) (p)) == null)) {}' ],
@@ -10067,19 +8401,12 @@ function javaIsEqualSelfTest (): string[] {
         [ 'numeric lit vs Object', '        if (Helpers.isEqual(p, "1")) {}', undefined ],
         [ 'Object pair', '        if (Helpers.isEqual(p, n)) {}', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaCoreArgHelpers (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out;
-        if (!ok) problems.push (`java is equal self test: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaCoreArgHelpers, (name, out) => `java is equal self test: ${name}\n${out}`, cls, (out) => !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out);
 }
 
 // Object locals proven String (base `: Str` producers) / Map (venue `: Dict` omit/fresh-map
 // callees) print their concrete type; any unproven write or producer keeps Object
 function x21SelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzx21selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         "import type { Dict } from './base/types.js';",
@@ -10094,10 +8421,8 @@ function x21SelfTest (): string[] {
         "    rt () { const q = {}; const e = this.zzxRoute ('fetchX', q); return this.extend (e, {}); }",
         "    lo () { const q = {}; const f = this.zzxLoose (q); return this.extend (f, {}); }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzx21selftest', body ] ], (out, problems) => {
         if (!/String a = \(String\) this\.currencyToPrecision\(/.test(out)) problems.push("'a' (currencyToPrecision + literal write) must print String with a checkcast");
         if (!/String b = (\(String\) )?this\.parsePrecision\(/.test(out)) problems.push("'b' (parsePrecision) must print String");
         if (!/Map<String, Object> d = /.test(out)) problems.push("'d' (venue omit-of-Map-param callee) must print Map");
@@ -10108,12 +8433,7 @@ function x21SelfTest (): string[] {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/producer and must stay Object`);
         }
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 
 // Helpers.GetValue / Helpers.addElementToObject inside nativeJavaContainerOps. Exactly two outcomes per site:
@@ -10131,7 +8451,7 @@ function x22MapRewrite (helper: string, args: string[], statement: boolean, decl
     const isMap = (t: string | undefined) => /^(?:java\.util\.)?(?:Map|HashMap|LinkedHashMap)<String, Object>$/.test (t ?? '');
     const isList = (t: string | undefined) => /^(?:java\.util\.)?(?:List|ArrayList)<Object>$/.test (t ?? '');
     const stringKey = (k: string) => strLit (k) || (ident (k) && declaredType (k) === 'String');
-    const sig = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n')).replace (/\{.*$/, '');
+    const sig = member.split ('\n', 1)[0].replace (/\{.*$/, '');
     const fresh = (n: string): boolean => {
         if (new RegExp (`[(,]\\s*(?:final )?[\\w.]+(?:<[\\w.<>, ?]*>)? ${n}\\s*[,)]`).test (sig)) return false;
         // any lambda / anonymous class mentioning it, or a compound write, vetoes
@@ -10174,7 +8494,6 @@ function x22MapRewrite (helper: string, args: string[], statement: boolean, decl
 
 // Snippet checks (`--audit-string-types --self-test`)
 function x22SelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         // native: plain op on a proven receiver + key
@@ -10196,13 +8515,11 @@ function x22SelfTest (): string[] {
         [ 'get list var index', '        return Helpers.GetValue(l, s);', undefined ],
         [ 'get options id key', '        return Helpers.GetValue(this.options, o);', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaContainerOps (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/j39|switch|synchronized/.test (out);
-        if (!ok) problems.push (`java selftest: ${name}\n${out}`);
-        if (nativeJavaContainerOps (out) !== out) problems.push (`java selftest: ${name} not idempotent`);
-    }
-    return problems;
+    return cases.flatMap ((c) => {
+        const out = nativeJavaContainerOps (cls (c[1]));
+        const idempotent = nativeJavaContainerOps (out) === out ? [] : [ `java selftest: ${c[0]} not idempotent` ];
+        return runSnippetCases ([ c ], cls, nativeJavaContainerOps, (name, o) => `java selftest: ${name}\n${o}`, cls, (o) => !/j39|switch|synchronized/.test (o)).concat (idempotent);
+    });
 }
 
 
@@ -11186,3 +9503,385 @@ function javaR93j8LocalsSelfTest (): string[] {
     }
     return problems;
 }
+
+// ws handler dispatch: `Helpers.callDynamically(this, m, new Object[] {args})` where every write of `m` is null, a
+// handler-name literal or a read of a local name table becomes a `switch` of direct calls (table retyped String).
+// Each name has one declaration in the class (reflection picks it too); missing args are padded like padArgs.
+function nativeJavaWsHandlerDispatch (content: string): string {
+    const esc = (s: string) => s.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const sigs = new Map<string, string[][]> ();
+    const splitTop = (text: string) => {
+        const out: string[] = [];
+        let depth = 0, cur = '';
+        for (const c of text) {
+            depth += c === '<' || c === '(' ? 1 : c === '>' || c === ')' ? -1 : 0;
+            if (c === ',' && depth === 0) { out.push (cur.trim ()); cur = ''; } else { cur += c; }
+        }
+        return cur.trim () ? [ ...out, cur.trim () ] : out;
+    };
+    for (const m of content.matchAll (/^ {4}public [\w.<>, ]+? (\w+)\(([^)]*)\)\s*$/gm)) {
+        sigs.set (m[1], [ ...(sigs.get (m[1]) ?? []), splitTop (m[2]).map ((p) => p.replace (/\s+\w+$/, '')) ]);
+    }
+    const norm = (t: string) => t.replace (/java\.util\./g, '').replace (/\s+/g, ' ');
+    const edits: { from: number, to: number, text: string }[] = [];
+    const masked = content.replace (/^[ \t]*\/\/.*$/gm, (c) => ' '.repeat (c.length));
+    const seen = new Set<number> ();
+    const callRe = /^([ \t]+)Helpers\.callDynamically\(this, (\w+), new Object\[\] \{([\w, ]*)\}\);$/gm;
+    let call;
+    while ((call = callRe.exec (content)) !== null) {
+        const [ , indent, v, argText ] = call;
+        // scope: the block declaring the dispatch local (a method can hold two `method` locals)
+        const declAt = content.lastIndexOf (`Object ${v} = `, call.index);
+        let start = declAt, depth = 0;
+        for (; start > 0 && depth >= 0; start--) depth += content[start - 1] === '}' ? 1 : content[start - 1] === '{' ? -1 : 0;
+        let end = start + 1;
+        for (depth = 1; end < content.length && depth > 0; end++) depth += content[end] === '{' ? 1 : content[end] === '}' ? -1 : 0;
+        if (declAt < 0 || content.lastIndexOf ('\n    public ', call.index) > declAt || end <= call.index || seen.has (declAt)) continue;
+        seen.add (declAt);
+        const body = masked.slice (start, end);
+        const memberFrom = content.lastIndexOf ('\n    public ', call.index);
+        const memberTo = content.indexOf ('\n    }\n', call.index);
+        const method = content.slice (memberFrom, call.index);
+        const member = masked.slice (memberFrom, memberTo);
+        // every dispatch through this local, all with the same argument list
+        const sites = [ ...body.matchAll (new RegExp (`^([ \\t]+)Helpers\\.callDynamically\\(this, ${v}, new Object\\[\\] \\{([\\w, ]*)\\}\\);$`, 'gm')) ];
+        if (sites.some ((m) => m[2] !== argText)) continue;
+        const args = argText.split (',').map ((a) => a.trim ()).filter ((a) => a !== '');
+        const decl = body.match (new RegExp (`\\n\\s*Object ${v} = ([^;\\n]+);`, 'g')) ?? [];
+        const writes = [ ...body.matchAll (new RegExp (`(?<![\\w.])${v} = ([^;\\n]+);`, 'g')) ].map ((w) => w[1].trim ());
+        if (decl.length !== 1) continue;
+        // every use of the dispatch local: its writes, null tests, this call
+        const uses = (body.replace (/"(?:[^"\\\n]|\\.)*"/g, '""').match (new RegExp (`(?<![\\w."])${v}(?![\\w"])`, 'g')) ?? []).length;
+        const nullTests = (body.match (new RegExp (`java\\.util\\.Objects\\.equals\\(${v}, null\\)`, 'g')) ?? []).length;
+        const calls = (body.match (new RegExp (`Helpers\\.callDynamically\\(this, ${v}, `, 'g')) ?? []).length;
+        if (calls !== sites.length || uses !== writes.length + nullTests + calls) continue;
+        const tables = new Set<string> (), names = new Set<string> (), reads: [ string, string ][] = [];
+        let ok = true;
+        for (const w of writes) {
+            let r;
+            if (w === 'null') continue;
+            if ((r = /^"(\w+)"$/.exec (w))) { names.add (r[1]); continue; }
+            r = /^(?:\(\(\(java\.util\.Objects\.equals\((\w+), null\)\)\)\) \? null : )?this\.safeValue\((\w+), (\w+|"\w+")\)$/.exec (w);
+            if (r && (r[1] === undefined || r[1] === r[3])) { tables.add (r[2]); reads.push ([ w, `${r[2]}.get(${r[3]})` ]); continue; }
+            // values are non-empty literals, so the second key is read only when the first misses
+            r = /^this\.safeValue2\((\w+), (\w+), (\w+)\)$/.exec (w);
+            if (r) { tables.add (r[1]); reads.push ([ w, `(${r[1]}.get(${r[2]}) != null ? ${r[1]}.get(${r[2]}) : ${r[1]}.get(${r[3]}))` ]); continue; }
+            r = /^\((\w+) == null \|\| (\w+) == null \? null : \1\.get\(\2\)\)$/.exec (w) ?? /^(\w+)\.get\((\w+|"\w+")\)$/.exec (w);
+            if (r) { tables.add (r[1]); continue; }
+            ok = false;
+        }
+        if (!ok) continue;
+        const keyOk = (k: string) => /^"\w+"$/.test (k) || new RegExp (`(?:\\n\\s*|\\()String ${k}(?: =|,|\\))`).test (member);
+        if (!reads.every (([ , g ]) => [ ...g.matchAll (/\.get\(([^()]+)\)/g) ].every ((k) => keyOk (k[1])))) continue;
+        if (!writes.every ((w) => !/\.get\((\w+)\)/.test (w) || keyOk (/\.get\((\w+)\)/.exec (w)[1]))) continue;
+        const retypes: [ string, string ][] = [];
+        for (const t of tables) {
+            const litRe = new RegExp (`\\n([ \\t]*)(?:java\\.util\\.)?Map<String, (?:Object|String)> ${t} = new (?:java\\.util\\.)?HashMap<String, (?:Object|String)>\\(\\) \\{\\{\\n((?:\\s*put\\( ?"[^"\\n]*", (?:"\\w+"|\\w+\\.this\\.safeValue\\(\\w+, [^;\\n]+\\) )\\);\\n)+)\\s*\\}\\};`, 'g');
+            // the table is the dispatch block's own, or the member's only one
+            const scope = (body.match (litRe) ?? []).length === 1 ? body : member;
+            const lits = [ ...scope.matchAll (litRe) ];
+            if (lits.length !== 1) { ok = false; break; }
+            const lit = lits[0];
+            const tUses = (scope.match (new RegExp (`(?<![\\w."])${t}(?![\\w"])`, 'g')) ?? []).length;
+            const tReads = (scope.match (new RegExp (`(?:this\\.safeValue2?\\(${t}, |${t}\\.(?:get|containsKey)\\(|\\(${t} == null)`, 'g')) ?? []).length;
+            if (!lit || tUses !== 1 + tReads) { ok = false; break; }
+            for (const n of lit[2].matchAll (/"(\w+)"\);/g)) names.add (n[1]);
+            // a nested entry reads another single-use literal name table with a String key: `inner.get(key)`
+            let litText = lit[0];
+            for (const nm of lit[2].matchAll (/\w+\.this\.safeValue\((\w+), ([^;\n]+)\) \);/g)) {
+                const [ whole, inner, key ] = nm;
+                const innerRe = new RegExp (`\\n([ \\t]*)(?:java\\.util\\.)?Map<String, Object> ${inner} = new (?:java\\.util\\.)?HashMap<String, Object>\\(\\) \\{\\{\\n((?:\\s*put\\( ?"[^"\\n]*", "\\w+"\\);\\n)+)\\s*\\}\\};`, 'g');
+                const innerLits = [ ...member.matchAll (innerRe) ];
+                const keyString = /^\w+\.this\.safeString\(\w+, (?:\d+|"\w+")\)$/.test (key) || keyOk (key);
+                if (innerLits.length !== 1 || !keyString || (member.match (new RegExp (`(?<![\\w."])${inner}(?![\\w"])`, 'g')) ?? []).length !== 2) { ok = false; break; }
+                for (const n of innerLits[0][2].matchAll (/"(\w+)"\);/g)) names.add (n[1]);
+                retypes.push ([ innerLits[0][0], innerLits[0][0].replace (/Map<String, Object>/, 'Map<String, String>').replace (/HashMap<String, Object>/, 'HashMap<String, String>') ]);
+                litText = litText.replace (whole, `${inner}.get(${key}) );`);
+            }
+            if (!ok) break;
+            retypes.push ([ lit[0], litText.replace (/Map<String, Object>/, 'Map<String, String>').replace (/HashMap<String, Object>/, 'HashMap<String, String>') ]);
+        }
+        if (!ok || names.size === 0) continue;
+        const argType = (a: string) => new RegExp (`(?:\\n\\s*|\\(|, )([\\w.]+(?:<[\\w.<>, ?]*>)?) ${a}(?: =|,|\\)|;)`).exec (method)?.[1];
+        const arms: string[] = [];
+        for (const n of [ ...names ].sort ()) {
+            const s = sigs.get (n);
+            if (s === undefined || s.length !== 1 || s[0].length < args.length || s[0].some ((p) => p.includes ('...'))) { ok = false; break; }
+            const params = s[0];
+            const typed = args.every ((a, i) => params[i] === 'Object' || (argType (a) !== undefined && norm (argType (a)) === norm (params[i])));
+            if (!typed) { ok = false; break; }
+            const pad = params.slice (args.length).map ((p) => (/^(java\.util\.)?Map\b/.test (p) ? 'new java.util.HashMap<String, Object>()' : 'null'));
+            arms.push (`${indent}    case "${n}" -> this.${n}(${[ ...args, ...pad ].join (', ')});`);
+        }
+        if (!ok) continue;
+        const miss = `"Method not found: " + ${v} + " with ${args.length} args on " + this.getClass().getName()`;
+        let newBody = content.slice (start, end);
+        for (const m of sites.reverse ()) {
+            const ind = m[1];
+            const sw = [ `${ind}switch (${v})`, `${ind}{`, ...arms.map ((a) => ind + a.slice (indent.length)), `${ind}    case null, default -> throw new RuntimeException(${miss});`, `${ind}}` ].join ('\n');
+            newBody = newBody.slice (0, m.index) + sw + newBody.slice (m.index + m[0].length);
+        }
+        newBody = newBody.replace (new RegExp (`(\\n\\s*)Object ${v} = `), `$1String ${v} = `);
+        for (const [ w, g ] of reads) newBody = newBody.split (`${v} = ${w};`).join (`${v} = ${g};`);
+        // a table declared above the dispatch block is retyped in place
+        const outer: { from: number, to: number, text: string }[] = [];
+        for (const [ a, b ] of retypes) {
+            const at = newBody.includes (a) ? start : content.indexOf (a, memberFrom);
+            if (at < 0 || at > start) { ok = false; break; }
+            if (at < start) outer.push ({ from: at, to: at + a.length, text: b });
+            else newBody = newBody.replace (a, b);
+        }
+        if (!ok) continue;
+        edits.push ({ from: start, to: end, text: newBody }, ...outer);
+    }
+    let out = content;
+    for (const e of edits.sort ((a, b) => b.from - a.from)) out = out.slice (0, e.from) + e.text + out.slice (e.to);
+    return out;
+}
+
+// `this[name] (args)` on a String local bound once to a literal that names a generated implicit-API method
+// (varargs, declared only in api/<X>Api.java): a direct call, which is what reflection resolves to.
+function nativeJavaLiteralApiDispatch (content: string, apiSource: string): string {
+    const re = /\(\((?:java\.util\.concurrent\.)?CompletableFuture<Object>\)(?:io\.github\.ccxt\.)?Helpers\.callDynamically\(this, (\w+), new Object\[\] \{ ([^{}\n]*) \}\)\)\.join\(\)/g;
+    return content.replace (re, (whole, v, args) => {
+        const decls = [ ...content.matchAll (new RegExp (`\\b(?:String|Object) ${v} = "(\\w+)";`, 'g')) ];
+        const uses = (content.match (new RegExp (`(?<![\\w."])${v}(?![\\w"])`, 'g')) ?? []).length;
+        if (decls.length !== 1 || uses !== 2) return whole;
+        const name = decls[0][1];
+        const apiDecls = apiSource.match (new RegExp (`\\n    public CompletableFuture<[\\w<>, ]+>\\s+${name} \\(Object\\.\\.\\. optionalArgs\\)`, 'g')) ?? [];
+        if (apiDecls.length !== 1 || new RegExp (`\\b${name}\\(`).test (content)) return whole;
+        return `(this.${name}(${args})).join()`;
+    });
+}
+
+// ===== h26-J03: a `safeDict (..) as Dict` reader with a Dict default prints the 77j6 Map local
+function javaH26J03AsDictReaderSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzh26j03selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';", "import type { Dict, Market } from './base/types.js';",
+        `export default class zzh26j03selftest${process.pid} extends Exchange {`,
+        "    pos (data: Dict) { const o1 = this.safeDict (data, 'order', data) as Dict; return this.safeString (o1, 'id'); }",
+        "    anyDefault (data: any) { const o2 = this.safeDict (data, 'order', data) as Dict; return this.safeString (o2, 'id'); }",
+        "    marketCast (data: Dict, market: Market = undefined) { const o3 = this.safeDict (data, 'm', market) as Market; return this.safeString (o3, 'id'); }",
+        "    otherWrite (data: Dict, r: any) { let o4 = this.safeDict (data, 'order', data) as Dict; if (r) { o4 = r; } return this.safeString (o4, 'id'); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> o1 = this\.safeDict\(/.test(out)) problems.push("h26-J03: 'o1' (as Dict, Dict default) must print Map<String, Object> (Map-default overload, no checkcast)");
+        for (const name of [ 'o2', 'o3', 'o4' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`h26-J03: '${name}' must stay Object`);
+        }
+    } catch (e: any) {
+        problems.push(`h26-J03 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ===== h27-J05: a newMap literal whose values are only member-declared locals/params or literals is hoisted
+// before its statement even after calls: a callee cannot write a Java local, so the values read the same.
+function h27J05HoistPureValues (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    const prefix = t.slice (lineStart, at);
+    if (/^\s*(?:(?:if|for|while|switch|else|case|do|try|catch|synchronized|yield|throw)\b|\}|\/\/)/.test (prefix) || /->|\binstanceof\b|\bswitch\b|\byield\b|"|\+\+|--/.test (prefix)) return undefined;
+    // no write inside the statement before the literal (only a leading `x = ` / `T x = `)
+    if (/[^=!<>]=(?!=)/.test (prefix.slice (prefix.indexOf ('(') + 1 || prefix.length))) return undefined;
+    // the previous statement ended (whole-line `//` comments in between are skipped)
+    const before = t.slice (0, lineStart).replace (/(?:\n[ \t]*\/\/[^\n]*)+\s*$/, '').trimEnd ();
+    if (!/[;{}]$/.test (before) || /^\s*\/\//.test (before.slice (before.lastIndexOf ('\n') + 1))) return undefined;
+    // a name the member declares (any type) is a local or parameter, never a field
+    const keywords = [ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'yield' ];
+    const declared = (name: string) => [ ...t.matchAll (new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g')) ]
+        .some ((m) => !keywords.includes (m[1].replace (/^final /, '')));
+    const pure = (e: string): boolean => {
+        e = containerOpsUnparen (e);
+        if (/^(?:null|true|false|-?\d+(?:\.\d+)?[LD]?|"(?:[^"\\]|\\.)*")$/.test (e)) return true;
+        return /^[A-Za-z_]\w*$/.test (e) && e !== 'this' && declared (e);
+    };
+    if (args.some ((a, i) => i % 2 === 1 && !pure (a))) return undefined;
+    const n = fresh ();
+    const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
+    for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
+    lines.push (`${prefix}${n}`);
+    return { text: lines.join ('\n'), end: close + 1 };
+}
+function h27J05HoistPureValuesSelfTest (): string[] {
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'after call, param + literal', '        return this.extend(this.f(p), Helpers.newMap("a", s, "b", null));', '        j39v1.put("a", s);\n        j39v1.put("b", null);\n        return this.extend(this.f(p), j39v1);' ],
+        // negatives: a call value (could depend on the earlier call), an undeclared name, a write before the literal, a condition
+        [ 'call value', '        return this.extend(this.f(p), Helpers.newMap("a", this.g()));', 'switch (0)' ],
+        [ 'field value', '        return this.extend(this.f(p), Helpers.newMap("a", this.x));', 'switch (0)' ],
+        [ 'write first', '        return this.extend(this.f(s = "q"), Helpers.newMap("a", s));', 'switch (0)' ],
+        [ 'two declared types', '        Object q = null;\n        if (o != null) { Long q = 1L; }\n        return this.extend(this.f(p), Helpers.newMap("a", q));', '        j39v1.put("a", q);\n        return this.extend(this.f(p), j39v1);' ],
+        [ 'after comment', '        Object q = 1L;\n        //\n        //   {}\n        return this.extend(this.f(p), Helpers.newMap("a", q));', '        //   {}\n        java.util.HashMap<String, Object> j39v1' ],
+        [ 'undeclared name', '        return this.extend(this.f(p), Helpers.newMap("a", fieldName));', 'switch (0)' ],
+        [ 'in if', '        if (this.f(p, Helpers.newMap("a", s)) != null) return null;', 'switch (0)' ],
+    ];
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h27-J05 hoist self test: ${name}\n${out}`);
+}
+// ===== end h27-J05
+
+// ===== h28-J05: a newMap value may also be parseNumber of a local/literal: a static, side-effect-free reader
+// of its own argument, so after the earlier calls it returns the same value as in place.
+function h28J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    const pn = /^(?:this|BaseExchange)\.parseNumber\(([A-Za-z_]\w*|"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?[LD]?)\)$/;
+    const plain = args.map ((a, i) => (i % 2 === 1 ? pn.exec (containerOpsUnparen (a))?.[1] ?? a : a));
+    if (plain.every ((a, i) => a === args[i])) return undefined;
+    const h = h27J05HoistPureValues (t, at, close, plain, lineStart, indent, fresh);
+    if (h === undefined) return undefined;
+    const n = /HashMap<String, Object> (\w+) = /.exec (h.text)![1];
+    const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
+    for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
+    lines.push (`${t.slice (lineStart, at)}${n}`);
+    return { text: lines.join ('\n'), end: close + 1 };
+}
+function h28J05HoistSelfTest (): string[] {
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'parseNumber of a param', '        return this.extend(this.f(p), Helpers.newMap("a", this.parseNumber(o), "b", s));', '        j39v1.put("a", this.parseNumber(o));\n        j39v1.put("b", s);\n        return this.extend(this.f(p), j39v1);' ],
+        // negatives: parseNumber of a call or a field, another method on a local
+        [ 'parseNumber of a call', '        return this.extend(this.f(p), Helpers.newMap("a", this.parseNumber(this.g())));', 'switch (0)' ],
+        [ 'parseNumber of a field', '        return this.extend(this.f(p), Helpers.newMap("a", this.parseNumber(this.x)));', 'switch (0)' ],
+        [ 'other reader', '        return this.extend(this.f(p), Helpers.newMap("a", this.safeString(p, "k")));', 'switch (0)' ],
+    ];
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h28-J05 hoist self test: ${name}\n${out}`);
+}
+// ===== end h28-J05
+
+// ===== h29-J05: (1) a string literal in the statement prefix is masked before the h27/h28 proofs (it cannot read or write);
+// (2) the base pure-prefix rule may follow whole-line `//` comments or a statement ending in a trailing `//` comment.
+function h29J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    const prefix = t.slice (lineStart, at);
+    const masked = prefix.replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => 'S'.repeat (m.length));
+    if (masked !== prefix && !masked.includes ('"')) {
+        const t2 = t.slice (0, lineStart) + masked + t.slice (at);
+        const h = h27J05HoistPureValues (t2, at, close, args, lineStart, indent, fresh) ?? h28J05HoistStatement (t2, at, close, args, lineStart, indent, fresh);
+        const cut = h === undefined ? -1 : h.text.lastIndexOf ('\n' + masked);
+        if (h !== undefined && cut !== -1) return { text: h.text.slice (0, cut + 1) + prefix + h.text.slice (cut + 1 + masked.length), end: h.end };
+    }
+    if (!containerOpsHoistPrefix ().test (prefix) || /^\s*(?:if|for|while|switch|else|case|do|try|catch|synchronized)\b/.test (prefix)) return undefined;
+    const prev = t.slice (0, lineStart).replace (/(?:\n[ \t]*\/\/[^\n]*)+\s*$/, '').trimEnd ();
+    const last = prev.slice (prev.lastIndexOf ('\n') + 1);
+    if (/^\s*\/\//.test (last) || !(/[;{}]$/.test (prev) || /^[^"\/]*;[ \t]*\/\/[^\n]*$/.test (last))) return undefined;
+    const n = fresh ();
+    const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
+    for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
+    lines.push (`${prefix}${n}`);
+    return { text: lines.join ('\n'), end: close + 1 };
+}
+function h29J05HoistSelfTest (): string[] {
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'string literal in prefix', '        return this.extend(this.omit(p, "k"), Helpers.newMap("a", s));', '        j39v1.put("a", s);\n        return this.extend(this.omit(p, "k"), j39v1);' ],
+        [ 'trailing comment before', '        Object q = o; // note\n        l.add(Helpers.newMap("a", this.safeString(p, "k")));', '        j39v1.put("a", this.safeString(p, "k"));\n        l.add(j39v1);' ],
+        // negatives: a write inside a masked prefix, a call value after an earlier call, a trailing comment after an open statement
+        [ 'write in prefix', '        return this.extend(this.f(s = "q"), Helpers.newMap("a", s));', 'switch (0)' ],
+        [ 'call value after call', '        return this.extend(this.omit(p, "k"), Helpers.newMap("a", this.g()));', 'switch (0)' ],
+        [ 'after comment lines', '        Object q = o;\n        // note\n        l.add(Helpers.newMap("a", this.g()));', '        j39v1.put("a", this.g());\n        l.add(j39v1);' ],
+        [ 'open statement', '        Object q = this.f(o, // note\n            l.add(Helpers.newMap("a", this.g())));', 'switch (0)' ],
+    ];
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h29-J05 hoist self test: ${name}\n${out}`);
+}
+// ===== end h29-J05
+
+// ===== h30-J05: (1) values and the already-evaluated part of the prefix are both write-free (base readers,
+// GetValue, Objects.equals, fresh HashMap / ArrayList), so they commute; (2) after any call, values built only from
+// member-declared locals and literals; (3) `T x = c ? null : newMap(..);` becomes `T x = null; if (!(c)) {..}`.
+const H30J05_READERS = /^(?:(?:this|\w+\.this)\.(?:safeString|safeString2|safeBool|safeNumber|safeInteger|arrayConcat)|Precise\.stringAdd|(?:io\.github\.ccxt\.)?Helpers\.(?:GetValue|newMap)|java\.util\.Objects\.equals|Arrays\.asList)$/;
+function h30J05Mask (e: string): string {
+    return e.replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => 'S'.repeat (m.length));
+}
+function h30J05WriteFree (e: string, anonPut: boolean, mapLocal: (n: string) => boolean): boolean {
+    const m = h30J05Mask (e);
+    if (m.includes ('"') || /->|\+\+|--|\bswitch\b|\byield\b|[^=!<>]=(?!=)/.test (m)) return false;
+    for (const n of m.matchAll (/\bnew\s+([\w.]+)(<[^()]*>)?\s*\(/g)) if (!/^(?:java\.util\.)?(?:HashMap|ArrayList)$/.test (n[1])) return false;
+    const stripped = m.replace (/\bnew\s+[\w.]+(?:<[^()]*>)?\s*\(/g, '(');
+    for (const c of stripped.matchAll (/([\w.]+)\s*\(/g)) {
+        if (H30J05_READERS.test (c[1])) continue;
+        if (anonPut && c[1] === 'put' && /\(\) \{\{/.test (m)) continue;
+        // Map.get on a Map-cast receiver or a Map-declared local only reads
+        if (c[1] === '.get' || (/^[A-Za-z_]\w*\.get$/.test (c[1]) && mapLocal (c[1].slice (0, -4)))) continue;
+        return false;
+    }
+    return true;
+}
+// the prefix with the names of calls still open at the literal removed (those run after their arguments)
+function h30J05Evaluated (prefix: string): string {
+    const m = h30J05Mask (prefix);
+    const open: number[] = [];
+    for (let k = 0; k < m.length; k++) {
+        if (m[k] === '(') open.push (k);
+        else if (m[k] === ')') open.pop ();
+    }
+    let out = m;
+    for (const k of open.reverse ()) {
+        const name = /(?:\.?[A-Za-z_]\w*)+$/.exec (out.slice (0, k));
+        if (name !== null) out = out.slice (0, k - name[0].length) + ' '.repeat (name[0].length) + out.slice (k);
+    }
+    return out;
+}
+function h30J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    const prefix = t.slice (lineStart, at);
+    if (/^\s*(?:(?:if|for|while|switch|else|case|do|try|catch|synchronized|yield|throw)\b|\}|\/\/)/.test (prefix)) return undefined;
+    const prev = t.slice (0, lineStart).replace (/(?:\n[ \t]*\/\/[^\n]*)+\s*$/, '').trimEnd ();
+    const last = prev.slice (prev.lastIndexOf ('\n') + 1);
+    if (/^\s*\/\//.test (last) || !(/[;{}]$/.test (prev) || /^[^"\/]*;[ \t]*\/\/[^\n]*$/.test (last))) return undefined;
+    const lead = /^\s*(?:return |[\w.]+(?:<[\w.?, <>]*>)? [A-Za-z_]\w* = |[A-Za-z_]\w* = )?/.exec (prefix)![0];
+    const values = args.filter ((a, i) => i % 2 === 1);
+    const n = fresh;
+    const emit = (body: string[]) => ({ text: body.join ('\n'), end: close + 1 });
+    const puts = (v: string) => args.reduce ((acc: string[], a, i) => (i % 2 === 0 ? [ ...acc, `${v}.put(${a}, ${args[i + 1]});` ] : acc), []);
+    const ternary = /^(\s*)((?:[\w.]+(?:<[\w.?, <>]*>)? )?)([A-Za-z_]\w*) = (.+) \? null : \(*$/.exec (prefix);
+    if (ternary !== null && ternary[2] !== "" && ternary[2] !== "var " && !h30J05Mask (ternary[4]).includes ('?') && !/[^=!<>]=(?!=)/.test (h30J05Mask (ternary[4]))) {
+        const opens = (/\(*$/.exec (prefix)![0]).length;
+        let end = close + 1;
+        for (let k = 0; k < opens; k++) { if (t[end] !== ')') return undefined; end++; }
+        if (t[end] !== ';' || new RegExp (`\\b${ternary[3]}\\b`).test (values.join (' '))) return undefined;
+        const v = n ();
+        const out = [ `${indent}${ternary[2]}${ternary[3]} = null;`, `${indent}if (!(${ternary[4].trim ()}))`, `${indent}{`,
+            `${indent}    java.util.HashMap<String, Object> ${v} = new java.util.HashMap<String, Object>();`,
+            ...puts (v).map ((p) => `${indent}    ${p}`), `${indent}    ${ternary[3]} = ${v};`, `${indent}}` ];
+        return { text: out.join ('\n'), end: end + 1 };
+    }
+    const evaluated = h30J05Evaluated (prefix.slice (lead.length));
+    let flat = evaluated;
+    for (let k = 0; k < 20 && /\([^()]*\)/.test (flat); k++) flat = flat.replace (/\([^()]*\)/g, 'X');
+    if (/\?|->|\binstanceof\b/.test (flat)) return undefined;
+    if (/[^=!<>]=(?!=)|\+\+|--/.test (evaluated)) return undefined;
+    const declared = memberDeclaredTypeOf (t, true);
+    const localOnly = (e: string) => {
+        const m = h30J05Mask (e);
+        if (/[^=!<>]=(?!=)|\+\+|--|->/.test (m)) return false;
+        const calls = [ ...m.matchAll (/([\w.]+)\s*\(/g) ].map ((c) => c[1]);
+        if (calls.some ((c) => c !== 'java.util.Objects.equals')) return false;
+        const ids = m.replace (/java\.util\.Objects\.equals/g, ' ').match (/[A-Za-z_][\w.]*/g) ?? [];
+        return ids.every ((id) => /^(?:null|true|false|S+)$/.test (id) || (/^[A-Za-z_]\w*$/.test (id) && id !== 'this' && declared (id) !== undefined));
+    };
+    const mapLocal = (x: string) => /^(?:java\.util\.)?(?:Map|HashMap)<String, Object>$/.test (declared (x) ?? '');
+    const commute = h30J05WriteFree (evaluated, false, mapLocal) && values.every ((v) => h30J05WriteFree (v, true, mapLocal));
+    if (!commute && !values.every (localOnly)) return undefined;
+    const v = n ();
+    return emit ([ `${indent}java.util.HashMap<String, Object> ${v} = new java.util.HashMap<String, Object>();`, ...puts (v).map ((p) => `${indent}${p}`), `${prefix}${v}` ]);
+}
+function h30J05HoistSelfTest (): string[] {
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'write-free prefix and values', '        l.add(this.extend(Helpers.GetValue(this.fees, "t"), Helpers.newMap("a", this.safeBool(p, "k", (Object) null), "b", (s + "/"))));', '        j39v1.put("a", this.safeBool(p, "k", (Object) null));\n        j39v1.put("b", (s + "/"));\n        l.add(this.extend(Helpers.GetValue(this.fees, "t"), j39v1));' ],
+        [ 'field receiver, arrayConcat', '        this.options.put("c", this.extend(o, Helpers.newMap("a", this.arrayConcat(l, l), "b", s)));', '        j39v1.put("a", this.arrayConcat(l, l));\n        j39v1.put("b", s);\n        this.options.put("c", this.extend(o, j39v1));' ],
+        [ 'local ternary after call', '        return this.extend(this.f(p), Helpers.newMap("a", (java.util.Objects.equals(s, "0")) ? "ok" : "no"));', '        j39v1.put("a", (java.util.Objects.equals(s, "0")) ? "ok" : "no");\n        return this.extend(this.f(p), j39v1);' ],
+        [ 'ternary arm', '        Map<String, Object> f = ((java.util.Objects.equals(s, null))) ? null : Helpers.newMap("a", s, "b", this.g());', '        Map<String, Object> f = null;\n        if (!(((java.util.Objects.equals(s, null)))))\n        {\n            java.util.HashMap<String, Object> j39v1 = new java.util.HashMap<String, Object>();\n            j39v1.put("a", s);\n            j39v1.put("b", this.g());\n            f = j39v1;\n        }' ],
+        // negatives: a writing call before the literal with a call value, a field in a local-only value, an unknown reader, a nested ternary, a write in the condition
+        [ 'call value after call', '        return this.extend(this.f(p), Helpers.newMap("a", this.safeString(p, "k")));', 'switch (0)' ],
+        [ 'field after call', '        return this.extend(this.f(p), Helpers.newMap("a", (java.util.Objects.equals(this.x, "0")) ? "ok" : "no"));', 'switch (0)' ],
+        [ 'unknown reader', '        l.add(this.extend(Helpers.GetValue(this.fees, "t"), Helpers.newMap("a", this.g(p))));', 'switch (0)' ],
+        [ 'two ternaries', '        Map<String, Object> f = (s == null) ? null : (o == null) ? null : Helpers.newMap("a", this.g());', 'switch (0)' ],
+        [ 'write in condition', '        Map<String, Object> f = ((s = null) == null) ? null : Helpers.newMap("a", s);', 'switch (0)' ],
+        [ 'self reference', '        Map<String, Object> f = (s == null) ? null : Helpers.newMap("a", this.g(f));', 'switch (0)' ],
+    ];
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h30-J05 hoist self test: ${name}\n${out}`);
+}
+// ===== end h30-J05

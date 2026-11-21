@@ -14,7 +14,7 @@ pub fn testClone() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut obj1: Value = Value::Map({
+    let obj1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]));
@@ -44,7 +44,7 @@ pub fn testClone() {
             m.insert("other1".to_string(), Value::Str("x".into()));
         m
     });
-    let mut obj2: Value = Value::Map({
+    let obj2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
@@ -75,8 +75,8 @@ pub fn testClone() {
         m
     });
     // deepExtend
-    let mut deepExtended: Value = exchange.deep_extend(obj1, &[obj2.clone()]);
-    let mut compareTo: Value = Value::Map({
+    let deepExtended: Value = exchange.deep_extend(obj1, &[obj2]);
+    let compareTo: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
             m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
@@ -110,7 +110,7 @@ pub fn testClone() {
     });
     // todo: results are different across langs.
     // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testDeepExtend".into()).clone(), deepExtended.clone(), compareTo.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null, Value::Str("testDeepExtend".into()), deepExtended, compareTo]);
     // -------------------------------------------------------------------------
     // test immutability / no cross-mutation between clone and original
     // -------------------------------------------------------------------------
@@ -156,7 +156,7 @@ pub fn testClone() {
     // -------------------------------------------------------------------------
     // --- test C: cloning an empty object ---
     let mut emptyClone: Value = exchange.clone(Value::Map({
-        let mut m = indexmap::IndexMap::new();
+        let m = indexmap::IndexMap::new();
         m
     }));
     assert!(ccxt::runtime::is_true(&((Value::Int(object_keys(&emptyClone).len() as i64).as_f64() == Some(0.0)))));
@@ -165,7 +165,7 @@ pub fn testClone() {
     assert!(ccxt::runtime::is_true(&((get_value(&emptyClone, &Value::Str("newKey".into())).as_str() == Some("injected")))));
     // -------------------------------------------------------------------------
     // --- test D: cloning an object with undefined values preserves those keys ---
-    let mut withUndef: Value = Value::Map({
+    let withUndef: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("present".to_string(), Value::Str("yes".into()));
             m.insert("absent".to_string(), Value::Null);
@@ -181,7 +181,7 @@ pub fn testClone() {
     assert!(ccxt::runtime::is_true(&((withUndef.as_map().and_then(|__m| __m.get("present")).cloned().unwrap_or(Value::Null).as_str() == Some("yes")))));
     // -------------------------------------------------------------------------
     // --- test E: multi-step: clone → mutate clone → re-clone original → compare ---
-    let mut masterOrig: Value = Value::Map({
+    let masterOrig: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
             m.insert("b".to_string(), Value::Int(2));

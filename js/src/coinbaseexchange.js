@@ -901,19 +901,14 @@ export default class coinbaseexchange extends Exchange {
         let open = undefined;
         let volume = undefined;
         const symbol = this.safeString(market, 'symbol');
-        if (Array.isArray(ticker)) {
-            last = this.safeString(ticker, 4);
-        }
-        else {
-            timestamp = this.parse8601(this.safeString(ticker, 'time'));
-            bid = this.safeString(ticker, 'bid');
-            ask = this.safeString(ticker, 'ask');
-            high = this.safeString(ticker, 'high');
-            low = this.safeString(ticker, 'low');
-            open = this.safeString(ticker, 'open');
-            last = this.safeString2(ticker, 'price', 'last');
-            volume = this.safeString(ticker, 'volume');
-        }
+        timestamp = this.parse8601(this.safeString(ticker, 'time'));
+        bid = this.safeString(ticker, 'bid');
+        ask = this.safeString(ticker, 'ask');
+        high = this.safeString(ticker, 'high');
+        low = this.safeString(ticker, 'low');
+        open = this.safeString(ticker, 'open');
+        last = this.safeString2(ticker, 'price', 'last');
+        volume = this.safeString(ticker, 'volume');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -933,6 +928,39 @@ export default class coinbaseexchange extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': volume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+    parseTickerList(ticker, market = undefined) {
+        //
+        //      [
+        //         1639472400, // timestamp
+        //         4.26, // low
+        //         4.38, // high
+        //         4.35, // open
+        //         4.27 // close
+        //      ]
+        //
+        return this.safeTicker({
+            'symbol': this.safeString(market, 'symbol'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.safeString(ticker, 4),
+            'last': this.safeString(ticker, 4),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
@@ -980,8 +1008,8 @@ export default class coinbaseexchange extends Exchange {
             const marketId = marketIds[i];
             const entry = this.safeList(response, marketId, []);
             const market = this.safeMarket(marketId, undefined, delimiter);
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker(this.safeList(entry, 0, []), market);
+            const symbol = this.safeString(market, 'symbol', '');
+            result[symbol] = this.parseTickerList(this.safeList(entry, 0, []), market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
@@ -1095,7 +1123,7 @@ export default class coinbaseexchange extends Exchange {
         }
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'size');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         return this.safeTrade({
             'id': id,
             'order': orderId,
@@ -1614,7 +1642,7 @@ export default class coinbaseexchange extends Exchange {
                 request['funds'] = this.costToPrecision(symbol, costParam);
             }
             else if (price !== undefined) {
-                request['funds'] = this.costToPrecision(symbol, amount * price);
+                request['funds'] = this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
             }
             else {
                 request['size'] = this.amountToPrecision(symbol, amount);
@@ -2228,10 +2256,9 @@ export default class coinbaseexchange extends Exchange {
     }
     async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
         const response = await this.fetch2(path, api, method, params, config);
-        if (typeof response !== 'string') {
-            if ('message' in response) {
-                throw new ExchangeError(this.id + ' ' + this.json(response));
-            }
+        const message = this.safeString(response, 'message');
+        if (message !== undefined) {
+            throw new ExchangeError(this.id + ' ' + this.json(response));
         }
         return response;
     }

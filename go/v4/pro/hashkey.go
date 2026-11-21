@@ -74,7 +74,7 @@ func (this *Hashkey) wathPublicBody(ch chan ccxt.AsyncResult[any], market map[st
 		"topic":  topic,
 		"event":  "sub",
 	}
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 
 	r := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)
 	if r.Err != nil {
@@ -96,7 +96,7 @@ func (this *Hashkey) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageHa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listenKey := r.Value
+	var listenKey *string = r.Value
 	var url any = this.GetPrivateUrl(listenKey)
 
 	r1 := <-this.WatchList(url, messageHash, nil, messageHash)
@@ -545,14 +545,19 @@ func (this *Hashkey) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		}
 	}
 	var messageHash any = "orders"
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
+	var symbolResolved *string
 	if symbol != nil {
-		messageHash = ccxt.Add("orders"+":", symbolResolved)
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
+	if symbol != nil {
+		if symbolResolved != nil {
+			messageHash = "orders" + ":" + *symbolResolved
+		} else {
+			messageHash = nil
+		}
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash)
@@ -713,14 +718,19 @@ func (this *Hashkey) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		}
 	}
 	var messageHash any = "myTrades"
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return symbol
-	}()
+	var symbolResolved *string
 	if symbol != nil {
-		messageHash = ccxt.Add("myTrades"+":", symbolResolved)
+		symbolResolvedValue := this.Symbol(symbol)
+		symbolResolved = &symbolResolvedValue
+	} else {
+		symbolResolved = symbol
+	}
+	if symbol != nil {
+		if symbolResolved != nil {
+			messageHash = "myTrades" + ":" + *symbolResolved
+		} else {
+			messageHash = nil
+		}
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash)
@@ -811,20 +821,23 @@ func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	var takerOrMaker *string = nil
 	if isBuyerMaker != nil {
 		if isPublicTrade {
-			takerOrMaker = ccxt.SafeStringPtr("taker")
-			side = ccxt.SafeStringPtr(func() string {
-				if isBuyerMaker != nil && *isBuyerMaker {
-					return "sell"
-				}
-				return "buy"
-			}())
+			takerOrMakerStr := "taker"
+			takerOrMaker = &takerOrMakerStr
+			var sideStr string
+			if isBuyerMaker != nil && *isBuyerMaker {
+				sideStr = "sell"
+			} else {
+				sideStr = "buy"
+			}
+			side = &sideStr
 		} else {
-			takerOrMaker = ccxt.SafeStringPtr(func() string {
-				if isBuyerMaker != nil && *isBuyerMaker {
-					return "maker"
-				}
-				return "taker"
-			}())
+			var takerOrMakerStr2 string
+			if isBuyerMaker != nil && *isBuyerMaker {
+				takerOrMakerStr2 = "maker"
+			} else {
+				takerOrMakerStr2 = "taker"
+			}
+			takerOrMaker = &takerOrMakerStr2
 			side = this.SafeStringLower(trade, "S")
 		}
 	}
@@ -884,10 +897,10 @@ func (this *Hashkey) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listenKey := r1.Value
+	var listenKey *string = r1.Value
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	if symbolsNormalized == nil {
 		messageHashes = append(messageHashes, messageHash)
 	} else {
@@ -1017,7 +1030,7 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listenKey := r.Value
+	var listenKey *string = r.Value
 	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
@@ -1052,7 +1065,7 @@ func (this *Hashkey) SetBalanceCache(client any, typeVar string, subscribeHash s
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
 		return
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var snapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", true)
 	if snapshot != nil && *snapshot {
 		var messageHash string = typeVar + ":" + "fetchBalanceSnapshot"
@@ -1124,17 +1137,16 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = message
 	}
+	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()
 	account["free"] = this.SafeString(balanceUpdate, "f")
 	account["used"] = this.SafeString(balanceUpdate, "l")
 	if code != nil {
-		if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-			entry[*code] = account
-		}
+		balance[*code] = account
 	}
-	this.Balance[typeVar] = this.SafeBalance(this.Balance[typeVar])
+	this.Balance[typeVar] = this.SafeBalance(balance)
 	var messageHash string = "balance:" + typeVar
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)
 }
@@ -1213,7 +1225,11 @@ func (this *Hashkey) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 			if listenKey == nil {
 				panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 			}
-			this.Options["listenKey"] = ccxt.DerefScalar(listenKey)
+			if listenKey != nil {
+				this.Options["listenKey"] = *listenKey
+			} else {
+				this.Options["listenKey"] = nil
+			}
 			var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000)
 			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
 			// settle the flight: client.resolve () wakes every waiter and
@@ -1284,7 +1300,7 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], list
 	}
 	return nil
 }
-func (this *Hashkey) HandleListMessage(client any, message any) {
+func (this *Hashkey) HandleListMessage(client any, message []any) {
 	this.HandleStreamMessage(client, this.SafeDict(message, 0, map[string]any{}))
 }
 func (this *Hashkey) HandleMessage(client any, message map[string]any) {

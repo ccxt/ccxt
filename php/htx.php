@@ -1529,7 +1529,8 @@ class htx extends Exchange {
     }
 
     public function cost_to_precision(?string $symbol, mixed $cost): string {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->market($symbol)['precision']['cost'], $this->precisionMode);
+        $market = $this->market($symbol);
+        return $this->decimal_to_precision($cost, TRUNCATE, $market['precision']['cost'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array()): array {
@@ -1947,12 +1948,16 @@ class htx extends Exchange {
                 $constructedId = $marketBase . '_' . $contractSuffix;
             }
             if ($constructedId === $symbolOrMarketId) {
-                $this->options['futureMarketIdsForSymbols'][$symbolOrMarketId] = $marketSymbol;
+                $futureMarketIdsForSymbolsDict1 = $this->safe_dict($this->options, 'futureMarketIdsForSymbols', array());
+                $futureMarketIdsForSymbolsDict1[$symbolOrMarketId] = $marketSymbol;
+                $this->options['futureMarketIdsForSymbols'] = $futureMarketIdsForSymbolsDict1;
                 return $marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
-        $this->options['futureMarketIdsForSymbols'][$symbolOrMarketId] = $symbolOrMarketId;
+        $futureMarketIdsForSymbolsDict2 = $this->safe_dict($this->options, 'futureMarketIdsForSymbols', array());
+        $futureMarketIdsForSymbolsDict2[$symbolOrMarketId] = $symbolOrMarketId;
+        $this->options['futureMarketIdsForSymbols'] = $futureMarketIdsForSymbolsDict2;
         return $symbolOrMarketId;
     }
 
@@ -2469,10 +2474,10 @@ class htx extends Exchange {
             throw new NullResponse($this->id . ' fetchOrderBook() returned empty response');
         }
         if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
-            if ($this->safe_value($response, 'tick') === null) {
+            $tick = $this->safe_dict($response, 'tick');
+            if ($tick === null) {
                 throw new BadSymbol($this->id . ' fetchOrderBook() returned empty response => ' . $this->json($response));
             }
-            $tick = $this->safe_dict($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
             $result = $this->parse_order_book($tick, $symbol, $timestamp);
             $result['nonce'] = $this->safe_integer($tick, 'version');
@@ -3321,7 +3326,9 @@ class htx extends Exchange {
             $type = 'crypto';
         }
         if ($code !== null) {
-            $this->options['networkChainIdsByNames'][$code] = array();
+            $chainIdsByNames = $this->safe_dict($this->options, 'networkChainIdsByNames', array());
+            $chainIdsByNames[$code] = array();
+            $this->options['networkChainIdsByNames'] = $chainIdsByNames;
         }
         $chains = $this->safe_list($rawCurrency, 'chains', array());
         $networks = array();
@@ -3330,10 +3337,16 @@ class htx extends Exchange {
             $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
             $title = $this->safe_string_2($chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if ($code !== null && $title !== null) {
-                $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
+                $chainIdsByNamesDict = $this->safe_dict($this->options, 'networkChainIdsByNames', array());
+                $chainIdsByTitle = $this->safe_dict($chainIdsByNamesDict, $code, array());
+                $chainIdsByTitle[$title] = $uniqueChainId;
+                $chainIdsByNamesDict[$code] = $chainIdsByTitle;
+                $this->options['networkChainIdsByNames'] = $chainIdsByNamesDict;
             }
             if ($uniqueChainId !== null) {
-                $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
+                $networkNamesByChainIdsDict3 = $this->safe_dict($this->options, 'networkNamesByChainIds', array());
+                $networkNamesByChainIdsDict3[$uniqueChainId] = $title;
+                $this->options['networkNamesByChainIds'] = $networkNamesByChainIdsDict3;
             }
             $networkCode = $this->network_id_to_code($uniqueChainId, $code);
             if ($networkCode !== null) {
@@ -5995,20 +6008,11 @@ class htx extends Exchange {
         $query = $this->omit($paramsMarketType, array( 'stop', 'stopLossTakeProfit', 'trigger' ));
         $response = null;
         if ($marketType === 'spot') {
-            $clientOrderIds = $this->safe_value_2($query, 'client-order-id', 'clientOrderId');
-            $clientOrderIds = $this->safe_value_2($query, 'client-order-ids', 'clientOrderIds', $clientOrderIds);
+            $clientOrderIds = $this->safe_string_list($query, array( 'client-order-ids', 'clientOrderIds', 'client-order-id', 'clientOrderId' ));
             if ($clientOrderIds === null) {
-                if (gettype($clientOrderIds) === 'string') {
-                    $request['order-ids'] = array( $ids );
-                } else {
-                    $request['order-ids'] = $ids;
-                }
+                $request['order-ids'] = $ids;
             } else {
-                if (gettype($clientOrderIds) === 'string') {
-                    $request['client-order-ids'] = array( $clientOrderIds );
-                } else {
-                    $request['client-order-ids'] = $clientOrderIds;
-                }
+                $request['client-order-ids'] = $clientOrderIds;
                 $query = $this->omit($query, array( 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ));
             }
             $response = $this->spotPrivatePostV1OrderOrdersBatchcancel($this->extend($request, $query));
@@ -9461,6 +9465,7 @@ class htx extends Exchange {
         $chains = $this->safe_list($fee, 'chains', array());
         $code = $this->safe_string($currency, 'code');
         $result = $this->deposit_withdraw_fee($fee);
+        $networks = array();
         for ($j = 0; $j < count($chains); $j++) {
             $chainEntry = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chainEntry, 'chain');
@@ -9482,13 +9487,14 @@ class htx extends Exchange {
                 );
             }
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networks[$networkCode] = array(
                     'withdraw' => $withdrawResult,
                     'deposit' => array(
                         'fee' => null,
                         'percentage' => null,
                     ),
                 );
+                $result['networks'] = $networks;
             }
             $this->assign_default_deposit_withdraw_fees($result, $currency);
         }
@@ -9549,8 +9555,7 @@ class htx extends Exchange {
             $settlement = $this->safe_dict($settlements, $i);
             $list = $this->safe_list($settlement, 'list');
             if ($this->safe_bool($market, 'linear', false)) {
-                $parsedSettlement = $this->parse_settlement($settlement, $market);
-                $result[] = $parsedSettlement;
+                $result[] = $this->parse_settlement($settlement, $market);
             } elseif ($list !== null) {
                 $timestamp = $this->safe_integer($settlement, 'settlement_time');
                 $timestampDetails = array(

@@ -54,7 +54,7 @@ export default class phemex extends phemexRest {
             return undefined;
         }
         const precise = new Precise(en);
-        precise.decimals = this.sum(precise.decimals, scale);
+        precise.decimals = this.sum(precise.decimals, this.safeInteger([scale], 0, 0));
         precise.reduce();
         return precise.toString();
     }
@@ -103,7 +103,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const marketValue = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
         const lastString = this.fromEp(this.safeString(ticker, 'close'), marketValue);
         const last = this.parseNumber(lastString);
@@ -164,7 +164,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString(ticker, 0);
         const marketResolved = this.safeMarket(marketId, market);
         const marketValue = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const lastString = this.fromEp(this.safeString(ticker, 4), marketValue);
         const last = this.parseNumber(lastString);
         const quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), marketValue));
@@ -327,7 +327,7 @@ export default class phemex extends phemexRest {
         }
         return await this.subscribePrivate(type, messageHash, paramsMarketType);
     }
-    handleBalance(type, client, message) {
+    handleBalance(client, message, type) {
         // spot
         //    [
         //       {
@@ -378,8 +378,9 @@ export default class phemex extends phemexRest {
             const currency = this.safeDict(this.currencies, code, {});
             const scale = this.safeInteger(currency, 'valueScale', 8);
             const account = this.account();
-            let used = this.safeString(balance, 'totalUsedBalanceRv');
-            if (used === undefined) {
+            const usedRv = this.safeString(balance, 'totalUsedBalanceRv');
+            let used = usedRv;
+            if (usedRv === undefined) {
                 let usedEv = this.safeString(balance, 'totalUsedBalanceEv');
                 if (usedEv === undefined) {
                     const lockedTradingBalanceEv = this.safeString(balance, 'lockedTradingBalanceEv');
@@ -388,8 +389,9 @@ export default class phemex extends phemexRest {
                 }
                 used = this.fromEn(usedEv, scale);
             }
-            let total = this.safeString(balance, 'accountBalanceRv');
-            if (total === undefined) {
+            const totalRv = this.safeString(balance, 'accountBalanceRv');
+            let total = totalRv;
+            if (totalRv === undefined) {
                 const totalEv = this.safeString2(balance, 'accountBalanceEv', 'balanceEv');
                 total = this.fromEn(totalEv, scale);
             }
@@ -433,7 +435,7 @@ export default class phemex extends phemexRest {
         const name = 'trade';
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = name + ':' + symbol;
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
@@ -482,7 +484,7 @@ export default class phemex extends phemexRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const candles = this.safeList2(message, 'kline', 'kline_p', []);
         const first = this.safeList(candles, 0, []);
         const interval = this.safeString(first, 1);
@@ -878,7 +880,7 @@ export default class phemex extends phemexRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const type = this.safeString(message, 'type');
         const depth = this.safeInteger(message, 'depth');
         const name = 'orderbook';
@@ -1070,7 +1072,7 @@ export default class phemex extends phemexRest {
             const market = this.safeMarket(marketId);
             const parsed = this.parseTrade(rawTrade);
             cachedTrades.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (type === undefined) {
                 const marketSettle = this.safeString(market, 'settle');
                 type = (marketSettle === 'USDT') ? 'perpetual' : market['type'];
@@ -1335,7 +1337,7 @@ export default class phemex extends phemexRest {
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
             stored.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol', '');
             const market = this.market(symbol);
             if (type === undefined) {
                 const isUsdt = market['settle'] === 'USDT';
@@ -1483,7 +1485,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const marketValue = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const status = this.parseOrderStatus(this.safeString(order, 'ordStatus'));
         const side = this.safeStringLower(order, 'side');
         const type = this.parseOrderType(this.safeString(order, 'ordType'));
@@ -1626,7 +1628,7 @@ export default class phemex extends phemexRest {
             const method = this.safeValue(client.subscriptions, id);
             delete client.subscriptions[id];
             if (method !== true) {
-                method.call(this, client, message);
+                this.handleAuthenticate(client, message);
                 return;
             }
         }
@@ -1664,7 +1666,7 @@ export default class phemex extends phemexRest {
                 type = 'perpetual';
             }
             const accounts = this.safeListN(message, ['accounts', 'accounts_p', 'wallets'], []);
-            this.handleBalance(type, client, accounts);
+            this.handleBalance(client, accounts, type);
         }
     }
     handleAuthenticate(client, message) {

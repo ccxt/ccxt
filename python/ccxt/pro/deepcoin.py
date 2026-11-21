@@ -725,7 +725,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
         type = self.safe_string(message, 't')
-        if orderbook['timestamp'] is None:
+        if self.safe_integer(orderbook, 'timestamp') is None:
             if type == 'f':
                 # snapshot
                 self.handle_order_book_snapshot(client, message)

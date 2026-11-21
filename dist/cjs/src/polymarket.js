@@ -2552,8 +2552,8 @@ class polymarket extends polymarket$1["default"] {
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const sVal = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const sVal = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + sVal.padStart(64, '0') + v;
     }
@@ -2646,7 +2646,7 @@ class polymarket extends polymarket$1["default"] {
             if (expires === undefined) {
                 return credentials;
             }
-            const refreshAfter = expires - margin;
+            const refreshAfter = this.parseToInt(expires - margin);
             if (this.milliseconds() < refreshAfter) {
                 return credentials;
             }

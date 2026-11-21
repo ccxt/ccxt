@@ -1673,7 +1673,7 @@ class kucoin extends kucoin$1["default"] {
             const nonce = this.safeInteger(orderbook, 'nonce');
             const deltaEnd = this.safeInteger2(data, 'sequenceEnd', 'timestamp');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cacheLength = this.parseToInt(orderbook.cache.length);
                 const subscriptions = Object.keys(client.subscriptions);
                 let subscription = undefined;
                 for (let i = 0; i < subscriptions.length; i++) {
@@ -1684,7 +1684,7 @@ class kucoin extends kucoin$1["default"] {
                     }
                 }
                 const limit = this.safeInteger(subscription, 'limit');
-                const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 5));
                 if (cacheLength === snapshotDelay) {
                     this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
                 }
@@ -1739,10 +1739,10 @@ class kucoin extends kucoin$1["default"] {
             const nonce = this.safeInteger(orderbook, 'nonce');
             const deltaEnd = this.safeInteger(data, 'C');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cacheLength = this.parseToInt(orderbook.cache.length);
                 const subscription = this.safeDict(client.subscriptions, messageHash, {});
                 const limit = this.safeInteger(subscription, 'limit');
-                const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 5));
                 const utaParams = {
                     'uta': true,
                 };
@@ -1881,8 +1881,8 @@ class kucoin extends kucoin$1["default"] {
         const subscription = this.safeDict(client.subscriptions, subscriptionHash);
         delete client.subscriptions[id];
         const method = this.safeValue(subscription, 'method');
-        if (method !== undefined) {
-            method.call(this, client, message, subscription);
+        if ((subscription !== undefined) && (method !== undefined)) {
+            this.handleOrderBookSubscription(client, message, subscription);
         }
         const isUnSub = this.safeBool(subscription, 'unsubscribe', false);
         if (isUnSub) {
@@ -2787,10 +2787,11 @@ class kucoin extends kucoin$1["default"] {
             if (!(uniformType in this.balance)) {
                 this.balance[uniformType] = {};
             }
-            this.balance[uniformType]['info'] = data;
+            const balance = this.safeDict(this.balance, uniformType, {});
+            balance['info'] = data;
             const timestamp = this.safeInteger2(data, 'time', 'timestamp');
-            this.balance[uniformType]['timestamp'] = timestamp;
-            this.balance[uniformType]['datetime'] = this.iso8601(timestamp);
+            balance['timestamp'] = timestamp;
+            balance['datetime'] = this.iso8601(timestamp);
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             let used = this.safeString2(data, 'hold', 'holdBalance');
@@ -2802,9 +2803,9 @@ class kucoin extends kucoin$1["default"] {
             account['used'] = used;
             account['total'] = this.safeString(data, 'total');
             if (code !== undefined) {
-                this.balance[uniformType][code] = account;
+                balance[code] = account;
             }
-            this.balance[uniformType] = this.safeBalance(this.balance[uniformType]);
+            this.balance[uniformType] = this.safeBalance(balance);
             client.resolve(this.balance[uniformType], uniformType + ':balance');
         }
     }
@@ -2831,18 +2832,19 @@ class kucoin extends kucoin$1["default"] {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
+        const balance = this.safeDict(this.balance, type, {});
+        balance['info'] = data;
         const timestamp = this.safeIntegerProduct(data, 'U', 0.000001);
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
         const account = this.account();
         account['free'] = this.safeString(data, 'a');
         account['used'] = this.safeString(data, 'h');
         account['total'] = this.safeString(data, 'b');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         const messageHash = type + ':balance';
         client.resolve(this.balance[type], messageHash);
     }

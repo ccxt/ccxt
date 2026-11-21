@@ -185,7 +185,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int encoding: outcome side encoding
         :returns str: the coin name
         """
-        return '#' + str(encoding)
+        return '#' + str(self.parse_to_int(encoding))
 
     def outcome_token(self, encoding: float) -> str:
         """
@@ -194,7 +194,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int encoding: outcome side encoding
         :returns str: the token name
         """
-        return '+' + str(encoding)
+        return '+' + str(self.parse_to_int(encoding))
 
     def parse_outcome_description(self, description: str) -> dict:
         """
@@ -243,12 +243,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             base = base + '_' + expiryDate
         return base + ':' + label
 
-    def build_outcome_parent_symbol(self, desc: dict, outcomeId: float, name: str = '', question: dict = {}) -> str:
+    def build_outcome_parent_symbol(self, desc: dict, outcomeId: str, name: str = '', question: dict = {}) -> str:
         """
  @ignore
         builds a market id(parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
         :param dict desc: parsed outcome description
-        :param int outcomeId: integer outcome id
+        :param str outcomeId: outcome id
         :param str [name]: outcome name
         :param dict [question]: linked question object from outcomeMeta
         :returns str: the parent market outcome
@@ -304,7 +304,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                             bucketLabel = 'ABOVE_' + thresholds[lastIdx]
                         else:
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index]
-                        return questionUnderlying.upper() + '_' + bucketLabel + questionExpiryPart
+                        upperUnderlying = questionUnderlying.upper()
+                        return upperUnderlying + '_' + bucketLabel + questionExpiryPart
                 isFallbackLike = (rawDescription == 'other') or (nameLower.find('fallback') >= 0) or (nameLower.find('other') >= 0)
                 if (questionUnderlying is not None and questionUnderlying != '') and isFallbackLike:
                     return questionUnderlying.upper() + '_OTHER' + questionExpiryPart
@@ -324,12 +325,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     else:
                         outcomeSlug = ''
                 if (outcomeSlug is not None) and (outcomeSlug != ''):
-                    return questionSlug + '_' + outcomeSlug + '_' + str(outcomeId)
-                return questionSlug + '_' + str(outcomeId)
+                    return questionSlug + '_' + outcomeSlug + '_' + outcomeId
+                return questionSlug + '_' + outcomeId
         # Fallback: use name slugified, or OUTCOME-<id>
         if (name is not None) and (name != ''):
-            return self.shorten_slug(name) + '_' + str(outcomeId)
-        return 'OUTCOME_' + str(outcomeId)
+            return self.shorten_slug(name) + '_' + outcomeId
+        return 'OUTCOME_' + outcomeId
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
@@ -395,7 +396,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             outcomeInfo = self.safe_dict(outcomesList, i, {})
             outcomeId = self.safe_integer(outcomeInfo, 'outcome', i)
             linkedQuestion = self.safe_dict(outcomesToQuestions, str(outcomeId), {})
-            market = self.parse_outcome_market(outcomeInfo, outcomeId, linkedQuestion)
+            market = self.parse_outcome_market(outcomeInfo, str(outcomeId), outcomeId, linkedQuestion)
             markets.append(market)
             # Build outcomes dictionary from market outcomes
             marketOutcomes = self.safe_list(market, 'outcomes', [])
@@ -409,11 +410,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     self.outcomes_by_id[outcomeId_] = outcome
         return markets
 
-    def parse_outcome_market(self, outcomeInfo: dict, outcomeId: float, question: dict = {}) -> Market:
+    def parse_outcome_market(self, outcomeInfo: dict, outcomeKey: str, outcomeId: float, question: dict = {}) -> Market:
         """
  @ignore
         parses a single binary outcome market into a CCXT market structure with outcomes[]
         :param dict outcomeInfo: raw entry from outcomeMeta outcomes array
+        :param str outcomeKey: outcome id as a string
         :param int outcomeId: integer outcome id
         :param dict [question]: linked question object from outcomeMeta questions array
         :returns dict: a [market structure](https://docs.ccxt.com/#/?id=market-structure)
@@ -422,7 +424,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         name = self.safe_string(outcomeInfo, 'name', '')
         sideSpecs = self.safe_list(outcomeInfo, 'sideSpecs', [])
         desc = self.parse_outcome_description(description)
-        parentSymbol = self.build_outcome_parent_symbol(desc, outcomeId, name, question)
+        parentSymbol = self.build_outcome_parent_symbol(desc, outcomeKey, name, question)
         yesEncoding = self.outcome_encoding(outcomeId, 0)
         noEncoding = self.outcome_encoding(outcomeId, 1)
         yesOutcomeSymbol = parentSymbol + ':YES'
@@ -496,12 +498,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             },
         ]
         marketRow = self.safe_market_structure({
-            'id': str(outcomeId),
+            'id': outcomeKey,
             'market': parentSymbol,
             'base': parentSymbol.split('/')[0],
             'quote': quoteCurrency,
             'settle': None,
-            'baseId': str(outcomeId),
+            'baseId': outcomeKey,
             'quoteId': quoteCurrency,
             'settleId': None,
             'type': 'prediction',
@@ -562,7 +564,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         intPart = parts[0]
         intPartLength = len(intPart)
         szDecimalsInt = self.parse_to_int(szDecimals)
-        maxDecimals = 8 - szDecimalsInt
+        maxDecimals = self.parse_to_int(8 - szDecimalsInt)
         # significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         digitsLeft = 0
         if intPartLength <= 5:
@@ -630,13 +632,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         else:
             # no filter — warm the whole outcome set so identities resolve from the cache
             await self.load_outcomes()
-        response = await self.publicPostInfo(self.extend({'type': 'allMids'}, params))
+        allMidsResponse = await self.publicPostInfo(self.extend({'type': 'allMids'}, params))
+        allMids = self.info_dict(allMidsResponse)
         #
         # { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         #
-        allMids = {}
-        if (not isinstance(response, str)) and not isinstance(response, list):
-            allMids = response
         mids = self.safe_dict(allMids, 'mids', allMids)
         tickers = {}
         outcomesMap = self.outcomes if (self.outcomes is not None) else {}
@@ -809,7 +809,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             },
         }
         paramsOmitted = self.omit(params, 'until')
-        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        candlesResponse = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        candles = self.info_list(candlesResponse)
         #
         #     [
         #         {
@@ -826,9 +827,6 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
@@ -943,9 +941,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         response = self.safe_dict(results, 0)
         midsResponse = results[1]
         balances = self.safe_list(response, 'balances', [])
-        allMids = {}
-        if (not isinstance(midsResponse, str)) and not isinstance(midsResponse, list):
-            allMids = midsResponse
+        allMids = self.info_dict(midsResponse)
         mids = self.safe_dict(allMids, 'mids', allMids)
         positions = []
         for i in range(0, len(balances)):
@@ -1026,8 +1022,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
     def find_outcome_in_market(self, market: Market, sideHint: Str = None) -> dict:
         outcomesList = self.safe_list(market, 'outcomes', [])
-        normalizedHint = sideHint.upper() if (sideHint is not None and sideHint != '') else None
-        if normalizedHint is not None:
+        if sideHint is not None and sideHint != '':
+            normalizedHint = sideHint.upper()
             for i in range(0, len(outcomesList)):
                 oc = self.safe_dict(outcomesList, i, {})
                 ocSymbol = self.safe_string_2(oc, 'outcome', 'symbol', '')
@@ -1267,15 +1263,14 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         assetId = self.safe_integer(outcomeInfo, 'assetId')
         nonce = self.incrementing_nonce()
-        clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
+        clientOrderIds = self.safe_string_list(params, ['clientOrderId', 'client_id'])
         paramsOmitted = self.omit(params, ['clientOrderId', 'client_id'])
         cancelReq = []
         cancelAction = {'type': 'cancel', 'cancels': []}
-        if clientOrderId is not None:
-            cloids = clientOrderId if isinstance(clientOrderId, list) else [clientOrderId]
+        if clientOrderIds is not None:
             cancelAction['type'] = 'cancelByCloid'
-            for i in range(0, len(cloids)):
-                cancelReq.append({'asset': assetId, 'cloid': cloids[i]})
+            for i in range(0, len(clientOrderIds)):
+                cancelReq.append({'asset': assetId, 'cloid': clientOrderIds[i]})
         else:
             cancelAction['type'] = 'cancel'
             for i in range(0, len(ids)):
@@ -1297,11 +1292,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         statuses = self.safe_list(data, 'statuses', [])
         outcomeSymbol = self.safe_string(outcomeObj, 'outcome', outcome)
         requestIds = ids
-        if clientOrderId is not None:
-            if isinstance(clientOrderId, list):
-                requestIds = clientOrderId
-            else:
-                requestIds = [clientOrderId]
+        if clientOrderIds is not None:
+            requestIds = clientOrderIds
         orders = []
         for i in range(0, len(statuses)):
             status = statuses[i]
@@ -1314,7 +1306,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             requestId = self.safe_string(requestIds, i, self.safe_string(requestIds, 0))
             order = {
                 'id': requestId,
-                'clientOrderId': requestId if (clientOrderId is not None) else None,
+                'clientOrderId': requestId if (clientOrderIds is not None) else None,
                 'info': status,
                 'status': 'canceled',
                 'outcome': outcomeSymbol,
@@ -1344,11 +1336,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         userAddress, paramsPublicAddress = self.handle_public_address('fetchOpenOrders', params)
         method, paramsMethod = self.handle_option_string_and_params(paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
         request = {'type': method, 'user': userAddress}
-        response = await self.publicPostInfo(self.extend(request, paramsMethod))
+        rawOrdersResponse = await self.publicPostInfo(self.extend(request, paramsMethod))
+        rawOrders = self.info_list(rawOrdersResponse)
         ordersWithStatus = []
-        rawOrders = []
-        if isinstance(response, list):
-            rawOrders = response
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             ordersWithStatus.append(self.extend(order, {'ccxtStatus': 'open'}))
@@ -1375,12 +1365,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         """
         userAddress, paramsPublicAddress = self.handle_public_address('fetchOrders', params)
         request = {'type': 'historicalOrders', 'user': userAddress}
-        response = await self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        historicalOrdersResponse = await self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        historicalOrders = self.info_list(historicalOrdersResponse)
         # Deduplicate by oid keeping most recent statusTimestamp
         deduped = {}
-        historicalOrders = []
-        if isinstance(response, list):
-            historicalOrders = response
         for i in range(0, len(historicalOrders)):
             raw = historicalOrders[i]
             entry = self.safe_dict(raw, 'order')
@@ -1427,10 +1415,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         else:
             isCloid = len(id) >= 34
             request['oid'] = id if isCloid else self.parse_to_numeric(id)
-        response = await self.publicPostInfo(self.extend(request, paramsValue))
-        orderStatus = {}
-        if (not isinstance(response, str)) and not isinstance(response, list):
-            orderStatus = response
+        orderStatusResponse = await self.publicPostInfo(self.extend(request, paramsValue))
+        orderStatus = self.info_dict(orderStatusResponse)
         orderWrapper = self.safe_dict(orderStatus, 'order', orderStatus)
         parsed = self.parse_prediction_order(orderWrapper, None)
         if outcome is not None:
@@ -1863,8 +1849,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         # assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         # padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         return {
@@ -2054,10 +2040,33 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']
             if type in byType:
                 return byType[type]
         return self.safe_value(config, 'cost', 1)
+
+    def info_list(self, response: dict | list | str) -> list[dict]:
+        """
+ @ignore
+        narrows an info endpoint response for a request type that answers with a JSON array
+        :param object|dict[]|str response: the info endpoint response
+        :returns dict[]: the response array, or an empty array for any other response
+        """
+        result = []
+        if isinstance(response, list):
+            result = response
+        return result
+
+    def info_dict(self, response: dict | list | str) -> dict:
+        """
+ @ignore
+        narrows an info endpoint response for a request type that answers with a JSON object
+        :param object|dict[]|str response: the info endpoint response
+        :returns dict: the response object, or an empty object for any other response
+        """
+        if (not isinstance(response, str)) and not isinstance(response, list):
+            return response
+        return {}

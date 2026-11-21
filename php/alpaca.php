@@ -1179,7 +1179,11 @@ class alpaca extends Exchange {
         $paramsCost = ($cost !== null) ? $this->omit($params, 'cost') : $params;
         list($defaultTIF, $paramsTimeInForce) = $this->handle_option_string_and_params($paramsCost, 'createOrder', 'timeInForce');
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        $request['time_in_force'] = ($defaultTIF !== null) ? strtolower($defaultTIF) : $defaultTIF;
+        if ($defaultTIF !== null) {
+            $request['time_in_force'] = strtolower($defaultTIF);
+        } else {
+            $request['time_in_force'] = null;
+        }
         $paramsOmitted = $this->omit($paramsTimeInForce, array( 'timeInForce', 'triggerPrice' ));
         $request['client_order_id'] = $this->generate_client_order_id($paramsOmitted);
         $order = $this->traderPrivatePostV2Orders($this->extend($request, $this->omit($paramsOmitted, array( 'clientOrderId' ))));

@@ -59,7 +59,7 @@ public partial class lighter : ccxt.lighter
         });
     }
 
-    public virtual string? getMessageHash(object unifiedChannel, object symbol = null, object extra = null)
+    public virtual string? getMessageHash(string unifiedChannel, object symbol = null, object extra = null)
     {
         object hash = unifiedChannel;
         if ((symbol != null))
@@ -1219,7 +1219,7 @@ public partial class lighter : ccxt.lighter
             for (int i = 0; i < assetIds.Count; i++)
             {
                 string? assetId = ((string)assetIds[i]);
-                IDictionary<string, object> asset = this.safeDict(assets, assetId);
+                IDictionary<string, object> asset = this.safeDict(assets, assetId, new Dictionary<string, object>() {});
                 string? codeId = this.safeString(asset, "symbol");
                 string? code = this.safeCurrencyCode(codeId);
                 Dictionary<string, object> account = this.account();
@@ -1329,7 +1329,8 @@ public partial class lighter : ccxt.lighter
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        options[(string)url] = newValue;
+        this.options["requestId"] = options;
         return newValue;
     }
 
@@ -1466,7 +1467,7 @@ public partial class lighter : ccxt.lighter
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
-        string? id = this.safeString(message, "id");
+        string? id = this.safeString(message, "id", "");
         client.resolve(message, ("jsonapi/sendtx:" + id));
     }
 
@@ -1585,7 +1586,7 @@ public partial class lighter : ccxt.lighter
                 string? code = this.safeString(error, "code");
                 string? errorMessage = this.safeString(error, "message");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
                 throw new ExchangeError (feedback) ;
             }
@@ -1765,8 +1766,8 @@ public partial class lighter : ccxt.lighter
                 string? subscriptionHash = ((string)subscriptionHashes[i]);
                 if (subscriptionHash.StartsWith("ticker"))
                 {
-                    IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash);
-                    IDictionary<string, object> subscriptionParams = this.safeDict(subscription, "params");
+                    IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash, new Dictionary<string, object>() {});
+                    IDictionary<string, object> subscriptionParams = this.safeDict(subscription, "params", new Dictionary<string, object>() {});
                     string? subscribedChannel = this.safeString(subscriptionParams, "channel");
                     if (subscribedChannel == "market_stats/all")
                     {

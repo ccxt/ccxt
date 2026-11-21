@@ -436,7 +436,8 @@ class grvt extends \ccxt\async\grvt {
         $symbolValue = $this->symbol($symbol);
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolValue, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbolValue][$timeframe];
+        $bySymbol = $result[$symbolValue];
+        return $bySymbol[$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -582,17 +583,17 @@ class grvt extends \ccxt\async\grvt {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         list($limitOption, $paramsLimitOption) = $this->handle_option_integer_and_params($paramsChannel, 'watchOrderBook', 'limit', 100);
-        $limitResolved = $limitOption;
+        $limitString = (string) $limitOption;
         $paramsLimit = $paramsLimitOption;
         if ($limit !== null) {
-            $limitResolved = $limit;
+            $limitString = (string) $limit;
             $paramsLimit = $paramsChannel;
         }
         list($interval, $paramsInterval) = $this->handle_option_integer_and_params($paramsLimit, 'watchOrderBook', 'interval', 500);
         $symbolsNormalized = $this->market_symbols($symbols);
         $extraPart = null;
         if ($isSnapshot) {
-            $extraPart = (string) $interval . '-' . (string) $limitResolved;
+            $extraPart = (string) $interval . '-' . $limitString;
         } else {
             $extraPart = (string) $interval;
         }
@@ -735,7 +736,7 @@ class grvt extends \ccxt\async\grvt {
         $rawHashes = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $rawHashes[] = $subAccountId . '-' . $market['id'];
+            $rawHashes[] = $subAccountId . '-' . $this->safe_string($market, 'id', '');
             $messageHashes[] = 'myTrades::' . $market['symbol'];
         } else {
             $messageHashes[] = 'myTrades';
@@ -832,7 +833,7 @@ class grvt extends \ccxt\async\grvt {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
-                $rawHashes[] = $subAccountId . '-' . $market['id'];
+                $rawHashes[] = $subAccountId . '-' . $this->safe_string($market, 'id', '');
                 $messageHashes[] = 'positions::' . $market['symbol'];
             }
         } else {
@@ -925,7 +926,7 @@ class grvt extends \ccxt\async\grvt {
         } else {
             $market = $this->market($symbol);
             $messageHashes[] = 'order::' . $market['symbol'];
-            $rawHashes[] = $subAccountId . '-' . $market['id'];
+            $rawHashes[] = $subAccountId . '-' . $this->safe_string($market, 'id', '');
         }
         $request = array(
             'stream' => 'v1.order',

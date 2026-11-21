@@ -1345,16 +1345,17 @@ export default class aster extends Exchange {
         if (sinceDefined) {
             request['startTime'] = since;
         }
+        let paramsUntil = params;
         if (untilDefined) {
-            request = this.handleUntilOption('endTime', request, params);
+            [request, paramsUntil] = this.handleUntilOption('endTime', request, params);
         }
         // use historical endpoint for targeted requests
         if (sinceDefined) {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.fapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
             else {
-                response = await this.sapiPublicGetV3AggTrades(this.extend(request, params));
+                response = await this.sapiPublicGetV3AggTrades(this.extend(request, paramsUntil));
             }
             //
             // both FAPI and SAPI have same response format
@@ -1374,10 +1375,10 @@ export default class aster extends Exchange {
         }
         else {
             if (this.safeBool(market, 'swap', false)) {
-                response = await this.fapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.fapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
             else {
-                response = await this.sapiPublicGetV3Trades(this.extend(request, params));
+                response = await this.sapiPublicGetV3Trades(this.extend(request, paramsUntil));
             }
             //
             // SAPI & FAPI have only one field difference
@@ -4104,7 +4105,9 @@ export default class aster extends Exchange {
                     const maintenanceMarginPercentage = this.safeString(bracket, 'maintMarginRatio');
                     result.push([floorValue, maintenanceMarginPercentage]);
                 }
-                this.options['leverageBrackets'][symbol] = result;
+                const leverageBracketsDict = this.safeDict(this.options, 'leverageBrackets', {});
+                leverageBracketsDict[symbol] = result;
+                this.options['leverageBrackets'] = leverageBracketsDict;
             }
         }
         return this.options['leverageBrackets'];
@@ -4301,8 +4304,8 @@ export default class aster extends Exchange {
     signHash(hash, privateKey) {
         this.checkRequiredCredentials();
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }

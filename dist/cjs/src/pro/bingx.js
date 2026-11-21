@@ -515,7 +515,7 @@ class bingx extends bingx$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(message, 'data', []);
+        const dataList = this.safeList(message, 'data', []);
         const rawHash = this.safeString(message, 'dataType', '');
         const hashParts = rawHash.split('@');
         const marketId = this.safeString(hashParts, 0);
@@ -528,11 +528,11 @@ class bingx extends bingx$1["default"] {
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
         let trades;
-        if (Array.isArray(data)) {
-            trades = this.parseTrades(data, market);
+        if (this.safeDict(message, 'data') === undefined) {
+            trades = this.parseTrades(dataList, market);
         }
         else {
-            trades = [this.parseTrade(data, market)];
+            trades = [this.parseTrade(this.safeDict(message, 'data', {}), market)];
         }
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
@@ -1826,9 +1826,10 @@ class bingx extends bingx$1["default"] {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        const typeBalance = this.safeDict(this.balance, type, {});
+        typeBalance['info'] = data;
+        typeBalance['timestamp'] = timestamp;
+        typeBalance['datetime'] = this.iso8601(timestamp);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString(balance, 'a');
@@ -1838,10 +1839,10 @@ class bingx extends bingx$1["default"] {
             account['used'] = this.safeString(balance, 'lk');
             account['free'] = this.safeString(balance, 'wb');
             if (code !== undefined) {
-                this.balance[type][code] = account;
+                typeBalance[code] = account;
             }
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(typeBalance);
         client.resolve(this.balance[type], type + ':balance');
     }
     // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them

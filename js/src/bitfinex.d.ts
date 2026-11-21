@@ -76,7 +76,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseTicker(ticker: List, market?: Market): Ticker;
+    parseTickerList(ticker: List, market?: Market): Ticker;
     /**
      * @method
      * @name bitfinex#fetchTickers
@@ -297,7 +297,7 @@ export default class bitfinex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseTransactionStatus(status: Str): Str;
-    parseTransaction(transaction: List, currency?: Currency): Transaction;
+    parseTransactionRow(transaction: List, currency?: Currency): Transaction;
     /**
      * @method
      * @name bitfinex#fetchTradingFees

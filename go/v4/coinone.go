@@ -474,7 +474,11 @@ func (this *Coinone) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//         ]
 	//     }
 	//
-	var currencies []any = SafeListTypedDefault(response, "currencies", []any{})
+	var currencies []any
+	currencies, _ = response["currencies"].([]any)
+	if currencies == nil {
+		currencies = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -573,10 +577,11 @@ func (this *Coinone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         ]
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "tickers")
+	var tickers []any
+	tickers, _ = response["tickers"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var entry map[string]any = SafeMapTyped(tickers, i)
+		var entry, _ = tickers[i].(map[string]any)
 		var id *string = this.SafeString(entry, "id")
 		var baseId *string = this.SafeStringUpper(entry, "target_currency")
 		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
@@ -640,11 +645,11 @@ func (this *Coinone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Coinone) ParseBalance(response any) map[string]any {
+func (this *Coinone) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances map[string]any = MapTyped(this.Omit(response, []any{"errorCode", "result", "normalWallets"}))
+	var balances map[string]any = this.OmitDict(response, []any{"errorCode", "result", "normalWallets"})
 	var currencyIds []string = nil
 	if balances != nil {
 		currencyIds = make([]string, 0, len(balances))
@@ -737,7 +742,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"target_currency": market["base"],
 	}
 	if limit != nil {
-		request["size"] = limit // only support 5, 10, 15, 16
+		request["size"] = *limit // only support 5, 10, 15, 16
 	}
 
 	r1 := <-this.V2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.Extend(request, params))
@@ -861,7 +866,11 @@ func (this *Coinone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "tickers", []any{})
+	var data []any
+	data, _ = response["tickers"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -937,8 +946,15 @@ func (this *Coinone) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "tickers")
-	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var data []any
+	data, _ = response["tickers"].([]any)
+	var ticker map[string]any
+	if 0 < len(data) {
+		ticker, _ = data[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -982,10 +998,11 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = SafeStringPtr(*base + "/" + *quote)
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
-	return this.SafeTicker(map[string]any{
-		"symbol":        symbol,
+	var literal73232 map[string]any = map[string]any{
+		"symbol":        nil,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(ticker, "high"),
@@ -1005,7 +1022,11 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    this.SafeString(ticker, "target_volume"),
 		"quoteVolume":   this.SafeString(ticker, "quote_volume"),
 		"info":          ticker,
-	}, market)
+	}
+	if symbol != nil {
+		literal73232["symbol"] = *symbol
+	}
+	return this.SafeTicker(literal73232, market)
 }
 func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
@@ -1038,12 +1059,13 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side *string = nil
 	if isSellerMaker != nil {
-		side = SafeStringPtr(func() string {
-			if isSellerMaker != nil && *isSellerMaker {
-				return "sell"
-			}
-			return "buy"
-		}())
+		var sideStr string
+		if isSellerMaker != nil && *isSellerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
+		side = &sideStr
 	}
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
@@ -1094,12 +1116,12 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinone) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Coinone) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1147,7 +1169,11 @@ func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "transactions", []any{})
+	var data []any
+	data, _ = response["transactions"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1351,9 +1377,10 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	var quoteId *string = this.SafeString2(order, "targetCurrency", "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
 	var marketResolved map[string]any
 	if symbol != nil {
@@ -1370,9 +1397,11 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 		side = this.SafeStringLower(order, "side") // in v2.1 rows the type field carries the order type, the side lives in side
 	}
 	if side != nil && *side == "ask" {
-		side = SafeStringPtr("sell")
+		sideStr := "sell"
+		side = &sideStr
 	} else if side != nil && *side == "bid" {
-		side = SafeStringPtr("buy")
+		sideStr2 := "buy"
+		side = &sideStr2
 	}
 	var remainingString *string = this.SafeString2(order, "remainQty", "remain_qty")
 	var amountString *string = this.SafeStringN(order, []any{"originalQty", "qty", "original_qty"})
@@ -1382,7 +1411,8 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 		if (remainingString != nil) && (amountString != nil) {
 			var isLessThan bool = Precise.StringLt(remainingString, amountString)
 			if isLessThan {
-				status = SafeStringPtr("canceled")
+				statusStr := "canceled"
+				status = &statusStr
 			}
 		}
 	}
@@ -1400,14 +1430,14 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal106931 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      nil,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               "limit",
 		"timeInForce":        nil,
 		"postOnly":           nil,
@@ -1422,7 +1452,11 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal106931["symbol"] = *symbol
+	}
+	return this.SafeOrder(literal106931, marketResolved)
 }
 
 /**
@@ -1563,7 +1597,11 @@ func (this *Coinone) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//         ]
 	//     }
 	//
-	var completeOrders []any = SafeListTypedDefault(response, "completeOrders", []any{})
+	var completeOrders []any
+	completeOrders, _ = response["completeOrders"].([]any)
+	if completeOrders == nil {
+		completeOrders = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(completeOrders, market, since, limit))}
 	return nil
@@ -1677,7 +1715,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	//         }
 	//     }
 	//
-	var walletAddress map[string]any = SafeMapTyped(response, "walletAddress")
+	var walletAddress, _ = response["walletAddress"].(map[string]any)
 	var keys []string = nil
 	if walletAddress != nil {
 		keys = make([]string, 0, len(walletAddress))
@@ -1753,7 +1791,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 		url = *apiUrl4 + "/"
 	}
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if isPublic {
 		url += request
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
@@ -1775,7 +1813,8 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 			"nonce":        nonce,
 		}, params))
 		var payload string = this.StringToBase64(json)
-		requestBody = SafeStringPtr(payload)
+		requestBodyStr := payload
+		requestBody = &requestBodyStr
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(strings.ToUpper(this.Secret)), sha512)
 		requestHeaders = map[string]any{
 			"Content-Type":        "application/json",
@@ -1784,7 +1823,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
+	var headersResolved map[string]any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

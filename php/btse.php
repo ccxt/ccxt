@@ -2879,7 +2879,8 @@ class btse extends Exchange {
         for ($i = 0; $i < count($typesList); $i++) {
             $historyType = $this->safe_string($typesList, $i, '');
             $allowed[$historyType] = true;
-            $allowed[$this->capitalize(strtolower($historyType))] = true;
+            $capitalizedType = $this->capitalize(strtolower($historyType));
+            $allowed[$capitalizedType] = true;
         }
         $rows = array();
         for ($i = 0; $i < count($rawRows); $i++) {

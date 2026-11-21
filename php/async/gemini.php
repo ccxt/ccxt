@@ -1158,7 +1158,7 @@ class gemini extends Exchange {
         $base = null;
         $quote = null;
         if (($marketId !== null) && ($marketResolved === null)) {
-            $idLength = strlen($marketId) - 0;
+            $idLength = count($marketId);
             if ($idLength === 7) {
                 $baseId = mb_substr($marketId, 0, 4 - 0);
                 $quoteId = mb_substr($marketId, 4, 7 - 4);

@@ -579,7 +579,9 @@ class coinmate(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             market = self.market(keys[i])
             ticker = self.parse_ticker(self.safe_dict(data, keys[i], {}), market)
-            result[market['symbol']] = ticker
+            symbol = self.safe_string(market, 'symbol')
+            if symbol is not None:
+                result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:

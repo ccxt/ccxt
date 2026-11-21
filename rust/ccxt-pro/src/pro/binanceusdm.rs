@@ -54,7 +54,7 @@ impl crate::exchange::DerivedExchange for Binanceusdm {
 }
 
 impl crate::exchange_generated::ExchangeBase for Binanceusdm {
-    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
+    fn call_dynamic<'a>(&'a mut self, method: &'a str, args: &'a [crate::Value])
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
@@ -80,9 +80,9 @@ impl Binanceusdm {
     pub fn describe(&self) -> Value {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::binanceusdm::Binanceusdm::new(None);
-        let mut restDescribe: Value = restInstance.describe();
-        let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: crate::value::Dict = self.deep_extend(restDescribe, &[parentWsDescribe]).into_dict();
+        let restDescribe: Value = restInstance.describe();
+        let parentWsDescribe: Value = self.parent.describe_data();
+        let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
         return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binanceusdm".into()));

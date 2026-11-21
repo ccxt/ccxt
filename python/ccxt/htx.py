@@ -1533,7 +1533,8 @@ class htx(Exchange, ImplicitAPI):
         }
 
     def cost_to_precision(self, symbol: Str, cost: object) -> str:
-        return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
+        market = self.market(symbol)
+        return self.decimal_to_precision(cost, TRUNCATE, market['precision']['cost'], self.precisionMode)
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
@@ -1916,10 +1917,14 @@ class htx(Exchange, ImplicitAPI):
             else:
                 constructedId = marketBase + '_' + contractSuffix
             if constructedId == symbolOrMarketId:
-                self.options['futureMarketIdsForSymbols'][symbolOrMarketId] = marketSymbol
+                futureMarketIdsForSymbolsDict1 = self.safe_dict(self.options, 'futureMarketIdsForSymbols', {})
+                futureMarketIdsForSymbolsDict1[symbolOrMarketId] = marketSymbol
+                self.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict1
                 return marketSymbol
         # if not found, just save it to avoid unnecessary future iterations
-        self.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbolOrMarketId
+        futureMarketIdsForSymbolsDict2 = self.safe_dict(self.options, 'futureMarketIdsForSymbols', {})
+        futureMarketIdsForSymbolsDict2[symbolOrMarketId] = symbolOrMarketId
+        self.options['futureMarketIdsForSymbols'] = futureMarketIdsForSymbolsDict2
         return symbolOrMarketId
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -2406,9 +2411,9 @@ class htx(Exchange, ImplicitAPI):
         if response is None:
             raise NullResponse(self.id + ' fetchOrderBook() returned empty response')
         if 'tick' in response:
-            if self.safe_value(response, 'tick') is None:
-                raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_dict(response, 'tick')
+            if tick is None:
+                raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
             result = self.parse_order_book(tick, symbol, timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')
@@ -3182,7 +3187,9 @@ class htx(Exchange, ImplicitAPI):
         if assetType == '1':
             type = 'crypto'
         if code is not None:
-            self.options['networkChainIdsByNames'][code] = {}
+            chainIdsByNames = self.safe_dict(self.options, 'networkChainIdsByNames', {})
+            chainIdsByNames[code] = {}
+            self.options['networkChainIdsByNames'] = chainIdsByNames
         chains = self.safe_list(rawCurrency, 'chains', [])
         networks = {}
         for j in range(0, len(chains)):
@@ -3190,9 +3197,15 @@ class htx(Exchange, ImplicitAPI):
             uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
             title = self.safe_string_2(chainEntry, 'baseChain', 'displayName')  # baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
             if code is not None and title is not None:
-                self.options['networkChainIdsByNames'][code][title] = uniqueChainId
+                chainIdsByNamesDict = self.safe_dict(self.options, 'networkChainIdsByNames', {})
+                chainIdsByTitle = self.safe_dict(chainIdsByNamesDict, code, {})
+                chainIdsByTitle[title] = uniqueChainId
+                chainIdsByNamesDict[code] = chainIdsByTitle
+                self.options['networkChainIdsByNames'] = chainIdsByNamesDict
             if uniqueChainId is not None:
-                self.options['networkNamesByChainIds'][uniqueChainId] = title
+                networkNamesByChainIdsDict3 = self.safe_dict(self.options, 'networkNamesByChainIds', {})
+                networkNamesByChainIdsDict3[uniqueChainId] = title
+                self.options['networkNamesByChainIds'] = networkNamesByChainIdsDict3
             networkCode = self.network_id_to_code(uniqueChainId, code)
             if networkCode is not None:
                 networks[networkCode] = {
@@ -5618,18 +5631,11 @@ class htx(Exchange, ImplicitAPI):
         query = self.omit(paramsMarketType, ['stop', 'stopLossTakeProfit', 'trigger'])
         response = None
         if marketType == 'spot':
-            clientOrderIds = self.safe_value_2(query, 'client-order-id', 'clientOrderId')
-            clientOrderIds = self.safe_value_2(query, 'client-order-ids', 'clientOrderIds', clientOrderIds)
+            clientOrderIds = self.safe_string_list(query, ['client-order-ids', 'clientOrderIds', 'client-order-id', 'clientOrderId'])
             if clientOrderIds is None:
-                if isinstance(clientOrderIds, str):
-                    request['order-ids'] = [ids]
-                else:
-                    request['order-ids'] = ids
+                request['order-ids'] = ids
             else:
-                if isinstance(clientOrderIds, str):
-                    request['client-order-ids'] = [clientOrderIds]
-                else:
-                    request['client-order-ids'] = clientOrderIds
+                request['client-order-ids'] = clientOrderIds
                 query = self.omit(query, ['client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds'])
             response = self.spotPrivatePostV1OrderOrdersBatchcancel(self.extend(request, query))
         else:
@@ -8841,6 +8847,7 @@ class htx(Exchange, ImplicitAPI):
         chains = self.safe_list(fee, 'chains', [])
         code = self.safe_string(currency, 'code')
         result = self.deposit_withdraw_fee(fee)
+        networks = {}
         for j in range(0, len(chains)):
             chainEntry = self.safe_dict(chains, j)
             networkId = self.safe_string(chainEntry, 'chain')
@@ -8861,13 +8868,14 @@ class htx(Exchange, ImplicitAPI):
                     'percentage': True,
                 }
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': None,
                         'percentage': None,
                     },
                 }
+                result['networks'] = networks
             self.assign_default_deposit_withdraw_fees(result, currency)
         return result
 
@@ -8925,8 +8933,7 @@ class htx(Exchange, ImplicitAPI):
             settlement = self.safe_dict(settlements, i)
             list = self.safe_list(settlement, 'list')
             if self.safe_bool(market, 'linear', False):
-                parsedSettlement = self.parse_settlement(settlement, market)
-                result.append(parsedSettlement)
+                result.append(self.parse_settlement(settlement, market))
             elif list is not None:
                 timestamp = self.safe_integer(settlement, 'settlement_time')
                 timestampDetails = {

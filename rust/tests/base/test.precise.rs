@@ -9,11 +9,11 @@ use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbol
 use ccxt::exchange_generated::ExchangeBase;
 
 pub fn testPrecise() {
-    let mut w: String = "-1.123e-6".to_string();
-    let mut x: String = "0.00000002".to_string();
-    let mut y: String = "69696900000".to_string();
-    let mut z: String = "0".to_string();
-    let mut a: String = "1e8".to_string();
+    let w: String = "-1.123e-6".to_string();
+    let x: String = "0.00000002".to_string();
+    let y: String = "69696900000".to_string();
+    let z: String = "0".to_string();
+    let a: String = "1e8".to_string();
     assert!(ccxt::runtime::is_true(&(Value::Bool(ccxt::precise::Precise::stringMul(&x, &y).as_str() == Some("1393.938")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(ccxt::precise::Precise::stringMul(&y, &x).as_str() == Some("1393.938")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(ccxt::precise::Precise::stringAdd(&x, &y).as_str() == Some("69696900000.00000002")))));

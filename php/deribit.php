@@ -1505,7 +1505,10 @@ class deribit extends Exchange {
         $defaultLimit = 1000;
         $windowLimit = ($limit === null) ? $defaultLimit : $limit;
         $limitResolved = (($since === null) && ($limit === null)) ? $defaultLimit : $limit;
-        $sinceResolved = ($since === null) ? null : max($since - 1, 0);
+        $sinceResolved = null;
+        if ($since !== null) {
+            $sinceResolved = max($since - 1, 0);
+        }
         if ($since === null) {
             $request['start_timestamp'] = $now - ($windowLimit - 1) * $duration * 1000;
             $request['end_timestamp'] = $now;

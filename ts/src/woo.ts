@@ -922,7 +922,7 @@ export default class woo extends Exchange {
         //         "isMaker": 0
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const isFromFetchOrder = (this.safeString (trade, 'id') !== undefined);
         const timestampString = this.safeString2 (trade, 'executed_timestamp', 'executedTimestamp');
         let timestamp: Int = undefined;
         if (timestampString !== undefined) {
@@ -1202,8 +1202,8 @@ export default class woo extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, '_coin_id');
         const code = this.safeCurrencyCode (currencyId);
-        const tokensByNetworkId = this.indexBy (rawCurrency['_tokens_by_id'], 'network');
-        const chainsByNetworkId = this.indexBy (rawCurrency['_networks_by_id'], 'network');
+        const tokensByNetworkId = this.indexBy (this.safeList (rawCurrency, '_tokens_by_id', []), 'network');
+        const chainsByNetworkId = this.indexBy (this.safeList (rawCurrency, '_networks_by_id', []), 'network');
         const keys = Object.keys (chainsByNetworkId);
         const resultingNetworks: Dict = {};
         for (let j = 0; j < keys.length; j++) {

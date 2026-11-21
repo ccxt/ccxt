@@ -368,8 +368,10 @@ class hollaex(Exchange, ImplicitAPI):
             market = self.safe_dict(pairs, key)
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
-            baseCode = self.common_currency_code(baseId.upper())
-            quoteCode = self.common_currency_code(quoteId.upper())
+            upperBaseId = baseId.upper()
+            upperQuoteId = quoteId.upper()
+            baseCode = self.common_currency_code(upperBaseId)
+            quoteCode = self.common_currency_code(upperQuoteId)
             result.append({
                 'id': self.safe_string(market, 'name'),
                 'symbol': baseCode + '/' + quoteCode,
@@ -1557,11 +1559,9 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         wallet = self.safe_list(response, 'wallet', [])
-        addresses = None
         if network is None:
-            addresses = wallet
-        else:
-            addresses = self.filter_by(wallet, 'network', self.network_code_to_id(network))
+            return self.parse_deposit_addresses(wallet, codes, False)
+        addresses = self.filter_by(wallet, 'network', self.network_code_to_id(network))
         return self.parse_deposit_addresses(addresses, codes, False)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:

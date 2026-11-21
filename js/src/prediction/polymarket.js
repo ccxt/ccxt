@@ -439,7 +439,7 @@ export default class polymarket extends Exchange {
             }
             else {
                 const optionMaxPages = this.safeInteger(this.options, 'maxSearchPages', 5);
-                const maxSearchPages = this.safeInteger(params, 'maxSearchPages', optionMaxPages);
+                const maxSearchPages = this.parseToInt(this.safeInteger(params, 'maxSearchPages', optionMaxPages));
                 if (maxSearchPages < totalPages) {
                     totalPages = maxSearchPages;
                 }
@@ -1266,18 +1266,18 @@ export default class polymarket extends Exchange {
         const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds();
-        let startS;
-        let endS = nowS;
+        let startS = this.parseToInt(0);
+        let endS = this.parseToInt(nowS);
         if (since !== undefined) {
             startS = this.parseToInt(since / 1000);
             if (limit !== undefined) {
-                const endBound = this.sum(startS, limit * fidelityMin * 60);
+                const endBound = this.parseToInt(this.sum(startS, limit * fidelityMin * 60));
                 endS = (endBound < nowS) ? endBound : nowS;
             }
         }
         else {
             const barCount = (limit !== undefined) ? limit : 100;
-            startS = nowS - (barCount * fidelityMin * 60);
+            startS = this.parseToInt(nowS - (barCount * fidelityMin * 60));
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -1286,10 +1286,10 @@ export default class polymarket extends Exchange {
         const maxWindow = this.safeInteger(this.options, 'maxPricesHistoryWindow', 1296000);
         if ((endS - startS) > maxWindow) {
             if (since !== undefined) {
-                endS = this.sum(startS, maxWindow);
+                endS = this.parseToInt(this.sum(startS, maxWindow));
             }
             else {
-                startS = endS - maxWindow;
+                startS = this.parseToInt(endS - maxWindow);
             }
         }
         const request = {
@@ -2272,7 +2272,7 @@ export default class polymarket extends Exchange {
             const eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            const eoaSignature = '0x' + this.remove0xPrefix(eoaSig['r']) + this.remove0xPrefix(eoaSig['s']) + this.intToBase16(eoaSig['v']);
+            const eoaSignature = '0x' + this.remove0xPrefix(this.safeString(eoaSig, 'r')) + this.remove0xPrefix(this.safeString(eoaSig, 's')) + this.intToBase16(eoaSig['v']);
             return eoaSignature.toLowerCase();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -2832,8 +2832,8 @@ export default class polymarket extends Exchange {
     signHash(hash, privateKey) {
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         return {
@@ -2868,7 +2868,7 @@ export default class polymarket extends Exchange {
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         const sig = this.signMessage(encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix(sig['r']) + this.remove0xPrefix(sig['s']) + this.intToBase16(sig['v']);
+        return '0x' + this.remove0xPrefix(this.safeString(sig, 'r')) + this.remove0xPrefix(this.safeString(sig, 's')) + this.intToBase16(sig['v']);
     }
     /**
      * @method

@@ -7583,9 +7583,9 @@ public class BinanceusApi extends Binance
      * Calls the eapiPublicGetOpenInterest endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  eapiPublicGetOpenInterest (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  eapiPublicGetOpenInterest (Object... optionalArgs)
     {
         return this.callAsync ("eapiPublicGetOpenInterest", optionalArgs);
     }

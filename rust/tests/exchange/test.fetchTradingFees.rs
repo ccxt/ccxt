@@ -10,15 +10,15 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchTradingFees(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchTradingFees".into());
-    let mut fees: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trading_fees", vec![]).await;
-    let mut symbols: Value = object_keys(&fees);
+    let method: Value = Value::Str("fetchTradingFees".into());
+    let fees: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trading_fees", vec![]).await;
+    let symbols: Value = object_keys(&fees);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), symbols.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1602: bool = true;
-        while { if !__for_first_1602 { i += 1; } __for_first_1602 = false; i < (symbols.len() as i64) } {
-        let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbols.len() as i64) } {
+        let symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         testTradingFee(exchange.clone(), skippedProperties.clone(), method.clone(), symbol.clone(), get_value(&fees, &symbol));
     }
     }

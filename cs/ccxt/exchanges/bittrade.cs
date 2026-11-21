@@ -785,7 +785,7 @@ public partial class bittrade : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? baseId = this.safeString(market, "base-currency");
             string? quoteId = this.safeString(market, "quote-currency");
             string? bs = this.safeCurrencyCode(baseId);
@@ -1080,7 +1080,7 @@ public partial class bittrade : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> response = await this.marketGetTickers(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "ts");
@@ -1397,7 +1397,7 @@ public partial class bittrade : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = await this.privateGetAccountAccounts(parameters);
-        return ccxt.BaseExchange.ToAccountList(this.toArray(this.safeList(response, "data", new List<object>() {})));
+        return ccxt.BaseExchange.ToAccountList(this.safeList(response, "data", new List<object>() {}));
     }
 
     /**
@@ -2476,7 +2476,7 @@ public partial class bittrade : Exchange
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             string payload = ((((((method + "\n") + this.hostname) + "\n") + url) + "\n") + auth);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(payload, this.secret, sha256, "base64");
             auth = auth + ("&" + this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 }));
@@ -2535,9 +2535,9 @@ public partial class bittrade : Exchange
                 string? codeError = this.safeString(response, "err-code");
                 string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
                 string? message = this.safeString(response, "err-msg");
-                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }

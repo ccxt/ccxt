@@ -1656,7 +1656,8 @@ export default class kraken extends krakenRest {
             this.balance = {};
         }
         this.balance[type] = this.safeDict(this.balance, type, {});
-        this.balance[type]['info'] = message;
+        const balance = this.safeDict(this.balance, type, {});
+        balance['info'] = message;
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString(data[i], 'asset');
@@ -1664,9 +1665,9 @@ export default class kraken extends krakenRest {
             const account = this.account();
             const eq = this.safeString(data[i], 'balance');
             account['total'] = eq;
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         const channel = this.safeString(message, 'channel');
         client.resolve(this.balance[type], channel);
     }

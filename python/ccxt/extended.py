@@ -2952,8 +2952,6 @@ class extended(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = None
-        order = None
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         paramsOmitted = self.omit(params, ['clientOrderId', 'client_id'])
         if clientOrderId is not None:
@@ -2962,7 +2960,7 @@ class extended(Exchange, ImplicitAPI):
             }
             response = self.v1PrivateGetUserOrdersExternalExternalId(self.extend(request, paramsOmitted))
             data = self.safe_list(response, 'data', [])
-            order = self.safe_dict(data, 0, {})
+            return self.parse_order(self.safe_dict(data, 0, {}), market)
         else:
             if id is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires an id argument')
@@ -2971,7 +2969,7 @@ class extended(Exchange, ImplicitAPI):
             }
             response = self.v1PrivateGetUserOrdersId(self.extend(request, paramsOmitted))
             order = self.safe_dict(response, 'data', {})
-        return self.parse_order(order, market)
+            return self.parse_order(order, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

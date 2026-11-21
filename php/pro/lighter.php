@@ -1186,7 +1186,7 @@ class lighter extends \ccxt\async\lighter {
             $assetIds = is_array($assets) ? array_keys($assets) : array();
             for ($i = 0; $i < count($assetIds); $i++) {
                 $assetId = $assetIds[$i];
-                $asset = $this->safe_dict($assets, $assetId);
+                $asset = $this->safe_dict($assets, $assetId, array());
                 $codeId = $this->safe_string($asset, 'symbol');
                 $code = $this->safe_currency_code($codeId);
                 $account = $this->account();
@@ -1287,7 +1287,8 @@ class lighter extends \ccxt\async\lighter {
         $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
-        $this->options['requestId'][$url] = $newValue;
+        $options[$url] = $newValue;
+        $this->options['requestId'] = $options;
         return $newValue;
     }
 
@@ -1422,7 +1423,7 @@ class lighter extends \ccxt\async\lighter {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
-        $id = $this->safe_string($message, 'id');
+        $id = $this->safe_string($message, 'id', '');
         $client->resolve($message, 'jsonapi/sendtx:' . $id);
     }
 
@@ -1678,8 +1679,8 @@ class lighter extends \ccxt\async\lighter {
             for ($i = 0; $i < count($subscriptionHashes); $i++) {
                 $subscriptionHash = $subscriptionHashes[$i];
                 if (str_starts_with($subscriptionHash, 'ticker')) {
-                    $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
-                    $subscriptionParams = $this->safe_dict($subscription, 'params');
+                    $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash, array());
+                    $subscriptionParams = $this->safe_dict($subscription, 'params', array());
                     $subscribedChannel = $this->safe_string($subscriptionParams, 'channel');
                     if ($subscribedChannel === 'market_stats/all') {
                         unset($client->subscriptions[$subscriptionHash]);

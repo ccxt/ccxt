@@ -88,9 +88,9 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".detail"
 	var api string = *this.SafeString(this.Options, "api", "api")
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var apiUrls map[string]any = this.UrlsApi
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var apiWsUrls, _ = wsUrls[api].(map[string]any)
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
@@ -114,7 +114,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
+func (this *Bittrade) HandleTicker(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.detail",
@@ -132,7 +132,11 @@ func (this *Bittrade) HandleTicker(client any, message map[string]any) any {
 	//         }
 	//     }
 	//
-	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
+	var tick map[string]any
+	tick, _ = message["tick"].(map[string]any)
+	if tick == nil {
+		tick = map[string]any{}
+	}
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -183,15 +187,18 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
 	// only supports a limit of 150 at this time
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var messageHash string = "market." + marketId + ".trade.detail"
 	var api string = *this.SafeString(this.Options, "api", "api")
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var apiUrls map[string]any = this.UrlsApi
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var apiWsUrls, _ = wsUrls[api].(map[string]any)
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
@@ -221,7 +228,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
+func (this *Bittrade) HandleTrades(client any, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.trade.detail",
@@ -242,8 +249,8 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) any {
 	//         }
 	//     }
 	//
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
-	var data []any = ccxt.SafeListTyped(tick, "data")
+	var tick, _ = message["tick"].(map[string]any)
+	var data, _ = tick["data"].([]any)
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -302,15 +309,18 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var messageHash string = "market." + marketId + ".kline." + *interval
 	var api string = *this.SafeString(this.Options, "api", "api")
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var apiUrls map[string]any = this.UrlsApi
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var apiWsUrls, _ = wsUrls[api].(map[string]any)
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
@@ -382,7 +392,7 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, ch)
@@ -419,16 +429,19 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
 	// only supports a limit of 150 at this time
 	var limitValue int = 150
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var messageHash string = "market." + marketId + ".mbp.150"
 	var api string = *this.SafeString(this.Options, "api", "api")
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var apiUrls map[string]any = this.UrlsApi
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var apiWsUrls, _ = wsUrls[api].(map[string]any)
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
@@ -444,7 +457,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		"symbol":      symbolValue,
 		"limit":       limitValue,
 		"params":      params,
-		"method":      this.HandleOrderBookSubscription,
+		"method":      "handleOrderBookSubscription",
 	}
 
 	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)
@@ -534,9 +547,9 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
 			var api string = *this.SafeString(this.Options, "api", "api")
-			var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
-			var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-			var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+			var apiUrls map[string]any = this.UrlsApi
+			var wsUrls, _ = apiUrls["ws"].(map[string]any)
+			var apiWsUrls, _ = wsUrls[api].(map[string]any)
 			var hostname map[string]any = map[string]any{
 				"hostname": this.Hostname,
 			}
@@ -554,7 +567,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 				"symbol":      symbol,
 				"limit":       limit,
 				"params":      params,
-				"method":      this.HandleOrderBookSnapshot,
+				"method":      "handleOrderBookSnapshot",
 			}
 
 			r := <-this.Watch(url, strconv.FormatInt(requestId, 10), request, strconv.FormatInt(requestId, 10), snapshotSubscription)
@@ -610,8 +623,8 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 	}
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (nonce != nil) && (prevSeqNum == nil || *prevSeqNum <= *nonce) && (seqNum != nil && *seqNum > *nonce) {
-		var asks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})
-		var bids []any = ccxt.SafeListTypedDefault(tick, "bids", []any{})
+		var asks []any = this.SafeListSlice(tick, "asks", []any{})
+		var bids []any = this.SafeListSlice(tick, "bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetNonce(seqNum)
@@ -674,7 +687,7 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.Fields().Nonce = nil
 	orderbook.SetCache([]any{})
 	// watch the snapshot in a separate async call
 	this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
@@ -695,9 +708,13 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message map[string]an
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
 	if subscription != nil {
-		var method any = this.SafeValue(subscription, "method")
-		if method != nil {
-			return ccxt.CallDynamically(method, client, message, subscription)
+		var method *string = this.SafeString(subscription, "method")
+		if method != nil && *method == "handleOrderBookSnapshot" {
+			this.HandleOrderBookSnapshot(client, message, subscription)
+			return nil
+		} else if method != nil && *method == "handleOrderBookSubscription" {
+			this.HandleOrderBookSubscription(client, message, subscription)
+			return nil
 		}
 		// clean up
 		if client.(ccxt.ClientInterface).SubscriptionHas(id) {
@@ -706,7 +723,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message map[string]an
 	}
 	return message
 }
-func (this *Bittrade) HandleSystemStatus(client any, message map[string]any) any {
+func (this *Bittrade) HandleSystemStatus(client any, message map[string]any) map[string]any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that

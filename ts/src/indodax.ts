@@ -931,13 +931,10 @@ export default class indodax extends Exchange {
         }
         const response = await this.privatePostOpenOrders (this.extend (request, params));
         const openOrdersResult = this.safeDict (response, 'return', {});
-        const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if ((rawOrders === undefined) || (rawOrders === null)) {
-            return [];
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (symbol !== undefined) {
+            const rawOrders: Dict[] = this.safeList (openOrdersResult, 'orders', []);
             return this.parseOrders (rawOrders, market, since, limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
@@ -1013,6 +1010,8 @@ export default class indodax extends Exchange {
         if (isMarketBuy) {
             paramsOmitted = this.omit (params, 'cost');
         }
+        const quoteId = this.safeString (market, 'quoteId', '');
+        const baseId = this.safeString (market, 'baseId', '');
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount: Str = undefined;
@@ -1028,7 +1027,7 @@ export default class indodax extends Exchange {
                     const costRequest = Precise.stringMul (amountString, priceString);
                     quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
-                request[market['quoteId'] as string] = quoteAmount;
+                request[quoteId] = quoteAmount;
             } else {
                 quantityIsRequired = true;
             }
@@ -1036,7 +1035,7 @@ export default class indodax extends Exchange {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side === 'buy') {
-                request[market['quoteId'] as string] = this.parseToNumeric (this.costToPrecision (symbol, Precise.stringMul (this.numberToString (amount), this.numberToString (price))));
+                request[quoteId] = this.parseToNumeric (this.costToPrecision (symbol, Precise.stringMul (this.numberToString (amount), this.numberToString (price))));
             }
         }
         if (priceIsRequired) {
@@ -1046,7 +1045,7 @@ export default class indodax extends Exchange {
             request['price'] = price;
         }
         if (quantityIsRequired) {
-            request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
+            request[baseId] = this.amountToPrecision (symbol, amount);
         }
         const result = await this.privatePostTrade (this.extend (request, paramsOmitted));
         const data = this.safeDict (result, 'return', {});

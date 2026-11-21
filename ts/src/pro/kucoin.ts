@@ -1700,7 +1700,7 @@ export default class kucoin extends kucoinRest {
             const nonce = this.safeInteger (orderbook, 'nonce');
             const deltaEnd = this.safeInteger2 (data, 'sequenceEnd', 'timestamp');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cacheLength = this.parseToInt (orderbook.cache.length);
                 const subscriptions = Object.keys (client.subscriptions);
                 let subscription: NullableDict = undefined;
                 for (let i = 0; i < subscriptions.length; i++) {
@@ -1711,7 +1711,7 @@ export default class kucoin extends kucoinRest {
                     }
                 }
                 const limit = this.safeInteger (subscription, 'limit');
-                const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', 5));
                 if (cacheLength === snapshotDelay) {
                     this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
                 }
@@ -1765,10 +1765,10 @@ export default class kucoin extends kucoinRest {
             const nonce = this.safeInteger (orderbook, 'nonce');
             const deltaEnd = this.safeInteger (data, 'C');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
+                const cacheLength = this.parseToInt (orderbook.cache.length);
                 const subscription = this.safeDict (client.subscriptions, messageHash, {});
                 const limit = this.safeInteger (subscription, 'limit');
-                const snapshotDelay: Int = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+                const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', 5));
                 const utaParams: Dict = {
                     'uta': true,
                 };
@@ -1907,8 +1907,8 @@ export default class kucoin extends kucoinRest {
         const subscription = this.safeDict (client.subscriptions, subscriptionHash);
         delete client.subscriptions[(id as string)];
         const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
+        if ((subscription !== undefined) && (method !== undefined)) {
+            this.handleOrderBookSubscription (client, message, subscription);
         }
         const isUnSub = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSub) {
@@ -2822,10 +2822,11 @@ export default class kucoin extends kucoinRest {
             if (!(uniformType in this.balance)) {
                 this.balance[uniformType] = {};
             }
-            this.balance[uniformType]['info'] = data;
+            const balance = this.safeDict (this.balance, uniformType, {});
+            balance['info'] = data;
             const timestamp = this.safeInteger2 (data, 'time', 'timestamp');
-            this.balance[uniformType]['timestamp'] = timestamp;
-            this.balance[uniformType]['datetime'] = this.iso8601 (timestamp);
+            balance['timestamp'] = timestamp;
+            balance['datetime'] = this.iso8601 (timestamp);
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             let used = this.safeString2 (data, 'hold', 'holdBalance');
@@ -2837,9 +2838,9 @@ export default class kucoin extends kucoinRest {
             account['used'] = used;
             account['total'] = this.safeString (data, 'total');
             if (code !== undefined) {
-                this.balance[uniformType][code] = account;
+                balance[code] = account;
             }
-            this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
+            this.balance[uniformType] = this.safeBalance (balance);
             client.resolve (this.balance[uniformType], uniformType + ':balance');
         }
     }
@@ -2867,18 +2868,19 @@ export default class kucoin extends kucoinRest {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
+        const balance = this.safeDict (this.balance, type, {});
+        balance['info'] = data;
         const timestamp = this.safeIntegerProduct (data, 'U', 0.000001);
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601 (timestamp);
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601 (timestamp);
         const account = this.account ();
         account['free'] = this.safeString (data, 'a');
         account['used'] = this.safeString (data, 'h');
         account['total'] = this.safeString (data, 'b');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance (this.balance[type]);
+        this.balance[type] = this.safeBalance (balance);
         const messageHash = type + ':balance';
         client.resolve (this.balance[type], messageHash);
     }

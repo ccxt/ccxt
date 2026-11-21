@@ -91,7 +91,16 @@ class PredictionExchange(BaseExchange):
         singleQuery = self.safe_string(params, 'query')
         if singleQuery is not None:
             return [singleQuery]
-        return self.safe_list(params, 'queries', [])
+        # every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        rawQueries = self.to_array(self.safe_list(params, 'queries', []))
+        rawQueriesLength = len(rawQueries)
+        queries = []
+        for i in range(0, rawQueriesLength):
+            query = self.safe_string(rawQueries, i)
+            if query is None:
+                raise BadRequest(self.id + ' params.queries must be a list of strings')
+            queries.append(query)
+        return queries
 
     def require_event_query(self, params: dict = {}):
         # fetchEvents must be scoped by at least one selector — an unfiltered call would page the
@@ -203,13 +212,9 @@ class PredictionExchange(BaseExchange):
             matched = False
             for qi in range(0, queriesLength):
                 q = self.safe_string(queries, qi, '').lower()
-                if title is None:
-                    raise ExchangeError(self.id + ' filterEventsBySearchIn() missing title')
                 if checkTitle and (title.find(q) >= 0):
                     matched = True
                     break
-                if description is None:
-                    raise ExchangeError(self.id + ' filterEventsBySearchIn() missing description')
                 if checkDescription and (description.find(q) >= 0):
                     matched = True
                     break
@@ -1383,6 +1388,8 @@ class PredictionExchange(BaseExchange):
             return ''
         # RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         byteLength = self.parse_to_int(len(hex) / 2)
+        if byteLength is None:
+            return ''
         if byteLength == 0:
             return '80'
         if (byteLength == 1) and (hex < '80'):
@@ -1390,7 +1397,9 @@ class PredictionExchange(BaseExchange):
         if byteLength < 56:
             return self.int_to_base16(128 + byteLength) + hex
         lengthHex = self.int_to_base16(byteLength)
-        lengthHex = self.pad_hex_to_even(lengthHex)
+        lengthHexLength = len(lengthHex)
+        if (lengthHexLength % 2) != 0:
+            lengthHex = '0' + lengthHex
         lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
         return self.int_to_base16(183 + lengthOfLength) + lengthHex + hex
 
@@ -1399,10 +1408,14 @@ class PredictionExchange(BaseExchange):
         for i in range(0, len(items)):
             concatenated = concatenated + self.safe_string(items, i, '')
         byteLength = self.parse_to_int(len(concatenated) / 2)
+        if byteLength is None:
+            return ''
         if byteLength < 56:
             return self.int_to_base16(192 + byteLength) + concatenated
         lengthHex = self.int_to_base16(byteLength)
-        lengthHex = self.pad_hex_to_even(lengthHex)
+        lengthHexLength = len(lengthHex)
+        if (lengthHexLength % 2) != 0:
+            lengthHex = '0' + lengthHex
         lengthOfLength = self.parse_to_int(len(lengthHex) / 2)
         return self.int_to_base16(247 + lengthOfLength) + lengthHex + concatenated
 
@@ -1413,7 +1426,9 @@ class PredictionExchange(BaseExchange):
         if value == 0:
             return ''
         hex = self.int_to_base16(value)
-        hex = self.pad_hex_to_even(hex)
+        hexLength = len(hex)
+        if (hexLength % 2) != 0:
+            hex = '0' + hex
         return hex
 
     def hex_to_rlp_bytes(self, hexValue: Str):

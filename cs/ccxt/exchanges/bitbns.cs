@@ -357,10 +357,10 @@ public partial class bitbns : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        IList<object> rawMarkets = this.toArray(response);
+        IList<object> rawMarkets = response;
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
-            object market = rawMarkets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)rawMarkets[i]);
             string? id = this.safeString(market, "id");
             string? baseId = this.safeString(market, "base");
             string? quoteId = this.safeString(market, "quote");
@@ -590,7 +590,7 @@ public partial class bitbns : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override Dictionary<string, object> parseBalance(object response)
@@ -1472,7 +1472,7 @@ public partial class bitbns : Exchange
                 { "body", requestBody },
             };
             string payload = this.stringToBase64(this.json(auth));
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            string signature = this.hmac(payload, this.secret, sha512);
             requestHeaders["X-BITBNS-PAYLOAD"] = payload;
             requestHeaders["X-BITBNS-SIGNATURE"] = signature;
             requestHeaders["Content-Type"] = "application/x-www-form-urlencoded";
@@ -1501,8 +1501,8 @@ public partial class bitbns : Exchange
         if (error || ((message != null)))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }

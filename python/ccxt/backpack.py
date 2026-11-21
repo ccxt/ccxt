@@ -555,9 +555,7 @@ class backpack(Exchange, ImplicitAPI):
         :param boolean [params.stock]: return tokenized stock assets only
         :returns dict: an associative dictionary of currencies
         """
-        selection = self.handle_stock_params('fetchCurrencies', params)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stock, query = self.handle_option_bool_and_params(params, 'fetchCurrencies', 'stock', False)
         response = self.publicGetApiV1Assets(query)
         #
         #     [
@@ -667,13 +665,16 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
-        selection = self.handle_stock_params('fetchMarkets', params)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stock, query = self.handle_option_bool_and_params(params, 'fetchMarkets', 'stock', False)
         marketType = self.safe_string(query, 'marketType')
-        requestedTypes = self.safe_list(query, 'marketType', ['SPOT', 'PERP', 'RFQ'])
+        defaultTypes = []
         if marketType is not None:
-            requestedTypes = [marketType]
+            defaultTypes.append(marketType)
+        else:
+            defaultTypes.append('SPOT')
+            defaultTypes.append('PERP')
+            defaultTypes.append('RFQ')
+        requestedTypes = self.safe_list(query, 'marketType', defaultTypes)
         aliases = {'spot': 'SPOT', 'swap': 'PERP', 'stock': 'RFQ'}
         supportedTypes = ['SPOT', 'PERP', 'RFQ']
         marketTypes = []
@@ -1317,9 +1318,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        selection = self.handle_stock_params('fetchTickers', params)
-        stockOnly = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stockOnly, query = self.handle_option_bool_and_params(params, 'fetchTickers', 'stock', False)
         source = self.safe_string(query, 'source', 'Venue')
         symbolsLength = 0
         if symbols is not None:
@@ -1513,7 +1512,6 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        maxLimit = 2000
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         duration = self.parse_timeframe(timeframe) * 1000
@@ -1523,10 +1521,10 @@ class backpack(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
         defaultLimit = 100
-        limitResolved = limit
-        if limitResolved is not None:
-            limitResolved = min(limitResolved, maxLimit)
-        windowLimit = defaultLimit if (limitResolved is None) else limitResolved
+        windowLimit = defaultLimit if (limit is None) else min(limit, 2000)
+        limitResolved = None
+        if limit is not None:
+            limitResolved = windowLimit
         now = self.milliseconds()
         startTime = since
         untilValue = until
@@ -1963,9 +1961,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        selection = self.handle_stock_params('fetchBalance', params)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stock, query = self.handle_option_bool_and_params(params, 'fetchBalance', 'stock', False)
         response = self.privateGetApiV1Capital(query)
         if stock:
             securities = self.safe_list(self.options, 'securities')
@@ -2430,12 +2426,10 @@ class backpack(Exchange, ImplicitAPI):
         :param boolean [params.stock]: selects tokenized stock spot execution for all orders, otherwise inferred per symbol
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        selection = self.handle_stock_params('createOrders', params)
-        query = self.safe_dict(selection, 1, {})
+        stock, query = self.handle_option_bool_and_params(params, 'createOrders', 'stock', False)
         if self.markets is None:
             self.load_markets()
         ordersRequests = []
-        stock = self.safe_bool(selection, 0, False)
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -2609,7 +2603,7 @@ class backpack(Exchange, ImplicitAPI):
             rfqResponse = self.privateGetApiV1Rfqs(self.extend(query, {'symbol': market['id'], 'rfqId': id}))
             for i in range(0, len(rfqResponse)):
                 order = self.parse_order(self.safe_dict(rfqResponse, i, {}), market)
-                if order['id'] == id:
+                if self.safe_string(order, 'id') == id:
                     return order
             raise OrderNotFound(self.id + ' fetchOpenOrder() RFQ ' + id + ' not found')
         request = {
@@ -2652,7 +2646,7 @@ class backpack(Exchange, ImplicitAPI):
             response = self.privateGetWapiV1HistoryOrders(self.extend(query, request))
         for i in range(0, len(response)):
             order = self.parse_order(self.safe_dict(response, i, {}), market)
-            if order['id'] == id:
+            if self.safe_string(order, 'id') == id:
                 return order
         openOrderParams = self.extend(query, {'stock': self.safe_bool(selection, 0, False)})
         return self.fetch_open_order(id, symbol, openOrderParams)

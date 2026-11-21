@@ -430,8 +430,8 @@ public partial class independentreserve : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        IList<object> baseCurrencyIds = this.toArray(this.safeList(responses, 0));
-        IList<object> quoteCurrencyIds = this.toArray(this.safeList(responses, 1));
+        IList<object> baseCurrencyIds = this.safeList(responses, 0);
+        IList<object> quoteCurrencyIds = this.safeList(responses, 1);
         for (int i = 0; i < (baseCurrencyIds?.Count ?? 0); i++)
         {
             string baseId = this.safeString(baseCurrencyIds, i, "");
@@ -508,7 +508,7 @@ public partial class independentreserve : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        IList<object> accounts = this.toArray(response);
+        IList<object> accounts = response;
         for (int i = 0; i < (accounts?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(accounts, i);
@@ -1039,10 +1039,10 @@ public partial class independentreserve : Exchange
         //     ]
         //
         Dictionary<string, object> fees = new Dictionary<string, object>() {};
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object fee = rows[i];
+            IDictionary<string, object> fee = ((IDictionary<string, object>)rows[i]);
             string? currencyId = this.safeString(fee, "CurrencyCode");
             string? code = this.safeCurrencyCode(currencyId);
             double? tradingFee = this.safeNumber(fee, "Fee");
@@ -1363,7 +1363,7 @@ public partial class independentreserve : Exchange
                 auth.Add(((key + "=") + value));
             }
             string message = String.Join(",", auth.ToArray());
-            string signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
+            string signature = this.hmac(message, this.secret, sha256);
             Dictionary<string, object> query = new Dictionary<string, object>() {};
             query["apiKey"] = this.apiKey;
             query["nonce"] = nonce;

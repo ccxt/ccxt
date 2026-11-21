@@ -1131,7 +1131,7 @@ export default class whitebit extends whitebitRest {
                 if ((subId !== undefined) && (subId === id)) {
                     const method = this.safeValue(subscription, 'method');
                     if (method !== undefined) {
-                        method.call(this, client, message);
+                        this.handleAuthenticate(client, message);
                         return;
                     }
                 }

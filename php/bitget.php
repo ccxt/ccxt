@@ -2293,7 +2293,7 @@ class bitget extends Exchange {
                 continue;
             }
             $parsedMarket = $this->parse_market($market);
-            if (($parsedMarket !== null) && $parsedMarket['spot']) {
+            if (($parsedMarket !== null) && $this->safe_bool($parsedMarket, 'spot', false)) {
                 $marketId = $parsedMarket['id'];
                 $instrument = $this->safe_dict($spotInstruments, $marketId);
                 if ($instrument !== null) {
@@ -2400,12 +2400,16 @@ class bitget extends Exchange {
             $priceEndStep = $this->safe_string($market, 'priceEndStep');
             $sizeMultiplier = $this->safe_string($market, 'sizeMultiplier');
             $precise = new Precise($priceEndStep);
-            $precise->decimals = max($precise->decimals, $pricePlaces);
+            if ($pricePlaces !== null) {
+                $precise->decimals = max($precise->decimals, $pricePlaces);
+            }
             $precise->reduce();
             $priceString = (string) $precise;
             $pricePrecision = $this->parse_number($priceString);
             $preciseAmount = new Precise($sizeMultiplier);
-            $preciseAmount->decimals = max($preciseAmount->decimals, $volumePlaces);
+            if ($volumePlaces !== null) {
+                $preciseAmount->decimals = max($preciseAmount->decimals, $volumePlaces);
+            }
             $preciseAmount->reduce();
             $amountString = (string) $preciseAmount;
             $amountPrecision = $this->parse_number($amountString);
@@ -6258,8 +6262,7 @@ class bitget extends Exchange {
             $this->load_markets();
         }
         $ordersRequests = array();
-        $firstOrder = $this->safe_dict($orders, 0);
-        $symbol = $this->safe_string($firstOrder, 'symbol');
+        $symbol = null;
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -6334,8 +6337,7 @@ class bitget extends Exchange {
             return $this->create_uta_orders($orders, $paramsUTA);
         }
         $ordersRequests = array();
-        $firstOrder = $this->safe_dict($orders, 0);
-        $symbol = $this->safe_string($firstOrder, 'symbol');
+        $symbol = null;
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -6839,7 +6841,7 @@ class bitget extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $productType = $this->handle_product_type_and_params($market, $params)[0];
+        list($productType) = $this->handle_product_type_and_params($market, $params);
         $requestList = array();
         for ($i = 0; $i < count($ids); $i++) {
             $individualId = $this->safe_string($ids, $i);
@@ -8387,12 +8389,13 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
         if (($marketType === 'swap') || ($marketType === 'future')) {
+            $data = $this->safe_dict($response, 'data', array());
             $bills = $this->safe_list($data, 'bills', array());
             return $this->parse_ledger($bills, $currency, $since, $limit);
         }
-        return $this->parse_ledger($data, $currency, $since, $limit);
+        $rows = $this->safe_list($response, 'data', array());
+        return $this->parse_ledger($rows, $currency, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -9483,7 +9486,7 @@ class bitget extends Exchange {
         $productType = null;
         $uta = null;
         $response = null;
-        $result = null;
+        $result = array();
         $paramsProductType = null;
         list($productType, $paramsProductType) = $this->handle_product_type_and_params($market, $params);
         list($uta, $paramsProductType) = $this->handle_uta_and_params($paramsProductType, 'fetchFundingRateHistory', false);

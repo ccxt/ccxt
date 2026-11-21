@@ -645,6 +645,7 @@ class blofin extends \ccxt\async\blofin {
         // the merged currencies by safeBalance
         $this->balance[$marketType] = $this->safe_dict($this->balance, $marketType, array());
         $parsed = $this->parse_ws_balance($message);
+        $marketBalance = $this->safe_dict($this->balance, $marketType, array());
         $reserved = array( 'free', 'used', 'total' );
         $keys = is_array($parsed) ? array_keys($parsed) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -652,8 +653,9 @@ class blofin extends \ccxt\async\blofin {
             if ($this->in_array($key, $reserved)) {
                 continue;
             }
-            $this->balance[$marketType][$key] = $parsed[$key];
+            $marketBalance[$key] = $parsed[$key];
         }
+        $this->balance[$marketType] = $marketBalance;
         $this->balance[$marketType] = $this->safe_balance($this->balance[$marketType]);
         $messageHash = $marketType . ':balance';
         $client->resolve($this->balance[$marketType], $messageHash);

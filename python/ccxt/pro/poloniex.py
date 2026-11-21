@@ -975,12 +975,14 @@ class poloniex(ccxt.async_support.poloniex):
                     if Precise.string_gt(totalAmount, '0'):
                         previousOrder['average'] = self.parse_number(Precise.string_div(totalCost, totalAmount))
                     previousOrder['cost'] = self.parse_number(totalCost)
-                    if previousOrder['filled'] is not None:
+                    previousOrderFilledRaw = self.safe_string(previousOrder, 'filled')
+                    if previousOrderFilledRaw is not None:
                         tradeAmount = self.number_to_string(trade['amount'])
                         previousOrderFilled = self.number_to_string(previousOrder['filled'])
                         previousOrderFilled = Precise.string_add(previousOrderFilled, tradeAmount)
                         previousOrder['filled'] = previousOrderFilled
-                        if previousOrder['amount'] is not None:
+                        previousOrderAmountRaw = self.safe_string(previousOrder, 'amount')
+                        if previousOrderAmountRaw is not None:
                             previousOrderAmount = self.number_to_string(previousOrder['amount'])
                             previousOrder['remaining'] = self.parse_number(Precise.string_sub(previousOrderAmount, previousOrderFilled))
                     if previousOrder['fee'] is None:
@@ -1186,8 +1188,8 @@ class poloniex(ccxt.async_support.poloniex):
             subscription = self.safe_dict(client.subscriptions, messageHash, {})
             limit = self.safe_integer(subscription, 'limit')
             timestamp = self.safe_integer(item, 'ts')
-            asks = self.safe_list(item, 'asks')
-            bids = self.safe_list(item, 'bids')
+            asks = self.safe_list(item, 'asks', [])
+            bids = self.safe_list(item, 'bids', [])
             if snapshot or update:
                 orderbook = self.safe_value(self.orderbooks, symbol)
                 if snapshot and (orderbook is None):

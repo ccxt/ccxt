@@ -1371,15 +1371,16 @@ class aster extends Exchange {
         if ($sinceDefined) {
             $request['startTime'] = $since;
         }
+        $paramsUntil = $params;
         if ($untilDefined) {
-            $request = $this->handle_until_option('endTime', $request, $params);
+            list($request, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         }
         // use historical endpoint for targeted requests
         if ($sinceDefined) {
             if ($this->safe_bool($market, 'swap', false)) {
-                $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $params)));
+                $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $paramsUntil)));
             } else {
-                $response = Async\await($this->sapiPublicGetV3AggTrades($this->extend($request, $params)));
+                $response = Async\await($this->sapiPublicGetV3AggTrades($this->extend($request, $paramsUntil)));
             }
             //
             // both FAPI and SAPI have same response format
@@ -1398,9 +1399,9 @@ class aster extends Exchange {
             //
         } else {
             if ($this->safe_bool($market, 'swap', false)) {
-                $response = Async\await($this->fapiPublicGetV3Trades($this->extend($request, $params)));
+                $response = Async\await($this->fapiPublicGetV3Trades($this->extend($request, $paramsUntil)));
             } else {
-                $response = Async\await($this->sapiPublicGetV3Trades($this->extend($request, $params)));
+                $response = Async\await($this->sapiPublicGetV3Trades($this->extend($request, $paramsUntil)));
             }
             //
             // SAPI & FAPI have only one field difference
@@ -3376,11 +3377,11 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()): PromiseInterface {
+    public function fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_margin_adjustment_history(...))($symbol, $type, $since, $limit, $params);
     }
 
-    private function do_fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?float $since = null, ?float $limit = null, $params = array()) {
+    private function do_fetch_margin_adjustment_history(?string $symbol = null, ?string $type = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
          *
@@ -4263,7 +4264,9 @@ class aster extends Exchange {
                     $maintenanceMarginPercentage = $this->safe_string($bracket, 'maintMarginRatio');
                     $result[] = array( $floorValue, $maintenanceMarginPercentage );
                 }
-                $this->options['leverageBrackets'][$symbol] = $result;
+                $leverageBracketsDict = $this->safe_dict($this->options, 'leverageBrackets', array());
+                $leverageBracketsDict[$symbol] = $result;
+                $this->options['leverageBrackets'] = $leverageBracketsDict;
             }
         }
         return $this->options['leverageBrackets'];
@@ -4477,8 +4480,8 @@ class aster extends Exchange {
     public function sign_hash(string $hash, string $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }

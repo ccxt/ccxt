@@ -436,7 +436,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         for i in range(0, tagsLength):
             queries.append(tags[i])
         rest = self.omit(params, ['eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit'])
-        rawMarkets: list[dict]
+        rawMarkets = []
         if eventId is not None:
             rawMarkets = await self.fetch_raw_markets_paged(self.extend({'sportXeventId': eventId}, rest), None)
             # the venue's sportXeventId filter on /markets/active is unreliable (observed live
@@ -498,6 +498,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
         """
+        rawMarkets = []
         rawMarkets = await self.fetch_raw_markets_paged(self.extend({'sportXeventId': id}, params), None)
         # enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = self.filter_raw_markets_by_fixture(rawMarkets, id)
@@ -651,8 +652,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         signature = self.ecdsa(digest[-64:], privateKey[-64:], 'secp256k1', None)
         # assign to bare locals before padStart — the php transpiler's str_pad regex only
         # matches a simple identifier, an expression form leaks a raw padStart() call
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         v = self.int_to_base16(self.sum(27, signature['v']))
@@ -1723,7 +1724,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         if outcomes is None:
             raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list')
-        outcomesList = outcomes
+        outcomesList = [] if (outcomes is None) else outcomes
         outcomesLength = len(outcomesList)
         hashesOrder = []
         seenHashes = {}

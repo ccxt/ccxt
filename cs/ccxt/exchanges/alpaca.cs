@@ -497,8 +497,8 @@ public partial class alpaca : Exchange
                     { "maker", this.parseNumber("0.0015") },
                     { "taker", this.parseNumber("0.0025") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0022")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.001")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.00")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.0025}, new List<object> {100000.0, 0.0022}, new List<object> {500000.0, 0.0020}, new List<object> {1000000.0, 0.0018}, new List<object> {10000000.0, 0.0015}, new List<object> {25000000.0, 0.0013}, new List<object> {50000000.0, 0.0012}, new List<object> {100000000.0, 0.001}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.0015}, new List<object> {100000.0, 0.0012}, new List<object> {500000.0, 0.001}, new List<object> {1000000.0, 0.0008}, new List<object> {10000000.0, 0.0005}, new List<object> {25000000.0, 0.0002}, new List<object> {50000000.0, 0.0002}, new List<object> {100000000.0, 0.00}} },
                     } },
                 } },
             } },
@@ -1408,7 +1408,13 @@ public partial class alpaca : Exchange
         string? defaultTIF = defaultTIFparamsTimeInForceVariable.Item1;
         IDictionary<string, object> paramsTimeInForce = (defaultTIFparamsTimeInForceVariable.Item2);
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
-        request["time_in_force"] = ((defaultTIF != null)) ? defaultTIF.ToLower() : defaultTIF;
+        if ((defaultTIF != null))
+        {
+            request["time_in_force"] = defaultTIF.ToLower();
+        } else
+        {
+            request["time_in_force"] = null;
+        }
         Dictionary<string, object> paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
         request["client_order_id"] = this.generateClientOrderId(paramsOmitted);
         Dictionary<string, object> order = await this.traderPrivatePostV2Orders(this.extend(request, this.omit(paramsOmitted, new List<object>() {"clientOrderId"})));
@@ -2136,7 +2142,7 @@ public partial class alpaca : Exchange
             }
             for (int i = 0; i < (ledger?.Count ?? 0); i++)
             {
-                object entry = ledger[i];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)ledger[i]);
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
                 bool isIncoming = (activityType == "CSD") || ((activityType == "TRANS") && !Precise.stringLt(amount, "0"));
@@ -2178,7 +2184,7 @@ public partial class alpaca : Exchange
         }
         for (int i = 0; i < (transfers?.Count ?? 0); i++)
         {
-            object entry = transfers[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)transfers[i]);
             string? direction = this.safeString(entry, "direction");
             if ((direction == type))
             {
@@ -2206,7 +2212,7 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -2224,7 +2230,7 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -2242,7 +2248,7 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
@@ -2594,11 +2600,11 @@ public partial class alpaca : Exchange
         string feedback = ((this.id + " ") + (body));
         string? errorCode = this.safeString(response, "code");
         // code is an int: it is never undefined, the guard was dead
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         string? message = this.safeString(response, "message");
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             string codeAsString = ((object)code).ToString();
             Int64? statusCode = this.parseToInt(code);

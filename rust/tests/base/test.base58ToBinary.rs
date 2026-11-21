@@ -17,32 +17,32 @@ pub fn testBase58ToBinary() {
     // todo: can be implemented stringToBinary in future
     // @SKIP_START_GO
     // Test 1: Simple base58
-    let mut b58_1: Value = Value::Str("Cn8eVZg".into()); // hello
-    let mut binary1: ccxt::value::Bytes = exchange.base58_to_binary(b58_1.clone(), &[]);
+    let b58_1: Value = Value::Str("Cn8eVZg".into()); // hello
+    let binary1: ccxt::value::Bytes = exchange.base58_to_binary(b58_1.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(&binary1, &[])).as_str() == b58_1.as_str()))));
     // Test 2: String with space in original
-    let mut b58_2: Value = Value::Str("StV1DL6CwTryKyV".into()); // hello world
-    let mut binary2: ccxt::value::Bytes = exchange.base58_to_binary(b58_2.clone(), &[]);
+    let b58_2: Value = Value::Str("StV1DL6CwTryKyV".into()); // hello world
+    let binary2: ccxt::value::Bytes = exchange.base58_to_binary(b58_2.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(&binary2, &[])).as_str() == b58_2.as_str()))));
     // Test 3: Short string
-    let mut b58_3: Value = Value::Str("3yZe7d".into()); // test
-    let mut binary3: ccxt::value::Bytes = exchange.base58_to_binary(b58_3.clone(), &[]);
+    let b58_3: Value = Value::Str("3yZe7d".into()); // test
+    let binary3: ccxt::value::Bytes = exchange.base58_to_binary(b58_3.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(&binary3, &[])).as_str() == b58_3.as_str()))));
     // Test 4: Single byte
-    let mut b58_4: Value = Value::Str("2g".into()); // a
-    let mut binary4: ccxt::value::Bytes = exchange.base58_to_binary(b58_4.clone(), &[]);
+    let b58_4: Value = Value::Str("2g".into()); // a
+    let binary4: ccxt::value::Bytes = exchange.base58_to_binary(b58_4.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(&binary4, &[])).as_str() == b58_4.as_str()))));
     // Test 5: Two bytes
-    let mut b58_5: Value = Value::Str("8Qq".into()); // ab
-    let mut binary5: ccxt::value::Bytes = exchange.base58_to_binary(b58_5.clone(), &[]);
+    let b58_5: Value = Value::Str("8Qq".into()); // ab
+    let binary5: ccxt::value::Bytes = exchange.base58_to_binary(b58_5.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(&binary5, &[])).as_str() == b58_5.as_str()))));
     // Test 6: Three bytes
-    let mut b58_6: Value = Value::Str("ZiCa".into()); // abc
-    let mut binary6: ccxt::value::Bytes = exchange.base58_to_binary(b58_6.clone(), &[]);
+    let b58_6: Value = Value::Str("ZiCa".into()); // abc
+    let binary6: ccxt::value::Bytes = exchange.base58_to_binary(b58_6.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(&binary6, &[])).as_str() == b58_6.as_str()))));
     // Test 7: JSON-like binary
-    let mut b58_7: Value = Value::Str("4SoiMiEYtTt5tPdi81Fik".into()); // {"key":"value"}
-    let mut binary7: ccxt::value::Bytes = exchange.base58_to_binary(b58_7.clone(), &[]);
+    let b58_7: Value = Value::Str("4SoiMiEYtTt5tPdi81Fik".into()); // {"key":"value"}
+    let binary7: ccxt::value::Bytes = exchange.base58_to_binary(b58_7.clone(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(&binary7, &[])).as_str() == b58_7.as_str()))));
     // @SKIP_END_GO
     assert!(ccxt::runtime::is_true(&((exchange.parse_number(Value::Null, &[]) == Value::Null))));

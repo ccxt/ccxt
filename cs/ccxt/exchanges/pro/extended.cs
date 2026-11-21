@@ -165,7 +165,7 @@ public partial class extended : ccxt.extended
                 } },
             };
             this.extendExchangeOptions(defaultOptions);
-            object originalOptions = getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options");
+            IDictionary<string, object> originalOptions = this.safeDict((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options");
             IDictionary<string, object> originalHeaders = this.safeDict(originalOptions, "headers", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null))["options"] = this.extend(this.extend(new Dictionary<string, object>() {}, originalOptions), new Dictionary<string, object>() {
                 { "headers", this.extend(this.extend(new Dictionary<string, object>() {
@@ -432,7 +432,7 @@ public partial class extended : ccxt.extended
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string messageHash = "positions";
         if ((symbolsNormalized != null))
         {
@@ -806,7 +806,7 @@ public partial class extended : ccxt.extended
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");
-        if (((previousNonce != null)) && ((nonce != null)) && ((nonce == null || nonce <= previousNonce)))
+        if (((previousNonce != null)) && ((nonce != null)) && (nonce.Value <= previousNonce.Value))
         {
             return;
         }
@@ -906,15 +906,12 @@ public partial class extended : ccxt.extended
             return;
         }
         string? symbol = this.safeString(subscription, "symbol");
-        string timeframe = this.safeString(subscription, "timeframe", "");
+        string? timeframe = this.safeString(subscription, "timeframe", "");
         string? candleType = this.safeString(subscription, "candleType", "");
-        string? cacheKey = null;
-        if (candleType == "trades")
+        string? cacheKey = timeframe;
+        if (candleType != "trades")
         {
-            cacheKey = timeframe;
-        } else
-        {
-            cacheKey = ((timeframe + ":") + candleType);
+            cacheKey = (cacheKey == null ? null : cacheKey + ":" + candleType);
         }
         string? messageHash = this.safeString(subscription, "messageHash");
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -924,11 +921,11 @@ public partial class extended : ccxt.extended
             Int64? defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)cacheKey] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)cacheKey] = stored;
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");
-        if (((previousNonce != null)) && ((nonce != null)) && ((nonce == null || nonce <= previousNonce)))
+        if (((previousNonce != null)) && ((nonce != null)) && (nonce.Value <= previousNonce.Value))
         {
             return;
         }
@@ -970,7 +967,7 @@ public partial class extended : ccxt.extended
         }
         string feedback = ((this.id + " ") + this.json(message));
         string? errorCode = this.safeString(error, "code");
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         string? errorMessage = this.safeString(error, "message");
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         throw new ExchangeError (feedback) ;

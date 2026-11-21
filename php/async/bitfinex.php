@@ -550,8 +550,9 @@ class bitfinex extends Exchange {
 
     public function get_currency_name(string $code): string {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (is_array($this->options['currencyNames']) && array_key_exists($code ?? '', $this->options['currencyNames'])) {
-            return $this->options['currencyNames'][$code];
+        $name = $this->safe_string($this->options['currencyNames'], $code);
+        if ($name !== null) {
+            return $name;
         }
         throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
     }
@@ -1212,10 +1213,10 @@ class bitfinex extends Exchange {
         $fullRequest = $this->extend($request, $params);
         $orderbook = Async\await($this->publicGetBookSymbolPrecision($fullRequest));
         $timestamp = $this->milliseconds();
+        $bids = array();
+        $asks = array();
         $result = array(
             'symbol' => $market['symbol'],
-            'bids' => array(),
-            'asks' => array(),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
@@ -1227,18 +1228,18 @@ class bitfinex extends Exchange {
             $price = $this->safe_number($order, $priceIndex);
             $signedAmount = $this->safe_string($order, 2);
             $amount = Precise::string_abs($signedAmount);
-            $side = 'asks';
             if (Precise::string_gt($signedAmount, '0')) {
-                $side = 'bids';
+                $bids[] = array( $price, $this->parse_number($amount) );
+            } else {
+                $asks[] = array( $price, $this->parse_number($amount) );
             }
-            $result[$side][] = array( $price, $this->parse_number($amount) );
         }
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
+        $result['bids'] = $this->sort_by($bids, 0, true);
+        $result['asks'] = $this->sort_by($asks, 0);
         return $result;
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ticker_list(array $ticker, ?array $market = null): array {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1420,7 +1421,11 @@ class bitfinex extends Exchange {
         //         ...
         //     ]
         //
-        return $this->parse_tickers($tickers, $symbolsNormalized);
+        $results = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $results[] = $this->parse_ticker_list($this->safe_list($tickers, $i, array()));
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1445,7 +1450,7 @@ class bitfinex extends Exchange {
             'symbol' => $market['id'],
         );
         $ticker = Async\await($this->publicGetTickerSymbol($this->extend($request, $params)));
-        return $this->parse_ticker($ticker, $market);
+        return $this->parse_ticker_list($ticker, $market);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -2597,7 +2602,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction(array $transaction, ?array $currency = null): array {
+    public function parse_transaction_row(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -2923,7 +2928,12 @@ class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $result[] = $this->parse_transaction_row($this->safe_list($response, $i, array()), $currency);
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $this->safe_string($currency, 'code'), $since, $limit);
     }
 
     public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
@@ -3019,7 +3029,7 @@ class bitfinex extends Exchange {
         if ($text !== 'success') {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $text, $text);
         }
-        return $this->parse_transaction($response, $currency);
+        return $this->parse_transaction_row($response, $currency);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {

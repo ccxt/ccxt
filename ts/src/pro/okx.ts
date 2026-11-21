@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, NullableDict, List, Liquidation, Bool, Market, int } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, List, Liquidation, Bool, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -417,10 +417,10 @@ export default class okx extends okxRest {
         const url = this.getUrl (channel, 'public');
         const fundingRate: FundingRate = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            const symbol = this.safeString (fundingRate, 'symbol');
+            const fundingSymbol = this.safeString (fundingRate, 'symbol');
             const result: Dict = {};
-            if (symbol !== undefined) {
-                result[symbol] = fundingRate;
+            if (fundingSymbol !== undefined) {
+                result[fundingSymbol] = fundingRate;
             }
             return result;
         }
@@ -447,7 +447,7 @@ export default class okx extends okxRest {
         //     }
         // ]
         //
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawfr = this.safeDict (data, i);
             const fundingRate = this.parseFundingRate (rawfr);
@@ -915,7 +915,7 @@ export default class okx extends okxRest {
         //        ]
         //    }
         //
-        const rawLiquidations: Dict[] = this.safeList (message, 'data', []) as List;
+        const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
@@ -1016,7 +1016,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const rawLiquidations: Dict[] = this.safeList (message, 'data', []) as List;
+        const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const eventType = this.safeString (rawLiquidation, 'eventType');
@@ -1413,10 +1413,9 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
-        let depth: Str = undefined;
-        let paramsDepth: NullableDict = undefined;
-        [ depth, paramsDepth ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'depth', 'books');
-        const limit = this.safeInteger (paramsDepth, 'limit');
+        const limit = this.safeInteger (params, 'limit');
+        const depthOption = this.handleOptionStringAndParams (params, 'watchOrderBook', 'depth', 'books')[0];
+        let depth: Str = depthOption;
         if (limit !== undefined) {
             if (limit === 1) {
                 depth = 'bbo-tbt';
@@ -1921,7 +1920,7 @@ export default class okx extends okxRest {
         if (isTrigger) {
             channel = 'orders-algo';
         }
-        let messageHash = channel + '::myTrades';
+        let messageHash: string = channel + '::myTrades';
         let market: Market = undefined;
         let symbolResolved: Str = undefined;
         let type: Str = typeOption;
@@ -2679,7 +2678,7 @@ export default class okx extends okxRest {
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 } else {
-                    const data = this.safeList (message, 'data', []) as List;
+                    const data = this.safeList (message, 'data', []);
                     for (let i = 0; i < data.length; i++) {
                         const d = this.safeDict (data, i);
                         errorCode = this.safeString (d, 'sCode');

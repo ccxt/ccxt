@@ -10,12 +10,12 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchBalance(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("watchBalance".into());
+    let method: Value = Value::Str("watchBalance".into());
     let mut now: i64 = exchange.milliseconds();
-    let mut ends: i64 = (now + 15000);
+    let ends: i64 = (now + 15000);
     while now < ends {
         let mut response: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
+            let m = indexmap::IndexMap::new();
             m
         });
         let mut success: bool = true;

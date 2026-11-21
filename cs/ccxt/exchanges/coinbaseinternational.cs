@@ -515,8 +515,8 @@ public partial class coinbaseinternational : Exchange
                     { "tierBased", true },
                     { "percentage", true },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0.0025")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {0.0, 0.004}, new List<object> {1000000.0, 0.004}, new List<object> {5000000.0, 0.0035}, new List<object> {10000000.0, 0.0035}, new List<object> {50000000.0, 0.003}, new List<object> {250000000.0, 0.0025}} },
+                        { "maker", new List<object>() {new List<object> {0.0, 0.002}, new List<object> {1000000.0, 0.0016}, new List<object> {5000000.0, 0.001}, new List<object> {10000000.0, 0.0008}, new List<object> {50000000.0, 0.0005}, new List<object> {250000000.0, 0.0}} },
                     } },
                 } },
             } },
@@ -1005,7 +1005,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int i = 0; i < rawNetworks.Count; i++)
         {
-            object rawNetwork = rawNetworks[i];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[i]);
             string? networkId = this.safeString(rawNetwork, "resource_name");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))
@@ -1118,7 +1118,7 @@ public partial class coinbaseinternational : Exchange
             request["end_timestamp"] = now;
         } else
         {
-            object sinceResolved = mathMax((since - 1), 0);
+            object sinceResolved = Math.Max((since.Value - 1), 0);
             request["start_timestamp"] = sinceResolved;
             if ((limitResolved == null))
             {
@@ -1325,7 +1325,7 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsResolved = this.marketSymbols(symbols);
         if ((symbolsResolved == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchTickers() requires a symbols argument")) ;
@@ -1501,7 +1501,7 @@ public partial class coinbaseinternational : Exchange
                 }
                 for (int i = 0; i < (depths?.Count ?? 0); i++)
                 {
-                    if (isLessThanOrEqual(limit, this.parseToInt((depths != null && i < depths.Count ? depths[i] : null))))
+                    if ((limit <= this.parseToInt((depths != null && i < depths.Count ? depths[i] : null))))
                     {
                         request["depth"] = this.safeInteger(depths, i, 0);
                         break;
@@ -2237,7 +2237,7 @@ public partial class coinbaseinternational : Exchange
         {
             return ccxt.BaseExchange.ToPositionList(this.parsePositions(result));
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbolsNormalized));
     }
 
@@ -2339,7 +2339,7 @@ public partial class coinbaseinternational : Exchange
         List<object> transactions = new List<object>() {};
         for (int i = 0; i < logs.Count; i++)
         {
-            object transaction = logs[i];
+            IDictionary<string, object> transaction = ((IDictionary<string, object>)logs[i]);
             string? transactionType = this.safeString(transaction, "type");
             if ((transactionType == "deposit") || (transactionType == "withdrawal"))
             {
@@ -2484,14 +2484,14 @@ public partial class coinbaseinternational : Exchange
      * @param {float} amount unified order quantity
      * @returns {string} precision-formatted exchange order amount
      */
-    public virtual string? getOrderAmount(object market, object amount)
+    public virtual string? getOrderAmount(IDictionary<string, object> market, object amount)
     {
         string? exchangeAmount = this.numberToString(amount);
         if (this.isNativeDeribitCredentials() && (this.safeBool(market, "contract", false) == true))
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
-        return this.amountToPrecision(getValue(market, "symbol"), exchangeAmount);
+        return this.amountToPrecision((market != null && market.ContainsKey("symbol") ? market["symbol"] : null), exchangeAmount);
     }
 
     /**
@@ -3610,17 +3610,20 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
      * @returns {string} signed JWT
      */
-    public virtual string createAuthToken(object seconds, object method = null, string? url = null, bool? useEddsa = null)
+    public virtual string createAuthToken(object seconds, string? method = null, string? url = null, bool? useEddsa = null)
     {
         useEddsa ??= false;
-        object uri = null;
+        string? uri = null;
         if (((url != null)) && ((method != null)))
         {
-            uri = add(add(method, " "), url.Replace("https://", (string)""));
-            int quesPos = getIndexOf(uri, "?");
+            string fullUri = ((method + " ") + url.Replace("https://", (string)""));
+            int quesPos = fullUri.IndexOf("?", StringComparison.Ordinal);
             if (quesPos > 0)
             {
-                uri = ((uri == null) ? null : ((string)uri).Substring(0, Math.Max(Math.Min((quesPos < 0 ? ((string)uri).Length + (quesPos) : quesPos), ((string)uri).Length), 0)));
+                uri = ((fullUri == null) ? null : fullUri.Substring(0, Math.Max(Math.Min((quesPos < 0 ? fullUri.Length + (quesPos) : quesPos), fullUri.Length), 0)));
+            } else
+            {
+                uri = fullUri;
             }
         }
         string nonce = this.randomBytes(16);
@@ -3662,7 +3665,7 @@ public partial class coinbaseinternational : Exchange
                 { "alg", "EdDSA" },
             });
         }
-        return jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+        return jwt(request, this.secret, sha256, false, new Dictionary<string, object>() {
             { "kid", this.apiKey },
             { "nonce", nonce },
             { "alg", "ES256" },
@@ -3694,7 +3697,7 @@ public partial class coinbaseinternational : Exchange
         Int64 now = this.milliseconds();
         string? token = this.getV2AccessToken();
         Int64? tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
-        if (forceRefresh != true && ((token != null)) && (token != "") && ((tokenExpires != null)) && ((now < tokenExpires)))
+        if (forceRefresh != true && ((token != null)) && (token != "") && ((tokenExpires != null)) && (now < tokenExpires))
         {
             return token;
         }
@@ -3790,7 +3793,7 @@ public partial class coinbaseinternational : Exchange
             }
             string requestData = ((((method + "\n") + signedRequest) + "\n") + "\n"); // eslint-disable-line quotes
             string auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "Authorization", ((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",nonce=") + nonce) },
@@ -3962,7 +3965,7 @@ public partial class coinbaseinternational : Exchange
         string? errorCode = this.safeString(error, "code");
         string? errorMessage = this.safeString(error, "message");
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+        this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         throw new ExchangeError (feedback) ;
     }

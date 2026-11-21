@@ -165,7 +165,7 @@ public partial class bit2me : ccxt.bit2me
         {
             finalLimit = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, finalLimit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, finalLimit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -285,20 +285,21 @@ public partial class bit2me : ccxt.bit2me
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         string messageHash = "orders";
-        object unifiedSymbol = null;
+        string? unifiedSymbol = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            unifiedSymbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = ((messageHash + ":") + (unifiedSymbol));
+            string? marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ("orders:" + marketSymbol);
+            unifiedSymbol = marketSymbol;
         }
-        object orders = await this.subscribePrivate("my-orders", messageHash, parameters);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.subscribePrivate("my-orders", messageHash, parameters));
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, unifiedSymbol, limit));
+            finalLimit = ((Int64?)orders.getLimit(unifiedSymbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), unifiedSymbol, since, finalLimit, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, unifiedSymbol, since, finalLimit, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -338,7 +339,7 @@ public partial class bit2me : ccxt.bit2me
         ccxt.pro.ArrayCache orders = this.orders;
         orders.append(ccxt.BaseExchange.FromOrder(order));
         client.resolve(orders, "orders");
-        client.resolve(orders, ("orders:" + ((((object)order.symbol)))));
+        client.resolve(orders, ("orders:" + this.safeString(ccxt.BaseExchange.FromOrder(order), "symbol", "")));
     }
 
     public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
@@ -422,20 +423,21 @@ public partial class bit2me : ccxt.bit2me
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         string messageHash = "myTrades";
-        object unifiedSymbol = null;
+        string? unifiedSymbol = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            unifiedSymbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = ((messageHash + ":") + (unifiedSymbol));
+            string? marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ("myTrades:" + marketSymbol);
+            unifiedSymbol = marketSymbol;
         }
-        object trades = await this.subscribePrivate("my-trades", messageHash, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribePrivate("my-trades", messageHash, parameters));
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, unifiedSymbol, limit));
+            finalLimit = ((Int64?)trades.getLimit(unifiedSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), unifiedSymbol, since, finalLimit, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, unifiedSymbol, since, finalLimit, true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -470,7 +472,7 @@ public partial class bit2me : ccxt.bit2me
         ccxt.pro.ArrayCache myTrades = this.myTrades;
         myTrades.append(ccxt.BaseExchange.FromTrade(trade));
         client.resolve(myTrades, "myTrades");
-        client.resolve(myTrades, ("myTrades:" + ((((object)trade.symbol)))));
+        client.resolve(myTrades, ("myTrades:" + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", "")));
     }
 
     /**
@@ -560,11 +562,11 @@ public partial class bit2me : ccxt.bit2me
      * @param {object} result the value to resolve with
      * @param {object} [error] when set the command is rejected with it instead
      */
-    public virtual void settleRequest(WebSocketClient client, object messageHash, object result, object error = null)
+    public virtual void settleRequest(WebSocketClient client, string messageHash, object result, object error = null)
     {
-        if ((client.subscriptions != null && messageHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))
         {
-            ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
         }
         if ((error != null))
         {
@@ -661,7 +663,7 @@ public partial class bit2me : ccxt.bit2me
             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "status", this.parseOrderStatus(this.safeString(data, "status")) },
         }, market);
-        this.settleRequest(client, ("canceled-order:" + orderId), ccxt.BaseExchange.FromOrder(order));
+        this.settleRequest(client, ("canceled-order:" + this.safeString(data, "orderId", "")), ccxt.BaseExchange.FromOrder(order));
     }
 
     /**
@@ -758,7 +760,7 @@ public partial class bit2me : ccxt.bit2me
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
-        string messageHash = ("canceled-all-orders:" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string messageHash = ("canceled-all-orders:" + this.safeString(market, "id", ""));
         return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
@@ -783,12 +785,12 @@ public partial class bit2me : ccxt.bit2me
         {
             orders.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", message },
-                { "id", ids[i] },
-                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
+                { "id", this.safeString(ids, i) },
+                { "symbol", this.safeString(market, "symbol") },
                 { "status", "canceled" },
             }, market)));
         }
-        this.settleRequest(client, ("canceled-all-orders:" + marketId), orders);
+        this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), orders);
     }
 
     /**
@@ -871,7 +873,7 @@ public partial class bit2me : ccxt.bit2me
         object exception = null;
         try
         {
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             exception = new ExchangeError(feedback);
         } catch(Exception e)
@@ -895,13 +897,13 @@ public partial class bit2me : ccxt.bit2me
             }
         } else if (eventVar == "canceled-order")
         {
-            this.settleRequest(client, ("canceled-order:" + this.safeString(message, "orderId")), null, exception);
+            this.settleRequest(client, ("canceled-order:" + this.safeString(message, "orderId", "")), null, exception);
         } else if (eventVar == "canceled-orders")
         {
             this.settleRequest(client, "canceled-orders", null, exception);
         } else if (eventVar == "canceled-all-orders")
         {
-            this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol")), null, exception);
+            this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), null, exception);
         } else if (eventVar == "subscribe")
         {
             // a refused subscription names the channel and the symbol it was asked for

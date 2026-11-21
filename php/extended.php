@@ -3130,8 +3130,6 @@ class extended extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = null;
-        $order = null;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         if ($clientOrderId !== null) {
@@ -3140,7 +3138,7 @@ class extended extends Exchange {
             );
             $response = $this->v1PrivateGetUserOrdersExternalExternalId($this->extend($request, $paramsOmitted));
             $data = $this->safe_list($response, 'data', array());
-            $order = $this->safe_dict($data, 0, array());
+            return $this->parse_order($this->safe_dict($data, 0, array()), $market);
         } else {
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument');
@@ -3150,8 +3148,8 @@ class extended extends Exchange {
             );
             $response = $this->v1PrivateGetUserOrdersId($this->extend($request, $paramsOmitted));
             $order = $this->safe_dict($response, 'data', array());
+            return $this->parse_order($order, $market);
         }
-        return $this->parse_order($order, $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

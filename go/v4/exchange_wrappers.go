@@ -138,7 +138,7 @@ func (this *BaseExchange) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchOHLCVForSymbolsAsync(ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return map[string]map[string][]OHLCV{}, r.Err
 	}
@@ -152,7 +152,7 @@ func (this *BaseExchange) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	r := <-this.UnWatchOHLCVForSymbolsAsync(ConvertStringMatrixToArray(symbolsAndTimeframes), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1129,7 +1129,7 @@ func (this *BaseExchange) CreateSpotOrders(orders []OrderRequest, options ...Cre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateSpotOrdersAsync(orders, opts.Params)
+	r := <-this.CreateSpotOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1143,7 +1143,7 @@ func (this *BaseExchange) CreateContractOrders(orders []OrderRequest, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateContractOrdersAsync(orders, opts.Params)
+	r := <-this.CreateContractOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1227,7 +1227,7 @@ func (this *BaseExchange) CancelOrdersForSymbols(orders []CancellationRequest, o
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CancelOrdersForSymbolsAsync(orders, opts.Params)
+	r := <-this.CancelOrdersForSymbolsAsync(ConvertCancellationRequestListToArray(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1780,7 +1780,7 @@ func (this *Exchange) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.EditOrdersAsync(orders, opts.Params)
+	r := <-this.EditOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1906,7 +1906,7 @@ func (this *Exchange) WatchTradesForSymbols(symbols []string, options ...WatchTr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -2018,7 +2018,7 @@ func (this *Exchange) WatchOrderBookForSymbols(symbols []string, options ...Watc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	r := <-this.WatchOrderBookForSymbolsAsync(StringSliceToList(symbols), opts.Limit, opts.Params)
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
@@ -2214,7 +2214,7 @@ func (this *Exchange) CreateOrdersWs(orders []OrderRequest, options ...CreateOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersWsAsync(orders, opts.Params)
+	r := <-this.CreateOrdersWsAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -2848,7 +2848,10 @@ func (this *Exchange) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 	if r.Err != nil {
 		return "", r.Err
 	}
-	var res string = ToString(r.Value)
+	var res string = "<nil>"
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 func (this *Exchange) FetchUnifiedOrder(order Order, options ...FetchUnifiedOrderOptions) (Order, error) {
@@ -3012,7 +3015,7 @@ func (this *Exchange) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

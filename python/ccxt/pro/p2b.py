@@ -276,7 +276,7 @@ class p2b(ccxt.async_support.p2b):
         timeframe = self.find_timeframe(channel, timeframes)
         symbol = self.safe_string(market, 'symbol')
         parsed = self.parse_ohlcv(data, market)
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if symbol is not None:
             if stored is None:

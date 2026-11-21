@@ -3266,9 +3266,10 @@ class deepcoin extends Exchange {
             );
             $requestBody = null;
             if ($method !== 'GET') {
-                $requestBody = $this->json($params);
+                $body = $this->json($params);
                 $privateHeaders['Content-Type'] = 'application/json';
-                $payload .= $requestBody;
+                $payload .= $body;
+                $requestBody = $body;
             }
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $privateHeaders['DC-ACCESS-SIGN'] = $signature;
@@ -3287,12 +3288,10 @@ class deepcoin extends Exchange {
         if (($msg !== null) && ($msg === '') && ($sMsg !== null)) {
             $msg = $sMsg;
         }
-        $errorList = $this->safe_list($data, 'errorList');
-        if ($errorList !== null) {
-            for ($i = 0; $i < count($errorList); $i++) {
-                $entry = $this->safe_dict($errorList, $i, array());
-                $errorCode = $this->safe_string($entry, 'errorCode');
-            }
+        $errorList = $this->safe_list($data, 'errorList', array());
+        for ($i = 0; $i < count($errorList); $i++) {
+            $entry = $this->safe_dict($errorList, $i, array());
+            $errorCode = $this->safe_string($entry, 'errorCode');
         }
         $feedback = $this->id . ' ' . $body;
         if (($sCode === null) && ($errorCode !== null)) {

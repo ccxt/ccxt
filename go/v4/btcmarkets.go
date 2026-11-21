@@ -391,10 +391,10 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan AsyncResult[[]Tr
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 	if since != nil {
-		request["after"] = since
+		request["after"] = *since
 	}
 	var currency map[string]any = nil
 	if code != nil {
@@ -619,7 +619,8 @@ func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) T
 	var lastUpdate *int64 = this.Parse8601(this.SafeString(transaction, "lastUpdate"))
 	var typeVar *string = this.ParseTransactionType(this.SafeStringLower(transaction, "type"))
 	if typeVar != nil && *typeVar == "withdraw" {
-		typeVar = SafeStringPtr("withdrawal")
+		typeVarStr := "withdrawal"
+		typeVar = &typeVarStr
 	}
 	var cryptoPaymentDetail map[string]any = SafeMapTyped(transaction, "paymentDetail")
 	var txid *string = this.SafeString(cryptoPaymentDetail, "txId")
@@ -819,12 +820,12 @@ func (this *Btcmarkets) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs 
 	ch <- AsyncResult[*int64]{Value: this.Parse8601(this.SafeString(response, "timestamp"))}
 	return nil
 }
-func (this *Btcmarkets) ParseBalanceList(response any) map[string]any {
+func (this *Btcmarkets) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+	for i := 0; i < len(response); i++ {
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "assetName")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -981,9 +982,12 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"marketId": market["id"],
+		"marketId": nil,
+	}
+	if market.Id != nil {
+		request["marketId"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetMarketsMarketIdOrderbook(this.Extend(request, params))
@@ -1192,9 +1196,11 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "Bid" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "Ask" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var id *string = this.SafeString(trade, "id")
 	var priceString *string = this.SafeString(trade, "price")
@@ -1237,12 +1243,12 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Btcmarkets) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Btcmarkets) FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btcmarkets) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
+func (this *Btcmarkets) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1314,15 +1320,14 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var ternaryStr97420 string = "Ask"
+	if side == "buy" {
+		ternaryStr97420 = "Bid"
+	}
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
 		"amount":   this.AmountToPrecision(symbol, amount),
-		"side": func() string {
-			if side == "buy" {
-				return "Bid"
-			}
-			return "Ask"
-		}(),
+		"side":     ternaryStr97420,
 	}
 	var lowercaseType string = strings.ToLower(typeVar)
 	var orderTypes map[string]any = this.SafeDictMap(this.Options, "orderTypes", map[string]any{
@@ -1460,8 +1465,16 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []str
 	//        ]
 	//    }
 	//
-	var cancelOrders []any = SafeListTypedDefault(response, "cancelOrders", []any{})
-	var unprocessedRequests []any = SafeListTypedDefault(response, "unprocessedRequests", []any{})
+	var cancelOrders []any
+	cancelOrders, _ = response["cancelOrders"].([]any)
+	if cancelOrders == nil {
+		cancelOrders = []any{}
+	}
+	var unprocessedRequests []any
+	unprocessedRequests, _ = response["unprocessedRequests"].([]any)
+	if unprocessedRequests == nil {
+		unprocessedRequests = []any{}
+	}
 	var orders []any = this.ArrayConcat(cancelOrders, unprocessedRequests)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders))}
@@ -1554,12 +1567,16 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	if feeCost == nil {
 		feeCost = "0"
 	}
-	return map[string]any{
+	var literal115715 map[string]any = map[string]any{
 		"type":     takerOrMaker,
-		"currency": currency,
+		"currency": nil,
 		"rate":     rate,
 		"cost":     this.ParseNumber(feeCost),
 	}
+	if currency != nil {
+		literal115715["currency"] = *currency
+	}
+	return literal115715
 }
 func (this *Btcmarkets) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -1602,9 +1619,11 @@ func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
 	var side *string = this.SafeString(order, "side")
 	if side != nil && *side == "Bid" {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if side != nil && *side == "Ask" {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var typeVar *string = this.SafeStringLower(order, "type")
 	var price *string = this.SafeString(order, "price")
@@ -1726,10 +1745,10 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["marketId"] = market["id"]
 	}
 	if since != nil {
-		request["after"] = since
+		request["after"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetOrders(this.Extend(request, params))
@@ -1865,10 +1884,10 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 		request["marketId"] = market["id"]
 	}
 	if since != nil {
-		request["after"] = since
+		request["after"] = *since
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = *limit
 	}
 
 	responseRecv := <-this.PrivateGetTrades(this.Extend(request, params))
@@ -1920,12 +1939,12 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Btcmarkets) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Btcmarkets) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Btcmarkets) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Btcmarkets) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1949,7 +1968,7 @@ func (this *Btcmarkets) withdrawBody(ch chan AsyncResult[Transaction], code stri
 		request["toAddress"] = address
 	}
 	if tagWithdrawTag != nil {
-		request["toAddress"] = Add(Add(address, "?dt="), tagWithdrawTag)
+		request["toAddress"] = address + "?dt=" + *tagWithdrawTag
 	}
 
 	r1 := <-this.PrivatePostWithdrawals(this.Extend(request, paramsWithdrawTag))
@@ -1988,7 +2007,7 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var request string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
@@ -2003,7 +2022,8 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		} else {
 			var jsonBody string = this.Json(query)
-			requestBody = SafeStringPtr(jsonBody)
+			requestBodyStr := jsonBody
+			requestBody = &requestBodyStr
 			auth = method + request + nonce + jsonBody
 		}
 		var signature string = this.Hmac(this.Encode(auth), secret, sha512, "base64")
@@ -2025,7 +2045,7 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + request
-	var headersResult any = requestHeaders
+	var headersResult map[string]any = requestHeaders
 	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,

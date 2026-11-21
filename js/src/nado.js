@@ -556,14 +556,15 @@ export default class nado extends Exchange {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const triggerDirection = this.safeString(this.handleTriggerDirectionAndParams(paramsRecvWindow), 0);
+            const [triggerDirection] = this.handleTriggerDirectionAndParams(paramsRecvWindow);
             let directionSuffix = 'below';
             if (triggerDirection === 'ascending') {
                 directionSuffix = 'above';
             }
             const triggerPriceX18 = this.convertToX18(triggerPrice);
             const priceRequirement = {};
-            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18;
+            const oracleKey = 'oracle_price_' + directionSuffix;
+            priceRequirement[oracleKey] = triggerPriceX18;
             const trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -587,7 +588,8 @@ export default class nado extends Exchange {
             }
             const triggerPriceX18 = this.convertToX18(triggerPrice);
             const priceRequirement = {};
-            priceRequirement['oracle_price_' + oracleSide] = triggerPriceX18;
+            const oracleKey = 'oracle_price_' + oracleSide;
+            priceRequirement[oracleKey] = triggerPriceX18;
             const trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -2889,7 +2891,9 @@ export default class nado extends Exchange {
             }
             filled = this.parseX18(Precise.stringAbs(archiveFilled));
             const costString = this.safeString(order, 'quote_filled');
-            cost = (costString === undefined) ? undefined : this.parseX18(Precise.stringAbs(costString));
+            if (costString !== undefined) {
+                cost = this.parseX18(Precise.stringAbs(costString));
+            }
             if ((filled !== undefined) && (cost !== undefined)) {
                 average = Precise.stringDiv(this.numberToString(cost), this.numberToString(filled));
             }
@@ -3101,7 +3105,8 @@ export default class nado extends Exchange {
             return paddedLeft.slice(start, paddedLeft.length);
         }
         const paddedRight = value + zeros;
-        return paddedRight.slice(0, length);
+        const end = this.parseToInt(length);
+        return paddedRight.slice(0, end);
     }
     signOrder(order, productId, chainId) {
         const domain = {
@@ -3196,11 +3201,14 @@ export default class nado extends Exchange {
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
-        if (('byType' in config) && ('type' in params)) {
-            const queryType = params['type'];
+        if ('byType' in config) {
             const byType = config['byType'];
-            if (queryType in byType) {
-                return byType[queryType];
+            const queryType = this.safeString(params, 'type');
+            if (queryType !== undefined) {
+                const typeCost = this.safeInteger(byType, queryType);
+                if (typeCost !== undefined) {
+                    return typeCost;
+                }
             }
         }
         const byQuery = this.safeDict(config, 'byQuery');

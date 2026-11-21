@@ -76,7 +76,8 @@ class modetrade(ccxt.async_support.modetrade):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        options[url] = newValue
+        self.options['requestId'] = options
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict):
@@ -541,7 +542,7 @@ class modetrade(ccxt.async_support.modetrade):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string_2(trade, 'executedPrice', 'price')
         amount = self.safe_string_2(trade, 'executedQuantity', 'size')
         cost = Precise.string_mul(price, amount)
@@ -802,7 +803,7 @@ class modetrade(ccxt.async_support.modetrade):
         orderId = self.safe_string(order, 'orderId')
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(order, 'timestamp')
         fee = {
             'cost': self.safe_string(order, 'totalFee'),
@@ -959,7 +960,7 @@ class modetrade(ccxt.async_support.modetrade):
         messageHash = 'myTrades'
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         trade = self.parse_ws_trade(message, market)
         trades = self.myTrades
         if trades is None:

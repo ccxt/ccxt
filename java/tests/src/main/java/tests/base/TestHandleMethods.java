@@ -28,7 +28,7 @@ public class TestHandleMethods extends BaseTest
                 put( "defaultType", "valueFromParam" );
             }};
             Map<String, Object> market = exchange.safeMarket("TEST1/TEST2", (Map<String, Object>) null, (String) null, (String) null);
-            Helpers.addElementToObject(market, "type", "spot");
+            ((Map<String, Object>)market).put("type", "spot");
             //
             // ########### test different variations ###########
             //

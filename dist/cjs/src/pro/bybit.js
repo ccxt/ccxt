@@ -226,8 +226,8 @@ class bybit extends bybit$1["default"] {
                 url = accessibilityUrls['option'];
             }
         }
-        url = this.implodeHostname(url);
-        return url;
+        const urlResolved = this.implodeHostname(url);
+        return urlResolved;
     }
     cleanParams(params) {
         const paramsOmitted = this.omit(params, ['type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin']);
@@ -386,7 +386,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'ticker:' + symbolValue;
         const url = await this.getUrlByMarketType(symbolValue, false, 'watchTicker', params);
         const paramsValue = this.cleanParams(params);
@@ -603,13 +603,12 @@ class bybit extends bybit$1["default"] {
         if (isSpot) {
             type = 'spot';
         }
-        let symbol = undefined;
-        let parsed = undefined;
-        if ((updateType === 'snapshot')) {
-            parsed = this.parseTicker(data);
-            symbol = this.safeString(parsed, 'symbol');
+        if ((updateType !== 'snapshot') && (updateType !== 'delta')) {
+            return;
         }
-        else if (updateType === 'delta') {
+        let symbol = undefined;
+        let tickerInput = data;
+        if (updateType === 'delta') {
             const topicParts = topic.split('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString(topicParts, topicLength - 1);
@@ -618,10 +617,13 @@ class bybit extends bybit$1["default"] {
             // update the info in place
             const ticker = this.safeDict(this.tickers, symbol, {});
             const rawTicker = this.safeDict(ticker, 'info', {});
-            const merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged);
+            tickerInput = this.extend(rawTicker, data);
         }
-        if ((parsed === undefined) || (symbol === undefined)) {
+        const parsed = this.parseTicker(tickerInput);
+        if (updateType === 'snapshot') {
+            symbol = this.safeString(parsed, 'symbol');
+        }
+        if (symbol === undefined) {
             return;
         }
         const timestamp = this.safeInteger(message, 'ts');
@@ -723,7 +725,8 @@ class bybit extends bybit$1["default"] {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol = result[symbol];
+        return bySymbol[timeframe];
     }
     /**
      * @method
@@ -750,7 +753,7 @@ class bybit extends bybit$1["default"] {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const market = this.market(data[0]);
-            const symbolString = market['symbol'];
+            const symbolString = this.safeString(market, 'symbol', '');
             const unfiedTimeframe = data[1];
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             const marketId = this.safeString(market, 'id', '');
@@ -789,7 +792,7 @@ class bybit extends bybit$1["default"] {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const market = this.market(data[0]);
-            const symbolString = market['symbol'];
+            const symbolString = this.safeString(market, 'symbol', '');
             const unfiedTimeframe = data[1];
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             const marketId = this.safeString(market, 'id', '');
@@ -856,7 +859,7 @@ class bybit extends bybit$1["default"] {
             marketType = 'spot';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -938,8 +941,6 @@ class bybit extends bybit$1["default"] {
         const url = await this.getUrlByMarketType(symbolsNormalized[0], false, 'watchOrderBook', params);
         const paramsValue = this.cleanParams(params);
         const market = this.market(symbolsNormalized[0]);
-        const defaultLimit = (this.safeBool(market, 'option', false)) ? 100 : 50;
-        const limitResolved = (limit === undefined) ? defaultLimit : limit;
         if (limit !== undefined) {
             const limits = {
                 'spot': [1, 50, 200, 1000],
@@ -951,12 +952,16 @@ class bybit extends bybit$1["default"] {
                 throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + this.safeString(market, 'type', '') + ' markets limit can be one of: ' + this.json(selectedLimits));
             }
         }
+        const limitParam = this.safeInteger({ 'limit': limit }, 'limit');
+        const limitDefault = (this.safeBool(market, 'option', false)) ? 100 : 50;
+        const limitValue = (limitParam === undefined) ? limitDefault : limitParam;
+        const topicPrefix = 'orderbook.' + limitValue.toString() + '.';
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.marketId(symbol);
-            const topic = 'orderbook.' + this.numberToString(limitResolved) + '.' + marketId;
+            const marketId = this.safeString(this.market(symbol), 'id', '');
+            const topic = topicPrefix + marketId;
             topics.push(topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push(messageHash);
@@ -1063,7 +1068,7 @@ class bybit extends bybit$1["default"] {
             marketType = 'spot';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const timestamp = this.safeInteger(message, 'ts');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
@@ -1231,7 +1236,7 @@ class bybit extends bybit$1["default"] {
         }
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1278,7 +1283,7 @@ class bybit extends bybit$1["default"] {
         //     }
         //
         const id = this.safeStringN(trade, ['i', 'T', 'v']);
-        const isContract = ('BT' in trade);
+        const isContract = (this.safeBool(trade, 'BT') !== undefined);
         let marketType = 'spot';
         if (isContract) {
             marketType = 'contract';
@@ -1288,7 +1293,7 @@ class bybit extends bybit$1["default"] {
         }
         const marketId = this.safeString(trade, 's');
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const timestamp = this.safeInteger2(trade, 't', 'T');
         let side = this.safeStringLower(trade, 'S');
         let takerOrMaker = undefined;
@@ -1350,18 +1355,21 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
             messageHash += ':' + symbolResolved;
         }
         const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
         await this.authenticate(url);
-        const topicByMarket = {
-            'spot': 'ticketInfo',
-            'unified': 'execution',
-            'usdc': 'user.openapi.perp.trade',
-        };
-        let topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        const privateType = this.getPrivateType(url);
+        let topic = 'execution';
+        if (privateType === 'spot') {
+            topic = 'ticketInfo';
+        }
+        else if (privateType === 'usdc') {
+            topic = 'user.openapi.perp.trade';
+        }
         const [executionFast, paramsExecutionFast] = this.handleOptionBoolAndParams(params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
@@ -1397,12 +1405,14 @@ class bybit extends bybit$1["default"] {
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
-        const topicByMarket = {
-            'spot': 'ticketInfo',
-            'unified': 'execution',
-            'usdc': 'user.openapi.perp.trade',
-        };
-        let topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        const privateType = this.getPrivateType(url);
+        let topic = 'execution';
+        if (privateType === 'spot') {
+            topic = 'ticketInfo';
+        }
+        else if (privateType === 'usdc') {
+            topic = 'user.openapi.perp.trade';
+        }
         const [executionFast, paramsExecutionFast] = this.handleOptionBoolAndParams(params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
             topic = 'execution.fast';
@@ -1538,7 +1548,7 @@ class bybit extends bybit$1["default"] {
                 }
                 parsed = this.parseTrade(rawTrade);
             }
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol === undefined) {
                 continue;
             }
@@ -1573,10 +1583,9 @@ class bybit extends bybit$1["default"] {
         let messageHash = '';
         let symbolsNormalized = symbols;
         if ((symbols !== undefined) && !this.isEmpty(symbols)) {
-            symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if ((symbolsNormalized !== undefined) && !this.isEmpty(symbolsNormalized)) {
-            messageHash = '::' + symbolsNormalized.join(',');
+            const marketSymbols = this.marketSymbols(symbols);
+            symbolsNormalized = marketSymbols;
+            messageHash = '::' + marketSymbols.join(',');
         }
         const firstSymbol = this.safeString(symbolsNormalized, 0);
         const url = await this.getUrlByMarketType(firstSymbol, true, method, params);
@@ -1591,8 +1600,7 @@ class bybit extends bybit$1["default"] {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
         }
-        const topics = ['position'];
-        const newPositions = await this.watchTopics(url, [messageHash], topics, params);
+        const newPositions = await this.watchTopics(url, [messageHash], ['position'], params);
         if (this.newUpdates) {
             return newPositions;
         }
@@ -1758,7 +1766,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const url = await this.getUrlByMarketType(symbolValue, false, 'watchLiquidations', params);
         const [method, paramsMethod] = this.handleOptionStringAndParams(this.cleanParams(params), 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbolValue;
@@ -1806,7 +1814,7 @@ class bybit extends bybit$1["default"] {
                 const rawLiquidation = this.safeDict(rawLiquidations, i);
                 const marketId = this.safeString(rawLiquidation, 's');
                 const market = this.safeMarket(marketId, undefined, '', 'contract');
-                const symbol = market['symbol'];
+                const symbol = this.safeString(market, 'symbol', '');
                 const liquidation = this.parseWsLiquidation(rawLiquidation, market);
                 if (this.liquidations === undefined) {
                     const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
@@ -1822,7 +1830,7 @@ class bybit extends bybit$1["default"] {
             const rawLiquidation = this.safeDict(message, 'data', {});
             const marketId = this.safeString(rawLiquidation, 'symbol');
             const market = this.safeMarket(marketId, undefined, '', 'contract');
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const liquidation = this.parseWsLiquidation(rawLiquidation, market);
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
@@ -1895,18 +1903,24 @@ class bybit extends bybit$1["default"] {
         }
         const method = 'watchOrders';
         let messageHash = 'orders';
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
             messageHash += ':' + symbolResolved;
         }
         const url = await this.getUrlByMarketType(symbolResolved, true, method, params);
         await this.authenticate(url);
-        const topicsByMarket = {
-            'spot': ['order', 'stopOrder'],
-            'unified': ['order'],
-            'usdc': ['user.openapi.perp.order'],
-        };
-        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        const privateType = this.getPrivateType(url);
+        const topics = [];
+        if (privateType === 'usdc') {
+            topics.push('user.openapi.perp.order');
+        }
+        else {
+            topics.push('order');
+            if (privateType === 'spot') {
+                topics.push('stopOrder');
+            }
+        }
         const orders = await this.watchTopics(url, [messageHash], topics, params);
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -1936,12 +1950,17 @@ class bybit extends bybit$1["default"] {
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
-        const topicsByMarket = {
-            'spot': ['order', 'stopOrder'],
-            'unified': ['order'],
-            'usdc': ['user.openapi.perp.order'],
-        };
-        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        const privateType = this.getPrivateType(url);
+        const topics = [];
+        if (privateType === 'usdc') {
+            topics.push('user.openapi.perp.order');
+        }
+        else {
+            topics.push('order');
+            if (privateType === 'spot') {
+                topics.push('stopOrder');
+            }
+        }
         return await this.unWatchTopics(url, 'orders', [], [messageHash], [subHash], topics, params);
     }
     handleOrderWs(client, message) {
@@ -2068,7 +2087,7 @@ class bybit extends bybit$1["default"] {
             // } else {
             //     parsed = this.parseOrder (rawOrders[i]);
             // }
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol === undefined) {
                 continue;
             }
@@ -2104,10 +2123,6 @@ class bybit extends bybit$1["default"] {
         const isUnifiedAccount = this.safeBool(unified, 1, false);
         const url = await this.getUrlByMarketType(undefined, true, method, paramsSubType);
         await this.authenticate(url);
-        const topicByMarket = {
-            'spot': 'outboundAccountInfo',
-            'unified': 'wallet',
-        };
         if (isUnifiedAccount) {
             // unified account
             if (subType === 'inverse') {
@@ -2140,7 +2155,15 @@ class bybit extends bybit$1["default"] {
                 }
             }
         }
-        const topics = [this.safeString(topicByMarket, this.getPrivateType(url))];
+        const privateType = this.getPrivateType(url);
+        if (privateType === 'usdc') {
+            throw new errors.NotSupported(this.id + ' watchBalance() is not supported on the usdc private stream');
+        }
+        let topic = 'wallet';
+        if (privateType === 'spot') {
+            topic = 'outboundAccountInfo';
+        }
+        const topics = [topic];
         return await this.watchTopics(url, [messageHash], topics, paramsSubType);
     }
     handleBalance(client, message) {
@@ -2319,11 +2342,12 @@ class bybit extends bybit$1["default"] {
             if (this.safeDict(this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
-            this.balance[account]['info'] = info;
+            const balance = this.safeDict(this.balance, account, {});
+            balance['info'] = info;
             const timestamp = this.safeInteger(message, 'ts');
-            this.balance[account]['timestamp'] = timestamp;
-            this.balance[account]['datetime'] = this.iso8601(timestamp);
-            this.balance[account] = this.safeBalance(this.balance[account]);
+            balance['timestamp'] = timestamp;
+            balance['datetime'] = this.iso8601(timestamp);
+            this.balance[account] = this.safeBalance(balance);
             messageHash = 'balances:' + account;
             client.resolve(this.balance[account], messageHash);
         }
@@ -2384,12 +2408,11 @@ class bybit extends bybit$1["default"] {
         // is the consistent total, the spot rows fall back to the wallet balance
         account['total'] = this.safeString2(balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
-            if (this.safeDict(this.balance, accountType) === undefined) {
-                this.balance[accountType] = {};
+            const accountBalance = this.safeDict(this.balance, accountType, {});
+            if (code !== undefined) {
+                accountBalance[code] = account;
             }
-            if ((accountType !== undefined) && (code !== undefined)) {
-                this.balance[accountType][code] = account;
-            }
+            this.balance[accountType] = accountBalance;
         }
         else {
             if (code !== undefined) {
@@ -2403,7 +2426,7 @@ class bybit extends bybit$1["default"] {
         const topicsLength = topics.length;
         const messageHashesLength = messageHashes.length;
         if (topicsLength === messageHashesLength) {
-            for (let i = 0; i < topicsLength; i++) {
+            for (let i = 0; i < messageHashesLength; i++) {
                 const messageHash = messageHashes[i];
                 if (!(messageHash in client.subscriptions)) {
                     newTopics.push(topics[i]);

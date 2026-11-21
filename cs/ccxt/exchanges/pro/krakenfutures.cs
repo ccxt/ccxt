@@ -118,7 +118,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribePublic(string name, string? symbols, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> subscribePublic(string name, IList<object> symbols, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -131,18 +131,18 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "feed", name },
         };
         List<object> marketIds = new List<object>() {};
-        object messageHash = name;
-        string? symbolsValue = symbols;
-        for (int i = 0; i < (symbolsValue?.Length ?? 0); i++)
+        string messageHash = name;
+        IList<object> symbolsValue = symbols;
+        for (int i = 0; i < (symbolsValue?.Count ?? 0); i++)
         {
-            object symbol = getValue(symbolsValue, i);
+            object symbol = (symbolsValue != null && i < symbolsValue.Count ? symbolsValue[i] : null);
             marketIds.Add(this.marketId(symbol));
         }
-        int length = (symbolsValue?.Length ?? 0);
+        int length = (symbolsValue?.Count ?? 0);
         if ((length == 1))
         {
-            Dictionary<string, object> market = this.market((marketIds != null && 0 < marketIds.Count ? marketIds[0] : null));
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)((":" + ((market.ContainsKey("symbol") ? market["symbol"] : null))))));
+            Dictionary<string, object> market = this.market((symbolsValue != null && 0 < symbolsValue.Count ? symbolsValue[0] : null));
+            messageHash = messageHash + (":" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         subscribe["product_ids"] = marketIds;
         Dictionary<string, object> request = this.extend(subscribe, parameters);
@@ -333,7 +333,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             await this.loadMarkets();
         }
         string messageHash = "";
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if (((symbolsNormalized != null)) && !this.isEmpty(symbolsNormalized))
         {
             messageHash = ("::" + String.Join(",", symbolsNormalized.ToArray()));
@@ -655,7 +655,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 for (Int64 i = 0; i < length; i++)
                 {
                     // need reverse to correct chronology
-                    object item = (trades != null && ((length - 1) - i) < trades.Count ? trades[(int)((length - 1) - i)] : null);
+                    IDictionary<string, object> item = ((IDictionary<string, object>)(trades != null && ((length - 1) - i) < trades.Count ? trades[(int)((length - 1) - i)] : null));
                     ccxt.Trade trade = this.parseWsTrade(item);
                     tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
                 }
@@ -1603,6 +1603,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null))["timestamp"] = timestamp;
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null))["datetime"] = this.iso8601(timestamp);
             Dictionary<string, object> holdingCodes = new Dictionary<string, object>() {};
+            IDictionary<string, object> cashBalance = this.safeDict(this.balance, "cash", new Dictionary<string, object>() {});
             for (int i = 0; i < holdingKeys.Count; i++)
             {
                 string? key = ((string)holdingKeys[i]);
@@ -1612,10 +1613,10 @@ public partial class krakenfutures : ccxt.krakenfutures
                 if ((code != null))
                 {
                     holdingCodes[(string)code] = true;
-                    ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null))[(string)code] = newAccount;
+                    cashBalance[(string)code] = newAccount;
                 }
             }
-            this.balance["cash"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null), holdingCodes);
+            this.balance["cash"] = this.pruneStaleBalanceKeys(cashBalance, holdingCodes);
             this.balance["cash"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null));
             updatedBalance = (this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null);
         }
@@ -1627,6 +1628,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null))["timestamp"] = timestamp;
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null))["datetime"] = this.iso8601(timestamp);
             Dictionary<string, object> futuresSymbols = new Dictionary<string, object>() {};
+            IDictionary<string, object> marginBalance = this.safeDict(this.balance, "margin", new Dictionary<string, object>() {});
             for (int i = 0; i < futuresKeys.Count; i++)
             {
                 string? key = ((string)futuresKeys[i]);
@@ -1644,9 +1646,9 @@ public partial class krakenfutures : ccxt.krakenfutures
                     futuresSymbols[(string)symbol] = true;
                     symbolAccounts[(string)code] = newAccount;
                 }
-                ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null))[(string)symbol] = symbolAccounts;
+                marginBalance[(string)symbol] = symbolAccounts;
             }
-            this.balance["margin"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), futuresSymbols);
+            this.balance["margin"] = this.pruneStaleBalanceKeys(marginBalance, futuresSymbols);
             this.balance["margin"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null));
             client.resolve((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), (messageHash + ":futures"));
             if ((updatedBalance == null))
@@ -1663,6 +1665,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null))["timestamp"] = timestamp;
             ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null))["datetime"] = this.iso8601(timestamp);
             Dictionary<string, object> flexCodes = new Dictionary<string, object>() {};
+            IDictionary<string, object> flexBalance = this.safeDict(this.balance, "flex", new Dictionary<string, object>() {});
             for (int i = 0; i < flexFuturesKeys.Count; i++)
             {
                 string? key = ((string)flexFuturesKeys[i]);
@@ -1675,10 +1678,10 @@ public partial class krakenfutures : ccxt.krakenfutures
                 if ((code != null))
                 {
                     flexCodes[(string)code] = true;
-                    ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null))[(string)code] = newAccount;
+                    flexBalance[(string)code] = newAccount;
                 }
             }
-            this.balance["flex"] = this.pruneStaleBalanceKeys((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), flexCodes);
+            this.balance["flex"] = this.pruneStaleBalanceKeys(flexBalance, flexCodes);
             this.balance["flex"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null));
             client.resolve((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), (messageHash + ":flex_futures"));
             if ((updatedBalance == null))
@@ -1704,16 +1707,16 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} seenKeys the currency codes / symbols present in the current message
      * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
      */
-    public virtual object pruneStaleBalanceKeys(object balanceObject, IDictionary<string, object> seenKeys)
+    public virtual object pruneStaleBalanceKeys(IDictionary<string, object> balanceObject, IDictionary<string, object> seenKeys)
     {
         List<object> reserved = new List<object>() {"info", "timestamp", "datetime", "free", "used", "total", "debt"};
-        List<object> keys = new List<object>(((IDictionary<string,object>)balanceObject).Keys);
+        List<object> keys = new List<object>(balanceObject.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
             if (!((seenKeys != null && key != null && seenKeys.ContainsKey(key))) && !this.inArray(key, reserved))
             {
-                ((IDictionary<string,object>)balanceObject).Remove(key);
+                balanceObject.Remove(key);
             }
         }
         return balanceObject;
@@ -1863,7 +1866,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         return ((client.subscriptions != null && hash != null && client.subscriptions.ContainsKey(hash)));
     }
 
-    public virtual string? getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)
+    public virtual string? getMessageHash(string unifiedElementName, object subChannelName = null, object symbol = null)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected

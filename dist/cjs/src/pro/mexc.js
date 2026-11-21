@@ -436,8 +436,12 @@ class mexc extends mexc$1["default"] {
         if (symbolsNormalized === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), 'watchBidsAsks() markets is required');
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', markets[0], params);
+        const symbolsLength = symbolsNormalized.length;
+        let firstMarket = undefined;
+        if (symbolsLength > 0) {
+            firstMarket = this.market(symbolsNormalized[0]);
+        }
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new errors.NotSupported(this.id + ' watchBidsAsks only support spot market');
@@ -1663,17 +1667,18 @@ class mexc extends mexc$1["default"] {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = data;
-        this.balance[type]['timestamp'] = timestamp;
-        this.balance[type]['datetime'] = this.iso8601(timestamp);
+        const balance = this.safeDict(this.balance, type, {});
+        balance['timestamp'] = timestamp;
+        balance['datetime'] = this.iso8601(timestamp);
         const currencyId = this.safeString2(data, 'currency', 'vcoinName');
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
         account['free'] = this.safeString2(data, 'balanceAmount', 'availableBalance');
         account['used'] = this.safeString2(data, 'frozenBalance', 'frozenAmount');
         if (code !== undefined) {
-            this.balance[type][code] = account;
+            balance[code] = account;
         }
-        this.balance[type] = this.safeBalance(this.balance[type]);
+        this.balance[type] = this.safeBalance(balance);
         client.resolve(this.balance[type], messageHash);
     }
     /**
@@ -1857,8 +1862,12 @@ class mexc extends mexc$1["default"] {
         if (symbolsNormalized === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchBidsAsks required symbols argument');
         }
-        const markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), 'unWatchBidsAsks() markets is required');
-        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', markets[0], params);
+        const symbolsLength = symbolsNormalized.length;
+        let firstMarket = undefined;
+        if (symbolsLength > 0) {
+            firstMarket = this.market(symbolsNormalized[0]);
+        }
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
         const isSpot = marketType === 'spot';
         if (!isSpot) {
             throw new errors.NotSupported(this.id + ' watchBidsAsks only support spot market');

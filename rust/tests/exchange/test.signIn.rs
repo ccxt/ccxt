@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testSignIn(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("signIn".into());
+    let method: Value = Value::Str("signIn".into());
     if (get_value(&get_value(&exchange, &Value::Str("has".into())), &method) != Value::Null) && (get_value(&get_value(&exchange, &Value::Str("has".into())), &method).as_bool() != Some(false)) {
         crate::live_dispatch::dispatch(&mut exchange, "sign_in", vec![]).await;
     }

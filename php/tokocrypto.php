@@ -2818,7 +2818,7 @@ class tokocrypto extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         $paramsDict = $this->extend(array(), $params);
         $byLimit = $this->safe_list($config, 'byLimit', array());
         if ((is_array($paramsDict) && array_key_exists('noCoin' ?? '', $paramsDict)) && !(is_array($paramsDict) && array_key_exists('coin' ?? '', $paramsDict))) {

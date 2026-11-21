@@ -190,7 +190,7 @@ public partial class bitstamp : ccxt.bitstamp
             }
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(delta);
             return;
-        } else if ((deltaNonce == null || nonce >= deltaNonce))
+        } else if (nonce.Value >= deltaNonce.Value)
         {
             return;
         }
@@ -493,7 +493,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             limitResolved = ((Int64?)orders.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -566,7 +566,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolValue, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true));
     }
 
     /**
@@ -949,7 +949,7 @@ public partial class bitstamp : ccxt.bitstamp
      */
     public virtual ccxt.pro.ArrayCache pruneCachedBySymbols(ccxt.pro.ArrayCacheBySymbolById newCache, ccxt.pro.ArrayCache cache, IList<object> symbols)
     {
-        IList<object> entries = this.toArray(cache);
+        IList<object> entries = cache;
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
             object entry = entries[i];
@@ -1038,7 +1038,7 @@ public partial class bitstamp : ccxt.bitstamp
             string feedback = ((this.id + " ") + this.json(message));
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             string? code = this.safeString(data, "code");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, code, feedback);
         }
         return ((bool?)((object)(true)));
     }
@@ -1157,7 +1157,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public async virtual Task<object> subscribePrivate(IDictionary<string, object> subscription, object messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePrivate(IDictionary<string, object> subscription, string? messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -1167,7 +1167,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             throw new AuthenticationError ((this.id + " subscribePrivate() requires a userId from authenticate()")) ;
         }
-        object messageHashValue = add(messageHash, (("-" + userId)));
+        object messageHashValue = (messageHash + (("-" + userId)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
