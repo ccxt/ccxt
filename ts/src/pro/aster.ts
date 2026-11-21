@@ -2070,7 +2070,7 @@ export default class aster extends asterRest {
     }
 
     override handleMessage (client: Client, message: Dict) {
-        const messageInner = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
+        const messageInner: Dict = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
         const event = this.safeString (messageInner, 'e');
         const methods: Dict = {
             '24hrTicker': this.handleTicker,
