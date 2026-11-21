@@ -724,7 +724,8 @@ export default class phemex extends Exchange {
         if (settleId !== quoteId) {
             inverse = true;
             // some unhandled cases
-            if (!('baseCurrency' in market) && base === quote) {
+            const marketBaseCurrency = this.safeString (market, 'baseCurrency');
+            if ((marketBaseCurrency === undefined) && base === quote) {
                 base = settle;
             }
         }

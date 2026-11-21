@@ -3413,9 +3413,11 @@ export default class bitrue extends Exchange {
     }
 
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+        const paramsSymbol = this.safeString (params, 'symbol');
+        const paramsLimit = this.safeString (params, 'limit');
+        if (('noSymbol' in config) && (paramsSymbol === undefined)) {
             return config['noSymbol'];
-        } else if (('byLimit' in config) && ('limit' in params)) {
+        } else if (('byLimit' in config) && (paramsLimit !== undefined)) {
             const limit = this.safeInteger (params, 'limit');
             const byLimit: number[][] = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {

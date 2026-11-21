@@ -3341,7 +3341,8 @@ export default class bybit extends Exchange {
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
         let marketType: Str = 'spot';
-        if ('createType' in trade) {
+        const createType = this.safeString (trade, 'createType');
+        if (createType !== undefined) {
             marketType = 'contract';
         }
         const category = this.safeString (trade, 'category');
@@ -4061,7 +4062,8 @@ export default class bybit extends Exchange {
             }
         }
         const marketId = this.safeString (order, 'symbol');
-        const isContract = ('tpslMode' in order);
+        const tpslMode = this.safeString (order, 'tpslMode');
+        const isContract = (tpslMode !== undefined);
         let marketType: Str = undefined;
         if (market !== undefined) {
             marketType = this.safeString (market, 'type');
@@ -6332,7 +6334,8 @@ export default class bybit extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee');
         let type: Str = 'withdrawal';
-        if ('depositFee' in transaction) {
+        const depositFee = this.safeString (transaction, 'depositFee');
+        if (depositFee !== undefined) {
             type = 'deposit';
         }
         let fee: Fee = undefined;
