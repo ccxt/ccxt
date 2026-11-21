@@ -450,7 +450,10 @@
   },
   "overrides": {
     "marked": "^4.0.10",
-    "piscina": "^4.9.4"
+    "piscina": "^4.9.4",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.8"
+    }
   },
   "optionalDependencies": {
     "bufferutil": "4.1.0",
