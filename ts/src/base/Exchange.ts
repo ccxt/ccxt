@@ -4937,10 +4937,7 @@ export class BaseExchange {
             }
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
-                if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
-                }
+                reducedFees[i] = this.parseFeeNumeric (reducedFees[i]);
             }
             if (!parseFee && (reducedLength === 0)) {
                 // copy fee to avoid modification by reference
