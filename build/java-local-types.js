@@ -17649,6 +17649,8 @@ const JAVA_VENUE_PARAM_TYPES = {
     'Market[]': 'java.util.List<Object>',
     // a venue-only `Int` parameter: every caller hands a Long (declared Long local, safeInteger/safeTimestamp, null)
     'Int': 'Long',
+    // a venue-only read-only `any` parameter: every caller hands an identifier already declared Map
+    'any': 'java.util.Map<String, Object>',
 };
 const JAVA_VENUE_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/;
 const JAVA_LIB_SOURCE_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
