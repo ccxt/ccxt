@@ -528,7 +528,7 @@ export default class p2b extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    override parseTicker (ticker: any, market: Market = undefined) {
+    override parseTicker (ticker: NullableDict, market: Market = undefined): Ticker {
         //
         // parseTickers
         //

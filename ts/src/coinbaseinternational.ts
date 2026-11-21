@@ -1130,7 +1130,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    override parseTicker (ticker: object, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "timestamp": 1788867258984,
