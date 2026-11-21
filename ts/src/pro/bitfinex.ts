@@ -70,7 +70,9 @@ export default class bitfinex extends bitfinexRest {
             const sub = client.subscriptions[messageHash];
             const subChecksum = this.safeBool (sub, 'checksum', false);
             if ((sub !== undefined) && !subChecksum) {
-                client.subscriptions[messageHash]['checksum'] = true;
+                const subUpdated: Dict = this.extend ({}, sub);
+                subUpdated['checksum'] = true;
+                client.subscriptions[messageHash] = subUpdated;
                 await client.send ({
                     'event': 'conf',
                     'flags': 131072,

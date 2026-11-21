@@ -218,7 +218,7 @@ export default class binance extends binanceRest {
     }
 
     requestId (url: string): int {
-        const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
+        const options: Dict = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
         options[url] = newValue;
@@ -231,7 +231,7 @@ export default class binance extends binanceRest {
     }
 
     stream (type: Str, subscriptionHash: Str, numSubscriptions: Int = 1): string {
-        const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash', this.createSafeDictionary ());
+        const streamBySubscriptionsHash: Dict = this.safeDict (this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
             const previousStreamIndex = this.safeInteger (this.options, 'streamIndex', -1);
@@ -255,7 +255,9 @@ export default class binance extends binanceRest {
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new BadRequest (this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            this.options['numSubscriptionsByStream'][stream] = newNumSubscriptions;
+            const numSubscriptionsByStream: Dict = this.safeDict (this.options, 'numSubscriptionsByStream', {});
+            numSubscriptionsByStream[stream] = newNumSubscriptions;
+            this.options['numSubscriptionsByStream'] = numSubscriptionsByStream;
         }
         return stream;
     }
@@ -5693,7 +5695,7 @@ export default class binance extends binanceRest {
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
                 if (cachedOrders !== undefined) {
-                    const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
+                    const orders: Dict = this.safeDict (cachedOrders.hashmap, symbol, {});
                     const order = this.safeDict (orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
