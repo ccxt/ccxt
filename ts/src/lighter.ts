@@ -583,7 +583,7 @@ export default class lighter extends Exchange {
         if ((cachedDeadline !== undefined) && (minimumRemaining !== undefined) && (cachedDeadline - minimumRemaining >= this.seconds ())) {
             return this.safeString (cachedAuth, 'token');
         }
-        const deadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineExpiry', 28800);
+        const deadline = this.sum (this.seconds (), this.safeInteger (this.options, 'authDeadlineExpiry', 28800));
         const request: Dict = {
             'deadline': deadline,
             'api_key_index': this.parseToInt (apiKeyIndex),
