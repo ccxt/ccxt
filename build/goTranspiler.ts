@@ -12497,6 +12497,8 @@ function goProvenParseMapMethods (): string[] {
         // ral-77g8: ws struct parsers, every override returns a struct->map converter or a map literal
         'ParseWsBidAsk', 'ParseWsPosition', 'ParseWsMyTrade', 'ParseWsOrderTrade', 'ParseWsUtaTrade', 'ParseWsFundingRate',
         'ParseLeverageList', // mexc: the fetchLeverage row-list parser, returns a Leverage literal
+        // every override returns a map literal or SafeLiquidation(<map literal>); SafeLiquidation returns its map param
+        'SafeLiquidation', 'ParseLiquidation', 'ParseIncome',
         'Sign',
         'SafePredictionPosition', 'ParsePredictionPosition', 'ParseWsOptionsPosition' ]; // map literal / converter on every override // base + every override return a request map literal
 }
