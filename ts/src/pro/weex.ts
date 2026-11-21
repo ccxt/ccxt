@@ -142,7 +142,9 @@ export default class weex extends weexRest {
         const timestamp = this.nonce ().toString ();
         const payload = timestamp + '/v3/ws/private';
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
-        const originalHeaders = this.safeDict (this.options['ws']['options'], 'headers');
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const wsInnerOptions = this.safeDict (wsOptions, 'options', {});
+        const originalHeaders = this.safeDict (wsInnerOptions, 'headers', {});
         const userAgent = this.safeString (originalHeaders, 'User-Agent', 'ccxt');
         const extendedOptions: Dict = {
             'ws': {
@@ -351,10 +353,8 @@ export default class weex extends weexRest {
         const timestamp = this.safeInteger (ticker, 'C');
         const close = this.safeString (ticker, 'c');
         let symbol: Str = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        } else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -554,10 +554,8 @@ export default class weex extends weexRest {
         //
         const timestamp = this.safeInteger (trade, 'T');
         let symbol: Str = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        } else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
         }
         const isBuyerMaker = this.safeBool (trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let side: Str = undefined;
@@ -629,7 +627,7 @@ export default class weex extends weexRest {
         const firstSymbol = this.safeString (firstEntry, 0);
         const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
-        let priceType = 'LAST_PRICE';
+        let priceType: string = 'LAST_PRICE';
         let paramsPriceType: Dict = paramsOmitted;
         if (isContract === true) {
             [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
@@ -698,7 +696,7 @@ export default class weex extends weexRest {
         const firstSymbol = this.safeString (firstEntry, 0);
         const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
-        let priceType = 'LAST_PRICE';
+        let priceType: string = 'LAST_PRICE';
         let paramsPriceType: Dict = paramsOmitted;
         if (isContract === true) {
             [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
@@ -1090,7 +1088,7 @@ export default class weex extends weexRest {
             return;
         }
         const ticker = this.parseWsBidAsk (message, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
         }
@@ -1101,10 +1099,8 @@ export default class weex extends weexRest {
     parseWsBidAsk (message: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (message, 'E');
         let symbol: Str = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        } else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
         }
         return this.safeTicker ({
             'symbol': symbol,
