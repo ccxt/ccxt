@@ -403,6 +403,64 @@ func (c *ArrayCache) toArrayOwned() []any {
 	return out
 }
 
+// HashmapSnapshot returns a copy of the symbol -> id (or side) index, taken on the
+// owner. Append writes the inner bucket maps in place, so a caller that ranged
+// over c.Hashmap[symbol] directly would race it.
+func (c *ArrayCache) HashmapSnapshot() map[string]any {
+	var out map[string]any
+	c.submit(func() {
+		out = c.hashmapSnapshotOwned()
+	})
+	return out
+}
+
+// hashmapSnapshotOwned copies both levels of the index on the owner; the rows
+// themselves are shared, Append replaces them copy-on-write and never edits one.
+func (c *ArrayCache) hashmapSnapshotOwned() map[string]any {
+	out := make(map[string]any, len(c.Hashmap))
+	for symbol, bucket := range c.Hashmap {
+		copied := make(map[string]any, len(bucket))
+		for id, row := range bucket {
+			copied[id] = row
+		}
+		out[symbol] = copied
+	}
+	return out
+}
+
+// CacheHashmap is what the go transpiler emits for a ws `cache.hashmap` read: a
+// snapshot of the cache's index taken on the cache owner. It accepts every
+// symbol keyed cache kind (an absent cache reads as nil), where the former
+// `cache.(*ArrayCache).Hashmap` panicked on the *ArrayCacheBySymbolById that
+// this.Orders / this.Positions hold, and raced Append even when it held.
+func CacheHashmap(cache any) map[string]any {
+	switch c := cache.(type) {
+	case nil:
+		return nil
+	case *ArrayCache:
+		if c == nil {
+			return nil
+		}
+		return c.HashmapSnapshot()
+	case *ArrayCacheBySymbolById:
+		if c == nil || c.ArrayCache == nil {
+			return nil
+		}
+		return c.ArrayCache.HashmapSnapshot()
+	case *ArrayCacheByOutcomeById:
+		if c == nil || c.ArrayCache == nil {
+			return nil
+		}
+		return c.ArrayCache.HashmapSnapshot()
+	case *ArrayCacheBySymbolBySide:
+		if c == nil || c.ArrayCache == nil {
+			return nil
+		}
+		return c.ArrayCache.HashmapSnapshot()
+	}
+	panic(fmt.Sprintf("CacheHashmap: %T has no symbol keyed hashmap", cache))
+}
+
 // GetLimit mirrors Cache.ts getLimit (symbol: Str, limit: Int): Int - an absent result is a nil pointer.
 func (c *ArrayCache) GetLimit(symbol any, limit any) *int64 {
 	var out *int64

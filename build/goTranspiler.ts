@@ -5412,7 +5412,10 @@ class NewTranspiler {
             
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
-            [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
+            // `cache.hashmap` reads go through CacheHashmap: it copies the index on the cache owner
+            // (a direct field read races Append, which writes the symbol buckets in place) and accepts
+            // every symbol keyed cache, where `.(*ArrayCache)` panicked on *ArrayCacheBySymbolById
+            [/((?:this\.)?\w+)\.Hashmap\b/g, 'CacheHashmap($1)'],
             // `const stored = new ArrayCache (limit)` prints as a short declaration; the ws regexes
             // above cannot see the inferred type, so name it. The local only ever holds the
             // constructor result (`this.trades[symbol] = stored`), and naming the type keeps the very
