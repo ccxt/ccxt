@@ -2067,6 +2067,10 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'completeRawTopics': 'List<object>',
     'fetchRawTopicsByQueries': 'List<object>',
 };
+// ===== h29-C03: options-cache cores retyped IDictionary (csharpTranspiler VENUE_TYPED_CORES, sole declarations)
+CSHARP_LOCAL_AWAIT_RETURN_TYPES['fetchDydxAccount'] = 'IDictionary<string, object>';
+CSHARP_LOCAL_AWAIT_RETURN_TYPES['fetchCurrenciesFromCache'] = 'IDictionary<string, object>';
+// ===== end h29-C03
 
 // Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
 // hitbtc: List<Transaction>, dydx: List<Dictionary>): consulted before the name-keyed table.
@@ -2928,6 +2932,7 @@ function typedCoreFunnelType (csharp, declaration) {
     if (core === undefined) {
         return undefined;
     }
+    if ((typeof csharp.csharpTypedCoreType === 'function') && (csharp.csharpTypedCoreType (call, core) === 'IDictionary<string, object>')) return 'IDictionary<string, object>'; // h29-C03
     const table = csharpTypedCoreFunnelTypes ();
     for (const file of csharpFunnelFiles (declaration)) {
         const content = csharpFunnelFileContent (file);
@@ -11510,6 +11515,7 @@ function calleeDeclaredResultType (csharp, declaration) {
         // (B) a typed core whose consuming funnel is the identity (List<string> / Int64 / string):
         // the awaited value's static type is the core's own T, funneled or not
         const core = (typeof csharp.csharpTypedCoreType === 'function') ? csharp.csharpTypedCoreType (call, name) : '';
+        if (core === 'IDictionary<string, object>') return { type: core }; // h29-C03: options-cache cores
         if (CALLEE_RESULT_IDENTITY_CORES.includes (core)) {
             return { type: core };
         }

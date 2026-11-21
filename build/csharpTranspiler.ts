@@ -1426,6 +1426,12 @@ const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
         'editOrderRequest': 'Dictionary<string, object>',
     },
 };
+// ===== h29-C03 venue rows: options-cache readers return the cached safeDict row itself
+VENUE_TYPED_CORES['extended'] = { 'fetchExtendedAccount': 'IDictionary<string, object>' };
+VENUE_TYPED_CORES['dydx']['fetchDydxAccount'] = 'IDictionary<string, object>';
+VENUE_TYPED_CORES['coinbase'] = { 'fetchCurrenciesFromCache': 'IDictionary<string, object>' };
+VENUE_TYPED_CORES['binance'] = { 'fetchWallet': 'IDictionary<string, object>' };
+// ===== end h29-C03 venue rows
 
 // sync cores whose runtime value already is the named type (market / currency rows and their
 // builders): every declaration is retyped and each return funnelled through ToDict (`as`, identity)
@@ -2473,6 +2479,7 @@ function csharpRetMethodBindings (methodLines: string[]): Map<string, string[]> 
 
 // whether wrapping `expr` in the helper materialising `targetType` only renames its type
 function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: string, methodLines: string[], prediction = false): boolean {
+    const h29c03 = h29C03IDictReturnIsTyped (expr, targetType, methodLines); if (h29c03 !== undefined) return h29c03
     if (CSHARP_RET_TARGETS.indexOf (targetType) === -1) {
         return false
     }
@@ -2839,6 +2846,7 @@ class NewTranspiler {
     // the To* helper that materialises a typed core's return, or the snapshot helper for
     // the live ws structures whose public shape is a `.Copy()` rather than a `new T(...)`
     typedCoreToHelper (methodName: string, isPredictionTier: boolean, csharpType: string): string {
+        if (csharpType === 'IDictionary<string, object>') throw new Error (`typeCores: ${methodName} returns a value not proven IDictionary<string, object>`);
         const snapshot = SNAPSHOT_CORES[methodName];
         if (snapshot !== undefined) {
             return (isPredictionTier && snapshot.predictionHelper !== undefined) ? snapshot.predictionHelper : snapshot.helper;
@@ -2871,6 +2879,7 @@ class NewTranspiler {
     // `List<OrderBook>` -> `List<ccxt.OrderBook>`. Required because ccxt.pro declares its own
     // OrderBook / Trade classes, which would otherwise win name resolution inside pro files
     qualifyTypedCoreType (csharpType: string): string {
+        if (csharpType === 'IDictionary<string, object>') return csharpType;
         if (csharpType.startsWith ('ccxt.')) {
             return csharpType; // SNAPSHOT_CORES already spell the fully qualified name
         }
@@ -10929,3 +10938,26 @@ function h28C03FilteredReturnIsTyped (value: string, targetType: string, methodL
     return ((types !== undefined) && (types.length === 1) && (types[0] === targetType)) ? true : undefined
 }
 // ===== end h28-C03
+
+// ===== h29-C03
+// an IDictionary<string, object> core (options-cache readers) returns only safeDict reads or locals
+// bound once as IDictionary; anything else fails the build instead of adding a conversion
+function h29C03IDictReturnIsTyped (expr: string, targetType: string, methodLines: string[]): boolean | undefined {
+    if (targetType !== 'IDictionary<string, object>') {
+        return undefined
+    }
+    const value = expr.trim ()
+    if (value === 'null') {
+        return true
+    }
+    if (/^this\.safeDict\(/.test (value)) {
+        // the call must be the whole expression: its opening paren closes on the last character
+        return csharpMatchingClose (value, value.indexOf ('('), '(', ')', '"') === value.length - 1
+    }
+    if (CSHARP_RET_IDENTIFIER.test (value)) {
+        const types = csharpRetMethodBindings (methodLines).get (value)
+        return (types !== undefined) && (types.length === 1) && (types[0] === targetType)
+    }
+    return false
+}
+// ===== end h29-C03
