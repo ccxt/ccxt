@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -56,20 +55,6 @@ func SafeBoolTyped(m any, key any) *bool {
 	return nil
 }
 
-func SafeMapToMap(sm *sync.Map) map[string]any {
-	if sm == nil {
-		return nil
-	}
-	result := make(map[string]any)
-	sm.Range(func(key, value any) bool {
-		if strKey, ok := key.(string); ok {
-			result[strKey] = value
-		}
-		return true
-	})
-	return result
-}
-
 // SafeMapTyped reads a free-form dictionary member (TS `Dict`), nil when absent or not a map.
 func SafeMapTyped(m any, key any) map[string]any {
 	res := SafeValue(m, key, nil)
@@ -78,9 +63,6 @@ func SafeMapTyped(m any, key any) map[string]any {
 	}
 	if asMap, ok := res.(map[string]any); ok {
 		return asMap
-	}
-	if asSyncMap, ok := res.(*sync.Map); ok {
-		return SafeMapToMap(asSyncMap)
 	}
 	return nil
 }
@@ -121,7 +103,7 @@ func SafeDict2Typed(m any, key1 any, key2 any, optionalArgs ...any) map[string]a
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	isDict := func(v any) bool {
 		switch derefScalar(v).(type) {
-		case map[string]any, *sync.Map, Dict, map[any]any, OrderBookInterface:
+		case map[string]any, Dict, map[any]any, OrderBookInterface:
 			return true
 		}
 		return false
@@ -294,6 +276,7 @@ func NewMarketInterface(data any) MarketInterface {
 		}
 	}
 
+	tiers, _ := m["tiers"].(map[string]any)
 	return MarketInterface{
 		Info:            SafeValue(m, "info", nil),
 		Market:          SafeStringTyped(m, "market"),
@@ -338,7 +321,7 @@ func NewMarketInterface(data any) MarketInterface {
 		BaseName:        SafeStringTyped(m, "baseName"),
 		Id2:             SafeStringTyped(m, "id2"),
 		InstIdCode:      SafeInt64Typed(m, "instIdCode"),
-		Tiers:           SafeMapTyped(m, "tiers"),
+		Tiers:           tiers,
 		NumericId:       SafeFloatTyped(m, "numericId"),
 		SubType:         SafeStringTyped(m, "subType"),
 		Prediction:      SafeBoolTyped(m, "prediction"),
@@ -439,13 +422,14 @@ func NewTradingFeeInterface(data map[string]any) TradingFeeInterface {
 	if m == nil {
 		m = map[string]any{}
 	}
+	tiers, _ := m["tiers"].(map[string]any)
 	return TradingFeeInterface{
 		Symbol:     SafeStringTyped(m, "symbol"),
 		Maker:      SafeFloatTyped(m, "maker"),
 		Taker:      SafeFloatTyped(m, "taker"),
 		Percentage: SafeBoolTyped(m, "percentage"),
 		TierBased:  SafeBoolTyped(m, "tierBased"),
-		Tiers:      SafeMapTyped(m, "tiers"),
+		Tiers:      tiers,
 		Info:       m,
 	}
 }
@@ -1059,9 +1043,6 @@ func NewBalance(balanceData2 any) Balance {
 func NewBalances(balancesData2 any) Balances {
 	if balancesData2 == nil {
 		balancesData2 = make(map[string]any)
-	}
-	if dataMap, ok := balancesData2.(*sync.Map); ok {
-		balancesData2 = SafeMapToMap(dataMap)
 	}
 	balancesData := balancesData2.(map[string]any)
 	balancesMap := make(map[string]Balance)
@@ -2870,9 +2851,6 @@ func NewDepositWithdrawFeeNetworkEntry(data any) DepositWithdrawFeeNetworkEntry 
 	if data == nil {
 		return DepositWithdrawFeeNetworkEntry{}
 	}
-	if syncMap, ok := data.(*sync.Map); ok {
-		data = SafeMapToMap(syncMap)
-	}
 	m, ok := data.(map[string]any)
 	if !ok {
 		return DepositWithdrawFeeNetworkEntry{}
@@ -2909,9 +2887,6 @@ type DepositWithdrawFee struct {
 func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 	if data == nil {
 		return DepositWithdrawFee{}
-	}
-	if syncMap, ok := data.(*sync.Map); ok {
-		data = SafeMapToMap(syncMap)
 	}
 	m, ok := data.(map[string]any)
 	if !ok {
