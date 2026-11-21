@@ -11240,7 +11240,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     // a prediction-tier `let x: Num;` / `: Str;` / `: Int;` / `: Bool;` (no initialiser) prints `object x = null;`:
     // the annotation names the box every later write stores, and the retype scan still rejects a write
     // that box cannot hold. Crypto/pro trees keep `object` for their null-declared locals.
-    const noInitScalar = noInitAnnotation !== undefined && !COLLECTION_LOCAL_TYPES.includes (noInitAnnotation) && isPredictionSource (declaration);
+    const noInitScalar = noInitAnnotation !== undefined && !COLLECTION_LOCAL_TYPES.includes (noInitAnnotation);
     if (declaration.initializer === undefined && !noInitScalar && !(declaration.type !== undefined
             && (noInitAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitAnnotation) || nullInitFamilyName (declaration) !== undefined))) {
         return undefined;
@@ -12069,9 +12069,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // the join's starting type) is then resolved by the null-declared join below
     const noInitGateAnnotation = annotationType (declaration);
     if (csharpType === undefined && declaration.initializer === undefined && declaration.type !== undefined
-            && (noInitGateAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitGateAnnotation)
-                || nullInitFamilyName (declaration) !== undefined
-                || (isPredictionSource (declaration) && noInitGateAnnotation !== undefined))) {
+            ) {
         // the prediction tier's scalar annotations reach the same join (see the guard above)
         csharpType = 'null';
     }
