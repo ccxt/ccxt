@@ -1018,7 +1018,7 @@ export default class coinbaseexchange extends Exchange {
             const marketId = marketIds[i];
             const entry = this.safeList (response, marketId, []);
             const market = this.safeMarket (marketId, undefined, delimiter);
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             result[symbol] = this.parseTickerList (this.safeList (entry, 0, []), market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
@@ -1134,7 +1134,7 @@ export default class coinbaseexchange extends Exchange {
         }
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         return this.safeTrade ({
             'id': id,
             'order': orderId,
@@ -1661,7 +1661,7 @@ export default class coinbaseexchange extends Exchange {
             if (costParam !== undefined) {
                 request['funds'] = this.costToPrecision (symbol, costParam);
             } else if (price !== undefined) {
-                request['funds'] = this.costToPrecision (symbol, amount * price);
+                request['funds'] = this.costToPrecision (symbol, Precise.stringMul (this.numberToString (amount), this.numberToString (price)));
             } else {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
@@ -2280,10 +2280,9 @@ export default class coinbaseexchange extends Exchange {
 
     override async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}) {
         const response = await this.fetch2 (path, api, method, params, config);
-        if (typeof response !== 'string') {
-            if ('message' in response) {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-            }
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
+            throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
     }
