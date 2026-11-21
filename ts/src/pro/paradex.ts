@@ -286,7 +286,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    async unsubscribeChannelsFrom (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: number, params: Dict = {}): Promise<any> {
+    async unsubscribeChannelsFrom (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: int, params: Dict = {}): Promise<any> {
         let refused = 0;
         for (let i = 0; i < channels.length; i++) {
             if (i >= start) {
@@ -314,7 +314,7 @@ export default class paradex extends paradexRest {
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    async unsubscribeChannelAt (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: number, params: Dict = {}): Promise<any> {
+    async unsubscribeChannelAt (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: int, params: Dict = {}): Promise<any> {
         const channel = channels[index];
         const symbol = this.safeString (symbols, index);
         const hashes: string[] = [ subMessageHashes[index] ];
