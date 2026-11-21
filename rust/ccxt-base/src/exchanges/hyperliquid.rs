@@ -6027,12 +6027,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let transferType: Option<String> = self.safe_string_k_opt(&params, "type", &[]);
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
-        let mut transferMethod: Option<String> = None;
-        let mut query: Value = params;
-        { let __destr_tmp = self.handle_option_string_and_params(query.clone(), Value::Str("transfer".into()), Value::Str("method".into()), &[]); transferMethod = __destr_tmp.0.as_str().map(str::to_owned); query = Value::Dict(__destr_tmp.1); }
-        let mut masterAddress: Option<String> = None;
-        masterAddress = self.safe_string_opt({ let __t = self.handle_public_address("transfer", query.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        query = Value::Dict(self.handle_public_address("transfer", query).1);
+        let transferMethodparamsMethodVariable = self.handle_option_string_and_params(params, Value::Str("transfer".into()), Value::Str("method".into()), &[]);
+        let transferMethod: Option<String> = transferMethodparamsMethodVariable.0.as_str().map(str::to_owned);
+        let paramsMethod: crate::value::Dict = transferMethodparamsMethodVariable.1;
+        let masterAddressparamsAddressVariable = self.handle_public_address("transfer", Value::Dict(paramsMethod));
+        let masterAddress: Option<String> = masterAddressparamsAddressVariable.0.as_str().map(str::to_owned);
+        let paramsAddress: crate::value::Dict = masterAddressparamsAddressVariable.1;
+        let mut query: Value = Value::Dict(paramsAddress);
         let mut useSendAsset: bool = transferMethod.as_deref() == Some("sendAsset");
         if (transferMethod.is_none()) {
             let mut isUnified: Option<bool> = None;
