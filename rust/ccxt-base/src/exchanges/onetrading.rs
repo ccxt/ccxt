@@ -685,7 +685,7 @@ impl crate::exchange_generated::ExchangeBase for Onetrading {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_fee_tiers" => self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_fee_tiers" => Value::Dict(self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1440,8 +1440,8 @@ impl Onetrading {
         let futuresFees: crate::value::Dict = self.safe_dict_t(&response, Value::Int(1));
         let spotFeeTiers: crate::value::List = self.safe_list_k_t(&spotFees, "fee_tiers");
         let futuresFeeTiers: crate::value::List = self.safe_list_k_t(&futuresFees, "fee_tiers");
-        let spotTiers: crate::value::Dict = self.parse_fee_tiers(&spotFeeTiers, None).into_dict();
-        let futuresTiers: crate::value::Dict = self.parse_fee_tiers(&futuresFeeTiers, None).into_dict();
+        let spotTiers: crate::value::Dict = self.parse_fee_tiers(&spotFeeTiers, None);
+        let futuresTiers: crate::value::Dict = self.parse_fee_tiers(&futuresFeeTiers, None);
         let firstSpotTier: Value = self.safe_dict(&spotTiers, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1564,7 +1564,7 @@ impl Onetrading {
     Value::Null
 }
 
-    pub fn parse_fee_tiers(&self, feeTiers: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_fee_tiers(&self, feeTiers: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let feeTiers: Value = feeTiers.into();
         let mut takerFees: Vec<Value> = Vec::new();
         let mut makerFees: Vec<Value> = Vec::new();
@@ -1582,14 +1582,14 @@ impl Onetrading {
             takerFees.push(Value::from(vec![Value::from(volume), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("maker".to_string(), Value::from(makerFees));
         m.insert("taker".to_string(), Value::from(takerFees));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 
@@ -1639,12 +1639,12 @@ impl Onetrading {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1652,7 +1652,7 @@ impl Onetrading {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let response: crate::value::List = self.public_get_market_ticker(&[&params]).await.unwrap_or_default();
         //
         //     [

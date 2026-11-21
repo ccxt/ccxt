@@ -4312,12 +4312,12 @@ impl Bithumb {
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
  */
     pub async fn fetch_deposit_addresses(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::DepositAddress>> {
-        let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let codes = get_arg(optional_args, 0, Value::Null);
+        let codes: Option<Vec<String>> = codes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4332,7 +4332,7 @@ impl Bithumb {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchDepositAddresses() is only supported for the generation 2 API")));
         }
         let response: crate::value::List = self.private_get_v1_deposits_coin_addresses(&[&Value::Dict(paramsGeneration)]).await.unwrap_or_default();
-        return self.parse_deposit_addresses(&response, &[codes, Value::Bool(false), Value::Map({
+        return self.parse_deposit_addresses(&response, &[Value::from(codes), Value::Bool(false), Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);

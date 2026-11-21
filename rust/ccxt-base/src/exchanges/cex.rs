@@ -713,7 +713,7 @@ impl crate::exchange_generated::ExchangeBase for Cex {
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trading_fee" => Value::Dict(self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_trading_fees" => self.parse_trading_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_trading_fees" => Value::Dict(self.parse_trading_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -1699,12 +1699,12 @@ impl Cex {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let fees: crate::value::Dict = self.safe_dict_k_t(&data, "tradingFee");
-        return self.parse_trading_fees(&fees, &[Value::Bool(true)]);
+        return Value::Dict(self.parse_trading_fees(&fees, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fees(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn parse_trading_fees(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> crate::value::Dict {
         let response: Value = response.into();
         let useKeyAsId = get_arg(optional_args, 0, Value::Bool(false));
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1740,9 +1740,9 @@ impl Cex {
             }
         }
         }
-        return Value::Map(result);
+        return std::sync::Arc::new(result);
 
-    Value::Null
+    Default::default()
 }
 
     pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {

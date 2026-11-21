@@ -449,7 +449,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "sign_predictfun_order" => self.sign_predictfun_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy), args.get(2).is_some_and(crate::Value::is_truthy)),
+                "sign_predictfun_order" => Value::Dict(self.sign_predictfun_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy), args.get(2).is_some_and(crate::Value::is_truthy))),
                 "strip_price_formatting" => self.strip_price_formatting(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -2692,7 +2692,7 @@ impl Predictfun {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {object} a dictionary with the order hash and the signature
  */
-    pub fn sign_predictfun_order(&self, order: impl Into<crate::Value>, isNegRisk: bool, isYieldBearing: bool) -> Value {
+    pub fn sign_predictfun_order(&self, order: impl Into<crate::Value>, isNegRisk: bool, isYieldBearing: bool) -> crate::value::Dict {
         let order: Value = order.into();
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
@@ -2777,14 +2777,14 @@ impl Predictfun {
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
         // the digest that gets signed - and that the venue indexes the order by - is its keccak
         let mut hash: String = format!("{}{}", Value::Str("0x".into()), self.hash(&encoded, "keccak", &[Value::Str("hex".into())]));
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("hash".to_string(), Value::from(hash.clone()));
         m.insert("signature".to_string(), self.sign_hash(hash.as_str(), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2932,7 +2932,7 @@ impl Predictfun {
                 m.insert("signatureType".to_string(), Value::Int(0));
             m
         });
-        let signed: crate::value::Dict = self.sign_predictfun_order(Value::Map(contractOrder.clone()), isNegRisk, isYieldBearing).into_dict();
+        let signed: crate::value::Dict = self.sign_predictfun_order(Value::Map(contractOrder.clone()), isNegRisk, isYieldBearing);
         let __ws_arg_7 = self.safe_string_k(&signed, "hash", &[]);
         let __ws_arg_8 = self.safe_string_k(&signed, "signature", &[]);
         let orderPayload: crate::value::Dict = self.extend_t(Value::Map(contractOrder), &[Value::Map({
@@ -3032,20 +3032,20 @@ impl Predictfun {
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
     pub async fn fetch_positions(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let outcomes: Option<Vec<String>> = outcomes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let mut outcomesLength: i64 = 0;
-        if (outcomes != Value::Null) {
-            outcomesLength = outcomes.len() as i64;
-            self.load_outcomes(&[outcomes.clone()]).await;
+        if (outcomes.is_some()) {
+            outcomesLength = outcomes.as_ref().map_or(0, Vec::len) as i64;
+            self.load_outcomes(&[Value::from(outcomes.clone())]).await;
         }
         let address: Option<String> = self.safe_string_k_opt(&params, "address", &[]);
         let mut response: Option<crate::value::Dict> = None;
@@ -3098,7 +3098,7 @@ impl Predictfun {
             let m = indexmap::IndexMap::new();
             m
         });
-        let wantedOutcomes: crate::value::List = self.to_array_t(outcomes);
+        let wantedOutcomes: crate::value::List = self.to_array_t(Value::from(outcomes));
         {
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;

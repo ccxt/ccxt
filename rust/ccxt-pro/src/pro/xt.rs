@@ -668,12 +668,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
     pub async fn un_watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -687,12 +687,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (name.is_none()) {
             return Value::Null;
         }
-        if (symbols != Value::Null) {
+        if (symbols.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")));
         }
         if (name.is_some()) {
             let messageHash: String = format!("{}{}", "unsubscribe::", name.as_deref().unwrap_or("null"));
-            return self.un_subscribe(messageHash.as_str(), name.as_deref().unwrap_or_default(), "public", "unWatchTickers", "ticker", None, &[&symbols, &params]).await;
+            return self.un_subscribe(messageHash.as_str(), name.as_deref().unwrap_or_default(), "public", "unWatchTickers", "ticker", None, &[&Value::from(symbols), &params]).await;
         }
         return Value::Null;
         Value::Null
@@ -1060,12 +1060,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
     pub async fn watch_positions(&mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(symbols), Value::from(since), Value::from(limit), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, Value::from(since), Value::from(limit), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params = get_arg(optional_args, 3, Value::Map({
@@ -1087,14 +1087,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && self.is_empty(Value::from(&cache)).as_bool() == Some(true) {
             let snapshot: Option<crate::pro::cache::Cache> = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await.into();
-            return Value::Arr(self.filter_by_symbols_since_limit(&snapshot, symbols, since, limit, &[Value::Bool(true)]));
+            return Value::Arr(self.filter_by_symbols_since_limit(&snapshot, Value::from(symbols), since, limit, &[Value::Bool(true)]));
         }
         let name: String = "position".to_string();
         let newPositions: Value = self.subscribe(Value::from(name), "private", "watchPositions", None, &[Value::Null, params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return Value::Arr(self.filter_by_symbols_since_limit(&cache, symbols, since, limit, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbols_since_limit(&cache, Value::from(symbols), since, limit, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }

@@ -320,12 +320,12 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
                 "load_multi_sign_address" => self.load_multi_sign_address().await,
                 "load_quote_token" => self.load_quote_token(args.get(0).and_then(crate::Value::as_text).as_deref()).await,
                 "load_trade_market" => self.load_trade_market(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
-                "opinion_order_raw_amounts" => self.opinion_order_raw_amounts(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_i64)),
+                "opinion_order_raw_amounts" => Value::Dict(self.opinion_order_raw_amounts(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_i64))),
                 "opinion_outcome_by_market_id_side" => self.opinion_outcome_by_market_id_side(args.get(0).and_then(crate::Value::as_i64), args.get(1).and_then(crate::Value::as_i64)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_opinion_market" => self.parse_opinion_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
+                "parse_opinion_market" => Value::Dict(self.parse_opinion_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref())),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -702,7 +702,7 @@ impl Opinion {
                         eventsList.push(Value::Dict(event));
                     }
                 }  else {
-                    flatMarkets.push(self.parse_opinion_market(&raw, None));
+                    flatMarkets.push(Value::Dict(self.parse_opinion_market(&raw, None)));
                 }
             }
             }
@@ -752,7 +752,7 @@ impl Opinion {
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-    pub fn parse_opinion_market(&self, raw: impl Into<crate::Value>, eventSlug: Option<&str>) -> Value {
+    pub fn parse_opinion_market(&self, raw: impl Into<crate::Value>, eventSlug: Option<&str>) -> crate::value::Dict {
         let raw: Value = raw.into();
         // {
         //     "chainId": "56",
@@ -834,7 +834,7 @@ impl Opinion {
             expiryTimestamp = self.safe_timestamp_k(&raw, "cutoffAt", &[]).as_i64();
         }
         let created: Option<i64> = self.safe_timestamp_k(&raw, "createdAt", &[]).as_i64();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
@@ -909,7 +909,7 @@ impl Opinion {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1198,7 +1198,7 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < rawChildrenLength } {
-            marketsList.push(self.parse_opinion_market(rawChildren.get(i as usize).cloned().unwrap_or(Value::Null), slug.as_deref()));
+            marketsList.push(Value::Dict(self.parse_opinion_market(rawChildren.get(i as usize).cloned().unwrap_or(Value::Null), slug.as_deref())));
         }
         }
         let statusEnum: Option<String> = self.safe_string_k_opt(&rawEvent, "statusEnum", &[]);
@@ -1723,7 +1723,7 @@ impl Opinion {
         return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(self.safe_string_k(&sig, "r", &[]))).into()), self.remove0x_prefix(self.safe_string_k(&sig, "s", &[]))).into()), self.int_to_base16(self.safe_integer_k(&sig, "v", &[]), &[])));
 }
 
-    pub fn opinion_order_raw_amounts(&self, isMarket: bool, side: &str, amount: Option<f64>, price: Option<f64>, decimals: Option<i64>) -> Value {
+    pub fn opinion_order_raw_amounts(&self, isMarket: bool, side: &str, amount: Option<f64>, price: Option<f64>, decimals: Option<i64>) -> crate::value::Dict {
         let mut decimalsStr: String = "1".to_string();
         if (decimals.is_some()) {
             let mut decimalsCount: Option<i64> = self.parse_to_int(Value::from(decimals));
@@ -1738,7 +1738,7 @@ impl Opinion {
         let amountStr: Option<String> = self.number_to_string(Value::from(amount));
         if isMarket && (side == "BUY") {
             let marketMakerAmountWei: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr, &decimalsStr), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
-            return Value::Map({
+            return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("makerAmount".to_string(), marketMakerAmountWei.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerAmount".to_string(), Value::Str("0".into()));
@@ -1770,14 +1770,14 @@ impl Opinion {
             makerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
             takerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("makerAmount".to_string(), makerAmount.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerAmount".to_string(), takerAmount.map(Value::from).unwrap_or(Value::Null));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1830,7 +1830,7 @@ impl Opinion {
         let topicId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let quoteTokenAddress: Option<String> = self.safe_string_k_opt(&info, "quoteToken", &[]);
         let quoteToken: crate::value::Dict = self.load_quote_token(quoteTokenAddress.as_deref()).await.into_dict();
-        let amounts: crate::value::Dict = self.opinion_order_raw_amounts(isMarket, sideStr.as_str(), Some(amount), price, (self.safe_integer_k(&quoteToken, "decimal", &[Value::Int(18)])).as_i64()).into_dict();
+        let amounts: crate::value::Dict = self.opinion_order_raw_amounts(isMarket, sideStr.as_str(), Some(amount), price, (self.safe_integer_k(&quoteToken, "decimal", &[Value::Int(18)])).as_i64());
         let makerAmount: Option<String> = self.safe_string_k_opt(&amounts, "makerAmount", &[]);
         let takerAmount: Option<String> = self.safe_string_k_opt(&amounts, "takerAmount", &[]);
         let sideInt: i64 = (if (sideStr == "BUY") { 0 } else { 1 });
@@ -2222,7 +2222,7 @@ impl Opinion {
         })]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let data: crate::value::Dict = self.safe_dict_k_t(&result, "data");
-        let market: crate::value::Dict = self.parse_opinion_market(&data, None).into_dict();
+        let market: crate::value::Dict = self.parse_opinion_market(&data, None);
         if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " loadTradeMarket() could not parse market ").into()), idStr)));
         }
@@ -2312,12 +2312,12 @@ impl Opinion {
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let outcomes: Option<Vec<String>> = outcomes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2327,9 +2327,9 @@ impl Opinion {
         }
         self.load_api_key().await;
         let mut outcomesLength: i64 = 0;
-        if (outcomes != Value::Null) {
-            outcomesLength = outcomes.len() as i64;
-            self.load_outcomes(&[outcomes.clone()]).await;
+        if (outcomes.is_some()) {
+            outcomesLength = outcomes.as_ref().map_or(0, Vec::len) as i64;
+            self.load_outcomes(&[Value::from(outcomes.clone())]).await;
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2349,7 +2349,7 @@ impl Opinion {
             m
         });
         // copy to a plain list so the strict null checks see one shape
-        let outcomesList: Option<crate::value::List> = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes }).into_opt_list();
+        let outcomesList: Option<crate::value::List> = (if (outcomes.is_none()) { Value::from(vec![]) } else { Value::from(outcomes) }).into_opt_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;

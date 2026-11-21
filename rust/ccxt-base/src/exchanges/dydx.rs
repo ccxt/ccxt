@@ -617,7 +617,7 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
                     args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
-                "estimate_tx_fee" => self.estimate_tx_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "estimate_tx_fee" => Value::Dict(self.estimate_tx_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -2018,12 +2018,12 @@ impl Dydx {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2071,7 +2071,7 @@ impl Dydx {
         // }
         //
         let rows: crate::value::List = self.safe_list_k_t(&response, "positions");
-        return Value::Arr(self.parse_positions(&rows, &[symbols]));
+        return Value::Arr(self.parse_positions(&rows, &[Value::from(symbols)]));
         Value::Null
         }).await?))
     }
@@ -2878,7 +2878,7 @@ impl Dydx {
         }).await?))
     }
 
-    pub async fn estimate_tx_fee(&mut self, message: impl Into<crate::Value>, memo: Option<&str>, account: impl Into<crate::Value>) -> Value {
+    pub async fn estimate_tx_fee(&mut self, message: impl Into<crate::Value>, memo: Option<&str>, account: impl Into<crate::Value>) -> crate::value::Dict {
         let message: Value = message.into();
         let memo: Value = memo.into();
         let mut account: Value = account.into();
@@ -2937,14 +2937,14 @@ impl Dydx {
                 m.insert("denom".to_string(), denom.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(vec![Value::Map(feeObj)]));
         m.insert("gasLimit".to_string(), gasLimit);
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -3055,7 +3055,7 @@ impl Dydx {
                 m
             });
         }
-        let txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), Some(""), &account).await.into_dict();
+        let txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), Some(""), &account).await;
         let chainName: Option<String> = self.safe_string_k_opt(&self.options, "chainName", &[]);
         let signedTx: Option<String> = self.sign_dydx_tx(self.safe_string_k(&credentials, "privateKey", &[]).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[&Value::Dict(txFee)]);
         let request: indexmap::IndexMap<String, Value> = ({
@@ -3175,7 +3175,7 @@ impl Dydx {
                 m.insert("value".to_string(), Value::Map(payload));
             m
         });
-        let txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.as_deref(), &account).await.into_dict();
+        let txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.as_deref(), &account).await;
         let chainName: Option<String> = self.safe_string_k_opt(&self.options, "chainName", &[]);
         let signedTx: Option<String> = self.sign_dydx_tx(self.safe_string_k(&credentials, "privateKey", &[]).as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), &account, Value::Null, &[&Value::Dict(txFee)]);
         let request: indexmap::IndexMap<String, Value> = ({

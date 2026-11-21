@@ -2438,12 +2438,12 @@ impl Bitteam {
  * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2497,7 +2497,7 @@ impl Bitteam {
             tickers.push(Value::Dict(ticker));
         }
         }
-        return self.filter_by_array_tickers(Value::from(tickers), Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_tickers(Value::from(tickers), Value::Str("symbol".into()), &[Value::from(symbols)]);
         Value::Null
         }).await?))
     }

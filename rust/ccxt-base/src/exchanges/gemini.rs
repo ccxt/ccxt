@@ -2412,12 +2412,12 @@ impl Gemini {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2440,7 +2440,7 @@ impl Gemini {
         //         },
         //     ]
         //
-        let result: Value = self.parse_tickers(&response, &[symbols]);
+        let result: Value = self.parse_tickers(&response, &[Value::from(symbols)]);
         let brokenPairs: crate::value::List = self.safe_list_k_t(&self.options, "brokenPairs");
         return self.remove_keys_from_dict(result, Value::Arr(brokenPairs));
         Value::Null

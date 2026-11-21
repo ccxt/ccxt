@@ -343,15 +343,15 @@ impl crate::exchange::DerivedExchange for Polymarket {
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 let address: Value = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(Value::from).unwrap_or(Value::Null);
-                let timestamp: Value = Value::Str(format!("{}", Value::Int(self.seconds())).into());
+                let timestamp: String = format!("{}", self.seconds());
                 let nonce: i64 = self.safe_integer_k(&params, "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
-                let l1signature: Option<String> = self.sign_clob_auth(address.as_str().unwrap_or_default(), timestamp.as_str().unwrap_or_default(), Value::from(nonce));
+                let l1signature: Option<String> = self.sign_clob_auth(address.as_str().unwrap_or_default(), timestamp.as_str(), Value::from(nonce));
                 let __ws_arg_29 = self.number_to_string(Value::from(nonce));
                 headersValue = self.extend_t(&headersValue, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("POLY_ADDRESS".to_string(), address);
         m.insert("POLY_SIGNATURE".to_string(), l1signature.map(Value::from).unwrap_or(Value::Null));
-        m.insert("POLY_TIMESTAMP".to_string(), timestamp);
+        m.insert("POLY_TIMESTAMP".to_string(), Value::from(timestamp));
         m.insert("POLY_NONCE".to_string(), Value::from(__ws_arg_29));
     m
 })]);
@@ -369,7 +369,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
                 }  else {
                     address = self.walletAddress.clone();
                 }
-                let timestamp: Value = Value::Str(format!("{}", Value::Int(self.seconds())).into());
+                let timestamp: String = format!("{}", self.seconds());
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 let requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), params));
@@ -393,7 +393,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("POLY_API_KEY".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
         m.insert("POLY_PASSPHRASE".to_string(), passphrase.map(Value::from).unwrap_or(Value::Null));
         m.insert("POLY_SIGNATURE".to_string(), Value::from(signature));
-        m.insert("POLY_TIMESTAMP".to_string(), timestamp);
+        m.insert("POLY_TIMESTAMP".to_string(), Value::from(timestamp));
     m
 })]);
             }
@@ -487,7 +487,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "polymarket_order_raw_amounts" => self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_f64)),
+                "polymarket_order_raw_amounts" => Value::Dict(self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_f64))),
                 "set_api_credentials" => Value::Dict(self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -3502,7 +3502,7 @@ impl Polymarket {
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         let cost: Option<f64> = self.safe_number_k(&params, "cost", &[]).as_f64();
         let rest: crate::value::Dict = self.omit_t(&params, &["signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"], &[]);
-        let amounts: crate::value::Dict = self.polymarket_order_raw_amounts(sideStr.as_deref(), amount.as_f64(), priceResolved.as_f64(), tickSize.as_deref(), cost).into_dict();
+        let amounts: crate::value::Dict = self.polymarket_order_raw_amounts(sideStr.as_deref(), amount.as_f64(), priceResolved.as_f64(), tickSize.as_deref(), cost);
         let makerAmount: Option<String> = self.safe_string_k_opt(&amounts, "makerAmount", &[]);
         let takerAmount: Option<String> = self.safe_string_k_opt(&amounts, "takerAmount", &[]);
         let sideInt: i64 = (if (sideStr.as_deref() == Some("BUY")) { 0 } else { 1 });
@@ -3648,7 +3648,7 @@ impl Polymarket {
         }).await?))
     }
 
-    pub fn polymarket_order_raw_amounts(&self, side: Option<&str>, size: Option<f64>, price: Option<f64>, tickSize: Option<&str>, cost: Option<f64>) -> Value {
+    pub fn polymarket_order_raw_amounts(&self, side: Option<&str>, size: Option<f64>, price: Option<f64>, tickSize: Option<&str>, cost: Option<f64>) -> crate::value::Dict {
         let configs: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0.1".to_string(), Value::Map({
@@ -3708,14 +3708,14 @@ impl Polymarket {
         // scale to collateral units (USDC has 6 decimals; shares are also scaled by 1e6)
         let makerAmount: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw, &Value::Str("1000000".into())), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         let takerAmount: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&takerRaw, &Value::Str("1000000".into())), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("makerAmount".to_string(), makerAmount.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerAmount".to_string(), takerAmount.map(Value::from).unwrap_or(Value::Null));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
     pub fn sign_clob_order(&self, message: impl Into<crate::Value>, exchangeAddress: &str, domainVersion: &str, sigType: f64) -> Option<String> {

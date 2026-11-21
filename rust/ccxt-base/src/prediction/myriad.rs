@@ -309,11 +309,11 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
     {
         Box::pin(async move {
             match method {
-                "build_orderbook_order" => self.build_orderbook_order(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
+                "build_orderbook_order" => Value::Dict(self.build_orderbook_order(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "clob_order_message" => self.clob_order_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "clob_order_message" => Value::Dict(self.clob_order_message(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "connect_centrifugo" => self.connect_centrifugo(args.get(0).and_then(crate::Value::as_text).as_deref()).await,
                 "create_amm_order" => self.create_amm_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
                     args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -1221,12 +1221,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let outcomes: Option<Vec<String>> = outcomes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1294,7 +1294,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
             let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_position(self, data.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
-            if (outcomes == Value::Null) || self.in_array(crate::value::KeyRead::key_read(&&position, "outcome"), outcomes.clone()) {
+            if (outcomes.is_none()) || self.in_array(crate::value::KeyRead::key_read(&&position, "outcome"), Value::from(outcomes.clone())) {
                 result.push(Value::Dict(position));
             }
         }
@@ -1553,7 +1553,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        let built: crate::value::Dict = self.build_orderbook_order(outcome, type_var, side, amount.clone(), &[&price, &params]).into_dict();
+        let built: crate::value::Dict = self.build_orderbook_order(outcome, type_var, side, amount.clone(), &[&price, &params]);
         let order: Option<crate::value::Dict> = self.safe_dict_k_o(&built, "order");
         let networkId: Option<String> = self.safe_string_k_opt(&built, "networkId", &[]);
         let timeInForce: Option<String> = self.safe_string_k_opt(&built, "timeInForce", &[]);
@@ -1629,7 +1629,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @description builds and EIP-712 signs a single order-book order; shared by createOrder and createOrders
  * @returns {object} a dict with the signed order, signature, timeInForce and networkId
  */
-    pub fn build_orderbook_order(&self, outcome: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> Value {
+    pub fn build_orderbook_order(&self, outcome: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1688,7 +1688,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let signature: Option<String> = self.sign_clob_order(Value::Map(order.clone()), networkId.as_deref().unwrap_or_default());
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), Value::Map(order));
         m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
@@ -1697,7 +1697,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2050,7 +2050,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @description normalises a fetched order-book order into a typed-data message (uint256 fields as strings, uint8 fields as ints)
  * @returns {object} the typed-data message
  */
-    pub fn clob_order_message(&self, rawOrder: impl Into<crate::Value>) -> Value {
+    pub fn clob_order_message(&self, rawOrder: impl Into<crate::Value>) -> crate::value::Dict {
         let rawOrder: Value = rawOrder.into();
         let mut signer: Option<String> = self.safe_string2_opt(&rawOrder, Value::Str("trader".into()), Value::Str("user".into()), &[]);
         if (self.privateKey != Value::Null) {
@@ -2058,7 +2058,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else {
             signer = self.wallet_address_or_undefined();
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("trader".to_string(), signer.map(Value::from).unwrap_or(Value::Null));
         m.insert("marketId".to_string(), self.safe_string_k(&rawOrder, "marketId", &[]));
@@ -2072,7 +2072,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2414,7 +2414,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (networkId.is_none()) {
             networkId = self.safe_string_k_opt(&self.options, "defaultNetworkId", &[&Value::Str("56".into())]);
         }
-        let message: crate::value::Dict = self.clob_order_message(rawOrder).into_dict();
+        let message: crate::value::Dict = self.clob_order_message(rawOrder);
         let signature: Option<String> = self.sign_clob_order(&message, networkId.as_deref().unwrap_or_default());
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2582,7 +2582,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (fetchedNetworkId.is_some()) {
                 networkId = fetchedNetworkId;
             }
-            let message: crate::value::Dict = self.clob_order_message(rawOrder).into_dict();
+            let message: crate::value::Dict = self.clob_order_message(rawOrder);
             let signature: Option<String> = self.sign_clob_order(&message, networkId.as_deref().unwrap_or_default());
             signedOrders.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5167,20 +5167,20 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn watch_positions(&mut self, outcomes: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(outcomes), Value::from(since), Value::from(limit), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, Value::from(since), Value::from(limit), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let outcomes: Option<Vec<String>> = outcomes;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params = get_arg(optional_args, 3, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        if (outcomes != Value::Null) {
-            self.load_outcomes(&[outcomes.clone()]).await;
+        if (outcomes.is_some()) {
+            self.load_outcomes(&[Value::from(outcomes.clone())]).await;
         }
         let trader: Option<String> = self.wallet_address_from_keys();
         let networkId: String = self.safe_string_k(&self.options, "defaultNetworkId", &[Value::Str("56".into())]).as_str().unwrap_or("56").to_string();
@@ -5210,7 +5210,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if self.newUpdates.as_bool() == Some(true) {
             return Value::from(&positions);
         }
-        return self.filter_by_outcomes_since_limit(Value::from(&positions), &[outcomes, Value::from(since), Value::from(limit), Value::Bool(true)]);
+        return self.filter_by_outcomes_since_limit(Value::from(&positions), &[Value::from(outcomes), Value::from(since), Value::from(limit), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

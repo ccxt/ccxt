@@ -2565,12 +2565,12 @@ impl Krakenfutures {
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2612,7 +2612,7 @@ impl Krakenfutures {
         //    }
         //
         let tickers: Option<crate::value::List> = self.safe_list_k_o(&response, "tickers");
-        return self.parse_tickers(&tickers, &[symbols]);
+        return self.parse_tickers(&tickers, &[Value::from(symbols)]);
         Value::Null
         }).await?))
     }
@@ -3207,10 +3207,10 @@ impl Krakenfutures {
         //         }
         //     }
         //
-        let sendStatus: Value = self.safe_value_k(&response, "sendStatus", &[]);
+        let sendStatus: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "sendStatus");
         let status: Option<String> = self.safe_string_k_opt(&sendStatus, "status", &[]);
         self.verify_order_action_success(status.map(Value::from).unwrap_or(Value::Null), "createOrder", &[&Value::from(vec![Value::Str("filled".into())])]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, sendStatus, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &sendStatus, Some(&market));
         None
         }).await?))
     }
@@ -4543,12 +4543,12 @@ impl Krakenfutures {
  * @returns Parsed exchange response for positions
  */
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4586,7 +4586,7 @@ impl Krakenfutures {
         if (positions.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_not_available(format!("{}{}", self.id, " fetchPositions() returned a response without an \"openPositions\" list")));
         }
-        return Value::Arr(self.parse_positions(&positions, &[symbols]));
+        return Value::Arr(self.parse_positions(&positions, &[Value::from(symbols)]));
         Value::Null
         }).await?))
     }
@@ -4712,12 +4712,12 @@ impl Krakenfutures {
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
     pub async fn fetch_leverage_tiers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::LeverageTiers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4771,7 +4771,7 @@ impl Krakenfutures {
         //    }
         //
         let data: Option<crate::value::List> = self.safe_list_k_o(&response, "instruments");
-        return self.parse_leverage_tiers(&data, &[symbols, Value::Str("symbol".into())]);
+        return self.parse_leverage_tiers(&data, &[Value::from(symbols), Value::Str("symbol".into())]);
         Value::Null
         }).await?))
     }
@@ -4955,12 +4955,12 @@ impl Krakenfutures {
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
     pub async fn fetch_leverages(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Leverages> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4982,7 +4982,7 @@ impl Krakenfutures {
         //     }
         //
         let leveragePreferences: crate::value::List = self.safe_list_k_t(&response, "leveragePreferences");
-        return self.parse_leverages(&leveragePreferences, &[symbols, Value::Str("symbol".into())]);
+        return self.parse_leverages(&leveragePreferences, &[Value::from(symbols), Value::Str("symbol".into())]);
         Value::Null
         }).await?))
     }

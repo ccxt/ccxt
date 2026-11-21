@@ -3188,7 +3188,7 @@ impl Binanceusdm {
     }
 
     /// Auto-generated wrapper for the `eapiPublicGetOpenInterest` implicit endpoint.
-    pub async fn eapi_public_get_open_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+    pub async fn eapi_public_get_open_interest(&mut self, optional_args: &[&Value]) -> Option<crate::value::List> {
         self.call_method_as("eapi_public_get_open_interest", optional_args).await
     }
 

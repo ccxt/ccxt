@@ -366,7 +366,7 @@ impl crate::exchange::DerivedExchange for Luno {
         let comment: String = self.safe_string_k(&entry, "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut before: Option<String> = after.clone();
         let mut amount: Option<String> = Some("0.0".to_string());
-        let result: crate::value::Dict = self.parse_ledger_comment(comment.as_str()).into_dict();
+        let result: crate::value::Dict = self.parse_ledger_comment(comment.as_str());
         let resultType: Option<String> = self.safe_string_k_opt(&result, "type", &[]);
         let resultReferenceId: Option<String> = self.safe_string_k_opt(&result, "referenceId", &[]);
         let mut direction: Option<String> = None;
@@ -583,7 +583,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ledger_comment" => self.parse_ledger_comment(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "parse_ledger_comment" => Value::Dict(self.parse_ledger_comment(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1731,12 +1731,12 @@ impl Luno {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1744,7 +1744,7 @@ impl Luno {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let response: crate::value::Dict = self.call_method_t("public_get_tickers", &[&params]).await;
         let rawTickers: crate::value::List = self.safe_list_k_t(&response, "tickers");
         let tickers: crate::value::Dict = self.index_by(Value::Arr(rawTickers), Value::Str("pair".into()));
@@ -2253,7 +2253,7 @@ impl Luno {
         }).await?))
     }
 
-    pub fn parse_ledger_comment(&self, comment: &str) -> Value {
+    pub fn parse_ledger_comment(&self, comment: &str) -> crate::value::Dict {
         let words: crate::value::List = crate::value::List::new(if let Some(__s) = Some(comment) { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
         let types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2281,14 +2281,14 @@ impl Luno {
         if (type_var.as_deref() == Some("reserved")) && (fourthWord.as_deref() == Some("order")) {
             referenceId = self.safe_string_opt(&words, Value::Int(4), &[]);
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 

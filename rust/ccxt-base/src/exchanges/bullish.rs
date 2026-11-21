@@ -3666,12 +3666,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3685,7 +3685,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::List = self.private_get_v1_derivatives_positions(&[&__ws_arg_24]).await.unwrap_or_default();
-        return self.filter_by_array_positions(Value::Arr(self.parse_positions(&response, &[symbols.clone()])), Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_positions(Value::Arr(self.parse_positions(&response, &[Value::from(symbols.clone())])), Value::Str("symbol".into()), &[Value::from(symbols)]);
         Value::Null
         }).await?))
     }

@@ -3083,7 +3083,7 @@ impl Limitless {
         let decimals: i64 = self.safe_integer_k(&self.options, "usdcDecimals", &[Value::Int(6)]).as_i64().unwrap_or(6);
         let scale: Option<String> = self.number_to_string(Value::Float(f64::powf(10.0, (decimals as f64))));
         if multiply.as_bool() == Some(true) {
-            return crate::precise::Precise::stringMul(&Value::from(amount), &scale.clone().map(Value::from).unwrap_or(Value::Null));
+            return crate::precise::Precise::stringMul(&Value::from(amount), &scale.map(Value::from).unwrap_or(Value::Null));
         }  else {
             return crate::precise::Precise::stringDiv(&Value::from(amount), &scale.map(Value::from).unwrap_or(Value::Null));
         }
@@ -3862,22 +3862,22 @@ if _try_result.is_err() {
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let outcomes: Option<Vec<String>> = outcomes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let mut symbolsLength: i64 = 0;
-        if (outcomes != Value::Null) {
-            symbolsLength = outcomes.len() as i64;
+        if (outcomes.is_some()) {
+            symbolsLength = outcomes.as_ref().map_or(0, Vec::len) as i64;
         }
         if symbolsLength > 0 {
-            self.load_outcomes(&[outcomes]).await;
+            self.load_outcomes(&[Value::from(outcomes)]).await;
         }
         // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
         // labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)

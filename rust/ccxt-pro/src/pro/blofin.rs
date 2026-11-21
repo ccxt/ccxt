@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "get_subscription_request" => self.get_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "get_subscription_request" => Value::Dict(self.get_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -104,7 +104,7 @@ impl Blofin {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "get_subscription_request" => self.get_subscription_request(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
+            "get_subscription_request" => Value::Dict(self.get_subscription_request(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))),
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_funding_rate" => { self.handle_funding_rate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -666,12 +666,12 @@ impl Blofin {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -679,7 +679,7 @@ impl Blofin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsList: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
+        let symbolsList: crate::value::List = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let firstMarket: crate::types::Market = (match self.market((symbolsList.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let channel: String = "tickers".to_string();
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), Some(&firstMarket), &[&params]);
@@ -703,7 +703,7 @@ impl Blofin {
             }));
         }
         }
-        let request: crate::value::Dict = self.get_subscription_request(Value::from(args)).into_dict();
+        let request: crate::value::Dict = self.get_subscription_request(Value::from(args));
         let __ws_arg_0 = self.deep_extend(request, &[&paramsMarketType]);
         let ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_0, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -977,7 +977,7 @@ impl Blofin {
                 m.insert("channel".to_string(), Value::Str("account".into()));
             m
         });
-        let request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(sub)])).into_dict();
+        let request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(sub)]));
         let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
         let url: Option<String> = self.safe_string_k_opt(&typeUrls, "private", &[]);
         let __ws_arg_1 = self.deep_extend(request, &[&paramsMarketType]);
@@ -1310,7 +1310,7 @@ impl Blofin {
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(requestParams)])).into_dict();
+        let request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(requestParams)]));
         let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
         let url: Option<String> = self.safe_string_k_opt(&typeUrls, "public", &[]);
         let __ws_arg_2 = self.deep_extend(request, &[&paramsMarketType]);
@@ -1419,7 +1419,7 @@ impl Blofin {
     m
 })]);
         }
-        let request: crate::value::Dict = self.get_subscription_request(&rawSubscriptions).into_dict();
+        let request: crate::value::Dict = self.get_subscription_request(&rawSubscriptions);
         let mut privateOrPublic: String = "private".to_string();
         if (Some(isPublic) == Some(true)) {
             privateOrPublic = "public".to_string();
@@ -1534,16 +1534,16 @@ impl Blofin {
         }
 }
 
-    pub fn get_subscription_request(&self, args: impl Into<crate::Value>) -> Value {
+    pub fn get_subscription_request(&self, args: impl Into<crate::Value>) -> crate::value::Dict {
         let args: Value = args.into();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("op".to_string(), Value::Str("subscribe".into()));
         m.insert("args".to_string(), args);
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_text_message(&self, mut client: Value, mut message: Value) {

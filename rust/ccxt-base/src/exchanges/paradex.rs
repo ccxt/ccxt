@@ -961,65 +961,64 @@ impl crate::exchange::DerivedExchange for Paradex {
         //
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let partsLength: i64 = parts.len() as i64;
-        let mut base: Value = Value::Null;
-        let mut quote: Value = Value::Null;
-        let mut settle: Value = Value::Null;
-        let mut expiryDate: Value = Value::Null;
-        let mut strike: Value = Value::Null;
-        let mut optionType: Value = Value::Null;
+        let mut base: Option<String> = None;
+        let mut quote: Option<String> = None;
+        let mut settle: Option<String> = None;
+        let mut expiryDate: Option<String> = None;
+        let mut strike: Option<String> = None;
+        let mut optionType: Option<String> = None;
         if symbol.as_str().unwrap_or("").contains("/") {
             if (partsLength != 4) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have market symbol ").into()), symbol)));
             }
             let pair: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
             let pairParts: crate::value::List = crate::value::List::new(if let Some(__s) = pair.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
-            base = self.safe_string(&pairParts, Value::Int(0), &[]);
+            base = self.safe_string_opt(&pairParts, Value::Int(0), &[]);
             let quoteAndSettle: String = self.safe_string(&pairParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let quoteParts: crate::value::List = crate::value::List::new(quoteAndSettle.split(":").map(Value::from).collect());
-            quote = self.safe_string(&quoteParts, Value::Int(0), &[]);
-            settle = self.safe_string(&quoteParts, Value::Int(1), &[quote.clone()]);
-            expiryDate = self.safe_string(&parts, Value::Int(1), &[]);
-            strike = self.safe_string(&parts, Value::Int(2), &[]);
-            optionType = self.safe_string(&parts, Value::Int(3), &[]);
+            quote = self.safe_string_opt(&quoteParts, Value::Int(0), &[]);
+            settle = self.safe_string_opt(&quoteParts, Value::Int(1), &[&quote]);
+            expiryDate = self.safe_string_opt(&parts, Value::Int(1), &[]);
+            strike = self.safe_string_opt(&parts, Value::Int(2), &[]);
+            optionType = self.safe_string_opt(&parts, Value::Int(3), &[]);
         }  else {
             if (partsLength != 5) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have market symbol ").into()), symbol)));
             }
-            base = self.safe_string(&parts, Value::Int(0), &[]);
-            quote = self.safe_string(&parts, Value::Int(1), &[]);
-            settle = Value::Str("USDC".into()); // every option on the venue settles in USDC
-            expiryDate = self.convert_market_id_expire_date(self.safe_string(&parts, Value::Int(2), &[]).as_str());
+            base = self.safe_string_opt(&parts, Value::Int(0), &[]);
+            quote = self.safe_string_opt(&parts, Value::Int(1), &[]);
+            settle = Some("USDC".to_string()); // every option on the venue settles in USDC
+            expiryDate = self.convert_market_id_expire_date(self.safe_string(&parts, Value::Int(2), &[]).as_str()).as_str().map(str::to_owned);
             let strikeId: Option<String> = parts.get(3).and_then(Value::as_str).map(str::to_owned);
-            strike = (if let Some(__s) = strikeId.as_deref() { Some(__s.replace("_", ".")) } else { None }).map(Value::from).unwrap_or(Value::Null);
-            optionType = self.safe_string(&parts, Value::Int(4), &[]);
+            strike = (if let Some(__s) = strikeId.as_deref() { Some(__s.replace("_", ".")) } else { None });
+            optionType = self.safe_string_opt(&parts, Value::Int(4), &[]);
         }
         // the id carries the day without a leading zero, 6NOV26
-        let mut idDate: Value = self.convert_expire_date_to_market_id_date(expiryDate.as_str());
+        let mut idDate: Value = self.convert_expire_date_to_market_id_date(expiryDate.as_deref());
         if (idDate.as_str().unwrap_or("").starts_with("0")) {
             idDate = idDate.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
         // the id names the expiry day only, the hour depends on the underlying
-        let datetime: Option<String> = self.convert_expire_date(expiryDate.as_str()).as_str().map(str::to_owned);
+        let datetime: Option<String> = self.convert_expire_date(expiryDate.as_deref()).as_str().map(str::to_owned);
         let timestamp: Value = Value::from(self.parse8601(Value::from(datetime.as_deref())));
         let mut active: Option<bool> = None;
         if (timestamp != Value::Null) && (self.sum(&[timestamp.clone(), Value::Int(86400000)]).as_f64().unwrap_or(f64::NAN) <= Value::Int(self.milliseconds()).as_f64().unwrap_or(f64::NAN)) {
             active = Some(false);
         }
-        let mut strikeInId: Value = Value::Str("".into());
-        if (strike != Value::Null) {
-            strikeInId = strike.as_str().map(|__s| Value::Str(__s.replace(".", "_").into())).unwrap_or_else(|| strike.clone());
+        let mut strikeInId: Option<String> = Some("".to_string());
+        if (strike.is_some()) {
+            strikeInId = (if let Some(__s) = strike.as_deref() { Some(__s.replace(".", "_")) } else { None });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "-").into()), quote).into()), "-").into()), idDate).into()), "-").into()), strikeInId).into()), "-").into()), optionType).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote).into()), ":").into()),
-            settle).into()), "-").into()), expiryDate).into()), "-").into()), strike).into()), "-").into()), optionType).into()));
-        m.insert("base".to_string(), base.clone());
-        m.insert("quote".to_string(), quote.clone());
-        m.insert("settle".to_string(), settle.clone());
-        m.insert("baseId".to_string(), base);
-        m.insert("quoteId".to_string(), quote);
-        m.insert("settleId".to_string(), settle);
+        m.insert("id".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "-", quote.as_deref().unwrap_or("null"), "-", idDate, "-", strikeInId.map(Value::from).unwrap_or(Value::Null), "-", optionType.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "/", quote.as_deref().unwrap_or("null"), ":", settle.as_deref().unwrap_or("null"), "-", expiryDate.as_deref().unwrap_or("null"), "-", strike.as_deref().unwrap_or("null"), "-", optionType.as_deref().unwrap_or("null")).into()));
+        m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("settle".to_string(), settle.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("baseId".to_string(), base.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+        m.insert("settleId".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("option".into()));
         m.insert("subType".to_string(), Value::Str("linear".into()));
@@ -1034,8 +1033,8 @@ impl crate::exchange::DerivedExchange for Paradex {
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
         m.insert("expiry".to_string(), timestamp);
         m.insert("expiryDatetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-        m.insert("optionType".to_string(), (if (optionType.as_str() == Some("C")) { Value::Str("call".into()) } else { Value::Str("put".into()) }));
-        m.insert("strike".to_string(), self.parse_number(strike, &[]));
+        m.insert("optionType".to_string(), (if (optionType.as_deref() == Some("C")) { Value::Str("call".into()) } else { Value::Str("put".into()) }));
+        m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Null);
@@ -2867,12 +2866,12 @@ impl Paradex {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2880,7 +2879,7 @@ impl Paradex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]));
@@ -3050,12 +3049,12 @@ impl Paradex {
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_rates(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::FundingRates> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3063,7 +3062,7 @@ impl Paradex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]));
@@ -4649,12 +4648,12 @@ impl Paradex {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4663,7 +4662,7 @@ impl Paradex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let response: crate::value::Dict = self.private_get_positions(&[&params]).await.unwrap_or_default();
         //
         //     {
@@ -5408,12 +5407,12 @@ impl Paradex {
  * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
     pub async fn fetch_all_greeks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::AllGreeks> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5421,7 +5420,7 @@ impl Paradex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), self.summary_market_id(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]));

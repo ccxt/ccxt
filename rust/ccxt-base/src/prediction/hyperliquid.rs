@@ -367,7 +367,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "construct_phantom_agent" => self.construct_phantom_agent(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "construct_phantom_agent" => Value::Dict(self.construct_phantom_agent(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -395,7 +395,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "outcome_encoding" => self.outcome_encoding(args.get(0).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_outcome_description" => self.parse_outcome_description(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "parse_outcome_description" => Value::Dict(self.parse_outcome_description(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "parse_outcome_market" => self.parse_outcome_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -683,9 +683,9 @@ impl Hyperliquid {
  * @param {string} description the raw outcome description string
  * @returns {object} a dict of the parsed key/value pairs
  */
-    pub fn parse_outcome_description(&self, description: &str) -> Value {
+    pub fn parse_outcome_description(&self, description: &str) -> crate::value::Dict {
         if (false) || (description == "") {
-            return Value::Map({
+            return std::sync::Arc::new({
     let m = indexmap::IndexMap::new();
     m
 });
@@ -708,9 +708,9 @@ impl Hyperliquid {
             }
         }
         }
-        return Value::Map(result);
+        return std::sync::Arc::new(result);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -790,7 +790,7 @@ impl Hyperliquid {
         }
         let questionDescription: Option<String> = (match question.get("description") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (questionDescription.is_some()) && (questionDescription.as_deref() != Some("")) {
-            let questionDesc: crate::value::Dict = self.parse_outcome_description(questionDescription.as_deref().unwrap_or_default()).into_dict();
+            let questionDesc: crate::value::Dict = self.parse_outcome_description(questionDescription.as_deref().unwrap_or_default());
             let questionClass: Option<String> = self.safe_string_lower_k_opt(&questionDesc, "class", &[]);
             if (questionClass.as_deref() == Some("pricebucket")) {
                 let questionUnderlying: Option<String> = self.safe_string_k_opt(&questionDesc, "underlying", &[]);
@@ -1024,7 +1024,7 @@ impl Hyperliquid {
         let description: String = self.safe_string_k(&outcomeInfo, "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let name: String = self.safe_string_k(&outcomeInfo, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sideSpecs: crate::value::List = self.safe_list_k_t(&outcomeInfo, "sideSpecs");
-        let desc: crate::value::Dict = self.parse_outcome_description(description.as_str()).into_dict();
+        let desc: crate::value::Dict = self.parse_outcome_description(description.as_str());
         let parentSymbol: Value = self.build_outcome_parent_symbol(&desc, outcomeKey.as_str().unwrap_or_default(), &[&Value::from(name.clone()), &question]).map(Value::from).unwrap_or(Value::Null);
         let yesEncoding: Value = self.outcome_encoding(outcomeId.as_f64().unwrap_or_default(), Value::Int(0));
         let noEncoding: Value = self.outcome_encoding(outcomeId.as_f64().unwrap_or_default(), Value::Int(1));
@@ -2178,7 +2178,7 @@ impl Hyperliquid {
         let outcomeInfo: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
         let assetId: Option<i64> = self.safe_integer_k(&outcomeInfo, "assetId", &[]).as_i64();
         let nonce: i64 = self.incrementing_nonce();
-        let clientOrderId: Value = self.safe_value2(&params, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
+        let clientOrderIds: Value = self.safe_string_list(&params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]));
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "client_id"], &[]);
         let mut cancelReq: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut cancelAction: indexmap::IndexMap<String, Value> = ({
@@ -2187,17 +2187,16 @@ impl Hyperliquid {
                 m.insert("cancels".to_string(), Value::from(vec![]));
             m
         });
-        if (clientOrderId != Value::Null) {
-            let cloids: crate::value::List = (if (matches!(&clientOrderId, Value::Arr(_))) { clientOrderId.clone() } else { Value::from(vec![clientOrderId.clone()]) }).into_list();
+        if (clientOrderIds != Value::Null) {
             cancelAction.insert("type".into(), Value::Str("cancelByCloid".into()));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_18: bool = true;
-                while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (cloids.len() as i64) } {
+                while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (clientOrderIds.len() as i64) } {
                 std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), Value::from(assetId));
-                        m.insert("cloid".to_string(), cloids.get(i as usize).cloned().unwrap_or(Value::Null));
+                        m.insert("cloid".to_string(), clientOrderIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                     m
                 }));
             }
@@ -2237,12 +2236,8 @@ impl Hyperliquid {
         let statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
         let outcomeSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[&outcome]);
         let mut requestIds: Value = ids;
-        if (clientOrderId != Value::Null) {
-            if (matches!(&clientOrderId, Value::Arr(_))) {
-                requestIds = clientOrderId.clone();
-            }  else {
-                requestIds = Value::from(vec![clientOrderId.clone()]);
-            }
+        if (clientOrderIds != Value::Null) {
+            requestIds = clientOrderIds.clone();
         }
         let mut orders: Vec<Value> = Vec::new();
         {
@@ -2262,7 +2257,7 @@ impl Hyperliquid {
             let order: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId.clone());
-                    m.insert("clientOrderId".to_string(), (if (clientOrderId != Value::Null) { requestId } else { Value::Null }));
+                    m.insert("clientOrderId".to_string(), (if (clientOrderIds != Value::Null) { requestId } else { Value::Null }));
                     m.insert("info".to_string(), status);
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                     m.insert("outcome".to_string(), Value::from(outcomeSymbol.as_deref()));
@@ -2943,21 +2938,21 @@ impl Hyperliquid {
     Default::default()
 }
 
-    pub fn construct_phantom_agent(&self, hash: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub fn construct_phantom_agent(&self, hash: impl Into<crate::Value>, optional_args: &[&Value]) -> crate::value::Dict {
         let hash: Value = hash.into();
         let isTestnet: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut source: String = "a".to_string();
         if isTestnet {
             source = "b".to_string();
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), Value::from(source));
         m.insert("connectionId".to_string(), hash);
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
     pub fn action_hash(&self, mut action: Value, vaultAddress: Option<&str>, mut nonce: Value) -> Value {
@@ -2981,7 +2976,7 @@ impl Hyperliquid {
         self.check_required_credentials(&[]);
         let hash: Value = self.action_hash(action, vaultAddress, nonce);
         let isTestnet: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
-        let phantomAgent: crate::value::Dict = self.construct_phantom_agent(hash, &[&Value::Bool(isTestnet)]).into_dict();
+        let phantomAgent: crate::value::Dict = self.construct_phantom_agent(hash, &[&Value::Bool(isTestnet)]);
         let zeroAddress: Option<String> = self.safe_string_k_opt(&self.options, "zeroAddress", &[]);
         let domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

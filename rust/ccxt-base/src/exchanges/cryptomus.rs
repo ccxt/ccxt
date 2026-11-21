@@ -515,7 +515,7 @@ impl crate::exchange_generated::ExchangeBase for Cryptomus {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_fee_tiers" => self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_fee_tiers" => Value::Dict(self.parse_fee_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1697,7 +1697,7 @@ impl Cryptomus {
             let m = indexmap::IndexMap::new();
             m
         });
-        let tiers: indexmap::IndexMap<String, Value> = self.parse_fee_tiers(&feeTiers, None).as_map().cloned().unwrap_or_default();
+        let tiers: indexmap::IndexMap<String, Value> = Value::Dict(self.parse_fee_tiers(&feeTiers, None)).as_map().cloned().unwrap_or_default();
         let symbols: Value = Value::Arr(self.symbols.clone());
         if (symbols == Value::Null) {
             return Value::Map(result);
@@ -1725,7 +1725,7 @@ impl Cryptomus {
         }).await?))
     }
 
-    pub fn parse_fee_tiers(&self, feeTiers: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_fee_tiers(&self, feeTiers: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let feeTiers: Value = feeTiers.into();
         let mut takerFees: Vec<Value> = Vec::new();
         let mut makerFees: Vec<Value> = Vec::new();
@@ -1743,14 +1743,14 @@ impl Cryptomus {
             takerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("maker".to_string(), Value::from(makerFees));
         m.insert("taker".to_string(), Value::from(takerFees));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 

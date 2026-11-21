@@ -537,12 +537,12 @@ impl Coinbase {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -550,8 +550,8 @@ impl Coinbase {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Option<crate::value::List> = symbols.clone().into_opt_list();
-        if (symbols == Value::Null) {
+        let mut symbolsResolved: Option<crate::value::List> = Value::from(symbols.clone()).into_opt_list();
+        if (symbols.is_none()) {
             symbolsResolved = Some(self.symbols.clone());
         }
         let name: String = "ticker_batch".to_string();
@@ -580,12 +580,12 @@ impl Coinbase {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn un_watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -593,10 +593,10 @@ impl Coinbase {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        if (symbols == Value::Null) {
+        if (symbols.is_none()) {
             return self.un_subscribe_multiple("ticker", "ticker_batch", &[&Value::Bool(false), &Value::Arr(self.symbols.clone())]).await;
         }
-        return self.un_subscribe_multiple("ticker", "ticker_batch", &[&Value::Bool(false), &symbols]).await;
+        return self.un_subscribe_multiple("ticker", "ticker_batch", &[&Value::Bool(false), &Value::from(symbols)]).await;
         Value::Null
         }).await?))
     }

@@ -737,7 +737,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         let stock: bool = ((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality));
         let category: Option<String> = self.safe_string_k_opt(&market, "category", &[]);
         if (category.is_some()) {
-            let utaMarket: crate::value::Dict = self.parse_uta_market(market.clone(), stock).into_dict();
+            let utaMarket: crate::value::Dict = self.parse_uta_market(market.clone(), stock);
             let __ws_arg_1 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2402,7 +2402,7 @@ impl crate::exchange_generated::ExchangeBase for Bitget {
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_histories" => self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
-                "parse_funding_history" => self.parse_funding_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_history" => Value::Dict(self.parse_funding_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_isolated_borrow_rate" => self.parse_isolated_borrow_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2424,7 +2424,7 @@ impl crate::exchange_generated::ExchangeBase for Bitget {
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_uta_balance" => self.parse_uta_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "parse_uta_market" => self.parse_uta_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy)),
+                "parse_uta_market" => Value::Dict(self.parse_uta_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy))),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "repay_cross_margin" => crate::types::IntoRaw::into_raw(self.repay_cross_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "repay_isolated_margin" => crate::types::IntoRaw::into_raw(self.repay_isolated_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
@@ -8377,7 +8377,7 @@ if _try_result.is_err() {
  * @param {boolean} stock whether the instrument has a stock underlying
  * @returns {object} a unified market
  */
-    pub fn parse_uta_market(&self, mut market: Value, stock: bool) -> Value {
+    pub fn parse_uta_market(&self, mut market: Value, stock: bool) -> crate::value::Dict {
         let category: Option<String> = self.safe_string_k_opt(&market, "category", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
@@ -8469,7 +8469,7 @@ if _try_result.is_err() {
             active = Some((status.as_deref() == Some("online")) || (status.as_deref() == Some("normal")));
         }
         let contractSize: Option<i64> = (if contract { Some(1) } else { None });
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
@@ -8537,7 +8537,7 @@ if _try_result.is_err() {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -14906,12 +14906,12 @@ if _try_result.is_err() {
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
     pub async fn fetch_funding_intervals(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::FundingRates> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -14924,7 +14924,7 @@ if _try_result.is_err() {
                 m.insert("method".to_string(), Value::Str("publicMixGetV2MixMarketCurrentFundRate".into()));
             m
         }), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_funding_rates(symbols.to_opt_str_vec(), Value::Dict(paramsExtended)).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_funding_rates(symbols, Value::Dict(paramsExtended)).await);
         Value::Null
         }).await?))
     }
@@ -15018,7 +15018,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn parse_funding_history(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_funding_history(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let contract: Value = contract.into();
         //
         //     {
@@ -15047,7 +15047,7 @@ if _try_result.is_err() {
         let marketId: Option<String> = self.safe_string_k_opt(&contract, "symbol", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(&contract, "coin", &[]);
         let timestamp: Option<i64> = self.safe_integer2(&contract, Value::Str("cTime".into()), Value::Str("ts".into()), &[]).as_i64();
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("swap".into())]));
@@ -15059,7 +15059,7 @@ if _try_result.is_err() {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
     pub fn parse_funding_histories(&self, contracts: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
@@ -15077,7 +15077,7 @@ if _try_result.is_err() {
             // if (business !== 'contract_settle_fee') {
             //     continue;
             // }
-            let parsedFunding: crate::value::Dict = self.parse_funding_history(&contract, market).into_dict();
+            let parsedFunding: crate::value::Dict = self.parse_funding_history(&contract, market);
             result.push(Value::Dict(parsedFunding));
         }
         }
@@ -15700,12 +15700,12 @@ if _try_result.is_err() {
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
     pub async fn fetch_deposit_withdraw_fees(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::DepositWithdrawFees> {
-        let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let codes = get_arg(optional_args, 0, Value::Null);
+        let codes: Option<Vec<String>> = codes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -15744,7 +15744,7 @@ if _try_result.is_err() {
         //     }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_deposit_withdraw_fees(&data, &[codes, Value::Str("coin".into())]);
+        return self.parse_deposit_withdraw_fees(&data, &[Value::from(codes), Value::Str("coin".into())]);
         Value::Null
         }).await?))
     }

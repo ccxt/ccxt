@@ -1053,11 +1053,11 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "convert_to_big_int_custom" => self.convert_to_big_int_custom(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_signed_request" => self.create_signed_request(&mut { let __m = args.get(0).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
-                    __m }, args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_signed_request" => Value::Dict(self.create_signed_request(&mut { let __m = args.get(0).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
+                    __m }, args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "default_signature" => self.default_signature(),
                 "eip_definitions" => self.eip_definitions(),
-                "eip_domain_data" => self.eip_domain_data(),
+                "eip_domain_data" => Value::Dict(self.eip_domain_data()),
                 "eip_message_for_order" => self.eip_message_for_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "fee_amount_multiplier" => self.fee_amount_multiplier(),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -2266,7 +2266,7 @@ impl Grvt {
                 m.insert("signature".to_string(), self.default_signature());
             m
         });
-        let __ws_arg_1 = self.extend(self.create_signed_request(&mut request, "EIP712_WALLETLOGIN_TYPE", &[]), &[params]);
+        let __ws_arg_1 = self.extend(Value::Dict(self.create_signed_request(&mut request, "EIP712_WALLETLOGIN_TYPE", &[])), &[params]);
         let response: crate::value::Dict = self.private_edge_post_auth_wallet_login(&[&__ws_arg_1]).await.unwrap_or_default();
         //
         //    {
@@ -2334,7 +2334,7 @@ impl Grvt {
                         m.insert("signature".to_string(), self.default_signature());
                     m
                 });
-                let __ws_arg_2 = self.extend(self.create_signed_request(&mut request, "EIP712_BUILDER_APPROVAL_TYPE", &[]), &[params]);
+                let __ws_arg_2 = self.extend(Value::Dict(self.create_signed_request(&mut request, "EIP712_BUILDER_APPROVAL_TYPE", &[])), &[params]);
                 let authResponse: crate::value::Dict = self.private_trading_post_full_v1_authorize_builder(&[&__ws_arg_2]).await.unwrap_or_default();
                 //
                 // {
@@ -3305,7 +3305,7 @@ if _try_result.is_err() {
         });
         let mut response: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_14 = self.extend(self.create_signed_request(&mut request, "EIP712_TRANSFER_TYPE", &[&crate::Value::from(Some(&currency))]), &[&paramsFundingAccountId]);
+            let __ws_arg_14 = self.extend(Value::Dict(self.create_signed_request(&mut request, "EIP712_TRANSFER_TYPE", &[&crate::Value::from(Some(&currency))])), &[&paramsFundingAccountId]);
             response = self.private_trading_post_full_v1_transfer(&[&__ws_arg_14]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
@@ -3439,7 +3439,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("signature".to_string(), Value::Map(withdrawSignature));
             m
         });
-        let __ws_arg_15 = self.extend(self.create_signed_request(&mut request, "EIP712_WITHDRAWAL_TYPE", &[&crate::Value::from(Some(&currency))]), &[&query]);
+        let __ws_arg_15 = self.extend(Value::Dict(self.create_signed_request(&mut request, "EIP712_WITHDRAWAL_TYPE", &[&crate::Value::from(Some(&currency))])), &[&query]);
         let response: crate::value::Dict = self.private_trading_post_full_v1_withdrawal(&[&__ws_arg_15]).await.unwrap_or_default();
         //
         // {
@@ -3624,7 +3624,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             orderRequest.insert("builder_fee".into(), self.safe_string_k(&self.options, "builderRate", &[]));
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsTrigger, &["builderFee"], &[]);
-        let signedOrderRequest: crate::value::Dict = self.create_signed_request(&mut orderRequest, eipType.as_str(), &[]).into_dict();
+        let signedOrderRequest: crate::value::Dict = self.create_signed_request(&mut orderRequest, eipType.as_str(), &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order".to_string(), Value::Dict(signedOrderRequest));
@@ -3883,12 +3883,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3899,7 +3899,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("sub_account_id".to_string(), self.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         if (symbolsNormalized.is_some()) {
             let mut baseIds: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut quoteIds: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -3963,12 +3963,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
     pub async fn fetch_leverages(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Leverages> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3993,7 +3993,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //            },
         //
         let results: crate::value::List = self.safe_list_k_t(&response, "results");
-        return self.parse_leverages(&results, &[symbols]);
+        return self.parse_leverages(&results, &[Value::from(symbols)]);
         Value::Null
         }).await?))
     }
@@ -4050,12 +4050,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
  * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
     pub async fn fetch_margin_modes(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::MarginModes> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4080,7 +4080,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //            },
         //
         let results: crate::value::List = self.safe_list_k_t(&response, "results");
-        return self.parse_leverages(&results, &[symbols]);
+        return self.parse_leverages(&results, &[Value::from(symbols)]);
         Value::Null
         }).await?))
     }
@@ -4624,8 +4624,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }).await?))
     }
 
-    pub fn eip_domain_data(&self) -> Value {
-        return Value::Map({
+    pub fn eip_domain_data(&self) -> crate::value::Dict {
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("GRVT Exchange".into()));
         m.insert("version".to_string(), Value::Str("0".into()));
@@ -4633,7 +4633,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
     pub fn fee_amount_multiplier(&self) -> Value {
@@ -4642,7 +4642,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Value::Null
 }
 
-    pub fn create_signed_request(&self, request: &mut indexmap::IndexMap<String, Value>, structureType: &str, optional_args: &[&Value]) -> Value {
+    pub fn create_signed_request(&self, request: &mut indexmap::IndexMap<String, Value>, structureType: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let currencyObj = get_arg(optional_args, 0, Value::Null);
         let signerAddress = get_arg(optional_args, 1, Value::Null);
         let mut messageData: Value = Value::Null;
@@ -4710,7 +4710,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m
             });
         }
-        let domainData: crate::value::Dict = self.eip_domain_data().into_dict();
+        let domainData: crate::value::Dict = self.eip_domain_data();
         let definitions: indexmap::IndexMap<String, Value> = self.eip_definitions().as_map().cloned().unwrap_or_default();
         let ethEncodedMessage: crate::value::Bytes = self.eth_encode_structured_data(Value::Dict(domainData), definitions.get(Some(structureType).unwrap_or("")).cloned().unwrap_or(Value::Null), messageData);
         let usesPrivKey: bool = self.uses_private_key(); // py transpiler needs this line separated
@@ -4728,9 +4728,9 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("chain_id".to_string(), requestSignature.get("chain_id").cloned().unwrap_or(Value::Null));
     m
 }));
-        return Value::Map(request.clone());
+        return std::sync::Arc::new(request.clone());
 
-    Value::Null
+    Default::default()
 }
 
     pub fn format_signature_rs(&self, value: &str) -> Value {

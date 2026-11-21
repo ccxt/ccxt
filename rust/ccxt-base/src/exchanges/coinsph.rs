@@ -2448,16 +2448,13 @@ impl Coinsph {
         }
         request.insert("newOrderRespType".into(), Value::from(newOrderRespType));
         let paramsRequest: crate::value::Dict = self.omit_t(paramsQuote, Value::Str("price".into()), &[Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("quantity".into()), Value::Str("quoteOrderQty".into())]);
-        let mut response: crate::value::Dict = std::sync::Arc::new({
-            let m = indexmap::IndexMap::new();
-            m
-        });
+        let mut response: Option<crate::value::Dict> = None;
         if testOrder {
             let __ws_arg_11 = self.extend(&request, &[&paramsRequest]);
-            response = self.private_post_openapi_v1_order_test(&[&__ws_arg_11]).await.unwrap_or_default();
+            response = self.private_post_openapi_v1_order_test(&[&__ws_arg_11]).await;
         }  else {
             let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.private_post_openapi_v1_order(&[&__ws_arg_12]).await.unwrap_or_default();
+            response = self.private_post_openapi_v1_order(&[&__ws_arg_12]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         None

@@ -638,6 +638,22 @@ pub trait ExchangeBase:
     Value::Null
 }
 
+    fn safe_string_list(&self, dictionaryOrList: impl KeyRead, mut keys: Value) -> Value {
+        /*
+         * @ignore
+         * @method
+         * @description a value that is a string or a list of strings by API contract, read as a list (a string becomes a one-element list)
+         * @returns {string[]|undefined}
+         */
+        let str_val: Option<String> = self.safe_string_n_opt(&dictionaryOrList, keys.clone(), &[]);
+        if (str_val.is_some()) {
+            return Value::from(vec![str_val.map(Value::from).unwrap_or(Value::Null)]);
+        }
+        return self.safe_list_n(&dictionaryOrList, keys, &[]);
+
+    Value::Null
+}
+
     fn safe_list(&self, dictionaryOrList: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
         let defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
@@ -736,12 +752,12 @@ pub trait ExchangeBase:
     fn find_timeframe(&self, mut timeframe: Value, optional_args: &[Value]) -> Option<String> {
         let timeframes = get_arg(optional_args, 0, Value::Null);
         let timeframesResolved: Value = (if (timeframes == Value::Null) { Value::from(&self.timeframes) } else { timeframes });
-        let keys: Vec<Value> = object_keys(&timeframesResolved).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<&str> = timeframesResolved.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_75: bool = true;
             while { if !__for_first_75 { i += 1; } __for_first_75 = false; i < (keys.len() as i64) } {
-            let key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let key: Option<String> = keys.get(i as usize).copied().map(str::to_owned);
             if is_equal(&(if let (Some(__m), Some(__k)) = (timeframesResolved.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe) {
                 return key;
             }
@@ -2567,7 +2583,7 @@ pub trait ExchangeBase:
             if (defaultValue != Value::Null) {
                 return defaultValue;
             }
-            return get_value(&methodsContainer, &methodName);
+            return (if let (Some(__m), Some(__k)) = (methodsContainer.as_map(), methodName.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }
         let methodDict: Value = self.safe_dict(&methodsContainer, methodName, &[]);
         if (methodDict == Value::Null) {
@@ -3408,7 +3424,7 @@ pub trait ExchangeBase:
                                 let mut j: i64 = 0;
                 let mut __for_first_96: bool = true;
                 while { if !__for_first_96 { j += 1; } __for_first_96 = false; j < (entryFees.len() as i64) } {
-                { let __be_tmp = self.safe_number(get_value(&entryFees, &Value::Int(j)), Value::Str("cost".into()), &[]); add_element_to_object(get_value_mut(&mut entryFees, &Value::Int(j)), &Value::Str("cost".into()), __be_tmp); }
+                { let __be_tmp = self.safe_number(get_value(&entryFees, &Value::Int(j)), Value::Str("cost".into()), &[]); if let Value::Arr(__a) = &mut entryFees { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(j as usize) { std::sync::Arc::make_mut(__d).insert("cost".into(), Value::from(__be_tmp)); } } }
             }
             }
             add_element_to_object(&mut entry, &Value::Str("fees".into()), entryFees);
@@ -7610,7 +7626,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let marketsById: Value = Value::from(&self.markets_by_id);
         if (matches!((&markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return get_value(&markets, &symbol);
+            return (if let (Some(__m), Some(__k)) = (markets.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else if (marketsById != Value::Null) && (matches!((&marketsById, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let __marketsById = self.markets_by_id_typed();
             let mut marketsList: &[crate::types::Market] = __marketsById.records_by_id(symbol.as_str().unwrap_or_default()).unwrap_or_default();
@@ -7735,7 +7751,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             precision = self.safe_value_k(&networkItem, "precision", &[precision.clone()]);
         }
         if (precision == Value::Null) {
-            return self.force_string(fee.clone()).as_str().map(str::to_owned);
+            return self.force_string(fee).as_str().map(str::to_owned);
         }  else {
             let roundingMode: Value = self.safe_integer_k(&self.options, "currencyToPrecisionRoundingMode", &[Value::Int(crate::runtime::ROUND)]);
             return self.decimal_to_precision(fee, roundingMode, precision, &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
@@ -9670,26 +9686,51 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         // the value of greeks is either a dict or a list
         //
-        let mut results: Vec<Value> = Vec::new();
         if (matches!(&greeks, Value::Arr(_))) {
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_170: bool = true;
-                while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (greeks.len() as i64) } {
-                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, greeks.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), None), &[&params]));
-            }
-            }
-        }  else {
-            let marketIds: Vec<Value> = object_keys(&greeks).as_array().cloned().unwrap_or_default();
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_171: bool = true;
-                while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (marketIds.len() as i64) } {
-                let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-                let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, get_value(&greeks, marketId.as_deref()), Some(&market)), &[&params]));
-            }
-            }
+            return self.parse_all_greeks_list(greeks, &[symbols, params]);
+        }
+        return self.parse_all_greeks_dict(greeks, &[symbols, params]);
+
+    Value::Null
+}
+
+    fn parse_all_greeks_list(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params = get_arg(optional_args, 1, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
+        let __greeks_empty = Vec::new();
+        let greeks = greeks.as_array().unwrap_or(&__greeks_empty);
+        let mut results: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_170: bool = true;
+            while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (greeks.len() as i64) } {
+            results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, greeks.get(i as usize).cloned().unwrap_or(Value::Null), None), &[&params]));
+        }
+        }
+        return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr), &[Value::Bool(false)]), Value::Str("symbol".into())));
+
+    Value::Null
+}
+
+    fn parse_all_greeks_dict(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params = get_arg(optional_args, 1, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
+        let mut results: Vec<Value> = Vec::new();
+        let marketIds: Vec<Value> = object_keys(&greeks).as_array().cloned().unwrap_or_default();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_171: bool = true;
+            while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (marketIds.len() as i64) } {
+            let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+            let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
+            results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, (if let (Some(__m), Some(__k)) = (greeks.as_map(), marketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Some(&market)), &[&params]));
+        }
         }
         return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr), &[Value::Bool(false)]), Value::Str("symbol".into())));
 
@@ -13451,6 +13492,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_adl_rank" => <Self as crate::exchange_generated::ExchangeBase>::parse_adl_rank(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_adl_ranks" => self.parse_adl_ranks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_all_greeks" => self.parse_all_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_all_greeks_dict" => self.parse_all_greeks_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_all_greeks_list" => self.parse_all_greeks_list(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_balance" => <Self as crate::exchange_generated::ExchangeBase>::parse_balance(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_borrow_interest" => <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_borrow_interests" => Value::Arr(self.parse_borrow_interests(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),

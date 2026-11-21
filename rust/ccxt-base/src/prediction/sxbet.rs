@@ -277,10 +277,10 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_settlement" => Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_sxbet_cancel_response" => Value::Arr(self.parse_sxbet_cancel_response(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_sxbet_market" => self.parse_sxbet_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sxbet_snapshot_best_odds" => self.parse_sxbet_snapshot_best_odds(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sxbet_market" => Value::Dict(self.parse_sxbet_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_sxbet_snapshot_best_odds" => Value::Dict(self.parse_sxbet_snapshot_best_odds(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_sxbet_tickers_by_hash" => self.parse_sxbet_tickers_by_hash(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sxbet_v3_book_sides" => self.parse_sxbet_v3_book_sides(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy)),
+                "parse_sxbet_v3_book_sides" => Value::Dict(self.parse_sxbet_v3_book_sides(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy))),
                 "parse_sxbet_v3_fill" => self.parse_sxbet_v3_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_sxbet_v3_position" => self.parse_sxbet_v3_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_v3_public_trade" => self.parse_sxbet_v3_public_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -644,7 +644,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < rawMarketsLength } {
-            markets.push(self.parse_sxbet_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null)));
+            markets.push(Value::Dict(self.parse_sxbet_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null))));
         }
         }
         let marketsLength: i64 = markets.len() as i64;
@@ -748,7 +748,7 @@ impl Sxbet {
  * @param {object} raw the raw sx.bet market object
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-    pub fn parse_sxbet_market(&self, mut raw: Value) -> Value {
+    pub fn parse_sxbet_market(&self, mut raw: Value) -> crate::value::Dict {
         //
         //     {
         //         "status": "ACTIVE",
@@ -816,7 +816,7 @@ impl Sxbet {
             }));
         }
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(marketHash.as_str()));
         m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
@@ -891,7 +891,7 @@ impl Sxbet {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1148,7 +1148,7 @@ impl Sxbet {
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < rawMarketsLength } {
             let raw: crate::value::Dict = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let parsed: crate::value::Dict = self.parse_sxbet_market(Value::from(&raw)).into_dict();
+            let parsed: crate::value::Dict = self.parse_sxbet_market(Value::from(&raw));
             if (false) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseEvent() could not resolve parsed market")));
             }
@@ -2446,19 +2446,19 @@ impl Sxbet {
  * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
     pub async fn fetch_positions(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let outcomes: Option<Vec<String>> = outcomes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
         // copy to a plain list so the transpilers and the strict null checks see one shape
-        let outcomesList: Value = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes });
+        let outcomesList: Value = (if (outcomes.is_none()) { Value::from(vec![]) } else { Value::from(outcomes) });
         let outcomesLength: i64 = outcomesList.len() as i64;
         let mut wantedMarkets: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -2768,7 +2768,7 @@ impl Sxbet {
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
         let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await.into_dict();
-        let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot).into_dict();
+        let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot);
         return self.parse_prediction_ticker(&raw, outcomeObj.as_ref());
         Value::Null
         }).await?))
@@ -2810,7 +2810,7 @@ impl Sxbet {
  * @param {object} snapshot the raw snapshot data
  * @returns {object} the best-odds shaped dict
  */
-    pub fn parse_sxbet_snapshot_best_odds(&self, snapshot: impl Into<crate::Value>) -> Value {
+    pub fn parse_sxbet_snapshot_best_odds(&self, snapshot: impl Into<crate::Value>) -> crate::value::Dict {
         let mut snapshot: Value = snapshot.into();
         let __snapshot_empty = indexmap::IndexMap::new();
         let snapshot = snapshot.as_map().unwrap_or(&__snapshot_empty);
@@ -2819,7 +2819,7 @@ impl Sxbet {
         let twoLevels: crate::value::List = snapshot.key_list("outcomeTwo");
         let bestOne: crate::value::Dict = self.safe_dict_t(&oneLevels, Value::Int(0));
         let bestTwo: crate::value::Dict = self.safe_dict_t(&twoLevels, Value::Int(0));
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("marketHash".to_string(), (match snapshot.get("marketHash") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("outcomeOne".to_string(), Value::Map({
@@ -2835,7 +2835,7 @@ impl Sxbet {
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2848,20 +2848,20 @@ impl Sxbet {
  * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
     pub async fn fetch_tickers(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let outcomes: Option<Vec<String>> = outcomes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        if (outcomes == Value::Null) {
+        if (outcomes.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list")));
         }
-        let outcomesList: Option<crate::value::List> = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes }).into_opt_list();
+        let outcomesList: Option<crate::value::List> = (if (outcomes.is_none()) { Value::from(vec![]) } else { Value::from(outcomes) }).into_opt_list();
         let outcomesLength: i64 = outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         let mut hashesOrder: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut seenHashes: indexmap::IndexMap<String, Value> = ({
@@ -2897,7 +2897,7 @@ impl Sxbet {
                 while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < hashesLength } {
                 let marketHash: Option<String> = hashesOrder.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await.into_dict();
-                rowsByHash.insert(marketHash.as_deref().unwrap_or("null").to_string(), self.parse_sxbet_snapshot_best_odds(&snapshot));
+                rowsByHash.insert(marketHash.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_sxbet_snapshot_best_odds(&snapshot)));
             }
             }
             return self.parse_sxbet_tickers_by_hash(outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Map(rowsByHash));
@@ -3091,7 +3091,7 @@ impl Sxbet {
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.sxbet_public_get_orderbook_v3_snapshot(&[&__ws_arg_18]).await.unwrap_or_default();
         let snapshot: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(&snapshot, isOutcomeOne).into_dict();
+        let sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(&snapshot, isOutcomeOne);
         let mut sortedBids: crate::value::List = self.safe_list_k_t(&sides, "bids");
         let mut sortedAsks: crate::value::List = self.safe_list_k_t(&sides, "asks");
         if (limit.is_some()) {
@@ -3128,7 +3128,7 @@ impl Sxbet {
  * @param {boolean} isOutcomeOne whether the book is built for the market's outcome one
  * @returns {object} a dict with sorted 'bids' and 'asks' lists
  */
-    pub fn parse_sxbet_v3_book_sides(&self, snapshot: impl Into<crate::Value>, isOutcomeOne: bool) -> Value {
+    pub fn parse_sxbet_v3_book_sides(&self, snapshot: impl Into<crate::Value>, isOutcomeOne: bool) -> crate::value::Dict {
         let mut snapshot: Value = snapshot.into();
         let __snapshot_empty = indexmap::IndexMap::new();
         let snapshot = snapshot.as_map().unwrap_or(&__snapshot_empty);
@@ -3168,14 +3168,14 @@ impl Sxbet {
             asks.push(Value::from(vec![Value::from(price), Value::from(amount)]));
         }
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("bids".to_string(), self.sort_by(Value::from(bids), Value::Int(0), &[Value::Bool(true)]));
         m.insert("asks".to_string(), self.sort_by(Value::from(asks), Value::Int(0), &[]));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
     pub fn set_ws_option(&mut self, group: &str, key: &str, mut value: Value) {
@@ -3521,7 +3521,7 @@ impl Sxbet {
             let outcomeObj: Option<crate::types::Market> = self.outcome(sym.as_deref());
             let outcomeId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
             let isOutcomeOne: bool = outcomeId == marketHash;
-            let sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne).into_dict();
+            let sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne);
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&sym);
             if (orderbook.is_none()) {
                 orderbook = Some(self.order_book(&[Value::Map({
@@ -3618,7 +3618,7 @@ impl Sxbet {
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await.into_dict();
-            let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot).into_dict();
+            let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot);
             let ticker: Value = self.parse_prediction_ticker(&raw, outcomeObj.as_ref());
             self.set_ws_option("wsTickers", sym.as_str(), ticker);
             hydrated = true;
