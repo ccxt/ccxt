@@ -856,11 +856,11 @@ export default class blofin extends blofinRest {
             for (let i = 0; i < symbols.length; i++) {
                 const current = symbols[i];
                 let market: Market = undefined;
-                let channel = channelName;
+                let channel: string = channelName;
                 if (isOHLCV) {
                     market = this.market (current);
-                    const tf = this.safeString (this.safeList (symbolsArray, i), 1);
-                    const interval = this.safeString (this.timeframes, tf, tf);
+                    const tf: string = this.safeString (this.safeList (symbolsArray, i), 1, '');
+                    const interval: string = this.safeString (this.timeframes, tf, tf);
                     channel = channel + interval;
                 } else {
                     market = this.market (current);
@@ -912,10 +912,10 @@ export default class blofin extends blofinRest {
         const messageHashes: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (this.safeString (symbols, i));
-            let channel = channelName;
+            let channel: string = channelName;
             if (isOHLCV) {
-                const tf = this.safeString (this.safeList (symbolsArray, i), 1);
-                const interval = this.safeString (this.timeframes, tf, tf);
+                const tf: string = this.safeString (this.safeList (symbolsArray, i), 1, '');
+                const interval: string = this.safeString (this.timeframes, tf, tf);
                 channel = channel + interval;
             }
             const topic: Dict = {

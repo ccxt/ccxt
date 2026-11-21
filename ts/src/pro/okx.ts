@@ -1916,7 +1916,7 @@ export default class okx extends okxRest {
             access = 'business';
         }
         await this.authenticate ({ 'access': access });
-        let channel: Str = 'orders';
+        let channel: string = 'orders';
         if (isTrigger) {
             channel = 'orders-algo';
         }
@@ -1928,7 +1928,7 @@ export default class okx extends okxRest {
             market = this.market (symbol);
             symbolResolved = market['symbol'];
             type = this.safeString (market, 'type');
-            messageHash = messageHash + '::' + symbolResolved;
+            messageHash = messageHash + '::' + this.safeString (market, 'symbol', '');
         }
         if (type === 'future') {
             type = 'futures';
