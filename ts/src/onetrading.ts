@@ -1613,7 +1613,7 @@ export default class onetrading extends Exchange {
         const request: Dict = {
             'order_id': id,
         };
-        const response: NullableDict = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
+        const response: Dict = await this.privateGetAccountOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "order": {
@@ -1655,7 +1655,7 @@ export default class onetrading extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrder (response as Dict);
+        return this.parseOrder (response);
     }
 
     /**

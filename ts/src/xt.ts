@@ -2743,7 +2743,7 @@ export default class xt extends Exchange {
             }
             request['positionSide'] = requestType;
         }
-        let response: Dict = {};
+        let response: NullableDict = undefined;
         const triggerPrice = this.safeNumber2 (paramsOmitted4, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2 (paramsOmitted4, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2 (paramsOmitted4, 'takeProfit', 'triggerProfitPrice');
@@ -2832,7 +2832,7 @@ export default class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (response as Dict, market);
     }
 
     /**
