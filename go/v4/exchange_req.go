@@ -27,6 +27,13 @@ func mockBodyForUrl(responsesByUrl any, url any) any {
 		fragments = append(fragments, fragment)
 	}
 	sort.Strings(fragments)
+	// an exact parameter-set match first: a narrower key can also appear as a
+	// contiguous substring of a reordered url and would otherwise win
+	for _, fragment := range fragments {
+		if sameQueryInAnyOrder(urlStr, fragment) {
+			return byUrl[fragment]
+		}
+	}
 	for _, fragment := range fragments {
 		if strings.Contains(urlStr, fragment) {
 			return byUrl[fragment]
@@ -60,6 +67,34 @@ func mockBodyForUrl(responsesByUrl any, url any) any {
 		return byUrl[fragments[0]]
 	}
 	return nil
+}
+
+// sameQueryInAnyOrder reports whether a url's query string holds exactly the
+// fragment's '&'-separated parameters, in any order. Go maps do not keep
+// insertion order, so a request can encode "end=…&symbol=…" where a fixture
+// keyed by the whole query expects "symbol=…&end=…", and a plain substring
+// match then misses and serves the wrong page.
+func sameQueryInAnyOrder(url string, fragment string) bool {
+	if !strings.Contains(fragment, "&") {
+		return false
+	}
+	query := url
+	if i := strings.Index(url, "?"); i >= 0 {
+		query = url[i+1:]
+	}
+	got := strings.Split(query, "&")
+	want := strings.Split(fragment, "&")
+	if len(got) != len(want) {
+		return false
+	}
+	sort.Strings(got)
+	sort.Strings(want)
+	for i := range got {
+		if got[i] != want[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any) chan AsyncResult[any] {
