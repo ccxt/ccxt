@@ -1,4 +1,4 @@
-import Transpiler, { alignGoTrailingComments, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installCcxtGoFeeTierLiterals, installFmGo5GP08, installFmGo5OG02, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES, goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest, goHandleErrorsCodeSelfTest } from "ast-transpiler"; // go printer hooks live in ast-transpiler src/go
+import Transpiler, { alignGoTrailingComments, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installNumParams, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installCcxtGoFeeTierLiterals, installFmGo5GP08, installFmGo5OG02, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES, goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest, goHandleErrorsCodeSelfTest } from "ast-transpiler"; // go printer hooks live in ast-transpiler src/go
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
@@ -13557,6 +13557,7 @@ class NewTranspiler {
         installCcxtGoGb05ParamTypes (this.transpiler.goTranspiler);
         installCcxtGoGb11HandleErrorsCode (this.transpiler.goTranspiler);
         installCcxtGoSignTyping (this.transpiler.goTranspiler);
+        installNumParams (this.transpiler.goTranspiler);
         installRfGo5OwnedTables (this.transpiler.goTranspiler);
         installFmGo5G01 (this.transpiler.goTranspiler);
         installFmGo5G04 (this.transpiler.goTranspiler);
