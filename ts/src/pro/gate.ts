@@ -918,10 +918,10 @@ export default class gate extends gateRest {
         if (rawMarketType === 'futures') {
             marketType = 'contract';
         }
-        const result = this.safeValue (message, 'result');
+        const resultList = this.safeList (message, 'result');
         let results: Dict[] = [];
-        if (Array.isArray (result)) {
-            results = this.safeList (message, 'result', []);
+        if (resultList !== undefined) {
+            results = resultList;
         } else {
             const rawTicker = this.safeDict (message, 'result', {});
             results = [ rawTicker ];
@@ -1203,12 +1203,12 @@ export default class gate extends gateRest {
         if (rawMarketType === 'spot') {
             marketType = 'spot';
         }
-        const rawResult = this.safeValue (message, 'result');
+        const resultList = this.safeList (message, 'result');
         let result: Dict[] = [];
-        if (Array.isArray (rawResult)) {
+        if (resultList !== undefined) {
             result = this.safeList (message, 'result', []);
         } else {
-            result = [ rawResult ];
+            result = [ this.safeValue (message, 'result') ];
         }
         const marketIds: Dict = {};
         for (let i = 0; i < result.length; i++) {

@@ -2361,6 +2361,7 @@ export default class bingx extends Exchange {
             //     ]
             // }
             //
+            return this.parseTicker (this.safeDict (response['data'], 0, {}) as Dict, market);
         } else {
             response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, paramsSubType));
             //
@@ -2376,9 +2377,6 @@ export default class bingx extends Exchange {
             //     }
             // }
             //
-        }
-        if (Array.isArray (response['data'])) {
-            return this.parseTicker (this.safeDict (response['data'], 0, {}) as Dict, market);
         }
         return this.parseTicker (response['data'], market);
     }
