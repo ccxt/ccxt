@@ -7981,6 +7981,57 @@ function typeOptionalIntArgs(content: string): string {
     edits.sort((a, b) => b[0] - a[0]);
     let out = content;
     for (const [a, b, r] of edits) out = out.slice(0, a) + r + out.slice(b);
+    return typeOptionalStringListArgs(out);
+}
+// A `symbols` / `codes` / `outcomes` binding whose wrapper took `Option<Vec<String>>` keeps that list: its `__args`
+// slot is left Null, null tests read `is_none()`, a hand-off boxes with `Value::from(V)` exactly as the wrapper did
+// (moved only where the boxed local was moved or at its last use outside loops).
+function typeOptionalStringListArgs(content: string): string {
+    const bind = /^( *)let (?:mut )?(symbols|codes|outcomes) = get_arg\(optional_args, (\d+), Value::Null\);$/gm;
+    const edits: Array<[number, number, string]> = [];
+    for (const m of content.matchAll(bind)) {
+        const v = m[2], at = m.index!, k = Number(m[3]);
+        const fnAt = content.lastIndexOf('\n    ', content.lastIndexOf(' fn ', at));
+        const head = content.slice(fnAt, at);
+        const sig = head.match(/^\n {4}(?:pub )?(?:async )?fn \w+\(([^\n]*)\)[^\n]*\{\n/);
+        if (sig === null || !new RegExp(String.raw`\b${v}: Option<Vec<String>>[,)]`).test(sig[1]) || !head.includes('call_typed(async move {')) continue;
+        const args = head.match(/let __args: Vec<Value> = vec!\[([^\n]*)\];\n/);
+        const req = (head.match(/__it\.next\(\)\.unwrap_or_default\(\)/g) ?? []).length;
+        const elems = args === null ? [] : splitRustArgs(args[1]).map(a => a.trim());
+        if (elems[req + k] !== `Value::from(${v})`) continue;
+        const bodyStart = at + m[0].length;
+        const endRel = content.slice(bodyStart).search(/\n {4}\}\n/);
+        if (endRel < 0) continue;
+        const code = maskText(content.slice(bodyStart, bodyStart + endRel)).replace(/^\s*(?:\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+        // the slot is emptied: nothing else may read `optional_args` but other slots' `get_arg`
+        if ([...code.matchAll(/\boptional_args\b/g)].some(o => !new RegExp(String.raw`^optional_args, (?!${k}\b)\d+,`).test(code.slice(o.index!)) || !code.slice(0, o.index!).endsWith('get_arg('))) continue;
+        const uses = [...code.matchAll(new RegExp(String.raw`(?<![\w.&])(&?)${v}(?![\w"])`, 'g'))];
+        const local: Array<[number, number, string]> = [];
+        let ok = true;
+        uses.forEach((u, i) => {
+            if (!ok) return;
+            const s = u.index!, e = s + u[0].length, tail = code.slice(e, e + 40), before = code.slice(Math.max(0, s - 60), s);
+            const last = i === uses.length - 1 && !/\b(?:while|loop|for)\b/.test(code.slice(0, s));
+            const r = (len: number, t: string) => local.push([bodyStart + s, bodyStart + e + len, t]);
+            const nul = /^ (==|!=) Value::Null\b/.exec(tail);
+            if (u[1] === '&' && last && /^\s*[,\])]/.test(tail) && !before.endsWith('self.is_empty(')) r(0, `&Value::from(${v})`);
+            else if (u[1] === '&' || /^\s*(?:=(?!=)|\+=)/.test(tail) || /\blet (?:mut )?$/.test(before) || /\|[^|]*$/.test(before)) ok = false;
+            else if (nul !== null) r(nul[0].length, `${v}.${nul[1] === '==' ? 'is_none' : 'is_some'}()`);
+            else if (before.endsWith('self.is_empty(') && /^(?:\.clone\(\))?\)/.test(tail)) r(tail.startsWith('.clone()') ? 8 : 0, `&${v}`);
+            else if (tail.startsWith('.to_opt_str_vec()') && last) r(17, v);
+            else if (tail.startsWith('.len()')) r(6, `${v}.as_ref().map_or(0, Vec::len)`);
+            else if (tail.startsWith('.clone()')) r(8, last ? `Value::from(${v})` : `Value::from(${v}.clone())`);
+            else if (/^\s*[,\])}]/.test(tail)) r(0, `Value::from(${v})`);
+            else ok = false;
+        });
+        if (!ok) continue;
+        const argsAt = fnAt + head.indexOf(args![0]);
+        edits.push([argsAt, argsAt + args![0].length, args![0].replace(`vec![${args![1]}]`, `vec![${elems.map((x, i) => (i === req + k ? 'Value::Null' : x)).join(', ')}]`)]);
+        edits.push([at, bodyStart, `${m[1]}let ${v}: Option<Vec<String>> = ${v};`], ...local);
+    }
+    edits.sort((a, b) => b[0] - a[0]);
+    let out = content;
+    for (const [a, b, r] of edits) out = out.slice(0, a) + r + out.slice(b);
     return out;
 }
 // A typed unified method rebinds its `f64` / `Option<f64>` price, amount and cost arguments as the `Value` they were
