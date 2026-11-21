@@ -2631,7 +2631,7 @@ impl Blofin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::Dict = self.public_get_market_tickers(&[&params]).await.unwrap_or_default();
         let tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -4518,7 +4518,7 @@ impl Blofin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::Dict = self.private_get_account_positions(&[&params]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         let result: crate::value::List = self.parse_positions(&data, &[]);
@@ -4651,7 +4651,7 @@ impl Blofin {
         if (marginMode.as_deref() != Some("cross")) && (marginMode.as_deref() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")));
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let marketIds: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5096,7 +5096,7 @@ impl Blofin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let response: crate::value::Dict = self.private_get_account_positions(&[&params]).await.unwrap_or_default();
         //
         //     {

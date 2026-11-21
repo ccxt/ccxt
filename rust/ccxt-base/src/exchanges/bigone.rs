@@ -1894,7 +1894,7 @@ impl Bigone {
             let m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut data: Value = Value::Null;
         if isSpot {
             if (symbolsNormalized.is_some()) {

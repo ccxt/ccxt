@@ -845,7 +845,7 @@ impl Gemini {
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchMultiple requires at least one symbol")));
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]).unwrap_or_default();
         let mut firstMarket: crate::types::Market = (match self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(firstMarket).spot && !((firstMarket).linear == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchMultiple supports only spot or linear-swap symbols")));

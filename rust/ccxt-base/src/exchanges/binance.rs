@@ -11044,7 +11044,7 @@ impl Binance {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         if (symbolsNormalized.is_some()) {
             self.check_no_stock_symbols(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), "fetchBidsAsks");
         }
@@ -11117,7 +11117,7 @@ impl Binance {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let market: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchLastPrices".into()), market.as_ref(), &[&params]);
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
@@ -11169,7 +11169,7 @@ impl Binance {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         if (symbolsNormalized.is_some()) {
             self.check_no_stock_symbols(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), "fetchTickers");
         }
@@ -11188,7 +11188,7 @@ impl Binance {
             let rolling: bool = self.safe_bool_k_opt(&paramsMarketType, "rolling", &[Value::Bool(false)]).unwrap_or(false);
             paramsMarketType = self.omit_t(&paramsMarketType, Value::Str("rolling".into()), &[]);
             if rolling {
-                symbolsNormalized = self.market_symbols(&[std::mem::take(&mut symbolsNormalized).map_or(Value::Null, Value::Arr)]);
+                symbolsNormalized = self.market_symbols(&[&std::mem::take(&mut symbolsNormalized).map_or(Value::Null, Value::Arr)]);
                 let request: crate::value::Dict = std::sync::Arc::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("symbols".to_string(), self.json(self.market_ids(symbolsNormalized.as_deref()).map_or(Value::Null, Value::Arr)));
@@ -11328,7 +11328,7 @@ impl Binance {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let market: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchMarkPrices".into()), market.as_ref(), &[&params, &Value::Str("swap".into())]);
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
@@ -12129,7 +12129,7 @@ impl Binance {
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
-        let symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).unwrap_or_default();
+        let symbols: crate::value::List = self.market_symbols(&[&Value::from(orderSymbols), &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]).unwrap_or_default();
         let mut market: crate::types::Market = (match self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).spot || (market).option {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " editOrders() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders")));
@@ -12260,7 +12260,7 @@ impl Binance {
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
-        let symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).unwrap_or_default();
+        let symbols: crate::value::List = self.market_symbols(&[&Value::from(orderSymbols), &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]).unwrap_or_default();
         let mut market: crate::types::Market = (match self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrders() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders")));
@@ -16250,7 +16250,7 @@ impl Binance {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let defaultType: String = self.safe_string2(&self.options, Value::Str("fetchFundingRates".into()), Value::Str("defaultType".into()), &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
         let type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[&defaultType]);
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".into()), None, &[&params, &Value::Str("linear".into())]);
@@ -17040,7 +17040,7 @@ impl Binance {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -17284,7 +17284,7 @@ impl Binance {
         }
         let mut filterClosed: Option<bool> = (self.handle_option_bool_and_params(&paramsPapi, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)])).0;
         let result: crate::value::List = self.parse_account_positions(&response, &[&filterClosed.map_or(Value::Null, Value::Bool)]);
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
     Value::Null
@@ -17462,7 +17462,7 @@ impl Binance {
             }
         }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -19650,7 +19650,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -19782,7 +19782,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
             let normalizedLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
@@ -20443,7 +20443,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
             let normalizedLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
@@ -20648,7 +20648,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let market: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         let subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("fetchPositionsADLRank".into()), market.as_ref(), &[&params]);
         let subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);

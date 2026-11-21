@@ -793,7 +793,7 @@ impl Poloniex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let name: String = "ticker".to_string();
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let newTickers: Value = self.subscribe(name.as_str(), name.as_str(), false, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
@@ -859,7 +859,7 @@ impl Poloniex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]);
         let name: String = "trades".to_string();
         let url: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketIds: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
@@ -941,7 +941,7 @@ impl Poloniex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]).unwrap_or_default();
         let name: String = "trades".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         {

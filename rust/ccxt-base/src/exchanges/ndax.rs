@@ -2119,7 +2119,7 @@ impl Ndax {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::List = self.public_get_summary(&[&params]).await.unwrap_or_default();
         return self.filter_by_array_tickers(self.parse_tickers(&response, &[]), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null

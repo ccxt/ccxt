@@ -296,7 +296,7 @@ impl Bithumb {
         let generation: Option<i64> = generationparamsGenerationVariable.0;
         let paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.1;
         let isGenerationTwo: bool = generation == Some(2);
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]);
         let symbolsLength: i64 = (if (symbolsNormalized.is_none()) { 0 } else { symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64 });
         if isGenerationTwo && (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchTickers() requires symbols for the generation 2 API")));

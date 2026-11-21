@@ -688,7 +688,7 @@ impl Lighter {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true)]);
         let firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         if (firstMarket.is_some()) && (!matches!(self.safe_bool_k(&firstMarket, "swap", &[Value::Bool(false)]), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchTickers() is only supported for swap markets")));
@@ -756,7 +756,7 @@ impl Lighter {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true)]);
         let firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         if (firstMarket.is_some()) && (!matches!(self.safe_bool_k(&firstMarket, "swap", &[Value::Bool(false)]), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " unWatchTickers() is only supported for swap markets")));

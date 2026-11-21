@@ -2514,6 +2514,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         let byteLength: Option<i64> = self.parse_to_int((match ((Value::Int(hex.len() as i64)).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        if (byteLength.is_none()) {
+            return Value::Str("".into());
+        }
         if (byteLength == Some(0)) {
             return Value::Str("80".into());
         }
@@ -2544,6 +2547,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let byteLength: Option<i64> = self.parse_to_int(Value::Float(((((concatenated.chars().count() as i64)) as f64) / 2.0)));
+        if (byteLength.is_none()) {
+            return Value::Str("".into());
+        }
         if (byteLength.is_some() && byteLength < Some(56)) {
             return Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = byteLength { Some(192 + __r) } else { None })), &[]), concatenated).into());
         }

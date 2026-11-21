@@ -333,7 +333,7 @@ impl Coinbase {
         }
         let mut productIds: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
@@ -391,7 +391,7 @@ impl Coinbase {
         let mut productIds: Vec<Value> = Vec::new();
         let mut watchMessageHashes: Vec<Value> = Vec::new();
         let mut unWatchMessageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;

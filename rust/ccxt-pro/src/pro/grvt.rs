@@ -357,7 +357,7 @@ impl Grvt {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut rawHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
@@ -548,7 +548,7 @@ impl Grvt {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut rawHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
@@ -862,7 +862,7 @@ impl Grvt {
         let intervalparamsIntervalVariable = self.handle_option_integer_and_params(&paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]);
         let interval: Option<i64> = intervalparamsIntervalVariable.0;
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut extraPart: Option<String> = None;
         if isSnapshot {
             extraPart = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(format!("{}", Value::from(interval))), Value::Str("-".into())).into()), limitString));
@@ -1148,7 +1148,7 @@ impl Grvt {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let subAccountId: Option<String> = self.parent.get_sub_account_id(params.clone());
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut rawHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_some()) {

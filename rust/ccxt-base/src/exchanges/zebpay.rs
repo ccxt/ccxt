@@ -1643,7 +1643,7 @@ impl Zebpay {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::Dict = self.public_spot_get_v2_market_all_tickers(&[&Value::Dict(paramsMarketType)]).await.unwrap_or_default();
         //
         //     [

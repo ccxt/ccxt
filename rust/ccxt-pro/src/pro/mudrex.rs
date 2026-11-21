@@ -236,7 +236,7 @@ impl Mudrex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut assets: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_some()) {

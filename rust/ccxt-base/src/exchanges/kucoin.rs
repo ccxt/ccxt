@@ -6152,7 +6152,7 @@ impl Kucoin {
             let m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]).map_or(Value::Null, Value::Arr);
+        let mut symbolsNormalized: Value = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true)]).map_or(Value::Null, Value::Arr);
         let uta: bool = false;
         let utaOptionparamsUtaVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTickers".into()), Value::Str("uta".into()), &[Value::Bool(uta)]);
         let utaOption: bool = utaOptionparamsUtaVariable.0 == Some(true);
@@ -6316,7 +6316,7 @@ impl Kucoin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.market_symbols(&[symbols]);
+        self.market_symbols(&[&symbols]);
         let response: crate::value::Dict = self.public_get_mark_price_all_symbols(&[&params]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_tickers(&data, &[]);
@@ -8154,12 +8154,11 @@ impl Kucoin {
         }
         let mut isSpot: bool = false;
         let mut isContract: bool = false;
-        let ordersList: crate::value::List = self.to_array_t(orders.clone());
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (ordersList.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&ordersList, Value::Int(i));
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (orders.len() as i64) } {
+            let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             if (symbol.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrders() requires a symbol for each order")));
@@ -8214,12 +8213,11 @@ impl Kucoin {
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut symbol: Option<String> = None;
-        let ordersList: crate::value::List = self.to_array_t(orders);
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
-            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (ordersList.len() as i64) } {
-            let rawOrder: crate::value::Dict = self.safe_dict_t(&ordersList, Value::Int(i));
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (orders.len() as i64) } {
+            let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (marketId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrders() requires a symbol for each order")));
@@ -8333,12 +8331,11 @@ impl Kucoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
-        let ordersList: crate::value::List = self.to_array_t(orders);
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (ordersList.len() as i64) } {
-            let rawOrder: crate::value::Dict = self.safe_dict_t(&ordersList, Value::Int(i));
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (orders.len() as i64) } {
+            let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrders() requires a symbol for each order")));
@@ -14153,7 +14150,7 @@ impl Kucoin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::Dict = self.uta_v2_get_market_funding_rate(&[&params]).await.unwrap_or_default();
         //
         //     {
@@ -14665,7 +14662,7 @@ impl Kucoin {
             let m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         if (symbolsNormalized.is_some()) {
             let length: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (length == 1) {
@@ -15392,7 +15389,7 @@ impl Kucoin {
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchLeverageTiers() requires a symbols argument")));
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(false), Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Str("swap".into()), &Value::Bool(false), &Value::Bool(true)]);
         let marginModeparamsRequestVariable = self.handle_option_string_and_params(params, Value::Str("fetchLeverageTiers".into()), Value::Str("marginMode".into()), &[Value::Str("cross".into())]);
         let marginMode: Option<String> = marginModeparamsRequestVariable.0.as_str().map(str::to_owned);
         let paramsRequest: crate::value::Dict = marginModeparamsRequestVariable.1;
@@ -15484,7 +15481,7 @@ impl Kucoin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -15775,7 +15772,7 @@ impl Kucoin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let response: crate::value::Dict = self.futures_private_get_positions(&[&params]).await.unwrap_or_default();
         //
         //     {

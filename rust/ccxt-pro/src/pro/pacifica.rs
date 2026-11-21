@@ -964,7 +964,7 @@ impl Pacifica {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true)]);
         let messageHash: String = "tickers".to_string();
         let isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
@@ -1020,7 +1020,7 @@ impl Pacifica {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true)]);
         let subMessageHash: String = "tickers".to_string();
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);

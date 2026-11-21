@@ -507,7 +507,7 @@ impl Modetrade {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let name: String = "tickers".to_string();
         let topic: String = name;
         let request: indexmap::IndexMap<String, Value> = ({
@@ -591,7 +591,7 @@ impl Modetrade {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let name: String = "bbos".to_string();
         let topic: String = name;
         let request: indexmap::IndexMap<String, Value> = ({
@@ -1476,7 +1476,7 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHashes: Vec<Value> = Vec::new();
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         if (symbolsNormalized.is_some()) && !(self.is_empty(&symbolsNormalized).as_bool() == Some(true)) {
             {
                                 let mut i: i64 = 0;

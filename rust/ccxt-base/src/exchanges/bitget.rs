@@ -11441,8 +11441,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
-        let firstOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(0));
-        let mut symbol: Option<String> = self.safe_string_k_opt(&firstOrder, "symbol", &[]);
+        let mut symbol: Option<String> = None;
         let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
@@ -11533,8 +11532,7 @@ if _try_result.is_err() {
             return self.create_uta_orders(orders.clone(), &[&Value::from(&paramsUTA)]).await;
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
-        let firstOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(0));
-        let mut symbol: Option<String> = self.safe_string_k_opt(&firstOrder, "symbol", &[]);
+        let mut symbol: Option<String> = None;
         let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
@@ -14577,7 +14575,7 @@ if _try_result.is_err() {
             result.push(Value::Dict(parsedPosition));
         }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -14888,7 +14886,7 @@ if _try_result.is_err() {
             let __ws_arg_119 = self.extend(Value::Map(request), &[&paramsMethod]);
             response = self.public_mix_get_v2_mix_market_current_fund_rate(&[&__ws_arg_119]).await;
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_funding_rates(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null

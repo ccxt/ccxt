@@ -328,7 +328,7 @@ impl Hitbtc {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut isBatch: bool = name.to_string().contains("batch");
         let resolvedPerSymbol: bool = (!(isBatch) || (messageHashPrefix == "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
@@ -714,7 +714,7 @@ impl Hitbtc {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let methodNameparamsMethodVariable = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchTickers".into())]);
         let methodName: Option<String> = methodNameparamsMethodVariable.0.as_str().map(str::to_owned);
         let paramsMethod: crate::value::Dict = methodNameparamsMethodVariable.1; // watchTicker passes its own name, so options.watchTicker still applies to it
@@ -921,7 +921,7 @@ impl Hitbtc {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchBidsAsks");
         let defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("orderbook/top/{speed}/batch".into())]).as_str().unwrap_or("orderbook/top/{speed}/batch").to_string();
         let method: Option<String> = self.safe_string2_opt(&params, Value::Str("method".into()), Value::Str("defaultMethod".into()), &[&defaultMethod]);

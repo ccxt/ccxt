@@ -573,7 +573,7 @@ impl Cex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]).map_or(Value::Null, Value::Arr);
+        let mut symbolsNormalized: Value = self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr);
         let url: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = "tickers".to_string();
         let message: indexmap::IndexMap<String, Value> = ({

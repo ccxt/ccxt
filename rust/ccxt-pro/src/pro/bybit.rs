@@ -749,7 +749,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsValue: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsValue: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let mut messageHashes: Vec<Value> = Vec::new();
         let url: Option<String> = self.get_url_by_market_type((symbolsValue.get(0).cloned().unwrap_or(Value::Null)).as_str(), &[&Value::Bool(false), &Value::Str("watchTickers".into()), &params]).await.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = self.clean_params(params).into_dict();
@@ -807,7 +807,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsValue: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsValue: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchTickers");
         let topic: String = self.safe_string_k(&options, "name", &[Value::Str("tickers".into())]).as_str().unwrap_or("tickers").to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1036,7 +1036,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsValue: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsValue: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let mut messageHashes: Vec<Value> = Vec::new();
         let url: Option<String> = self.get_url_by_market_type((symbolsValue.get(0).cloned().unwrap_or(Value::Null)).as_str(), &[&Value::Bool(false), &Value::Str("watchBidsAsks".into()), &params]).await.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = self.clean_params(params).into_dict();
@@ -1084,7 +1084,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsValue: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsValue: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let marketIds: crate::value::List = self.market_ids(Some(&*symbolsValue)).unwrap_or_default();
@@ -1192,7 +1192,7 @@ impl Bybit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let symbols: crate::value::List = self.get_list_from_object_values(&symbolsAndTimeframes, Value::Int(0));
-        let marketSymbols: crate::value::List = self.market_symbols(&[Value::Arr(symbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).unwrap_or_default();
+        let marketSymbols: crate::value::List = self.market_symbols(&[&Value::Arr(symbols), &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]).unwrap_or_default();
         let firstSymbol: Option<String> = marketSymbols.get(0).and_then(Value::as_str).map(str::to_owned);
         let url: Option<String> = self.get_url_by_market_type(firstSymbol.as_deref(), &[&Value::Bool(false), &Value::Str("watchOHLCVForSymbols".into()), &params]).await.as_str().map(str::to_owned);
         let mut rawHashes: Vec<Value> = Vec::new();
@@ -1250,7 +1250,7 @@ impl Bybit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let symbols: crate::value::List = self.get_list_from_object_values(&symbolsAndTimeframes, Value::Int(0));
-        let marketSymbols: crate::value::List = self.market_symbols(&[Value::from(&symbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).unwrap_or_default();
+        let marketSymbols: crate::value::List = self.market_symbols(&[&Value::from(&symbols), &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]).unwrap_or_default();
         let firstSymbol: Option<String> = marketSymbols.get(0).and_then(Value::as_str).map(str::to_owned);
         let url: Option<String> = self.get_url_by_market_type(firstSymbol.as_deref(), &[&Value::Bool(false), &Value::Str("watchOHLCVForSymbols".into()), &params]).await.as_str().map(str::to_owned);
         let mut rawHashes: Vec<Value> = Vec::new();
@@ -1454,7 +1454,7 @@ impl Bybit {
         if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")));
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let url: Option<String> = self.get_url_by_market_type((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str(), &[&Value::Bool(false), &Value::Str("watchOrderBook".into()), &params]).await.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = self.clean_params(params).into_dict();
         let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1523,7 +1523,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let mut channel: String = "orderbook.".to_string();
         let limitParam: Option<i64> = self.safe_integer_k(&params, "limit", &[]).as_i64();
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (limitParam.is_some()) { Value::Str("limit".into()) } else { Value::Null }, &[]);
@@ -1738,7 +1738,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchTradesForSymbols() requires a non-empty array of symbols")));
@@ -1795,7 +1795,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]).unwrap_or_default();
         let url: Option<String> = self.get_url_by_market_type((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str(), &[&Value::Bool(false), &Value::Str("unWatchTradesForSymbols".into()), &params]).await.as_str().map(str::to_owned);
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut topics: Vec<Value> = Vec::new();
@@ -2289,7 +2289,7 @@ impl Bybit {
         let mut messageHash: String = "".to_string();
         let mut symbolsNormalized: Value = symbols.clone();
         if (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
-            let marketSymbols: Option<crate::value::List> = self.market_symbols(&[symbols]);
+            let marketSymbols: Option<crate::value::List> = self.market_symbols(&[&symbols]);
             symbolsNormalized = marketSymbols.clone().map_or(Value::Null, Value::Arr);
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(marketSymbols.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }

@@ -488,7 +488,7 @@ impl Weex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]).unwrap_or_default();
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(Some(&*symbolsNormalized));
         let isContract: bool = matches!(firstMarket, Some(crate::types::Market { contract: true, .. }));
         let topic: String = "ticker".to_string();
@@ -574,7 +574,7 @@ impl Weex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]);
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         let isContract: bool = matches!(firstMarket, Some(crate::types::Market { contract: true, .. }));
         let topic: String = "ticker".to_string();
@@ -767,7 +767,7 @@ impl Weex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]).unwrap_or_default();
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(Some(&*symbolsNormalized));
         let isContract: bool = matches!(firstMarket, Some(crate::types::Market { contract: true, .. }));
         let topic: String = "trade".to_string();
@@ -848,7 +848,7 @@ impl Weex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]);
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         let isContract: bool = matches!(firstMarket, Some(crate::types::Market { contract: true, .. }));
         let topic: String = "trade".to_string();
@@ -1329,7 +1329,7 @@ impl Weex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]).unwrap_or_default();
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(Some(&*symbolsNormalized));
         let isContract: bool = matches!(firstMarket, Some(crate::types::Market { contract: true, .. }));
         let callerMethodName: String = self.safe_string_k(&params, "callerMethodName", &[Value::Str("watchOrderBookForSymbols".into())]).as_str().unwrap_or("watchOrderBookForSymbols").to_string();
@@ -1419,7 +1419,7 @@ impl Weex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]);
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         let isContract: bool = matches!(firstMarket, Some(crate::types::Market { contract: true, .. }));
         let callerMethodName: String = self.safe_string_k(&params, "callerMethodName", &[Value::Str("unWatchOrderBookForSymbols".into())]).as_str().unwrap_or("unWatchOrderBookForSymbols").to_string();
@@ -1546,7 +1546,7 @@ impl Weex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]).unwrap_or_default();
         let firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(Some(&*symbolsNormalized));
         if matches!(self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchBidsAsks is supported for spot markets only")));
@@ -1606,7 +1606,7 @@ impl Weex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false), &Value::Bool(true)]);
         let firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(symbolsNormalized.as_deref());
         if matches!(self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " unWatchBidsAsks is supported for spot markets only")));
@@ -2529,7 +2529,7 @@ impl Weex {
         let url: String = format!("{}{}", self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("contract".into()), &[Value::Str("".into())]), Value::Str("/private".into()));
         self.authenticate(url.as_str());
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_str()));
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Str("swap".into()), &Value::Bool(true)]);
         let mut messageHash: String = "positions".to_string();
         let subscriptionHash: String = messageHash.clone();
         if (symbolsNormalized.is_some()) {

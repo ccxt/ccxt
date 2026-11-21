@@ -772,7 +772,7 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true)]);
         let mut messageHash: String = "tickers".to_string();
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -839,7 +839,7 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true)]);
         let subMessageHash: String = "tickers".to_string();
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
@@ -985,7 +985,7 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true)]);
         let mut messageHashes: Vec<Value> = Vec::new();
         if self.is_empty(&symbolsNormalized).as_bool() == Some(true) {
             messageHashes.push(Value::Str("myLiquidations".into()));
@@ -2013,7 +2013,7 @@ impl Hyperliquid {
         let hasSymbols: bool = (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true));
         let mut symbolsNormalized: Option<crate::value::List> = symbols.clone().into_opt_list();
         if hasSymbols {
-            symbolsNormalized = self.market_symbols(&[symbols]);
+            symbolsNormalized = self.market_symbols(&[&symbols]);
         }
         if hasSymbols && (symbolsNormalized.is_some()) {
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into())));

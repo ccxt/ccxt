@@ -3037,7 +3037,7 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::Dict = self.public_get_order_book_details(&[&params]).await.unwrap_or_default();
         let spotTickers: crate::value::List = self.safe_list_k_t(&response, "spot_order_book_details");
         let swapTickers: crate::value::List = self.safe_list_k_t(&response, "order_book_details");

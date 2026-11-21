@@ -756,7 +756,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsResolved: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchOrders".into()), Value::Str("interval".into()), &[Value::Str("raw".into())]);
         let interval: Option<String> = intervalparamsIntervalVariable.0.as_str().map(str::to_owned);
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
@@ -880,7 +880,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsResolved: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchPositions".into()), Value::Str("interval".into()), &[Value::Str("raw".into())]);
         let interval: Option<String> = intervalparamsIntervalVariable.0.as_str().map(str::to_owned);
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
@@ -936,7 +936,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsResolved: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchPositions".into()), Value::Str("interval".into()), &[Value::Str("raw".into())]);
         let interval: Option<String> = intervalparamsIntervalVariable.0.as_str().map(str::to_owned);
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
@@ -1220,7 +1220,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsResolved: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchTickers".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]);
         let interval: Option<String> = intervalparamsIntervalVariable.0.as_str().map(str::to_owned);
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
@@ -1278,7 +1278,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsResolved: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchTickers".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]);
         let interval: Value = intervalparamsIntervalVariable.0;
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
@@ -1437,7 +1437,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsResolved: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         let symbolsLength: i64 = symbolsResolved.len() as i64;
         {
@@ -1488,7 +1488,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsResolved: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let mut channels: Vec<Value> = Vec::new();
         let symbolsLength: i64 = symbolsResolved.len() as i64;
         {
@@ -1818,7 +1818,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsResolved: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchTradesForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]);
         let interval: Option<String> = intervalparamsIntervalVariable.0.as_str().map(str::to_owned);
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
@@ -1899,7 +1899,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsResolved: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchTradesForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]);
         let interval: Value = intervalparamsIntervalVariable.0;
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
@@ -2995,7 +2995,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let result: Value = self.request_ws(Value::Str("private/get_positions".into()), &[&Value::Dict(paramsResolved), &Value::Bool(true)]).await;
         let positions: crate::value::List = self.parse_positions(result, &[]);
         return self.filter_by_array_positions(Value::Arr(positions), Value::Str("symbol".into()), &[symbolsResolved.map_or(Value::Null, Value::Arr)]);

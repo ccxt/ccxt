@@ -170,7 +170,7 @@ impl Upbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let symbolsRequested: Value = (if (symbols == Value::Null) { Value::Arr(self.symbols.clone()) } else { symbols });
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbolsRequested]);
         let marketIds: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
         let url: String = self.implode_params(self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Map({
     let mut m = indexmap::IndexMap::new();

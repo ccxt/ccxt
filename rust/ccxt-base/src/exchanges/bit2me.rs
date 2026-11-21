@@ -1340,7 +1340,7 @@ impl Bit2me {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut marketSymbols: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut marketSymbols: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::List = self.public_get_v2_trading_tickers(&[&params]).await.unwrap_or_default();
         return self.parse_tickers(&response, &[marketSymbols.map_or(Value::Null, Value::Arr)]);
         Value::Null

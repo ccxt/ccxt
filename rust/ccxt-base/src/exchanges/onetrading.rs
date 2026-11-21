@@ -1652,7 +1652,7 @@ impl Onetrading {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::List = self.public_get_market_ticker(&[&params]).await.unwrap_or_default();
         //
         //     [

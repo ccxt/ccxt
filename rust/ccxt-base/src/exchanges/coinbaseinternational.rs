@@ -2558,7 +2558,7 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         if (symbolsResolved.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTickers() requires a symbols argument")));
         }
@@ -3336,7 +3336,7 @@ impl Coinbaseinternational {
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return Value::Arr(self.parse_positions(&result, &[]));
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         return Value::Arr(self.parse_positions(&result, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]));
         Value::Null
         }).await?))

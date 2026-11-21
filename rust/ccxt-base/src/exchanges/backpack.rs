@@ -3000,7 +3000,7 @@ impl Backpack {
         }
         let mut symbolsResolved: Value = Value::Array(self.markets.as_deref().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         if (symbolsLength != 0) {
-            symbolsResolved = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]).map_or(Value::Null, Value::Arr);
+            symbolsResolved = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).map_or(Value::Null, Value::Arr);
         }
         let mut hasRfqSymbol: bool = false;
         let mut hasStockSymbol: bool = false;
@@ -4832,7 +4832,7 @@ impl Backpack {
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return Value::Arr(self.parse_positions(&response, &[]));
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         return Value::Arr(self.parse_positions(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]));
         Value::Null
         }).await?))

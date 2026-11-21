@@ -2073,7 +2073,7 @@ impl Bittrade {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::Dict = self.market_get_tickers(&[&params]).await.unwrap_or_default();
         let tickers: crate::value::List = self.safe_list_k_t(&response, "data");
         let timestamp: Option<i64> = self.safe_integer_k(&response, "ts", &[]).as_i64();

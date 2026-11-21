@@ -1625,7 +1625,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let promises: crate::value::List = std::sync::Arc::new(vec![self.call_method(Value::Str("public_get_info_tickers".into()), &[&params]).await, self.call_method(Value::Str("public_get_info_statistics".into()), &[&params]).await, self.call_method(Value::Str("public_get_info_bbo".into()), &[&params]).await]);
         let responses: crate::value::List = promise_all(&Value::Arr(promises)).await;
         //
@@ -1737,7 +1737,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::List = self.public_get_info_bbo(&[&params]).await.unwrap_or_default();
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
@@ -1993,7 +1993,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::List = self.public_get_info_tickers(&[&params]).await.unwrap_or_default();
         let result: Value = self.parse_funding_rates(&response, &[]);
         return Value::Dict(self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into())));
@@ -2144,7 +2144,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::List = self.public_get_info_tickers(&[&params]).await.unwrap_or_default();
         let result: Value = self.parse_open_interests(&response, &[]);
         return Value::Dict(self.index_by(self.filter_by_array(result, Value::Str("symbol".into()), &symbolsNormalized, &[Value::Bool(false)]), Value::Str("symbol".into())));
@@ -2882,7 +2882,7 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::Dict = self.private_get_account_portfolio(&[&params]).await.unwrap_or_default();
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let rows: crate::value::List = self.safe_list_k_t(&response, "positions");

@@ -2405,18 +2405,19 @@ pub trait ExchangeBase:
                 if (marketType.as_str() == Some("spot")) {
                     { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[]); if let Value::Dict(__d) = &mut self.features { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketType), __be_tmp); } }
                 }  else {
-                    if let Value::Dict(__d) = &mut self.features { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketType), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})); }
+                    let mut subTypeFeatures: indexmap::IndexMap<String, Value> = ({
+                        let m = indexmap::IndexMap::new();
+                        m
+                    });
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_82: bool = true;
                         while { if !__for_first_82 { j += 1; } __for_first_82 = false; j < (subTypes.len() as i64) } {
-                        let subType: Value = subTypes.get(j as usize).cloned().unwrap_or(Value::Null);
-                        { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[subType.clone()]); add_element_to_object(get_value_mut(&mut self.features, &marketType), &subType, __be_tmp); }
+                        let subType: Option<&str> = subTypes.get(j as usize).and_then(Value::as_str);
+                        subTypeFeatures.insert(subType.as_deref().unwrap_or("null").to_string(), self.features_mapper(initialFeatures.clone(), marketType.clone(), &[Value::from(subType.as_deref())]));
                     }
                     }
+                    if let Value::Dict(__d) = &mut self.features { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketType), Value::Map(subTypeFeatures)); }
                 }
             }
         }
@@ -3304,10 +3305,7 @@ pub trait ExchangeBase:
                                 let mut i: i64 = 0;
                 let mut __for_first_95: bool = true;
                 while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < reducedLength } {
-                { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("cost".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("cost".into()), __be_tmp); }
-                if (in_op(&reducedFees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &Value::Str("rate".into()))) {
-                    { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("rate".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("rate".into()), __be_tmp); }
-                }
+                { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &Value::Int(i))); add_element_to_object(&mut reducedFees, &Value::Int(i), __be_tmp); }
             }
             }
             if !parseFee && (reducedLength == 0) {
@@ -3797,7 +3795,7 @@ pub trait ExchangeBase:
             let mut __for_first_102: bool = true;
             while { if !__for_first_102 { i += 1; } __for_first_102 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let value: Value = get_value(&dict, key.as_deref());
+            let value: Value = (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if matches!(&value, Value::Str(_)) {
                 reversed.insert(crate::runtime::stringify_param(&value), Value::from(key.as_deref()));
             }
@@ -4460,7 +4458,7 @@ pub trait ExchangeBase:
 }
 
 // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-    fn market_symbols(&self, optional_args: &[Value]) -> Option<crate::value::List> {
+    fn market_symbols(&self, optional_args: &[&Value]) -> Option<crate::value::List> {
         let symbols = get_arg(optional_args, 0, Value::Null);
         let type_var = get_arg(optional_args, 1, Value::Null);
         let mut allowEmpty = get_arg(optional_args, 2, Value::Bool(true));
@@ -4730,7 +4728,7 @@ pub trait ExchangeBase:
         let isIndexedByUnifiedNetworkCode = get_arg(optional_args, 0, Value::Bool(false));
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let mut chosenNetworkId: Value = Value::Null;
-        let availableNetworkIds: crate::value::List = object_keys(&indexedNetworkEntries).into_list();
+        let availableNetworkIds: crate::value::List = crate::value::List::new(indexedNetworkEntries.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect());
         let responseNetworksLength: i64 = availableNetworkIds.len() as i64;
         if (networkCode != Value::Null) {
             if (responseNetworksLength == 0) {
@@ -4855,7 +4853,7 @@ pub trait ExchangeBase:
         let symbols = get_arg(optional_args, 0, Value::Null);
         let marketIdKey = get_arg(optional_args, 1, Value::Null);
         // marketIdKey should only be undefined when response is a dictionary.
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut tiers: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -5270,7 +5268,7 @@ pub trait ExchangeBase:
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let positionsArray: crate::value::List = self.to_array_t(positions);
         let mut result: Vec<Value> = Vec::new();
         {
@@ -5303,7 +5301,7 @@ pub trait ExchangeBase:
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let ranksArray: crate::value::List = self.to_array_t(ranks);
         let mut result: Vec<Value> = Vec::new();
         {
@@ -5928,11 +5926,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let prevCandle: crate::value::List = self.safe_list_t(&ohlcvs, &candle);
                 let prevHigh: Value = self.safe_value(&prevCandle, &i_high, &[]);
                 let prevLow: Value = self.safe_value(&prevCandle, &i_low, &[]);
-                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_high, crate::runtime::Math::max(&(if (prevHigh == Value::Null) { price.clone() } else { prevHigh }), &price));
-                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_low, crate::runtime::Math::min(&(if (prevLow == Value::Null) { price.clone() } else { prevLow }), &price));
-                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_close, price);
-                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_volume, self.sum(&[self.safe_value(&prevCandle, &i_volume, &[]), trade.get("amount").cloned().unwrap_or(Value::Null)]));
-                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_count, self.sum(&[self.safe_value(&prevCandle, &i_count, &[]), Value::Int(1)]));
+                if let (Value::Arr(__a), Value::Int(__c)) = (&mut ohlcvs, &candle) { if let Some(Value::Arr(__r)) = std::sync::Arc::make_mut(__a).get_mut(*__c as usize) { std::sync::Arc::make_mut(__r)[2] = Value::from(crate::runtime::Math::max(&(if (prevHigh == Value::Null) { price.clone() } else { prevHigh }), &price)); } }
+                if let (Value::Arr(__a), Value::Int(__c)) = (&mut ohlcvs, &candle) { if let Some(Value::Arr(__r)) = std::sync::Arc::make_mut(__a).get_mut(*__c as usize) { std::sync::Arc::make_mut(__r)[3] = Value::from(crate::runtime::Math::min(&(if (prevLow == Value::Null) { price.clone() } else { prevLow }), &price)); } }
+                if let (Value::Arr(__a), Value::Int(__c)) = (&mut ohlcvs, &candle) { if let Some(Value::Arr(__r)) = std::sync::Arc::make_mut(__a).get_mut(*__c as usize) { std::sync::Arc::make_mut(__r)[4] = Value::from(price); } }
+                if let (Value::Arr(__a), Value::Int(__c)) = (&mut ohlcvs, &candle) { if let Some(Value::Arr(__r)) = std::sync::Arc::make_mut(__a).get_mut(*__c as usize) { std::sync::Arc::make_mut(__r)[5] = Value::from(self.sum(&[self.safe_value(&prevCandle, &i_volume, &[]), trade.get("amount").cloned().unwrap_or(Value::Null)])); } }
+                if let (Value::Arr(__a), Value::Int(__c)) = (&mut ohlcvs, &candle) { if let Some(Value::Arr(__r)) = std::sync::Arc::make_mut(__a).get_mut(*__c as usize) { std::sync::Arc::make_mut(__r)[6] = Value::from(self.sum(&[self.safe_value(&prevCandle, &i_count, &[]), Value::Int(1)])); } }
             }
         }
         }
@@ -7793,6 +7791,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Null;
         }
         let mut precisionNumber: Option<i64> = (match &precision { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }).as_i64();
+        if (precisionNumber.is_none()) {
+            return Value::Null;
+        }
         if (precisionNumber == Some(0)) {
             return Value::Str("1".into());
         }
@@ -7840,6 +7841,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return Value::Null;
             }
             let mut positivePrecision: Option<i64> = (match positivePrecisionString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null }).as_i64();
+            if (positivePrecision.is_none()) {
+                return Value::Null;
+            }
             let mut parsedPrecision: String = "1".to_string();
             {
                                 let mut i: i64 = 0;
@@ -7988,7 +7992,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }
-        return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[symbols]).map_or(Value::Null, Value::Arr), &[Value::Bool(false)]), Value::Str("symbol".into())));
+        return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr), &[Value::Bool(false)]), Value::Str("symbol".into())));
 
     Value::Null
 }
@@ -8043,7 +8047,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }
-        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[self.market_symbols(&[symbols]).map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr)]);
 
     Value::Null
 }
@@ -9553,7 +9557,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> Value {
-        let keys: Vec<Value> = object_keys(&dict).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<&str> = dict.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         let mut newDict: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -9562,7 +9566,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_168: bool = true;
             while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (keys.len() as i64) } {
-            let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let key: Option<&str> = keys.get(i as usize).copied();
             if !self.in_array(Value::from(key.as_deref()), &removeKeys) {
                 newDict.insert(key.as_deref().unwrap_or("null").to_string(), (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
             }
@@ -9687,7 +9691,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }
-        return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[symbols]).map_or(Value::Null, Value::Arr), &[Value::Bool(false)]), Value::Str("symbol".into())));
+        return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr), &[Value::Bool(false)]), Value::Str("symbol".into())));
 
     Value::Null
 }
@@ -13434,7 +13438,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "market_ids" => self.market_ids(args.get(0).and_then(Value::as_array)).map_or(Value::Null, Value::Arr),
             "market_non_virtual" => crate::types::IntoRaw::into_raw(self.market_non_virtual(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
             "market_or_null" => self.market_or_null(&args[..]),
-            "market_symbols" => self.market_symbols(&args[..]).map_or(Value::Null, Value::Arr),
+            "market_symbols" => self.market_symbols(&args[..].iter().collect::<Vec<_>>()).map_or(Value::Null, Value::Arr),
             "markets_for_symbols" => self.markets_for_symbols(&args[..]),
             "merge_balance_account" => self.merge_balance_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "network_code_to_id" => self.network_code_to_id(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),

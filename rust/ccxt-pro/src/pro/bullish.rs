@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
-                "separate_bids_or_asks" => self.separate_bids_or_asks(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "separate_bids_or_asks" => Value::Arr(self.separate_bids_or_asks(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -98,7 +98,7 @@ impl Bullish {
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "ping" => self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
             "request_id" => crate::Value::from(self.request_id()),
-            "separate_bids_or_asks" => self.separate_bids_or_asks(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
+            "separate_bids_or_asks" => Value::Arr(self.separate_bids_or_asks(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))),
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
@@ -576,8 +576,8 @@ impl Bullish {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let bids: crate::value::List = self.separate_bids_or_asks(self.safe_list_k(&data, "bids", &[Value::from(vec![])])).into_list();
-        let asks: crate::value::List = self.separate_bids_or_asks(self.safe_list_k(&data, "asks", &[Value::from(vec![])])).into_list();
+        let bids: crate::value::List = self.separate_bids_or_asks(self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
+        let asks: crate::value::List = self.separate_bids_or_asks(self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
         let snapshot: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), Value::Arr(bids));
@@ -596,7 +596,7 @@ impl Bullish {
         client.resolve(__resolved_orderbook, messageHash.as_str());
 }
 
-    pub fn separate_bids_or_asks(&self, mut entry: Value) -> Value {
+    pub fn separate_bids_or_asks(&self, mut entry: Value) -> crate::value::List {
         let mut result: Vec<Value> = Vec::new();
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
@@ -613,9 +613,7 @@ impl Bullish {
             result.push(Value::from(vec![price.map(Value::from).unwrap_or(Value::Null), self.safe_string(&entries, Value::Int((i + 1)), &[])]));
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*
@@ -1071,7 +1069,7 @@ impl Bullish {
         let hasSymbols: bool = (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true));
         let mut symbolsNormalized: Option<crate::value::List> = symbols.clone().into_opt_list();
         if hasSymbols {
-            symbolsNormalized = self.market_symbols(&[symbols]);
+            symbolsNormalized = self.market_symbols(&[&symbols]);
         }
         if hasSymbols && (symbolsNormalized.is_some()) {
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into())));

@@ -403,7 +403,7 @@ impl Onetrading {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: Value = self.market_symbols(&[symbols]).map_or(Value::Null, Value::Arr);
+        let symbolsNormalized: Value = self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr);
         let symbolsList: Value = (if (symbolsNormalized == Value::Null) { Value::from(vec![]) } else { symbolsNormalized });
         let subscriptionHash: String = "MARKET_TICKER".to_string();
         let messageHash: String = "tickers".to_string();

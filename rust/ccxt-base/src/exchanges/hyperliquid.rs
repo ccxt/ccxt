@@ -1146,7 +1146,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_funding_rate" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_rates" => crate::types::IntoRaw::into_raw(self.fetch_funding_rates(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_hip3_markets" => self.fetch_hip3_markets(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_hip3_markets" => Value::Arr(self.fetch_hip3_markets(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_my_liquidations" => crate::types::IntoRaw::into_raw(self.fetch_my_liquidations(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1852,7 +1852,7 @@ impl Hyperliquid {
             }  else if (marketType.as_deref() == Some("spot")) {
                 rawPromises.push(Value::Arr(self.fetch_spot_markets(&[params.clone()]).await));
             }  else if (marketType.as_deref() == Some("hip3")) {
-                rawPromises.push(self.fetch_hip3_markets(&[&params]).await);
+                rawPromises.push(Value::Arr(self.fetch_hip3_markets(&[&params]).await));
             }
         }
         }
@@ -1879,7 +1879,7 @@ impl Hyperliquid {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-    pub async fn fetch_hip3_markets(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_hip3_markets(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2034,9 +2034,7 @@ impl Hyperliquid {
             markets = self.array_concat_t(Value::Arr(markets), self.parse_markets(Value::from(result)));
         }
         }
-        return Value::Arr(markets);
-
-    Value::Null
+        return markets;
 }
 
 /*
@@ -2613,7 +2611,7 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         let type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[]);
@@ -2633,7 +2631,7 @@ impl Hyperliquid {
             }
         }
         if (hip3 == Some(true)) {
-            response = self.fetch_hip3_markets(&[&self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await.into_list();
+            response = self.fetch_hip3_markets(&[&self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await;
         }  else if (type_var.as_deref() == Some("spot")) {
             response = self.fetch_spot_markets(&[Value::from(&paramsHip3)]).await;
         }  else if (type_var.as_deref() == Some("swap")) {
@@ -2718,7 +2716,7 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
@@ -5617,7 +5615,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchPositions", params);
         let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
         let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("clearinghouseState".into()));
@@ -6632,7 +6630,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m

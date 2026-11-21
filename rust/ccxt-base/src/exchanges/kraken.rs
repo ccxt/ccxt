@@ -2604,7 +2604,7 @@ impl Kraken {
             let m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         if (symbolsNormalized.is_some()) {
             let mut marketIds: Vec<Value> = Vec::new();
             {
@@ -3223,7 +3223,7 @@ impl Kraken {
             ordersRequests.push(orderRequest.0);
         }
         }
-        self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
+        self.market_symbols(&[&Value::from(orderSymbols), &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]);
         let mut response: Option<crate::value::Dict> = None;
         let mut request: crate::value::Dict = std::sync::Arc::new({
             let mut m = indexmap::IndexMap::new();
@@ -4936,7 +4936,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let result: Option<crate::value::List> = self.safe_list_k_o(&response, "result");
         let results: crate::value::List = self.parse_positions(&result, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         return self.filter_by_array_positions(Value::Arr(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

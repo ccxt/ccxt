@@ -93,18 +93,14 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         let mut open: Option<String> = None;
         let mut volume: Option<String> = None;
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
-        if (matches!(&ticker, Value::Arr(_))) {
-            last = self.safe_string_opt(&ticker, Value::Int(4), &[]);
-        }  else {
-            timestamp = self.parse8601(self.safe_string_k(&ticker, "time", &[]));
-            bid = self.safe_string_k_opt(&ticker, "bid", &[]);
-            ask = self.safe_string_k_opt(&ticker, "ask", &[]);
-            high = self.safe_string_k_opt(&ticker, "high", &[]);
-            low = self.safe_string_k_opt(&ticker, "low", &[]);
-            open = self.safe_string_k_opt(&ticker, "open", &[]);
-            last = self.safe_string2_opt(&ticker, Value::Str("price".into()), Value::Str("last".into()), &[]);
-            volume = self.safe_string_k_opt(&ticker, "volume", &[]);
-        }
+        timestamp = self.parse8601(self.safe_string_k(&ticker, "time", &[]));
+        bid = self.safe_string_k_opt(&ticker, "bid", &[]);
+        ask = self.safe_string_k_opt(&ticker, "ask", &[]);
+        high = self.safe_string_k_opt(&ticker, "high", &[]);
+        low = self.safe_string_k_opt(&ticker, "low", &[]);
+        open = self.safe_string_k_opt(&ticker, "open", &[]);
+        last = self.safe_string2_opt(&ticker, Value::Str("price".into()), Value::Str("last".into()), &[]);
+        volume = self.safe_string_k_opt(&ticker, "volume", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -694,6 +690,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseexchange {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ticker_list" => self.parse_ticker_list(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1995,6 +1992,35 @@ impl Coinbaseexchange {
     }
 
 
+    pub fn parse_ticker_list(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+        return Value::Dict(self.safe_ticker(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
+        m.insert("high".to_string(), Value::Null);
+        m.insert("low".to_string(), Value::Null);
+        m.insert("bid".to_string(), Value::Null);
+        m.insert("bidVolume".to_string(), Value::Null);
+        m.insert("ask".to_string(), Value::Null);
+        m.insert("askVolume".to_string(), Value::Null);
+        m.insert("vwap".to_string(), Value::Null);
+        m.insert("open".to_string(), Value::Null);
+        m.insert("close".to_string(), self.safe_string(&ticker, Value::Int(4), &[]));
+        m.insert("last".to_string(), self.safe_string(&ticker, Value::Int(4), &[]));
+        m.insert("previousClose".to_string(), Value::Null);
+        m.insert("change".to_string(), Value::Null);
+        m.insert("percentage".to_string(), Value::Null);
+        m.insert("average".to_string(), Value::Null);
+        m.insert("baseVolume".to_string(), Value::Null);
+        m.insert("quoteVolume".to_string(), Value::Null);
+        m.insert("info".to_string(), ticker);
+    m
+}), market));
+
+    Value::Null
+}
+
 /*
  * @method
  * @name coinbaseexchange#fetchTickers
@@ -2018,7 +2044,7 @@ impl Coinbaseexchange {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2059,7 +2085,7 @@ impl Coinbaseexchange {
             let entry: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::from(delimiter.clone())]);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]), Some(&market)).map_or(Value::Null, Value::Dict));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker_list(self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]), Some(&market)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

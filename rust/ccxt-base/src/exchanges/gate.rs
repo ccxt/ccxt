@@ -1613,8 +1613,8 @@ impl crate::exchange::DerivedExchange for Gate {
         let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_25: bool = true;
-            while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (info.len() as i64) } {
+            let mut __for_first_26: bool = true;
+            while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (info.len() as i64) } {
             let mut item: Option<crate::value::Dict> = self.safe_dict_o(&info, Value::Int(i));
             let maxNotional: Option<f64> = self.safe_number_k(&item, "risk_limit", &[]).as_f64();
             tiers.push(Value::Map({
@@ -1819,8 +1819,8 @@ impl crate::exchange::DerivedExchange for Gate {
             let anyParams: crate::value::List = self.to_array_t(params.clone());
             {
                                 let mut i: i64 = 1;
-                let mut __for_first_26: bool = true;
-                while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (anyParams.len() as i64) } {
+                let mut __for_first_27: bool = true;
+                while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < (anyParams.len() as i64) } {
                 std::sync::Arc::make_mut(&mut newParams).push(get_value(&params, &Value::Int(i)));
             }
             }
@@ -6128,7 +6128,7 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
             let firstSymbol: Option<String> = self.safe_string_opt(&symbolsNormalized, Value::Int(0), &[]);
@@ -6903,7 +6903,7 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let first: Option<String> = self.safe_string_opt(&symbolsNormalized, Value::Int(0), &[]);
         let mut market: Option<crate::types::Market> = None;
         if (first.is_some()) {
@@ -8080,7 +8080,7 @@ if _try_result.is_err() {
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
-        let symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).unwrap_or_default();
+        let symbols: crate::value::List = self.market_symbols(&[&Value::from(orderSymbols), &Value::Null, &Value::Bool(false), &Value::Bool(true), &Value::Bool(true)]).unwrap_or_default();
         let mut market: crate::types::Market = (match self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).future || (market).option {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrders() does not support futures or options markets")));
@@ -8116,8 +8116,17 @@ if _try_result.is_err() {
         }
         self.load_unified_status(&[]).await;
         let ordersRequests: crate::value::List = self.create_orders_request(orders.clone(), &[&params]).into_list();
-        let firstOrder: crate::value::Dict = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
-        let mut market: crate::types::Market = (match self.market((crate::value::KeyRead::key_read(&&firstOrder, "symbol")).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbol: Option<String> = None;
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (orders.len() as i64) } {
+            if (i == 0) {
+                symbol = self.safe_string_k_opt(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
+            }
+        }
+        }
+        let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Option<crate::value::List> = None;
         if (market).spot {
             response = self.private_spot_post_batch_orders(&[&Value::from(&ordersRequests)]).await;
@@ -9078,8 +9087,8 @@ if _try_result.is_err() {
             let mut spotResult: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_21: bool = true;
-                while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_22: bool = true;
+                while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let responseEntry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
                 let ordersInner: Value = self.safe_value_k(&responseEntry, "orders", &[]);
                 spotResult = self.array_concat_t(Value::Arr(spotResult), ordersInner);
@@ -9224,8 +9233,8 @@ if _try_result.is_err() {
             let mut ordersRequests: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_22: bool = true;
-                while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (ids.len() as i64) } {
+                let mut __for_first_23: bool = true;
+                while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (ids.len() as i64) } {
                 let id: String = self.safe_string(&ids, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let orderItem: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -9246,8 +9255,8 @@ if _try_result.is_err() {
         let mut finalList: Vec<Value> = vec![Value::Map(request)]; // hacky but needs to be done here
         {
                         let mut i: i64 = 0;
-            let mut __for_first_23: bool = true;
-            while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (ids.len() as i64) } {
+            let mut __for_first_24: bool = true;
+            while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (ids.len() as i64) } {
             finalList.push(self.safe_string(&ids, Value::Int(i), &[Value::Str("".into())]));
         }
         }
@@ -9286,8 +9295,8 @@ if _try_result.is_err() {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_24: bool = true;
-            while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (orders.len() as i64) } {
+            let mut __for_first_25: bool = true;
+            while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (orders.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -9667,7 +9676,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         if (symbolsNormalized.is_some()) {
             let symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if symbolsLength > 0 {
@@ -10693,8 +10702,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_27: bool = true;
-            while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < (settlements.len() as i64) } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (settlements.len() as i64) } {
             result.push(Value::Dict(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market)));
         }
         }
@@ -10915,8 +10924,8 @@ if _try_result.is_err() {
         let mut underlyings: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_28: bool = true;
-            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (response.len() as i64) } {
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (response.len() as i64) } {
             let underlying: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let name: Option<String> = self.safe_string_k_opt(&underlying, "name", &[]);
             if (name.is_some()) {
@@ -11106,8 +11115,8 @@ if _try_result.is_err() {
         let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_29: bool = true;
-            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (response.len() as i64) } {
+            let mut __for_first_30: bool = true;
+            while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (response.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "name", &[]);
             if (entryMarketId == marketId) {
@@ -11239,7 +11248,7 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut response: Option<crate::value::List> = None;
         let isUnified: bool = self.safe_bool_k_opt(&params, "unified", &[Value::Bool(false)]).unwrap_or(false);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("unified".into()), &[]);

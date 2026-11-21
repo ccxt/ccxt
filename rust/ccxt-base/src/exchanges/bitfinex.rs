@@ -53,127 +53,6 @@ impl crate::exchange::DerivedExchange for Bitfinex {
 
     Value::Null
 }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
-        //
-        // on trading pairs (ex. tBTCUSD)
-        //
-        //    [
-        //            SYMBOL, // this index is not present in singular-ticker
-        //            BID,
-        //            BID_SIZE,
-        //            ASK,
-        //            ASK_SIZE,
-        //            DAILY_CHANGE,
-        //            DAILY_CHANGE_RELATIVE,
-        //            LAST_PRICE,
-        //            VOLUME,
-        //            HIGH,
-        //            LOW
-        //    ]
-        //
-        //
-        // on funding currencies (ex. fUSD)
-        //
-        //    [
-        //            SYMBOL, // this index is not present in singular-ticker
-        //            FRR,
-        //            BID,
-        //            BID_PERIOD,
-        //            BID_SIZE,
-        //            ASK,
-        //            ASK_PERIOD,
-        //            ASK_SIZE,
-        //            DAILY_CHANGE,
-        //            DAILY_CHANGE_RELATIVE,
-        //            LAST_PRICE,
-        //            VOLUME,
-        //            HIGH,
-        //            LOW,
-        //            _PLACEHOLDER,
-        //            _PLACEHOLDER,
-        //            FRR_AMOUNT_AVAILABLE
-        //     ]
-        //
-        let length: i64 = ticker.len() as i64;
-        // the list shapes (fetchTickers) carry the market id in slot 0, the singular
-        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
-        // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
-        // look like a number and the whole array would be read off by one.
-        let firstValue: Option<String> = self.safe_string_opt(&ticker, Value::Int(0), &[]);
-        let hasMarketId: bool = (firstValue.is_some()) && ((firstValue.as_deref().unwrap_or_default().starts_with("t")) || (firstValue.as_deref().unwrap_or_default().starts_with("f")));
-        let isFetchTicker: bool = !hasMarketId;
-        let mut symbol: Option<String> = None;
-        let mut minusIndex: i64 = 0;
-        if isFetchTicker {
-            minusIndex = 1;
-        }
-        let marketId: Option<String> = self.safe_string_opt(&ticker, Value::Int(0), &[]);
-        let mut marketResolved: Option<crate::types::Market> = None;
-        if isFetchTicker {
-            marketResolved = market.cloned();
-        }  else {
-            marketResolved = Some(self.safe_market(marketId.as_deref(), market, &[]));
-        }
-        let isFundingCurrency: bool = length >= 17;
-        symbol = self.safe_symbol(None, marketResolved.as_ref(), &[]).as_str().map(str::to_owned);
-        let mut last: Option<String> = None;
-        let mut bid: Option<String> = None;
-        let mut ask: Option<String> = None;
-        let mut change: Option<String> = None;
-        let mut percentage: Option<String> = None;
-        let mut volume: Option<String> = None;
-        let mut high: Option<String> = None;
-        let mut low: Option<String> = None;
-        if isFundingCurrency {
-            // per api docs, they are different array type
-            last = self.safe_string_opt(&ticker, Value::Int((10 - minusIndex)), &[]);
-            bid = self.safe_string_opt(&ticker, Value::Int((2 - minusIndex)), &[]);
-            ask = self.safe_string_opt(&ticker, Value::Int((5 - minusIndex)), &[]);
-            change = self.safe_string_opt(&ticker, Value::Int((8 - minusIndex)), &[]);
-            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
-            volume = self.safe_string_opt(&ticker, Value::Int((11 - minusIndex)), &[]);
-            high = self.safe_string_opt(&ticker, Value::Int((12 - minusIndex)), &[]);
-            low = self.safe_string_opt(&ticker, Value::Int((13 - minusIndex)), &[]);
-        }  else {
-            // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
-            last = self.safe_string_opt(&ticker, Value::Int((7 - minusIndex)), &[]);
-            bid = self.safe_string_opt(&ticker, Value::Int((1 - minusIndex)), &[]);
-            ask = self.safe_string_opt(&ticker, Value::Int((3 - minusIndex)), &[]);
-            change = self.safe_string_opt(&ticker, Value::Int((5 - minusIndex)), &[]);
-            percentage = self.safe_string_opt(&ticker, Value::Int((6 - minusIndex)), &[]);
-            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
-            volume = self.safe_string_opt(&ticker, Value::Int((8 - minusIndex)), &[]);
-            high = self.safe_string_opt(&ticker, Value::Int((9 - minusIndex)), &[]);
-            low = self.safe_string_opt(&ticker, Value::Int((10 - minusIndex)), &[]);
-        }
-        return Some(self.safe_ticker(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), Value::Null);
-        m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
-        m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
-        m.insert("bid".to_string(), bid.map(Value::from).unwrap_or(Value::Null));
-        m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), ask.map(Value::from).unwrap_or(Value::Null));
-        m.insert("askVolume".to_string(), Value::Null);
-        m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
-        m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
-        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
-        m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), volume.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
-    m
-}), marketResolved.as_ref()));
-
-    None
-}
     fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
         let __trade_empty = indexmap::IndexMap::new();
@@ -292,8 +171,8 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         let mut postOnly: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (flags.len() as i64) } {
+            let mut __for_first_8: bool = true;
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (flags.len() as i64) } {
             if (self.safe_string(&flags, Value::Int(i), &[]).as_str() == Some("postOnly")) {
                 postOnly = true;
             }
@@ -1057,7 +936,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order_flags" => self.parse_order_flags(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ticker_list" => self.parse_ticker_list(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction_row" => self.parse_transaction_row(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2925,6 +2804,127 @@ impl Bitfinex {
         }).await?))
     }
 
+    pub fn parse_ticker_list(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let ticker: Value = ticker.into();
+        //
+        // on trading pairs (ex. tBTCUSD)
+        //
+        //    [
+        //            SYMBOL, // this index is not present in singular-ticker
+        //            BID,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW
+        //    ]
+        //
+        //
+        // on funding currencies (ex. fUSD)
+        //
+        //    [
+        //            SYMBOL, // this index is not present in singular-ticker
+        //            FRR,
+        //            BID,
+        //            BID_PERIOD,
+        //            BID_SIZE,
+        //            ASK,
+        //            ASK_PERIOD,
+        //            ASK_SIZE,
+        //            DAILY_CHANGE,
+        //            DAILY_CHANGE_RELATIVE,
+        //            LAST_PRICE,
+        //            VOLUME,
+        //            HIGH,
+        //            LOW,
+        //            _PLACEHOLDER,
+        //            _PLACEHOLDER,
+        //            FRR_AMOUNT_AVAILABLE
+        //     ]
+        //
+        let length: i64 = ticker.len() as i64;
+        // the list shapes (fetchTickers) carry the market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        let firstValue: Option<String> = self.safe_string_opt(&ticker, Value::Int(0), &[]);
+        let hasMarketId: bool = (firstValue.is_some()) && ((firstValue.as_deref().unwrap_or_default().starts_with("t")) || (firstValue.as_deref().unwrap_or_default().starts_with("f")));
+        let isFetchTicker: bool = !hasMarketId;
+        let mut symbol: Option<String> = None;
+        let mut minusIndex: i64 = 0;
+        if isFetchTicker {
+            minusIndex = 1;
+        }
+        let marketId: Option<String> = self.safe_string_opt(&ticker, Value::Int(0), &[]);
+        let mut marketResolved: Option<crate::types::Market> = None;
+        if isFetchTicker {
+            marketResolved = market.cloned();
+        }  else {
+            marketResolved = Some(self.safe_market(marketId.as_deref(), market, &[]));
+        }
+        let isFundingCurrency: bool = length >= 17;
+        symbol = self.safe_symbol(None, marketResolved.as_ref(), &[]).as_str().map(str::to_owned);
+        let mut last: Option<String> = None;
+        let mut bid: Option<String> = None;
+        let mut ask: Option<String> = None;
+        let mut change: Option<String> = None;
+        let mut percentage: Option<String> = None;
+        let mut volume: Option<String> = None;
+        let mut high: Option<String> = None;
+        let mut low: Option<String> = None;
+        if isFundingCurrency {
+            // per api docs, they are different array type
+            last = self.safe_string_opt(&ticker, Value::Int((10 - minusIndex)), &[]);
+            bid = self.safe_string_opt(&ticker, Value::Int((2 - minusIndex)), &[]);
+            ask = self.safe_string_opt(&ticker, Value::Int((5 - minusIndex)), &[]);
+            change = self.safe_string_opt(&ticker, Value::Int((8 - minusIndex)), &[]);
+            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
+            volume = self.safe_string_opt(&ticker, Value::Int((11 - minusIndex)), &[]);
+            high = self.safe_string_opt(&ticker, Value::Int((12 - minusIndex)), &[]);
+            low = self.safe_string_opt(&ticker, Value::Int((13 - minusIndex)), &[]);
+        }  else {
+            // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
+            last = self.safe_string_opt(&ticker, Value::Int((7 - minusIndex)), &[]);
+            bid = self.safe_string_opt(&ticker, Value::Int((1 - minusIndex)), &[]);
+            ask = self.safe_string_opt(&ticker, Value::Int((3 - minusIndex)), &[]);
+            change = self.safe_string_opt(&ticker, Value::Int((5 - minusIndex)), &[]);
+            percentage = self.safe_string_opt(&ticker, Value::Int((6 - minusIndex)), &[]);
+            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
+            volume = self.safe_string_opt(&ticker, Value::Int((8 - minusIndex)), &[]);
+            high = self.safe_string_opt(&ticker, Value::Int((9 - minusIndex)), &[]);
+            low = self.safe_string_opt(&ticker, Value::Int((10 - minusIndex)), &[]);
+        }
+        return Value::Dict(self.safe_ticker(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
+        m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
+        m.insert("low".to_string(), low.map(Value::from).unwrap_or(Value::Null));
+        m.insert("bid".to_string(), bid.map(Value::from).unwrap_or(Value::Null));
+        m.insert("bidVolume".to_string(), Value::Null);
+        m.insert("ask".to_string(), ask.map(Value::from).unwrap_or(Value::Null));
+        m.insert("askVolume".to_string(), Value::Null);
+        m.insert("vwap".to_string(), Value::Null);
+        m.insert("open".to_string(), Value::Null);
+        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
+        m.insert("previousClose".to_string(), Value::Null);
+        m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
+        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
+        m.insert("average".to_string(), Value::Null);
+        m.insert("baseVolume".to_string(), volume.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteVolume".to_string(), Value::Null);
+        m.insert("info".to_string(), ticker);
+    m
+}), marketResolved.as_ref()));
+
+    Value::Null
+}
 
 /*
  * @method
@@ -2949,7 +2949,7 @@ impl Bitfinex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2962,7 +2962,54 @@ impl Bitfinex {
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let tickers: crate::value::List = self.public_get_tickers(&[&__ws_arg_3]).await.unwrap_or_default();
-        return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        //
+        //     [
+        //         // on trading pairs (ex. tBTCUSD)
+        //         [
+        //             SYMBOL,
+        //             BID,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW
+        //         ],
+        //         // on funding currencies (ex. fUSD)
+        //         [
+        //             SYMBOL,
+        //             FRR,
+        //             BID,
+        //             BID_PERIOD,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_PERIOD,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW,
+        //             _PLACEHOLDER,
+        //             _PLACEHOLDER,
+        //             FRR_AMOUNT_AVAILABLE
+        //         ],
+        //         ...
+        //     ]
+        //
+        let mut results: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_6: bool = true;
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (tickers.len() as i64) } {
+            results.push(self.parse_ticker_list(self.safe_list(&tickers, Value::Int(i), &[Value::from(vec![])]), None));
+        }
+        }
+        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2997,8 +3044,8 @@ impl Bitfinex {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let ticker: Value = self.call_method(Value::Str("public_get_ticker_symbol".into()), &[&__ws_arg_4]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, ticker, Some(&market)).map_or(Value::Null, Value::Dict);
+        let ticker: crate::value::List = self.public_get_ticker_symbol(&[&__ws_arg_4]).await.unwrap_or_default();
+        return self.parse_ticker_list(&ticker, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3074,8 +3121,8 @@ impl Bitfinex {
         let mut tradesList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_6: bool = true;
-            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (trades.len() as i64) } {
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (trades.len() as i64) } {
             tradesList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&trades, Value::Int(i), &[]));
@@ -3441,8 +3488,8 @@ impl Bitfinex {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_8: bool = true;
-            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (orders.len() as i64) } {
+            let mut __for_first_9: bool = true;
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (orders.len() as i64) } {
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -3489,8 +3536,8 @@ impl Bitfinex {
         let data: crate::value::List = self.safe_list_t(&response, Value::Int(4));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
+            let mut __for_first_10: bool = true;
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (data.len() as i64) } {
             results.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(self.safe_list(self.safe_list(&data, Value::Int(i), &[]), Value::Int(4), &[]), Value::Int(0), &[]));
@@ -3537,8 +3584,8 @@ impl Bitfinex {
         let mut ordersList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_10: bool = true;
-            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (orders.len() as i64) } {
+            let mut __for_first_11: bool = true;
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (orders.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&orders, Value::Int(i), &[]));
@@ -3642,8 +3689,8 @@ impl Bitfinex {
         let mut numericIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_11: bool = true;
-            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (ids.len() as i64) } {
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (ids.len() as i64) } {
             // numericIds[i] = this.parseToNumeric (ids[i]);
             numericIds.push(self.parse_to_numeric(self.safe_string(&ids, Value::Int(i), &[])));
         }
@@ -3713,8 +3760,8 @@ impl Bitfinex {
         let mut ordersList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_12: bool = true;
-            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (orders.len() as i64) } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (orders.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&orders, Value::Int(i), &[]));
@@ -3889,8 +3936,8 @@ impl Bitfinex {
         let mut ordersList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_13: bool = true;
-            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&response, Value::Int(i), &[]));
@@ -4005,8 +4052,8 @@ impl Bitfinex {
         let mut ordersList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_14: bool = true;
-            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&response, Value::Int(i), &[]));
@@ -4066,8 +4113,8 @@ impl Bitfinex {
         let mut tradesList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_15: bool = true;
-            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_16: bool = true;
+            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (rawTrades.len() as i64) } {
             tradesList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&rawTrades, Value::Int(i), &[]));
@@ -4133,8 +4180,8 @@ impl Bitfinex {
         let mut tradesList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_17: bool = true;
+            while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             tradesList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&response, Value::Int(i), &[]));
@@ -4539,8 +4586,8 @@ impl Bitfinex {
         let takerFeeDeriv: Option<f64> = self.safe_number(&takerData, Value::Int(5), &[]).as_f64();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_17: bool = true;
-            while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (self.symbols.len() as i64) } {
+            let mut __for_first_18: bool = true;
+            while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (self.symbols.len() as i64) } {
             let symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut fee: indexmap::IndexMap<String, Value> = ({
@@ -4651,8 +4698,8 @@ impl Bitfinex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_18: bool = true;
-            while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (response.len() as i64) } {
+            let mut __for_first_19: bool = true;
+            while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (response.len() as i64) } {
             result.push(self.parse_transaction_row(self.safe_list(&response, Value::Int(i), &[Value::from(vec![])]), &[&crate::Value::from(currency.as_ref())]));
         }
         }
@@ -4796,7 +4843,7 @@ impl Bitfinex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let response: crate::value::List = self.private_post_auth_r_positions(&[&params]).await.unwrap_or_default();
         //
         //     [
@@ -4836,8 +4883,8 @@ impl Bitfinex {
         let mut positionsList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_19: bool = true;
-            while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_20: bool = true;
+            while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (rawPositions.len() as i64) } {
             positionsList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&rawPositions, Value::Int(i), &[]));
@@ -4954,8 +5001,8 @@ impl Bitfinex {
         let mut ledgerObjects: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_20: bool = true;
-            while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             ledgerObjects.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(&response, Value::Int(i), &[]));
@@ -5093,8 +5140,8 @@ impl Bitfinex {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_21: bool = true;
-            while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (rawRatesData.len() as i64) } {
+            let mut __for_first_22: bool = true;
+            while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (rawRatesData.len() as i64) } {
             let fr: crate::value::List = rawRatesData.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let rate: crate::value::Dict = self.parse_funding_rate_history(Value::Arr(fr), Some(&market)).into_dict();
             rates.push(Value::Dict(rate));
@@ -5105,8 +5152,8 @@ impl Bitfinex {
         let ratesLength: i64 = rawRates.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_22: bool = true;
-            while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < ratesLength } {
+            let mut __for_first_23: bool = true;
+            while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < ratesLength } {
             let index: i64 = (((ratesLength - i)) - 1);
             let valueAtIndex: Value = crate::value::KeyRead::read(&&rawRates, &Value::from(index));
             reversedArray.push(valueAtIndex);
@@ -5142,7 +5189,7 @@ impl Bitfinex {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut marketIds: crate::value::List = std::sync::Arc::new(vec![Value::Str("ALL".into())]);
         if (symbolsNormalized.is_some()) {
             marketIds = self.market_ids(symbolsNormalized.as_deref()).unwrap_or_default();

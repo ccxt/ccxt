@@ -5283,16 +5283,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             panic!("{}", e);
         }
-        let (mut data, data__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.safe_value_k(&response, "data", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
-        if (data.is_some()) {
-            return Value::Arr(self.parse_orders(&data, Some(&market), &[&Value::from(since), &Value::from(limit)]));
-        }  else {
-            let rows: crate::value::List = self.safe_list_k_t(&data__map, "rows");
-            return Value::Arr(self.parse_orders(&rows, Some(&market), &[&Value::from(since), &Value::from(limit)]));
+        let dataList: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
+        if (dataList.is_some()) {
+            return Value::Arr(self.parse_orders(&dataList, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         }
+        let dataDict: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let rows: crate::value::List = self.safe_list_k_t(&dataDict, "rows");
+        return Value::Arr(self.parse_orders(&rows, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -5393,16 +5390,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let (mut data, data__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.safe_value_k(&response, "data", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
-        if (data.is_some()) {
-            return Value::Arr(self.parse_orders(&data, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
-        }  else {
-            let rows: crate::value::List = self.safe_list_k_t(&data__map, "rows");
-            return Value::Arr(self.parse_orders(&rows, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
+        let dataList: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
+        if (dataList.is_some()) {
+            return Value::Arr(self.parse_orders(&dataList, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }
+        let dataDict: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let rows: crate::value::List = self.safe_list_k_t(&dataDict, "rows");
+        return Value::Arr(self.parse_orders(&rows, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -5835,7 +5829,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut code: Option<String> = self.safe_string2_opt(&params, Value::Str("currency".into()), Value::Str("code".into()), &[&Value::Str("USDT".into())]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["currency", "code"], &[]);
         let mut paramsSettle: crate::value::Dict = std::sync::Arc::clone(&paramsOmitted);
@@ -7289,7 +7283,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let mut code: Option<String> = self.safe_string2_opt(&params, Value::Str("currency".into()), Value::Str("code".into()), &[&Value::Str("USDT".into())]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["currency", "code"], &[]);
         let mut paramsSettle: crate::value::Dict = std::sync::Arc::clone(&paramsOmitted);

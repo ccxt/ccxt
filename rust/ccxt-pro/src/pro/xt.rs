@@ -281,7 +281,7 @@ impl Xt {
             // the flight here, before any suspension point, makes concurrent callers wait
             let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let mut listenKey: Value = Value::Null;
+                let mut listenKey: Option<String> = None;
                 if isContract {
                     let response: crate::value::Dict = self.parent.private_linear_get_future_user_v1_user_listen_key(&[]).await.unwrap_or_default();
                     //
@@ -292,7 +292,7 @@ impl Xt {
                     //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
                     //    }
                     //
-                    listenKey = self.safe_string_k(&response, "result", &[]);
+                    listenKey = self.safe_string_k_opt(&response, "result", &[]);
                 }  else {
                     let response: crate::value::Dict = self.parent.private_spot_post_ws_token(&[]).await.unwrap_or_default();
                     //
@@ -307,13 +307,13 @@ impl Xt {
                     //    }
                     //
                     let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-                    listenKey = self.safe_string_k(&result, "accessToken", &[]);
+                    listenKey = self.safe_string_k_opt(&result, "accessToken", &[]);
                 }
-                if (listenKey == Value::Null) {
+                if (listenKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " getListenKey() received an empty listen key")));
                 }
-                __ch.add_subscription(&Value::Str("token".into()), listenKey.clone());
-                client.resolve(listenKey, messageHash.as_str());
+                __ch.add_subscription(&Value::Str("token".into()), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
+                client.resolve(listenKey.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 // hand the failure to every waiter so the next caller re-leads instead of

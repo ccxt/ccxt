@@ -1518,7 +1518,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let messageHash: String = "positions".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_some()) {

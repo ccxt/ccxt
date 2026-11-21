@@ -6829,7 +6829,7 @@ impl Mexc {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Str("swap".into()), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Str("swap".into()), &Value::Bool(true), &Value::Bool(true)]);
         let response: crate::value::Dict = self.contract_public_get_detail(&[&params]).await.unwrap_or_default();
         //
         //     {
@@ -7469,7 +7469,6 @@ impl Mexc {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")));
         }
-        let mut resultList: Value = Value::from(vec![]);
         if (marketType.as_deref() == Some("spot")) {
             if (since.is_some()) {
                 request.insert("startTime".into(), Value::from(since));
@@ -7482,25 +7481,7 @@ impl Mexc {
             }
             let __ws_arg_55 = self.extend(&request, &[&paramsToAccountType]);
             let response: crate::value::Dict = self.spot_private_get_capital_transfer(&[&__ws_arg_55]).await.unwrap_or_default();
-            //
-            //
-            // {
-            //     "rows": [
-            //         {
-            //         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
-            //         "clientTranId": null,
-            //         "asset": "USDT",
-            //         "amount": "1",
-            //         "fromAccountType": "FUTURES",
-            //         "toAccountType": "SPOT",
-            //         "symbol": null,
-            //         "status": "SUCCESS",
-            //         "timestamp": 1759328309000
-            //         }
-            //     ],
-            //     "total": 1
-            // }
-            resultList = self.safe_list_k(&response, "rows", &[Value::from(vec![])]);
+            return Value::Arr(self.parse_transfers(self.safe_list_k(&response, "rows", &[Value::from(vec![])]), currency.as_ref(), &[Value::from(since), limit]));
         }  else if (marketType.as_deref() == Some("swap")) {
             if (limit != Value::Null) {
                 request.insert("page_size".into(), limit.clone());
@@ -7508,9 +7489,9 @@ impl Mexc {
             let __ws_arg_56 = self.extend(Value::Map(request), &[&paramsToAccountType]);
             let response: crate::value::Dict = self.contract_private_get_account_transfer_record(&[&__ws_arg_56]).await.unwrap_or_default();
             let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-            resultList = self.safe_value_k(&data, "resultList", &[]);
+            return Value::Arr(self.parse_transfers(self.safe_list_k(&data, "resultList", &[Value::from(vec![])]), currency.as_ref(), &[Value::from(since), limit]));
         }
-        return Value::Arr(self.parse_transfers(resultList, currency.as_ref(), &[Value::from(since), limit]));
+        return Value::Arr(self.parse_transfers(Value::from(vec![]), currency.as_ref(), &[Value::from(since), limit]));
         Value::Null
         }).await?))
     }

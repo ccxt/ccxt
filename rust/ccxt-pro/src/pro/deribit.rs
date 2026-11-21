@@ -414,7 +414,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let interval: String = self.safe_string_k(&params, "interval", &[Value::Str("100ms".into())]).as_str().unwrap_or("100ms").to_string();
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("interval".into()), &[]);
@@ -528,7 +528,7 @@ impl Deribit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -1337,7 +1337,7 @@ impl Deribit {
         let mut messageHashes: Vec<Value> = Vec::new();
         let isOHLCV: bool = channelName == "chart.trades";
         let symbols: Value = (if isOHLCV { Value::Arr(self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0))) } else { symbolsArray.clone() });
-        self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]);
         if (symbolsArray == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchMultipleWrapper() symbolsArray is required")));
         }

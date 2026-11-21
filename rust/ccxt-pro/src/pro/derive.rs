@@ -455,7 +455,7 @@ impl Derive {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsResolved: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -1399,7 +1399,7 @@ impl Derive {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        let symbolsResolved: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true)]);
         let fetchSnapshotparamsSnapshotVariable = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         let fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.0 == Some(true);
         let paramsSnapshot: crate::value::Dict = fetchSnapshotparamsSnapshotVariable.1;

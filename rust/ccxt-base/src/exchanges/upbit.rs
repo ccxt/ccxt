@@ -1819,7 +1819,7 @@ impl Upbit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut tickers: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_none()) {
             // ticker/all returns every market of the requested quote currencies with a single request

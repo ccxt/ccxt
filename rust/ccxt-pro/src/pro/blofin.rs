@@ -679,7 +679,7 @@ impl Blofin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsList: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).unwrap_or_default();
+        let symbolsList: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let firstMarket: crate::types::Market = (match self.market((symbolsList.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let channel: String = "tickers".to_string();
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), Some(&firstMarket), &[&params]);
@@ -1114,7 +1114,7 @@ impl Blofin {
         // per symbol only when exactly one is requested
         let mut requestedSymbols: Value = Value::Null;
         let mut countSymbol: Option<String> = None;
-        let unifiedSymbols: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
+        let unifiedSymbols: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true)]);
         if (unifiedSymbols.is_some()) {
             let symbolsLength: i64 = unifiedSymbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if symbolsLength > 0 {
@@ -1362,7 +1362,7 @@ impl Blofin {
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         let isOHLCV: bool = channelName == "candle";
         let symbolsRaw: Value = (if isOHLCV { Value::Arr(self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0))) } else { symbolsArray.clone() });
-        let symbols: Option<crate::value::List> = self.market_symbols(&[symbolsRaw, Value::Null, Value::Bool(true), Value::Bool(true)]);
+        let symbols: Option<crate::value::List> = self.market_symbols(&[&symbolsRaw, &Value::Null, &Value::Bool(true), &Value::Bool(true)]);
         let mut firstMarket: Option<crate::types::Market> = None;
         let firstSymbol: Option<String> = self.safe_string_opt(&symbols, Value::Int(0), &[]);
         if (firstSymbol.is_some()) {
@@ -1447,9 +1447,9 @@ impl Blofin {
         let isOHLCV: bool = channelName == "candle";
         let mut symbols: crate::value::List = std::sync::Arc::new(Vec::new());
         if isOHLCV {
-            symbols = self.market_symbols(&[Value::Arr(self.get_list_from_object_values(&symbolsArray, Value::Int(0))), Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
+            symbols = self.market_symbols(&[&Value::Arr(self.get_list_from_object_values(&symbolsArray, Value::Int(0))), &Value::Null, &Value::Bool(false), &Value::Bool(true)]).unwrap_or_default();
         }  else {
-            symbols = self.market_symbols(&[symbolsArray.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]).unwrap_or_default();
+            symbols = self.market_symbols(&[&symbolsArray, &Value::Null, &Value::Bool(false), &Value::Bool(true)]).unwrap_or_default();
         }
         let firstMarket: crate::types::Market = (match self.market((self.safe_string(&symbols, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(callerMethodNameOption.clone().map(Value::from).unwrap_or(Value::Null), Some(&firstMarket), &[&Value::from(&paramsCallerMethodName)]);

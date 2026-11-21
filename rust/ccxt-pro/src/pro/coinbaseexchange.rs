@@ -314,7 +314,7 @@ impl Coinbaseexchange {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut productIds: Vec<Value> = Vec::new();
         {
@@ -491,7 +491,7 @@ impl Coinbaseexchange {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let name: String = "matches".to_string();
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.clone().as_str(), &[&symbolsNormalized.map_or(Value::Null, Value::Arr), &Value::from(name), &params]).await.into();
         let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
@@ -572,7 +572,7 @@ impl Coinbaseexchange {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -618,7 +618,7 @@ impl Coinbaseexchange {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]);
         let name: String = "user".to_string();
         let messageHash: String = "orders".to_string();
         let authentication: crate::value::Dict = self.authenticate().into_dict();
@@ -708,7 +708,7 @@ impl Coinbaseexchange {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut marketIds: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
