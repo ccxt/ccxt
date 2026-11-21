@@ -1560,14 +1560,18 @@ export default class hyperliquid extends Exchange {
             }
         }
         const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
+        const req: Dict = {
+            'coin': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+            'startTime': startTime,
+            'endTime': until,
+        };
+        if (this.safeBool (market, 'swap', false)) {
+            req['coin'] = this.safeString (market, 'baseName');
+        }
         const request: Dict = {
             'type': 'candleSnapshot',
-            'req': {
-                'coin': (this.safeBool (market, 'swap', false)) ? this.safeString (market, 'baseName') : market['id'],
-                'interval': this.safeString (this.timeframes, timeframe, timeframe),
-                'startTime': startTime,
-                'endTime': until,
-            },
+            'req': req,
         };
         const candlesResponse = await this.publicPostInfo (this.extend (request, paramsOmitted));
         const candles: List = this.infoList (candlesResponse);
@@ -4410,14 +4414,18 @@ export default class hyperliquid extends Exchange {
             const destinationDex = this.safeString (paramsSendAsset, 'destinationDex', defaultDex);
             const sendAssetPayload: Dict = {
                 'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
-                'destination': (isDeposit) ? subAccountAddress : masterAddress,
+                'destination': masterAddress,
                 'sourceDex': sourceDex,
                 'destinationDex': destinationDex,
                 'token': sendAssetToken,
                 'amount': this.numberToString (amount),
-                'fromSubAccount': (isDeposit) ? '' : subAccountAddress,
+                'fromSubAccount': subAccountAddress,
                 'nonce': nonce,
             };
+            if (isDeposit) {
+                sendAssetPayload['destination'] = subAccountAddress;
+                sendAssetPayload['fromSubAccount'] = '';
+            }
             const sendAssetSig = this.buildSendAssetSig (sendAssetPayload);
             const sendAssetRequest: Dict = {
                 'action': {

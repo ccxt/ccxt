@@ -470,7 +470,11 @@ export default class htx extends htxRest {
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         const options = this.safeDict (this.options, 'watchOrderBook', {});
-        const limitResolved = this.parseToInt ((limit === undefined) ? this.safeInteger (options, 'depth', 150) : limit);
+        let limitValue: Int = limit;
+        if (limit === undefined) {
+            limitValue = this.safeInteger (options, 'depth', 150);
+        }
+        const limitResolved = this.parseToInt (limitValue);
         if (!this.inArray (limitResolved, allowedLimits)) {
             throw new ExchangeError (this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }

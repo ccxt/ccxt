@@ -6868,7 +6868,7 @@ export default class kucoin extends Exchange {
         const isMargin = marginMode !== undefined;
         if (isMargin) {
             hf = true;
-            request['tradeType'] = (marginMode === undefined) ? undefined : this.safeString (this.options['marginModes'], marginMode, marginMode);
+            request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, marginMode);
         }
         if ((hf === true) && symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol parameter for hf or margin orders');
@@ -9149,7 +9149,9 @@ export default class kucoin extends Exchange {
         let marginMode: Str = undefined;
         [ marginMode, paramsRequest ] = this.handleMarginModeAndParams ('fetchLedger', paramsRequest);
         if (uta && (requestedType === 'margin')) {
-            marginMode = (marginMode === undefined) ? 'cross' : marginMode; // default to cross margin for UTA if margin is requested but marginMode is not specified
+            if (marginMode === undefined) {
+                marginMode = 'cross'; // default to cross margin for UTA if margin is requested but marginMode is not specified
+            }
             requestedType = marginMode;
         }
         let accountsByType = this.safeDict (this.options, 'accountsByType');
