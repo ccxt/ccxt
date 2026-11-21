@@ -1799,19 +1799,20 @@ export default class gate extends gateRest {
         const marketIds: Dict = {};
         const parsedOrders = this.parseOrders (orders);
         for (let i = 0; i < parsedOrders.length; i++) {
-            const parsed = parsedOrders[i];
             // inject order status
-            const info = this.safeDict (parsed, 'info');
+            const info = this.safeDict (parsedOrders[i], 'info');
             const event = this.safeString (info, 'event');
+            const statusUpdate: Dict = {};
             if (event === 'put' || event === 'update') {
-                parsed['status'] = 'open';
+                statusUpdate['status'] = 'open';
             } else if (event === 'finish') {
-                const status = this.safeString (parsed, 'status');
+                const status = this.safeString (parsedOrders[i], 'status');
                 if (status === undefined) {
                     const left = this.safeString (info, 'left');
-                    parsed['status'] = Precise.stringEquals (left, '0') ? 'closed' : 'canceled';
+                    statusUpdate['status'] = Precise.stringEquals (left, '0') ? 'closed' : 'canceled';
                 }
             }
+            const parsed = this.extend (parsedOrders[i], statusUpdate);
             stored.append (parsed);
             const symbol = this.safeString (parsed, 'symbol');
             const market = this.market (symbol);

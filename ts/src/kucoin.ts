@@ -3055,8 +3055,7 @@ export default class kucoin extends Exchange {
         const time = this.safeInteger2 (data, 'time', 'ts');
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
-            tickers[i]['time'] = time;
-            const ticker = this.parseSpotOrUtaTicker (tickers[i]);
+            const ticker = this.parseSpotOrUtaTicker (this.extend (tickers[i], { 'time': time }));
             const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
@@ -5831,11 +5830,11 @@ export default class kucoin extends Exchange {
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', paramsOmitted);
         const isUnified = (accountModeOption === 'unified');
         const tradeType = this.handleTradeType (isContract, marginMode, isUnified, paramsMarginMode);
-        paramsMarginMode['tradeType'] = tradeType;
+        const paramsTradeType: Dict = this.extend (paramsMarginMode, { 'tradeType': tradeType });
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endAt', request, paramsMarginMode);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endAt', request, paramsTradeType);
         if (limit !== undefined) {
             requestUntil['pageSize'] = limit;
         }
@@ -9586,10 +9585,10 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         if (limit !== undefined) {
-            requestUntil['pageSize'] = limit; // default:50, min:10, max:500
+            request['pageSize'] = limit; // default:50, min:10, max:500
         }
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateGetMarginInterest (this.extend (requestUntil, paramsUntil));
         //
         //     {
@@ -9643,10 +9642,10 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         if (limit !== undefined) {
-            requestUntil['pageSize'] = limit; // default:50, min:10, max:500
+            request['pageSize'] = limit; // default:50, min:10, max:500
         }
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateGetMarginInterest (this.extend (requestUntil, paramsUntil));
         //
         //     {

@@ -3084,10 +3084,11 @@ export default class bybit extends Exchange {
         const data = this.safeDict (response, 'result', {});
         const tickerList: Dict[] = this.safeList (data, 'list', []);
         const timestamp = this.safeInteger (response, 'time');
+        const rows = [];
         for (let i = 0; i < tickerList.length; i++) {
-            tickerList[i]['timestamp'] = timestamp; // will be removed inside the parser
+            rows.push (this.extend (tickerList[i], { 'timestamp': timestamp })); // will be removed inside the parser
         }
-        return this.parseFundingRates (tickerList, symbolsNormalized);
+        return this.parseFundingRates (rows, symbolsNormalized);
     }
 
     /**
@@ -10173,7 +10174,7 @@ export default class bybit extends Exchange {
                 } else {
                     signature = this.hmac (this.encode (authFull), this.encode (this.secret), sha256);
                 }
-                requestHeaders['X-BAPI-SIGN'] = signature;
+                requestHeaders = this.extend (requestHeaders, { 'X-BAPI-SIGN': signature });
             } else {
                 const query = this.extend (params, {
                     'api_key': this.apiKey,
