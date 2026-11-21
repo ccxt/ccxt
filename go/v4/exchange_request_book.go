@@ -1,7 +1,12 @@
 package ccxt
 
+import "sync"
+
 // Request book: the "last request/response" bookkeeping fields and the request id / nonce
-// counters, updated in place on the calling goroutine.
+// counters. Concurrent requests of one exchange update them, so requestBookMu guards them.
+
+// requestBookMu is embedded in BaseExchange; it guards the fields written below.
+type requestBookMu struct{ mu sync.Mutex }
 
 type requestBookKind int
 
@@ -31,6 +36,8 @@ type requestBookSnapshot struct {
 
 // handOffRequestBook applies one bookkeeping write.
 func (this *BaseExchange) handOffRequestBook(op requestBookOp) {
+	this.requestBook.mu.Lock()
+	defer this.requestBook.mu.Unlock()
 	switch op.kind {
 	case requestBookStamp:
 		this.LastRestRequestTimestamp = op.stamp
@@ -51,6 +58,8 @@ func (this *BaseExchange) handOffRequestBook(op requestBookOp) {
 
 // readRequestBook returns the current bookkeeping fields.
 func (this *BaseExchange) readRequestBook() requestBookSnapshot {
+	this.requestBook.mu.Lock()
+	defer this.requestBook.mu.Unlock()
 	return requestBookSnapshot{
 		stamp:           this.LastRestRequestTimestamp,
 		requestHeaders:  this.Last_request_headers,
@@ -64,6 +73,8 @@ func (this *BaseExchange) readRequestBook() requestBookSnapshot {
 // NextRequestId returns the next value of one request id counter, seeded on first use from
 // the option of the same name.
 func (this *BaseExchange) NextRequestId(key string) int64 {
+	this.requestBook.mu.Lock()
+	defer this.requestBook.mu.Unlock()
 	if this.requestIds == nil {
 		this.requestIds = map[string]int64{}
 	}
@@ -78,6 +89,8 @@ func (this *BaseExchange) NextRequestId(key string) int64 {
 
 // nextNonce returns the next strictly-increasing nonce, seeded from Options["lastNonce"].
 func (this *BaseExchange) nextNonce(current int64) int64 {
+	this.requestBook.mu.Lock()
+	defer this.requestBook.mu.Unlock()
 	if !this.lastNonceSet {
 		this.lastNonce = *this.SafeInteger(this.Options, "lastNonce", 0)
 		this.lastNonceSet = true
@@ -92,5 +105,5 @@ func (this *BaseExchange) nextNonce(current int64) int64 {
 
 // GetLast_http_response returns the last raw http response.
 func (this *BaseExchange) GetLast_http_response() any {
-	return this.Last_http_response
+	return this.readRequestBook().httpResponse
 }

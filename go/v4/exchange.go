@@ -55,6 +55,7 @@ type BaseExchange struct {
 	requestIds           map[string]int64
 	lastNonce            int64
 	lastNonceSet         bool
+	requestBook          requestBookMu
 	RequiredCredentials  map[string]any
 	HttpExceptions       map[string]any
 	Timeframes           map[string]any
