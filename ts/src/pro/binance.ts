@@ -5639,10 +5639,11 @@ export default class binance extends binanceRest {
             symbolResolved = this.symbol (symbol);
         }
         const [ type, subType, paramsAuth ] = this.resolveAuthType ('watchMyTrades', market, params);
-        let messageHash = 'myTrades';
+        let messageHash: string = 'myTrades';
         let symbolParams: Dict = {};
         if ((symbolResolved !== undefined) && (market !== undefined)) {
-            messageHash += ':' + symbolResolved;
+            const symbolString: string = this.symbol (symbol);
+            messageHash = messageHash + ':' + symbolString;
             symbolParams = { 'type': market['type'], 'symbol': symbolResolved };
         }
         const paramsSymbol = this.extend (paramsAuth, symbolParams);
@@ -6011,7 +6012,8 @@ export default class binance extends binanceRest {
         let event = this.safeString (messageValue, 'e');
         if (Array.isArray (messageValue)) {
             const arrayMessage = this.safeDict (messageValue, 0);
-            event = this.safeString (arrayMessage, 'e') + '@arr';
+            const arrayEvent: string = this.safeString (arrayMessage, 'e', '');
+            event = arrayEvent + '@arr';
         }
         method = this.safeValue (methods, event);
         if (method === undefined) {

@@ -321,8 +321,8 @@ export default class sxbet extends Exchange {
         //     }
         //
         const marketHash = this.safeString (raw, 'marketHash', '');
-        const teamOneName = this.safeString (raw, 'teamOneName');
-        const teamTwoName = this.safeString (raw, 'teamTwoName');
+        const teamOneName: string = this.safeString (raw, 'teamOneName', '');
+        const teamTwoName: string = this.safeString (raw, 'teamTwoName', '');
         const outcomeOneName = this.safeString (raw, 'outcomeOneName');
         const outcomeTwoName = this.safeString (raw, 'outcomeTwoName');
         const eventSlug = this.shortenSlug (teamOneName + ' ' + teamTwoName);
