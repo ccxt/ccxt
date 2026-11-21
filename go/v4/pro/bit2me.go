@@ -251,18 +251,17 @@ func (this *Bit2me) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	messageHashStr := "trades:" + market["symbol"].(string)
-	var messageHash *string = &messageHashStr
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var messageHash string = "trades:" + market.Symbol
 
-	r1 := <-this.SubscribePublicAsync("public-trades", symbol, *messageHash, params)
+	r1 := <-this.SubscribePublicAsync("public-trades", symbol, messageHash, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var finalLimit *int64 = limit
 	if this.NewUpdates {
-		finalLimit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
+		finalLimit = ccxt.ToGetsLimit(trades).GetLimit(market.Symbol, limit)
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, finalLimit, "timestamp", true))}

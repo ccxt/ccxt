@@ -2164,7 +2164,7 @@ func (this *Pacifica) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	} else {
 		status = "open"
 	}
-	var order map[string]any = SafeMapTyped(response, "data")
+	var order, _ = response["data"].(map[string]any)
 	var orderId *string = this.SafeString(order, "order_id")
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
@@ -3028,7 +3028,7 @@ func (this *Pacifica) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var info any = data[i]
+		var info, _ = data[i].(map[string]any)
 		var ticker map[string]any = TickerToMap(this.ParseTicker(info))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
@@ -4731,7 +4731,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(data, market, since, limit))}
 	return nil
 }
-func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "history_id": 2287920,
@@ -5267,12 +5267,16 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 	if this.HandleOption("sign", "apiKey") != nil {
 		headersValue["PF-API-KEY"] = this.Options["apiKey"]
 	}
-	return map[string]any{
+	var literal372715 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": headersValue,
 	}
+	if requestBody != nil {
+		literal372715["body"] = *requestBody
+	}
+	return literal372715
 }
 func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

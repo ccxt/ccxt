@@ -962,7 +962,7 @@ func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) map[string
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var quote *string = this.SafeString(marketResolved, "quote")
 	var last *string = this.SafeString(ticker, "a")
-	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
+	var literal64432 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -981,14 +981,14 @@ func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) map[string
 		"percentage":    this.SafeString(ticker, "c"),
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "v"),
-		"quoteVolume": func() any {
-			if quote != nil && *quote == "USD" {
-				return this.SafeString(ticker, "vv")
-			}
-			return nil
-		}(),
-		"info": ticker,
-	}, marketResolved))
+		"info":          ticker,
+	}
+	if quote != nil && *quote == "USD" {
+		literal64432["quoteVolume"] = this.SafeString(ticker, "vv")
+	} else {
+		literal64432["quoteVolume"] = nil
+	}
+	return ccxt.TickerToMap(this.SafeTicker(literal64432, marketResolved))
 }
 
 /**

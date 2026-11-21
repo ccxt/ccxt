@@ -923,7 +923,13 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//    }
 		//
 		var trades, _ = response["trades"].(map[string]any)
-		var symbolTrade map[string]any = this.SafeDictMap(trades, marketId, map[string]any{})
+		var symbolTrade map[string]any
+		if marketId != nil {
+			symbolTrade, _ = trades[*marketId].(map[string]any)
+		}
+		if symbolTrade == nil {
+			symbolTrade = map[string]any{}
+		}
 		symbolTrades = []any{symbolTrade}
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() does not support " + method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
@@ -967,8 +973,8 @@ func (this *Alpaca) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var id *string = this.SafeString(market, "id")
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var id *string = market.Id
 	var loc *string = this.SafeString(params, "loc", "us")
 	var request map[string]any = map[string]any{
 		"symbols": id,
@@ -1018,10 +1024,16 @@ func (this *Alpaca) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//   }
 	//
 	var orderbooks, _ = response["orderbooks"].(map[string]any)
-	var rawOrderbook map[string]any = this.SafeDictMap(orderbooks, id, map[string]any{})
+	var rawOrderbook map[string]any
+	if id != nil {
+		rawOrderbook, _ = orderbooks[*id].(map[string]any)
+	}
+	if rawOrderbook == nil {
+		rawOrderbook = map[string]any{}
+	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(rawOrderbook, market["symbol"], timestamp, "b", "a", "p", "s"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(rawOrderbook, market.Symbol, timestamp, "b", "a", "p", "s"))}
 	return nil
 }
 
@@ -1180,7 +1192,13 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		//     }
 		//
 		var bars, _ = response["bars"].(map[string]any)
-		var bar map[string]any = this.SafeDictMap(bars, marketId, map[string]any{})
+		var bar map[string]any
+		if marketId != nil {
+			bar, _ = bars[*marketId].(map[string]any)
+		}
+		if bar == nil {
+			bar = map[string]any{}
+		}
 		ohlcvs = []any{bar}
 	} else {
 		panic(NotSupported(this.Id + " fetchOHLCV() does not support " + method + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported"))

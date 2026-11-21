@@ -1019,7 +1019,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var timestamp *int64 = this.SafeTimestamp(order, "datetime")
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol", "")
-	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
+	var literal75131 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 id,
@@ -1038,11 +1038,15 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"cost":               nil,
 		"average":            nil,
 		"filled":             filled,
-		"remaining":          remaining,
+		"remaining":          nil,
 		"status":             status,
 		"fee":                nil,
 		"trades":             nil,
-	}, marketResolved))
+	}
+	if remaining != nil {
+		literal75131["remaining"] = *remaining
+	}
+	return ccxt.OrderToMap(this.SafeOrder(literal75131, marketResolved))
 }
 func (this *Bitstamp) HandleOrderBookSubscription(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")

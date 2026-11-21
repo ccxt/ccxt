@@ -554,9 +554,12 @@ func (this *Bitbank) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetPairDepth(this.Extend(request, params))
@@ -571,7 +574,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	}
 	var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market["symbol"], timestamp))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, timestamp))}
 	return nil
 }
 func (this *Bitbank) ParseTrade(trade any, optionalArgs ...any) Trade {

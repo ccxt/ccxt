@@ -1162,7 +1162,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 		}
 		// effectively-final copy for the market object literal below (reassigned in the loop)
 		var marketResolvedOutcome *string = resolvedOutcome
-		result = append(result, map[string]any{
+		var literal81325 map[string]any = map[string]any{
 			"id":              conditionId,
 			"market":          marketSymbol,
 			"marketType":      marketType,
@@ -1188,20 +1188,14 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 			"linear":          nil,
 			"inverse":         nil,
 			"contractSize":    nil,
-			"expiry": func() any {
-				if (endDate != nil) && (endDate == nil || *endDate != "") {
-					return this.Parse8601(endDate)
-				}
-				return nil
-			}(),
-			"expiryDatetime": endDate,
-			"strike":         nil,
-			"optionType":     nil,
-			"taker":          0,
-			"maker":          0,
-			"percentage":     true,
-			"tierBased":      false,
-			"feeSide":        "get",
+			"expiryDatetime":  endDate,
+			"strike":          nil,
+			"optionType":      nil,
+			"taker":           0,
+			"maker":           0,
+			"percentage":      true,
+			"tierBased":       false,
+			"feeSide":         "get",
 			"precision": map[string]any{
 				"amount": tickSize,
 				"price":  tickSize,
@@ -1227,7 +1221,13 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 			"outcomes": outcomes,
 			"info":     market,
 			"created":  nil,
-		})
+		}
+		if (endDate != nil) && (endDate == nil || *endDate != "") {
+			literal81325["expiry"] = this.Parse8601(endDate)
+		} else {
+			literal81325["expiry"] = nil
+		}
+		result = append(result, literal81325)
 	}
 	return result
 }
@@ -1347,7 +1347,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 				endIndex = int64(tokenIdsLength)
 			}
 			var chunk []any = []any{}
-			for i := int(startIndex); ccxt.IsLessThan(i, endIndex); i++ {
+			for i := int(startIndex); int64(i) < endIndex; i++ {
 				chunk = append(chunk, ccxt.GetValue(tokenIds, i))
 			}
 			// gamma matches repeated clob_token_ids params — comma-joined ids are rejected
@@ -1542,7 +1542,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 			endIndex = int64(tokenIdsLength)
 		}
 		var bookParams []any = []any{}
-		for i := int(startIndex); ccxt.IsLessThan(i, endIndex); i++ {
+		for i := int(startIndex); int64(i) < endIndex; i++ {
 			bookParams = append(bookParams, map[string]any{
 				"token_id": ccxt.GetValue(tokenIds, i),
 			})
@@ -2425,7 +2425,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 			"rate":     this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")),
 		}
 	}
-	return this.SafePredictionTrade(map[string]any{
+	var literal163941 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -2436,13 +2436,20 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 		"market":       this.SafeString(mkt, "market"),
 		"order":        this.SafeString2(trade, "orderId", "taker_order_id"),
 		"type":         nil,
-		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"side":         nil,
+		"takerOrMaker": nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, mkt)
+	}
+	if side != nil {
+		literal163941["side"] = *side
+	}
+	if takerOrMaker != nil {
+		literal163941["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafePredictionTrade(literal163941, mkt)
 }
 
 /**
@@ -2637,7 +2644,7 @@ func (this *Polymarket) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.Predicti
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Polymarket) ParsePredictionPosition(position any, optionalArgs ...any) any {
+func (this *Polymarket) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(position, "asset")
@@ -2962,7 +2969,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	}
 	// buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
 	// requested outcomes first (one gamma request for all uncached token ids)
-	var orderOutcomes []any = []any{}
+	var orderOutcomes []string = []string{}
 	for i := 0; i < len(orders); i++ {
 		var o map[string]any = orders[i]
 		var __oc *string = this.SafeString(o, "outcome")
@@ -3077,7 +3084,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 		orderTypeStr = &orderTypeStrStr5
 	}
 	var priceResolved any = price
-	if ccxt.IsEqual(priceResolved, nil) {
+	if priceResolved == nil {
 		if !isMarket {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price for limit orders"))
 		}
@@ -3087,7 +3094,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 		} else {
 			priceResolved = nil
 		}
-		if ccxt.IsEqual(priceResolved, nil) {
+		if priceResolved == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() could not determine a price from the outcome, pass an explicit price"))
 		}
 	}
@@ -3890,15 +3897,9 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 			parsedTags = append(parsedTags, *tagLabel)
 		}
 	}
-	return this.Extend(map[string]any{
-		"id":   this.SafeString(rawEvent, "id"),
-		"slug": slug,
-		"event": func() any {
-			if (slug != nil) && (slug == nil || *slug != "") {
-				return this.ShortenSlug(slug)
-			}
-			return nil
-		}(),
+	var literal264528 map[string]any = map[string]any{
+		"id":                    this.SafeString(rawEvent, "id"),
+		"slug":                  slug,
 		"title":                 this.SafeString(rawEvent, "title"),
 		"tags":                  parsedTags,
 		"markets":               marketsList,
@@ -3915,7 +3916,13 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 		"resolutionSource":      this.SafeString2(rawEvent, "resolutionSource", "resolution_source"),
 		"resolved":              this.SafeBool2(rawEvent, "closed", "resolved"),
 		"info":                  rawEvent,
-	})
+	}
+	if (slug != nil) && (slug == nil || *slug != "") {
+		literal264528["event"] = this.ShortenSlug(slug)
+	} else {
+		literal264528["event"] = nil
+	}
+	return this.Extend(literal264528)
 }
 
 /**
@@ -4091,12 +4098,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			})
 		}
 	}
-	return map[string]any{
+	var literal283515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyValue,
+		"body":    nil,
 		"headers": headersValue,
 	}
+	if bodyValue != nil {
+		literal283515["body"] = *bodyValue
+	}
+	return literal283515
 }
 func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
@@ -4423,9 +4434,9 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 		return
 	}
 	if !(this.Orderbooks[outcome.(string)] != nil) {
-		var seededBook any = this.OrderBook(map[string]any{})
+		var seededBook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
 		if wsKey, ok := outcome.(string); ok {
-			this.Orderbooks[wsKey] = seededBook.(ccxt.OrderBookInterface)
+			this.Orderbooks[wsKey] = seededBook
 		}
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[outcome.(string)]
@@ -4673,9 +4684,9 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		"type":       "market",
 	}
 	if !(this.Orderbooks[*outcomeValue] != nil) {
-		var seededBook any = this.OrderBook(map[string]any{})
+		var seededBook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
 		if outcomeValue != nil {
-			this.Orderbooks[*outcomeValue] = seededBook.(ccxt.OrderBookInterface)
+			this.Orderbooks[*outcomeValue] = seededBook
 		}
 	}
 	var url any = this.UrlsApi["ws"]

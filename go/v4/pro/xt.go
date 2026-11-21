@@ -1570,7 +1570,7 @@ func (this *Xt) HandleTickers(client any, message map[string]any) map[string]any
 	}
 	var newTickers []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var tickerData any = data[i]
+		var tickerData, _ = data[i].(map[string]any)
 		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(tickerData))
 		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 		if symbol != nil {

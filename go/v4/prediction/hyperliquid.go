@@ -1334,7 +1334,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
 	// `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
 	// enriched with the current mid price (markPx); hyperliquid does not return the position
 	// value / entry price / pnl for outcome tokens, so they are computed here
@@ -2637,7 +2637,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	} else {
 		endValue = firstExpiry
 	}
-	return this.Extend(map[string]any{
+	var literal203028 map[string]any = map[string]any{
 		"id":               parentSymbol,
 		"slug":             parentSymbol,
 		"event":            parentSymbol,
@@ -2648,13 +2648,17 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 		"created":          nil,
 		"createdDatetime":  nil,
 		"end":              endValue,
-		"endDatetime":      expiryDatetime,
+		"endDatetime":      nil,
 		"category":         "crypto",
 		"lastUpdatedAt":    nil,
 		"resolutionSource": "Hyperliquid mark price",
 		"resolved":         nil,
 		"info":             raw,
-	})
+	}
+	if expiryDatetime != nil {
+		literal203028["endDatetime"] = *expiryDatetime
+	}
+	return this.Extend(literal203028)
 }
 func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	var market map[string]any = this.Market(outcome)
@@ -2716,7 +2720,7 @@ func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) ma
 	}
 }
 func (this *Hyperliquid) ActionHash(action map[string]any, vaultAddress *string, nonce int64) any {
-	var dataBinary any = this.Packb(action)
+	var dataBinary []uint8 = this.Packb(action)
 	var dataHex string = this.BinaryToBase16(dataBinary)
 	var data string = dataHex
 	data += "00000" + this.IntToBase16(nonce)
@@ -2947,12 +2951,16 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		bodyValue = &jsonText
 	}
-	return map[string]any{
+	var literal227515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyValue,
+		"body":    nil,
 		"headers": headersValue,
 	}
+	if bodyValue != nil {
+		literal227515["body"] = *bodyValue
+	}
+	return literal227515
 }
 func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

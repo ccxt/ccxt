@@ -526,7 +526,11 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 			singleResponse = r1.Value
 		}
 		var singleResult, _ = singleResponse["result"].(map[string]any)
-		var singleData map[string]any = this.SafeDictMap(singleResult, "data", map[string]any{})
+		var singleData map[string]any
+		singleData, _ = singleResult["data"].(map[string]any)
+		if singleData == nil {
+			singleData = map[string]any{}
+		}
 		var single map[string]any = this.ParseEvent(singleData)
 		this.IndexEventOutcomes(single)
 
@@ -644,7 +648,11 @@ func (this *Opinion) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEven
 		response = r1.Value
 	}
 	var result, _ = response["result"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(result, "data", map[string]any{})
+	var data map[string]any
+	data, _ = result["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var event map[string]any = this.ParseEvent(data)
 	this.IndexEventOutcomes(event)
 
@@ -1334,10 +1342,17 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket bool, side string, amount a
 		makerAmount = ccxt.Precise.StringMul(k, priceDenom)
 		takerAmount = ccxt.Precise.StringMul(k, priceNum)
 	}
-	return map[string]any{
-		"makerAmount": makerAmount,
-		"takerAmount": takerAmount,
+	var literal99615 map[string]any = map[string]any{
+		"makerAmount": nil,
+		"takerAmount": nil,
 	}
+	if makerAmount != nil {
+		literal99615["makerAmount"] = *makerAmount
+	}
+	if takerAmount != nil {
+		literal99615["takerAmount"] = *takerAmount
+	}
+	return literal99615
 }
 
 /**
@@ -2222,7 +2237,7 @@ func (this *Opinion) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Opinion) ParsePredictionPosition(position any, optionalArgs ...any) any {
+func (this *Opinion) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(position, "tokenId")
@@ -2667,7 +2682,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		panic(r1.Err)
 	}
 	var url string = this.OpinionWsUrl()
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var subscribeMsg map[string]any = map[string]any{
 		"action":   "SUBSCRIBE",
 		"channel":  channel,
@@ -3267,12 +3282,12 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) map[string]any {
 			// an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
 			// strict base types the credential as string, undefined can not be assigned)
 			var hasDirectApiKey bool = !this.IsEmptyString(this.ApiKey)
-			var apiKey any = func() any {
-				if hasDirectApiKey {
-					return this.ApiKey
-				}
-				return this.SafeString(this.Options, "apiKey")
-			}()
+			var apiKey any
+			if hasDirectApiKey {
+				apiKey = this.ApiKey
+			} else {
+				apiKey = this.SafeString(this.Options, "apiKey")
+			}
 			if ccxt.IsEqual(apiKey, nil) {
 				panic(ccxt.AuthenticationError(this.Id + " " + path + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first"))
 			}

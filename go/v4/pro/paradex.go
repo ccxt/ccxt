@@ -1169,7 +1169,7 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	deltasOption, paramsDeltas := this.HandleOptionAndParams(params, "watchOrderBook", "deltas", false)
+	deltasOption, paramsDeltas := this.HandleOptionBoolAndParams(params, "watchOrderBook", "deltas", false)
 	var deltas bool = (deltasOption == true) || ((limit != nil) && (*limit > 15))
 	var url string = this.GetWsUrl()
 	// an unwatch in flight decides which feed each market is on once acknowledged
@@ -1288,7 +1288,7 @@ func (this *Paradex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	deltasOption, paramsDeltas := this.HandleOptionAndParams(params, "watchOrderBook", "deltas", false)
+	deltasOption, paramsDeltas := this.HandleOptionBoolAndParams(params, "watchOrderBook", "deltas", false)
 	var url string = this.GetWsUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	var channels []any = []any{}
@@ -1542,11 +1542,10 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	messageHashStr := "markets_summary." + market["symbol"].(string)
-	var messageHash *string = &messageHashStr
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var messageHash string = "markets_summary." + market.Symbol
 
-	r1 := <-this.SubscribeMarketsSummaryAsync([]any{market["symbol"]}, []any{messageHash}, params)
+	r1 := <-this.SubscribeMarketsSummaryAsync([]string{market.Symbol}, []any{messageHash}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1833,12 +1832,12 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
  * @param {object} [params] extra parameters merged into the request
  * @returns {object} the first [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure} updated
  */
-func (this *Paradex) SubscribeMarketsSummaryAsync(symbols any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) SubscribeMarketsSummaryAsync(symbols []string, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeMarketsSummaryBody(ch, symbols, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], symbols any, messageHashes any, optionalArgs ...any) any {
+func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], symbols []string, messageHashes any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1846,8 +1845,8 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	var url string = this.GetWsUrl()
 	var channel string = "markets_summary"
 	var pendingHashes []any = []any{channel, channel + ":scoped"}
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
+	for i := 0; i < len(symbols); i++ {
+		var market map[string]any = this.Market(symbols[i])
 		pendingHashes = append(pendingHashes, ccxt.Add(channel+".", market["id"]))
 	}
 
@@ -1873,8 +1872,8 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	var missing []any = []any{}
 	var missingHashes []any = []any{}
 	// messageHashes[i] is the hash the summaries of symbols[i] resolve
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
+	for i := 0; i < len(symbols); i++ {
+		var market map[string]any = this.Market(symbols[i])
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var subscribeHash string = channel + "." + *marketId
 		subscribeHashes = append(subscribeHashes, subscribeHash)

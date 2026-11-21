@@ -858,7 +858,7 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan AsyncResult[[]MarketInter
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = rawMarkets[i]
+		var market, _ = rawMarkets[i].(map[string]any)
 		var id *string = this.SafeString(market, "id")
 		var parts []string = strings.Split(*id, "-")
 		var baseId *string = &parts[0]
@@ -922,7 +922,7 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan AsyncResult[[]MarketInter
 				},
 			},
 			"created": nil,
-			"info":    market,
+			"info":    rawMarkets[i],
 		}))
 	}
 
@@ -1178,28 +1178,53 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) Ticke
 	open = this.SafeString(ticker, "open")
 	last = this.SafeString2(ticker, "price", "last")
 	volume = this.SafeString(ticker, "volume")
-	return this.SafeTicker(map[string]any{
+	var literal91932 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
-		"high":          high,
-		"low":           low,
-		"bid":           bid,
+		"high":          nil,
+		"low":           nil,
+		"bid":           nil,
 		"bidVolume":     nil,
-		"ask":           ask,
+		"ask":           nil,
 		"askVolume":     nil,
 		"vwap":          nil,
-		"open":          open,
-		"close":         last,
-		"last":          last,
+		"open":          nil,
+		"close":         nil,
+		"last":          nil,
 		"previousClose": nil,
 		"change":        nil,
 		"percentage":    nil,
 		"average":       nil,
-		"baseVolume":    volume,
+		"baseVolume":    nil,
 		"quoteVolume":   nil,
 		"info":          ticker,
-	}, market)
+	}
+	if high != nil {
+		literal91932["high"] = *high
+	}
+	if low != nil {
+		literal91932["low"] = *low
+	}
+	if bid != nil {
+		literal91932["bid"] = *bid
+	}
+	if ask != nil {
+		literal91932["ask"] = *ask
+	}
+	if open != nil {
+		literal91932["open"] = *open
+	}
+	if last != nil {
+		literal91932["close"] = *last
+	}
+	if last != nil {
+		literal91932["last"] = *last
+	}
+	if volume != nil {
+		literal91932["baseVolume"] = *volume
+	}
+	return this.SafeTicker(literal91932, market)
 }
 func (this *Coinbaseexchange) ParseTickerList(ticker any, optionalArgs ...any) Ticker {
 	//
@@ -1466,7 +1491,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
-	return this.SafeTrade(map[string]any{
+	var literal113731 map[string]any = map[string]any{
 		"id":           id,
 		"order":        orderId,
 		"info":         trade,
@@ -1479,8 +1504,12 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"price":        price,
 		"amount":       amount,
 		"fee":          fee,
-		"cost":         cost,
-	}, marketResolved)
+		"cost":         nil,
+	}
+	if cost != nil {
+		literal113731["cost"] = *cost
+	}
+	return this.SafeTrade(literal113731, marketResolved)
 }
 
 /**
@@ -2686,7 +2715,13 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	var response []any = responseRecv.Value
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
-		AddElementToObject(entries[i], "currency", code)
+		if row, ok := entries[i].(map[string]any); ok && (row != nil) {
+			if code != nil {
+				row["currency"] = *code
+			} else {
+				row["currency"] = nil
+			}
+		}
 	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(entries, currency, since, limit))}
@@ -3157,12 +3192,16 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) map[string]
 			"Content-Type":         "application/json",
 		}
 	}
-	return map[string]any{
+	var literal226315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal226315["body"] = *requestBody
+	}
+	return literal226315
 }
 func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 400) || (code == 404) {

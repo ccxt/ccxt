@@ -850,15 +850,15 @@ func (this *Whitebit) ParseMarket(market any) map[string]any {
 	var makerFeeRate *string = this.SafeString(market, "makerFee")
 	var maker *string = Precise.StringDiv(makerFeeRate, "100")
 	var isSpot bool = !swap
-	return this.SafeMarketStructure(map[string]any{
+	var literal55641 map[string]any = map[string]any{
 		"id":       id,
 		"symbol":   symbol,
 		"base":     base,
 		"quote":    quote,
-		"settle":   settle,
+		"settle":   nil,
 		"baseId":   baseId,
 		"quoteId":  quoteId,
-		"settleId": settleId,
+		"settleId": nil,
 		"type":     typeVar,
 		"spot":     isSpot,
 		"margin":   margin,
@@ -905,7 +905,14 @@ func (this *Whitebit) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if settle != nil {
+		literal55641["settle"] = *settle
+	}
+	if settleId != nil {
+		literal55641["settleId"] = *settleId
+	}
+	return this.SafeMarketStructure(literal55641)
 }
 
 /**
@@ -4155,7 +4162,7 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	//     }
 	//
 	var url *string = this.SafeString(response, "url")
-	var account map[string]any = SafeMapTyped(response, "account")
+	var account, _ = response["account"].(map[string]any)
 	var address *string = this.SafeString(account, "address", url)
 	var tag *string = this.SafeString(account, "memo")
 	this.CheckAddress(address)

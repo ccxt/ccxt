@@ -3318,7 +3318,7 @@ func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketId *string = this.SafeString(ticker, "i")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var last *string = this.SafeString(ticker, "a")
-	return this.SafeTicker(map[string]any{
+	var literal233132 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -3337,14 +3337,14 @@ func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"percentage":    this.SafeString(ticker, "c"),
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "v"),
-		"quoteVolume": func() any {
-			if marketResolved["quote"] == "USD" {
-				return this.SafeString(ticker, "vv")
-			}
-			return nil
-		}(),
-		"info": ticker,
-	}, marketResolved)
+		"info":          ticker,
+	}
+	if marketResolved["quote"] == "USD" {
+		literal233132["quoteVolume"] = this.SafeString(ticker, "vv")
+	} else {
+		literal233132["quoteVolume"] = nil
+	}
+	return this.SafeTicker(literal233132, marketResolved)
 }
 func (this *Cryptocom) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
@@ -4027,7 +4027,11 @@ func (this *Cryptocom) fetchAccountsBody(ch chan AsyncResult[[]Account], optiona
 	//     }
 	//
 	var result, _ = response["result"].(map[string]any)
-	var masterAccount map[string]any = this.SafeDictMap(result, "master_account", map[string]any{})
+	var masterAccount map[string]any
+	masterAccount, _ = result["master_account"].(map[string]any)
+	if masterAccount == nil {
+		masterAccount = map[string]any{}
+	}
 	var accounts any = this.SafeList(result, "sub_account_list", []any{})
 	AppendToArray(&accounts, masterAccount)
 

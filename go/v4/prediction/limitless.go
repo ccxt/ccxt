@@ -3196,9 +3196,9 @@ func (this *Limitless) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	_ = params
 	var paramsValue map[string]any = params
 	if outcome != nil {
-		var warn any = true
-		warn, paramsValue = this.HandleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
-		if warn == true {
+		warn, paramsWarn := this.HandleOptionBoolAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", true)
+		paramsValue = paramsWarn
+		if warn {
 			panic(ccxt.BadRequest(this.Id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message."))
 		}
 	}
@@ -3271,22 +3271,20 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
 		outcomeSymbol = this.SafeString(outcomeObj, "outcome")
 	}
-	var paginate any = false
 	var maxLimit int = 100
-	var paramsValue map[string]any = params
-	paginate, paramsValue = this.HandleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate)
-	if paginate == true {
-		paramsValue = this.OmitDict(paramsValue, "paginate")
+	paginate, paramsValue := this.HandleOptionBoolAndParams(params, "fetchMyTrades", "paginate", false)
+	if paginate {
+		var paramsCursor map[string]any = this.OmitDict(paramsValue, "paginate")
 
-		r1 := <-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, paramsValue, "nextCursor", "cursor", nil, maxLimit)
+		r1 := <-this.FetchPaginatedCallCursorAsync("fetchMyTrades", outcome, since, limit, paramsCursor, "nextCursor", "cursor", nil, maxLimit)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes250519 []any = r1.Value
-		if retRes250519 == nil {
+		var retRes250319 []any = r1.Value
+		if retRes250319 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes250519)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes250319)}
 		}
 		return nil
 	}
@@ -3695,15 +3693,15 @@ func (this *Limitless) GetPositionFromClobEntry(label *string, optionalArgs ...a
 	var rawMarket map[string]any = ccxt.SafeMapTyped(entry, "market")
 	var slug *string = this.SafeString(rawMarket, "slug")
 	var outcomeObj any = this.GetOutcomeBySlugAndLabel(slug, label)
-	var parsed any = this.ParsePredictionPosition(position, outcomeObj)
-	ccxt.AddElementToObject(parsed, "contracts", this.ParseNumber(this.ApplyScale(contracts)))
+	var parsed map[string]any = this.ParsePredictionPosition(position, outcomeObj)
+	parsed["contracts"] = this.ParseNumber(this.ApplyScale(contracts))
 	var latestTrade map[string]any = ccxt.SafeMapTyped(entry, "latestTrade")
 	var key string = "latestYesPrice"
 	if label != nil && *label == "no" {
 		key = "latestNoPrice"
 	}
-	ccxt.AddElementToObject(parsed, "markPrice", this.SafeNumber(latestTrade, key))
-	ccxt.AddElementToObject(parsed, "info", entry)
+	parsed["markPrice"] = this.SafeNumber(latestTrade, key)
+	parsed["info"] = entry
 	return this.SafePredictionPosition(parsed)
 }
 
@@ -3716,7 +3714,7 @@ func (this *Limitless) GetPositionFromClobEntry(label *string, optionalArgs ...a
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Limitless) ParsePredictionPosition(position any, optionalArgs ...any) any {
+func (this *Limitless) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "cost": "995720",

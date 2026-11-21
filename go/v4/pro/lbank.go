@@ -416,7 +416,7 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		stored.Append(parsed)
 	} else {
-		var rawOHLCV map[string]any = ccxt.SafeMapTyped(message, "kbar")
+		var rawOHLCV, _ = message["kbar"].(map[string]any)
 		var datetime *string = this.SafeString(rawOHLCV, "t")
 		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
 		stored.Append(parsed)
@@ -860,9 +860,9 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		}
 		side = &sideStr
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal63631 map[string]any = map[string]any{
 		"timestamp":    timestamp,
-		"datetime":     datetime,
+		"datetime":     nil,
 		"symbol":       nil,
 		"id":           nil,
 		"order":        nil,
@@ -874,7 +874,11 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"cost":         this.SafeString(trade, "amount"),
 		"fee":          nil,
 		"info":         trade,
-	}, market))
+	}
+	if datetime != nil {
+		literal63631["datetime"] = *datetime
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal63631, market))
 }
 
 /**
@@ -1053,7 +1057,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	if (typeVar != nil && *typeVar == "market") && (side != nil && *side == "buy") {
 		cost = orderAmount
 	}
-	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
+	var literal78331 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(orderUpdate, "uuid"),
 		"clientOrderId":       this.SafeString(orderUpdate, "customerID"),
@@ -1072,9 +1076,13 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"filled":              this.SafeString(orderUpdate, "accAmt"),
 		"status":              this.ParseWsOrderStatus(status),
 		"fee":                 nil,
-		"cost":                cost,
+		"cost":                nil,
 		"trades":              nil,
-	}, market))
+	}
+	if cost != nil {
+		literal78331["cost"] = *cost
+	}
+	return ccxt.OrderToMap(this.SafeOrder(literal78331, market))
 }
 func (this *Lbank) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -1356,7 +1364,11 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId)
-	var orderBook any = this.SafeDict(message, "depth", message)
+	var orderBook map[string]any
+	orderBook, _ = message["depth"].(map[string]any)
+	if orderBook == nil {
+		orderBook = message
+	}
 	var datetime *string = this.SafeString(message, "TS")
 	var timestamp *int64 = this.Parse8601(datetime)
 	// let orderbook = this.safeValue (this.orderbooks, symbol)

@@ -1062,7 +1062,7 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 		}
 	}
 	var tradingFees, _ = this.Fees["trading"].(map[string]any)
-	return this.SafeMarketStructure(map[string]any{
+	var literal85241 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -1084,9 +1084,9 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 		"maker":          tradingFees["maker"],
 		"contractSize":   contractSize,
 		"expiry":         this.Parse8601(expiryDatetime),
-		"expiryDatetime": expiryDatetime,
+		"expiryDatetime": nil,
 		"strike":         strike,
-		"optionType":     optionType,
+		"optionType":     nil,
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": this.ParseNumber(minQuantityLimit),
@@ -1115,7 +1115,14 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 		"active":  this.SafeBool(market, "marketEnabled"),
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if expiryDatetime != nil {
+		literal85241["expiryDatetime"] = *expiryDatetime
+	}
+	if optionType != nil {
+		literal85241["optionType"] = *optionType
+	}
+	return this.SafeMarketStructure(literal85241)
 }
 func (this *Bullish) ParseMarketType(optionalArgs ...any) *string {
 	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3207,7 +3214,7 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[*string], optionalArgs 
 		var response []any = responseRecv.Value
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
-			var account map[string]any = SafeMapTyped(accounts, i)
+			var account, _ = accounts[i].(map[string]any)
 			var name *string = this.SafeString(account, "tradingAccountName")
 			if name != nil && *name == "Primary Account" {
 				if derefPtr := this.SafeString(account, "tradingAccountId"); derefPtr != nil {
@@ -3409,7 +3416,10 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		if network != nil {
 			// find the entry that matches the network or return first entry if not found and user did not specify a network
 			for i := 0; i < len(safeResponse); i++ {
-				var entry map[string]any = this.SafeDictMap(safeResponse, i, map[string]any{})
+				var entry, _ = safeResponse[i].(map[string]any)
+				if entry == nil {
+					entry = map[string]any{}
+				}
 				var networkId *string = this.SafeString(entry, "network")
 				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if network == networkCode || (network != nil && networkCode != nil && *network == *networkCode) {
@@ -4212,12 +4222,16 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query
 		}
 	}
-	return map[string]any{
+	var literal305015 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal305015["body"] = *requestBody
+	}
+	return literal305015
 }
 
 /**

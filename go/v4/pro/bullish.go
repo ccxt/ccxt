@@ -934,7 +934,7 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 		}
 		this.Balance[*tradingAccountId] = this.SafeBalance(balance)
 	} else {
-		var data map[string]any = ccxt.SafeMapTyped(message, "data")
+		var data, _ = message["data"].(map[string]any)
 		var assetId *string = this.SafeString(data, "assetSymbol")
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(data, "availableQuantity")

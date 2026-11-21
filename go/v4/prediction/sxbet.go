@@ -414,8 +414,17 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 	if *this.SafeInteger(raw, "gameTime", 0) != 0 {
 		gameTime = this.SafeTimestamp(raw, "gameTime")
 	}
-	var outcomeLabels []any = []any{outcomeOneName, outcomeTwoName}
-	var outcomeIds []any = []any{marketHash, *marketHash + "-2"}
+	var outcomeLabels []any = []any{nil, nil}
+	if outcomeOneName != nil {
+		outcomeLabels[0] = *outcomeOneName
+	}
+	if outcomeTwoName != nil {
+		outcomeLabels[1] = *outcomeTwoName
+	}
+	var outcomeIds []any = []any{nil, *marketHash + "-2"}
+	if marketHash != nil {
+		outcomeIds[0] = *marketHash
+	}
 	var outcomes []any = []any{}
 	for oi := 0; oi < len(outcomeLabels); oi++ {
 		var label *string = ccxt.SafeStringPtr(outcomeLabels[oi])
@@ -423,13 +432,13 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 		outcomes = append(outcomes, map[string]any{
 			"id": func() any {
 				if oi >= 0 && oi < len(outcomeIds) {
-					return ccxt.DerefScalar(outcomeIds[oi])
+					return outcomeIds[oi]
 				}
 				return nil
 			}(),
 			"outcomeId": func() any {
 				if oi >= 0 && oi < len(outcomeIds) {
-					return ccxt.DerefScalar(outcomeIds[oi])
+					return outcomeIds[oi]
 				}
 				return nil
 			}(),
@@ -779,13 +788,13 @@ func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 	} else {
 		eventSlug = this.ShortenSlug(fixtureId)
 	}
-	return map[string]any{
+	var literal61915 map[string]any = map[string]any{
 		"id":                fixtureId,
 		"slug":              fixtureId,
 		"event":             eventSlug,
-		"title":             title,
+		"title":             nil,
 		"description":       nil,
-		"category":          leagueLabel,
+		"category":          nil,
 		"tags":              nil,
 		"markets":           marketsList,
 		"mutuallyExclusive": false,
@@ -801,6 +810,13 @@ func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 		"url":               nil,
 		"info":              rawMarkets,
 	}
+	if title != nil {
+		literal61915["title"] = *title
+	}
+	if leagueLabel != nil {
+		literal61915["category"] = *leagueLabel
+	}
+	return literal61915
 }
 
 /**
@@ -2331,7 +2347,7 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 	var totalStake *string = this.SafeString(raw, "totalStake", "0")
 	var pnl *string = this.SafeString(raw, "pnl")
 	var timestamp *int64 = this.Parse8601(this.SafeString(raw, "betTime"))
-	return this.SafePredictionPosition(map[string]any{
+	var literal166544 map[string]any = map[string]any{
 		"outcome":             this.SafeString(outcomeObj, "outcome"),
 		"outcomeId":           this.SafeString(outcomeObj, "outcomeId", outcomeId),
 		"label":               this.SafeString(outcomeObj, "label"),
@@ -2343,15 +2359,15 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 		"entryPrice":          entryPrice,
 		"markPrice":           nil,
 		"unrealizedPnl":       nil,
-		"realizedPnl": func() any {
-			if pnl != nil {
-				return this.ParseNumber(ccxt.Precise.StringDiv(pnl, usdcDecimals, 6))
-			}
-			return nil
-		}(),
-		"side": "long",
-		"info": raw,
-	})
+		"side":                "long",
+		"info":                raw,
+	}
+	if pnl != nil {
+		literal166544["realizedPnl"] = this.ParseNumber(ccxt.Precise.StringDiv(pnl, usdcDecimals, 6))
+	} else {
+		literal166544["realizedPnl"] = nil
+	}
+	return this.SafePredictionPosition(literal166544)
 }
 
 /**
@@ -2501,7 +2517,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 			return 0
 		}()
 	}
-	return map[string]any{
+	var literal178315 map[string]any = map[string]any{
 		"info":      trade,
 		"id":        this.SafeString(trade, "tradeId"),
 		"timestamp": timestamp,
@@ -2510,7 +2526,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 		"outcomeId": this.SafeString(outcomeObj, "outcomeId", outcomeId),
 		"market":    this.SafeString(outcomeObj, "market"),
 		"event":     nil,
-		"result":    resultLabel,
+		"result":    nil,
 		"won":       won,
 		"amount":    this.ParseNumber(stake),
 		"price":     settlePrice,
@@ -2518,6 +2534,10 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 		"payout":    this.ParseNumber(payout),
 		"pnl":       this.ParseNumber(pnl),
 	}
+	if resultLabel != nil {
+		literal178315["result"] = *resultLabel
+	}
+	return literal178315
 }
 
 /**
@@ -3088,7 +3108,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 	// Centrifugo requires a token-carrying connect command before any subscribe. This sends it once
 	// per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
 	// clears client.(*ccxt.WSClient).Subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var connectSent bool = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "connect") != nil
 	if !connectSent {
 		this.Options["wsConnected"] = false
@@ -3343,7 +3363,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var isNewSubscription bool = client.(ccxt.ClientInterface).SubscriptionSafe(channel) == nil
 	if this.Orderbooks[sym] == nil {
 		// seed from the REST snapshot so the book is served before the first publication
@@ -3359,8 +3379,8 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		}
 		this.ApplySxbetWsSnapshot(snapshot)
 		if this.Orderbooks[sym] == nil {
-			var emptyBook any = this.OrderBook(map[string]any{})
-			this.Orderbooks[sym] = emptyBook.(ccxt.OrderBookInterface)
+			var emptyBook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
+			this.Orderbooks[sym] = emptyBook
 		}
 	}
 	var requestId int64 = this.RequestId(url)
@@ -3499,7 +3519,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var channel string = "best_odds_v3:global"
 	var hydrated bool = false
 	if ccxt.IsEqual(this.SafeDict(this.SafeDict(this.Options, "wsTickers", map[string]any{}), sym), nil) {

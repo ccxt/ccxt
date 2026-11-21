@@ -1195,7 +1195,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 		return
 	}
 	for i := 0; i < len(data); i++ {
-		var rawTrade any = data[i]
+		var rawTrade, _ = data[i].(map[string]any)
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
@@ -2433,7 +2433,7 @@ func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {
 	var messageHash string = "order"
 	var marketSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var rawOrder any = data[i]
+		var rawOrder, _ = data[i].(map[string]any)
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 		stored.Append(order)
 		var symbol *string = this.SafeString(order, "symbol")

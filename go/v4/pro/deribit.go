@@ -218,7 +218,7 @@ func (this *Deribit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var url *string = this.UrlsApiStrings["ws"]
 	var interval string = *this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
@@ -236,7 +236,10 @@ func (this *Deribit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r2.Err)
 		}
 	}
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var channel string = "ticker." + marketId + "." + interval
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -1098,11 +1101,12 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	}
 	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel", "")
-	var data any = this.SafeValue(params, "data", map[string]any{})
+	var dataList, _ = params["data"].([]any)
 	var orders []any = []any{}
-	if ccxt.IsArray(data) {
-		orders = this.ParseOrders(data)
+	if dataList != nil {
+		orders = this.ParseOrders(dataList)
 	} else {
+		var data any = this.SafeValue(params, "data", map[string]any{})
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 		orders = []any{order}
 	}

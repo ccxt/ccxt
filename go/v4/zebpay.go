@@ -839,15 +839,18 @@ func (this *Zebpay) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit
 	}
 	var response map[string]any = nil
-	if *this.SafeBool(market, "spot", false) {
+	if market.Spot {
 		//
 		//       {
 		//         "asks": [
@@ -874,8 +877,12 @@ func (this *Zebpay) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		}
 		response = r2.Value
 	}
-	var bookData map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var orderbook map[string]any = this.ParseOrderBook(bookData, market["symbol"], nil, "bids", "asks", 0, 1)
+	var bookData map[string]any
+	bookData, _ = response["data"].(map[string]any)
+	if bookData == nil {
+		bookData = map[string]any{}
+	}
+	var orderbook map[string]any = this.ParseOrderBook(bookData, market.Symbol, nil, "bids", "asks", 0, 1)
 	orderbook["nonce"] = this.SafeInteger(bookData, "nonce")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
@@ -929,7 +936,11 @@ func (this *Zebpay) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 	return nil
@@ -1123,7 +1134,11 @@ func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//                 ]
 	//             ]
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limitResolved))}
 	return nil
@@ -1197,7 +1212,11 @@ func (this *Zebpay) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	//         }
 	//     ]
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1254,7 +1273,11 @@ func (this *Zebpay) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		response = r1.Value
 	}
 	var data, _ = response["data"].(map[string]any)
-	var items []any = this.SafeListSlice(data, "items", []any{})
+	var items []any
+	items, _ = data["items"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(items, market, since, limit))}
 	return nil
@@ -1563,7 +1586,11 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//        },
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -1910,7 +1937,11 @@ func (this *Zebpay) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	//         }
 	//     }
 	//
-	var responseData map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var responseData map[string]any
+	responseData, _ = response["data"].(map[string]any)
+	if responseData == nil {
+		responseData = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseData, market)}
 	return nil

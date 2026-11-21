@@ -2921,29 +2921,23 @@ func (this *Okx) ParseMarket(market any) map[string]any {
 	var status *string = this.SafeString(market, "state")
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	var literal191534 map[string]any = map[string]any{
-		"id":         id,
-		"instIdCode": instIdCode,
-		"symbol":     symbol,
-		"base":       base,
-		"quote":      quote,
-		"settle":     settle,
-		"baseId":     baseId,
-		"quoteId":    quoteId,
-		"settleId":   settleId,
-		"type":       typeVar,
-		"spot":       spot,
-		"margin":     spot && leverageAboveOne,
-		"swap":       swap,
-		"future":     future,
-		"option":     option,
-		"active":     (status != nil && *status == "live"),
-		"contract":   contract,
-		"contractSize": func() any {
-			if contract {
-				return this.SafeNumber(market, "ctVal")
-			}
-			return nil
-		}(),
+		"id":             id,
+		"instIdCode":     instIdCode,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           typeVar,
+		"spot":           spot,
+		"margin":         spot && leverageAboveOne,
+		"swap":           swap,
+		"future":         future,
+		"option":         option,
+		"active":         (status != nil && *status == "live"),
+		"contract":       contract,
 		"expiry":         expiry,
 		"expiryDatetime": this.Iso8601(expiry),
 		"strike":         this.ParseNumber(strikePrice),
@@ -2987,6 +2981,11 @@ func (this *Okx) ParseMarket(market any) map[string]any {
 		literal191534["inverse"] = baseEqualSettle
 	} else {
 		literal191534["inverse"] = nil
+	}
+	if contract {
+		literal191534["contractSize"] = this.SafeNumber(market, "ctVal")
+	} else {
+		literal191534["contractSize"] = nil
 	}
 	return this.Extend(fees, literal191534)
 }
@@ -3948,7 +3947,11 @@ func (this *Okx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 	//         "msg": ""
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -4177,7 +4180,11 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limitResolved))}
 	return nil
@@ -5820,7 +5827,11 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 	//         "msg": ""
 	//     }
 	//
-	var ordersData []any = this.SafeListSlice(response, "data", []any{})
+	var ordersData []any
+	ordersData, _ = response["data"].([]any)
+	if ordersData == nil {
+		ordersData = []any{}
+	}
 	// the request-only keys must not be merged onto every parsed order: a clientOrderId[]
 	// request would otherwise come back as a list under the unified string field
 	var orderParams map[string]any = this.OmitDict(params, []any{"clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"})
@@ -5942,7 +5953,11 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orders
 	//         "msg": ""
 	//     }
 	//
-	var ordersData []any = this.SafeListSlice(response, "data", []any{})
+	var ordersData []any
+	ordersData, _ = response["data"].([]any)
+	if ordersData == nil {
+		ordersData = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(ordersData, nil, nil, nil, params))}
 	return nil
@@ -6296,7 +6311,7 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) Order {
 	if reduceOnlyRaw != nil {
 		reduceOnly = (reduceOnlyRaw != nil && *reduceOnlyRaw == "true")
 	}
-	return this.SafeOrder(map[string]any{
+	var literal449331 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
@@ -6314,15 +6329,22 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) Order {
 		"takeProfitPrice":     takeProfitPrice,
 		"triggerPrice":        this.SafeNumberN(order, []any{"triggerPx", "moveTriggerPx"}),
 		"average":             average,
-		"cost":                cost,
-		"amount":              amount,
+		"cost":                nil,
+		"amount":              nil,
 		"filled":              filled,
 		"remaining":           nil,
 		"status":              status,
 		"fee":                 fee,
 		"trades":              nil,
 		"reduceOnly":          reduceOnly,
-	}, marketResolved)
+	}
+	if cost != nil {
+		literal449331["cost"] = *cost
+	}
+	if amount != nil {
+		literal449331["amount"] = *amount
+	}
+	return this.SafeOrder(literal449331, marketResolved)
 }
 
 /**
@@ -6705,7 +6727,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//         "msg": ""
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -6919,7 +6945,11 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	//         "msg": ""
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -7149,7 +7179,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//         "msg": ""
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -7464,7 +7498,11 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, currency, since, limit))}
 	return nil
@@ -9144,27 +9182,26 @@ func (this *Okx) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry 
 	if balanceChange != nil {
 		amount = this.ParseNumber(Precise.StringAbs(balanceChange))
 	}
-	return TransferEntryFromMap(map[string]any{
+	var literal675615 map[string]any = map[string]any{
 		"info":      transfer,
 		"id":        id,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"currency":  code,
 		"amount":    amount,
-		"fromAccount": func() any {
-			if fromAccountId == nil {
-				return nil
-			}
-			return this.SafeString(accountsById, fromAccountId)
-		}(),
-		"toAccount": func() any {
-			if toAccountId == nil {
-				return nil
-			}
-			return this.SafeString(accountsById, toAccountId)
-		}(),
-		"status": this.ParseTransferStatus(this.SafeString(transfer, "state")),
-	})
+		"status":    this.ParseTransferStatus(this.SafeString(transfer, "state")),
+	}
+	if fromAccountId == nil {
+		literal675615["fromAccount"] = nil
+	} else {
+		literal675615["fromAccount"] = this.SafeString(accountsById, fromAccountId)
+	}
+	if toAccountId == nil {
+		literal675615["toAccount"] = nil
+	} else {
+		literal675615["toAccount"] = this.SafeString(accountsById, toAccountId)
+	}
+	return TransferEntryFromMap(literal675615)
 }
 func (this *Okx) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -9943,7 +9980,7 @@ func (this *Okx) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], op
 	if length > 1 {
 		var accountId *string = this.SafeString(params, "accountId")
 		if accountId == nil {
-			var accountIds any = this.GetListFromObjectValues(accounts, "id")
+			var accountIds []any = this.GetListFromObjectValues(accounts, "id")
 			panic(ExchangeError(this.Id + " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: " + Join(accountIds, ", ")))
 		} else {
 			var accountsById map[string]any = this.IndexBy(accounts, "id")
@@ -11254,8 +11291,8 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 	_ = params
 	var options, _ = this.Options["fetchOpenInterestHistory"].(map[string]any)
 	var timeframes map[string]any = SafeMapTyped(options, "timeframes")
-	var timeframeValue *string = this.SafeString(timeframes, timeframe, timeframe)
-	if (timeframeValue == nil || *timeframeValue != "5m") && (timeframeValue == nil || *timeframeValue != "1H") && (timeframeValue == nil || *timeframeValue != "1D") {
+	var timeframeValue string = *this.SafeString(timeframes, timeframe, timeframe)
+	if (timeframeValue != "5m") && (timeframeValue != "1H") && (timeframeValue != "1D") {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe"))
 	}
 	if this.Markets == nil {
@@ -11313,7 +11350,11 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 		//        "msg": ""
 		//    }
 		//
-		var instrumentData []any = this.SafeListSlice(response, "data", []any{})
+		var instrumentData []any
+		instrumentData, _ = response["data"].([]any)
+		if instrumentData == nil {
+			instrumentData = []any{}
+		}
 
 		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.ParseOpenInterestsHistory(instrumentData, market, since, limit))}
 		return nil
@@ -11360,7 +11401,11 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 	//        "msg": ''
 	//    }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.ParseOpenInterestsHistory(data, nil, since, limit))}
 	return nil
@@ -11379,7 +11424,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
  * @param {int} [params.until] the latest time in ms of the entries to fetch
  * @returns {object[]} the request and the remaining params
  */
-func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period any, optionalArgs ...any) (map[string]any, map[string]any) {
+func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period string, optionalArgs ...any) (map[string]any, map[string]any) {
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -11406,23 +11451,23 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period an
 	if since != nil {
 		// end the window after limit periods, so that the earliest entries from since on come back
 		// okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
-		var unitPeriod any
-		if EndsWith(period, "utc") {
-			unitPeriod = Slice(period, 0, int64(-3))
+		var unitPeriod string
+		if strings.HasSuffix(period, "utc") {
+			unitPeriod = period[0 : len(period)-3]
 		} else {
 			unitPeriod = period
 		}
-		var unit string = Slice(unitPeriod, int64(-1), nil)
+		var unit string = unitPeriod[max(len(unitPeriod)-1, 0):]
 		var windowDuration any = nil
 		if unit == "M" {
 			// calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
 			// all entries in it are requested and the caller keeps the earliest limit of them
-			var months int64 = this.ParseToInt(Slice(unitPeriod, 0, int64(-1)))
+			var months int64 = this.ParseToInt(unitPeriod[0 : len(unitPeriod)-1])
 			var day int = 86400000
 			windowDuration = min((effectiveLimit*months)*31*int64(day), (int64(maxLimit)*months)*28*int64(day))
 			request["limit"] = maxLimit
 		} else {
-			windowDuration = effectiveLimit * this.ParseTimeframe(ToLower(unitPeriod)) * 1000
+			windowDuration = effectiveLimit * this.ParseTimeframe(strings.ToLower(unitPeriod)) * 1000
 		}
 		var windowEnd any = this.Sum(since, windowDuration)
 		if end == nil {
@@ -13196,7 +13241,11 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]MarginMo
 	//        msg: ''
 	//    }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var modifications any = this.ParseMarginModifications(data)
 
 	ch <- AsyncResult[[]MarginModification]{Value: MarginModificationsFromList(this.FilterBySymbolSinceLimit(modifications, symbol, since, limit))}
@@ -13368,13 +13417,9 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongShortR
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
-	var period any = "5m" // the default period of the endpoint
+	var period string = "5m" // the default period of the endpoint
 	if timeframe != nil {
-		if derefPtr := this.SafeString(this.Timeframes, timeframe, timeframe); derefPtr != nil {
-			period = *derefPtr
-		} else {
-			period = nil
-		}
+		period = *this.SafeString(this.Timeframes, timeframe, timeframe)
 		request["period"] = period
 	}
 	requestWindow, paramsWindow := this.HandleTradingStatisticsWindow(request, period, since, limit, params)

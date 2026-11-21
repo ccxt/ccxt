@@ -913,9 +913,12 @@ func (this *Bit2me) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetV2TradingOrderBook(this.Extend(request, params))
@@ -933,7 +936,7 @@ func (this *Bit2me) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", 0, 1))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "bids", "asks", 0, 1))}
 	return nil
 }
 
@@ -2475,17 +2478,24 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		statusStr := "ok"
 		status = &statusStr
 	}
-	return TransferEntryFromMap(map[string]any{
+	var literal180315 map[string]any = map[string]any{
 		"info":        transfer,
-		"id":          id,
+		"id":          nil,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    this.SafeCurrencyCode(currencyId, currency),
 		"amount":      this.SafeNumber(transfer, "amount"),
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-		"status":      status,
-	})
+		"status":      nil,
+	}
+	if id != nil {
+		literal180315["id"] = *id
+	}
+	if status != nil {
+		literal180315["status"] = *status
+	}
+	return TransferEntryFromMap(literal180315)
 }
 func (this *Bit2me) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

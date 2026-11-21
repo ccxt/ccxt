@@ -687,9 +687,12 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"product_code": market["id"],
+		"product_code": nil,
+	}
+	if market.Id != nil {
+		request["product_code"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetGetboard(this.Extend(request, params))
@@ -698,7 +701,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	}
 	var orderbook map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, nil, "bids", "asks", "price", "size"))}
 	return nil
 }
 func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -818,13 +821,13 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var amountString *string = this.SafeString(trade, "size")
 	var id *string = this.SafeString(trade, "id")
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
-	return this.SafeTrade(map[string]any{
+	var literal59131 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
-		"order":        order,
+		"order":        nil,
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": nil,
@@ -832,7 +835,11 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"amount":       amountString,
 		"cost":         nil,
 		"fee":          nil,
-	}, marketResolved)
+	}
+	if order != nil {
+		literal59131["order"] = *order
+	}
+	return this.SafeTrade(literal59131, marketResolved)
 }
 
 /**

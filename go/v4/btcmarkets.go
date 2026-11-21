@@ -1567,12 +1567,16 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	if feeCost == nil {
 		feeCost = "0"
 	}
-	return map[string]any{
+	var literal115715 map[string]any = map[string]any{
 		"type":     takerOrMaker,
-		"currency": currency,
+		"currency": nil,
 		"rate":     rate,
 		"cost":     this.ParseNumber(feeCost),
 	}
+	if currency != nil {
+		literal115715["currency"] = *currency
+	}
+	return literal115715
 }
 func (this *Btcmarkets) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

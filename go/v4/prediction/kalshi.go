@@ -863,7 +863,10 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	}
 	// Build outcomes
 	var outcomeLabels []string = []string{"YES", "NO"}
-	var outcomeIds []any = []any{ticker, ccxt.Add(ticker, "-NO")}
+	var outcomeIds []any = []any{nil, ccxt.Add(ticker, "-NO")}
+	if ticker != nil {
+		outcomeIds[0] = *ticker
+	}
 	var outcomes []any = []any{}
 	var resolvedOutcome *string = nil
 	for oi := 0; oi < len(outcomeLabels); oi++ {
@@ -891,13 +894,13 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		outcomes = append(outcomes, map[string]any{
 			"id": func() any {
 				if oi >= 0 && oi < len(outcomeIds) {
-					return ccxt.DerefScalar(outcomeIds[oi])
+					return outcomeIds[oi]
 				}
 				return nil
 			}(),
 			"outcomeId": func() any {
 				if oi >= 0 && oi < len(outcomeIds) {
-					return ccxt.DerefScalar(outcomeIds[oi])
+					return outcomeIds[oi]
 				}
 				return nil
 			}(),
@@ -922,7 +925,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	}
 	// effectively-final copy for the market object literal below (reassigned in the loop)
 	var marketResolvedOutcome *string = resolvedOutcome
-	return map[string]any{
+	var literal64115 map[string]any = map[string]any{
 		"id":              ticker,
 		"market":          marketSymbol,
 		"base":            "USD",
@@ -947,21 +950,15 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		"linear":          nil,
 		"inverse":         nil,
 		"contractSize":    nil,
-		"expiry": func() any {
-			if (endDate != nil) && (endDate == nil || *endDate != "") {
-				return this.Parse8601(endDate)
-			}
-			return nil
-		}(),
-		"expiryDatetime": endDate,
-		"strike":         nil,
-		"optionType":     nil,
-		"taker":          0.07,
-		"maker":          0,
-		"percentage":     true,
-		"tierBased":      false,
-		"feeSide":        "get",
-		"precision":      precision,
+		"expiryDatetime":  endDate,
+		"strike":          nil,
+		"optionType":      nil,
+		"taker":           0.07,
+		"maker":           0,
+		"percentage":      true,
+		"tierBased":       false,
+		"feeSide":         "get",
+		"precision":       precision,
 		"limits": map[string]any{
 			"leverage": map[string]any{
 				"min": 1,
@@ -992,6 +989,12 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		}),
 		"created": nil,
 	}
+	if (endDate != nil) && (endDate == nil || *endDate != "") {
+		literal64115["expiry"] = this.Parse8601(endDate)
+	} else {
+		literal64115["expiry"] = nil
+	}
+	return literal64115
 }
 
 /**
@@ -1024,11 +1027,11 @@ func (this *Kalshi) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTick
 		"ticker": ticker,
 	}
 
-	r1 := <-this.KalshiPublicGetMarketsTicker(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.KalshiPublicGetMarketsTicker(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "market": {
@@ -1084,7 +1087,11 @@ func (this *Kalshi) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTick
 	//         }
 	//     }
 	//
-	var raw any = this.SafeDict(response, "market", response)
+	var raw map[string]any
+	raw, _ = response["market"].(map[string]any)
+	if raw == nil {
+		raw = response
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionTicker]{Value: ccxt.PredictionTickerFromMap(this.ParsePredictionTicker(raw, outcomeObj))}
 	return nil
@@ -1162,12 +1169,16 @@ func (this *Kalshi) fetchOpenInterestBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 		"ticker": ticker,
 	}
 
-	r1 := <-this.KalshiPublicGetMarketsTicker(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.KalshiPublicGetMarketsTicker(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
-	var raw any = this.SafeDict(response, "market", response)
+	var response map[string]any = responseReply.Value
+	var raw map[string]any
+	raw, _ = response["market"].(map[string]any)
+	if raw == nil {
+		raw = response
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionOpenInterest]{Value: ccxt.PredictionOpenInterestFromMap(this.ParsePredictionOpenInterest(raw, outcomeObj))}
 	return nil
@@ -2363,7 +2374,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) map[str
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) any {
+func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ticker *string = this.SafeString(position, "ticker")
@@ -3662,10 +3673,10 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	if created == nil {
 		created = earliestCreated
 	}
-	return this.Extend(map[string]any{
+	var literal260928 map[string]any = map[string]any{
 		"id":                    ticker,
 		"slug":                  ticker,
-		"event":                 eventSlug,
+		"event":                 nil,
 		"title":                 title,
 		"markets":               marketsList,
 		"volume":                totalVolume,
@@ -3683,7 +3694,11 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 		"active":                active,
 		"resolved":              resolved,
 		"info":                  rawEvent,
-	})
+	}
+	if eventSlug != nil {
+		literal260928["event"] = *eventSlug
+	}
+	return this.Extend(literal260928)
 }
 
 /**

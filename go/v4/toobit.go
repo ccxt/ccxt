@@ -1228,9 +1228,9 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 	var active bool = (status != nil && *status == "TRADING")
 	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
-	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
-	var lotSizeFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
-	var minNotionalFilter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
+	var priceFilter, _ = filtersByType["PRICE_FILTER"].(map[string]any)
+	var lotSizeFilter, _ = filtersByType["LOT_SIZE"].(map[string]any)
+	var minNotionalFilter, _ = filtersByType["MIN_NOTIONAL"].(map[string]any)
 	var symbol any = *base + "/" + *quote
 	var isContract bool = (this.SafeString(market, "contractMultiplier") != nil)
 	var inverse *bool = this.SafeBool2(market, "isInverse", "inverse")
@@ -1336,9 +1336,12 @@ func (this *Toobit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit
@@ -1378,7 +1381,7 @@ func (this *Toobit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//
 	var timestamp *int64 = this.SafeInteger(response, "t")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp, "b", "a"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "b", "a"))}
 	return nil
 }
 
@@ -2748,7 +2751,11 @@ func (this *Toobit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 		}
 		response = r2.Value
 	}
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market))}
 	return nil

@@ -2719,13 +2719,17 @@ func (this *Bybit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...
 		}
 	}
 
-	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
+	var literal179015 map[string]any = map[string]any{
 		"status":  status,
 		"updated": nil,
 		"eta":     eta,
-		"url":     url,
+		"url":     nil,
 		"info":    responseReply.Raw,
-	})}
+	}
+	if url != nil {
+		literal179015["url"] = *url
+	}
+	ch <- AsyncResult[Status]{Value: StatusFromMap(literal179015)}
 	return nil
 }
 
@@ -5572,7 +5576,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 			takeProfitPrice = triggerPrice
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal414131 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
@@ -5590,15 +5594,22 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 		"triggerPrice":        triggerPrice,
 		"takeProfitPrice":     takeProfitPrice,
 		"stopLossPrice":       stopLossPrice,
-		"amount":              amount,
-		"cost":                cost,
+		"amount":              nil,
+		"cost":                nil,
 		"average":             avgPrice,
 		"filled":              filled,
 		"remaining":           remaining,
 		"status":              status,
 		"fee":                 fee,
 		"trades":              nil,
-	}, marketResolved)
+	}
+	if amount != nil {
+		literal414131["amount"] = *amount
+	}
+	if cost != nil {
+		literal414131["cost"] = *cost
+	}
+	return this.SafeOrder(literal414131, marketResolved)
 }
 
 /**
@@ -5802,7 +5813,11 @@ func (this *Bybit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	//         "time": 1672211918471
 	//     }
 	//
-	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var order map[string]any
+	order, _ = response["result"].(map[string]any)
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -12033,7 +12048,7 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(liquidations, market, since, limit))}
 	return nil
 }
-func (this *Bybit) ParseLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Bybit) ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "ETHPERP",
@@ -12378,7 +12393,7 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(fundings, market, since, limit))}
 	return nil
 }
-func (this *Bybit) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Bybit) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "symbol": "XMRUSDT",

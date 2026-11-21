@@ -1814,7 +1814,13 @@ func (this *Nado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	for i := 0; i < len(matches); i++ {
 		var match, _ = matches[i].(map[string]any)
 		var submissionIdx *string = this.SafeString(match, "submission_idx")
-		var tx map[string]any = this.SafeDictMap(txsBySubmission, submissionIdx, map[string]any{})
+		var tx map[string]any
+		if submissionIdx != nil {
+			tx, _ = txsBySubmission[*submissionIdx].(map[string]any)
+		}
+		if tx == nil {
+			tx = map[string]any{}
+		}
 		trades = append(trades, this.Extend(tx, matches[i]))
 	}
 
@@ -2602,8 +2608,8 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
 
 	r1 := <-this.FetchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -2680,7 +2686,13 @@ func (this *Nado) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, tickerId, map[string]any{})
+	var data map[string]any
+	if tickerId != nil {
+		data, _ = response[*tickerId].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
 	return nil
@@ -2909,7 +2921,13 @@ func (this *Nado) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, tickerId, map[string]any{})
+	var data map[string]any
+	if tickerId != nil {
+		data, _ = response[*tickerId].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(data, market)}
 	return nil
@@ -3905,9 +3923,9 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		price = this.ParseX18(this.SafeString(rawOrder, "priceX18"))
 	}
-	return this.SafeOrder(map[string]any{
+	var literal300031 map[string]any = map[string]any{
 		"info":                order,
-		"id":                  id,
+		"id":                  nil,
 		"clientOrderId":       nil,
 		"timestamp":           timestamp,
 		"datetime":            this.Iso8601(timestamp),
@@ -3915,7 +3933,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		"lastUpdateTimestamp": lastUpdateTimestamp,
 		"symbol":              marketResolved["symbol"],
 		"type":                "limit",
-		"timeInForce":         timeInForce,
+		"timeInForce":         nil,
 		"postOnly":            postOnly,
 		"side":                side,
 		"price":               price,
@@ -3923,13 +3941,26 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		"triggerPrice":        nil,
 		"amount":              amount,
 		"cost":                cost,
-		"average":             average,
+		"average":             nil,
 		"filled":              filled,
 		"remaining":           remaining,
-		"status":              status,
+		"status":              nil,
 		"fee":                 fee,
 		"trades":              nil,
-	}, marketResolved)
+	}
+	if id != nil {
+		literal300031["id"] = *id
+	}
+	if timeInForce != nil {
+		literal300031["timeInForce"] = *timeInForce
+	}
+	if average != nil {
+		literal300031["average"] = *average
+	}
+	if status != nil {
+		literal300031["status"] = *status
+	}
+	return this.SafeOrder(literal300031, marketResolved)
 }
 func (this *Nado) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{

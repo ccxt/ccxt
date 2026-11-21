@@ -533,18 +533,14 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
 	// currency here is array of networks
 	var id *string = nil // all entries have same id, as they were grouped by
-	var code any = nil
+	var code *string = nil
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
 		var networkEntry map[string]any = SafeMapTyped(rawCurrency, i)
 		// set ID on first loop
 		if id == nil {
 			id = this.SafeString(networkEntry, "currency_code")
-			if derefPtr := this.SafeCurrencyCode(id); derefPtr != nil {
-				code = *derefPtr
-			} else {
-				code = nil
-			}
+			code = this.SafeCurrencyCode(id)
 		}
 		var networkId *string = this.SafeString(networkEntry, "network_code")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
@@ -571,12 +567,19 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
-	return this.SafeCurrencyStructure(map[string]any{
-		"id":       id,
-		"code":     code,
+	var literal47343 map[string]any = map[string]any{
+		"id":       nil,
+		"code":     nil,
 		"networks": networks,
 		"info":     rawCurrency,
-	})
+	}
+	if id != nil {
+		literal47343["id"] = *id
+	}
+	if code != nil {
+		literal47343["code"] = *code
+	}
+	return this.SafeCurrencyStructure(literal47343)
 }
 
 /**

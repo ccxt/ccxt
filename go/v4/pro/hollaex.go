@@ -89,8 +89,11 @@ func (this *Hollaex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var messageHash string = "orderbook" + ":" + marketId
 
 	r1 := <-this.WatchPublicAsync(messageHash, params)
@@ -126,9 +129,15 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var channel *string = this.SafeString(message, "topic")
-	var market map[string]any = this.SafeMarket(marketId)
-	var marketIdValue string = *this.SafeString(market, "id", "")
-	var symbol *string = this.SafeString(market, "symbol")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var marketIdValue string = ""
+	if market.Id != nil {
+		marketIdValue = *market.Id
+	}
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	if symbol != nil {
 		var data, _ = message["data"].(map[string]any)
 		var timestamp *string = this.SafeString(data, "timestamp")
@@ -184,9 +193,12 @@ func (this *Hollaex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var messageHash string = "trade" + ":" + marketId
 
 	r1 := <-this.WatchPublicAsync(messageHash, params)
@@ -337,7 +349,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	var stored ccxt.WsArrayCache = this.MyTrades
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(rawTrades); i++ {
-		var trade any = rawTrades[i]
+		var trade, _ = rawTrades[i].(map[string]any)
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(trade))
 		stored.Append(parsed)
 		var symbol *string = this.SafeString(trade, "symbol")

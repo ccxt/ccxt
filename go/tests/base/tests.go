@@ -2254,12 +2254,12 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		}
 	} else {
 		// built-in types like strings, numbers, booleans
-		var sanitizedNewOutput any = func() any {
-			if EvalTruthy((IsNullValue(newOutput))) {
-				return nil
-			}
-			return newOutput
-		}() // we store undefined as nulls in the json file so we need to convert it back
+		var sanitizedNewOutput any
+		if EvalTruthy((IsNullValue(newOutput))) {
+			sanitizedNewOutput = nil
+		} else {
+			sanitizedNewOutput = newOutput
+		} // we store undefined as nulls in the json file so we need to convert it back
 		var sanitizedStoredOutput any
 		if EvalTruthy((IsNullValue(storedOutput))) {
 			sanitizedStoredOutput = nil

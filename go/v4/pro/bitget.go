@@ -2653,7 +2653,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		}
 	}
 	remaining = ccxt.Precise.StringSub(totalAmount, totalFilled)
-	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
+	var literal218731 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 this.SafeString(order, "orderId"),
@@ -2667,15 +2667,28 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		"side":               side,
 		"price":              price,
 		"triggerPrice":       triggerPrice,
-		"amount":             totalAmount,
-		"cost":               cost,
+		"amount":             nil,
+		"cost":               nil,
 		"average":            avgPrice,
-		"filled":             filledAmount,
-		"remaining":          remaining,
+		"filled":             nil,
+		"remaining":          nil,
 		"status":             this.ParseWsOrderStatus(rawStatus),
 		"fee":                feeObject,
 		"trades":             nil,
-	}, marketResolved))
+	}
+	if totalAmount != nil {
+		literal218731["amount"] = *totalAmount
+	}
+	if cost != nil {
+		literal218731["cost"] = *cost
+	}
+	if filledAmount != nil {
+		literal218731["filled"] = *filledAmount
+	}
+	if remaining != nil {
+		literal218731["remaining"] = *remaining
+	}
+	return ccxt.OrderToMap(this.SafeOrder(literal218731, marketResolved))
 }
 func (this *Bitget) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -3827,8 +3840,8 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message map[string]any
 	}
 	var timeframes any = this.SafeDict(this.Options, "timeframes")
 	var timeframe *string = this.FindTimeframe(interval, timeframes)
-	var market map[string]any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(instId, nil, nil, typeVar))
+	var symbol string = market.Symbol
 	var messageHash any = nil
 	var subMessageHash any = nil
 	if isUta {

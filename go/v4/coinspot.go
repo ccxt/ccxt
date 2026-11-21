@@ -724,9 +724,12 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"cointype": market["id"],
+		"cointype": nil,
+	}
+	if market.Id != nil {
+		request["cointype"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, params))
@@ -735,7 +738,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	}
 	var orderbook map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market["symbol"], nil, "buyorders", "sellorders", "rate", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, nil, "buyorders", "sellorders", "rate", "amount"))}
 	return nil
 }
 func (this *Coinspot) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -825,7 +828,13 @@ func (this *Coinspot) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	//         }
 	//     }
 	//
-	var ticker map[string]any = this.SafeDictMap(prices, id, map[string]any{})
+	var ticker map[string]any
+	if id != nil {
+		ticker, _ = prices[*id].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -1047,7 +1056,9 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		buyTrades = []any{}
 	}
 	for i := 0; i < len(buyTrades); i++ {
-		AddElementToObject(buyTrades[i], "side", "buy")
+		if row, ok := buyTrades[i].(map[string]any); ok && (row != nil) {
+			row["side"] = "buy"
+		}
 	}
 	var sellTrades []any
 	sellTrades, _ = response["sellorders"].([]any)
@@ -1055,7 +1066,9 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		sellTrades = []any{}
 	}
 	for i := 0; i < len(sellTrades); i++ {
-		AddElementToObject(sellTrades[i], "side", "sell")
+		if row, ok := sellTrades[i].(map[string]any); ok && (row != nil) {
+			row["side"] = "sell"
+		}
 	}
 	var trades []any = this.ArrayConcat(buyTrades, sellTrades)
 

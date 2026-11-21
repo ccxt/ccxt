@@ -603,7 +603,7 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market map[string]any = SafeMapTyped(rawMarkets, i)
+		var market, _ = rawMarkets[i].(map[string]any)
 		var id *string = this.SafeString(market, "id")
 		// the exchange shows them inverted
 		var baseId *string = this.SafeString(market, "baseCurrency")
@@ -1731,7 +1731,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "condition"))
-	return this.SafeOrder(map[string]any{
+	var literal134531 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"info":               order,
@@ -1743,7 +1743,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              price,
 		"triggerPrice":       this.SafeString(order, "stopPrice"),
 		"cost":               cost,
@@ -1753,7 +1753,11 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 		"remaining":          nil,
 		"fee":                nil,
 		"trades":             nil,
-	}, marketResolved)
+	}
+	if side != nil {
+		literal134531["side"] = *side
+	}
+	return this.SafeOrder(literal134531, marketResolved)
 }
 
 /**
@@ -2699,12 +2703,16 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + requestString
-	return map[string]any{
+	var literal203815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal203815["body"] = *requestBody
+	}
+	return literal203815
 }
 func (this *Latoken) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

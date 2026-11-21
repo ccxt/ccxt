@@ -860,7 +860,7 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"cost":     feeCost,
 		}
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal59031 map[string]any = map[string]any{
 		"id":           this.SafeString(trade, "trade_uuid"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -868,13 +868,17 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"side":         side,
 		"price":        price,
 		"amount":       amount,
-		"cost":         cost,
+		"cost":         nil,
 		"order":        this.SafeString(trade, "uuid"),
 		"takerOrMaker": takerOrMaker,
 		"type":         this.SafeString(trade, "order_type"),
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved))
+	}
+	if cost != nil {
+		literal59031["cost"] = *cost
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal59031, marketResolved))
 }
 func (this *Upbit) HandleMyOrder(client any, message map[string]any) {
 	// see: parseWsOrder

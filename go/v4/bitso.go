@@ -923,9 +923,12 @@ func (this *Bitso) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"book": market["id"],
+		"book": nil,
+	}
+	if market.Id != nil {
+		request["book"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetOrderBook(this.Extend(request, params))
@@ -936,7 +939,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	var orderbook, _ = response["payload"].(map[string]any)
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "updated_at"))
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, timestamp, "bids", "asks", "price", "amount"))}
 	return nil
 }
 func (this *Bitso) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -2710,12 +2713,16 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) map[string]any {
 			"Authorization": "Bitso " + auth,
 		}
 	}
-	return map[string]any{
+	var literal200415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal200415["body"] = *requestBody
+	}
+	return literal200415
 }
 func (this *Bitso) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

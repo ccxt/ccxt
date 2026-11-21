@@ -293,8 +293,11 @@ func (this *Weex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var channelName string = marketId + "@" + topic
 		var messageHash string = topic + "::" + symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -388,8 +391,11 @@ func (this *Weex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArg
 	var unSubHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var channelName string = marketId + "@" + topic
 		var messageHash string = topic + "::" + symbol
 		var unSubMessageHash string = "unsubscribe::" + messageHash
@@ -593,8 +599,11 @@ func (this *Weex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var channelName string = marketId + "@" + topic
 		var messageHash string = topic + "::" + symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -688,8 +697,11 @@ func (this *Weex) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	var unSubHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var channelName string = marketId + "@" + topic
 		var messageHash string = topic + "::" + symbol
 		var unSubMessageHash string = "unsubscribe::" + messageHash
@@ -1247,9 +1259,12 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 		var messageHash string = "orderbook::" + symbol
-		var marketId string = *this.SafeString(market, "id", "")
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var channel string = marketId + "@depth" + *depthOption
 		messageHashes = append(messageHashes, messageHash)
 		channels = append(channels, channel)
@@ -1339,9 +1354,12 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	var unSubHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 		var messageHash string = "orderbook::" + symbol
-		var marketId string = *this.SafeString(market, "id", "")
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var channel string = marketId + "@depth" + *depthOption
 		var unSubMessageHash string = "unsubscribe::" + messageHash
 		subHashes = append(subHashes, messageHash)
@@ -1465,8 +1483,11 @@ func (this *Weex) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var channelName string = marketId + "@" + "bookTicker"
 		var messageHash string = "bidask::" + symbol
 		messageHashes = append(messageHashes, messageHash)
@@ -1531,8 +1552,11 @@ func (this *Weex) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var unSubHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var channelName string = marketId + "@" + "bookTicker"
 		var messageHash string = "bidask::" + symbol
 		var unSubMessageHash string = "unsubscribe::" + messageHash
@@ -2222,7 +2246,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	} else if (rawType != nil && *rawType == "STOP_LOSS") || (rawType != nil && *rawType == "STOP") || (rawType != nil && *rawType == "STOP_MARKET") {
 		stopLossPrice = triggerPrice
 	}
-	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
+	var literal160631 map[string]any = map[string]any{
 		"id":                  this.SafeString(order, "id"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
 		"symbol":              marketResolved["symbol"],
@@ -2245,10 +2269,17 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"lastUpdateTimestamp": this.SafeInteger(order, "updatedTime"),
 		"average":             nil,
 		"trades":              nil,
-		"stopLossPrice":       stopLossPrice,
-		"takeProfitPrice":     takeProfitPrice,
+		"stopLossPrice":       nil,
+		"takeProfitPrice":     nil,
 		"info":                order,
-	}, marketValue))
+	}
+	if stopLossPrice != nil {
+		literal160631["stopLossPrice"] = *stopLossPrice
+	}
+	if takeProfitPrice != nil {
+		literal160631["takeProfitPrice"] = *takeProfitPrice
+	}
+	return ccxt.OrderToMap(this.SafeOrder(literal160631, marketValue))
 }
 
 /**

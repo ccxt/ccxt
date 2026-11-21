@@ -1233,15 +1233,15 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 		typeVar = "swap"
 	}
 	var isSpot bool = !swap
-	return this.SafeMarketStructure(map[string]any{
+	var literal90641 map[string]any = map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
 		"quote":          quote,
 		"settle":         settle,
 		"baseId":         baseId,
-		"quoteId":        quoteId,
-		"settleId":       settleId,
+		"quoteId":        nil,
+		"settleId":       nil,
 		"type":           typeVar,
 		"spot":           isSpot,
 		"margin":         false,
@@ -1281,7 +1281,14 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 		},
 		"created": nil,
 		"info":    response,
-	})
+	}
+	if quoteId != nil {
+		literal90641["quoteId"] = *quoteId
+	}
+	if settleId != nil {
+		literal90641["settleId"] = *settleId
+	}
+	return this.SafeMarketStructure(literal90641)
 }
 
 /**
@@ -1313,9 +1320,12 @@ func (this *Gemini) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit_bids"] = *limit
@@ -1328,7 +1338,7 @@ func (this *Gemini) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "price", "amount"))}
 	return nil
 }
 func (this *Gemini) FetchTickerV1Async(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
@@ -2544,7 +2554,7 @@ func (this *Gemini) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = r1.Value
 	//
 	//   for BTC
 	//     {

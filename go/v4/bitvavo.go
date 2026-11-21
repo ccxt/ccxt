@@ -1340,9 +1340,12 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if limit != nil {
 		request["depth"] = *limit
@@ -1369,7 +1372,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	//         ]
 	//     }
 	//
-	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"])
+	var orderbook map[string]any = this.ParseOrderBook(response, market.Symbol)
 	orderbook["nonce"] = this.SafeInteger(response, "nonce")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
@@ -3612,12 +3615,16 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
-	return map[string]any{
+	var literal273415 map[string]any = map[string]any{
 		"url":     fullUrl,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal273415["body"] = *requestBody
+	}
+	return literal273415
 }
 func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

@@ -440,7 +440,7 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = rawMarkets[i]
+		var market, _ = rawMarkets[i].(map[string]any)
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "traded_currency")
 		var quoteId *string = this.SafeString(market, "base_currency")
@@ -507,7 +507,7 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				},
 			},
 			"created": nil,
-			"info":    market,
+			"info":    rawMarkets[i],
 		})
 	}
 
@@ -639,9 +639,12 @@ func (this *Indodax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetApiDepthPair(this.Extend(request, params))
@@ -650,7 +653,7 @@ func (this *Indodax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	}
 	var orderbook map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market["symbol"], nil, "buy", "sell"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, nil, "buy", "sell"))}
 	return nil
 }
 func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1078,7 +1081,7 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 	var timestamp *int64 = this.SafeInteger(order, "submit_time")
 	var fee any = nil
 	var id *string = this.SafeString(order, "order_id")
-	return this.SafeOrder(map[string]any{
+	var literal85631 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -1092,15 +1095,28 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 		"side":               side,
 		"price":              price,
 		"triggerPrice":       nil,
-		"cost":               cost,
+		"cost":               nil,
 		"average":            nil,
-		"amount":             amount,
-		"filled":             filled,
-		"remaining":          remaining,
+		"amount":             nil,
+		"filled":             nil,
+		"remaining":          nil,
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	})
+	}
+	if cost != nil {
+		literal85631["cost"] = *cost
+	}
+	if amount != nil {
+		literal85631["amount"] = *amount
+	}
+	if filled != nil {
+		literal85631["filled"] = *filled
+	}
+	if remaining != nil {
+		literal85631["remaining"] = *remaining
+	}
+	return this.SafeOrder(literal85631)
 }
 
 /**

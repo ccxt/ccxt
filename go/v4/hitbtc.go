@@ -947,7 +947,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var stepString *string = this.SafeString(market, "tick_size")
 		var lot *float64 = this.ParseNumber(lotString)
 		var step *float64 = this.ParseNumber(stepString)
-		result = append(result, map[string]any{
+		var literal86825 map[string]any = map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -955,7 +955,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			"settle":         settle,
 			"baseId":         baseId,
 			"quoteId":        quoteId,
-			"settleId":       settleId,
+			"settleId":       nil,
 			"type":           typeVar,
 			"spot":           spot,
 			"margin":         margin,
@@ -998,7 +998,11 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			},
 			"created": nil,
 			"info":    market,
-		})
+		}
+		if settleId != nil {
+			literal86825["settleId"] = *settleId
+		}
+		result = append(result, literal86825)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -3658,7 +3662,11 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMo
 	} else {
 		panic(BadSymbol(this.Id + " fetchMarginModes () supports swap contracts and margin only"))
 	}
-	var config []any = this.SafeListSlice(response, "config", []any{})
+	var config []any
+	config, _ = response["config"].([]any)
+	if config == nil {
+		config = []any{}
+	}
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(config, symbolsNormalized, "symbol"))}
 	return nil
@@ -3974,7 +3982,10 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 		if marketId == nil {
 			continue
 		}
-		var rawFundingRate map[string]any = SafeMapTyped(response, marketId)
+		var rawFundingRate map[string]any
+		if marketId != nil {
+			rawFundingRate, _ = response[*marketId].(map[string]any)
+		}
 		var marketInner map[string]any = this.Market(marketId)
 		var symbol *string = this.SafeSymbol(marketId, marketInner)
 		var fundingRate map[string]any = FundingRateToMap(this.ParseFundingRate(rawFundingRate, marketInner))

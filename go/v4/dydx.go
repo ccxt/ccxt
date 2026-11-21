@@ -1641,7 +1641,7 @@ func (this *Dydx) SignDydxTx(privateKey *string, message any, memo any, chainId 
 }
 func (this *Dydx) RetrieveCredentials() any {
 	var credentials any = this.SafeDict(this.Options, "dydxCredentials")
-	if !IsEqual(credentials, nil) {
+	if credentials != nil {
 		return credentials
 	}
 	var privateKeyOption *string = this.SafeString(this.Options, "privateKey")
@@ -2367,9 +2367,12 @@ func (this *Dydx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 
 	r1 := <-this.IndexerGetOrderbooksPerpetualMarketMarket(this.Extend(request, params))
@@ -2394,7 +2397,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	//     ]
 	// }
 	//
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "size"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "price", "size"))}
 	return nil
 }
 func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
@@ -2505,17 +2508,19 @@ func (this *Dydx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	if code != nil {
 		currency = this.Currency(code)
 	}
+	var rows any = []any{}
 
 	r1 := <-this.FetchTransactionsHelperAsync("fetchLedger", code, since, limit, this.Omit(params, "methodName"))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response any = nil
-	if r1.Value != nil {
-		response = MapSliceToList(r1.Value)
+	if r1.Value == nil {
+		rows = nil
+	} else {
+		rows = MapSliceToList(r1.Value)
 	}
 
-	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(response, currency, since, limit))}
+	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit))}
 	return nil
 }
 func (this *Dydx) EstimateTxFeeAsync(message map[string]any, memo any, account any) <-chan AsyncResult[map[string]any] {

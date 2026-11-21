@@ -1571,21 +1571,46 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var symbol *string = this.SafeSymbol(marketId, market)
-	return this.SafeTrade(map[string]any{
+	var literal117731 map[string]any = map[string]any{
 		"info":         trade,
-		"id":           id,
+		"id":           nil,
 		"symbol":       symbol,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"order":        orderId,
-		"type":         typeVar,
-		"side":         side,
-		"takerOrMaker": takerOrMaker,
-		"price":        priceString,
-		"amount":       amountString,
-		"cost":         costString,
+		"order":        nil,
+		"type":         nil,
+		"side":         nil,
+		"takerOrMaker": nil,
+		"price":        nil,
+		"amount":       nil,
+		"cost":         nil,
 		"fee":          fee,
-	}, market)
+	}
+	if id != nil {
+		literal117731["id"] = *id
+	}
+	if orderId != nil {
+		literal117731["order"] = *orderId
+	}
+	if typeVar != nil {
+		literal117731["type"] = *typeVar
+	}
+	if side != nil {
+		literal117731["side"] = *side
+	}
+	if takerOrMaker != nil {
+		literal117731["takerOrMaker"] = *takerOrMaker
+	}
+	if priceString != nil {
+		literal117731["price"] = *priceString
+	}
+	if amountString != nil {
+		literal117731["amount"] = *amountString
+	}
+	if costString != nil {
+		literal117731["cost"] = *costString
+	}
+	return this.SafeTrade(literal117731, market)
 }
 
 /**
@@ -2142,13 +2167,12 @@ func (this *Ndax) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		"AccountId":    accountId,
 		"TimeInForce":  1,
 		"Side":         orderSide,
-		"Quantity": func() any {
-			if amountString == nil {
-				return nil
-			}
-			return this.ParseNumber(amountString)
-		}(),
-		"OrderType": orderType,
+		"OrderType":    orderType,
+	}
+	if amountString == nil {
+		request["Quantity"] = nil
+	} else {
+		request["Quantity"] = this.ParseNumber(amountString)
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if price != nil {
@@ -2238,13 +2262,12 @@ func (this *Ndax) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 		"AccountId":        accountId,
 		"TimeInForce":      1,
 		"Side":             orderSide,
-		"Quantity": func() any {
-			if amountString == nil {
-				return nil
-			}
-			return this.ParseNumber(amountString)
-		}(),
-		"OrderType": this.SafeInteger(this.SafeDict(this.Options, "orderTypes", map[string]any{}), this.Capitalize(typeVar)),
+		"OrderType":        this.SafeInteger(this.SafeDict(this.Options, "orderTypes", map[string]any{}), this.Capitalize(typeVar)),
+	}
+	if amountString == nil {
+		request["Quantity"] = nil
+	} else {
+		request["Quantity"] = this.ParseNumber(amountString)
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if price != nil {

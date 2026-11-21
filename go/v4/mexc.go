@@ -2333,21 +2333,34 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if IsEqual(id, nil) && (*this.SafeBool(this.Options, "useCcxtTradeId", true)) {
 		id = this.CreateCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker)
 	}
-	return this.SafeTrade(map[string]any{
+	var literal182431 map[string]any = map[string]any{
 		"id":           id,
-		"order":        orderId,
+		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
 		"type":         typeVar,
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
-		"price":        priceString,
-		"amount":       amountString,
-		"cost":         costString,
+		"price":        nil,
+		"amount":       nil,
+		"cost":         nil,
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved)
+	}
+	if orderId != nil {
+		literal182431["order"] = *orderId
+	}
+	if priceString != nil {
+		literal182431["price"] = *priceString
+	}
+	if amountString != nil {
+		literal182431["amount"] = *amountString
+	}
+	if costString != nil {
+		literal182431["cost"] = *costString
+	}
+	return this.SafeTrade(literal182431, marketResolved)
 }
 
 /**
@@ -2835,27 +2848,58 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		changePcnt = this.SafeString(ticker, "priceChangePercent")
 		changePcnt = Precise.StringMul(changePcnt, "100")
 	}
-	return this.SafeTicker(map[string]any{
+	var literal226032 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
-		"open":          open,
-		"high":          high,
-		"low":           low,
+		"open":          nil,
+		"high":          nil,
+		"low":           nil,
 		"close":         this.SafeString(ticker, "lastPrice"),
-		"bid":           bid,
-		"bidVolume":     bidVolume,
-		"ask":           ask,
-		"askVolume":     askVolume,
+		"bid":           nil,
+		"bidVolume":     nil,
+		"ask":           nil,
+		"askVolume":     nil,
 		"vwap":          nil,
-		"previousClose": prevClose,
-		"change":        changeValue,
-		"percentage":    changePcnt,
+		"previousClose": nil,
+		"change":        nil,
+		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	}, marketResolved)
+	}
+	if open != nil {
+		literal226032["open"] = *open
+	}
+	if high != nil {
+		literal226032["high"] = *high
+	}
+	if low != nil {
+		literal226032["low"] = *low
+	}
+	if bid != nil {
+		literal226032["bid"] = *bid
+	}
+	if bidVolume != nil {
+		literal226032["bidVolume"] = *bidVolume
+	}
+	if ask != nil {
+		literal226032["ask"] = *ask
+	}
+	if askVolume != nil {
+		literal226032["askVolume"] = *askVolume
+	}
+	if prevClose != nil {
+		literal226032["previousClose"] = *prevClose
+	}
+	if changeValue != nil {
+		literal226032["change"] = *changeValue
+	}
+	if changePcnt != nil {
+		literal226032["percentage"] = *changePcnt
+	}
+	return this.SafeTicker(literal226032, marketResolved)
 }
 
 /**
@@ -4112,7 +4156,10 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 				panic(r1.Err)
 			}
 			var triggerResponse map[string]any = r1.Value
-			data = ArrayTyped(this.SafeList(triggerResponse, "data", []any{}))
+			data, _ = triggerResponse["data"].([]any)
+			if data == nil {
+				data = []any{}
+			}
 		} else {
 
 			r2 := <-this.ContractPrivateGetOrderListOpenOrders(this.Extend(request, swapParams))
@@ -4120,7 +4167,10 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 				panic(r2.Err)
 			}
 			var swapResponse map[string]any = r2.Value
-			data = ArrayTyped(this.SafeList(swapResponse, "data", []any{}))
+			data, _ = swapResponse["data"].([]any)
+			if data == nil {
+				data = []any{}
+			}
 		}
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit, swapParams))}
@@ -8369,12 +8419,16 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	return map[string]any{
+	var literal649415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal649415["body"] = *requestBody
+	}
+	return literal649415
 }
 func (this *Mexc) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

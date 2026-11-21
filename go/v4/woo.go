@@ -1122,7 +1122,7 @@ func (this *Woo) ParseMarket(market any) map[string]any {
 		inverse = false
 	}
 	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
-	return this.SafeMarketStructure(map[string]any{
+	var literal79741 map[string]any = map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -1130,7 +1130,7 @@ func (this *Woo) ParseMarket(market any) map[string]any {
 		"settle":         settle,
 		"baseId":         baseId,
 		"quoteId":        quoteId,
-		"settleId":       settleId,
+		"settleId":       nil,
 		"type":           marketType,
 		"spot":           spot,
 		"margin":         margin,
@@ -1170,7 +1170,11 @@ func (this *Woo) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if settleId != nil {
+		literal79741["settleId"] = *settleId
+	}
+	return this.SafeMarketStructure(literal79741)
 }
 
 /**
@@ -2294,7 +2298,11 @@ func (this *Woo) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 	//         "timestamp": 1751940315838
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeString(response, "timestamp")
 	if isByClientOrder {
 		data["clientOrderId"] = clientOrderIdExchangeSpecific
@@ -2372,7 +2380,11 @@ func (this *Woo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//         "timestamp": 1751941988134
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": data,
@@ -2502,7 +2514,11 @@ func (this *Woo) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalA
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -4695,12 +4711,16 @@ func (this *Woo) Sign(path string, optionalArgs ...any) map[string]any {
 		signedHeaders["x-api-signature"] = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		requestHeaders = signedHeaders
 	}
-	return map[string]any{
+	var literal357715 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal357715["body"] = *requestBody
+	}
+	return literal357715
 }
 func (this *Woo) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
@@ -4719,7 +4739,7 @@ func (this *Woo) HandleErrors(code int64, reason string, url string, method stri
 	}
 	return nil
 }
-func (this *Woo) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Woo) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 1286360,
@@ -5304,7 +5324,11 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string,
 		var marketType string = *this.SafeString(market, "type", "")
 		panic(NotSupported(this.Id + " fetchLeverage() is not supported for " + marketType + " markets"))
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil

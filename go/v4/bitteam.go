@@ -925,7 +925,11 @@ func (this *Bitteam) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//     }
 	//
 	var result, _ = response["result"].(map[string]any)
-	var data []any = this.SafeListSlice(result, "data", []any{})
+	var data []any
+	data, _ = result["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1158,7 +1162,11 @@ func (this *Bitteam) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//     }
 	//
 	var result, _ = response["result"].(map[string]any)
-	var orders []any = this.SafeListSlice(result, "orders", []any{})
+	var orders []any
+	orders, _ = result["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2080,7 +2088,11 @@ func (this *Bitteam) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//     }
 	//
 	var result, _ = response["result"].(map[string]any)
-	var pair map[string]any = this.SafeDictMap(result, "pair", map[string]any{})
+	var pair map[string]any
+	pair, _ = result["pair"].(map[string]any)
+	if pair == nil {
+		pair = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(pair, market)}
 	return nil
@@ -2192,7 +2204,7 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var low *string = this.SafeString2(ticker, "lowPrice24", "lowest_price_24h")
 	var close *string = this.SafeString2(ticker, "lastPrice", "last_price")
 	var changePcnt *string = this.SafeString2(ticker, "change24", "price_change_percent_24h")
-	return this.SafeTicker(map[string]any{
+	var literal178932 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -2200,10 +2212,10 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"high":          high,
 		"low":           low,
 		"close":         close,
-		"bid":           bestBidPrice,
-		"bidVolume":     bestBidVolume,
-		"ask":           bestAskPrice,
-		"askVolume":     bestAskVolume,
+		"bid":           nil,
+		"bidVolume":     nil,
+		"ask":           nil,
+		"askVolume":     nil,
 		"vwap":          nil,
 		"previousClose": nil,
 		"change":        nil,
@@ -2212,7 +2224,20 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	}, marketResolved)
+	}
+	if bestBidPrice != nil {
+		literal178932["bid"] = *bestBidPrice
+	}
+	if bestBidVolume != nil {
+		literal178932["bidVolume"] = *bestBidVolume
+	}
+	if bestAskPrice != nil {
+		literal178932["ask"] = *bestAskPrice
+	}
+	if bestAskVolume != nil {
+		literal178932["askVolume"] = *bestAskVolume
+	}
+	return this.SafeTicker(literal178932, marketResolved)
 }
 
 /**
@@ -2466,7 +2491,11 @@ func (this *Bitteam) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//     }
 	//
 	var result, _ = response["result"].(map[string]any)
-	var trades []any = this.SafeListSlice(result, "trades", []any{})
+	var trades []any
+	trades, _ = result["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2565,9 +2594,9 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"cost":     feeCost,
 	}
 	var intTs int64 = this.ParseToInt(timestamp)
-	return this.SafeTrade(map[string]any{
+	var literal210931 map[string]any = map[string]any{
 		"id":           id,
-		"order":        order,
+		"order":        nil,
 		"timestamp":    intTs,
 		"datetime":     this.Iso8601(intTs),
 		"symbol":       symbol,
@@ -2579,7 +2608,11 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"cost":         cost,
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved)
+	}
+	if order != nil {
+		literal210931["order"] = *order
+	}
+	return this.SafeTrade(literal210931, marketResolved)
 }
 
 /**
@@ -2829,7 +2862,11 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	//     }
 	//
 	var result, _ = response["result"].(map[string]any)
-	var transactions []any = this.SafeListSlice(result, "transactions", []any{})
+	var transactions []any
+	transactions, _ = result["transactions"].([]any)
+	if transactions == nil {
+		transactions = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit))}
 	return nil

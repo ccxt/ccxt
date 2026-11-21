@@ -2047,7 +2047,7 @@ func (this *Grvt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		if r1.Value != nil {
 			transfers = TransferEntriesToList(r1.Value)
 		}
-		var transactions any = this.GetListFromObjectValues(this.SafeList(this.FilterTransfersByType(transfers, "deposit", true), 0, []any{}), "info")
+		var transactions []any = this.GetListFromObjectValues(this.SafeList(this.FilterTransfersByType(transfers, "deposit", true), 0, []any{}), "info")
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit))}
 		return nil
@@ -2143,7 +2143,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		if r2.Value != nil {
 			transfers = TransferEntriesToList(r2.Value)
 		}
-		var transactions any = this.GetListFromObjectValues(this.SafeList(this.FilterTransfersByType(transfers, "withdrawal", true), 0, []any{}), "info")
+		var transactions []any = this.GetListFromObjectValues(this.SafeList(this.FilterTransfersByType(transfers, "withdrawal", true), 0, []any{}), "info")
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit))}
 		return nil
@@ -2592,7 +2592,11 @@ func (this *Grvt) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	//     }
 	// }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(result, currency)}
 	return nil
@@ -3699,7 +3703,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(result, market, since, limit))}
 	return nil
 }
-func (this *Grvt) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Grvt) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	//            {
 	//                "event_time": "1765267200004987902",
@@ -4207,7 +4211,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
 	// const triggerDetails = this.safeDict (metadata, 'trigger', {});
-	return this.SafeOrder(map[string]any{
+	var literal307031 map[string]any = map[string]any{
 		"id":                  this.SafeString(order, "order_id"),
 		"clientOrderId":       this.SafeString(metadata, "client_order_id"),
 		"timestamp":           timestamp,
@@ -4220,18 +4224,31 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 		"timeInForce":         timeInForce,
 		"postOnly":            isPostOnly,
 		"side":                side,
-		"price":               price,
+		"price":               nil,
 		"triggerPrice":        nil,
 		"cost":                nil,
-		"average":             avgPrice,
-		"amount":              size,
-		"filled":              filled,
+		"average":             nil,
+		"amount":              nil,
+		"filled":              nil,
 		"remaining":           nil,
 		"trades":              nil,
 		"fees":                nil,
 		"reduceOnly":          isReduceOnly,
 		"info":                order,
-	}, marketResolved)
+	}
+	if price != nil {
+		literal307031["price"] = *price
+	}
+	if avgPrice != nil {
+		literal307031["average"] = *avgPrice
+	}
+	if size != nil {
+		literal307031["amount"] = *size
+	}
+	if filled != nil {
+		literal307031["filled"] = *filled
+	}
+	return this.SafeOrder(literal307031, marketResolved)
 }
 func (this *Grvt) ParseTimeInForce(typeVar *string) *string {
 	var types map[string]any = map[string]any{

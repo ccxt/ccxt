@@ -866,7 +866,11 @@ func (this *Coinone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "tickers", []any{})
+	var data []any
+	data, _ = response["tickers"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -997,8 +1001,8 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		symbolStr := *base + "/" + *quote
 		symbol = &symbolStr
 	}
-	return this.SafeTicker(map[string]any{
-		"symbol":        symbol,
+	var literal73232 map[string]any = map[string]any{
+		"symbol":        nil,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(ticker, "high"),
@@ -1018,7 +1022,11 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    this.SafeString(ticker, "target_volume"),
 		"quoteVolume":   this.SafeString(ticker, "quote_volume"),
 		"info":          ticker,
-	}, market)
+	}
+	if symbol != nil {
+		literal73232["symbol"] = *symbol
+	}
+	return this.SafeTicker(literal73232, market)
 }
 func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
@@ -1369,9 +1377,10 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	var quoteId *string = this.SafeString2(order, "targetCurrency", "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
 	var marketResolved map[string]any
 	if symbol != nil {
@@ -1421,14 +1430,14 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal106931 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      nil,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               "limit",
 		"timeInForce":        nil,
 		"postOnly":           nil,
@@ -1443,7 +1452,11 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal106931["symbol"] = *symbol
+	}
+	return this.SafeOrder(literal106931, marketResolved)
 }
 
 /**

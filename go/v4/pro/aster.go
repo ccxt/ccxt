@@ -1253,7 +1253,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		}
 	}
 	var typeVar *string = this.SafeStringLower(trade, "o")
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal88431 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1264,10 +1264,14 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"takerOrMaker": takerOrMaker,
 		"side":         side,
 		"price":        price,
-		"amount":       amount,
+		"amount":       nil,
 		"cost":         cost,
 		"fee":          fee,
-	}))
+	}
+	if amount != nil {
+		literal88431["amount"] = *amount
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal88431))
 }
 
 /**
@@ -1674,10 +1678,13 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
-	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
+	var symbols []any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = this.Market(marketSymbols[0])
-	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
+	var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketSymbols[0]))
+	var typeVar string = "swap"
+	if firstMarket.Type != nil {
+		typeVar = *firstMarket.Type
+	}
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1753,10 +1760,13 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
-	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
+	var symbols []any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = this.Market(marketSymbols[0])
-	var typeVar string = *this.SafeString(firstMarket, "type", "swap")
+	var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketSymbols[0]))
+	var typeVar string = "swap"
+	if firstMarket.Type != nil {
+		typeVar = *firstMarket.Type
+	}
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1834,7 +1844,7 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	if market.Symbol != "" {
 		symbol = &market.Symbol
 	}
-	var kline map[string]any = ccxt.SafeMapTyped(message, "k")
+	var kline, _ = message["k"].(map[string]any)
 	var timeframeId *string = this.SafeString(kline, "i")
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	if timeframe == nil {
@@ -2228,7 +2238,11 @@ func (this *Aster) HandleBalance(client any, message map[string]any) {
 	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
 	balance["info"] = message
-	var messageValue map[string]any = this.SafeDictMap(message, "a", message)
+	var messageValue map[string]any
+	messageValue, _ = message["a"].(map[string]any)
+	if messageValue == nil {
+		messageValue = message
+	}
 	var B []any = ccxt.SafeListTyped(messageValue, "B")
 	var wallet string = *this.SafeString(this.Options, "wallet", "wb")
 	for i := 0; i < len(B); i++ {
@@ -2434,8 +2448,8 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
-	var data map[string]any = ccxt.SafeMapTyped(message, "a")
-	var rawPositions []any = ccxt.SafeListTyped(data, "P")
+	var data, _ = message["a"].(map[string]any)
+	var rawPositions, _ = data["P"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = rawPositions[i]
@@ -2952,7 +2966,11 @@ func (this *Aster) HandleBalanceAndPosition(client any, message map[string]any) 
 	this.HandlePositions(client, message)
 }
 func (this *Aster) HandleMessage(client any, message map[string]any) {
-	var messageInner any = this.SafeDict(message, "data", message) // can be either wrapped in 'data' or full object itself
+	var messageInner map[string]any
+	messageInner, _ = message["data"].(map[string]any)
+	if messageInner == nil {
+		messageInner = message
+	} // can be either wrapped in 'data' or full object itself
 	var event *string = this.SafeString(messageInner, "e")
 	var methods map[string]any = map[string]any{
 		"24hrTicker":              this.HandleTicker,

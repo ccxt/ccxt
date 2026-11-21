@@ -621,9 +621,12 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetOrderBooks(this.Extend(request, params))
@@ -632,7 +635,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"]))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol))}
 	return nil
 }
 func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -799,21 +802,34 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 		amountString = this.SafeString(trade, "amount")
 		side = this.SafeString(trade, "order_type")
 	}
-	return this.SafeTrade(map[string]any{
+	var literal59131 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"datetime":     this.Iso8601(timestamp),
 		"timestamp":    timestamp,
 		"symbol":       symbol,
 		"type":         nil,
-		"side":         side,
-		"order":        orderId,
+		"side":         nil,
+		"order":        nil,
 		"takerOrMaker": takerOrMaker,
 		"price":        priceString,
-		"amount":       amountString,
-		"cost":         costString,
+		"amount":       nil,
+		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if side != nil {
+		literal59131["side"] = *side
+	}
+	if orderId != nil {
+		literal59131["order"] = *orderId
+	}
+	if amountString != nil {
+		literal59131["amount"] = *amountString
+	}
+	if costString != nil {
+		literal59131["cost"] = *costString
+	}
+	return this.SafeTrade(literal59131, marketResolved)
 }
 
 /**

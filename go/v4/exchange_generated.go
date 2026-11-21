@@ -838,7 +838,7 @@ func (this *BaseExchange) FilterByLimit(array []any, optionalArgs ...any) []any 
 			return this.ArraySlice(array, 0, limit)
 		}
 	}
-	return this.ToArray(array)
+	return array
 }
 func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) []any {
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1843,7 +1843,7 @@ func (this *BaseExchange) ParseToNumeric(number any) any {
 	// in JS:     1 === 1.0 is true
 	// in Python: 1 == 1.0 is true
 	// in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
-	if GetIndexOf(stringVersion, ".") >= 0 {
+	if stringVersion != nil && strings.Index(*stringVersion, ".") >= 0 {
 		return ParseFloat(stringVersion)
 	}
 	return ParseInt(stringVersion)
@@ -3075,7 +3075,7 @@ func (this *BaseExchange) CalculateFee(symbol any, typeVar any, side any, amount
 	_ = params
 	return this.CalculateFeeWithRate(symbol, typeVar, side, amount, price, takerOrMaker, nil, params)
 }
-func (this *BaseExchange) SafeLiquidation(liquidation map[string]any, optionalArgs ...any) any {
+func (this *BaseExchange) SafeLiquidation(liquidation map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var contracts *string = this.SafeString(liquidation, "contracts")
@@ -3158,8 +3158,8 @@ func (this *BaseExchange) CreateCcxtTradeId(optionalArgs ...any) any {
 func (this *BaseExchange) ParsedFeeAndFees(container any) any {
 	var fee any = this.SafeDict(container, "fee")
 	var fees any = this.SafeList(container, "fees")
-	var feeDefined bool = !IsEqual(fee, nil)
-	var feesDefined bool = !IsEqual(fees, nil)
+	var feeDefined bool = (fee != nil)
+	var feesDefined bool = (fees != nil)
 	// parsing only if at least one of them is defined
 	var shouldParseFees bool = (feeDefined || feesDefined)
 	if shouldParseFees {
@@ -4855,25 +4855,25 @@ func (this *BaseExchange) HandleParamString2(params any, paramName1 any, paramNa
 	}
 	return value, MapTyped(paramsOmitted)
 }
-func (this *BaseExchange) HandleParamInteger(params any, paramName any, optionalArgs ...any) (*int64, map[string]any) {
+func (this *BaseExchange) HandleParamInteger(params map[string]any, paramName any, optionalArgs ...any) (*int64, map[string]any) {
 	var defaultValue *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *int64 = this.SafeInteger(params, paramName, defaultValue)
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if value != nil {
-		paramsOmitted = this.Omit(params, paramName)
+		paramsOmitted = this.OmitDict(params, paramName)
 	}
-	return value, MapTyped(paramsOmitted)
+	return value, paramsOmitted
 }
-func (this *BaseExchange) HandleParamInteger2(params any, paramName1 any, paramName2 any, optionalArgs ...any) (*int64, map[string]any) {
+func (this *BaseExchange) HandleParamInteger2(params map[string]any, paramName1 any, paramName2 any, optionalArgs ...any) (*int64, map[string]any) {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *int64 = this.SafeInteger2(params, paramName1, paramName2, defaultValue)
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if value != nil {
-		paramsOmitted = this.Omit(params, []any{paramName1, paramName2})
+		paramsOmitted = this.OmitDict(params, []any{paramName1, paramName2})
 	}
-	return value, MapTyped(paramsOmitted)
+	return value, paramsOmitted
 }
 func (this *BaseExchange) HandleParamBool(params any, paramName any, optionalArgs ...any) (*bool, map[string]any) {
 	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
@@ -4898,7 +4898,7 @@ func (this *BaseExchange) HandleParamBool2(params any, paramName1 any, paramName
 func (this *BaseExchange) ResolvePath(path any, params any) any {
 	return []any{this.ImplodeParams(path, params), this.Omit(params, this.ExtractParams(path))}
 }
-func (this *BaseExchange) GetListFromObjectValues(objects any, key any) any {
+func (this *BaseExchange) GetListFromObjectValues(objects any, key any) []any {
 	var newArray []any = this.ToArray(objects)
 	var results []any = []any{}
 	for i := 0; i < len(newArray); i++ {
@@ -6961,19 +6961,34 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) m
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var results []any = []any{}
 	if IsArray(pricesData) {
-		for i := 0; i < GetArrayLength(pricesData); i++ {
-			results = append(results, this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params))
-		}
-	} else {
-		var marketIds []string = ObjectKeys(pricesData)
-		for i := 0; i < len(marketIds); i++ {
-			var marketId string = marketIds[i]
+		return this.ParseLastPricesList(pricesData, symbols, params)
+	}
+	return this.ParseLastPricesDict(pricesData, symbols, params)
+}
+func (this *BaseExchange) ParseLastPricesList(pricesData any, optionalArgs ...any) map[string]any {
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var results []any = []any{}
+	for i := 0; i < GetArrayLength(pricesData); i++ {
+		results = append(results, this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params))
+	}
+	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
+}
+func (this *BaseExchange) ParseLastPricesDict(pricesData any, optionalArgs ...any) map[string]any {
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var results []any = []any{}
+	var marketIds []string = ObjectKeys(pricesData)
+	for i := 0; i < len(marketIds); i++ {
+		var marketId string = marketIds[i]
 
-			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
-			results = append(results, this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params))
-		}
+		var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
+		results = append(results, this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params))
 	}
 	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
@@ -7004,19 +7019,34 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) map[str
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var results []any = []any{}
 	if IsArray(tickers) {
-		for i := 0; i < GetArrayLength(tickers); i++ {
-			results = append(results, this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, i))), params))
-		}
-	} else {
-		var marketIds []string = ObjectKeys(tickers)
-		for i := 0; i < len(marketIds); i++ {
-			var marketId string = marketIds[i]
+		return this.ParseTickersList(tickers, symbols, params)
+	}
+	return this.ParseTickersDict(tickers, symbols, params)
+}
+func (this *BaseExchange) ParseTickersList(tickers any, optionalArgs ...any) map[string]any {
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var results []any = []any{}
+	for i := 0; i < GetArrayLength(tickers); i++ {
+		results = append(results, this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, i))), params))
+	}
+	return this.FilterByArrayTickers(results, "symbol", this.MarketSymbols(symbols))
+}
+func (this *BaseExchange) ParseTickersDict(tickers any, optionalArgs ...any) map[string]any {
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var results []any = []any{}
+	var marketIds []string = ObjectKeys(tickers)
+	for i := 0; i < len(marketIds); i++ {
+		var marketId string = marketIds[i]
 
-			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
-			results = append(results, this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market)), params))
-		}
+		var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
+		results = append(results, this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market)), params))
 	}
 	return this.FilterByArrayTickers(results, "symbol", this.MarketSymbols(symbols))
 }
@@ -7149,7 +7179,7 @@ func (this *BaseExchange) ParseLongShortRatioHistory(response []any, optionalArg
 	}
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalArgs ...any) (*string, map[string]any) {
+func (this *BaseExchange) HandleTriggerDirectionAndParams(params map[string]any, optionalArgs ...any) (*string, map[string]any) {
 	/**
 	 * @ignore
 	 * @method
@@ -7160,10 +7190,14 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 	var allowEmpty bool = GetArgBool(optionalArgs, 1, false)
 	_ = allowEmpty
 	var triggerDirection *string = this.SafeString(params, "triggerDirection")
-	var exchangeSpecificDefined bool = (exchangeSpecificKey != nil) && (InOp(params, exchangeSpecificKey))
-	var paramsOmitted any
+	var has1 bool
+	if exchangeSpecificKey != nil {
+		_, has1 = params[*exchangeSpecificKey]
+	}
+	var exchangeSpecificDefined bool = (exchangeSpecificKey != nil) && has1
+	var paramsOmitted map[string]any
 	if triggerDirection != nil {
-		paramsOmitted = this.Omit(params, "triggerDirection")
+		paramsOmitted = this.OmitDict(params, "triggerDirection")
 	} else {
 		paramsOmitted = params
 	}
@@ -7181,7 +7215,7 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 		triggerDirectionStr2 := "descending"
 		triggerDirection = &triggerDirectionStr2
 	}
-	return triggerDirection, MapTyped(paramsOmitted)
+	return triggerDirection, paramsOmitted
 }
 func (this *BaseExchange) HandleTriggerAndParams(params any) any {
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
@@ -7735,7 +7769,7 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	}
 	return MapTyped(fee)
 }
-func (this *BaseExchange) ParseIncome(info any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseIncome(info any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseIncome () is not supported yet"))
@@ -8579,7 +8613,7 @@ func (this *BaseExchange) SafeOpenInterest(interest any, optionalArgs ...any) Op
 		"info":               this.SafeValue(interest, "info"),
 	}))
 }
-func (this *BaseExchange) ParseLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseLiquidation () is not supported yet"))
@@ -8697,12 +8731,12 @@ func (this *BaseExchange) ParseMarginModes(response any, optionalArgs ...any) ma
 	marketType := GetArg(optionalArgs, 2, nil)
 	_ = marketType
 	var marginModeStructures map[string]any = map[string]any{}
-	var marketTypeResolved any = func() any {
-		if marketType == nil {
-			return "swap"
-		}
-		return marketType
-	}() // default to swap
+	var marketTypeResolved any
+	if marketType == nil {
+		marketTypeResolved = "swap"
+	} else {
+		marketTypeResolved = marketType
+	} // default to swap
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
 		var marketId *string
@@ -8732,12 +8766,12 @@ func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) map[
 	marketType := GetArg(optionalArgs, 2, nil)
 	_ = marketType
 	var leverageStructures map[string]any = map[string]any{}
-	var marketTypeResolved any = func() any {
-		if marketType == nil {
-			return "swap"
-		}
-		return marketType
-	}() // default to swap
+	var marketTypeResolved any
+	if marketType == nil {
+		marketTypeResolved = "swap"
+	} else {
+		marketTypeResolved = marketType
+	} // default to swap
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
 		var marketId *string
@@ -11479,12 +11513,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1050115Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1050115 []any = retRes1050115Recv
-	if retRes1050115 == nil {
+	retRes1051915Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1051915 []any = retRes1051915Recv
+	if retRes1051915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1050115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1051915)}
 	}
 	return nil
 }

@@ -79,9 +79,12 @@ func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = &market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var subscriptionHash string = "/stream/" + marketId
 	var subscription map[string]any = map[string]any{
 		"symbol": symbolValue,
@@ -145,7 +148,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 		}
 	}
 	for i := 0; i < len(rawTrades); i++ {
-		var rawTrade any = rawTrades[i]
+		var rawTrade, _ = rawTrades[i].(map[string]any)
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade, market))
 		stored.Append(trade)
 	}
@@ -222,9 +225,12 @@ func (this *Luno) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = &market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var subscriptionHash string = "/stream/" + marketId
 	var subscription map[string]any = map[string]any{
 		"symbol": symbolValue,
@@ -515,9 +521,12 @@ func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any,
 		// watchOrderBook calls stay live: clearing its nonce discards
 		// deltas until the fresh snapshot resets the book in place
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
-		var market map[string]any = this.Market(symbol)
-		var symbolValue string = *this.SafeString(market, "symbol", "")
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var symbolValue string = market.Symbol
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var subscriptionHash string = "/stream/" + marketId
 		if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 			client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)

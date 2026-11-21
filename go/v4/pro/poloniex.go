@@ -251,12 +251,12 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name string, 
  * @param {object} [params] extra parameters specific to the poloniex api
  * @returns {object} true once the exchange acknowledges the unsubscribe
  */
-func (this *Poloniex) UnSubscribeAsync(name string, symbols any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Poloniex) UnSubscribeAsync(name string, symbols []string, messageHashes []string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeBody(ch, name, symbols, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], name string, symbols any, messageHashes any, optionalArgs ...any) any {
+func (this *Poloniex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], name string, symbols []string, messageHashes []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -368,7 +368,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var uppercaseType string = strings.ToUpper(typeVar)
 	if false {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() side is required"))
@@ -379,9 +379,12 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 		uppercaseType = "LIMIT_MAKER"
 	}
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
 		"side":   strings.ToUpper(side),
 		"type":   strings.ToUpper(typeVar),
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var isMarketBuy bool = (uppercaseType == "MARKET") && (uppercaseSide == "BUY")
 	var paramsOmitted map[string]any = params
@@ -406,7 +409,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 		}
 		request["amount"] = quoteAmount
 	} else {
-		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
+		request["quantity"] = this.AmountToPrecision(market.Symbol, amount)
 		if price != nil {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
@@ -666,11 +669,10 @@ func (this *Poloniex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	if channel == nil {
 		panic(ccxt.BadRequest(this.Id + " unWatchOHLCV cannot take a timeframe of " + timeframe))
 	}
-	var market map[string]any = this.Market(symbol)
-	messageHashStr := "unsubscribe:" + *channel + "::" + market["symbol"].(string)
-	var messageHash *string = &messageHashStr
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var messageHash string = "unsubscribe:" + *channel + "::" + market.Symbol
 
-	r1 := <-this.UnSubscribeAsync(*channel, []any{market["symbol"]}, []any{messageHash}, params)
+	r1 := <-this.UnSubscribeAsync(*channel, []string{market.Symbol}, []string{messageHash}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -923,7 +925,7 @@ func (this *Poloniex) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var name string = "trades"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		messageHashes = append(messageHashes, "unsubscribe:"+name+"::"+symbolsNormalized[i])
 	}

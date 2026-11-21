@@ -1913,7 +1913,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		side = this.SafeString2(order, "direction", "side")
 	}
 	var cost *string = this.SafeString2(order, "orderValue", "trade_turnover")
-	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
+	var literal153131 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -1922,7 +1922,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"lastTradeTimestamp": lastTradeTimestamp,
 		"status":             status,
 		"symbol":             symbol,
-		"type":               typeVar,
+		"type":               nil,
 		"timeInForce":        this.SafeStringUpper(order, "time_in_force"),
 		"postOnly":           nil,
 		"side":               side,
@@ -1939,7 +1939,11 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"triggerPrice":       nil,
 		"takeProfitPrice":    this.SafeString2(order, "tp_trigger_price", "tp_order_price"),
 		"stopLossPrice":      this.SafeString2(order, "sl_trigger_price", "sl_order_price"),
-	}, marketResolved))
+	}
+	if typeVar != nil {
+		literal153131["type"] = *typeVar
+	}
+	return ccxt.OrderToMap(this.SafeOrder(literal153131, marketResolved))
 }
 func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any {
 	// spot private wrapped trade
@@ -3457,21 +3461,25 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"currency": feeCurrency,
 		}
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal285731 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
 		"id":           tradeId,
 		"order":        order,
-		"type":         typeVar,
+		"type":         nil,
 		"takerOrMaker": takerOrMaker,
 		"side":         side,
 		"price":        price,
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved))
+	}
+	if typeVar != nil {
+		literal285731["type"] = *typeVar
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal285731, marketResolved))
 }
 func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isLinear bool = ccxt.GetArgBool(optionalArgs, 0, true)

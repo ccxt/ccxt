@@ -686,10 +686,13 @@ func (this *Coinmate) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair":      market["id"],
+		"currencyPair":      nil,
 		"groupByPriceLimit": "False",
+	}
+	if market.Id != nil {
+		request["currencyPair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetOrderBook(this.Extend(request, params))
@@ -704,7 +707,7 @@ func (this *Coinmate) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	}
 	var timestamp *int64 = this.SafeTimestamp(orderbook, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, timestamp, "bids", "asks", "price", "amount"))}
 	return nil
 }
 
@@ -1176,7 +1179,11 @@ func (this *Coinmate) withdrawBody(ch chan AsyncResult[Transaction], code string
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var transaction map[string]any = TransactionToMap(this.ParseTransaction(data, currency))
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {

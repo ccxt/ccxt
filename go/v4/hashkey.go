@@ -1214,9 +1214,9 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 	}
 	var filtersList []any = SafeListTyped(market, "filters")
 	var filters map[string]any = this.IndexBy(filtersList, "filterType")
-	var priceFilter map[string]any = SafeMapTyped(filters, "PRICE_FILTER")
-	var amountFilter map[string]any = SafeMapTyped(filters, "LOT_SIZE")
-	var costFilter map[string]any = SafeMapTyped(filters, "MIN_NOTIONAL")
+	var priceFilter, _ = filters["PRICE_FILTER"].(map[string]any)
+	var amountFilter, _ = filters["LOT_SIZE"].(map[string]any)
+	var costFilter, _ = filters["MIN_NOTIONAL"].(map[string]any)
 	var minCostString *string = this.OmitZero(this.SafeString(costFilter, "min_notional"))
 	var contractSizeString *string = this.SafeString(market, "contractMultiplier")
 	var amountPrecisionString *string = this.SafeString(amountFilter, "stepSize")
@@ -3102,8 +3102,8 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if *this.SafeBool(market, "spot", false) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if market.Spot {
 
 		r1 := <-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params)
 		if r1.Err != nil {
@@ -3111,7 +3111,7 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		}
 		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
-	} else if *this.SafeBool(market, "swap", false) {
+	} else if market.Swap {
 
 		r2 := <-this.CreateSwapOrderAsync(symbol, typeVar, side, amount, price, params)
 		if r2.Err != nil {
@@ -3120,7 +3120,10 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	} else {
-		var marketTypeValue string = *this.SafeString(market, "type", "")
+		var marketTypeValue string = ""
+		if market.Type != nil {
+			marketTypeValue = *market.Type
+		}
 		panic(NotSupported(this.Id + " createOrder() is not supported for " + marketTypeValue + " type of markets"))
 	}
 }
@@ -3255,13 +3258,16 @@ func (this *Hashkey) CreateOrderRequest(symbol *string, typeVar *string, side *s
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = this.Market(symbol)
-	if *this.SafeBool(market, "spot", false) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if market.Spot {
 		return this.CreateSpotOrderRequest(symbol, *typeVar, *side, amount, price, params)
-	} else if *this.SafeBool(market, "swap", false) {
+	} else if market.Swap {
 		return this.CreateSwapOrderRequest(symbol, *typeVar, *side, amount, price, params)
 	} else {
-		var marketTypeValue string = *this.SafeString(market, "type", "")
+		var marketTypeValue string = ""
+		if market.Type != nil {
+			marketTypeValue = *market.Type
+		}
 		panic(NotSupported(this.Id + " " + "createOrderRequest() is not supported for " + marketTypeValue + " type of markets"))
 	}
 }
@@ -3520,19 +3526,19 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 	}
 	var firstOrder map[string]any = SafeMapTyped(ordersRequests, 0)
 	var firstSymbol *string = this.SafeString(firstOrder, "symbol")
-	var market map[string]any = this.Market(firstSymbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(firstSymbol))
 	var request map[string]any = map[string]any{
 		"orders": ordersRequests,
 	}
 	var response map[string]any = nil
-	if *this.SafeBool(market, "spot", false) {
+	if market.Spot {
 
 		r1 := <-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if *this.SafeBool(market, "swap", false) {
+	} else if market.Swap {
 
 		r2 := <-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params))
 		if r2.Err != nil {
@@ -3540,7 +3546,10 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 		}
 		response = r2.Value
 	} else {
-		var marketTypeValue string = *this.SafeString(market, "type", "")
+		var marketTypeValue string = ""
+		if market.Type != nil {
+			marketTypeValue = *market.Type
+		}
 		panic(NotSupported(this.Id + " " + "createOrderRequest() is not supported for " + marketTypeValue + " type of markets"))
 	}
 	var result []any = SafeListTyped(response, "result")
@@ -3672,23 +3681,26 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var side *string = this.SafeString(params, "side")
 	if side != nil {
 		request["side"] = side
 	}
 	var response map[string]any = nil
-	if *this.SafeBool(market, "spot", false) {
+	if market.Spot {
 
 		r1 := <-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if *this.SafeBool(market, "swap", false) {
+	} else if market.Swap {
 
 		r2 := <-this.PrivateDeleteApiV1FuturesBatchOrders(this.Extend(request, params))
 		if r2.Err != nil {
@@ -3696,7 +3708,10 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		}
 		response = r2.Value
 	} else {
-		var marketTypeValue string = *this.SafeString(market, "type", "")
+		var marketTypeValue string = ""
+		if market.Type != nil {
+			marketTypeValue = *market.Type
+		}
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + marketTypeValue + " type of markets"))
 	}
 	var order map[string]any = OrderToMap(this.SafeOrder(response))

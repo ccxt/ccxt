@@ -1117,8 +1117,8 @@ func (this *Gate) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
 	params["callerMethodName"] = "watchTicker"
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
@@ -1638,7 +1638,13 @@ func (this *Gate) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	messageHashStr := "candles:" + *interval + ":" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var url string = this.GetUrlByMarket(market)
-	var payload []any = []any{interval, marketId}
+	var payload []any = []any{nil, nil}
+	if interval != nil {
+		payload[0] = *interval
+	}
+	if marketId != nil {
+		payload[1] = *marketId
+	}
 
 	r1 := <-this.SubscribePublicAsync(&url, *messageHash, payload, channel, params)
 	if r1.Err != nil {

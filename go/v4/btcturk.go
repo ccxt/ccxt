@@ -559,9 +559,12 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pairSymbol": market["id"],
+		"pairSymbol": nil,
+	}
+	if market.Id != nil {
+		request["pairSymbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetOrderbook(this.Extend(request, params))
@@ -587,7 +590,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", 0, 1))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market.Symbol, timestamp, "bids", "asks", 0, 1))}
 	return nil
 }
 func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1479,11 +1482,12 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query
 		}
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
 	if isQueryMethod {
 		requestBody = nil
 	} else {
-		requestBody = this.Json(params)
+		jsonText := this.Json(params)
+		requestBody = &jsonText
 	}
 	var privateHeaders map[string]any = nil
 	if apiName == "private" {
@@ -1498,12 +1502,16 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) map[string]any {
 			"Content-Type": "application/json",
 		}
 	}
-	return map[string]any{
+	var literal114315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": privateHeaders,
 	}
+	if requestBody != nil {
+		literal114315["body"] = *requestBody
+	}
+	return literal114315
 }
 func (this *Btcturk) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var errorCode string = *this.SafeString(response, "code", "0")

@@ -1212,11 +1212,14 @@ func (this *Bigone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var response map[string]any = nil
-	if *this.SafeBool(market, "contract", false) {
+	if market.Contract {
 		var request map[string]any = map[string]any{
-			"symbol": market["id"],
+			"symbol": nil,
+		}
+		if market.Id != nil {
+			request["symbol"] = *market.Id
 		}
 
 		r1 := <-this.ContractPublicGetDepthSymbolSnapshot(this.Extend(request, params))
@@ -1252,11 +1255,14 @@ func (this *Bigone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		//        from: '0'
 		//    }
 		//
-		ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseContractOrderBook(response, market["symbol"], limit))}
+		ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseContractOrderBook(response, market.Symbol, limit))}
 		return nil
 	} else {
 		var request map[string]any = map[string]any{
-			"asset_pair_name": market["id"],
+			"asset_pair_name": nil,
+		}
+		if market.Id != nil {
+			request["asset_pair_name"] = *market.Id
 		}
 		if limit != nil {
 			request["limit"] = *limit // default 50, max 200
@@ -1281,9 +1287,13 @@ func (this *Bigone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 		//         }
 		//     }
 		//
-		var orderbook map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+		var orderbook map[string]any
+		orderbook, _ = response["data"].(map[string]any)
+		if orderbook == nil {
+			orderbook = map[string]any{}
+		}
 
-		ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "quantity"))}
+		ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, nil, "bids", "asks", "price", "quantity"))}
 		return nil
 	}
 }
@@ -1303,7 +1313,7 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks map[string]any) any {
 	}
 	return result
 }
-func (this *Bigone) ParseContractOrderBook(orderbook map[string]any, symbol any, optionalArgs ...any) map[string]any {
+func (this *Bigone) ParseContractOrderBook(orderbook map[string]any, symbol string, optionalArgs ...any) map[string]any {
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var responseBids map[string]any = this.SafeDictMap(orderbook, "bids", map[string]any{})
@@ -1828,7 +1838,7 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) Order {
 		amount = this.SafeString(order, "amount")
 		filled = this.SafeString(order, "filled_amount")
 	}
-	return this.SafeOrder(map[string]any{
+	var literal154431 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -1842,15 +1852,25 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) Order {
 		"side":               side,
 		"price":              price,
 		"triggerPrice":       triggerPrice,
-		"amount":             amount,
-		"cost":               cost,
+		"amount":             nil,
+		"cost":               nil,
 		"average":            this.SafeString(order, "avg_deal_price"),
-		"filled":             filled,
+		"filled":             nil,
 		"remaining":          nil,
 		"status":             this.ParseOrderStatus(this.SafeString(order, "state")),
 		"fee":                nil,
 		"trades":             nil,
-	}, market)
+	}
+	if amount != nil {
+		literal154431["amount"] = *amount
+	}
+	if cost != nil {
+		literal154431["cost"] = *cost
+	}
+	if filled != nil {
+		literal154431["filled"] = *filled
+	}
+	return this.SafeOrder(literal154431, market)
 }
 
 /**

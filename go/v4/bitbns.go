@@ -402,7 +402,7 @@ func (this *Bitbns) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = rawMarkets[i]
+		var market, _ = rawMarkets[i].(map[string]any)
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "base")
 		var quoteId *string = this.SafeString(market, "quote")
@@ -411,11 +411,11 @@ func (this *Bitbns) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		if (baseId == nil) || (base == nil) || (quote == nil) {
 			continue
 		}
-		var marketPrecision map[string]any = SafeMapTyped(market, "precision")
-		var marketLimits map[string]any = SafeMapTyped(market, "limits")
-		var amountLimits map[string]any = SafeMapTyped(marketLimits, "amount")
-		var priceLimits map[string]any = SafeMapTyped(marketLimits, "price")
-		var costLimits map[string]any = SafeMapTyped(marketLimits, "cost")
+		var marketPrecision, _ = market["precision"].(map[string]any)
+		var marketLimits, _ = market["limits"].(map[string]any)
+		var amountLimits, _ = marketLimits["amount"].(map[string]any)
+		var priceLimits, _ = marketLimits["price"].(map[string]any)
+		var costLimits, _ = marketLimits["cost"].(map[string]any)
 		var usdt bool = (quoteId != nil && *quoteId == "USDT")
 		// INR markets don't need a _INR prefix
 		var uppercaseId *string = baseId
@@ -471,7 +471,7 @@ func (this *Bitbns) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 				},
 			},
 			"created": nil,
-			"info":    market,
+			"info":    rawMarkets[i],
 		})
 	}
 
@@ -507,9 +507,12 @@ func (this *Bitbns) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
@@ -539,7 +542,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp))}
 	return nil
 }
 func (this *Bitbns) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1161,12 +1164,11 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var request map[string]any = map[string]any{
 		"symbol": market["uppercaseId"],
 		"page":   0,
-		"side": func() any {
-			if isTrigger != nil && *isTrigger == true {
-				return (quoteSide + "StopOrders")
-			}
-			return (quoteSide + "Orders")
-		}(),
+	}
+	if isTrigger != nil && *isTrigger == true {
+		request["side"] = (quoteSide + "StopOrders")
+	} else {
+		request["side"] = (quoteSide + "Orders")
 	}
 
 	r1 := <-this.V2PostGetordersnew(this.Extend(request, paramsOmitted))
@@ -1271,7 +1273,7 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal96031 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1283,9 +1285,13 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"takerOrMaker": nil,
 		"price":        priceString,
 		"amount":       amountString,
-		"cost":         costString,
+		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if costString != nil {
+		literal96031["cost"] = *costString
+	}
+	return this.SafeTrade(literal96031, marketResolved)
 }
 
 /**

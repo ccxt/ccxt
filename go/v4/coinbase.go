@@ -1048,18 +1048,17 @@ func (this *Coinbase) ParseAccount(account any) map[string]any {
 	var typeV3 *string = this.SafeString(account, "name")
 	var typeV2 *string = this.SafeString(account, "type")
 	var parts []string = strings.Split(*typeV3, " ")
-	var typeValue *string
-	if active != nil {
-		typeValue = this.SafeStringLower(parts, 1)
-	} else {
-		typeValue = typeV2
-	}
-	return map[string]any{
+	var literal79415 map[string]any = map[string]any{
 		"id":   this.SafeString2(account, "id", "uuid"),
-		"type": typeValue,
 		"code": this.SafeCurrencyCode(currencyId),
 		"info": account,
 	}
+	if active != nil {
+		literal79415["type"] = this.SafeStringLower(parts, 1)
+	} else {
+		literal79415["type"] = typeV2
+	}
+	return literal79415
 }
 
 /**
@@ -4451,7 +4450,11 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(ExchangeError(errorMessage))
 		}
 	}
-	var data map[string]any = this.SafeDictMap(response, "success_response", map[string]any{})
+	var data map[string]any
+	data, _ = response["success_response"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -4574,7 +4577,7 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 	if (totalFees != nil) && (marketResolved != nil) {
 		currencyFee = this.SafeString(marketResolved, "quote")
 	}
-	return this.SafeOrder(map[string]any{
+	var literal348831 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 this.SafeString(order, "order_id"),
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -4586,9 +4589,9 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 		"timeInForce":        this.ParseTimeInForce(this.SafeString(order, "time_in_force")),
 		"postOnly":           postOnly,
 		"side":               this.SafeStringLower(order, "side"),
-		"price":              price,
-		"triggerPrice":       triggerPrice,
-		"amount":             amount,
+		"price":              nil,
+		"triggerPrice":       nil,
+		"amount":             nil,
 		"filled":             this.SafeString(order, "filled_size"),
 		"remaining":          nil,
 		"cost":               nil,
@@ -4599,7 +4602,17 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": currencyFee,
 		},
 		"trades": nil,
-	}, marketResolved)
+	}
+	if price != nil {
+		literal348831["price"] = *price
+	}
+	if triggerPrice != nil {
+		literal348831["triggerPrice"] = *triggerPrice
+	}
+	if amount != nil {
+		literal348831["amount"] = *amount
+	}
+	return this.SafeOrder(literal348831, marketResolved)
 }
 func (this *Coinbase) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -5449,7 +5462,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//         ]
 	//     }
 	//
-	var candles []any = this.SafeListSlice(response, "candles", []any{})
+	var candles []any
+	candles, _ = response["candles"].([]any)
+	if candles == nil {
+		candles = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limitValue))}
 	return nil
@@ -5560,7 +5577,11 @@ func (this *Coinbase) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	//         ]
 	//     }
 	//
-	var trades []any = this.SafeListSlice(response, "trades", []any{})
+	var trades []any
+	trades, _ = response["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -5760,7 +5781,11 @@ func (this *Coinbase) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "pricebook", map[string]any{})
+	var data map[string]any
+	data, _ = response["pricebook"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var time *string = this.SafeString(data, "time")
 	var timestamp *int64 = this.Parse8601(time)
 

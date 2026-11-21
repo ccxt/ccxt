@@ -1545,13 +1545,13 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	} else {
 		orderId = this.SafeString(trade, "a")
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal103131 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
-		"order":        orderId,
+		"order":        nil,
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
@@ -1562,7 +1562,11 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 			"currency": nil,
 			"cost":     nil,
 		},
-	}, marketResolved))
+	}
+	if orderId != nil {
+		literal103131["order"] = *orderId
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal103131, marketResolved))
 }
 
 /**

@@ -1581,8 +1581,8 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var response any = nil
 	var data any = []any{}
 	if generation == 2 {
-		paginate, paramsPaginate := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
-		if EvalTruthy(paginate) {
+		paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
+		if paginate {
 
 			r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 200)
 			if r1.Err != nil {
@@ -2788,14 +2788,14 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 		timeInForce = &timeInForceStr
 		postOnly = true
 	}
-	return this.SafeOrder(map[string]any{
+	var literal229131 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
 		"timestamp":          timestamp,
 		"datetime":           datetime,
 		"lastTradeTimestamp": nil,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           postOnly,
@@ -2810,7 +2810,11 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 		"status":             status,
 		"fee":                fee,
 		"trades":             rawTrades,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal229131["symbol"] = *symbol
+	}
+	return this.SafeOrder(literal229131, marketResolved)
 }
 
 /**
@@ -2896,7 +2900,11 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		}
 		response = r2.Value
 	}
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limitResolved))}
 	return nil
@@ -4284,12 +4292,16 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	return map[string]any{
+	var literal341015 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal341015["body"] = *requestBody
+	}
+	return literal341015
 }
 func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

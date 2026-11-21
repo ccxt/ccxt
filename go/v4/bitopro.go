@@ -767,9 +767,12 @@ func (this *Bitopro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit
@@ -801,7 +804,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "price", "amount"))}
 	return nil
 }
 func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1177,7 +1180,7 @@ func (this *Bitopro) InsertMissingCandles(candles []any, distanceInMs int64, sin
 	// otherwise sending a limit arg leads to unexpected results
 	var length int = len(candles)
 	if length == 0 {
-		return this.ToArray(candles)
+		return candles
 	}
 	var result []any = []any{}
 	var firstCandle any = this.SafeList(candles, 0, []any{})
@@ -1691,7 +1694,11 @@ func (this *Bitopro) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	//
 	//     {
@@ -2610,12 +2617,16 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
-	return map[string]any{
+	var literal196115 map[string]any = map[string]any{
 		"url":     fullUrl,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal196115["body"] = *requestBody
+	}
+	return literal196115
 }
 func (this *Bitopro) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

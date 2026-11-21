@@ -868,14 +868,8 @@ func (this *Apex) ParseMarket(market any) map[string]any {
 		"taker":        takerFee,
 		"maker":        makerFee,
 		"contractSize": this.SafeNumber(market, "minOrderSize"),
-		"expiryDatetime": func() any {
-			if expiry == 0 {
-				return nil
-			}
-			return this.Iso8601(expiry)
-		}(),
-		"strike":     nil,
-		"optionType": nil,
+		"strike":       nil,
+		"optionType":   nil,
 		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "stepSize"),
 			"price":  this.SafeNumber(market, "tickSize"),
@@ -905,6 +899,11 @@ func (this *Apex) ParseMarket(market any) map[string]any {
 		literal67241["expiry"] = nil
 	} else {
 		literal67241["expiry"] = expiry
+	}
+	if expiry == 0 {
+		literal67241["expiryDatetime"] = nil
+	} else {
+		literal67241["expiryDatetime"] = this.Iso8601(expiry)
 	}
 	return this.SafeMarketStructure(literal67241)
 }
@@ -2286,7 +2285,11 @@ func (this *Apex) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
 	return nil
@@ -2633,7 +2636,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(fundingValues, market, since, limit))}
 	return nil
 }
-func (this *Apex) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Apex) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "id": "1234",

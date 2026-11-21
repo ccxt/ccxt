@@ -97,13 +97,19 @@ func (this *Mudrex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = &market.Symbol
 	var messageHash string = "ticker:" + *symbolValue
 	var url *string = this.UrlsApiStrings["ws"]
 	this.SetBrokerHeaders()
-	var baseIdString string = *this.SafeString(market, "baseId", "")
-	var quoteIdString string = *this.SafeString(market, "quoteId", "")
+	var baseIdString string = ""
+	if market.BaseId != nil {
+		baseIdString = *market.BaseId
+	}
+	var quoteIdString string = ""
+	if market.QuoteId != nil {
+		quoteIdString = *market.QuoteId
+	}
 	var assetId string = strings.ToLower(baseIdString)
 	assetId = assetId + strings.ToLower(quoteIdString)
 	var subscribe map[string]any = map[string]any{
@@ -141,14 +147,20 @@ func (this *Mudrex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var assets []any = []any{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(symbolsNormalized[i])
-			messageHashes = append(messageHashes, "ticker:"+market["symbol"].(string))
-			var baseIdString string = *this.SafeString(market, "baseId", "")
-			var quoteIdString string = *this.SafeString(market, "quoteId", "")
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsNormalized[i]))
+			messageHashes = append(messageHashes, "ticker:"+market.Symbol)
+			var baseIdString string = ""
+			if market.BaseId != nil {
+				baseIdString = *market.BaseId
+			}
+			var quoteIdString string = ""
+			if market.QuoteId != nil {
+				quoteIdString = *market.QuoteId
+			}
 			var assetId string = strings.ToLower(baseIdString)
 			assetId = assetId + strings.ToLower(quoteIdString)
 			assets = append(assets, assetId)
@@ -206,8 +218,8 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = &market.Symbol
 	var priceType *string = this.SafeString(params, "price")
 	var paramsOmitted map[string]any = this.OmitDict(params, "price")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -218,8 +230,14 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	if priceType != nil && *priceType == "mark" {
 		prefix = "markKline"
 	}
-	var streamBaseId string = *this.SafeString(market, "baseId", "")
-	var streamQuoteId string = *this.SafeString(market, "quoteId", "")
+	var streamBaseId string = ""
+	if market.BaseId != nil {
+		streamBaseId = *market.BaseId
+	}
+	var streamQuoteId string = ""
+	if market.QuoteId != nil {
+		streamQuoteId = *market.QuoteId
+	}
 	var stream string = prefix + "@" + *interval + "@" + strings.ToLower(streamBaseId) + strings.ToLower(streamQuoteId)
 	var messageHash string = stream
 	var url *string = this.UrlsApiStrings["ws"]

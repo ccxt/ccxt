@@ -2894,7 +2894,7 @@ func (this *Backpack) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	var response map[string]any = r1.Value
 	if stock != nil && *stock {
 		var securities any = this.SafeList(this.Options, "securities")
-		if IsEqual(securities, nil) {
+		if securities == nil {
 
 			r2 := <-this.FetchSecuritiesAsync()
 			if r2.Err != nil {
@@ -4594,7 +4594,7 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(response, market, since, limit))}
 	return nil
 }
-func (this *Backpack) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Backpack) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "fundingRate": "0.0001",

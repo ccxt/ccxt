@@ -687,12 +687,12 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	// the asyncapi spec describes the data field as an array of trade objects while typing it
 	// as a single object, so both shapes are handled here
 	//
-	var data any = this.SafeValue(message, "data")
+	var dataList, _ = message["data"].([]any)
 	var rows []any = []any{}
-	if ccxt.IsArray(data) {
-		rows = ccxt.ArrayTyped(data)
+	if dataList != nil {
+		rows = ccxt.ArrayTyped(dataList)
 	} else {
-		rows = append(rows, data)
+		rows = append(rows, this.SafeValue(message, "data"))
 	}
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
@@ -1209,12 +1209,12 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(message, "data")
+	var dataList, _ = message["data"].([]any)
 	var rows []any = []any{}
-	if ccxt.IsArray(data) {
-		rows = ccxt.ArrayTyped(data)
+	if dataList != nil {
+		rows = ccxt.ArrayTyped(dataList)
 	} else {
-		rows = append(rows, data)
+		rows = append(rows, this.SafeValue(message, "data"))
 	}
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {

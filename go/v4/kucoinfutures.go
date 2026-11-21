@@ -132,7 +132,11 @@ func (this *Kucoinfutures) transferBody(ch chan AsyncResult[TransferEntry], code
 	} else {
 		panic(BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(data, currency)), map[string]any{
 		"amount":      this.ParseNumber(amountToPrecision),

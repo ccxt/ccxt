@@ -435,8 +435,11 @@ func (this *Btcbox) ParseBalance(response map[string]any) map[string]any {
 	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
-		var currency map[string]any = this.Currency(code)
-		var currencyId string = *this.SafeString(currency, "id", "")
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		var currencyId string = ""
+		if currency.Id != nil {
+			currencyId = *currency.Id
+		}
 		var free string = currencyId + "_balance"
 		if _, ok := response[free]; ok {
 			var account map[string]any = this.Account()
@@ -514,11 +517,14 @@ func (this *Btcbox) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
-		request["coin"] = market["baseId"]
+		request["coin"] = nil
+		if market.BaseId != nil {
+			request["coin"] = *market.BaseId
+		}
 	}
 
 	r1 := <-this.PublicGetDepth(this.Extend(request, params))
@@ -527,7 +533,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"]))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol))}
 	return nil
 }
 func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) Ticker {

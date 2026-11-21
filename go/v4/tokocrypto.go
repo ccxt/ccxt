@@ -945,7 +945,7 @@ func (this *Tokocrypto) ParseMarket(market any) map[string]any {
 		},
 	}
 	if _, ok := filtersByType["PRICE_FILTER"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
+		var filter, _ = filtersByType["PRICE_FILTER"].(map[string]any)
 		// PRICE_FILTER reports zero values for maxPrice
 		// since they updated filter types in November 2018
 		// https://github.com/ccxt/ccxt/issues/4286
@@ -957,7 +957,7 @@ func (this *Tokocrypto) ParseMarket(market any) map[string]any {
 		precision["price"] = filter["tickSize"]
 	}
 	if _, ok := filtersByType["LOT_SIZE"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
+		var filter, _ = filtersByType["LOT_SIZE"].(map[string]any)
 		precision["amount"] = this.SafeNumber(filter, "stepSize")
 		limits["amount"] = map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
@@ -965,7 +965,7 @@ func (this *Tokocrypto) ParseMarket(market any) map[string]any {
 		}
 	}
 	if _, ok := filtersByType["MARKET_LOT_SIZE"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
+		var filter, _ = filtersByType["MARKET_LOT_SIZE"].(map[string]any)
 		limits["market"] = map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
 			"max": this.SafeNumber(filter, "maxQty"),
@@ -1002,7 +1002,7 @@ func (this *Tokocrypto) ParseMarket(market any) map[string]any {
 		"info":           market,
 	}
 	if _, ok := filtersByType["MIN_NOTIONAL"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
+		var filter, _ = filtersByType["MIN_NOTIONAL"].(map[string]any)
 		costMin = this.SafeNumber2(filter, "minNotional", "notional")
 	}
 	return entry
@@ -1089,7 +1089,11 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	//         },
 	//         "timestamp":1692262634599
 	//     }
-	var data any = this.SafeDict(response, "data", response)
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = response
+	}
 	var timestamp *int64 = this.SafeInteger2(response, "T", "timestamp")
 	var orderbook map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	orderbook["nonce"] = this.SafeInteger(data, "lastUpdateId")
@@ -1482,7 +1486,7 @@ func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		baseVolume = this.SafeString(ticker, "volume")
 		quoteVolume = this.SafeString(ticker, "quoteVolume")
 	}
-	return this.SafeTicker(map[string]any{
+	var literal128332 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1500,10 +1504,17 @@ func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"change":        this.SafeString(ticker, "priceChange"),
 		"percentage":    this.SafeString(ticker, "priceChangePercent"),
 		"average":       nil,
-		"baseVolume":    baseVolume,
-		"quoteVolume":   quoteVolume,
+		"baseVolume":    nil,
+		"quoteVolume":   nil,
 		"info":          ticker,
-	}, market)
+	}
+	if baseVolume != nil {
+		literal128332["baseVolume"] = *baseVolume
+	}
+	if quoteVolume != nil {
+		literal128332["quoteVolume"] = *quoteVolume
+	}
+	return this.SafeTicker(literal128332, market)
 }
 
 /**
@@ -3386,12 +3397,16 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 			bodySigned = &bodySignedStr
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		return map[string]any{
+		var literal274819 map[string]any = map[string]any{
 			"url":     url,
 			"method":  method,
-			"body":    bodySigned,
+			"body":    nil,
 			"headers": headersSigned,
 		}
+		if bodySigned != nil {
+			literal274819["body"] = *bodySigned
+		}
+		return literal274819
 	} else {
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url += "?" + this.Urlencode(params)

@@ -1349,7 +1349,10 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		for j := 0; j < len(cachedIds); j++ {
 			var cachedId string = cachedIds[j]
 			if _, ok := snapshotIds[cachedId]; !ok {
-				var cachedOrder map[string]any = this.SafeDictMap(ordersById, cachedId, map[string]any{})
+				var cachedOrder, _ = ordersById[cachedId].(map[string]any)
+				if cachedOrder == nil {
+					cachedOrder = map[string]any{}
+				}
 				var cachedStatus *string = this.SafeString(cachedOrder, "status")
 				// parseWsOrder leaves status undefined for snapshot and
 				// non-cancel updates, so undefined means open here
@@ -2083,7 +2086,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	}
 	var tradeSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(trades); i++ {
-		var trade any = trades[i]
+		var trade, _ = trades[i].(map[string]any)
 		var parsedTrade map[string]any = this.ParseWsMyTrade(trade)
 		var tradeSymbol *string = this.SafeString(parsedTrade, "symbol")
 		if tradeSymbol != nil {
@@ -2105,7 +2108,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 }
-func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "instrument": "FI_XBTUSD_200925",

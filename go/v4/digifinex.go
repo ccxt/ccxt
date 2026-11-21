@@ -1813,13 +1813,13 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal140531 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
-		"type":         typeVar,
+		"type":         nil,
 		"order":        orderId,
 		"side":         side,
 		"price":        priceString,
@@ -1827,7 +1827,11 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"cost":         nil,
 		"takerOrMaker": takerOrMaker,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if typeVar != nil {
+		literal140531["type"] = *typeVar
+	}
+	return this.SafeTrade(literal140531, marketResolved)
 }
 
 /**
@@ -2012,7 +2016,11 @@ func (this *Digifinex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -2385,9 +2393,15 @@ func (this *Digifinex) createOrdersBody(ch chan AsyncResult[[]Order], orders []m
 	//
 	var data []any = []any{}
 	if *this.SafeBool(market, "swap", false) {
-		data = ArrayTyped(this.SafeList(response, "data", []any{}))
+		data, _ = response["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 	} else {
-		data = ArrayTyped(this.SafeList(response, "order_ids", []any{}))
+		data, _ = response["order_ids"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 	}
 	var result []any = []any{}
 	for i := 0; i < len(orders); i++ {
@@ -2715,8 +2729,10 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[Order], id string, op
 func (this *Digifinex) ParseCancelOrders(response map[string]any, optionalArgs ...any) []any {
 	var symbolsById map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = symbolsById
-	var success []any = SafeListTyped(response, "success")
-	var error []any = SafeListTyped(response, "error")
+	var success []any
+	success, _ = response["success"].([]any)
+	var error []any
+	error, _ = response["error"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(success); i++ {
 		var order *string = this.SafeString(success, i)
@@ -3284,7 +3300,11 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3431,7 +3451,11 @@ func (this *Digifinex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -4062,7 +4086,11 @@ func (this *Digifinex) fetchTransactionsByTypeBody(ch chan AsyncResult[[]Transac
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": typeVar,
@@ -6201,7 +6229,7 @@ func (this *Digifinex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHist
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(data, market, since, limit))}
 	return nil
 }
-func (this *Digifinex) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Digifinex) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "instrument_id": "BTCUSDTPERP",

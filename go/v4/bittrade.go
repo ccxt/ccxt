@@ -847,7 +847,11 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//         ]
 	//    }
 	//
-	var markets []any = this.SafeListSlice(response, "data", []any{})
+	var markets []any
+	markets, _ = response["data"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 	var numMarkets int = len(markets)
 	if numMarkets < 1 {
 		panic(NetworkError(this.Id + " fetchMarkets() returned empty response: " + this.Json(markets)))
@@ -1002,16 +1006,16 @@ func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var close *string = this.SafeString(ticker, "close")
 	var baseVolume *string = this.SafeString(ticker, "amount")
 	var quoteVolume *string = this.SafeString(ticker, "vol")
-	return this.SafeTicker(map[string]any{
+	var literal70932 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(ticker, "high"),
 		"low":           this.SafeString(ticker, "low"),
-		"bid":           bid,
-		"bidVolume":     bidVolume,
-		"ask":           ask,
-		"askVolume":     askVolume,
+		"bid":           nil,
+		"bidVolume":     nil,
+		"ask":           nil,
+		"askVolume":     nil,
 		"vwap":          nil,
 		"open":          open,
 		"close":         close,
@@ -1023,7 +1027,20 @@ func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
-	}, market)
+	}
+	if bid != nil {
+		literal70932["bid"] = *bid
+	}
+	if bidVolume != nil {
+		literal70932["bidVolume"] = *bidVolume
+	}
+	if ask != nil {
+		literal70932["ask"] = *ask
+	}
+	if askVolume != nil {
+		literal70932["askVolume"] = *askVolume
+	}
+	return this.SafeTicker(literal70932, market)
 }
 
 /**
@@ -1295,21 +1312,25 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var tradeId *string = this.SafeString2(trade, "trade-id", "tradeId")
 	var id *string = this.SafeString(trade, "id", tradeId)
-	return this.SafeTrade(map[string]any{
+	var literal92731 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"symbol":       symbol,
 		"order":        order,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"type":         typeVar,
+		"type":         nil,
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
 		"price":        price,
 		"amount":       amount,
 		"cost":         cost,
 		"fee":          fee,
-	})
+	}
+	if typeVar != nil {
+		literal92731["type"] = *typeVar
+	}
+	return this.SafeTrade(literal92731)
 }
 
 /**
@@ -2276,7 +2297,7 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrency,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal152731 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -2284,10 +2305,10 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
 		"symbol":             marketResolved["symbol"],
-		"type":               typeVar,
+		"type":               nil,
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              price,
 		"triggerPrice":       nil,
 		"average":            nil,
@@ -2295,10 +2316,20 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 		"amount":             amount,
 		"filled":             filled,
 		"remaining":          nil,
-		"status":             status,
+		"status":             nil,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved)
+	}
+	if typeVar != nil {
+		literal152731["type"] = *typeVar
+	}
+	if side != nil {
+		literal152731["side"] = *side
+	}
+	if status != nil {
+		literal152731["status"] = *status
+	}
+	return this.SafeOrder(literal152731, marketResolved)
 }
 
 /**

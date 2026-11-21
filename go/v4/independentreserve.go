@@ -605,10 +605,16 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[OrderBook
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"primaryCurrencyCode":   market["baseId"],
-		"secondaryCurrencyCode": market["quoteId"],
+		"primaryCurrencyCode":   nil,
+		"secondaryCurrencyCode": nil,
+	}
+	if market.BaseId != nil {
+		request["primaryCurrencyCode"] = *market.BaseId
+	}
+	if market.QuoteId != nil {
+		request["secondaryCurrencyCode"] = *market.QuoteId
 	}
 
 	r1 := <-this.PublicGetGetOrderBook(this.Extend(request, params))
@@ -618,7 +624,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[OrderBook
 	var response map[string]any = r1.Value
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp, "BuyOrders", "SellOrders", "Price", "Volume"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "BuyOrders", "SellOrders", "Price", "Volume"))}
 	return nil
 }
 func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -819,14 +825,14 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order
 	if (feeRate != nil) && (filled != nil) {
 		feeCost = Precise.StringMul(feeRate, filled)
 	}
-	return this.SafeOrder(map[string]any{
+	var literal63831 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 this.SafeString(order, "OrderGuid"),
 		"clientOrderId":      nil,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               orderType,
 		"timeInForce":        this.ParseTimeInForce(this.SafeString(order, "TimeInForce")),
 		"postOnly":           nil,
@@ -845,7 +851,11 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order
 			"currency": base,
 		},
 		"trades": nil,
-	}, market)
+	}
+	if symbol != nil {
+		literal63831["symbol"] = *symbol
+	}
+	return this.SafeOrder(literal63831, market)
 }
 func (this *Independentreserve) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

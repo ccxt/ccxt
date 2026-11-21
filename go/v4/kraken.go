@@ -1958,21 +1958,37 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	} else {
 		timestamp = this.Parse8601(datetime)
 	}
-	return this.SafeTrade(map[string]any{
+	var literal155231 map[string]any = map[string]any{
 		"id":           id,
-		"order":        orderId,
+		"order":        nil,
 		"info":         trade,
 		"timestamp":    timestamp,
-		"datetime":     datetime,
-		"symbol":       symbol,
+		"datetime":     nil,
+		"symbol":       nil,
 		"type":         typeVar,
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
-		"price":        price,
-		"amount":       amount,
+		"price":        nil,
+		"amount":       nil,
 		"cost":         cost,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if orderId != nil {
+		literal155231["order"] = *orderId
+	}
+	if datetime != nil {
+		literal155231["datetime"] = *datetime
+	}
+	if symbol != nil {
+		literal155231["symbol"] = *symbol
+	}
+	if price != nil {
+		literal155231["price"] = *price
+	}
+	if amount != nil {
+		literal155231["amount"] = *amount
+	}
+	return this.SafeTrade(literal155231, marketResolved)
 }
 
 /**
@@ -2756,7 +2772,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	if amendId != nil {
 		isPostOnly = nil
 	}
-	return this.SafeOrder(map[string]any{
+	var literal217531 map[string]any = map[string]any{
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
 		"info":                orderOmitted,
@@ -2765,24 +2781,43 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		"lastTradeTimestamp":  nil,
 		"lastUpdateTimestamp": this.SafeTimestamp(orderOmitted, "closetm"),
 		"status":              status,
-		"symbol":              symbol,
+		"symbol":              nil,
 		"type":                typeParsed,
 		"timeInForce":         nil,
 		"postOnly":            isPostOnly,
-		"side":                side,
+		"side":                nil,
 		"price":               price,
 		"triggerPrice":        triggerPrice,
-		"takeProfitPrice":     takeProfitPrice,
-		"stopLossPrice":       stopLossPrice,
-		"cost":                cost,
-		"amount":              amount,
+		"takeProfitPrice":     nil,
+		"stopLossPrice":       nil,
+		"cost":                nil,
+		"amount":              nil,
 		"filled":              filled,
 		"average":             average,
 		"remaining":           nil,
 		"reduceOnly":          this.SafeBool2(orderOmitted, "reduceOnly", "reduce_only"),
 		"fee":                 fee,
 		"trades":              trades,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal217531["symbol"] = *symbol
+	}
+	if side != nil {
+		literal217531["side"] = *side
+	}
+	if takeProfitPrice != nil {
+		literal217531["takeProfitPrice"] = *takeProfitPrice
+	}
+	if stopLossPrice != nil {
+		literal217531["stopLossPrice"] = *stopLossPrice
+	}
+	if cost != nil {
+		literal217531["cost"] = *cost
+	}
+	if amount != nil {
+		literal217531["amount"] = *amount
+	}
+	return this.SafeOrder(literal217531, marketResolved)
 }
 func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string, request map[string]any, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

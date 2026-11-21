@@ -3534,7 +3534,11 @@ func (this *Weex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		}
 		response = r2.Value
 	}
-	var ordersResponse []any = this.SafeListSlice(response, "orderList", []any{})
+	var ordersResponse []any
+	ordersResponse, _ = response["orderList"].([]any)
+	if ordersResponse == nil {
+		ordersResponse = []any{}
+	}
 	var extendedParams map[string]any = map[string]any{
 		"status": "canceled",
 	}
@@ -4331,7 +4335,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 	if stopLossPrice == nil {
 		stopLossPrice = this.OmitZero(this.SafeString(order, "slTriggerPrice")) // attached stop loss of a regular or conditional order
 	}
-	return this.SafeOrder(map[string]any{
+	var literal322431 map[string]any = map[string]any{
 		"id":                  this.SafeStringN(order, []any{"orderId", "algoId", "successOrderId"}),
 		"clientOrderId":       this.SafeStringN(order, []any{"clientOrderId", "origClientOrderId", "clientAlgoId"}),
 		"symbol":              this.SafeString(marketResolved, "symbol"),
@@ -4354,10 +4358,17 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 		"lastUpdateTimestamp": this.SafeInteger(order, "updateTime"),
 		"average":             this.SafeString(order, "avgPrice"),
 		"trades":              nil,
-		"stopLossPrice":       stopLossPrice,
-		"takeProfitPrice":     takeProfitPrice,
+		"stopLossPrice":       nil,
+		"takeProfitPrice":     nil,
 		"info":                order,
-	}, marketResolved)
+	}
+	if stopLossPrice != nil {
+		literal322431["stopLossPrice"] = *stopLossPrice
+	}
+	if takeProfitPrice != nil {
+		literal322431["takeProfitPrice"] = *takeProfitPrice
+	}
+	return this.SafeOrder(literal322431, marketResolved)
 }
 func (this *Weex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4930,7 +4941,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(items, market, since, limit))}
 	return nil
 }
-func (this *Weex) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Weex) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "billId": "793622764958253481",
@@ -5073,11 +5084,11 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	if sandboxMode != nil && *sandboxMode {
 
-		r1 := <-this.FetchPositionsAsync([]any{market["symbol"]}, params)
+		r1 := <-this.FetchPositionsAsync([]any{market.Symbol}, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -5091,7 +5102,10 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 		return nil
 	}
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	responseRecv := <-this.ContractPrivateGetCapiV3AccountPositionSinglePosition(this.Extend(request, params))
@@ -5100,7 +5114,7 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	}
 	var response []any = responseRecv.Value
 
-	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, []any{market["symbol"]}))}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, []any{market.Symbol}))}
 	return nil
 }
 func (this *Weex) ParsePosition(position any, optionalArgs ...any) Position {

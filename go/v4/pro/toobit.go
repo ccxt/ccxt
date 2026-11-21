@@ -420,8 +420,11 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var data []any = symbolsAndTimeframes[i]
 		var symbolStr string = *this.SafeString(data, 0, "")
-		var market map[string]any = this.Market(symbolStr)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolStr))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var unfiedTimeframe string = *this.SafeString(data, 1, "1m")
 		var rawTimeframe *string = this.SafeString(timeframes, unfiedTimeframe, unfiedTimeframe)
 		if !ccxt.IsEqual(selectedTimeframe, "") && !ccxt.IsEqual(selectedTimeframe, rawTimeframe) {

@@ -1398,9 +1398,9 @@ func (this *Aster) ParseMarket(market any) map[string]any {
 	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var filterNotional map[string]any = SafeDict2Typed(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
-	var filterPrice map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
-	var filterLotSize map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
-	var filterMarketLotSize map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
+	var filterPrice, _ = filtersByType["PRICE_FILTER"].(map[string]any)
+	var filterLotSize, _ = filtersByType["LOT_SIZE"].(map[string]any)
+	var filterMarketLotSize, _ = filtersByType["MARKET_LOT_SIZE"].(map[string]any)
 	var pricePrecision *float64 = this.SafeNumber(filterPrice, "tickSize")
 	if pricePrecision == nil {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
@@ -2800,7 +2800,10 @@ func (this *Aster) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 			panic(r1.Err)
 		}
 		response = r1.Value
-		data = ArrayTyped(this.SafeList(response, "balances", []any{}))
+		data, _ = response["balances"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
@@ -3675,8 +3678,8 @@ func (this *Aster) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 	for i := 0; i < ordersLength; i++ {
 		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
-		var currentMarket map[string]any = this.Market(marketId)
-		orderSymbols = append(orderSymbols, currentMarket["symbol"])
+		var currentMarket MarketInterface = MarketInterfaceFromMap(this.Market(marketId))
+		orderSymbols = append(orderSymbols, currentMarket.Symbol)
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
@@ -4593,7 +4596,7 @@ func (this *Aster) addMarginBody(ch chan AsyncResult[MarginModification], symbol
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Aster) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Aster) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "symbol": "ETHUSDT",
@@ -5068,10 +5071,10 @@ func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[[]Position], optio
 	var rawPositions []any = this.ToArray(response)
 	var result []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = rawPositions[i]
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var entryPriceString *string = this.SafeString(rawPosition, "entryPrice")
 		if Precise.StringGt(entryPriceString, "0") {
-			result = append(result, this.ParsePositionRisk(rawPosition))
+			result = append(result, this.ParsePositionRisk(rawPositions[i]))
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
@@ -5478,7 +5481,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 		this.Options["leverageBrackets"] = this.CreateSafeDictionary()
 		var entries []any = this.ToArray(response)
 		for i := 0; i < len(entries); i++ {
-			var entry map[string]any = SafeMapTyped(entries, i)
+			var entry, _ = entries[i].(map[string]any)
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
 			var brackets []any = SafeListTyped(entry, "brackets")
@@ -6027,7 +6030,7 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 	var found bool = false
 	var builderAddress *string = this.SafeString(this.Options, "builder")
 	for i := 0; i < length; i++ {
-		var builderInfo map[string]any = SafeMapTyped(approvedBuilders, i)
+		var builderInfo, _ = approvedBuilders[i].(map[string]any)
 		var builderAccountId *string = this.SafeString(builderInfo, "builderAddress")
 		if builderAccountId == builderAddress || (builderAccountId != nil && builderAddress != nil && *builderAccountId == *builderAddress) {
 			found = true

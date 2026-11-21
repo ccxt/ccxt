@@ -2492,7 +2492,7 @@ func (this *Bingx) HandleMessage(client any, message map[string]any) {
 		return
 	}
 	if strings.Index(dataType, "executionReport") >= 0 {
-		var data map[string]any = ccxt.SafeMapTyped(message, "data")
+		var data, _ = message["data"].(map[string]any)
 		var typeVar *string = this.SafeString(data, "x")
 		if typeVar != nil && *typeVar == "TRADE" {
 			this.HandleMyTrades(client, message)
@@ -2507,7 +2507,7 @@ func (this *Bingx) HandleMessage(client any, message map[string]any) {
 	}
 	if e != nil && *e == "ORDER_TRADE_UPDATE" {
 		this.HandleOrder(client, message)
-		var data map[string]any = ccxt.SafeMapTyped(message, "o")
+		var data, _ = message["o"].(map[string]any)
 		var typeVar *string = this.SafeString(data, "x")
 		var status *string = this.SafeString(data, "X")
 		var isExecution bool = (status != nil && *status == "FILLED")

@@ -129,8 +129,11 @@ func (this *Bitfinex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channel st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var client ccxt.ClientInterface = this.Client(url)
 	var subMessageHash string = channel + ":" + marketId
@@ -234,11 +237,14 @@ func (this *Bitfinex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = &market.Symbol
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var channel string = "candles"
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var key string = "trade:" + *interval + ":" + marketId
 	var messageHash string = channel + ":" + *interval + ":" + marketId
 	var request map[string]any = map[string]any{
@@ -291,11 +297,14 @@ func (this *Bitfinex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = &market.Symbol
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var channel string = "candles"
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var subMessageHash string = channel + ":" + *interval + ":" + marketId
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
@@ -523,8 +532,11 @@ func (this *Bitfinex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	}
 	var messageHash string = "myTrade"
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		messageHash = "myTrade:" + marketId
 	}
 
@@ -628,8 +640,11 @@ func (this *Bitfinex) HandleMyTrade(client any, message []any, optionalArgs ...a
 		"result": data,
 	})
 	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var messageHash string = name + ":" + marketId
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -710,7 +725,13 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 			// since te and tu updates are duplicated on the public stream
 			return
 		}
-		var trade []any = this.SafeListSlice(message, 2, []any{})
+		var trade []any
+		if 2 < len(message) {
+			trade, _ = message[2].([]any)
+		}
+		if trade == nil {
+			trade = []any{}
+		}
 		var parsed any = this.ParseWsTrade(map[string]any{
 			"result": trade,
 		}, market)
@@ -858,13 +879,13 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 		}
 		takerOrMaker = &takerOrMakerStr
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal56331 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
 		"id":           id,
-		"order":        orderId,
+		"order":        nil,
 		"type":         typeVar,
 		"takerOrMaker": takerOrMaker,
 		"side":         side,
@@ -872,7 +893,11 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved))
+	}
+	if orderId != nil {
+		literal56331["order"] = *orderId
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal56331, marketResolved))
 }
 func (this *Bitfinex) HandleTicker(client any, message []any, subscription map[string]any) {
 	//
@@ -1564,8 +1589,11 @@ func (this *Bitfinex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	}
 	var messageHash string = "orders"
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		messageHash = "orders:" + marketId
 	}
 
@@ -1623,7 +1651,13 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 	//        ]
 	//    ]
 	//
-	var data []any = this.SafeListSlice(message, 2, []any{})
+	var data []any
+	if 2 < len(message) {
+		data, _ = message[2].([]any)
+	}
+	if data == nil {
+		data = []any{}
+	}
 	var messageType *string = this.SafeString(message, 1)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -1664,8 +1698,11 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 	}
 	for i := 0; i < len(keys); i++ {
 		var symbol string = keys[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var messageHash string = name + ":" + marketId
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	}

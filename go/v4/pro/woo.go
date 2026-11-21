@@ -279,12 +279,15 @@ func (this *Woo) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol str
 		}
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var subHash string = marketId + "@" + *method
 	var topic string = "orderbook"
 
-	r1 := <-this.UnwatchPublicAsync(subHash, market["symbol"], topic, paramsMethod)
+	r1 := <-this.UnwatchPublicAsync(subHash, market.Symbol, topic, paramsMethod)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -520,8 +523,11 @@ func (this *Woo) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 		}
 	}
 	var name string = "ticker"
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = marketId + "@" + name
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -563,12 +569,15 @@ func (this *Woo) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string
 		}
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchTicker", "method", "ticker")
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var subHash string = marketId + "@" + *method
 	var topic string = "ticker"
 
-	r1 := <-this.UnwatchPublicAsync(subHash, market["symbol"], topic, paramsMethod)
+	r1 := <-this.UnwatchPublicAsync(subHash, market.Symbol, topic, paramsMethod)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -978,8 +987,11 @@ func (this *Woo) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 	if (timeframe != "1m") && (timeframe != "5m") && (timeframe != "15m") && (timeframe != "30m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
 		panic(ccxt.ExchangeError(this.Id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M"))
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "kline"
 	var topic string = marketId + "@" + name + "_" + *interval
@@ -996,7 +1008,7 @@ func (this *Woo) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(market["symbol"], limit)
+		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(market.Symbol, limit)
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
@@ -1033,15 +1045,18 @@ func (this *Woo) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var topic string = "ohlcv"
 	var name string = "kline"
 	var subHash string = marketId + "@" + name + "_" + *interval
-	params["symbolsAndTimeframes"] = []any{[]any{market["symbol"], timeframe}}
+	params["symbolsAndTimeframes"] = []any{[]any{market.Symbol, timeframe}}
 
-	r1 := <-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)
+	r1 := <-this.UnwatchPublicAsync(subHash, market.Symbol, topic, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1180,12 +1195,15 @@ func (this *Woo) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = "trades"
 	var subHash string = marketId + "@trade"
 
-	r1 := <-this.UnwatchPublicAsync(subHash, market["symbol"], topic, params)
+	r1 := <-this.UnwatchPublicAsync(subHash, market.Symbol, topic, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1726,18 +1744,18 @@ func (this *Woo) HandleOrderUpdate(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data any = this.SafeValue(message, "data")
-	if ccxt.IsArray(data) {
+	var dataList, _ = message["data"].([]any)
+	if dataList != nil {
 		// algoexecutionreportv2
-		for i := 0; i < ccxt.GetArrayLength(data); i++ {
-			var order any = ccxt.GetValue(data, i)
-			var tradeId *string = this.OmitZero(this.SafeString(data, "tradeId"))
+		for i := 0; i < len(dataList); i++ {
+			var tradeId *string = this.OmitZero(this.SafeString(dataList, "tradeId"))
 			if tradeId != nil {
-				this.HandleMyTrade(client, order)
+				this.HandleMyTrade(client, dataList[i])
 			}
-			this.HandleOrder(client, order, topic)
+			this.HandleOrder(client, dataList[i], topic)
 		}
 	} else {
+		var data any = this.SafeValue(message, "data")
 		// executionreport
 		var tradeId *string = this.OmitZero(this.SafeString(data, "tradeId"))
 		if tradeId != nil {
@@ -2149,8 +2167,11 @@ func (this *Woo) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate]
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = marketId + "@estfundingrate"
 	var request map[string]any = map[string]any{
 		"event": "subscribe",

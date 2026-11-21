@@ -1171,7 +1171,11 @@ func (this *Lbank) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	//         "success": true
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -1284,7 +1288,11 @@ func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	//         "success": true
 	//     }
 	//
-	var orderbook map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var orderbook map[string]any
+	orderbook, _ = response["data"].(map[string]any)
+	if orderbook == nil {
+		orderbook = map[string]any{}
+	}
 	var timestamp int64 = this.Milliseconds()
 	if *this.SafeBool(market, "swap", false) {
 
@@ -1491,7 +1499,11 @@ func (this *Lbank) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 	//           "ts":1647021999308
 	//      }
 	//
-	var trades []any = this.SafeListSlice(response, "data", []any{})
+	var trades []any
+	trades, _ = response["data"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1811,14 +1823,14 @@ func (this *Lbank) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 
-	r1 := <-this.FetchFundingRatesAsync([]any{market["symbol"]}, params)
+	r1 := <-this.FetchFundingRatesAsync([]any{market.Symbol}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var responseForSwap map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	var fundingRate map[string]any = SafeMapTyped(responseForSwap, market["symbol"])
+	var fundingRate map[string]any = SafeMapTyped(responseForSwap, market.Symbol)
 
 	ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(fundingRate)}
 	return nil
@@ -2258,7 +2270,11 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	//          "ts":1648162321043
 	//      }
 	//
-	var result map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var result map[string]any
+	result, _ = response["data"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"id":   this.SafeString(result, "order_id"),
@@ -2403,7 +2419,7 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) Order {
 		amountString = this.SafeString2(order, "origQty", "amount")
 	}
 	var filledString *string = this.SafeString2(order, "executedQty", "deal_amount")
-	return this.SafeOrder(map[string]any{
+	var literal187531 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"datetime":           this.Iso8601(timestamp),
@@ -2418,14 +2434,18 @@ func (this *Lbank) ParseOrder(order any, optionalArgs ...any) Order {
 		"price":              price,
 		"triggerPrice":       nil,
 		"cost":               costString,
-		"amount":             amountString,
+		"amount":             nil,
 		"filled":             filledString,
 		"remaining":          nil,
 		"trades":             nil,
 		"fee":                nil,
 		"info":               order,
 		"average":            nil,
-	}, marketResolved)
+	}
+	if amountString != nil {
+		literal187531["amount"] = *amountString
+	}
+	return this.SafeOrder(literal187531, marketResolved)
 }
 
 /**
@@ -3410,7 +3430,7 @@ func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) Transa
 			"currency": code,
 		}
 	}
-	return TransactionFromMap(map[string]any{
+	var literal254515 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
@@ -3418,8 +3438,8 @@ func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) Transa
 		"datetime":    this.Iso8601(timestamp),
 		"network":     this.NetworkIdToCode(this.SafeString(transaction, "networkName"), code),
 		"address":     address,
-		"addressTo":   addressTo,
-		"addressFrom": addressFrom,
+		"addressTo":   nil,
+		"addressFrom": nil,
 		"tag":         nil,
 		"tagTo":       nil,
 		"tagFrom":     nil,
@@ -3431,7 +3451,14 @@ func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) Transa
 		"comment":     nil,
 		"internal":    (status != nil && *status == "transfer"),
 		"fee":         fee,
-	})
+	}
+	if addressTo != nil {
+		literal254515["addressTo"] = *addressTo
+	}
+	if addressFrom != nil {
+		literal254515["addressFrom"] = *addressFrom
+	}
+	return TransactionFromMap(literal254515)
 }
 
 /**

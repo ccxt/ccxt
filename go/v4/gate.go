@@ -7389,7 +7389,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 			clientOrderId = this.SafeString(triggerOrder, "text")
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal541931 map[string]any = map[string]any{
 		"id":                 this.SafeString(order, "id"),
 		"clientOrderId":      clientOrderId,
 		"timestamp":          timestamp,
@@ -7409,21 +7409,20 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 		"cost":               Precise.StringAbs(cost),
 		"filled":             nil,
 		"remaining":          remaining,
-		"fee": func() any {
-			if multipleFeeCurrencies {
-				return nil
-			}
-			return this.SafeDict(fees, 0)
-		}(),
-		"fees": func() any {
-			if multipleFeeCurrencies {
-				return fees
-			}
-			return []any{}
-		}(),
-		"trades": nil,
-		"info":   order,
-	}, market)
+		"trades":             nil,
+		"info":               order,
+	}
+	if multipleFeeCurrencies {
+		literal541931["fee"] = nil
+	} else {
+		literal541931["fee"] = this.SafeDict(fees, 0)
+	}
+	if multipleFeeCurrencies {
+		literal541931["fees"] = fees
+	} else {
+		literal541931["fees"] = []any{}
+	}
+	return this.SafeOrder(literal541931, market)
 }
 func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) (map[string]any, map[string]any) {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11213,7 +11212,7 @@ func (this *Gate) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], op
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(this.ToArray(response), market, since, limit))}
 	return nil
 }
-func (this *Gate) ParseLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Gate) ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any {
 	//
 	// fetchLiquidations
 	//

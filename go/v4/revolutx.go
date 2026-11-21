@@ -623,7 +623,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		var percentageString *string = Precise.StringDiv(priceChange, open, 8)
 		percentage = this.ParseNumber(Precise.StringMul(percentageString, "100"))
 	}
-	return this.SafeTicker(map[string]any{
+	var literal50832 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -634,7 +634,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"ask":           ask,
 		"askVolume":     nil,
 		"vwap":          nil,
-		"open":          open,
+		"open":          nil,
 		"close":         last,
 		"last":          last,
 		"previousClose": nil,
@@ -644,7 +644,11 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    baseVolume,
 		"quoteVolume":   nil,
 		"info":          ticker,
-	}, market)
+	}
+	if open != nil {
+		literal50832["open"] = *open
+	}
+	return this.SafeTicker(literal50832, market)
 }
 
 /**

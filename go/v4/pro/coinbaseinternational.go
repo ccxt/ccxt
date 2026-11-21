@@ -622,11 +622,12 @@ func (this *Coinbaseinternational) HandleOrders(client any, message map[string]a
 	}
 	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel")
-	var data any = this.SafeValue(params, "data", map[string]any{})
+	var dataList, _ = params["data"].([]any)
 	var orders []any = []any{}
-	if ccxt.IsArray(data) {
-		orders = this.ParseOrders(data)
+	if dataList != nil {
+		orders = this.ParseOrders(dataList)
 	} else {
+		var data any = this.SafeValue(params, "data", map[string]any{})
 		orders = []any{ccxt.OrderToMap(this.ParseOrder(data))}
 	}
 	var ordersLength int = len(orders)
@@ -2086,18 +2087,18 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
 			return
 		}
-		var deltas129912 []any
-		deltas129912, _ = data["asks"].([]any)
-		if deltas129912 == nil {
-			deltas129912 = []any{}
-		}
-		this.HandleDeltas(orderbook.GetAsks(), deltas129912)
 		var deltas130012 []any
-		deltas130012, _ = data["bids"].([]any)
+		deltas130012, _ = data["asks"].([]any)
 		if deltas130012 == nil {
 			deltas130012 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetBids(), deltas130012)
+		this.HandleDeltas(orderbook.GetAsks(), deltas130012)
+		var deltas130112 []any
+		deltas130112, _ = data["bids"].([]any)
+		if deltas130112 == nil {
+			deltas130112 = []any{}
+		}
+		this.HandleDeltas(orderbook.GetBids(), deltas130112)
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2129,13 +2130,13 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var ternaryStr132222 string = "public/unsubscribe"
+	var ternaryStr132322 string = "public/unsubscribe"
 	if isPrivate {
-		ternaryStr132222 = "private/unsubscribe"
+		ternaryStr132322 = "private/unsubscribe"
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
-		"method":  ternaryStr132222,
+		"method":  ternaryStr132322,
 		"params": map[string]any{
 			"channels": []any{channel},
 		},

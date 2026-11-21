@@ -1023,9 +1023,12 @@ func (this *Polymarket) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_id": market["id"],
+		"instrument_id": nil,
+	}
+	if market.Id != nil {
+		request["instrument_id"] = *market.Id
 	}
 	if limit != nil {
 		request["depth"] = *limit
@@ -1046,7 +1049,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var orderbook map[string]any = this.ParseOrderBook(response, market["symbol"], timestamp)
+	var orderbook map[string]any = this.ParseOrderBook(response, market.Symbol, timestamp)
 	orderbook["nonce"] = this.SafeInteger(response, "sequence")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
@@ -2468,7 +2471,7 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 			takeProfitPrice = triggerValue
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal174831 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  this.SafeString2(order, "order_id", "oid"),
 		"clientOrderId":       this.SafeString2(order, "client_order_id", "coid"),
@@ -2484,8 +2487,8 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 		"side":                side,
 		"price":               price,
 		"triggerPrice":        nil,
-		"stopLossPrice":       stopLossPrice,
-		"takeProfitPrice":     takeProfitPrice,
+		"stopLossPrice":       nil,
+		"takeProfitPrice":     nil,
 		"amount":              this.SafeString2(order, "quantity", "qty"),
 		"cost":                nil,
 		"average":             nil,
@@ -2494,7 +2497,14 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 		"status":              this.ParseOrderStatus(this.SafeString(order, "status")),
 		"fee":                 nil,
 		"trades":              nil,
-	}, marketResolved)
+	}
+	if stopLossPrice != nil {
+		literal174831["stopLossPrice"] = *stopLossPrice
+	}
+	if takeProfitPrice != nil {
+		literal174831["takeProfitPrice"] = *takeProfitPrice
+	}
+	return this.SafeOrder(literal174831, marketResolved)
 }
 
 /**
@@ -3438,13 +3448,13 @@ func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = r1.Value
 	//
 	//     { "status": "ok", "withdraw_id": 123 }
 	//
 	// the ack status is the request discriminator, the accepted
 	// withdrawal itself starts out pending
-	var stripped any = this.Omit(response, "status")
+	var stripped map[string]any = this.OmitDict(response, "status")
 	var transaction map[string]any = TransactionToMap(this.ParseTransaction(stripped, currency))
 	transaction["status"] = "pending"
 
@@ -4000,7 +4010,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[map[string]any], sig
 		panic(r.Err)
 	}
 	credentials := r.Value
-	var packed any = this.Packb(signable)
+	var packed []uint8 = this.Packb(signable)
 	var dataHash string = this.HashMessage(packed)
 	var ts int64 = this.Milliseconds()
 	var salt int64 = this.RandNumber(9)
@@ -4167,12 +4177,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			headersResolved["POLYMARKET-SECRET"] = this.SafeString(credentials, "secret")
 		}
 	}
-	return map[string]any{
+	var literal286515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResolved,
+		"body":    nil,
 		"headers": headersResolved,
 	}
+	if bodyResolved != nil {
+		literal286515["body"] = *bodyResolved
+	}
+	return literal286515
 }
 func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

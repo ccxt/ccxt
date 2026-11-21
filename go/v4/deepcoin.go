@@ -726,12 +726,12 @@ func (this *Deepcoin) ParseMarket(market any) map[string]any {
 	} else {
 		isInverse = nil
 	}
-	return this.Extend(fees, map[string]any{
+	var literal54434 map[string]any = map[string]any{
 		"id":       id,
 		"symbol":   symbol,
 		"base":     base,
 		"quote":    quote,
-		"settle":   settle,
+		"settle":   nil,
 		"baseId":   baseId,
 		"quoteId":  quoteId,
 		"settleId": settleId,
@@ -779,7 +779,11 @@ func (this *Deepcoin) ParseMarket(market any) map[string]any {
 			},
 		},
 		"info": market,
-	})
+	}
+	if settle != nil {
+		literal54434["settle"] = *settle
+	}
+	return this.Extend(fees, literal54434)
 }
 func (this *Deepcoin) SetMarkets(markets any, optionalArgs ...any) any {
 	currencies := GetArg(optionalArgs, 0, nil)
@@ -1025,7 +1029,11 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1442,7 +1450,11 @@ func (this *Deepcoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	}
 	var response map[string]any = r2.Value
 	var data, _ = response["data"].(map[string]any)
-	var items []any = this.SafeListSlice(data, "data", []any{})
+	var items []any
+	items, _ = data["data"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 	var transactionParams map[string]any = map[string]any{
 		"type": "deposit",
 	}
@@ -1526,7 +1538,11 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	}
 	var response map[string]any = r2.Value
 	var data, _ = response["data"].(map[string]any)
-	var items []any = this.SafeListSlice(data, "data", []any{})
+	var items []any
+	items, _ = data["data"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 	var transactionParams map[string]any = map[string]any{
 		"type": "withdrawal",
 	}
@@ -2123,7 +2139,11 @@ func (this *Deepcoin) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -2794,7 +2814,11 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Ord
 		response = r3.Value
 	}
 	// todo handle with since, until and pagination
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3044,7 +3068,11 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		}
 		response = r2.Value
 	}
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit, map[string]any{
 		"status": "open",
@@ -3108,7 +3136,11 @@ func (this *Deepcoin) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -3295,7 +3327,11 @@ func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
 	return nil
@@ -4313,7 +4349,11 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[Order], symbol strin
 		}
 		response = r2.Value
 	}
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -4359,12 +4399,16 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		privateHeaders["DC-ACCESS-SIGN"] = signature
-		return map[string]any{
+		var literal313919 map[string]any = map[string]any{
 			"url":     url,
 			"method":  method,
-			"body":    requestBody,
+			"body":    nil,
 			"headers": privateHeaders,
 		}
+		if requestBody != nil {
+			literal313919["body"] = *requestBody
+		}
+		return literal313919
 	}
 	return map[string]any{
 		"url":     url,

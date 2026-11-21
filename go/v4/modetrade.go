@@ -1917,7 +1917,7 @@ func (this *Modetrade) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Ope
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
 	return nil
 }
-func (this *Modetrade) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Modetrade) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//         "symbol": "PERP_ETH_USDC",
@@ -2665,7 +2665,11 @@ func (this *Modetrade) createOrderBody(ch chan AsyncResult[Order], symbol string
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 	var order map[string]any = OrderToMap(this.ParseOrder(data, market))
 	order["type"] = typeVar
@@ -2873,7 +2877,11 @@ func (this *Modetrade) editOrderBody(ch chan AsyncResult[Order], id string, symb
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}

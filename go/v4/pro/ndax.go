@@ -125,11 +125,14 @@ func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	//
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(payload))
 	var symbol *string = this.SafeString(ticker, "symbol")
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	var marketId string = *this.SafeString(market, "id", "")
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var name string = "SubscribeLevel1"
 	var messageHash string = name + ":" + marketId
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -254,8 +257,11 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId string = *this.SafeString(market, "id", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		var messageHash string = name + ":" + marketId
 		var symbolTrades ccxt.WsArrayCache = this.Trades[symbol]
 		client.(ccxt.ClientInterface).Resolve(symbolTrades, messageHash)
@@ -562,8 +568,8 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	if marketId == nil {
 		return
 	}
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol string = market.Symbol
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if orderbook == nil {
 		return

@@ -776,15 +776,15 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 		linear = true
 		inverse = false
 	}
-	return this.SafeMarketStructure(map[string]any{
+	var literal58941 map[string]any = map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
 		"quote":          quote,
-		"settle":         settle,
+		"settle":         nil,
 		"baseId":         baseId,
 		"quoteId":        quoteId,
-		"settleId":       settleId,
+		"settleId":       nil,
 		"type":           typeVar,
 		"spot":           isSpot,
 		"margin":         false,
@@ -826,7 +826,14 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 		},
 		"created": created,
 		"info":    market,
-	})
+	}
+	if settle != nil {
+		literal58941["settle"] = *settle
+	}
+	if settleId != nil {
+		literal58941["settleId"] = *settleId
+	}
+	return this.SafeMarketStructure(literal58941)
 }
 
 /**
@@ -1197,9 +1204,12 @@ func (this *Extended) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 
 	r1 := <-this.V1PublicGetInfoMarketsMarketOrderbook(this.Extend(request, params))
@@ -1233,7 +1243,7 @@ func (this *Extended) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		data = map[string]any{}
 	}
 	var timestamp int64 = this.Milliseconds()
-	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "bid", "ask", "price", "qty")
+	var orderbook map[string]any = this.ParseOrderBook(data, market.Symbol, timestamp, "bid", "ask", "price", "qty")
 	if limit != nil {
 		orderbook["bids"] = this.ArraySlice(orderbook["bids"], 0, limit)
 		orderbook["asks"] = this.ArraySlice(orderbook["asks"], 0, limit)
@@ -2376,7 +2386,7 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 			"cost":     this.ParseNumber(Precise.StringAbs(feeCost)),
 		}
 	}
-	return this.SafeLedgerEntry(map[string]any{
+	var literal169937 map[string]any = map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),
 		"timestamp":        timestamp,
@@ -2387,17 +2397,17 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		"referenceAccount": this.SafeString(item, "counterpartyAccountId"),
 		"type":             this.ParseTransactionType(this.SafeString(item, "type")),
 		"currency":         code,
-		"amount": func() any {
-			if amountString == nil {
-				return nil
-			}
-			return this.ParseNumber(Precise.StringAbs(amountString))
-		}(),
-		"before": nil,
-		"after":  nil,
-		"status": this.ParseTransactionStatus(this.SafeString(item, "status")),
-		"fee":    fee,
-	}, ledgerCurrency)
+		"before":           nil,
+		"after":            nil,
+		"status":           this.ParseTransactionStatus(this.SafeString(item, "status")),
+		"fee":              fee,
+	}
+	if amountString == nil {
+		literal169937["amount"] = nil
+	} else {
+		literal169937["amount"] = this.ParseNumber(Precise.StringAbs(amountString))
+	}
+	return this.SafeLedgerEntry(literal169937, ledgerCurrency)
 }
 
 /**
@@ -4109,7 +4119,7 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	var postOnly *bool = this.SafeBool(params, "postOnly")
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var cancelId *string = this.SafeString2(params, "cancelId", "previousOrderId")
-	if (IsEqual(amountValue, nil)) || (priceValue == nil) || (expiryEpochMillis == nil) || (postOnly == nil) || (reduceOnly == nil) || (cancelId == nil) {
+	if (amountValue == nil) || (priceValue == nil) || (expiryEpochMillis == nil) || (postOnly == nil) || (reduceOnly == nil) || (cancelId == nil) {
 
 		r := <-this.V1PrivateGetUserOrdersId(map[string]any{
 			"id": id,
@@ -4119,7 +4129,7 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		}
 		var response map[string]any = r.Value
 		var order, _ = response["data"].(map[string]any)
-		if IsEqual(amountValue, nil) {
+		if amountValue == nil {
 			if derefPtr := this.SafeNumber(order, "qty"); derefPtr != nil {
 				amountValue = *derefPtr
 			} else {
@@ -4142,7 +4152,7 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			cancelId = this.SafeString(order, "externalId")
 		}
 	}
-	if IsEqual(amountValue, nil) {
+	if amountValue == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument or an existing order with qty"))
 	}
 	if priceValue == nil {
@@ -4866,12 +4876,11 @@ func (this *Extended) ParseOrder(order any, optionalArgs ...any) Order {
 	var stopLoss map[string]any = SafeMapTyped(order, "stopLoss")
 	var fee map[string]any = map[string]any{
 		"cost": feeCost,
-		"currency": func() any {
-			if marketResolved == nil {
-				return nil
-			}
-			return marketResolved["settle"]
-		}(),
+	}
+	if marketResolved == nil {
+		fee["currency"] = nil
+	} else {
+		fee["currency"] = marketResolved["settle"]
 	}
 	return this.SafeOrder(map[string]any{
 		"info":                order,
@@ -5033,12 +5042,16 @@ func (this *Extended) Sign(path string, optionalArgs ...any) map[string]any {
 	if queryMap, _ := query.(map[string]any); ((method == "GET") || (method == "DELETE") || queryPost) && (len(queryMap) > 0) {
 		url += "?" + this.UrlencodeWithArrayRepeat(query)
 	}
-	return map[string]any{
+	var literal361315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal361315["body"] = *requestBody
+	}
+	return literal361315
 }
 
 func NewExtended(userConfig map[string]any) *Extended {

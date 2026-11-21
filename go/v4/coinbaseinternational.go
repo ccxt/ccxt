@@ -918,33 +918,27 @@ func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
 		symbol = Add(Add(Add(Add(symbol, "-"), strikeString), "-"), optionTypeLetter)
 	}
 	var marketStructure map[string]any = map[string]any{
-		"id":          instrumentName,
-		"lowercaseId": lowercaseId,
-		"symbol":      symbol,
-		"base":        base,
-		"quote":       quote,
-		"settle":      marketSettle,
-		"baseId":      baseId,
-		"quoteId":     quoteId,
-		"settleId":    marketSettleId,
-		"type":        typeVar,
-		"spot":        isSpot,
-		"margin":      false,
-		"swap":        isPerpetual,
-		"future":      isFuture,
-		"option":      isOption,
-		"active":      active,
-		"contract":    !isSpot,
-		"linear":      linear,
-		"inverse":     inverse,
-		"taker":       this.SafeNumber(market, "taker_commission"),
-		"maker":       this.SafeNumber(market, "maker_commission"),
-		"contractSize": func() any {
-			if isSpot {
-				return nil
-			}
-			return this.SafeNumber(market, "contract_size")
-		}(),
+		"id":             instrumentName,
+		"lowercaseId":    lowercaseId,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         marketSettle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       marketSettleId,
+		"type":           typeVar,
+		"spot":           isSpot,
+		"margin":         false,
+		"swap":           isPerpetual,
+		"future":         isFuture,
+		"option":         isOption,
+		"active":         active,
+		"contract":       !isSpot,
+		"linear":         linear,
+		"inverse":        inverse,
+		"taker":          this.SafeNumber(market, "taker_commission"),
+		"maker":          this.SafeNumber(market, "maker_commission"),
 		"expiry":         expiry,
 		"expiryDatetime": this.Iso8601(expiry),
 		"strike":         strike,
@@ -973,6 +967,11 @@ func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
 		},
 		"info":    market,
 		"created": this.SafeInteger(market, "creation_timestamp"),
+	}
+	if isSpot {
+		marketStructure["contractSize"] = nil
+	} else {
+		marketStructure["contractSize"] = this.SafeNumber(market, "contract_size")
 	}
 	var parsedMarket map[string]any = this.SafeMarketStructure(marketStructure)
 	return parsedMarket
@@ -1658,9 +1657,12 @@ func (this *Coinbaseinternational) fetchOrderBookBody(ch chan AsyncResult[OrderB
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": market["id"],
+		"instrument_name": nil,
+	}
+	if market.Id != nil {
+		request["instrument_name"] = *market.Id
 	}
 	if limit != nil {
 		request["depth"] = *limit
@@ -1736,7 +1738,7 @@ func (this *Coinbaseinternational) fetchOrderBookBody(ch chan AsyncResult[OrderB
 	}
 	var timestamp *int64 = this.SafeInteger(result, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, market["symbol"], timestamp))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, market.Symbol, timestamp))}
 	return nil
 }
 
@@ -2039,7 +2041,11 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan AsyncResult[Balances
 	//     }
 	// }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	if !this.IsNativeDeribitCredentials() {
 		// Account summaries are arrays; retain the gateway info shape without dropping balances.
 		var summaries []any
@@ -3980,7 +3986,7 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 		}
 		takerOrMaker = this.SafeString(liquidities, this.SafeString(trade, "liquidity"))
 	}
-	return this.SafeTrade(map[string]any{
+	var literal303631 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "trade_id"),
 		"order":        this.SafeString(trade, "order_id"),
@@ -3989,12 +3995,16 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 		"symbol":       marketResolved["symbol"],
 		"type":         this.SafeString(trade, "order_type"),
 		"side":         this.SafeString(trade, "direction"),
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         cost,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if takerOrMaker != nil {
+		literal303631["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal303631, marketResolved)
 }
 
 /**

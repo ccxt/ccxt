@@ -1027,9 +1027,9 @@ func (this *Coinsph) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			continue
 		}
 		var limits map[string]any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
-		var amountLimits map[string]any = SafeMapTyped(limits, "LOT_SIZE")
-		var priceLimits map[string]any = SafeMapTyped(limits, "PRICE_FILTER")
-		var costLimits map[string]any = SafeMapTyped(limits, "NOTIONAL")
+		var amountLimits, _ = limits["LOT_SIZE"].(map[string]any)
+		var priceLimits, _ = limits["PRICE_FILTER"].(map[string]any)
+		var costLimits, _ = limits["NOTIONAL"].(map[string]any)
 		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         *base + "/" + *quote,
@@ -1725,7 +1725,7 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if orderId != nil {
 		costString = this.SafeString(trade, "quoteQty")
 	}
-	return this.SafeTrade(map[string]any{
+	var literal132231 map[string]any = map[string]any{
 		"id":           id,
 		"order":        orderId,
 		"timestamp":    timestamp,
@@ -1736,10 +1736,14 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"takerOrMaker": takerOrMaker,
 		"price":        priceString,
 		"amount":       amountString,
-		"cost":         costString,
+		"cost":         nil,
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved)
+	}
+	if costString != nil {
+		literal132231["cost"] = *costString
+	}
+	return this.SafeTrade(literal132231, marketResolved)
 }
 
 /**

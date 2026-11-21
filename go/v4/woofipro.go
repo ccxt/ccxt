@@ -2004,7 +2004,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil
 }
-func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//         "symbol": "PERP_ETH_USDC",
@@ -2744,7 +2744,11 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		response = r2.Value
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 	var order map[string]any = OrderToMap(this.ParseOrder(data, market))
 	order["type"] = typeVar
@@ -2952,7 +2956,11 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
@@ -4496,9 +4504,9 @@ func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 
-	r1 := <-this.FetchMarginModesAsync([]any{market["symbol"]}, params)
+	r1 := <-this.FetchMarginModesAsync([]any{market.Symbol}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4506,9 +4514,9 @@ func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 	if !StructAbsent(r1.Value) {
 		marginModes = StructBox(r1.Value, MarginModeMapToMap)
 	}
-	var marginMode map[string]any = SafeMapTyped(marginModes, market["symbol"])
+	var marginMode map[string]any = SafeMapTyped(marginModes, market.Symbol)
 	if marginMode == nil {
-		panic(BadSymbol(this.Id + " fetchMarginMode() did not return a margin mode for " + market["symbol"].(string)))
+		panic(BadSymbol(this.Id + " fetchMarginMode() did not return a margin mode for " + market.Symbol))
 	}
 
 	ch <- AsyncResult[MarginMode]{Value: MarginModeFromMap(marginMode)}

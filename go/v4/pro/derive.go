@@ -135,8 +135,11 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	} else {
 		limitResolved = *limit
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = "orderbook." + marketId + ".10." + *this.NumberToString(limitResolved)
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -230,8 +233,11 @@ func (this *Derive) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = "ticker_slim." + marketId + ".100" // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -279,8 +285,11 @@ func (this *Derive) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = "ticker_slim." + marketId + ".100"
 	var messageHash string = "unwatch" + topic
 	var request map[string]any = map[string]any{
@@ -333,9 +342,12 @@ func (this *Derive) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsResolved); i++ {
-		var market map[string]any = this.Market(symbolsResolved[i])
-		var marketId string = *this.SafeString(market, "id", "")
-		var marketSymbol string = *this.SafeString(market, "symbol", "")
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsResolved[i]))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
+		var marketSymbol string = market.Symbol
 		topics = append(topics, "ticker_slim."+marketId+".100")
 		messageHashes = append(messageHashes, "bidask:"+marketSymbol)
 	}
@@ -471,8 +483,11 @@ func (this *Derive) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 	} else {
 		limit = *limitRaw
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = "orderbook." + marketId + ".10." + strconv.FormatInt(limit, 10)
 	var messageHash string = "unwatch" + topic
 	var request map[string]any = map[string]any{
@@ -518,8 +533,11 @@ func (this *Derive) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = "trades." + marketId
 	var messageHah string = "unwatch" + topic
 	var request map[string]any = map[string]any{
@@ -594,8 +612,8 @@ func (this *Derive) HandleOrderBookUnSubscription(client any, topic string) {
 func (this *Derive) HandleTradesUnSubscription(client any, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol string = market.Symbol
 	if _, ok := this.Trades[symbol]; ok {
 		delete(this.Trades, symbol)
 	}
@@ -604,8 +622,8 @@ func (this *Derive) HandleTradesUnSubscription(client any, topic string) {
 func (this *Derive) HandleTickerUnSubscription(client any, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol string = market.Symbol
 	if _, ok := this.Tickers[symbol]; ok {
 		delete(this.Tickers, symbol)
 	}
@@ -700,8 +718,11 @@ func (this *Derive) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var marketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var topic string = "trades." + marketId
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -722,7 +743,7 @@ func (this *Derive) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(market.Symbol, limit)
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbol, since, limitResolved, true))}
@@ -740,8 +761,8 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 	var topic *string = this.SafeString(params, "channel", "")
 	var parsedTopic []string = strings.Split(*topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol string = market.Symbol
 	var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -963,7 +984,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 	var topic *string = this.SafeString(params, "channel")
 	var rawOrders, _ = params["data"].([]any)
 	for i := 0; i < len(rawOrders); i++ {
-		var data any = rawOrders[i]
+		var data, _ = rawOrders[i].(map[string]any)
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		var orderId *string = this.SafeString(parsed, "id")

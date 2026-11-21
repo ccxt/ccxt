@@ -952,7 +952,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 	var result map[string]any = map[string]any{}
 	var orderbooks []any = this.ToArray(response)
 	for i := 0; i < len(orderbooks); i++ {
-		var orderbook map[string]any = SafeMapTyped(orderbooks, i)
+		var orderbook, _ = orderbooks[i].(map[string]any)
 		var marketId *string = this.SafeString(orderbook, "market")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")

@@ -1062,15 +1062,9 @@ func (this *Predictfun) ParseEvent(rawTopic any) map[string]any {
 	if status != nil {
 		resolved = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	}
-	return map[string]any{
-		"id":   slug,
-		"slug": slug,
-		"event": func() any {
-			if slug != nil {
-				return this.ShortenSlug(slug)
-			}
-			return nil
-		}(),
+	var literal94115 map[string]any = map[string]any{
+		"id":              slug,
+		"slug":            slug,
 		"title":           title,
 		"description":     this.SafeString(rawTopic, "description"),
 		"markets":         marketsList,
@@ -1085,6 +1079,12 @@ func (this *Predictfun) ParseEvent(rawTopic any) map[string]any {
 		"resolved":        resolved,
 		"info":            rawTopic,
 	}
+	if slug != nil {
+		literal94115["event"] = this.ShortenSlug(slug)
+	} else {
+		literal94115["event"] = nil
+	}
+	return literal94115
 }
 
 /**
@@ -1306,12 +1306,12 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string
 			}
 		}
 		var settleFraction any = settleFractionRaw
-		outcomes = append(outcomes, map[string]any{
+		var literal118127 map[string]any = map[string]any{
 			"id":             tokenId,
 			"outcomeId":      tokenId,
 			"outcome":        outcomeHandle,
 			"market":         marketSymbol,
-			"event":          eventHandle,
+			"event":          nil,
 			"label":          label,
 			"price":          nil,
 			"active":         active,
@@ -1321,7 +1321,11 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string
 			"info": this.Extend(map[string]any{
 				"marketId": marketId,
 			}, rawOutcome),
-		})
+		}
+		if eventHandle != nil {
+			literal118127["event"] = *eventHandle
+		}
+		outcomes = append(outcomes, literal118127)
 	}
 	var resolvedOutcome any = resolvedOutcomeRaw
 	var collateral string = "USDT"
@@ -1947,9 +1951,9 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
 		}
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "executedAt"))
-	return this.SafePredictionTrade(map[string]any{
+	var literal169041 map[string]any = map[string]any{
 		"id":           this.SafeString(trade, "settlementId"),
-		"order":        order,
+		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"outcome":      this.SafeOutcomeSymbol(nil, outcomeObj),
@@ -1964,7 +1968,11 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
 		"cost":         nil,
 		"fee":          fee,
 		"info":         this.Omit(trade, "partyToParse"),
-	})
+	}
+	if order != nil {
+		literal169041["order"] = *order
+	}
+	return this.SafePredictionTrade(literal169041)
 }
 
 /**
@@ -2630,7 +2638,7 @@ func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.Predicti
  * @param {object} [market] not used by predictfun parsePredictionPosition
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...any) any {
+func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var rawOutcome map[string]any = ccxt.SafeMapTyped(position, "outcome")
@@ -3213,7 +3221,7 @@ func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) map
 	var amountFilled *string = this.SafeString(order, "amountFilled")
 	var filled *string = ccxt.Precise.StringDiv(amountFilled, "1000000000000000000")
 	var filledCost *string = ccxt.Precise.StringMul(filled, price)
-	return this.SafePredictionOrder(map[string]any{
+	var literal259741 map[string]any = map[string]any{
 		"id":            orderHash,
 		"clientOrderId": nil,
 		"timestamp":     nil,
@@ -3222,7 +3230,7 @@ func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) map
 		"type":          this.SafeStringLower(order, "strategy"),
 		"timeInForce":   nil,
 		"side":          side,
-		"price":         price,
+		"price":         nil,
 		"amount":        amount,
 		"filled":        filled,
 		"remaining":     nil,
@@ -3236,7 +3244,11 @@ func (this *Predictfun) ParsePredictionOrder(order any, optionalArgs ...any) map
 		"market":        this.SafeString(outcomeObj, "market"),
 		"event":         this.SafeString(outcomeObj, "event"),
 		"info":          order,
-	})
+	}
+	if price != nil {
+		literal259741["price"] = *price
+	}
+	return this.SafePredictionOrder(literal259741)
 }
 
 /**
@@ -4090,7 +4102,7 @@ func (this *Predictfun) watchWalletEventsBody(ch chan ccxt.AsyncResult[any], mes
 		"params":    []any{topic},
 	}
 	var url string = this.SocketUrl()
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var subscription map[string]any = map[string]any{
 		"id":            this.NumberToString(requestId),
 		"topic":         "walletEvents",
@@ -4535,14 +4547,18 @@ func (this *Predictfun) WalletEventOutcome(details map[string]any) any {
 		eventHandle = &shortenSlugText
 	}
 	var label any = this.StripPriceFormatting(this.SafeStringUpper(details, "outcomeName"))
-	return map[string]any{
+	var literal364315 map[string]any = map[string]any{
 		"outcome":   nil,
 		"outcomeId": nil,
 		"market":    nil,
 		"label":     label,
-		"event":     eventHandle,
+		"event":     nil,
 		"info":      details,
 	}
+	if eventHandle != nil {
+		literal364315["event"] = *eventHandle
+	}
+	return literal364315
 }
 
 /**
@@ -4902,12 +4918,16 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 		bodyValue = &jsonText
 	}
 	var headersExtended map[string]any = this.Extend(map[string]any{}, authHeaders)
-	return map[string]any{
+	var literal397215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyValue,
+		"body":    nil,
 		"headers": headersExtended,
 	}
+	if bodyValue != nil {
+		literal397215["body"] = *bodyValue
+	}
+	return literal397215
 }
 
 func NewPredictfun(userConfig map[string]any) *Predictfun {

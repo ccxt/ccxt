@@ -4768,7 +4768,13 @@ func (this *Binance) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	var results []any = r.Value
-	var responseCurrencies []any = this.SafeListSlice(results, 0, []any{})
+	var responseCurrencies []any
+	if 0 < len(results) {
+		responseCurrencies, _ = results[0].([]any)
+	}
+	if responseCurrencies == nil {
+		responseCurrencies = []any{}
+	}
 	var marginablesById any = nil
 	if fetchMargins != nil && *fetchMargins {
 		var responseMarginables []any
@@ -5532,7 +5538,7 @@ func (this *Binance) ParseMarket(market any) map[string]any {
 		precision["amount"] = stepSize
 	}
 	if _, ok := filtersByType["PRICE_FILTER"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
+		var filter, _ = filtersByType["PRICE_FILTER"].(map[string]any)
 		// PRICE_FILTER reports zero values for maxPrice
 		// since they updated filter types in November 2018
 		// https://github.com/ccxt/ccxt/issues/4286
@@ -5544,7 +5550,7 @@ func (this *Binance) ParseMarket(market any) map[string]any {
 		precision["price"] = this.SafeNumber(filter, "tickSize")
 	}
 	if _, ok := filtersByType["LOT_SIZE"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
+		var filter, _ = filtersByType["LOT_SIZE"].(map[string]any)
 		precision["amount"] = this.SafeNumber(filter, "stepSize")
 		limits["amount"] = map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
@@ -5552,7 +5558,7 @@ func (this *Binance) ParseMarket(market any) map[string]any {
 		}
 	}
 	if _, ok := filtersByType["MARKET_LOT_SIZE"]; ok {
-		var filter map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
+		var filter, _ = filtersByType["MARKET_LOT_SIZE"].(map[string]any)
 		limits["market"] = map[string]any{
 			"min": this.SafeNumber(filter, "minQty"),
 			"max": this.SafeNumber(filter, "maxQty"),
@@ -6414,7 +6420,7 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		baseVolume = this.SafeString(ticker, "volume")
 		quoteVolume = this.SafeString2(ticker, "quoteVolume", "amount")
 	}
-	return this.SafeTicker(map[string]any{
+	var literal467232 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -6432,12 +6438,19 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"change":        this.SafeString(ticker, "priceChange"),
 		"percentage":    this.SafeString(ticker, "priceChangePercent"),
 		"average":       nil,
-		"baseVolume":    baseVolume,
-		"quoteVolume":   quoteVolume,
+		"baseVolume":    nil,
+		"quoteVolume":   nil,
 		"markPrice":     this.SafeString(ticker, "markPrice"),
 		"indexPrice":    this.SafeString(ticker, "indexPrice"),
 		"info":          ticker,
-	}, market)
+	}
+	if baseVolume != nil {
+		literal467232["baseVolume"] = *baseVolume
+	}
+	if quoteVolume != nil {
+		literal467232["quoteVolume"] = *quoteVolume
+	}
+	return this.SafeTicker(literal467232, market)
 }
 
 /**
@@ -12904,7 +12917,9 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		responseList = this.ToArray(response)
 	}
 	for i := 0; i < len(responseList); i++ {
-		AddElementToObject(responseList[i], "type", "deposit")
+		if row, ok := responseList[i].(map[string]any); ok && (row != nil) {
+			row["type"] = "deposit"
+		}
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(responseList, currency, since, limit))}
@@ -13027,7 +13042,9 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		responseList = this.ToArray(response)
 	}
 	for i := 0; i < len(responseList); i++ {
-		AddElementToObject(responseList[i], "type", "withdrawal")
+		if row, ok := responseList[i].(map[string]any); ok && (row != nil) {
+			row["type"] = "withdrawal"
+		}
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(responseList, currency, since, limit))}
@@ -13321,19 +13338,26 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	}
 	var timestamp *int64 = this.SafeInteger2(transfer, "timestamp", "transactionTime")
 	var status *string = this.ParseTransferStatus(this.SafeString(transfer, "status"))
-	return TransferEntryFromMap(map[string]any{
+	var literal1015015 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          id,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    code,
 		"amount":      amount,
-		"fromAccount": fromAccount,
-		"toAccount":   toAccount,
+		"fromAccount": nil,
+		"toAccount":   nil,
 		"status":      status,
-	})
+	}
+	if fromAccount != nil {
+		literal1015015["fromAccount"] = *fromAccount
+	}
+	if toAccount != nil {
+		literal1015015["toAccount"] = *toAccount
+	}
+	return TransferEntryFromMap(literal1015015)
 }
-func (this *Binance) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Binance) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "symbol": "ETHUSDT",
@@ -13833,7 +13857,7 @@ func (this *Binance) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any
 	var withdrawFees map[string]any = map[string]any{}
 	var coins []any = this.ToArray(response)
 	for i := 0; i < len(coins); i++ {
-		var entry map[string]any = SafeMapTyped(coins, i)
+		var entry, _ = coins[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkList []any = SafeListTyped(entry, "networkList")
@@ -16746,7 +16770,7 @@ func (this *Binance) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage]
 	}
 	var leverages any = this.SafeList(response, "positions", []any{})
 	if IsArray(response) {
-		leverages = response
+		leverages = this.ToArray(response)
 	}
 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(leverages, symbols, "symbol"))}
@@ -18505,7 +18529,11 @@ func (this *Binance) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInteres
 	//         ]
 	//     }
 	//
-	var rows []any = this.SafeListSlice(response, "rows", []any{})
+	var rows []any
+	rows, _ = response["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
@@ -19323,7 +19351,7 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(liquidationsList, market, since, limit))}
 	return nil
 }
-func (this *Binance) ParseLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Binance) ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any {
 	//
 	// margin
 	//
@@ -19732,7 +19760,7 @@ func (this *Binance) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginM
 	}
 	var assets any = this.SafeList(response, "positions", []any{})
 	if IsArray(response) {
-		assets = response
+		assets = this.ToArray(response)
 	}
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(assets, symbolsNormalized, "symbol", "swap"))}

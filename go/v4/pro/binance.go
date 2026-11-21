@@ -560,7 +560,11 @@ func (this *Binance) HandleLiquidation(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var rawLiquidation map[string]any = this.SafeDictMap(message, "o", map[string]any{})
+	var rawLiquidation map[string]any
+	rawLiquidation, _ = message["o"].(map[string]any)
+	if rawLiquidation == nil {
+		rawLiquidation = map[string]any{}
+	}
 	var marketId *string = this.SafeString(rawLiquidation, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, "", "contract")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -2167,7 +2171,7 @@ func (this *Binance) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var symbolValue *string = &market.Symbol
-	stock, paramsStock := this.HandleOptionAndParams(params, "watchOHLCV", "stock")
+	stock, paramsStock := this.HandleOptionBoolAndParams(params, "watchOHLCV", "stock", false)
 	if stock == true {
 		if (timeframe != "5m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
 			panic(ccxt.BadRequest(this.Id + " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes"))
@@ -2284,7 +2288,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	var klineTypePtr *string = nil
 	klineTypePtr, paramsChannel := this.HandleParamString2(paramsStock, "channel", "name", "kline")
 	klineType := *klineTypePtr
-	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
+	var symbols []any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, false, true)
 	var firstMarket map[string]any = this.Market(marketSymbols[0])
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
@@ -2401,7 +2405,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	var klineTypePtr *string = nil
 	klineTypePtr, paramsChannel := this.HandleParamString2(params, "channel", "name", "kline")
 	klineType := *klineTypePtr
-	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
+	var symbols []any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, false, true)
 	var firstMarket map[string]any = this.Market(marketSymbols[0])
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
@@ -2569,7 +2573,7 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 		"markPrice_kline":  "markPriceKline",
 	}
 	event = this.SafeString(eventMap, event, event)
-	var kline map[string]any = ccxt.SafeMapTyped(message, "k")
+	var kline, _ = message["k"].(map[string]any)
 	var marketId *string = this.SafeString2(kline, "s", "ps")
 	if event != nil && *event == "indexPriceKline" {
 		// indexPriceKline doesn't have the _PERP suffix
@@ -5084,7 +5088,11 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
 	var event *string = this.SafeString(message, "e")
 	// balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
-	var balanceMessage map[string]any = this.SafeDictMap(message, "a", message)
+	var balanceMessage map[string]any
+	balanceMessage, _ = message["a"].(map[string]any)
+	if balanceMessage == nil {
+		balanceMessage = message
+	}
 	if event != nil && *event == "balanceUpdate" {
 		var currencyId *string = this.SafeString(message, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -6340,7 +6348,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 		}
 		var stockTimestamp *int64 = this.SafeInteger(order, "T")
 		var stockLastUpdateTimestamp *int64 = this.SafeInteger(order, "U", stockTimestamp)
-		return ccxt.OrderToMap(this.SafeOrder(map[string]any{
+		var literal472835 map[string]any = map[string]any{
 			"info":                order,
 			"symbol":              stockSymbol,
 			"id":                  this.SafeString(order, "i"),
@@ -6359,11 +6367,15 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 			"cost":                this.SafeString(order, "FN"),
 			"average":             nil,
 			"filled":              stockFilled,
-			"remaining":           stockRemaining,
+			"remaining":           nil,
 			"status":              stockStatus,
 			"fee":                 nil,
 			"trades":              nil,
-		}))
+		}
+		if stockRemaining != nil {
+			literal472835["remaining"] = *stockRemaining
+		}
+		return ccxt.OrderToMap(this.SafeOrder(literal472835))
 	}
 	var executionType *string = this.SafeString(order, "x")
 	var marketId *string = this.SafeString(order, "s")
@@ -6609,7 +6621,7 @@ func (this *Binance) HandleStockPrice(client any, message map[string]any) {
 	//         "e": "price"
 	//     }
 	//
-	var rates []any = ccxt.SafeListTyped(message, "rates")
+	var rates, _ = message["rates"].([]any)
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(rates); i++ {
 		var rate map[string]any = this.SafeDictMap(rates, i, map[string]any{})
@@ -6694,10 +6706,11 @@ func (this *Binance) HandleOptionsOrderUpdate(client any, message map[string]any
 	//         ]
 	//     }
 	//
-	var orders []any = ccxt.SafeListTyped(message, "o")
+	var orders, _ = message["o"].([]any)
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = ccxt.SafeMapTyped(orders, i)
-		var fills []any = ccxt.SafeListTyped(order, "fi")
+		var order, _ = orders[i].(map[string]any)
+		var fills []any
+		fills, _ = order["fi"].([]any)
 		var rawQty *string = this.SafeString(order, "q", "0")
 		var side string = "BUY"
 		if ccxt.Precise.StringLt(rawQty, "0") {
@@ -6728,7 +6741,7 @@ func (this *Binance) HandleOptionsOrderUpdate(client any, message map[string]any
 		}
 		this.HandleOrder(client, normalizedOrder)
 		for j := 0; j < len(fills); j++ {
-			var fill map[string]any = ccxt.SafeMapTyped(fills, j)
+			var fill, _ = fills[j].(map[string]any)
 			var isMaker bool = (this.SafeString(fill, "m") != nil && *this.SafeString(fill, "m") == "MAKER")
 			// normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
 			var normalizedTrade map[string]any = map[string]any{
@@ -7013,11 +7026,11 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 		this.PositionsByType[accountType] = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.PositionsByType[accountType]
-	var data map[string]any = ccxt.SafeMapTyped(message, "a")
-	var rawPositions []any = ccxt.SafeListTyped(data, "P")
+	var data, _ = message["a"].(map[string]any)
+	var rawPositions, _ = data["P"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition map[string]any = ccxt.SafeMapTyped(rawPositions, i)
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var position map[string]any = this.ParseWsPosition(rawPosition)
 		var timestamp *int64 = this.SafeInteger(message, "E")
 		if position != nil {
@@ -7108,7 +7121,7 @@ func (this *Binance) ParseWsPosition(position map[string]any, optionalArgs ...an
 		"marginRatio":                 nil,
 	}))
 }
-func (this *Binance) ParseWsOptionsPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Binance) ParseWsOptionsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//  from BALANCE_POSITION_UPDATE event P[] array:
 	//  {
@@ -7661,9 +7674,9 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
 	balance["info"] = message
-	var B []any = ccxt.SafeListTyped(message, "B")
+	var B, _ = message["B"].([]any)
 	for i := 0; i < len(B); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(B, i)
+		var entry, _ = B[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
@@ -7690,13 +7703,13 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message map[string]a
 		this.PositionsByType[accountType] = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.PositionsByType[accountType]
-	var P []any = ccxt.SafeListTyped(message, "P")
+	var P, _ = message["P"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(P); i++ {
-		var rawPosition map[string]any = ccxt.SafeMapTyped(P, i)
-		var position any = this.ParseWsOptionsPosition(rawPosition)
-		ccxt.AddElementToObject(position, "timestamp", timestamp)
-		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
+		var rawPosition, _ = P[i].(map[string]any)
+		var position map[string]any = this.ParseWsOptionsPosition(rawPosition)
+		position["timestamp"] = timestamp
+		position["datetime"] = this.Iso8601(timestamp)
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}

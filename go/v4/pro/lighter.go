@@ -1100,10 +1100,10 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 			"rate":     feeRate,
 		}
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal72631 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           tradeId,
-		"order":        order,
+		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       this.SafeSymbol(nil, market),
@@ -1114,7 +1114,11 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, market))
+	}
+	if order != nil {
+		literal72631["order"] = *order
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal72631, market))
 }
 func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 	//

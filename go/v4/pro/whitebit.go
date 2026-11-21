@@ -549,7 +549,13 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 			this.Trades[*symbol] = stored
 		}
 	}
-	var data []any = this.SafeListSlice(params, 1, []any{})
+	var data []any
+	if 1 < len(params) {
+		data, _ = params[1].([]any)
+	}
+	if data == nil {
+		data = []any{}
+	}
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for j := 0; j < len(parsedTrades); j++ {
 		stored.Append(parsedTrades[j])
@@ -911,7 +917,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 			unifiedStatus = "canceled"
 		}
 	}
-	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
+	var literal70131 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 id,
@@ -926,7 +932,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"price":              price,
 		"stopPrice":          stopPrice,
 		"triggerPrice":       stopPrice,
-		"amount":             amount,
+		"amount":             nil,
 		"cost":               cost,
 		"average":            nil,
 		"filled":             filled,
@@ -934,7 +940,11 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"status":             unifiedStatus,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved))
+	}
+	if amount != nil {
+		literal70131["amount"] = *amount
+	}
+	return ccxt.OrderToMap(this.SafeOrder(literal70131, marketResolved))
 }
 func (this *Whitebit) ParseWsOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{

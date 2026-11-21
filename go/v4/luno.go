@@ -891,9 +891,12 @@ func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 	var response map[string]any = nil
 	if (limit != nil) && (*limit <= 100) {
@@ -913,7 +916,7 @@ func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "volume"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "bids", "asks", "price", "volume"))}
 	return nil
 }
 func (this *Luno) ParseOrderStatus(status *string) *string {
@@ -2064,10 +2067,14 @@ func (this *Luno) ParseLedgerComment(comment string) map[string]any {
 	if (typeVar != nil && *typeVar == "reserved") && (fourthWord != nil && *fourthWord == "order") {
 		referenceId = this.SafeString(words, 4)
 	}
-	return map[string]any{
+	var literal149615 map[string]any = map[string]any{
 		"type":        typeVar,
-		"referenceId": referenceId,
+		"referenceId": nil,
 	}
+	if referenceId != nil {
+		literal149615["referenceId"] = *referenceId
+	}
+	return literal149615
 }
 func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) LedgerEntry {
 	// const details = this.safeValue (entry, 'details', {});

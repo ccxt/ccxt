@@ -1745,9 +1745,12 @@ func (this *Delta) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["depth"] = *limit
@@ -1782,7 +1785,7 @@ func (this *Delta) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, market["symbol"], nil, "buy", "sell", "price", "size"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, market.Symbol, nil, "buy", "sell", "price", "size"))}
 	return nil
 }
 func (this *Delta) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -2456,14 +2459,14 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrencyCode,
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal201231 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               typeVar,
 		"side":               side,
 		"price":              price,
@@ -2475,7 +2478,11 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 		"status":             status,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketValue)
+	}
+	if symbol != nil {
+		literal201231["symbol"] = *symbol
+	}
+	return this.SafeOrder(literal201231, marketValue)
 }
 
 /**
@@ -2881,7 +2888,11 @@ func (this *Delta) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -3040,7 +3051,11 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[[]Order], metho
 	//         }
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, since, limit))}
 	return nil

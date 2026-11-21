@@ -361,8 +361,11 @@ func (this *Bit2c) ParseBalance(response map[string]any) map[string]any {
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
 		var account map[string]any = this.Account()
-		var currency map[string]any = this.Currency(code)
-		var currencyId string = *this.SafeString(currency, "id", "")
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		var currencyId string = ""
+		if currency.Id != nil {
+			currencyId = *currency.Id
+		}
 		var uppercase string = strings.ToUpper(currencyId)
 		if this.SafeString(response, uppercase) != nil {
 			account["free"] = this.SafeString(response, "AVAILABLE_"+uppercase)
@@ -1081,7 +1084,7 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
 		amount = this.SafeString(orderUnified, "initialAmount")
 		remaining = this.SafeString(orderUnified, "amount")
 	}
-	return this.SafeOrder(map[string]any{
+	var literal78831 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
 		"timestamp":          timestamp,
@@ -1095,15 +1098,22 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
 		"side":               side,
 		"price":              price,
 		"triggerPrice":       nil,
-		"amount":             amount,
+		"amount":             nil,
 		"filled":             nil,
-		"remaining":          remaining,
+		"remaining":          nil,
 		"cost":               nil,
 		"trades":             nil,
 		"fee":                nil,
 		"info":               order,
 		"average":            nil,
-	}, market)
+	}
+	if amount != nil {
+		literal78831["amount"] = *amount
+	}
+	if remaining != nil {
+		literal78831["remaining"] = *remaining
+	}
+	return this.SafeOrder(literal78831, market)
 }
 
 /**
@@ -1318,9 +1328,9 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(nil, tradeMarket)
-	return this.SafeTrade(map[string]any{
+	var literal97831 map[string]any = map[string]any{
 		"info":         trade,
-		"id":           id,
+		"id":           nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
@@ -1328,11 +1338,21 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": makerOrTaker,
-		"price":        price,
-		"amount":       amount,
+		"price":        nil,
+		"amount":       nil,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if id != nil {
+		literal97831["id"] = *id
+	}
+	if price != nil {
+		literal97831["price"] = *price
+	}
+	if amount != nil {
+		literal97831["amount"] = *amount
+	}
+	return this.SafeTrade(literal97831, marketResolved)
 }
 func (this *Bit2c) IsFiat(code string) bool {
 	return (code == "NIS")

@@ -2032,7 +2032,7 @@ func (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs ..
 	}
 	return result
 }
-func (this *PredictionExchange) SafePredictionPosition(position any) any {
+func (this *PredictionExchange) SafePredictionPosition(position any) map[string]any {
 	// build the prediction position directly (no crypto safePosition, which carries the whole
 	// leverage/marginMode/liquidation block the prediction type omits)
 	var timestamp *int64 = this.SafeInteger(position, "timestamp")
@@ -2075,25 +2075,21 @@ func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalA
 	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var fallback *string = this.SafeString2(orderbook, "outcome", "symbol")
-	var identity map[string]any = map[string]any{
-		"outcome": func() any {
-			if outcomeObj == nil {
-				return fallback
-			}
-			return this.SafeString(outcomeObj, "outcome", fallback)
-		}(),
-		"outcomeId": func() any {
-			if outcomeObj == nil {
-				return this.SafeString(orderbook, "outcomeId")
-			}
-			return this.SafeString(outcomeObj, "outcomeId")
-		}(),
-		"market": func() any {
-			if outcomeObj == nil {
-				return this.SafeString(orderbook, "market")
-			}
-			return this.SafeString(outcomeObj, "market")
-		}(),
+	var identity map[string]any = map[string]any{}
+	if outcomeObj == nil {
+		identity["outcome"] = fallback
+	} else {
+		identity["outcome"] = this.SafeString(outcomeObj, "outcome", fallback)
+	}
+	if outcomeObj == nil {
+		identity["outcomeId"] = this.SafeString(orderbook, "outcomeId")
+	} else {
+		identity["outcomeId"] = this.SafeString(outcomeObj, "outcomeId")
+	}
+	if outcomeObj == nil {
+		identity["market"] = this.SafeString(orderbook, "market")
+	} else {
+		identity["market"] = this.SafeString(outcomeObj, "market")
 	}
 	// omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
 	return this.Extend(this.Omit(orderbook, "symbol"), identity)
@@ -2113,7 +2109,7 @@ func (this *PredictionExchange) ParsePredictionTrade(trade any, optionalArgs ...
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionTrade() is not supported yet"))
 }
-func (this *PredictionExchange) ParsePredictionPosition(position any, optionalArgs ...any) any {
+func (this *PredictionExchange) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionPosition() is not supported yet"))
@@ -2214,7 +2210,7 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	var rows []any = this.ToArray(positions)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rows[i])
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rows[i])
 		var position map[string]any = this.Extend(parsed, params)
 		results = append(results, position)
 	}

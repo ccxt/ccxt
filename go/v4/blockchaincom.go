@@ -526,9 +526,12 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan AsyncResult[OrderBookL3]
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["depth"] = *limit
@@ -540,7 +543,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan AsyncResult[OrderBookL3]
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBookL3]{Value: OrderBookL3FromMap(this.ParseOrderBookL3(response, market["symbol"], nil, "bids", "asks", "px", "qty", "num"))}
+	ch <- AsyncResult[OrderBookL3]{Value: OrderBookL3FromMap(this.ParseOrderBookL3(response, market.Symbol, nil, "bids", "asks", "px", "qty", "num"))}
 	return nil
 }
 func (this *Blockchaincom) FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
@@ -562,9 +565,12 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan AsyncResult[OrderBook], 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["depth"] = *limit
@@ -576,7 +582,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan AsyncResult[OrderBook], 
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "px", "qty"))}
 	return nil
 }
 func (this *Blockchaincom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1729,7 +1735,10 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 	//         ]
 	//     }
 	//
-	var balances []any = SafeListTyped(response, accountName)
+	var balances []any
+	if accountName != nil {
+		balances, _ = response[*accountName].([]any)
+	}
 	if balances == nil {
 		panic(ExchangeError(this.Id + " fetchBalance() could not find the \"" + *accountName + "\" account"))
 	}
@@ -1857,12 +1866,16 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) map[string]any
 			privateHeaders["Content-Type"] = "application/json"
 		}
 	}
-	return map[string]any{
+	var literal131315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal131315["body"] = *requestBody
+	}
+	return literal131315
 }
 func (this *Blockchaincom) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"

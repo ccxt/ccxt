@@ -667,21 +667,31 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
 			orderId = this.SafeString(trade, "askOrderId")
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal58031 map[string]any = map[string]any{
 		"id":           id,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
-		"side":         side,
+		"side":         nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         cost,
-		"order":        orderId,
+		"order":        nil,
 		"takerOrMaker": takerOrMaker,
-		"type":         orderType,
+		"type":         nil,
 		"fee":          fee,
 		"info":         trade,
-	}, marketResolved)
+	}
+	if side != nil {
+		literal58031["side"] = *side
+	}
+	if orderId != nil {
+		literal58031["order"] = *orderId
+	}
+	if orderType != nil {
+		literal58031["type"] = *orderType
+	}
+	return this.SafeTrade(literal58031, marketResolved)
 }
 
 /**
@@ -2204,7 +2214,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var timeframeValue string = *this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": timeframeValue,

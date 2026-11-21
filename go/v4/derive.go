@@ -1277,12 +1277,12 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 	} else {
 		contractSize = 1
 	}
-	return this.SafeMarketStructure(map[string]any{
+	var literal87341 map[string]any = map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
 		"quote":          quote,
-		"settle":         settle,
+		"settle":         nil,
 		"baseId":         baseId,
 		"quoteId":        quoteId,
 		"settleId":       settleId,
@@ -1327,7 +1327,11 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if settle != nil {
+		literal87341["settle"] = *settle
+	}
+	return this.SafeMarketStructure(literal87341)
 }
 
 /**
@@ -1895,13 +1899,17 @@ func (this *Derive) ParseSettlement(settlement any, optionalArgs ...any) map[str
 	if marketId != nil {
 		symbolResolved = this.SafeSymbol(marketId, market)
 	}
-	return map[string]any{
+	var literal132115 map[string]any = map[string]any{
 		"info":      settlement,
-		"symbol":    symbolResolved,
+		"symbol":    nil,
 		"price":     this.SafeNumber2(settlement, "price", "settlement_price"),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
+	if symbolResolved != nil {
+		literal132115["symbol"] = *symbolResolved
+	}
+	return literal132115
 }
 func (this *Derive) ParseSettlements(settlements []any, optionalArgs ...any) []any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -1949,7 +1957,7 @@ func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	if change != nil {
 		percentage = Precise.StringMul(change, "100")
 	}
-	return this.SafeTicker(map[string]any{
+	var literal137332 map[string]any = map[string]any{
 		"symbol":        this.SafeSymbol(nil, market),
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1965,14 +1973,18 @@ func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"last":          nil,
 		"previousClose": nil,
 		"change":        nil,
-		"percentage":    percentage,
+		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString(stats, "c"),
 		"quoteVolume":   this.SafeString(stats, "v"),
 		"indexPrice":    this.SafeString(ticker, "I"),
 		"markPrice":     this.SafeString(ticker, "M"),
 		"info":          ticker,
-	}, market)
+	}
+	if percentage != nil {
+		literal137332["percentage"] = *percentage
+	}
+	return this.SafeTicker(literal137332, market)
 }
 
 /**
@@ -2312,7 +2324,11 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		response = r3.Value
 	}
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, since, limit))}
 	return nil
@@ -3152,7 +3168,11 @@ func (this *Derive) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	var extendParams map[string]any = map[string]any{
 		"symbol": symbol,
 	}
-	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var order map[string]any
+	order, _ = response["result"].(map[string]any)
+	if order == nil {
+		order = map[string]any{}
+	}
 	if isByClientOrder {
 		extendParams["client_order_id"] = clientOrderIdExchangeSpecific
 	}
@@ -3756,7 +3776,7 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 	var lastUpdateTimestamp *int64 = this.SafeInteger(rawOrder, "last_update_timestamp")
 	var status *string = this.SafeString(order, "order_status")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
-	return this.SafeOrder(map[string]any{
+	var literal283831 map[string]any = map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       this.SafeString(order, "label"),
 		"timestamp":           timestamp,
@@ -3772,8 +3792,8 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 		"side":                side,
 		"price":               price,
 		"triggerPrice":        triggerPrice,
-		"takeProfitPrice":     takeProfitPrice,
-		"stopLossPrice":       stopLossPrice,
+		"takeProfitPrice":     nil,
+		"stopLossPrice":       nil,
 		"average":             average,
 		"amount":              amount,
 		"filled":              filled,
@@ -3785,7 +3805,14 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 			"currency": "USDC",
 		},
 		"info": order,
-	}, marketResolved)
+	}
+	if takeProfitPrice != nil {
+		literal283831["takeProfitPrice"] = *takeProfitPrice
+	}
+	if stopLossPrice != nil {
+		literal283831["stopLossPrice"] = *stopLossPrice
+	}
+	return this.SafeOrder(literal283831, marketResolved)
 }
 
 /**
@@ -4356,7 +4383,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(events, market, since, limit))}
 	return nil
 }
-func (this *Derive) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Derive) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "instrument_name": "BTC-PERP",

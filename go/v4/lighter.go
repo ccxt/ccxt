@@ -616,7 +616,7 @@ func (this *Lighter) preLoadLighterLibraryBody(ch chan AsyncResult[bool], option
 	var strApiKeyIndex *string = this.NumberToString(apiKeyIndex)
 	this.InitAuthObject(*strAccountIndex, *strApiKeyIndex)
 	var signer any = this.SafeDict(this.SafeDict(this.SafeDict(this.SafeDict(this.Options, "auths", map[string]any{}), strAccountIndex, map[string]any{}), strApiKeyIndex, map[string]any{}), "signer")
-	if !IsEqual(signer, nil) {
+	if signer != nil {
 
 		ch <- AsyncResult[bool]{Value: true}
 		return nil
@@ -1407,7 +1407,9 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 		var groupOrderExpiry int64 = this.Sum(this.Milliseconds(), 2419200000).(int64) // 28 days
 		for i := 0; i < totalOrderRequests; i++ {
 			if IsEqual(this.SafeInteger(orderRequests[i], "order_expiry"), int64(-1)) {
-				AddElementToObject(orderRequests[i], "order_expiry", groupOrderExpiry)
+				if row, ok := orderRequests[i].(map[string]any); ok && (row != nil) {
+					row["order_expiry"] = groupOrderExpiry
+				}
 			}
 		}
 	}
@@ -2063,10 +2065,13 @@ func (this *Lighter) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market_id": market["id"],
+		"market_id": nil,
 		"limit":     100,
+	}
+	if market.Id != nil {
+		request["market_id"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 250)
@@ -2106,7 +2111,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	//         ]
 	//     }
 	//
-	var result map[string]any = this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "remaining_base_amount")
+	var result map[string]any = this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "price", "remaining_base_amount")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(result)}
 	return nil
@@ -3728,7 +3733,13 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(rows, 0)
 	if (first != nil) && (cursor != nil) {
-		AddElementToObject(rows[0], "cursor", cursor)
+		if row, ok := rows[0].(map[string]any); ok && (row != nil) {
+			if cursor != nil {
+				row["cursor"] = *cursor
+			} else {
+				row["cursor"] = nil
+			}
+		}
 	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit, paramsApiKeyIndex))}
@@ -3881,7 +3892,13 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (cursor != nil) {
-		AddElementToObject(data[0], "cursor", cursor)
+		if row, ok := data[0].(map[string]any); ok && (row != nil) {
+			if cursor != nil {
+				row["cursor"] = *cursor
+			} else {
+				row["cursor"] = nil
+			}
+		}
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
@@ -3992,7 +4009,13 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (cursor != nil) {
-		AddElementToObject(data[0], "cursor", cursor)
+		if row, ok := data[0].(map[string]any); ok && (row != nil) {
+			if cursor != nil {
+				row["cursor"] = *cursor
+			} else {
+				row["cursor"] = nil
+			}
+		}
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
@@ -4365,12 +4388,20 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		data = []any{}
 	}
 	for i := 0; i < len(data); i++ {
-		AddElementToObject(data[i], "account_index", accountIndex)
+		if row, ok := data[i].(map[string]any); ok && (row != nil) {
+			row["account_index"] = accountIndex
+		}
 	}
 	var nextCursor *string = this.SafeString(response, "next_cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (nextCursor != nil) {
-		AddElementToObject(data[0], "next_cursor", nextCursor)
+		if row, ok := data[0].(map[string]any); ok && (row != nil) {
+			if nextCursor != nil {
+				row["next_cursor"] = *nextCursor
+			} else {
+				row["next_cursor"] = nil
+			}
+		}
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit, paramsUntil))}
@@ -4451,13 +4482,13 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 		takerOrMaker = &takerOrMakerStr
 	}
-	return this.SafeTrade(map[string]any{
+	var literal312931 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "trade_id"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
-		"order":        orderId,
+		"order":        nil,
 		"type":         this.SafeString(trade, "type"),
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
@@ -4465,7 +4496,11 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"amount":       this.SafeString(trade, "size"),
 		"cost":         this.SafeString(trade, "usd_amount"),
 		"fee":          nil,
-	}, marketResolved)
+	}
+	if orderId != nil {
+		literal312931["order"] = *orderId
+	}
+	return this.SafeTrade(literal312931, marketResolved)
 }
 
 /**

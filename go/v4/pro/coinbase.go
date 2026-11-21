@@ -491,7 +491,7 @@ func (this *Coinbase) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 			panic(r.Err)
 		}
 	}
-	var symbolsResolved any = symbols
+	var symbolsResolved []string = symbols
 	if symbols == nil {
 		symbolsResolved = this.Symbols
 	}
@@ -1137,8 +1137,8 @@ func (this *Coinbase) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		}
 	}
 	var name string = "level2"
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
 
 	r1 := <-this.SubscribeAsync(name, false, symbolValue, params)
 	if r1.Err != nil {

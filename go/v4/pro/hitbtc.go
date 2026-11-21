@@ -222,12 +222,12 @@ func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name stri
  * @param {object} [params] extra parameters specific to the hitbtc api
  * @returns {boolean} true once the exchange acknowledges the unsubscribe
  */
-func (this *Hitbtc) UnSubscribePublicAsync(name string, messageHashPrefix string, symbols any, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Hitbtc) UnSubscribePublicAsync(name string, messageHashPrefix string, symbols []string, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unSubscribePublicBody(ch, name, messageHashPrefix, symbols, subscription, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) unSubscribePublicBody(ch chan ccxt.AsyncResult[any], name string, messageHashPrefix string, symbols any, subscription map[string]any, optionalArgs ...any) any {
+func (this *Hitbtc) unSubscribePublicBody(ch chan ccxt.AsyncResult[any], name string, messageHashPrefix string, symbols []string, subscription map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -235,10 +235,10 @@ func (this *Hitbtc) unSubscribePublicBody(ch chan ccxt.AsyncResult[any], name st
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var subMessageHash any = ccxt.Add(messageHashPrefix+"::", ccxt.GetValue(symbols, i))
+	for i := 0; i < len(symbols); i++ {
+		var subMessageHash string = messageHashPrefix + "::" + symbols[i]
 		subMessageHashes = append(subMessageHashes, subMessageHash)
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:", subMessageHash))
+		messageHashes = append(messageHashes, "unsubscribe:"+subMessageHash)
 	}
 	var requestId int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
@@ -961,13 +961,13 @@ func (this *Hitbtc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var subscription map[string]any = map[string]any{
 		"topic":   "trades",
-		"symbols": []any{market["symbol"]},
+		"symbols": []any{market.Symbol},
 	}
 
-	r1 := <-this.UnSubscribePublicAsync("trades", "trades", []any{market["symbol"]}, subscription, params)
+	r1 := <-this.UnSubscribePublicAsync("trades", "trades", []string{market.Symbol}, subscription, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1186,15 +1186,15 @@ func (this *Hitbtc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "candles/" + *period
 	var subscription map[string]any = map[string]any{
 		"topic":                "ohlcv",
-		"symbolsAndTimeframes": []any{[]any{market["symbol"], timeframe}},
+		"symbolsAndTimeframes": []any{[]any{market.Symbol, timeframe}},
 	}
 
-	r1 := <-this.UnSubscribePublicAsync(name, name, []any{market["symbol"]}, subscription, params)
+	r1 := <-this.UnSubscribePublicAsync(name, name, []string{market.Symbol}, subscription, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

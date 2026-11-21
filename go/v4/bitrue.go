@@ -1014,8 +1014,20 @@ func (this *Bitrue) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	}
 	var promises []any = r.Value
 	var spotMarkets any = this.SafeList(this.SafeDict(promises, 0), "symbols", []any{})
-	var futureMarkets []any = this.SafeListSlice(promises, 1, []any{})
-	var deliveryMarkets []any = this.SafeListSlice(promises, 2, []any{})
+	var futureMarkets []any
+	if 1 < len(promises) {
+		futureMarkets, _ = promises[1].([]any)
+	}
+	if futureMarkets == nil {
+		futureMarkets = []any{}
+	}
+	var deliveryMarkets []any
+	if 2 < len(promises) {
+		deliveryMarkets, _ = promises[2].([]any)
+	}
+	if deliveryMarkets == nil {
+		deliveryMarkets = []any{}
+	}
 	var markets any = spotMarkets
 	markets = this.ArrayConcat(markets, futureMarkets)
 	markets = this.ArrayConcat(markets, deliveryMarkets)
@@ -1138,8 +1150,8 @@ func (this *Bitrue) ParseMarket(market any) map[string]any {
 	var status *string = this.SafeString(market, "status")
 	// spot markets say TRADING, futures contracts 1 (0 when offline)
 	var active bool = (status != nil && *status == "TRADING") || (status != nil && *status == "1")
-	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
-	var amountFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
+	var priceFilter, _ = filtersByType["PRICE_FILTER"].(map[string]any)
+	var amountFilter, _ = filtersByType["LOT_SIZE"].(map[string]any)
 	var defaultPricePrecision *string = this.SafeString(market, "pricePrecision")
 	var defaultAmountPrecision *string = this.SafeString(market, "quantityPrecision")
 	var pricePrecision *string = this.SafeString(priceFilter, "priceScale", defaultPricePrecision)
@@ -1154,16 +1166,16 @@ func (this *Bitrue) ParseMarket(market any) map[string]any {
 		minCost = this.SafeNumber(market, "minOrderMoney")
 	}
 	var isSpot bool = (typeVar == "spot")
-	return this.SafeMarketStructure(map[string]any{
+	var literal99941 map[string]any = map[string]any{
 		"id":             id,
 		"lowercaseId":    lowercaseId,
 		"symbol":         symbol,
 		"base":           base,
 		"quote":          quote,
-		"settle":         settle,
+		"settle":         nil,
 		"baseId":         baseId,
 		"quoteId":        quoteId,
-		"settleId":       settleId,
+		"settleId":       nil,
 		"type":           typeVar,
 		"spot":           isSpot,
 		"margin":         false,
@@ -1203,7 +1215,14 @@ func (this *Bitrue) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if settle != nil {
+		literal99941["settle"] = *settle
+	}
+	if settleId != nil {
+		literal99941["settleId"] = *settleId
+	}
+	return this.SafeMarketStructure(literal99941)
 }
 func (this *Bitrue) ParseBalance(response any) map[string]any {
 	//
@@ -1488,7 +1507,7 @@ func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	} else {
 		percentage = this.SafeString(ticker, "priceChangePercent")
 	}
-	return this.SafeTicker(map[string]any{
+	var literal134832 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1504,12 +1523,16 @@ func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"last":          last,
 		"previousClose": nil,
 		"change":        this.SafeString(ticker, "priceChange"),
-		"percentage":    percentage,
+		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString2(ticker, "volume", "vol"),
 		"quoteVolume":   this.SafeString(ticker, "quoteVolume"),
 		"info":          ticker,
-	}, market)
+	}
+	if percentage != nil {
+		literal134832["percentage"] = *percentage
+	}
+	return this.SafeTicker(literal134832, market)
 }
 
 /**
@@ -3032,7 +3055,10 @@ func (this *Bitrue) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			}
 			response = r2.Value
 		}
-		data = ArrayTyped(this.SafeList(response, "data", []any{}))
+		data, _ = response["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 	} else {
 		panic(NotSupported(this.Id + " cancelAllOrders only support future markets"))
 	}
@@ -3718,17 +3744,24 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		toAccount = this.SafeString(accountSplit, 1)
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "ctime")
-	return TransferEntryFromMap(map[string]any{
+	var literal305515 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    this.SafeString(currency, "code"),
 		"amount":      this.SafeNumber(transfer, "amount"),
-		"fromAccount": fromAccount,
-		"toAccount":   toAccount,
+		"fromAccount": nil,
+		"toAccount":   nil,
 		"status":      "ok",
-	})
+	}
+	if fromAccount != nil {
+		literal305515["fromAccount"] = *fromAccount
+	}
+	if toAccount != nil {
+		literal305515["toAccount"] = *toAccount
+	}
+	return TransferEntryFromMap(literal305515)
 }
 
 /**

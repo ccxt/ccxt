@@ -770,15 +770,9 @@ func (this *Binance) ParseEvent(rawTopic any) map[string]any {
 	if status != nil {
 		resolved = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	}
-	return map[string]any{
-		"id":   topicId,
-		"slug": slug,
-		"event": func() any {
-			if slug != nil {
-				return this.ShortenSlug(slug)
-			}
-			return nil
-		}(),
+	var literal57015 map[string]any = map[string]any{
+		"id":              topicId,
+		"slug":            slug,
 		"title":           title,
 		"description":     this.SafeString(rawTopic, "description"),
 		"markets":         marketsList,
@@ -795,6 +789,12 @@ func (this *Binance) ParseEvent(rawTopic any) map[string]any {
 		"resolved":        resolved,
 		"info":            rawTopic,
 	}
+	if slug != nil {
+		literal57015["event"] = this.ShortenSlug(slug)
+	} else {
+		literal57015["event"] = nil
+	}
+	return literal57015
 }
 
 /**
@@ -1812,7 +1812,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
  * @param {object} [outcomeObj] the ourtome the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) any {
+func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
 	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var outcomeObjResolved map[string]any = outcomeObj

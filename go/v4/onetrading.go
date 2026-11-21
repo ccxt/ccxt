@@ -683,26 +683,20 @@ func (this *Onetrading) ParseMarket(market any) map[string]any {
 		marketType = "future"
 	}
 	var literal59441 map[string]any = map[string]any{
-		"id":       id,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"type":     marketType,
-		"spot":     !isContract,
-		"margin":   false,
-		"swap":     isPerp,
-		"future":   isFuture,
-		"option":   false,
-		"active":   (state != nil && *state == "ACTIVE") || (state != nil && *state == "POST_ONLY"),
-		"contract": isContract,
-		"contractSize": func() any {
-			if isContract {
-				return this.ParseNumber("1")
-			}
-			return nil
-		}(),
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"type":           marketType,
+		"spot":           !isContract,
+		"margin":         false,
+		"swap":           isPerp,
+		"future":         isFuture,
+		"option":         false,
+		"active":         (state != nil && *state == "ACTIVE") || (state != nil && *state == "POST_ONLY"),
+		"contract":       isContract,
 		"expiry":         expiry,
 		"expiryDatetime": this.Iso8601(expiry),
 		"strike":         nil,
@@ -751,6 +745,11 @@ func (this *Onetrading) ParseMarket(market any) map[string]any {
 		literal59441["inverse"] = false
 	} else {
 		literal59441["inverse"] = nil
+	}
+	if isContract {
+		literal59441["contractSize"] = this.ParseNumber("1")
+	} else {
+		literal59441["contractSize"] = nil
 	}
 	return this.SafeMarketStructure(literal59441)
 }
@@ -1239,9 +1238,12 @@ func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_code": market["id"],
+		"instrument_code": nil,
+	}
+	if market.Id != nil {
+		request["instrument_code"] = *market.Id
 	}
 	if limit != nil {
 		request["depth"] = *limit
@@ -1309,7 +1311,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	//
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "time"))
 
-	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"], timestamp, "bids", "asks", "price", "amount"))}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "bids", "asks", "price", "amount"))}
 	return nil
 }
 func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1510,7 +1512,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 		takerOrMaker = this.SafeStringLower(feeInfo, "fee_type")
 	}
-	return this.SafeTrade(map[string]any{
+	var literal122831 map[string]any = map[string]any{
 		"id":           this.SafeString2(tradeValue, "trade_id", "sequence"),
 		"order":        this.SafeString(tradeValue, "order_id"),
 		"timestamp":    timestamp,
@@ -1521,10 +1523,14 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"price":        priceString,
 		"amount":       amountString,
 		"cost":         costString,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"fee":          fee,
 		"info":         tradeValue,
-	}, market)
+	}
+	if takerOrMaker != nil {
+		literal122831["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal122831, market)
 }
 func (this *Onetrading) ParseBalance(response map[string]any) map[string]any {
 	var balances []any = SafeListTyped(response, "balances")
@@ -2040,7 +2046,7 @@ func (this *Onetrading) fetchOrderBody(ch chan AsyncResult[Order], id string, op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = r1.Value
 
 	//
 	//     {

@@ -1454,12 +1454,11 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symb
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"type": "l2Book",
-		"coin": func() any {
-			if *this.SafeBool(market, "swap", false) {
-				return this.SafeString(market, "baseName")
-			}
-			return market["id"]
-		}(),
+	}
+	if *this.SafeBool(market, "swap", false) {
+		request["coin"] = this.SafeString(market, "baseName")
+	} else {
+		request["coin"] = market["id"]
 	}
 
 	r1 := <-this.PublicPostInfo(this.Extend(request, params))
@@ -1633,14 +1632,14 @@ func (this *Hyperliquid) fetchFundingRateBody(ch chan AsyncResult[FundingRate], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 
-	r1 := <-this.FetchFundingRatesAsync([]any{market["symbol"]}, params)
+	r1 := <-this.FetchFundingRatesAsync([]any{market.Symbol}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var rates map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	var rate map[string]any = SafeMapTyped(rates, market["symbol"])
+	var rate map[string]any = SafeMapTyped(rates, market.Symbol)
 	if rate == nil {
 		panic(BadSymbol(this.Id + " fetchFundingRate() could not find a funding rate for " + symbol))
 	}
@@ -1759,7 +1758,7 @@ func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) Funding
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var base *string = this.SafeString(info, "name")
-	var marketId any = this.CoinToMarketId(base)
+	var marketId *string = this.CoinToMarketId(base)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "markPx")
@@ -1806,7 +1805,7 @@ func (this *Hyperliquid) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var name *string = this.SafeString(ticker, "name")
-	var marketId any = this.CoinToMarketId(name)
+	var marketId *string = this.CoinToMarketId(name)
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var bidAsk []any = SafeListTyped(ticker, "impactPxs")
 	return this.SafeTicker(map[string]any{
@@ -2083,7 +2082,7 @@ func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) ma
 func (this *Hyperliquid) ActionHash(action map[string]any, vaultAddress *string, nonce any, optionalArgs ...any) any {
 	expiresAfter := GetArg(optionalArgs, 0, nil)
 	_ = expiresAfter
-	var dataBinary any = this.Packb(action)
+	var dataBinary []uint8 = this.Packb(action)
 	var dataHex string = this.BinaryToBase16(dataBinary)
 	var data string = dataHex + "00000" + this.IntToBase16(nonce)
 	if vaultAddress == nil {
@@ -4734,7 +4733,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 	var entry any = this.SafeDictN(order, []any{"order", "resting", "filled"}, order)
 	var filled map[string]any = SafeMapTyped(order, "filled")
 	var coin *string = this.SafeString(entry, "coin")
-	var marketId any = nil
+	var marketId *string = nil
 	if coin != nil {
 		marketId = this.CoinToMarketId(coin)
 	}
@@ -4766,12 +4765,12 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 		postOnly = (tif != nil && *tif == "ALO")
 	}
 	var isTrigger *bool = this.SafeBool(entry, "isTrigger", false)
-	var triggerPx any = func() any {
-		if isTrigger != nil && *isTrigger {
-			return this.SafeNumber(entry, "triggerPx")
-		}
-		return nil
-	}()
+	var triggerPx any
+	if isTrigger != nil && *isTrigger {
+		triggerPx = this.SafeNumber(entry, "triggerPx")
+	} else {
+		triggerPx = nil
+	}
 	// standalone stop / take-profit orders carry their trigger in triggerPx - surface it
 	// through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
 	var orderTypeRaw string = *this.SafeStringLower(entry, "orderType", "")
@@ -4953,7 +4952,7 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var price *string = this.SafeString(trade, "px")
 	var amount *string = this.SafeString(trade, "sz")
 	var coin *string = this.SafeString(trade, "coin")
-	var marketId any = this.CoinToMarketId(coin)
+	var marketId *string = this.CoinToMarketId(coin)
 	var marketResolved map[string]any = this.SafeMarket(marketId)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var id *string = this.SafeString(trade, "tid")
@@ -5107,14 +5106,14 @@ func (this *Hyperliquid) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidati
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(fills, market, since, limit))}
 	return nil
 }
-func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any {
 	//
 	// see fetchMyLiquidations
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(liquidation, "time")
-	var marketId any = this.CoinToMarketId(this.SafeString(liquidation, "coin"))
+	var marketId *string = this.CoinToMarketId(this.SafeString(liquidation, "coin"))
 	var marketResolved map[string]any = this.SafeMarket(marketId)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	// swap ids are asset indexes, so the market is looked up by symbol
@@ -5338,7 +5337,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) Positi
 	_ = market
 	var entry map[string]any = SafeMapTyped(position, "position")
 	var coin *string = this.SafeString(entry, "coin")
-	var marketId any = this.CoinToMarketId(coin)
+	var marketId *string = this.CoinToMarketId(coin)
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string
 	if marketResolved.Symbol != "" {
@@ -6322,7 +6321,6 @@ func (this *Hyperliquid) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], opt
 		panic(r1.Err)
 	}
 	response := r1.Value
-
 	//
 	// [
 	//     {
@@ -6336,7 +6334,9 @@ func (this *Hyperliquid) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], opt
 	//     }
 	// ]
 	//
-	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(response, nil, since, limit))}
+	var rows []any = this.InfoList(response)
+
+	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, nil, since, limit))}
 	return nil
 }
 func (this *Hyperliquid) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
@@ -6702,7 +6702,7 @@ func (this *Hyperliquid) ParseOpenInterest(interest any, optionalArgs ...any) Op
 	_ = market
 	var interestValue map[string]any = this.SafeDictMap(interest, "info", map[string]any{})
 	var coin *string = this.SafeString(interestValue, "name")
-	var marketId any = nil
+	var marketId *string = nil
 	if coin != nil {
 		marketId = this.CoinToMarketId(coin)
 	}
@@ -6794,7 +6794,7 @@ func (this *Hyperliquid) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHi
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(response, market, since, limit))}
 	return nil
 }
-func (this *Hyperliquid) ParseIncome(income any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "time": 1734026400057,
@@ -6815,7 +6815,7 @@ func (this *Hyperliquid) ParseIncome(income any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(income, "time")
 	var delta map[string]any = SafeMapTyped(income, "delta")
 	var coin *string = this.SafeString(delta, "coin")
-	var marketId any = nil
+	var marketId *string = nil
 	if coin != nil {
 		marketId = this.CoinToMarketId(coin)
 	}
@@ -6951,7 +6951,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) (*st
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter inside 'params' or the wallet address set"))
 }
-func (this *Hyperliquid) CoinToMarketId(coin *string) any {
+func (this *Hyperliquid) CoinToMarketId(coin *string) *string {
 	// handle also hip3 tokens like flx:CRCL
 	if coin == nil {
 		return nil
@@ -6961,7 +6961,8 @@ func (this *Hyperliquid) CoinToMarketId(coin *string) any {
 	if hip3Dict != nil {
 		var quote string = *this.SafeString(hip3Dict, "quote", "USDC")
 		var code *string = this.SafeString(hip3Dict, "code", coin)
-		return *code + "/" + quote + ":" + quote
+		retStrVal := *code + "/" + quote + ":" + quote
+		return &retStrVal
 	}
 	if (strings.Index(*coin, "/") > -1) || (strings.Index(*coin, "@") > -1) {
 		return coin // spot
@@ -6972,7 +6973,12 @@ func (this *Hyperliquid) CoinToMarketId(coin *string) any {
 		coinIdStr := strings.Replace(*coin, ":", "-", 1)
 		coinId = &coinIdStr
 	}
-	return Add(this.SafeCurrencyCode(coinId), "/USDC:USDC")
+	retStrPtr := this.SafeCurrencyCode(coinId)
+	if retStrPtr == nil {
+		return nil
+	}
+	retStrVal := *retStrPtr + "/USDC:USDC"
+	return &retStrVal
 }
 func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
@@ -7052,12 +7058,16 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		requestBody = &jsonText
 	}
-	return map[string]any{
+	var literal532215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal532215["body"] = *requestBody
+	}
+	return literal532215
 }
 func (this *Hyperliquid) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7076,10 +7086,10 @@ func (this *Hyperliquid) ParseCreateEditOrderArgs(id *string, symbol *string, ty
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	vaultAddressOption, params2 := this.HandleOptionStringAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var symbolValue string = market.Symbol
 	var order map[string]any = map[string]any{
 		"symbol": symbolValue,
 		"type":   typeVar,
