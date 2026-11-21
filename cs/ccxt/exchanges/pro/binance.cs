@@ -209,7 +209,7 @@ public partial class binance : ccxt.binance
 
     public virtual Int64 requestId(string url)
     {
-        IDictionary<string, object> options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
+        IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         options[(string)url] = newValue;
@@ -225,7 +225,7 @@ public partial class binance : ccxt.binance
     public virtual string? stream(string? type, object subscriptionHash, object numSubscriptions = null)
     {
         numSubscriptions ??= 1;
-        IDictionary<string, object> streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", this.createSafeDictionary());
+        IDictionary<string, object> streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", new Dictionary<string, object>() {});
         string? stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if ((stream == null))
         {
@@ -253,7 +253,9 @@ public partial class binance : ccxt.binance
             {
                 throw new BadRequest ((this.id + " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
             }
-            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("numSubscriptionsByStream") ? this.options["numSubscriptionsByStream"] : null))[(string)stream] = newNumSubscriptions;
+            IDictionary<string, object> numSubscriptionsByStream = this.safeDict(this.options, "numSubscriptionsByStream", new Dictionary<string, object>() {});
+            numSubscriptionsByStream[(string)stream] = newNumSubscriptions;
+            this.options["numSubscriptionsByStream"] = numSubscriptionsByStream;
         }
         return stream;
     }
@@ -340,7 +342,11 @@ public partial class binance : ccxt.binance
     {
         Dictionary<string, object> market = this.market(symbol);
         string? bs = this.safeString2(market, "base", "id");
-        return ((string?)((object)(((bs == null)) ? null : bs.ToLower())));
+        if ((bs == null))
+        {
+            return null;
+        }
+        return bs.ToLower();
     }
 
     public virtual string? getStockUnifiedSymbol(string? stockSymbol, string? quote = null)
@@ -1795,7 +1801,7 @@ public partial class binance : ccxt.binance
         }
         string? marketId = this.safeString(trade, "s");
         string fallbackType = "spot";
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("ps")))
+        if ((this.safeString(trade, "ps") != null))
         {
             fallbackType = "contract";
         }
@@ -1808,13 +1814,14 @@ public partial class binance : ccxt.binance
         string? side = this.safeStringLower(trade, "S");
         string? takerOrMaker = null;
         string? orderId = this.safeString(trade, "i");
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("m")))
+        bool? isMaker = this.safeBool(trade, "m");
+        if ((isMaker != null))
         {
             if ((side == null))
             {
-                side = (this.safeBool(trade, "m", false) == true) ? "sell" : "buy"; // this is reversed intentionally
+                side = isMaker == true ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = (this.safeBool(trade, "m", false) == true) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
@@ -3249,7 +3256,11 @@ public partial class binance : ccxt.binance
             {
                 tickerFallbackType = "spot";
             }
-            object tickerMarketType = ((tickerMarketById != null)) ? this.safeValue(tickerMarketById, "type") : tickerFallbackType;
+            string? tickerMarketType = tickerFallbackType;
+            if ((tickerMarketById != null))
+            {
+                tickerMarketType = this.safeString(tickerMarketById, "type");
+            }
             ccxt.Ticker parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
             string? symbol = parsedTicker.symbol;
             if ((symbol != null))
@@ -3938,7 +3949,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr189721 && ((hxArr189721 is IList<object>) || (hxArr189721.GetType().IsGenericType && hxArr189721.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190000 && ((hxArr190000 is IList<object>) || (hxArr190000.GetType().IsGenericType && hxArr190000.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
@@ -5446,7 +5457,7 @@ public partial class binance : ccxt.binance
         string? marketId = this.safeString(order, "s");
         // futures user-data events carry the position side field, spot ones do not
         string marketType = "spot";
-        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("ps")))
+        if ((this.safeString(order, "ps") != null))
         {
             marketType = "contract";
         }
@@ -5464,7 +5475,7 @@ public partial class binance : ccxt.binance
         {
             lastTradeTimestamp = T;
         }
-        bool isAlgoOrder = ((order != null && ((IDictionary<string, object>)order).ContainsKey("aid"))); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        bool isAlgoOrder = ((this.safeString(order, "aid") != null)); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
         if (isAlgoOrder && ((timestamp == null)))
         {
             string? algoStatus = this.safeString(order, "X");
@@ -5661,15 +5672,15 @@ public partial class binance : ccxt.binance
         if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
         {
             messageValue = this.safeDict(message, "o", message);
-            if ((e == "ALGO_UPDATE") && !(inOp(messageValue, "T")))
+            if ((e == "ALGO_UPDATE") && ((this.safeInteger(messageValue, "T") == null)))
             {
                 ((IDictionary<string,object>)messageValue)["T"] = this.safeInteger(message, "T"); // keep the outer event time, the algo payload carries no timestamps
             }
         }
         if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
         {
-            object oField = this.safeValue(message, "o");
-            if ((oField is IList<object> hxList270996))
+            List<object> oField = this.safeList(message, "o");
+            if ((oField != null))
             {
                 // eOptions format: o is an array of orders with nested fi fills
                 this.handleOptionsOrderUpdate(client, (Dictionary<string, object>)message);
@@ -6407,7 +6418,8 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> symbolParams = new Dictionary<string, object>() {};
         if (((symbolResolved != null)) && ((market != null)))
         {
-            messageHash = messageHash + (":" + symbolResolved);
+            string? symbolString = this.symbol(symbol);
+            messageHash = ((messageHash + ":") + symbolString);
             symbolParams = new Dictionary<string, object>() {
                 { "type", (market.ContainsKey("type") ? market["type"] : null) },
                 { "symbol", symbolResolved },
@@ -6834,7 +6846,8 @@ public partial class binance : ccxt.binance
         if (((messageValue is IList<object>) || (messageValue.GetType().IsGenericType && messageValue.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             IDictionary<string, object> arrayMessage = this.safeDict(messageValue, 0);
-            eventVar = (this.safeString(arrayMessage, "e") + "@arr");
+            string arrayEvent = this.safeString(arrayMessage, "e", "");
+            eventVar = (arrayEvent + "@arr");
         }
         method = this.safeValue(methods, eventVar);
         if ((method == null))
@@ -6856,7 +6869,7 @@ public partial class binance : ccxt.binance
             //         "A": "2.52500800"
             //     }
             //
-            if ((eventVar == null) && (inOp(messageValue, "a")) && (inOp(messageValue, "b")))
+            if ((eventVar == null) && ((this.safeString(messageValue, "a") != null)) && ((this.safeString(messageValue, "b") != null)))
             {
                 this.handleBidsAsks(client, messageValue);
             }

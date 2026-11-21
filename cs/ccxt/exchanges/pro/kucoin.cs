@@ -2683,9 +2683,9 @@ public partial class kucoin : ccxt.kucoin
         {
             symbolResolved = this.safeString(market, "symbol");
         }
-        if ((market != null))
+        if ((symbolResolved != null))
         {
-            messageHash = ((messageHash + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+            messageHash = ((messageHash + ":") + symbolResolved);
         }
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];

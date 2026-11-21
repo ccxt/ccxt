@@ -1398,10 +1398,19 @@ public partial class extended : Exchange
         string? sideRaw = this.safeString2(trade, "S", "side");
         string? side = ((sideRaw != null)) ? sideRaw.ToLower() : null;
         string? feeCost = this.safeString(trade, "fee");
-        Dictionary<string, object> fee = ((feeCost == null)) ? null : new Dictionary<string, object>() {
-    { "cost", feeCost },
-    { "currency", ((marketResolved == null)) ? null : (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) },
-};
+        Dictionary<string, object> fee = null;
+        if ((feeCost != null))
+        {
+            Dictionary<string, object> feeDict = new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "currency", null },
+            };
+            if ((marketResolved != null))
+            {
+                feeDict["currency"] = (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null);
+            }
+            fee = feeDict;
+        }
         bool? isTaker = this.safeBool(trade, "isTaker");
         string? takerOrMaker = null;
         if ((isTaker != null))

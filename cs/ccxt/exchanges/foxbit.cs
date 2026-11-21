@@ -732,7 +732,7 @@ public partial class foxbit : Exchange
             IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "market_symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             result[(string)symbol] = this.parseTradingFee(entry, market);
         }
         return ccxt.BaseExchange.ToTradingFees(result);
@@ -815,7 +815,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 200))
+            if (limit > 200)
             {
                 request["page_size"] = 200;
             }
@@ -868,7 +868,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["limit"] = limit;
-            if ((limit > 500))
+            if (limit > 500)
             {
                 request["limit"] = 500;
             }
@@ -1006,7 +1006,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1355,7 +1355,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1421,7 +1421,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1514,7 +1514,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1571,7 +1571,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }
@@ -1824,7 +1824,7 @@ public partial class foxbit : Exchange
         if ((limit != null))
         {
             request["page_size"] = limit;
-            if ((limit > 100))
+            if (limit > 100)
             {
                 request["page_size"] = 100;
             }

@@ -144,19 +144,23 @@ public partial class cryptocom : ccxt.cryptocom
         IDictionary<string, object> paramsBookSubscriptionType2 = (bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
         IDictionary<string, object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new Dictionary<string, object>() {});
         bookParams["bookSubscriptionType"] = bookSubscriptionType2;
-        paramsBookSubscriptionType2["params"] = bookParams;
-        (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
+        Dictionary<string, object> paramsWithBook = this.extend(paramsBookSubscriptionType2, new Dictionary<string, object>() {
+            { "params", bookParams },
+        });
+        (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsWithBook, "watchOrderBook", "bookUpdateFrequency");
         string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
         IDictionary<string, object> paramsBookUpdateFrequency = (bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
         (string?, IDictionary<string, object>) bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
         string? bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item1;
         IDictionary<string, object> paramsBookUpdateFrequency2 = (bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
+        IDictionary<string, object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new Dictionary<string, object>() {});
         if ((bookUpdateFrequency2 != null))
         {
-            IDictionary<string, object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new Dictionary<string, object>() {});
             frequencyParams["bookSubscriptionType"] = bookUpdateFrequency2;
-            paramsBookUpdateFrequency2["params"] = frequencyParams;
         }
+        Dictionary<string, object> paramsWithFrequency = this.extend(paramsBookUpdateFrequency2, new Dictionary<string, object>() {
+            { "params", frequencyParams },
+        });
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
@@ -165,7 +169,7 @@ public partial class cryptocom : ccxt.cryptocom
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             topics.Add(((("book." + this.safeString(market, "id", "")) + ".") + limitString));
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublicMultiple(messageHashes, topics, paramsBookUpdateFrequency2));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublicMultiple(messageHashes, topics, paramsWithFrequency));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -206,19 +210,23 @@ public partial class cryptocom : ccxt.cryptocom
         IDictionary<string, object> paramsBookSubscriptionType2 = (bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
         IDictionary<string, object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new Dictionary<string, object>() {});
         bookParams["bookSubscriptionType"] = bookSubscriptionType2;
-        paramsBookSubscriptionType2["params"] = bookParams;
-        (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
+        Dictionary<string, object> paramsWithBook = this.extend(paramsBookSubscriptionType2, new Dictionary<string, object>() {
+            { "params", bookParams },
+        });
+        (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsWithBook, "watchOrderBook", "bookUpdateFrequency");
         string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
         IDictionary<string, object> paramsBookUpdateFrequency = (bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
         (string?, IDictionary<string, object>) bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
         string? bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item1;
         IDictionary<string, object> paramsBookUpdateFrequency2 = (bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
+        IDictionary<string, object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new Dictionary<string, object>() {});
         if ((bookUpdateFrequency2 != null))
         {
-            IDictionary<string, object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new Dictionary<string, object>() {});
             frequencyParams["bookSubscriptionType"] = bookUpdateFrequency2;
-            paramsBookUpdateFrequency2["params"] = frequencyParams;
         }
+        Dictionary<string, object> paramsWithFrequency = this.extend(paramsBookUpdateFrequency2, new Dictionary<string, object>() {
+            { "params", frequencyParams },
+        });
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
@@ -227,7 +235,7 @@ public partial class cryptocom : ccxt.cryptocom
             messageHashes.Add(("unsubscribe:orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             topics.Add(((("book." + this.safeString(market, "id", "")) + ".") + ((object)limit).ToString()));
         }
-        return await this.unWatchPublicMultiple("orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsBookUpdateFrequency2);
+        return await this.unWatchPublicMultiple("orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsWithFrequency);
     }
 
     public override void handleDelta(object bookside, object delta)

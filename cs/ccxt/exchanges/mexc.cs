@@ -2493,7 +2493,7 @@ public partial class mexc : Exchange
         string? prevClose = null;
         bool? isSwap = this.safeBool(marketResolved, "swap", false);
         // if swap
-        if ((isSwap == true) || ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("timestamp"))))
+        if ((isSwap == true) || ((this.safeString(ticker, "timestamp") != null)))
         {
             //
             //     {
@@ -3123,8 +3123,8 @@ public partial class mexc : Exchange
             }
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? marginMode = null;
             (string?, IDictionary<string, object>) marginModeparamsLoopVariable = this.handleMarginModeAndParams("createOrder", paramsLoop);
@@ -5601,7 +5601,7 @@ public partial class mexc : Exchange
         }
         if ((limit != null))
         {
-            if ((limit > 1000))
+            if (limit > 1000)
             {
                 throw new ExchangeError ("This exchange supports a maximum limit of 1000") ;
             }
@@ -5662,7 +5662,7 @@ public partial class mexc : Exchange
         }
         if ((limit != null))
         {
-            if ((limit > 1000))
+            if (limit > 1000)
             {
                 throw new ExchangeError ("This exchange supports a maximum limit of 1000") ;
             }
@@ -6171,7 +6171,7 @@ public partial class mexc : Exchange
             }
             if ((limit != null))
             {
-                if ((limit > 100))
+                if (limit > 100)
                 {
                     throw new ExchangeError ("This exchange supports a maximum limit of 50") ;
                 }

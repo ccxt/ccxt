@@ -227,7 +227,7 @@ public partial class bybit : ccxt.bybit
             } else if ((type == "swap") || (type == "future"))
             {
                 string? subType = ((string)this.handleSubTypeAndParams(methodValue, market, parameters, "linear")[0]);
-                url = (accessibilityUrls != null && subType != null && accessibilityUrls.ContainsKey(subType) ? accessibilityUrls[subType] : null);
+                url = this.safeString(accessibilityUrls, subType);
             } else
             {
                 // option
@@ -2028,7 +2028,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88502 && ((hxArr88502 is IList<object>) || (hxArr88502.GetType().IsGenericType && hxArr88502.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88510 && ((hxArr88510 is IList<object>) || (hxArr88510.GetType().IsGenericType && hxArr88510.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)

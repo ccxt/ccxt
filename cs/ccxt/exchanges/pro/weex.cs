@@ -700,7 +700,7 @@ public partial class weex : ccxt.weex
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0, "");
             Dictionary<string, object> market = this.market(symbolString);
-            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null)))
+            if ((this.safeString(market, "type") != this.safeString(firstMarket, "type")))
             {
                 throw new BadRequest ((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
@@ -785,7 +785,7 @@ public partial class weex : ccxt.weex
             List<object> data = this.safeList(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0, "");
             Dictionary<string, object> market = this.market(symbolString);
-            if (!isEqual((market.ContainsKey("type") ? market["type"] : null), (firstMarket != null && firstMarket.ContainsKey("type") ? firstMarket["type"] : null)))
+            if ((this.safeString(market, "type") != this.safeString(firstMarket, "type")))
             {
                 throw new BadRequest ((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
@@ -1211,9 +1211,9 @@ public partial class weex : ccxt.weex
         if ((symbol != null))
         {
             this.bidsasks[(string)symbol] = ticker;
+            string messageHash = ("bidask::" + symbol);
+            client.resolve(ticker, messageHash);
         }
-        string messageHash = ("bidask::" + symbol);
-        client.resolve(ticker, messageHash);
     }
 
     public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object>? market = null)

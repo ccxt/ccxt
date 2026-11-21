@@ -314,12 +314,13 @@ public partial class phemex : ccxt.phemex
         }
         for (int i = 0; i < (tickers?.Count ?? 0); i++)
         {
-            Dictionary<string, object> ticker = ((Dictionary<string, object>)tickers[i]);
-            string? symbol = this.safeString(ticker, "symbol", "");
+            string? symbol = this.safeString(tickers[i], "symbol", "");
             string messageHash = ("ticker:" + symbol);
             Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
-            ticker["timestamp"] = timestamp;
-            ticker["datetime"] = this.iso8601(timestamp);
+            Dictionary<string, object> ticker = this.extend(tickers[i], new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+            });
             this.tickers[(string)symbol] = ticker;
             client.resolve(ticker, messageHash);
         }

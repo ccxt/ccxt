@@ -810,7 +810,7 @@ public partial class coinsph : Exchange
     public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        bool hasSymbolParam = ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbol")));
+        bool hasSymbolParam = ((this.safeString(parameters, "symbol") != null));
         bool hasSymbolsParam = ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbols")));
         Int64? limit = this.safeInteger(parameters, "limit");
         if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !hasSymbolParam)
@@ -2549,7 +2549,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr111999 && ((hxArr111999 is IList<object>) || (hxArr111999.GetType().IsGenericType && hxArr111999.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112029 && ((hxArr112029 is IList<object>) || (hxArr112029.GetType().IsGenericType && hxArr112029.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {

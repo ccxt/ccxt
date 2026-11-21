@@ -2983,7 +2983,7 @@ public partial class ndax : Exchange
         {
             throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template for ") + ((currency.ContainsKey("code") ? currency["code"] : null)))) ;
         }
-        Dictionary<string, object> withdrawTemplate = ((Dictionary<string, object>)JsonHelper.Deserialize(template));
+        Dictionary<string, object> withdrawTemplate = this.extend(new Dictionary<string, object>() {}, JsonHelper.Deserialize(template));
         withdrawTemplate["ExternalAddress"] = address;
         if ((tagWithdrawTag != null))
         {

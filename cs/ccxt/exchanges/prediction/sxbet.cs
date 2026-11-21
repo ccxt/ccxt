@@ -356,11 +356,11 @@ public partial class sxbet : PredictionExchange
         //     }
         //
         string marketHash = this.safeString(raw, "marketHash", "");
-        string? teamOneName = this.safeString(raw, "teamOneName");
-        string? teamTwoName = this.safeString(raw, "teamTwoName");
+        string teamOneName = this.safeString(raw, "teamOneName", "");
+        string? teamTwoName = this.safeString(raw, "teamTwoName", "");
         string? outcomeOneName = this.safeString(raw, "outcomeOneName");
         string? outcomeTwoName = this.safeString(raw, "outcomeTwoName");
-        string eventSlug = this.shortenSlug((teamOneName == null ? null : teamOneName + " " + teamTwoName));
+        string eventSlug = this.shortenSlug(((teamOneName + " ") + teamTwoName));
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -2349,12 +2349,12 @@ public partial class sxbet : PredictionExchange
         if ((limit != null))
         {
             int bidsLength = (sortedBids?.Count ?? 0);
-            if ((limit < bidsLength))
+            if (limit.Value < bidsLength)
             {
                 sortedBids = this.arraySlice(sortedBids, 0, limit);
             }
             int asksLength = (sortedAsks?.Count ?? 0);
-            if ((limit < asksLength))
+            if (limit.Value < asksLength)
             {
                 sortedAsks = this.arraySlice(sortedAsks, 0, limit);
             }

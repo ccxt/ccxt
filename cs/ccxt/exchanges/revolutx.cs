@@ -1819,11 +1819,7 @@ public partial class revolutx : Exchange
                 return null;
             }
             string feedback = ((this.id + " ") + (body));
-            string? errorMessage = null;
-            if ((response is IDictionary<string, object>))
-            {
-                errorMessage = this.safeString2(response, "message", "error");
-            }
+            string? errorMessage = this.safeString2(response, "message", "error");
             if ((errorMessage != null))
             {
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);

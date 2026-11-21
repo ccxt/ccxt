@@ -1075,10 +1075,10 @@ public partial class btse : Exchange
                 Int64 now = this.milliseconds();
                 Int64 twoWeeksAgo = (now - 1209600000); // 14 days in ms
                 Int64 oneWeekAgo = (now - 604800000); // 7 days in ms
-                if ((since < twoWeeksAgo))
+                if (since.Value < twoWeeksAgo)
                 {
                     period = "1M";
-                } else if ((since < oneWeekAgo))
+                } else if (since.Value < oneWeekAgo)
                 {
                     period = "2W";
                 }
@@ -2548,14 +2548,7 @@ public partial class btse : Exchange
             }
             response = await this.privatePostFuturesApiV3TradeOrdersAlgo(this.extend(request, query));
         }
-        // the normal futures endpoint responds with a single order dict, keep a
-        // one element array guard in case a gateway wraps it
-        IDictionary<string, object> order = response;
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            order = this.safeDict(response, 0, new Dictionary<string, object>() {});
-        }
-        return this.parseOrder(order, market);
+        return this.parseOrder(response, market);
     }
 
     public virtual string? encodeTriggerPriceType(string? priceType)

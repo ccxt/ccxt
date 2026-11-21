@@ -819,7 +819,7 @@ public partial class luno : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if ((limit != null) && (limit == null || limit <= 100))
+        if ((limit != null) && limit.Value <= 100)
         {
             response = await this.publicGetOrderbookTop(this.extend(request, parameters));
         } else
@@ -1572,7 +1572,7 @@ public partial class luno : Exchange
             max_row = add(minRowBase, limit);
         }
         bool limitAdjusts = limitApplies && ((maxRowBase == null || maxRowBase <= 0) || minRowBase > 0); // max_row - min_row becomes limit
-        if ((limitAdjusts && (limit > 1000)) || (!limitAdjusts && ((maxRowBase - minRowBase) > 1000)))
+        if ((limitAdjusts && limit > 1000) || (!limitAdjusts && ((maxRowBase - minRowBase) > 1000)))
         {
             throw new ExchangeError ((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
         }

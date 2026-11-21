@@ -3750,14 +3750,14 @@ public partial class hashkey : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "transactTime", "time");
         string? status = this.safeString(order, "status");
-        object type = this.safeString(order, "type");
+        string? type = this.safeString(order, "type");
         string? priceType = this.safeString(order, "priceType");
         if (priceType == "MARKET")
         {
             type = "market";
         }
         string? price = ((string)this.omitZero(this.safeString(order, "price")));
-        if ((type is "STOP"))
+        if (type == "STOP")
         {
             if ((price == null))
             {
@@ -3767,22 +3767,16 @@ public partial class hashkey : Exchange
                 type = "limit";
             }
         }
-        object timeInForce = this.safeString(order, "timeInForce");
-        object postOnly = null;
-        var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
-        type = typetimeInForcepostOnlyVariable[0];
-        timeInForce = typetimeInForcepostOnlyVariable[1];
-        postOnly = typetimeInForcepostOnlyVariable[2];
+        string? rawTimeInForce = this.safeString(order, "timeInForce");
+        string? timeInForce = this.parseOrderTimeInForceValue(type, rawTimeInForce);
+        string? typeParsed = this.parseOrderType(type);
         string? average = ((string)this.omitZero(this.safeString(order, "avgPrice")));
         if ((price == null))
         {
             price = average;
         }
-        object side = this.safeStringLower(order, "side");
-        object reduceOnly = null;
-        var sidereduceOnlyVariable = this.parseOrderSideAndReduceOnly(side);
-        side = sidereduceOnlyVariable[0];
-        reduceOnly = sidereduceOnlyVariable[1];
+        string? rawSide = this.safeStringLower(order, "side");
+        string? side = this.parseOrderSideValue(rawSide);
         string? feeCurrncyId = this.safeString(order, "feeCoin");
         if (feeCurrncyId == "")
         {
@@ -3797,7 +3791,7 @@ public partial class hashkey : Exchange
             { "lastUpdateTimestamp", this.safeInteger(order, "updateTime") },
             { "status", this.parseOrderStatus(status) },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
-            { "type", type },
+            { "type", typeParsed },
             { "timeInForce", timeInForce },
             { "side", side },
             { "price", price },
@@ -3814,26 +3808,37 @@ public partial class hashkey : Exchange
                 { "currency", this.safeCurrencyCode(feeCurrncyId) },
                 { "cost", this.omitZero(this.safeString(order, "feeAmount")) },
             } },
-            { "reduceOnly", reduceOnly },
-            { "postOnly", postOnly },
+            { "reduceOnly", this.parseOrderReduceOnlyValue(rawSide) },
+            { "postOnly", this.parseOrderPostOnlyValue(type, rawTimeInForce) },
             { "info", order },
         }, marketResolved);
     }
 
-    public virtual List<object> parseOrderSideAndReduceOnly(object unparsed)
+    public virtual string? parseOrderSideValue(object unparsed)
     {
-        List<object> parts = ((string)unparsed).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-        string? side = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
-        string? secondPart = this.safeString(parts, 1);
+        if ((unparsed == null))
+        {
+            return null;
+        }
+        return this.safeString(((string)unparsed).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>(), 0);
+    }
+
+    public virtual bool? parseOrderReduceOnlyValue(object unparsed)
+    {
+        if ((unparsed == null))
+        {
+            return ((bool?)((object)(null)));
+        }
+        string? secondPart = this.safeString(((string)unparsed).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>(), 1);
         if (secondPart == "open")
         {
-            return new List<object>() {side, false};
+            return ((bool?)((object)(false)));
         }
         if (secondPart == "close")
         {
-            return new List<object>() {side, true};
+            return ((bool?)((object)(true)));
         }
-        return new List<object>() {side, null};
+        return ((bool?)((object)(null)));
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -3852,20 +3857,24 @@ public partial class hashkey : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual List<object> parseOrderTypeTimeInForceAndPostOnly(object type, object timeInForce)
+    public virtual string? parseOrderTimeInForceValue(object type, object timeInForce)
     {
         bool isMakerTimeInForce = ((timeInForce is "LIMIT_MAKER")) || ((timeInForce is "MAKER"));
-        object timeInForceParsed = timeInForce;
         if ((!(type is "LIMIT_MAKER")) && isMakerTimeInForce)
         {
-            timeInForceParsed = "PO";
+            return "PO";
         }
-        string? typeValue = this.parseOrderType(type);
+        return ((string?)((object)(timeInForce)));
+    }
+
+    public virtual bool? parseOrderPostOnlyValue(object type, object timeInForce)
+    {
+        bool isMakerTimeInForce = ((timeInForce is "LIMIT_MAKER")) || ((timeInForce is "MAKER"));
         if (((type is "LIMIT_MAKER")) || isMakerTimeInForce)
         {
-            return new List<object>() {typeValue, timeInForceParsed, true};
+            return ((bool?)((object)(true)));
         }
-        return new List<object>() {typeValue, timeInForceParsed, null};
+        return ((bool?)((object)(null)));
     }
 
     public virtual string? parseOrderType(object type)
@@ -4067,7 +4076,8 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.FetchPositionsForSymbol(((string)(symbols != null && 0 < symbols.Count ? symbols[0] : null)), this.extend(new Dictionary<string, object>() {
+        string? firstSymbol = this.safeString(symbols, 0, "");
+        return await this.FetchPositionsForSymbol(firstSymbol, this.extend(new Dictionary<string, object>() {
             { "methodName", "fetchPositions" },
         }, parameters));
     }
@@ -4595,7 +4605,8 @@ public partial class hashkey : Exchange
         {
             IDictionary<string, object> fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsedFee = this.parseTradingFee(fee);
-            result[(string)((string)(parsedFee != null && parsedFee.ContainsKey("symbol") ? parsedFee["symbol"] : null))] = parsedFee;
+            string? feeSymbol = this.safeString(parsedFee, "symbol", "");
+            result[(string)feeSymbol] = parsedFee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);
     }

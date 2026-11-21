@@ -2143,7 +2143,7 @@ public partial class okx : ccxt.okx
             market = this.market(symbol);
             symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
             type = this.safeString(market, "type");
-            messageHash = ((messageHash + "::") + (symbolResolved));
+            messageHash = ((messageHash + "::") + this.safeString(market, "symbol", ""));
         }
         if (type == "future")
         {
@@ -2220,7 +2220,11 @@ public partial class okx : ccxt.okx
         }
         if (this.newUpdates)
         {
-            return ccxt.BaseExchange.ToPositionList(((newPositions == null)) ? new List<object>() {} : newPositions);
+            if ((newPositions == null))
+            {
+                return ccxt.BaseExchange.ToPositionList(new List<object>() {});
+            }
+            return ccxt.BaseExchange.ToPositionList(newPositions);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }

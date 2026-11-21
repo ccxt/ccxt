@@ -1419,7 +1419,7 @@ public partial class cryptocom : Exchange
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? limitResolved = limit;
-        if (((limit != null)) && ((limit > 300)))
+        if (((limit != null)) && (limit > 300))
         {
             limitResolved = 300;
         }
@@ -3110,7 +3110,7 @@ public partial class cryptocom : Exchange
         string? type = null;
         string? rawStatus = this.safeString(transaction, "status");
         string? status = null;
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("client_wid")))
+        if ((this.safeString(transaction, "client_wid") != null))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);

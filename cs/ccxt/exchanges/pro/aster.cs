@@ -965,13 +965,14 @@ public partial class aster : ccxt.aster
         string? side = this.safeStringLower(trade, "S");
         string? takerOrMaker = null;
         string? orderId = this.safeString(trade, "i");
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("m")))
+        bool? isMaker = this.safeBool(trade, "m");
+        if ((isMaker != null))
         {
             if ((side == null))
             {
-                side = (this.safeBool(trade, "m", false) == true) ? "sell" : "buy"; // this is reversed intentionally
+                side = isMaker == true ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = (this.safeBool(trade, "m", false) == true) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");

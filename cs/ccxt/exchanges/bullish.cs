@@ -991,7 +991,7 @@ public partial class bullish : Exchange
                 List<object> idParts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 string datePart = this.safeString(idParts, 2);
                 string? dateYmd = ((datePart == null) ? null : datePart.Substring(Math.Min(2, datePart.Length)));
-                symbol = symbol + ("-" + dateYmd);
+                symbol = ((((((bs + "/") + quote) + ":") + settle) + "-") + dateYmd);
                 if (type == "future")
                 {
                     future = true;
@@ -1000,7 +1000,7 @@ public partial class bullish : Exchange
                     option = true;
                     optionType = this.safeStringLower(market, "optionType");
                     strike = this.parseToNumeric(this.safeString(market, "optionStrikePrice"));
-                    symbol = symbol + ((("-" + this.numberToString(strike)) + "-") + this.safeString(idParts, 4));
+                    symbol = ((((((((((bs + "/") + quote) + ":") + settle) + "-") + dateYmd) + "-") + this.numberToString(strike)) + "-") + this.safeString(idParts, 4));
                 }
             }
         }
@@ -2597,28 +2597,29 @@ public partial class bullish : Exchange
         (string?, IDictionary<string, object>) tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
         string? tradingAccountIdOption = tradingAccountIdOptionparamsTradingAccountIdVariable.Item1;
         IDictionary<string, object> paramsTradingAccountId = (tradingAccountIdOptionparamsTradingAccountIdVariable.Item2);
-        string? tradingAccountId = tradingAccountIdOption;
-        if ((tradingAccountId == null))
+        if ((tradingAccountIdOption != null))
         {
-            List<object> response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
-            IList<object> accounts = response;
-            for (int i = 0; i < (accounts?.Count ?? 0); i++)
+            this.options["tradingAccountId"] = tradingAccountIdOption;
+            return this.safeString(this.options, "tradingAccountId");
+        }
+        List<object> response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
+        IList<object> accounts = response;
+        for (int i = 0; i < (accounts?.Count ?? 0); i++)
+        {
+            IDictionary<string, object> account = this.safeDict(accounts, i);
+            string? name = this.safeString(account, "tradingAccountName");
+            if (name == "Primary Account")
             {
-                IDictionary<string, object> account = this.safeDict(accounts, i);
-                string? name = this.safeString(account, "tradingAccountName");
-                if (name == "Primary Account")
+                string? primaryAccountId = this.safeString(account, "tradingAccountId");
+                if ((primaryAccountId != null))
                 {
-                    tradingAccountId = this.safeString(account, "tradingAccountId");
-                    break;
+                    this.options["tradingAccountId"] = primaryAccountId;
+                    return this.safeString(this.options, "tradingAccountId");
                 }
+                break;
             }
         }
-        if ((tradingAccountId == null))
-        {
-            throw new ArgumentsRequired ((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
-        }
-        this.options["tradingAccountId"] = tradingAccountId;
-        return this.safeString(this.options, "tradingAccountId");
+        throw new ArgumentsRequired ((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
     }
 
     /**

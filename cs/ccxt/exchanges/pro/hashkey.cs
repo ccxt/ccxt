@@ -499,18 +499,12 @@ public partial class hashkey : ccxt.hashkey
         string? marketId = this.safeString(order, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(order, "O");
-        object side = this.safeStringLower(order, "S");
-        object reduceOnly = null;
-        var sidereduceOnlyVariable = this.parseOrderSideAndReduceOnly(side);
-        side = ((IList<object>)sidereduceOnlyVariable)[0];
-        reduceOnly = ((IList<object>)sidereduceOnlyVariable)[1];
-        object type = this.parseOrderType(this.safeString(order, "o"));
-        object timeInForce = this.safeString(order, "f");
-        object postOnly = null;
-        var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
-        type = ((IList<object>)typetimeInForcepostOnlyVariable)[0];
-        timeInForce = ((IList<object>)typetimeInForcepostOnlyVariable)[1];
-        postOnly = ((IList<object>)typetimeInForcepostOnlyVariable)[2];
+        string? rawSide = this.safeStringLower(order, "S");
+        string? side = ((string)this.parseOrderSideValue(rawSide));
+        string? rawType = this.parseOrderType(this.safeString(order, "o"));
+        string? rawTimeInForce = this.safeString(order, "f");
+        object timeInForce = this.parseOrderTimeInForceValue(rawType, rawTimeInForce);
+        string? type = this.parseOrderType(rawType);
         if ((this.safeBool(marketResolved, "contract", false) == true))
         {
             type = null;
@@ -542,8 +536,8 @@ public partial class hashkey : ccxt.hashkey
                 { "currency", this.safeCurrencyCode(this.safeString(order, "N")) },
                 { "amount", this.omitZero(this.safeString(order, "n")) },
             } },
-            { "reduceOnly", reduceOnly },
-            { "postOnly", postOnly },
+            { "reduceOnly", this.parseOrderReduceOnlyValue(rawSide) },
+            { "postOnly", this.parseOrderPostOnlyValue(rawType, rawTimeInForce) },
             { "info", order },
         }, marketResolved);
     }
@@ -891,12 +885,8 @@ public partial class hashkey : ccxt.hashkey
         {
             type = "spot";
         }
-        if (!((this.balance != null && this.balance.ContainsKey(type))))
-        {
-            this.balance[type] = new Dictionary<string, object>() {};
-        }
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
         IDictionary<string, object> balance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        balance["info"] = message;
         string? currencyId = this.safeString(balanceUpdate, "a");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> account = this.account();

@@ -2798,10 +2798,10 @@ public partial class pacifica : Exchange
         {
             if (((paginationCursor != null)) && (dataLength > 0))
             {
-                IDictionary<string, object> first = ((IDictionary<string, object>)(data != null && 0 < data.Count ? data[0] : null));
-                first["next_cursor"] = paginationCursor;
-                first["has_more"] = hasMore;
-                ((List<object>)data)[Convert.ToInt32(0)] = first;
+                ((List<object>)data)[Convert.ToInt32(0)] = this.extend((data != null && 0 < data.Count ? data[0] : null), new Dictionary<string, object>() {
+                    { "next_cursor", paginationCursor },
+                    { "has_more", hasMore },
+                });
             }
         }
         return data;

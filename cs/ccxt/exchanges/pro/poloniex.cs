@@ -1192,7 +1192,7 @@ public partial class poloniex : ccxt.poloniex
                             { "currency", this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency") },
                         };
                     }
-                    if ((!(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
+                    if (((this.safeString((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost") != null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                     {
                         string? stringOrderCost = this.numberToString(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"));
                         string? stringTradeCost = this.numberToString(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));

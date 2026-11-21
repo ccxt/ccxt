@@ -179,7 +179,7 @@ public partial class PredictionExchange : BaseExchange
         string? sort = this.safeString(parameters, "sort");
         if ((sort != null))
         {
-            string? sortKey = null;
+            string sortKey = "";
             if (sort == "volume")
             {
                 sortKey = "volume";
@@ -190,14 +190,14 @@ public partial class PredictionExchange : BaseExchange
             {
                 sortKey = "created";
             }
-            if ((sortKey != null))
+            if (sortKey != "")
             {
                 // normalize the sort key on every row first — sortBy reads it with a raw
                 // subscript, which raises KeyError/undefined-index in Python/PHP when a
                 // venue's parsed event omits the field (JS alone tolerates the miss)
                 for (int i = 0; i < (result?.Count ?? 0); i++)
                 {
-                    ((IDictionary<string,object>)result[i])[(string)sortKey] = this.safeNumber(result[i], sortKey, 0);
+                    ((IDictionary<string,object>)result[i])[sortKey] = this.safeNumber(result[i], sortKey, 0);
                 }
                 result = this.sortBy(result, sortKey, true, 0);
             }
@@ -208,10 +208,11 @@ public partial class PredictionExchange : BaseExchange
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             int resultLength = (result?.Count ?? 0);
-            Int64? sliceEnd = limit;
-            if (sliceEnd > resultLength)
+            Int64? limitValue = this.safeInteger(parameters, "limit", 0);
+            Int64? sliceEnd = resultLength;
+            if (((limitValue == null || limitValue < resultLength)))
             {
-                sliceEnd = resultLength;
+                sliceEnd = limitValue;
             }
             result = this.arraySlice(result, 0, sliceEnd);
         }

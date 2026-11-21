@@ -729,7 +729,7 @@ public partial class kraken : ccxt.kraken
             stored = new ArrayCacheByTimestamp(limit);
             (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
-        int ohlcvsLength = (data?.Count ?? 0);
+        int ohlcvsLength = data.Count;
         for (int i = 0; i < ohlcvsLength; i++)
         {
             IDictionary<string, object> candle = this.safeDict(data, i);
@@ -1491,7 +1491,7 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         List<object> allTrades = this.safeList(message, "data", new List<object>() {});
-        int allTradesLength = (allTrades?.Count ?? 0);
+        int allTradesLength = allTrades.Count;
         if (allTradesLength > 0)
         {
             if ((this.myTrades == null))
@@ -1501,7 +1501,7 @@ public partial class kraken : ccxt.kraken
             }
             ccxt.pro.ArrayCache stored = this.myTrades;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (int i = 0; i < (allTrades?.Count ?? 0); i++)
+            for (int i = 0; i < allTrades.Count; i++)
             {
                 IDictionary<string, object> trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
                 ccxt.Trade parsed = this.parseWsTrade(trade);
@@ -1632,7 +1632,7 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         List<object> allOrders = this.safeList(message, "data", new List<object>() {});
-        int allOrdersLength = (allOrders?.Count ?? 0);
+        int allOrdersLength = allOrders.Count;
         if (allOrdersLength > 0)
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1642,7 +1642,7 @@ public partial class kraken : ccxt.kraken
             }
             ccxt.pro.ArrayCache stored = this.orders;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (int i = 0; i < (allOrders?.Count ?? 0); i++)
+            for (int i = 0; i < allOrders.Count; i++)
             {
                 IDictionary<string, object> order = this.safeDict(allOrders, i, new Dictionary<string, object>() {});
                 string? id = this.safeString(order, "order_id");
@@ -1857,7 +1857,7 @@ public partial class kraken : ccxt.kraken
         IDictionary<string, object> balance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
         balance["info"] = message;
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        for (int i = 0; i < data.Count; i++)
         {
             string? currencyId = this.safeString(data[i], "asset");
             string code = this.safeCurrencyCode(currencyId);

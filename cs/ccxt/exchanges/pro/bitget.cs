@@ -616,7 +616,8 @@ public partial class bitget : ccxt.bitget
             messageHash = ("kline:" + symbolValue);
         } else
         {
-            args["channel"] = ("candle" + interval);
+            string? intervalValue = this.safeString(timeframes, timeframeVar, "");
+            args["channel"] = ("candle" + intervalValue);
             args["instId"] = (market.ContainsKey("id") ? market["id"] : null);
             messageHash = ((("candles:" + (timeframeVar)) + ":") + symbolValue);
         }
@@ -1540,7 +1541,12 @@ public partial class bitget : ccxt.bitget
         {
             defaultType = ((posMode != null)) ? "contract" : "spot";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? instId : null, market, null, defaultType);
+        string? instIdResolved = null;
+        if ((market == null))
+        {
+            instIdResolved = instId;
+        }
+        Dictionary<string, object> marketResolved = this.safeMarket(instIdResolved, market, null, defaultType);
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts", "T", "execTime"});
         List<object> feeDetail = this.safeList(trade, "feeDetail", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(feeDetail, 0);
@@ -1978,7 +1984,8 @@ public partial class bitget : ccxt.bitget
         if ((marginMode != null))
         {
             instType = "MARGIN";
-            messageHash = ((messageHash + ":") + marginMode);
+            string? marginModeValue = marginMode;
+            messageHash = ((messageHash + ":") + marginModeValue);
             if ((marginMode == "isolated"))
             {
                 channel = "orders-isolated";
@@ -2352,8 +2359,8 @@ public partial class bitget : ccxt.bitget
         //         "stpMode": "none"
         //     }
         //
-        bool isSpot = !((order != null && ((IDictionary<string, object>)order).ContainsKey("posMode")));
-        bool isMargin = ((order != null && ((IDictionary<string, object>)order).ContainsKey("loanType")));
+        bool isSpot = ((this.safeString(order, "posMode") == null));
+        bool isMargin = ((this.safeString(order, "loanType") != null));
         string? category = this.safeStringLower(order, "category");
         if (category == "spot")
         {
@@ -2514,7 +2521,8 @@ public partial class bitget : ccxt.bitget
         {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = ((messageHash + ":") + symbolResolved);
+            string? symbolValue = this.safeString(market, "symbol", "");
+            messageHash = ((messageHash + ":") + symbolValue);
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2941,7 +2949,7 @@ public partial class bitget : ccxt.bitget
                     account["debt"] = Precise.stringAdd(borrow, interest);
                 }
                 string freeQuery = "available";
-                if ((rawBalance != null && rawBalance.ContainsKey("maxTransferOut")))
+                if ((this.safeString(rawBalance, "maxTransferOut") != null))
                 {
                     freeQuery = "maxTransferOut";
                 }

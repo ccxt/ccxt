@@ -993,7 +993,11 @@ public partial class bit2me : Exchange
         {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            Int64? end = (!(until == null)) ? until : this.milliseconds();
+            Int64? end = this.milliseconds();
+            if (!(until == null))
+            {
+                end = until;
+            }
             request["startTime"] = (end - (requestLimit * duration));
         }
         if (!(until == null))
@@ -1203,7 +1207,13 @@ public partial class bit2me : Exchange
             string? stopLossLimit = stopLimitPrice;
             if ((stopLossLimit == null))
             {
-                stopLossLimit = ((price != null)) ? this.numberToString(price) : stopLossPrice;
+                if ((price != null))
+                {
+                    stopLossLimit = this.numberToString(price);
+                } else
+                {
+                    stopLossLimit = stopLossPrice;
+                }
             }
             request["stopLimitPrice"] = this.priceToPrecision(symbol, stopLossLimit);
         } else if (isMarketOrder)

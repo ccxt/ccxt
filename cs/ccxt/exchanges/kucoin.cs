@@ -2748,12 +2748,13 @@ public partial class kucoin : Exchange
         {
             hf = true;
         }
-        bool? hfParam = this.safeBool(parameters, "hf");
-        if ((hfParam != null))
+        IList<object> hfParamparamsOmittedVariable = (IList<object>)this.handleParamBool(parameters, "hf");
+        bool? hfParam = (bool?)hfParamparamsOmittedVariable[0];
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)hfParamparamsOmittedVariable[1]);
+        if (!(hfParam == null))
         {
             hf = ((hfParam == true));
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "hf"));
         return new List<object>() {hf, paramsOmitted};
     }
 
@@ -3529,8 +3530,9 @@ public partial class kucoin : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            ((IDictionary<string,object>)tickers[i])["time"] = time;
-            IDictionary<string, object> ticker = ((IDictionary<string, object>)this.parseSpotOrUtaTicker(tickers[i]));
+            IDictionary<string, object> ticker = ((IDictionary<string, object>)this.parseSpotOrUtaTicker(this.extend(tickers[i], new Dictionary<string, object>() {
+                { "time", time },
+            })));
             string? symbol = this.safeString(ticker, "symbol");
             if ((symbol != null))
             {
@@ -4441,7 +4443,7 @@ public partial class kucoin : Exchange
         if ((utaOption == true))
         {
             // the endpoint returns a single level when limit is omitted and rejects values above 1000, so request the full book instead
-            if (((limit == null)) || ((limit > 1000)))
+            if (((limit == null)) || (limit > 1000))
             {
                 request["limit"] = "FULL";
             } else
@@ -5522,8 +5524,8 @@ public partial class kucoin : Exchange
                 throw new BadRequest ((this.id + " createOrders() only supports limit orders")) ;
             }
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.Add(orderRequest);
@@ -5615,8 +5617,8 @@ public partial class kucoin : Exchange
             }
             string? type = this.safeString(rawOrder, "type", "");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.Add(orderRequest);
@@ -6433,7 +6435,7 @@ public partial class kucoin : Exchange
             }
             if ((limit != null))
             {
-                if ((limit < 10))
+                if (limit.Value < 10)
                 {
                     request["pageSize"] = 10; // minimum page size, the result is trimmed to the limit
                 } else
@@ -6685,12 +6687,14 @@ public partial class kucoin : Exchange
         IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         bool isUnified = ((accountModeOption == "unified"));
         string? tradeType = this.handleTradeType(isContract, marginMode, isUnified, paramsMarginMode);
-        paramsMarginMode["tradeType"] = tradeType;
+        Dictionary<string, object> paramsTradeType = this.extend(paramsMarginMode, new Dictionary<string, object>() {
+            { "tradeType", tradeType },
+        });
         if ((since != null))
         {
             request["startAt"] = since;
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endAt", request, paramsMarginMode);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endAt", request, paramsTradeType);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
@@ -7866,7 +7870,7 @@ public partial class kucoin : Exchange
         if (isMargin)
         {
             hf = true;
-            request["tradeType"] = ((marginMode == null)) ? null : this.safeString((this.options != null && this.options.ContainsKey("marginModes") ? this.options["marginModes"] : null), marginMode, marginMode);
+            request["tradeType"] = this.safeString((this.options != null && this.options.ContainsKey("marginModes") ? this.options["marginModes"] : null), marginMode, marginMode);
         }
         if (((hf == true)) && (symbol == null))
         {
@@ -8926,11 +8930,17 @@ public partial class kucoin : Exchange
         }
         Int64? createdAt = this.safeInteger2(transaction, "createdAt", "createAt");
         Int64? updatedAt = this.safeInteger(transaction, "updatedAt");
-        bool isV1 = !((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("createdAt")));
+        bool isV1 = ((this.safeInteger(transaction, "createdAt") == null));
         // if it's a v1 structure
         if (isV1)
         {
-            type = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("address"))) ? "withdrawal" : "deposit";
+            if ((this.safeString(transaction, "address") != null))
+            {
+                type = "withdrawal";
+            } else
+            {
+                type = "deposit";
+            }
         }
         Int64? createdAtMs = ((createdAt == null)) ? null : (createdAt * 1000);
         Int64? updatedAtMs = ((updatedAt == null)) ? null : (updatedAt * 1000);
@@ -9013,7 +9023,7 @@ public partial class kucoin : Exchange
         }
         if ((limit != null))
         {
-            if ((limit < 10))
+            if (limit.Value < 10)
             {
                 request["pageSize"] = 10; // minimum page size, the result is trimmed to the limit
             } else
@@ -9197,7 +9207,7 @@ public partial class kucoin : Exchange
         }
         if ((limit != null))
         {
-            if ((limit < 10))
+            if (limit.Value < 10)
             {
                 request["pageSize"] = 10; // minimum page size, the result is trimmed to the limit
             } else
@@ -10399,7 +10409,10 @@ public partial class kucoin : Exchange
         paramsRequest = marginModeparamsRequestVariable.Item2;
         if ((uta == true) && (requestedType == "margin"))
         {
-            marginMode = ((marginMode == null)) ? "cross" : marginMode; // default to cross margin for UTA if margin is requested but marginMode is not specified
+            if ((marginMode == null))
+            {
+                marginMode = "cross"; // default to cross margin for UTA if margin is requested but marginMode is not specified
+            }
             requestedType = marginMode;
         }
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType");
@@ -10459,7 +10472,7 @@ public partial class kucoin : Exchange
                 request["limit"] = limit;
             } else
             {
-                if ((limit < 10))
+                if (limit.Value < 10)
                 {
                     request["pageSize"] = 10; // minimum page size, the result is trimmed to the limit
                 } else
@@ -10561,11 +10574,11 @@ public partial class kucoin : Exchange
     {
         config ??= new Dictionary<string, object>();
         IDictionary<string, object> versions = this.safeDict(this.options, "versions", new Dictionary<string, object>() {});
-        IDictionary<string, object> apiVersions = this.safeDict(versions, (api != null && 0 < api.Count ? api[0] : null), new Dictionary<string, object>() {});
+        IDictionary<string, object> apiVersions = this.safeDict(versions, this.safeString(api, 0), new Dictionary<string, object>() {});
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, (this.options != null && this.options.ContainsKey("version") ? this.options["version"] : null));
         string? version = this.safeString(parameters, "version", defaultVersion);
-        if (((((object)((api != null && 0 < api.Count ? api[0] : null))) is "utaV2")) && ((path == "market/orderbook")))
+        if (((this.safeString(api, 0) == "utaV2")) && ((path == "market/orderbook")))
         {
             // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
             // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
@@ -10595,7 +10608,7 @@ public partial class kucoin : Exchange
         {
             return ((IDictionary<string,object>)config)["v1"];
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 
     public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
@@ -10887,13 +10900,13 @@ public partial class kucoin : Exchange
         {
             request["startTime"] = since;
         }
+        if ((limit != null))
+        {
+            request["pageSize"] = limit; // default:50, min:10, max:500
+        }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        if ((limit != null))
-        {
-            requestUntil["pageSize"] = limit; // default:50, min:10, max:500
-        }
         Dictionary<string, object> response = await this.privateGetMarginInterest(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -10951,13 +10964,13 @@ public partial class kucoin : Exchange
         {
             request["startTime"] = since;
         }
+        if ((limit != null))
+        {
+            request["pageSize"] = limit; // default:50, min:10, max:500
+        }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        if ((limit != null))
-        {
-            requestUntil["pageSize"] = limit; // default:50, min:10, max:500
-        }
         Dictionary<string, object> response = await this.privateGetMarginInterest(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -13412,7 +13425,7 @@ public partial class kucoin : Exchange
             }
         }
         object query = this.omit(paramsOmitted, this.extractParams(path));
-        string? endpart = "";
+        string endpart = "";
         Dictionary<string, object> headersBase = new Dictionary<string, object>() {};
         string? bodyJson = null;
         string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
@@ -13420,7 +13433,7 @@ public partial class kucoin : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string? tradeType = this.safeString(query, "tradeType");
+        string? tradeType = this.safeString(query, "tradeType", "");
         if (!this.isEmpty(query))
         {
             if ((((method == "GET")) || ((method == "DELETE"))) && ((path != "orders/multi-cancel")))
@@ -13432,8 +13445,8 @@ public partial class kucoin : Exchange
                 {
                     endpoint = endpoint + ("?tradeType=" + tradeType);
                 }
-                bodyJson = this.json(query);
-                endpart = bodyJson;
+                endpart = this.json(query);
+                bodyJson = endpart;
                 headersBase["Content-Type"] = "application/json";
             }
         }

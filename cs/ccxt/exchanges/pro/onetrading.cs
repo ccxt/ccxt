@@ -1186,18 +1186,12 @@ public partial class onetrading : ccxt.onetrading
                 subscription = new Dictionary<string, object>() {};
             }
         }
-        IDictionary<string, object> subscriptionMarketId = this.safeDict(subscription, marketId);
-        if ((subscriptionMarketId == null))
+        IDictionary<string, object> marketTimeframes = this.safeDict(subscription, marketId, new Dictionary<string, object>() {});
+        if ((timeframeVar != null))
         {
-            if ((marketId != null))
-            {
-                subscription[(string)marketId] = new Dictionary<string, object>() {};
-            }
+            marketTimeframes[timeframeVar] = true;
         }
-        if (((marketId != null)) && ((timeframeVar != null)))
-        {
-            ((IDictionary<string,object>)(subscription != null && marketId != null && subscription.ContainsKey(marketId) ? subscription[marketId] : null))[timeframeVar] = true;
-        }
+        subscription[(string)marketId] = marketTimeframes;
         List<object> properties = new List<object>() {};
         List<object> marketIds = new List<object>(subscription.Keys);
         for (int i = 0; i < marketIds.Count; i++)
@@ -1296,12 +1290,13 @@ public partial class onetrading : ccxt.onetrading
         {
             throw new ArgumentsRequired ((this.id + " findTimeframe() timeframes is required")) ;
         }
+        string? unit = this.safeString(timeframe, "unit");
+        string? period = this.safeString(timeframe, "period");
         List<object> keys = new List<object>(((IDictionary<string,object>)timeframesResolved).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            IDictionary<string, object> timeframeResolved = this.safeDict(timeframesResolved, key, new Dictionary<string, object>() {});
-            if (isEqual((timeframeResolved != null && timeframeResolved.ContainsKey("unit") ? timeframeResolved["unit"] : null), getValue(timeframe, "unit")) && isEqual((timeframeResolved != null && timeframeResolved.ContainsKey("period") ? timeframeResolved["period"] : null), getValue(timeframe, "period")))
+            if ((this.safeString(getValue(timeframesResolved, key), "unit") == unit) && (this.safeString(getValue(timeframesResolved, key), "period") == period))
             {
                 return key;
             }

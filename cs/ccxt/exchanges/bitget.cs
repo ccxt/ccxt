@@ -6163,9 +6163,14 @@ public partial class bitget : Exchange
             string? feeCostString = this.safeString2(feeStructure, "totalFee", "fee");
             string? deductionString = this.safeString(feeStructure, "deduction");
             bool deduction = (deductionString == "yes");
+            string? feeCostSigned = feeCostString;
+            if (!deduction)
+            {
+                feeCostSigned = Precise.stringNeg(feeCostString);
+            }
             fee = new Dictionary<string, object>() {
                 { "currency", currencyCode },
-                { "cost", deduction ? feeCostString : Precise.stringNeg(feeCostString) },
+                { "cost", feeCostSigned },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -6577,7 +6582,9 @@ public partial class bitget : Exchange
             IList<object> productTypeparamsMarginModeVariable = (IList<object>)this.handleProductTypeAndParams(null, paramsMarginMode);
             productType = (string)productTypeparamsMarginModeVariable[0];
             paramsMarginMode = (IDictionary<string, object>)productTypeparamsMarginModeVariable[1];
-            paramsMarginMode["productType"] = productType;
+            paramsMarginMode = this.extend(paramsMarginMode, new Dictionary<string, object>() {
+                { "productType", productType },
+            });
             response = await this.publicMixGetV2MixMarketContracts(paramsMarginMode);
         } else
         {

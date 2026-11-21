@@ -1228,8 +1228,11 @@ public partial class BaseExchange
             {
                 continue;
             }
-            string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));
-            result[(string)code] = parsed;
+            string? code = this.safeString(parsed, "code");
+            if ((code != null))
+            {
+                result[(string)code] = parsed;
+            }
         }
         return result;
     }
@@ -6112,7 +6115,7 @@ public partial class BaseExchange
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? marketSymbol = this.safeString(market, "symbol");
+        string? marketSymbol = this.safeString(market, "symbol", "");
         string result = this.decimalToPrecision(price, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode, this.paddingMode);
         if (result == "0")
         {
@@ -6133,7 +6136,7 @@ public partial class BaseExchange
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? marketSymbol = this.safeString(market, "symbol");
+        string? marketSymbol = this.safeString(market, "symbol", "");
         string result = this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), this.precisionMode, this.paddingMode);
         if (result == "0")
         {

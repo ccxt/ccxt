@@ -925,7 +925,7 @@ public partial class gemini : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < fetchUsdtMarkets.Count; i++)
         {
-            object marketId = fetchUsdtMarkets[i];
+            string? marketId = this.safeString(fetchUsdtMarkets, i, "");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", marketId },
             };
@@ -972,7 +972,7 @@ public partial class gemini : Exchange
             List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
             for (int i = 0; i < (marketIds?.Count ?? 0); i++)
             {
-                object marketId = marketIds[i];
+                string? marketId = this.safeString(marketIds, i, "");
                 Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "symbol", marketId },
                 };
@@ -996,8 +996,8 @@ public partial class gemini : Exchange
                 Dictionary<string, object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                 for (int i = 0; i < (marketIds?.Count ?? 0); i++)
                 {
-                    object marketId = marketIds[i];
-                    List<object> pairInfo = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
+                    string? marketId = this.safeString(marketIds, i, "");
+                    List<object> pairInfo = this.safeList(indexedTradingPairs, marketId.ToUpper());
                     if ((pairInfo != null) && !this.inArray(marketId, brokenPairs))
                     {
                         Dictionary<string, object> parsed = this.parseMarket(pairInfo);

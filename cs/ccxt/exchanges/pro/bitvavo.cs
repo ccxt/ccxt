@@ -1097,7 +1097,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = this.safeString(market, "symbol");
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? marketId = this.safeString(market, "id");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         string name = "account";
@@ -1141,7 +1141,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = this.safeString(market, "symbol");
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? marketId = this.safeString(market, "id");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         string name = "account";
@@ -1902,7 +1902,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = this.safeString(market, "symbol");
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("order:" + symbol);
         ccxt.Order order = this.parseOrder(message, market);
         if ((this.orders == null))
@@ -1934,7 +1934,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = this.safeString(market, "symbol");
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("myTrades:" + symbol);
         ccxt.Trade trade = this.parseTrade(message, market);
         if ((this.myTrades == null))

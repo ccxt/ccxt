@@ -379,12 +379,20 @@ public partial class mudrex : Exchange
         Int64 now = this.seconds();
         Int64? windowLength = (duration * requestLimit);
         Int64? defaultStart = (now - windowLength);
-        Int64? startTime = this.parseToInt(((since != null)) ? (((double?)since / 1000)) : defaultStart);
+        Int64? startTime = this.parseToInt(defaultStart);
+        if ((since != null))
+        {
+            startTime = this.parseToInt(((double?)since / 1000));
+        }
         Int64? windowEnd = this.parseToInt((startTime + (duration * requestLimit)));
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
         Int64? cappedEnd = (windowEnd > now) ? now : windowEnd;
-        Int64? endTime = this.parseToInt(((until != null)) ? (((double?)until / 1000)) : cappedEnd);
+        Int64? endTime = this.parseToInt(cappedEnd);
+        if ((until != null))
+        {
+            endTime = this.parseToInt(((double?)until / 1000));
+        }
         request["start_time"] = startTime;
         request["end_time"] = endTime;
         Dictionary<string, object> response = null;
@@ -556,25 +564,25 @@ public partial class mudrex : Exchange
                 { "offset", offset },
             }, parameters);
             Dictionary<string, object> response = await this.privateGetFutures(q);
-            object data = this.safeValue(response, "data", new List<object>() {});
-            IList<object> items = new List<object>() {};
-            if ((data is IDictionary<string, object>) && !((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            IDictionary<string, object> dataDict = this.safeDict(response, "data");
+            List<object> items = new List<object>() {};
+            if ((dataDict != null))
             {
-                items = this.safeList(data, "items", new List<object>() {});
+                items = this.safeList(dataDict, "items", new List<object>() {});
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 int itemsLength = (items?.Count ?? 0);
                 if ((itemsLength == 0))
                 {
-                    items = this.safeList(data, "results", new List<object>() {});
+                    items = this.safeList(dataDict, "results", new List<object>() {});
                     itemsLength = (items?.Count ?? 0);
                 }
-                if (((itemsLength == 0)) && (inOp(data, "symbol")))
+                if (((itemsLength == 0)) && (dataDict.ContainsKey("symbol")))
                 {
-                    items = new List<object>() {data};
+                    items = new List<object>() {dataDict};
                 }
             } else
             {
-                items = this.toArray(data);
+                items = this.safeList(response, "data", new List<object>() {});
             }
             int numItems = (items?.Count ?? 0);
             if ((numItems == 0))
@@ -1512,7 +1520,7 @@ public partial class mudrex : Exchange
         while (paging)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {};
-            if (((limit != null)) && ((limit > 0)))
+            if (((limit != null)) && (limit > 0))
             {
                 request["limit"] = pageSize;
                 request["offset"] = offset;
@@ -1527,7 +1535,7 @@ public partial class mudrex : Exchange
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (((market == null)) || (isEqual(this.safeString(entry, "symbol"), (market.ContainsKey("id") ? market["id"] : null))))
+                    if (((market == null)) || ((this.safeString(entry, "symbol") == this.safeString(market, "id"))))
                     {
                         transactionsCount = (transactionsCount + 1);
                     }
@@ -1538,7 +1546,7 @@ public partial class mudrex : Exchange
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (((limit != null)) && ((dataLength == pageSize)))
             {
-                if (((transactionsCount < limit)) && ((calls < maxCalls)))
+                if ((transactionsCount < limit) && ((calls < maxCalls)))
                 {
                     // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                     offset = this.sum(offset, pageSize);

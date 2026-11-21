@@ -270,7 +270,8 @@ public partial class apex : ccxt.apex
         List<object> newTopics = new List<object>() {};
         for (int i = 0; i < (topics?.Count ?? 0); i++)
         {
-            if (!((client.subscriptions != null && (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
+            string? messageHash = this.safeString(messageHashes, i, "");
+            if (!(((messageHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))))
             {
                 newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
             }

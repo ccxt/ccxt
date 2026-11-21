@@ -983,7 +983,7 @@ public partial class blofin : ccxt.blofin
                 if (isOHLCV)
                 {
                     market = this.market(current);
-                    string? tf = this.safeString(this.safeList(symbolsArray, i), 1);
+                    string? tf = this.safeString(this.safeList(symbolsArray, i), 1, "");
                     string? interval = this.safeString(this.timeframes, tf, tf);
                     channel = ((object)(channel == null ? null : channel + interval));
                 } else
@@ -1058,7 +1058,7 @@ public partial class blofin : ccxt.blofin
             object channel = channelName;
             if (isOHLCV)
             {
-                string? tf = this.safeString(this.safeList(symbolsArray, i), 1);
+                string? tf = this.safeString(this.safeList(symbolsArray, i), 1, "");
                 string? interval = this.safeString(this.timeframes, tf, tf);
                 channel = (channel + interval);
             }

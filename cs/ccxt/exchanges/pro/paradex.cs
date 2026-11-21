@@ -586,7 +586,8 @@ public partial class paradex : ccxt.paradex
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = ("trades." + ((market.ContainsKey("id") ? market["id"] : null)));
+            string? marketId = this.safeString(market, "id", "");
+            messageHash = ("trades." + marketId);
         }
         string? url = this.getWsUrl();
         await this.waitForPendingUnsubscribe(url, new List<object>() {messageHash});
@@ -632,7 +633,8 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < symbolsLength; i++)
         {
             Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
-            channels.Add(("trades." + ((market.ContainsKey("id") ? market["id"] : null))));
+            string? marketId = this.safeString(market, "id", "");
+            channels.Add(("trades." + marketId));
         }
         string? url = this.getWsUrl();
         // handleTrade resolves the channel of each market
@@ -688,7 +690,8 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(symbolsNormalized[i]);
-            channels.Add(("trades." + ((market.ContainsKey("id") ? market["id"] : null))));
+            string? marketId = this.safeString(market, "id", "");
+            channels.Add(("trades." + marketId));
         }
         // the watchers of a market wait on its channel
         return await this.unsubscribeChannels(this.getWsUrl(), "trades", channels, channels, symbolsNormalized, parameters);
@@ -713,7 +716,8 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string channel = ("trades." + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? marketId = this.safeString(market, "id", "");
+        string channel = ("trades." + marketId);
         string messageHash = ("liquidations:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string? url = this.getWsUrl();
         object liquidations = await this.subscribeChannels(url, new List<object>() {messageHash}, new List<object>() {channel}, parameters);
@@ -1061,9 +1065,9 @@ public partial class paradex : ccxt.paradex
             {
                 return;
             }
-            object storedNonce = (stored != null && stored.ContainsKey("nonce") ? stored["nonce"] : null);
+            Int64? storedNonce = this.safeInteger(stored, "nonce");
             // no book to apply it to: before the first snapshot, and between a resync and its snapshot
-            if (((storedNonce == null)) || ((nonce == null)) || (isLessThanOrEqual(nonce, storedNonce)))
+            if (((storedNonce == null)) || ((nonce == null)) || ((nonce == null || nonce <= storedNonce)))
             {
                 return;
             }
@@ -1364,7 +1368,8 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
-            pendingHashes.Add(((channel + ".") + ((market.ContainsKey("id") ? market["id"] : null))));
+            string? pendingId = this.safeString(market, "id", "");
+            pendingHashes.Add(((channel + ".") + pendingId));
         }
         await this.waitForPendingUnsubscribe(url, pendingHashes);
         var client = this.client(url);
@@ -1484,7 +1489,8 @@ public partial class paradex : ccxt.paradex
             for (int i = 0; i < symbolsLength; i++)
             {
                 Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
-                channels.Add(("bbo." + ((market.ContainsKey("id") ? market["id"] : null))));
+                string? marketId = this.safeString(market, "id", "");
+                channels.Add(("bbo." + marketId));
                 messageHashes.Add(("bidask:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             }
         } else
@@ -1532,7 +1538,8 @@ public partial class paradex : ccxt.paradex
             for (int i = 0; i < symbolsLength; i++)
             {
                 Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
-                channels.Add(("bbo." + ((market.ContainsKey("id") ? market["id"] : null))));
+                string? marketId = this.safeString(market, "id", "");
+                channels.Add(("bbo." + marketId));
                 subMessageHashes.Add(("bidask:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
                 bidAskSymbols.Add((market.ContainsKey("symbol") ? market["symbol"] : null));
             }
@@ -1616,7 +1623,8 @@ public partial class paradex : ccxt.paradex
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            channel = ("orders." + ((market.ContainsKey("id") ? market["id"] : null)));
+            string? marketId = this.safeString(market, "id", "");
+            channel = ("orders." + marketId);
             messageHash = ("orders:" + symbolResolved);
         }
         string? url = this.getWsUrl();
@@ -1707,7 +1715,8 @@ public partial class paradex : ccxt.paradex
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            channel = ("fills." + ((market.ContainsKey("id") ? market["id"] : null)));
+            string? marketId = this.safeString(market, "id", "");
+            channel = ("fills." + marketId);
             messageHash = ("myTrades:" + symbolResolved);
         }
         string? url = this.getWsUrl();
@@ -2046,7 +2055,8 @@ public partial class paradex : ccxt.paradex
         }
         Dictionary<string, object> market = this.market(symbol);
         // the per-market channel, the all-markets one sends every perpetual's funding
-        string channel = ("funding_data." + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? marketId = this.safeString(market, "id", "");
+        string channel = ("funding_data." + marketId);
         string? url = this.getWsUrl();
         // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
         string messageHash = ("fundingRate:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -2070,7 +2080,8 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string channel = ("funding_data." + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? marketId = this.safeString(market, "id", "");
+        string channel = ("funding_data." + marketId);
         string messageHash = ("fundingRate:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         return await this.unsubscribeChannels(this.getWsUrl(), "fundingRate", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters);
     }
@@ -2556,15 +2567,23 @@ public partial class paradex : ccxt.paradex
             return ((Dictionary<string, object>)((object)(null)));
         }
         bool isSnapshot = ((pkgType == 0));
-        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
             { "market", this.safeString(strings, 0) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 8) },
             { "update_type", isSnapshot ? "s" : "d" },
-            { "inserts", isSnapshot ? levels : new List<object>() {} },
-            { "updates", isSnapshot ? new List<object>() {} : levels },
+            { "inserts", new List<object>() {} },
+            { "updates", new List<object>() {} },
             { "deletes", new List<object>() {} },
-        })));
+        };
+        if (isSnapshot)
+        {
+            result["inserts"] = levels;
+        } else
+        {
+            result["updates"] = levels;
+        }
+        return result;
     }
 
     public virtual Dictionary<string, object> parseSbeMarketSummary(WebSocketClient client, object frameHex, object blockLength, object frameLength)
@@ -2742,9 +2761,10 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < (names?.Count ?? 0); i++)
         {
             Int64? bit = this.parseToInt(((Int64?)((double?)bits % 2)));
-            if (((bit == 1)) && (!((names != null && i < names.Count ? names[i] : null) is "")))
+            string? name = this.safeString(names, i, "");
+            if (((bit == 1)) && (name != ""))
             {
-                flags.Add((names != null && i < names.Count ? names[i] : null));
+                flags.Add(name);
             }
             bits = this.parseToInt(((double?)bits / 2));
         }

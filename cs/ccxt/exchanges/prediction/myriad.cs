@@ -2962,11 +2962,11 @@ public partial class myriad : PredictionExchange
                 double? price = this.safeNumber(o, "price");
                 if ((price != null))
                 {
-                    if ((price > 0.001))
+                    if (price > 0.001)
                     {
                         bid = this.parseNumber(Precise.stringSub(this.numberToString(price), "0.001"));
                     }
-                    if (((price == null || 0.999 > price)))
+                    if (0.999 > price.Value)
                     {
                         ask = this.parseNumber(Precise.stringAdd(this.numberToString(price), "0.001"));
                     }

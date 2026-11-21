@@ -96,7 +96,8 @@ public partial class polymarket : ccxt.polymarket
         bool willSend = false;
         for (int i = 0; i < (hashesToCheck?.Count ?? 0); i++)
         {
-            if (!((client.subscriptions != null && hashesToCheck[i] is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
+            string? hashToCheck = this.safeString(hashesToCheck, i, "");
+            if (!(((hashToCheck != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(hashToCheck)))))
             {
                 willSend = true;
             }
@@ -790,7 +791,7 @@ public partial class polymarket : ccxt.polymarket
         //
         object data = this.safeValue(message, "data");
         List<object> rows = new List<object>() {};
-        if ((data is IList<object> hxList33504))
+        if ((data is IList<object> hxList33571))
         {
             rows = ((List<object>)data);
         } else

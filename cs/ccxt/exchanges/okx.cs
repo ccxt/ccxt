@@ -3148,7 +3148,7 @@ public partial class okx : Exchange
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
         bool isFullBook = ((method == "publicGetMarketBooksFull"));
-        bool largeLimit = (((limit == null)) && isFullBook) || (((limit != null)) && ((limit > 400)));
+        bool largeLimit = (((limit == null)) && isFullBook) || (((limit != null)) && (limit > 400));
         Int64? limitResolved = ((rpi == true) && largeLimit) ? 400 : requestedLimit;
         request["sz"] = limitResolved; // max 400
         Dictionary<string, object> response = null;
@@ -3752,12 +3752,12 @@ public partial class okx : Exchange
             Int64 durationInMilliseconds = (duration * 1000L);
             // switch to history candles if since is past the cutoff for current candles
             Int64 historyBorder = (now - ((1439 * durationInMilliseconds)));
-            if ((since < historyBorder))
+            if (since.Value < historyBorder)
             {
                 // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 defaultType = "HistoryCandles";
             }
-            object startTime = ((since > 1)) ? ((since - 1)) : 0;
+            object startTime = (since > 1) ? ((since - 1)) : 0;
             request["before"] = startTime;
             request["after"] = this.sum(since, (durationInMilliseconds * limitResolved));
         }
@@ -5391,7 +5391,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Int64? timeOut = 0;
-        if (((timeout != null)) && ((timeout > 0)))
+        if (((timeout != null)) && (timeout > 0))
         {
             timeOut = this.parseToInt(((double?)timeout / 1000));
         }
@@ -9844,7 +9844,7 @@ public partial class okx : Exchange
         parameters ??= new Dictionary<string, object>();
         int maxLimit = 100;
         Int64? effectiveLimit = 100;
-        if (((limit != null)) && ((100 > limit)))
+        if (((limit != null)) && (100 > limit.Value))
         {
             effectiveLimit = this.parseToInt(limit);
         }
@@ -11302,10 +11302,10 @@ public partial class okx : Exchange
         Int64 now = this.milliseconds();
         Int64 oneWeekAgo = (now - 604800000);
         Int64 threeMonthsAgo = (now - 7776000000);
-        if (((since == null)) || ((since != null && since > oneWeekAgo)))
+        if (((since == null)) || (since > oneWeekAgo))
         {
             response = await this.privateGetAccountBills(this.extend(request, paramsOmitted));
-        } else if ((since > threeMonthsAgo))
+        } else if (since > threeMonthsAgo)
         {
             response = await this.privateGetAccountBillsArchive(this.extend(request, paramsOmitted));
         } else

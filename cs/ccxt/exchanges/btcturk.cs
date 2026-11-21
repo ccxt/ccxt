@@ -807,7 +807,7 @@ public partial class btcturk : Exchange
         if ((limit != null))
         {
             limitResolved = limit;
-            if ((limit > 11000))
+            if (limit > 11000)
             {
                 limitResolved = 11000; // max 11000 candles diapason can be covered
             }

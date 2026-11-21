@@ -423,7 +423,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            market = this.market(getValue(symbols, 0));
+            market = this.market(this.safeString(symbols, 0));
         }
         if ((name != null))
         {
@@ -1460,7 +1460,7 @@ public partial class xt : ccxt.xt
         //
         string? marketId = this.safeString(trade, "s");
         string tradeType = "spot";
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol")))
+        if ((this.safeString(trade, "symbol") != null))
         {
             tradeType = "contract";
         }
@@ -1533,7 +1533,7 @@ public partial class xt : ccxt.xt
         //
         string? marketId = this.safeString2(order, "s", "symbol");
         string tradeType = "spot";
-        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("symbol")))
+        if ((this.safeString(order, "symbol") != null))
         {
             tradeType = "contract";
         }

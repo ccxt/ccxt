@@ -2287,7 +2287,7 @@ public partial class whitebit : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? cappedLimit = 1440;
-        if (((limit != null)) && ((limit < 1440)))
+        if (((limit != null)) && (limit.Value < 1440))
         {
             cappedLimit = limit;
         }
@@ -2802,7 +2802,7 @@ public partial class whitebit : Exchange
         // Sort by timestamp (most recent first)
         List<object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if ((limit != null) && ((limit == null || (sortedOrders?.Count ?? 0) > limit)))
+        if ((limit != null) && (sortedOrders?.Count ?? 0) > limit.Value)
         {
             return ccxt.BaseExchange.ToOrderList(this.arraySlice(sortedOrders, 0, limit));
         }
@@ -2838,7 +2838,7 @@ public partial class whitebit : Exchange
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
-        bool isBiggerThanZero = ((timeout > 0));
+        bool isBiggerThanZero = (timeout > 0);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -3299,7 +3299,7 @@ public partial class whitebit : Exchange
             request["startDate"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? limitResolved = limit;
-        if ((limit == null) || (limit > 100))
+        if ((limit == null) || limit > 100)
         {
             limitResolved = 100;
         }
@@ -3359,7 +3359,7 @@ public partial class whitebit : Exchange
             request["startDate"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? limitResolved = limit;
-        if ((limit == null) || (limit > 100))
+        if ((limit == null) || limit > 100)
         {
             limitResolved = 100;
         }

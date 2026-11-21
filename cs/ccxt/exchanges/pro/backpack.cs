@@ -1847,7 +1847,8 @@ public partial class backpack : ccxt.backpack
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 messageHashes.Add((("positions" + ":") + symbol));
-                topics.Add(("account.positionUpdate." + this.marketId(symbol)));
+                string? marketId = this.safeString(this.market(symbol), "id", "");
+                topics.Add(("account.positionUpdate." + marketId));
             }
         } else
         {
@@ -1887,7 +1888,8 @@ public partial class backpack : ccxt.backpack
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 messageHashes.Add((("unsubscribe:positions" + ":") + symbol));
-                topics.Add(("account.positionUpdate." + this.marketId(symbol)));
+                string? marketId = this.safeString(this.market(symbol), "id", "");
+                topics.Add(("account.positionUpdate." + marketId));
             }
         } else
         {

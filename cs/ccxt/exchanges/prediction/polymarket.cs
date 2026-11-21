@@ -1063,10 +1063,10 @@ public partial class polymarket : PredictionExchange
             List<object> outcomes = new List<object>() {};
             for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
             {
-                object outcomeLabel = outcomeLabels[oi];
-                object clobTokenId = (clobTokenIds != null && oi < clobTokenIds.Count ? clobTokenIds[oi] : null);
+                string? outcomeLabel = this.safeString(outcomeLabels, oi);
+                string? clobTokenId = this.safeString(clobTokenIds, oi);
                 double? outcomePrice = this.safeNumber(outcomePrices, oi);
-                if (((clobTokenId == null)) || ((clobTokenId is "")))
+                if (((clobTokenId == null)) || (clobTokenId == ""))
                 {
                     continue;
                 }
@@ -1079,12 +1079,12 @@ public partial class polymarket : PredictionExchange
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
-                    if ((outcomePrice >= 0.99))
+                    if (outcomePrice >= 0.99)
                     {
                         winnerRaw = true;
                         settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
-                    } else if (isGreaterThanOrEqual(0.01, outcomePrice))
+                    } else if (0.01 >= outcomePrice.Value)
                     {
                         winnerRaw = false;
                         settleFractionRaw = 0;
@@ -1434,7 +1434,7 @@ public partial class polymarket : PredictionExchange
             for (Int64 i = startIndex; (i < endIndex); i++)
             {
                 bookParams.Add(new Dictionary<string, object>() {
-                    { "token_id", (tokenIds != null && i < tokenIds.Count ? tokenIds[(int)i] : null) },
+                    { "token_id", this.safeString(tokenIds, i) },
                 });
             }
             List<object> promises = new List<object> {this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)};
@@ -3102,9 +3102,11 @@ public partial class polymarket : PredictionExchange
             // title match (the caller can override); the other venues search exactly and need no
             // such default. inject the defaults as explicit params so the shared pipeline stays
             // the single behaviour definition
-            effectiveParams = this.extend(new Dictionary<string, object>() {}, parameters);
-            effectiveParams["status"] = this.safeString(parameters, "status", "active");
-            effectiveParams["searchIn"] = this.safeString(parameters, "searchIn", "title");
+            Dictionary<string, object> defaults = new Dictionary<string, object>() {
+                { "status", this.safeString(parameters, "status", "active") },
+                { "searchIn", this.safeString(parameters, "searchIn", "title") },
+            };
+            effectiveParams = this.extend(parameters, defaults);
         }
         return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, effectiveParams, queries));
     }
@@ -3347,7 +3349,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr151195 && ((hxArr151195 is IList<object>) || (hxArr151195.GetType().IsGenericType && hxArr151195.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr151279 && ((hxArr151279 is IList<object>) || (hxArr151279.GetType().IsGenericType && hxArr151279.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3962,7 +3964,7 @@ public partial class polymarket : PredictionExchange
             mid = bestAsk;
         }
         IDictionary<string, object> market = this.safeOutcome(outcomeValue);
-        return ccxt.BaseExchange.ToTicker(this.safePredictionTicker(new Dictionary<string, object>() {             { "outcome", outcomeValue },             { "outcomeId", this.safeString(market, "outcomeId") },             { "label", this.safeString(market, "label") },             { "market", this.safeString(market, "market") },             { "timestamp", getValue(orderbook, "timestamp") },             { "datetime", getValue(orderbook, "datetime") },             { "high", null },             { "low", null },             { "bid", bestBid },             { "bidVolume", bestBidVolume },             { "ask", bestAsk },             { "askVolume", bestAskVolume },             { "vwap", null },             { "open", null },             { "close", mid },             { "last", mid },             { "previousClose", null },             { "change", null },             { "percentage", null },             { "average", mid },             { "baseVolume", null },             { "quoteVolume", null },             { "info", orderbook },         }, market));
+        return ccxt.BaseExchange.ToTicker(this.safePredictionTicker(new Dictionary<string, object>() {             { "outcome", outcomeValue },             { "outcomeId", this.safeString(market, "outcomeId") },             { "label", this.safeString(market, "label") },             { "market", this.safeString(market, "market") },             { "timestamp", this.safeInteger(orderbook, "timestamp") },             { "datetime", this.safeString(orderbook, "datetime") },             { "high", null },             { "low", null },             { "bid", bestBid },             { "bidVolume", bestBidVolume },             { "ask", bestAsk },             { "askVolume", bestAskVolume },             { "vwap", null },             { "open", null },             { "close", mid },             { "last", mid },             { "previousClose", null },             { "change", null },             { "percentage", null },             { "average", mid },             { "baseVolume", null },             { "quoteVolume", null },             { "info", orderbook },         }, market));
     }
 
     /**

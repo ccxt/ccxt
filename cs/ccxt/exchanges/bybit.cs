@@ -2489,8 +2489,8 @@ public partial class bybit : Exchange
                 quote = "USDT";
             }
         }
-        string? strike = this.safeString(optionParts, 2);
-        string? optionType = this.safeString(optionParts, 3);
+        string? strike = this.safeString(optionParts, 2, "");
+        string? optionType = this.safeString(optionParts, 3, "");
         string? datetime = this.convertExpireDate(expiry);
         double? amountPrecision = null;
         double? pricePrecision = null;
@@ -2860,21 +2860,21 @@ public partial class bybit : Exchange
         }
         for (int i = 0; i < (types?.Count ?? 0); i++)
         {
-            object marketType = types[i];
-            if ((marketType is "spot"))
+            string? marketType = this.safeString(types, i);
+            if (marketType == "spot")
             {
                 promisesUnresolved.Add(this.FetchSpotMarkets(parameters));
-            } else if ((marketType is "linear"))
+            } else if (marketType == "linear")
             {
                 promisesUnresolved.Add(this.FetchFutureMarkets(new Dictionary<string, object>() {
                     { "category", "linear" },
                 }));
-            } else if ((marketType is "inverse"))
+            } else if (marketType == "inverse")
             {
                 promisesUnresolved.Add(this.FetchFutureMarkets(new Dictionary<string, object>() {
                     { "category", "inverse" },
                 }));
-            } else if ((marketType is "option"))
+            } else if (marketType == "option")
             {
                 List<object> optionsCurrencies = this.safeList(fetchMarketsOptions, "options", new List<object>() {"BTC", "ETH", "SOL"});
                 for (int j = 0; j < optionsCurrencies.Count; j++)
@@ -2886,7 +2886,7 @@ public partial class bybit : Exchange
                 }
             } else
             {
-                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + (marketType)) + "\" is not a supported market type")) ;
+                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesUnresolved);
@@ -4089,11 +4089,14 @@ public partial class bybit : Exchange
         IDictionary<string, object> data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> tickerList = this.safeList(data, "list", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "time");
+        List<object> rows = new List<object>() {};
         for (int i = 0; i < tickerList.Count; i++)
         {
-            ((IDictionary<string,object>)tickerList[i])["timestamp"] = timestamp; // will be removed inside the parser
+            rows.Add(this.extend(tickerList[i], new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            })); // will be removed inside the parser
         }
-        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(tickerList, symbolsNormalized));
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rows, symbolsNormalized));
     }
 
     /**
@@ -4362,7 +4365,8 @@ public partial class bybit : Exchange
         string? id = this.safeStringN(trade, new List<object>() {"execId", "id", "tradeId"});
         string? marketId = this.safeString(trade, "symbol");
         string? marketType = "spot";
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("createType")))
+        string? createType = this.safeString(trade, "createType");
+        if ((createType != null))
         {
             marketType = "contract";
         }
@@ -5153,7 +5157,8 @@ public partial class bybit : Exchange
             }
         }
         string? marketId = this.safeString(order, "symbol");
-        bool isContract = ((order != null && ((IDictionary<string, object>)order).ContainsKey("tpslMode")));
+        string? tpslMode = this.safeString(order, "tpslMode");
+        bool isContract = ((tpslMode != null));
         string? marketType = null;
         if ((market != null))
         {
@@ -5816,8 +5821,8 @@ public partial class bybit : Exchange
             orderSymbols.Add(marketId);
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
             orderRequest.Remove("category");
@@ -6055,8 +6060,8 @@ public partial class bybit : Exchange
             string? id = this.safeString(rawOrder, "id");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
             orderRequest.Remove("category");
@@ -7704,7 +7709,8 @@ public partial class bybit : Exchange
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         double? feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
         string type = "withdrawal";
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("depositFee")))
+        string? depositFee = this.safeString(transaction, "depositFee");
+        if ((depositFee != null))
         {
             type = "deposit";
         }
@@ -11922,7 +11928,9 @@ public partial class bybit : Exchange
                 {
                     signature = this.hmac(authFull, this.secret, sha256);
                 }
-                requestHeaders["X-BAPI-SIGN"] = signature;
+                requestHeaders = this.extend(requestHeaders, new Dictionary<string, object>() {
+                    { "X-BAPI-SIGN", signature },
+                });
             } else
             {
                 Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {

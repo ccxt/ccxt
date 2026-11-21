@@ -1733,14 +1733,14 @@ public partial class derive : Exchange
             request["instrument_name"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         Int64? limitResolved = limit;
-        if ((limit != null) && (limit > 1000))
+        if ((limit != null) && limit > 1000)
         {
             limitResolved = 1000;
         }
         if ((limit != null))
         {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            Int64? pageSize = ((limit > 500)) ? 1000 : (limit * 2); // default 100, max 1000
+            Int64? pageSize = (limit > 500) ? 1000 : (limit * 2); // default 100, max 1000
             request["page_size"] = pageSize;
         }
         if ((since != null))
@@ -1868,7 +1868,7 @@ public partial class derive : Exchange
         for (int i = 0; i < (tradesArray?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawTrade = ((IDictionary<string, object>)tradesArray[i]);
-            bool isFetchTrades = !(rawTrade.ContainsKey("order_id"));
+            bool isFetchTrades = ((this.safeString(rawTrade, "order_id") == null));
             string? liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (isFetchTrades && (liquidityRole == "maker"))
             {

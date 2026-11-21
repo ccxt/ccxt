@@ -811,7 +811,7 @@ public partial class coinspot : Exchange
             Dictionary<string, object> market = this.safeMarket(id);
             if ((this.safeBool(market, "spot", false) == true))
             {
-                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+                string? symbol = this.safeString(market, "symbol", "");
                 object ticker = (id != null && prices.ContainsKey(id) ? prices[id] : null);
                 result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
             }

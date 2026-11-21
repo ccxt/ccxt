@@ -2635,11 +2635,14 @@ public partial class hyperliquid : PredictionExchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("byType")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("type"))))
         {
-            object type = ((IDictionary<string,object>)parameters)["type"];
+            string? type = this.safeString(parameters, "type");
             object byType = ((IDictionary<string,object>)config)["byType"];
-            if (inOp(byType, type))
+            if ((type != null))
             {
-                return getValue(byType, type);
+                if (inOp(byType, type))
+                {
+                    return this.safeInteger(byType, type);
+                }
             }
         }
         return this.safeValue(config, "cost", 1);

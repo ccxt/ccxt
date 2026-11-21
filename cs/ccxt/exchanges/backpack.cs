@@ -1253,7 +1253,8 @@ public partial class backpack : Exchange
         {
             throw new BadRequest ((this.id + " fetchStockIndicativeQuote() requires buy or sell")) ;
         }
-        if (((amount == null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        string? amountString = this.numberToString(amount);
+        if (((amountString == null)) || !Precise.stringGt(amountString, "0"))
         {
             throw new InvalidOrder ((this.id + " fetchStockIndicativeQuote() requires a positive base share quantity")) ;
         }
@@ -1463,7 +1464,8 @@ public partial class backpack : Exchange
             object accepted = await this.acceptRfqQuote(id, quoteId, this.safeSymbol(null, market), acceptParams);
             return ccxt.BaseExchange.ToConversion(this.parseConversion(accepted, this.currency(((string)fromCode)), this.currency(((string)toCode))));
         }
-        if (((amount == null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        string? amountString = this.numberToString(amount);
+        if (((amountString == null)) || !Precise.stringGt(amountString, "0"))
         {
             throw new ArgumentsRequired ((this.id + " createConvertTrade() requires a positive amount")) ;
         }
@@ -2969,7 +2971,8 @@ public partial class backpack : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() requires buy or sell")) ;
         }
-        if (((amount == null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        string? amountString = this.numberToString(amount);
+        if (((amountString == null)) || !Precise.stringGt(amountString, "0"))
         {
             throw new InvalidOrder ((this.id + " createOrder() RFQs require a positive base quantity")) ;
         }

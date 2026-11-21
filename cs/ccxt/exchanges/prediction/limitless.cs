@@ -1724,19 +1724,20 @@ public partial class limitless : PredictionExchange
                 bucketOrder.Add(key);
             } else
             {
-                List<object> candle = ((List<object>)((key != null && candles.ContainsKey(key) ? candles[key] : null)));
-                double? prevHigh = this.safeNumber(candle, 2);
-                if (((prevHigh == null)) || ((pPrice != null && (prevHigh == null || pPrice > prevHigh))))
+                double? prevHigh = this.safeNumber((key != null && candles.ContainsKey(key) ? candles[key] : null), 2, pPrice);
+                double? prevLow = this.safeNumber((key != null && candles.ContainsKey(key) ? candles[key] : null), 3, pPrice);
+                Int64? openTs = this.safeInteger((key != null && candles.ContainsKey(key) ? candles[key] : null), 0);
+                double? openPrice = this.safeNumber((key != null && candles.ContainsKey(key) ? candles[key] : null), 1);
+                if (((prevHigh != null)) && (pPrice.Value > prevHigh.Value))
                 {
-                    candle[Convert.ToInt32(2)] = pPrice;
-                }
-                double? prevLow = this.safeNumber(candle, 3);
-                if (((prevLow == null)) || ((prevLow != null && (pPrice == null || prevLow > pPrice))))
+                    candles[(string)key] = new List<object>() {openTs, openPrice, pPrice, prevLow, pPrice, 0};
+                } else if (((prevLow != null)) && (prevLow.Value > pPrice.Value))
                 {
-                    candle[Convert.ToInt32(3)] = pPrice;
+                    candles[(string)key] = new List<object>() {openTs, openPrice, prevHigh, pPrice, pPrice, 0};
+                } else
+                {
+                    candles[(string)key] = new List<object>() {openTs, openPrice, prevHigh, prevLow, pPrice, 0};
                 }
-                candle[Convert.ToInt32(4)] = pPrice;
-                candles[(string)key] = candle; // php arrays are value types - write the mutation back
             }
         }
         List<object> result = new List<object>() {};

@@ -941,7 +941,8 @@ public partial class phemex : Exchange
         {
             inverse = true;
             // some unhandled cases
-            if (!((market != null && ((IDictionary<string, object>)market).ContainsKey("baseCurrency"))) && (bs == quote))
+            string? marketBaseCurrency = this.safeString(market, "baseCurrency");
+            if (((marketBaseCurrency == null)) && (bs == quote))
             {
                 bs = settle;
             }
@@ -1525,7 +1526,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Orderbook(this.extend(request, parameters));
         } else
         {
-            if (((limit != null)) && ((limit == null || limit <= 30)))
+            if (((limit != null)) && (limit.Value <= 30))
             {
                 response = await this.v1GetMdOrderbook(this.extend(request, parameters));
             } else
@@ -2224,8 +2225,8 @@ public partial class phemex : Exchange
         //     "ptFeeRv": "0.110012249248",
         //     "ptPriceRp": "0.876524893"
         //
-        object priceString = null;
-        object amountString = null;
+        string? priceString = null;
+        string? amountString = null;
         Int64? timestamp = null;
         string? id = null;
         string? side = null;
@@ -3143,7 +3144,12 @@ public partial class phemex : Exchange
             request["qtyType"] = qtyType;
             if (qtyType == "ByQuote")
             {
-                double? cost = this.safeNumber(orderParams, "cost");
+                double? costParam = this.safeNumber(orderParams, "cost");
+                double? cost = amount;
+                if ((costParam != null))
+                {
+                    cost = this.safeNumber(orderParams, "cost");
+                }
                 orderParams = this.omit(orderParams, "cost");
                 if ((this.safeBool(this.options, "createOrderByQuoteRequiresPrice", false) == true))
                 {
@@ -3153,12 +3159,11 @@ public partial class phemex : Exchange
                         string? priceString = this.numberToString(price);
                         string? quoteAmount = Precise.stringMul(amountString, priceString);
                         cost = this.parseNumber(quoteAmount);
-                    } else if ((cost == null))
+                    } else if ((costParam == null))
                     {
                         throw new ArgumentsRequired ((((this.id + " createOrder() ") + qtyType) + " requires a price argument or a cost parameter")) ;
                     }
                 }
-                cost = ((cost == null)) ? amount : cost;
                 string? costString = this.costToPrecision(symbol, cost);
                 request["quoteQtyEv"] = this.toEv(costString, market);
             } else
@@ -3660,9 +3665,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList170521))
+        if ((data is IList<object> hxList170731))
         {
-            int numOrders = hxList170521.Count;
+            int numOrders = hxList170731.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))
@@ -4816,7 +4821,7 @@ public partial class phemex : Exchange
         };
         if ((limit != null))
         {
-            if ((limit > 200))
+            if (limit > 200)
             {
                 throw new BadRequest ((this.id + " fetchFundingHistory() limit argument cannot exceed 200")) ;
             }

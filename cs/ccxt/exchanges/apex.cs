@@ -927,7 +927,7 @@ public partial class apex : Exchange
             { "symbol", this.safeString(market, "id2") },
         };
         // default is 200 when requested with `since`, max 200
-        Int64? limitResolved = ((limit == null) || (limit > 200)) ? 200 : limit;
+        Int64? limitResolved = ((limit == null) || limit > 200) ? 200 : limit;
         request["limit"] = limitResolved;
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, parameters, 0.001);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -981,7 +981,11 @@ public partial class apex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id2") },
         };
-        request["limit"] = ((limit == null)) ? 100 : limit; // max 100, default 100
+        request["limit"] = 100; // max 100, default 100
+        if ((limit != null))
+        {
+            request["limit"] = limit;
+        }
         Dictionary<string, object> response = await this.publicGetV3Depth(this.extend(request, parameters));
         //
         // {
@@ -1409,7 +1413,7 @@ public partial class apex : Exchange
                     int numMarkets = getArrayLength(markets);
                     for (int i = 0; i < numMarkets; i++)
                     {
-                        if (((i == 0)) && (isEqual(getValue(getValue(markets, i), "id2"), marketId)))
+                        if (((i == 0)) && (isEqual(this.safeString(getValue(markets, i), "id2"), marketId)))
                         {
                             marketResolved = getValue(markets, i);
                         }

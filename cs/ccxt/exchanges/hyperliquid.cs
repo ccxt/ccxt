@@ -830,7 +830,7 @@ public partial class hyperliquid : Exchange
             string? decimalPart = this.safeString(priceSplitted, 1, "");
             // Count the number of leading zeros in the decimal part
             Int64? leadingZeros = 0;
-            while (((leadingZeros == null || leadingZeros <= decimalPart.Length)) && (isEqual((decimalPart != null && leadingZeros != null ? decimalPart[Convert.ToInt32(leadingZeros.Value)].ToString () : null), "0")))
+            while (((leadingZeros == null || leadingZeros <= decimalPart.Length)) && (((decimalPart != null && leadingZeros != null ? decimalPart[Convert.ToInt32(leadingZeros.Value)].ToString () : null) == "0")))
             {
                 leadingZeros = (leadingZeros + 1);
             }
@@ -1640,14 +1640,19 @@ public partial class hyperliquid : Exchange
             }
         }
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"until"});
+        Dictionary<string, object> req = new Dictionary<string, object>() {
+            { "coin", (market.ContainsKey("id") ? market["id"] : null) },
+            { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
+            { "startTime", startTime },
+            { "endTime", until },
+        };
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            req["coin"] = this.safeString(market, "baseName");
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "candleSnapshot" },
-            { "req", new Dictionary<string, object>() {
-                { "coin", (this.safeBool(market, "swap", false) == true) ? this.safeString(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
-                { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
-                { "startTime", startTime },
-                { "endTime", until },
-            } },
+            { "req", req },
         };
         object candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
         List<object> candles = this.infoList(candlesResponse);
@@ -2519,8 +2524,8 @@ public partial class hyperliquid : Exchange
         List<object> ordersToBeParsed = new List<object>() {};
         for (int i = 0; i < statuses.Count; i++)
         {
-            object order = statuses[i];
-            if ((order is "waitingForTrigger"))
+            object order = (statuses != null && i < statuses.Count ? statuses[i] : null);
+            if ((this.safeString(statuses, i) == "waitingForTrigger"))
             {
                 ordersToBeParsed.Add(new Dictionary<string, object>() {
                     { "status", order },
@@ -4887,14 +4892,19 @@ public partial class hyperliquid : Exchange
             string? destinationDex = this.safeString(paramsSendAsset, "destinationDex", defaultDex);
             Dictionary<string, object> sendAssetPayload = new Dictionary<string, object>() {
                 { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
-                { "destination", isDeposit ? subAccountAddress : masterAddress },
+                { "destination", masterAddress },
                 { "sourceDex", sourceDex },
                 { "destinationDex", destinationDex },
                 { "token", sendAssetToken },
                 { "amount", this.numberToString(amount) },
-                { "fromSubAccount", isDeposit ? "" : subAccountAddress },
+                { "fromSubAccount", subAccountAddress },
                 { "nonce", nonce },
             };
+            if (isDeposit)
+            {
+                sendAssetPayload["destination"] = subAccountAddress;
+                sendAssetPayload["fromSubAccount"] = "";
+            }
             Dictionary<string, object> sendAssetSig = this.buildSendAssetSig(sendAssetPayload);
             Dictionary<string, object> sendAssetRequest = new Dictionary<string, object>() {
                 { "action", new Dictionary<string, object>() {
@@ -5927,13 +5937,13 @@ public partial class hyperliquid : Exchange
     public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("type"))))
+        string? type = this.safeString(parameters, "type");
+        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && ((type != null)))
         {
-            object type = ((IDictionary<string,object>)parameters)["type"];
             IDictionary<string, object> byType = this.safeDict(config, "byType", new Dictionary<string, object>() {});
-            if ((byType != null && type is string inOpKey1 && byType.ContainsKey(inOpKey1)))
+            if (((type != null) && byType.ContainsKey(type)))
             {
-                return (byType != null && type != null && byType.ContainsKey((string)type) ? byType[(string)type] : null);
+                return (byType.ContainsKey(type) ? byType[type] : null);
             }
         }
         return this.safeNumber(config, "cost", 1);

@@ -104,7 +104,7 @@ public partial class luno : ccxt.luno
         {
             return;
         }
-        object symbol = getValue(subscription, "symbol");
+        string? symbol = this.safeString(subscription, "symbol", "");
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + symbolValue);

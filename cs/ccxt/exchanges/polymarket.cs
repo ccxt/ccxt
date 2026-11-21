@@ -1719,7 +1719,7 @@ public partial class polymarket : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object deadline = 0;
-        if (((timeout != null)) && ((timeout > 0)))
+        if (((timeout != null)) && (timeout > 0))
         {
             deadline = this.sum(this.milliseconds(), timeout);
         }
@@ -3091,11 +3091,19 @@ public partial class polymarket : Exchange
         config ??= new Dictionary<string, object>();
         if ((path == "account/orders"))
         {
-            return (inOp(parameters, "order_id")) ? 1 : 10;
+            if ((this.safeString(parameters, "order_id") != null))
+            {
+                return 1;
+            }
+            return 10;
         }
         if ((path == "account/open-orders"))
         {
-            return (inOp(parameters, "instrument_id")) ? 1 : 20;
+            if ((this.safeString(parameters, "instrument_id") != null))
+            {
+                return 1;
+            }
+            return 20;
         }
         if (((path == "trade/orders")) || ((path == "trade/orders-coid")))
         {
@@ -3183,7 +3191,7 @@ public partial class polymarket : Exchange
         //     }
         //
         object source = response;
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((code >= 400)))
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && (code >= 400))
         {
             // request-level failures of the batch trade endpoints arrive
             // wrapped into a single-element array of the same error shape

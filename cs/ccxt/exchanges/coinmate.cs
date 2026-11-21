@@ -570,7 +570,7 @@ public partial class coinmate : Exchange
         {
             string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
-            IDictionary<string, object> balance = this.safeDict(balances, currencyId);
+            IDictionary<string, object> balance = this.safeDict(balances, currencyId, new Dictionary<string, object>() {});
             Dictionary<string, object> account = this.account();
             account["free"] = this.safeString(balance, "available");
             account["used"] = this.safeString(balance, "reserved");
@@ -665,7 +665,7 @@ public partial class coinmate : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -1432,7 +1432,7 @@ public partial class coinmate : Exchange
             market = this.market(symbol);
         }
         Dictionary<string, object> response = await this.privatePostOrderById(this.extend(request, parameters));
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1464,7 +1464,7 @@ public partial class coinmate : Exchange
         //        }
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data);
     }
 

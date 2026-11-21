@@ -512,7 +512,12 @@ public partial class htx : ccxt.htx
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        Int64? limitResolved = this.parseToInt(((limit == null)) ? this.safeInteger(options, "depth", 150) : limit);
+        Int64? limitValue = limit;
+        if ((limit == null))
+        {
+            limitValue = this.safeInteger(options, "depth", 150);
+        }
+        Int64? limitResolved = this.parseToInt(limitValue);
         if (!this.inArray(limitResolved, allowedLimits))
         {
             throw new ExchangeError ((this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
@@ -1793,7 +1798,8 @@ public partial class htx : ccxt.htx
         }
         IDictionary<string, object> market = null;
         string messageHash = "";
-        if ((!this.isEmpty(symbols)) && ((symbols != null)))
+        bool hasMarket = (!this.isEmpty(symbols)) && ((symbols != null));
+        if (hasMarket)
         {
             market = this.getMarketFromSymbols(symbols);
             messageHash = ("::" + String.Join(",", symbols.ToArray()));
@@ -1801,7 +1807,7 @@ public partial class htx : ccxt.htx
         string? type = null;
         string? subType = null;
         object paramsSubType = new Dictionary<string, object>() {};
-        if ((market != null))
+        if (hasMarket)
         {
             type = this.safeString(market, "type");
             if ((this.safeBool(market, "linear", false) == true))
@@ -1822,7 +1828,7 @@ public partial class htx : ccxt.htx
             paramsSubType = subTypeparamsSubTypeVariable.Item2;
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        object paramsPositions = ((market != null)) ? parameters : paramsSubType;
+        object paramsPositions = hasMarket ? parameters : paramsSubType;
         (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
         string marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
@@ -3030,7 +3036,7 @@ public partial class htx : ccxt.htx
             {
                 string? contractCode = this.safeString(message, "contract_code");
                 Dictionary<string, object> market = ((contractCode != null)) ? this.safeMarket(contractCode) : null;
-                if ((data is IList<object> hxList122545))
+                if ((data is IList<object> hxList122645))
                 {
                     List<object> dataList = this.safeList(message, "data", new List<object>() {});
                     for (int i = 0; i < dataList.Count; i++)

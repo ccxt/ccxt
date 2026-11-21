@@ -967,7 +967,11 @@ public partial class bitopro : Exchange
         };
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        Int64? limitResolved = this.parseToInt(((limit == null)) ? 500 : Math.Min(limit.Value, 75000));
+        Int64? limitResolved = 500;
+        if ((limit != null))
+        {
+            limitResolved = this.parseToInt(Math.Min(limit.Value, 75000));
+        }
         int timeframeInSeconds = this.parseTimeframe(timeframeVar);
         Int64? alignedSince = null;
         if ((since == null))
@@ -1124,7 +1128,11 @@ public partial class bitopro : Exchange
             { "4", "canceled" },
             { "6", "canceled" },
         };
-        return ((string?)((object)(((status == null)) ? null : this.safeString(statuses, status))));
+        if ((status == null))
+        {
+            return null;
+        }
+        return this.safeString(statuses, status);
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)

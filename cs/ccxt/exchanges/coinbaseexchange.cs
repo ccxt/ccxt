@@ -1542,7 +1542,11 @@ public partial class coinbaseexchange : Exchange
         Int64? until = this.safeInteger2(paramsPaginate, "until", "end");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        Int64? cappedLimit = this.parseToInt(((limit == null)) ? 300 : Math.Min(limit.Value, 300));
+        Int64? cappedLimit = 300;
+        if ((limit != null))
+        {
+            cappedLimit = this.parseToInt(Math.Min(limit.Value, 300));
+        }
         Int64? limitResolved = ((since != null)) ? cappedLimit : limit;
         if ((since != null))
         {
@@ -2261,7 +2265,7 @@ public partial class coinbaseexchange : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> response = null;
+        List<object> response = null;
         if ((id == null))
         {
             List<object> transfers = await this.privateGetTransfers(this.extend(request, parameters));
@@ -2293,13 +2297,15 @@ public partial class coinbaseexchange : Exchange
             //        }
             //    ]
             //
-            response = transfers;
-            for (int i = 0; i < (response?.Count ?? 0); i++)
+            IList<object> transferRows = transfers;
+            response = new List<object>() {};
+            for (int i = 0; i < (transferRows?.Count ?? 0); i++)
             {
-                string? account_id = this.safeString(response[i], "account_id");
+                Dictionary<string, object> row = this.extend(new Dictionary<string, object>() {}, transferRows[i]);
+                string? account_id = this.safeString(row, "account_id");
                 IDictionary<string, object> account = this.safeDict(this.accountsById, account_id);
-                string? codeInner = this.safeString(account, "code");
-                ((IDictionary<string,object>)response[i])["currency"] = codeInner;
+                row["currency"] = this.safeString(account, "code");
+                response.Add(row);
             }
         } else
         {
@@ -2330,10 +2336,13 @@ public partial class coinbaseexchange : Exchange
             //        }
             //    ]
             //
-            response = accountTransfers;
-            for (int i = 0; i < (response?.Count ?? 0); i++)
+            IList<object> transferRows = accountTransfers;
+            response = new List<object>() {};
+            for (int i = 0; i < (transferRows?.Count ?? 0); i++)
             {
-                ((IDictionary<string,object>)response[i])["currency"] = code;
+                Dictionary<string, object> row = this.extend(new Dictionary<string, object>() {}, transferRows[i]);
+                row["currency"] = code;
+                response.Add(row);
             }
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));

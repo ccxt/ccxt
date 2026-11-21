@@ -605,7 +605,7 @@ public partial class woofipro : ccxt.woofipro
         //
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? price = this.safeString2(trade, "executedPrice", "price");
         string? amount = this.safeString2(trade, "executedQuantity", "size");
         string? cost = Precise.stringMul(price, amount);
@@ -905,7 +905,7 @@ public partial class woofipro : ccxt.woofipro
         string? orderId = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.market(marketId);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "totalFee") },
@@ -1252,7 +1252,7 @@ public partial class woofipro : ccxt.woofipro
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
             newPositions.Add(position);
             cache.append(position);
-            string? positionSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? positionSymbol = this.safeString(market, "symbol", "");
             string messageHash = ("positions::" + positionSymbol);
             client.resolve(position, messageHash);
         }

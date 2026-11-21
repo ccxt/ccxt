@@ -1088,7 +1088,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         for (int i = 0; i < symbolsAndTimeframesLength; i++)
         {
             object current = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
-            string? currentTimeframe = this.safeString(current, 1);
+            string? currentTimeframe = this.safeString(current, 1, "");
             string? resolution = this.safeString(this.timeframes, currentTimeframe, currentTimeframe);
             Dictionary<string, object> market = this.market(this.safeString(current, 0));
             channels.Add(((("chart.trades." + this.safeString(market, "id", "")) + ".") + resolution));
@@ -1151,7 +1151,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         for (int i = 0; i < symbolsAndTimeframesLength; i++)
         {
             object current = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
-            string? timeframe = this.safeString(current, 1);
+            string? timeframe = this.safeString(current, 1, "");
             string? resolution = this.safeString(this.timeframes, timeframe, timeframe);
             Dictionary<string, object> market = this.market(this.safeString(current, 0));
             channels.Add(((("chart.trades." + this.safeString(market, "id", "")) + ".") + resolution));

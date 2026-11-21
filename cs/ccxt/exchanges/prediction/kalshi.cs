@@ -633,9 +633,10 @@ public partial class kalshi : PredictionExchange
         }
         for (int i = 0; i < outcomeSymbolsLength; i++)
         {
-            if (!this.hasOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null)))
+            string? pendingSymbol = this.safeString(outcomeSymbols, i, "");
+            if (!this.hasOutcome(pendingSymbol))
             {
-                await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
+                await this.FetchOutcome(pendingSymbol);
             }
         }
         return this.outcomes;
@@ -2873,7 +2874,7 @@ public partial class kalshi : PredictionExchange
                     }
                 }
                 Dictionary<string, object> request = new Dictionary<string, object>() {
-                    { "series_ticker", (seriesTickers != null && si < seriesTickers.Count ? seriesTickers[si] : null) },
+                    { "series_ticker", this.safeString(seriesTickers, si) },
                     { "status", status },
                     { "with_nested_markets", true },
                     { "limit", reqLimit },

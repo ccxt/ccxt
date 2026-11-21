@@ -1610,7 +1610,7 @@ public partial class aster : Exchange
         string? id = this.safeString2(trade, "id", "a");
         string? marketId = this.safeString(trade, "symbol");
         string marketType = "spot";
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("positionSide")))
+        if ((this.safeString(trade, "positionSide") != null))
         {
             marketType = "swap";
         }
@@ -1910,14 +1910,14 @@ public partial class aster : Exchange
         string? baseVolume = this.safeString(ticker, "volume");
         string? high = this.safeString(ticker, "highPrice");
         string? low = this.safeString(ticker, "lowPrice");
-        bool isTickerResponse = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("priceChange")));
+        bool isTickerResponse = ((this.safeString(ticker, "priceChange") != null));
         string? marketType = null;
         if (isTickerResponse)
         {
-            marketType = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("baseAsset"))) ? "spot" : "swap";
+            marketType = ((this.safeString(ticker, "baseAsset") != null)) ? "spot" : "swap";
         } else
         {
-            marketType = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("lastUpdateId"))) ? "swap" : "spot";
+            marketType = (!(this.safeInteger(ticker, "lastUpdateId") == null)) ? "swap" : "spot";
         }
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
@@ -4149,7 +4149,7 @@ public partial class aster : Exchange
         double? contractSize = this.safeNumber(marketResolved, "contractSize");
         string? contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        bool linear = ((position != null && position.ContainsKey("notional")));
+        bool linear = ((this.safeString(position, "notional") != null));
         if (marginMode == "cross")
         {
             // calculate collateral

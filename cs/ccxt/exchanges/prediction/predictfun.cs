@@ -1808,8 +1808,14 @@ public partial class predictfun : PredictionExchange
         {
             string? feeType = this.safeString(rawFee, "type");
             string? feeCost = this.safeString(rawFee, "amount");
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            string? feeCurrency = null;
+            if (feeType == "COLLATERAL")
+            {
+                feeCurrency = "USDT";
+            }
             fee = new Dictionary<string, object>() {
-                { "currency", (feeType == "COLLATERAL") ? "USDT" : null },
+                { "currency", feeCurrency },
                 { "cost", this.parseNumber(Precise.stringDiv(feeCost, "1000000000000000000")) },
             };
         }
@@ -3670,7 +3676,7 @@ public partial class predictfun : PredictionExchange
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
-            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3666_32) ? cachedValue3666_32 : null);
+            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3672_32) ? cachedValue3672_32 : null);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             if ((this.safeString(info, "marketId") == marketId))
             {
@@ -4100,8 +4106,14 @@ public partial class predictfun : PredictionExchange
         if ((rawFee != null))
         {
             string? feeType = this.safeString(rawFee, "type");
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            string? feeCurrency = null;
+            if (feeType == "COLLATERAL")
+            {
+                feeCurrency = "USDT";
+            }
             fee = new Dictionary<string, object>() {
-                { "currency", (feeType == "COLLATERAL") ? "USDT" : null },
+                { "currency", feeCurrency },
                 { "cost", this.parseNumber(Precise.stringDiv(this.safeString(rawFee, "amountWei"), "1000000000000000000")) },
             };
         }

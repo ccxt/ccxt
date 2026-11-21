@@ -1302,11 +1302,11 @@ public partial class bitflyer : Exchange
         string? type = null;
         string? status = null;
         Dictionary<string, object> fee = null;
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("fee")))
+        string? feeCost = this.safeString(transaction, "fee");
+        if ((feeCost != null))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
-            string? feeCost = this.safeString(transaction, "fee");
             string? additionalFee = this.safeString(transaction, "additional_fee");
             fee = new Dictionary<string, object>() {
                 { "currency", code },

@@ -1067,7 +1067,7 @@ public partial class krakenfutures : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, "price");
-        Int64? windowLimit = (((limit == null)) || ((limit > 2000))) ? 2000 : limit;
+        Int64? windowLimit = (((limit == null)) || (limit > 2000)) ? 2000 : limit;
         Int64? windowSize = this.parseToInt(windowLimit);
         Int64? limitResolved = null;
         if (((since != null)) || ((limit != null)))

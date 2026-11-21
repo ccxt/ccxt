@@ -795,7 +795,7 @@ public partial class bitfinex : Exchange
     public virtual bool isFiat(string? code)
     {
         IDictionary<string, object> fiat = this.safeDict(this.options, "fiat", new Dictionary<string, object>() {});
-        return ((fiat != null && code != null && fiat.ContainsKey(code)));
+        return (this.safeString(fiat, code) != null);
     }
 
     public virtual string? getCurrencyName(string? code)
@@ -3200,7 +3200,9 @@ public partial class bitfinex : Exchange
                 { "percentage", true },
                 { "tierBased", true },
             };
-            if ((fiat != null && (market.ContainsKey("quote") ? market["quote"] : null) is string inOpKey1 && fiat.ContainsKey(inOpKey1)))
+            string? quote = this.safeString(market, "quote");
+            string? fiatQuote = this.safeString(fiat, quote);
+            if ((fiatQuote != null))
             {
                 fee["maker"] = makerFeeFiat;
                 fee["taker"] = takerFeeFiat;

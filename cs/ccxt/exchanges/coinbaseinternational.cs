@@ -1495,7 +1495,7 @@ public partial class coinbaseinternational : Exchange
             if (this.isNativeDeribitCredentials())
             {
                 List<object> depths = new List<object>() {1, 5, 10, 20, 50, 100, 1000, 10000};
-                if (((limit < 1)) || ((limit > 10000)))
+                if ((limit.Value < 1) || (limit > 10000))
                 {
                     throw new BadRequest ((this.id + " fetchOrderBook() limit must be between 1 and 10000")) ;
                 }

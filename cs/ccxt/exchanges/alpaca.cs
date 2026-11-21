@@ -1056,7 +1056,7 @@ public partial class alpaca : Exchange
                 for (int i = 1; (i < paginationCalls); i++)
                 {
                     int ohlcvsLength = (ohlcvs?.Count ?? 0);
-                    if (((pageToken == null)) || (((limit != null)) && ((limit == null || ohlcvsLength >= limit))))
+                    if (((pageToken == null)) || (((limit != null)) && (ohlcvsLength >= limit.Value)))
                     {
                         break;
                     }

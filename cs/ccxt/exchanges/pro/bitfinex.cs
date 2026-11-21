@@ -72,7 +72,9 @@ public partial class bitfinex : ccxt.bitfinex
             bool? subChecksum = this.safeBool(sub, "checksum", false);
             if (((sub != null)) && subChecksum != true)
             {
-                ((IDictionary<string,object>)(client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash) ? client.subscriptions[messageHash] : null))["checksum"] = true;
+                Dictionary<string, object> subUpdated = this.extend(new Dictionary<string, object>() {}, sub);
+                subUpdated["checksum"] = true;
+                ((IDictionary<string,object>)client.subscriptions)[messageHash] = subUpdated;
                 await client.send(new Dictionary<string, object>() {
                     { "event", "conf" },
                     { "flags", 131072 },

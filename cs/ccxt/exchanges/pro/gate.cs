@@ -383,7 +383,7 @@ public partial class gate : ccxt.gate
         }
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
-        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
+        IDictionary<string, object> requestParams = ((IDictionary<string, object>)((IList<object>) requestrequestParamsVariable)[1]);
         string messageType = this.getTypeByMarket(market);
         string channel = (messageType + ".order_status");
         string? url = this.getUrlByMarket(market);
@@ -1041,11 +1041,11 @@ public partial class gate : ccxt.gate
         {
             marketType = "contract";
         }
-        object result = this.safeValue(message, "result");
+        List<object> resultList = this.safeList(message, "result");
         List<object> results = new List<object>() {};
-        if (((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((resultList != null))
         {
-            results = this.safeList(message, "result", new List<object>() {});
+            results = resultList;
         } else
         {
             IDictionary<string, object> rawTicker = this.safeDict(message, "result", new Dictionary<string, object>() {});
@@ -1207,7 +1207,7 @@ public partial class gate : ccxt.gate
         //
         object rawResult = this.safeValue(message, "result");
         List<object> result = new List<object>() {};
-        if ((rawResult is IList<object> hxList52990))
+        if ((rawResult is IList<object> hxList52968))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else
@@ -1365,14 +1365,14 @@ public partial class gate : ccxt.gate
         {
             marketType = "spot";
         }
-        object rawResult = this.safeValue(message, "result");
+        List<object> resultList = this.safeList(message, "result");
         List<object> result = new List<object>() {};
-        if ((rawResult is IList<object> hxList60100))
+        if ((resultList != null))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else
         {
-            result = new List<object>() {rawResult};
+            result = new List<object> {this.safeValue(message, "result")};
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < (result?.Count ?? 0); i++)
@@ -1643,9 +1643,11 @@ public partial class gate : ccxt.gate
         //
         List<object> result = this.safeList(message, "result", new List<object>() {});
         this.balance["info"] = result;
-        for (int i = 0; i < result.Count; i++)
+        List<object> rows = this.safeList(message, "result", new List<object>() {});
+        int rowsLength = rows.Count;
+        for (int i = 0; i < rowsLength; i++)
         {
-            IDictionary<string, object> rawBalance = this.safeDict(result, i);
+            IDictionary<string, object> rawBalance = this.safeDict(rows, i);
             Dictionary<string, object> account = this.account();
             string? currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             string? code = this.safeCurrencyCode(currencyId);
@@ -2039,22 +2041,23 @@ public partial class gate : ccxt.gate
         IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> parsed = ((IDictionary<string, object>)parsedOrders[i]);
             // inject order status
-            IDictionary<string, object> info = this.safeDict(parsed, "info");
+            IDictionary<string, object> info = this.safeDict(parsedOrders[i], "info");
             string? eventVar = this.safeString(info, "event");
+            Dictionary<string, object> statusUpdate = new Dictionary<string, object>() {};
             if (eventVar == "put" || eventVar == "update")
             {
-                parsed["status"] = "open";
+                statusUpdate["status"] = "open";
             } else if (eventVar == "finish")
             {
-                string? status = this.safeString(parsed, "status");
+                string? status = this.safeString(parsedOrders[i], "status");
                 if ((status == null))
                 {
                     string? left = this.safeString(info, "left");
-                    parsed["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
+                    statusUpdate["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
                 }
             }
+            Dictionary<string, object> parsed = this.extend(parsedOrders[i], statusUpdate);
             stored.append(parsed);
             string? symbol = this.safeString(parsed, "symbol");
             Dictionary<string, object> market = this.market(symbol);

@@ -1101,11 +1101,11 @@ public partial class paradex : Exchange
         List<object> parts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         int partsLength = parts.Count;
         string? bs = null;
-        string? quote = null;
+        string? quote = "";
         string? settle = null;
         string? expiryDate = null;
         string? strike = null;
-        string? optionType = null;
+        string? optionType = "";
         if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
         {
             if ((partsLength != 4))
@@ -1117,11 +1117,11 @@ public partial class paradex : Exchange
             bs = this.safeString(pairParts, 0);
             string? quoteAndSettle = this.safeString(pairParts, 1, "");
             List<object> quoteParts = quoteAndSettle.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
-            quote = this.safeString(quoteParts, 0);
+            quote = this.safeString(quoteParts, 0, "");
             settle = this.safeString(quoteParts, 1, quote);
             expiryDate = this.safeString(parts, 1);
             strike = this.safeString(parts, 2);
-            optionType = this.safeString(parts, 3);
+            optionType = this.safeString(parts, 3, "");
         } else
         {
             if ((partsLength != 5))
@@ -1129,12 +1129,12 @@ public partial class paradex : Exchange
                 throw new BadSymbol ((string)((this.id + " does not have market symbol ") + (symbol))) ;
             }
             bs = this.safeString(parts, 0);
-            quote = this.safeString(parts, 1);
+            quote = this.safeString(parts, 1, "");
             settle = "USDC"; // every option on the venue settles in USDC
             expiryDate = this.convertMarketIdExpireDate(this.safeString(parts, 2));
             string? strikeId = ((string)(parts != null && 3 < parts.Count ? parts[3] : null));
             strike = strikeId.Replace("_", (string)".");
-            optionType = this.safeString(parts, 4);
+            optionType = this.safeString(parts, 4, "");
         }
         // the id carries the day without a leading zero, 6NOV26
         string? idDate = ((string)this.convertExpireDateToMarketIdDate(expiryDate));
@@ -1405,7 +1405,7 @@ public partial class paradex : Exchange
         bool hasEnd = ((requestUntil != null && requestUntil.ContainsKey("end_at")));
         Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, new List<object>() {"price"});
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
-        Int64? limitResolved = (((limit == null)) || ((limit > 1000))) ? 1000 : limit;
+        Int64? limitResolved = (((limit == null)) || (limit > 1000)) ? 1000 : limit;
         Int64? windowLength = this.parseToInt(((duration * ((this.parseToInt(limitResolved) + 1))) * 1000));
         if ((since != null))
         {
@@ -1501,7 +1501,7 @@ public partial class paradex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "results", new List<object>() {});
-        if ((((object)(request["market"])) is "ALL"))
+        if ((this.safeString(request, "market") == "ALL"))
         {
             return ccxt.BaseExchange.ToTickers(this.parseTickers(this.filterLoadedSummaries(data), symbolsNormalized));
         }
@@ -1693,7 +1693,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> response = await this.publicGetMarketsSummary(this.extend(request, parameters));
         List<object> data = this.safeList(response, "results", new List<object>() {});
         // only a perpetual funds, the other rows are dropped before they are parsed
-        if ((((object)(request["market"])) is "ALL"))
+        if ((this.safeString(request, "market") == "ALL"))
         {
             return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(this.filterLoadedSummaries(data, "swap"), symbolsNormalized));
         }
@@ -4224,7 +4224,7 @@ public partial class paradex : Exchange
         //
         List<object> results = this.safeList(response, "results", new List<object>() {});
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        if ((((object)(request["market"])) is "ALL"))
+        if ((this.safeString(request, "market") == "ALL"))
         {
             return ccxt.BaseExchange.ToAllGreeks(this.parseAllGreeks(this.filterLoadedSummaries(results, "option"), symbolsNormalized));
         }
@@ -4597,10 +4597,11 @@ public partial class paradex : Exchange
             (Int64?, object) paginationCallsparamsCallsVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "paginationCalls", 10);
             Int64? paginationCalls = paginationCallsparamsCallsVariable.Item1;
             IDictionary<string, object> paramsCalls = ((IDictionary<string, object>)paginationCallsparamsCallsVariable.Item2);
-            object endAt = this.safeInteger(paramsCalls, "until");
-            if ((((object)(endAt)) == null))
+            Int64? until = this.safeInteger(paramsCalls, "until");
+            object endAt = Math.Min(this.milliseconds(), this.sum(since, ((paginationCalls * 5000) * rowSpacing)));
+            if ((until != null))
             {
-                endAt = Math.Min(this.milliseconds(), this.sum(since, ((paginationCalls * 5000) * rowSpacing)));
+                endAt = until;
             }
             Dictionary<string, object> paramsEndAt = this.extend(this.omit(paramsPaginate, "until"), new Dictionary<string, object>() {
                 { "end_at", endAt },
@@ -4828,7 +4829,7 @@ public partial class paradex : Exchange
         string feedback = ((this.id + " ") + (body));
         if ((errorCode == null))
         {
-            if (((code >= 400)) && ((message != null)))
+            if ((code >= 400) && ((message != null)))
             {
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             }

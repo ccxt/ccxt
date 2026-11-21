@@ -1672,7 +1672,11 @@ public partial class bingx : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        Int64? requestLimit = this.parseToInt(((limit == null)) ? 500 : Math.Min(limit.Value, maxLimit));
+        Int64? requestLimit = 500;
+        if ((limit != null))
+        {
+            requestLimit = this.parseToInt(Math.Min(limit.Value, maxLimit));
+        }
         if ((since != null))
         {
             request["startTime"] = Math.Max((since.Value - 1), 0);
@@ -1706,10 +1710,7 @@ public partial class bingx : Exchange
             (Int64?, object) timeZoneparamsTimeZoneVariable = this.handleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0);
             Int64? timeZone = timeZoneparamsTimeZoneVariable.Item1;
             IDictionary<string, object> paramsTimeZone = ((IDictionary<string, object>)timeZoneparamsTimeZoneVariable.Item2);
-            if (!(timeZone == null))
-            {
-                request["timeZone"] = timeZone;
-            }
+            request["timeZone"] = timeZone;
             response = await this.spotV1PublicGetMarketKline(this.extend(request, paramsTimeZone));
         } else
         {
@@ -2048,11 +2049,12 @@ public partial class bingx : Exchange
             takeOrMaker = isMaker == true ? "maker" : "taker";
         }
         string? amount = isSpotExecution ? this.safeString(trade, "l") : this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
-        if (((market != null)) && (this.safeBool(market, "swap", false) == true) && ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("volume"))))
+        string? volume = this.safeString(trade, "volume");
+        if (((market != null)) && (this.safeBool(market, "swap", false) == true) && ((volume != null)))
         {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
-            amount = this.safeString(trade, "volume");
+            amount = volume;
         }
         string? price = isSpotExecution ? this.safeString(trade, "L") : this.safeStringN(trade, new List<object>() {"price", "p", "tradePrice"});
         if (((market != null)) && (this.safeBool(market, "linear", false) == true) && ((this.safeString(trade, "x") == "TRADE")))
@@ -2897,13 +2899,26 @@ public partial class bingx : Exchange
         if ((subType == "inverse"))
         {
             response = await this.cswapV1PublicGetMarketPremiumIndex(this.extend(request, paramsSubType));
+            //
+            // {
+            //     "code": 0,
+            //     "msg": "",
+            //     "timestamp": 1728577213289,
+            //     "data": [
+            //         {
+            //             "symbol": "ETH-USD",
+            //             "lastFundingRate": "0.0001",
+            //             "markPrice": "2402.68",
+            //             "indexPrice": "2404.92",
+            //             "nextFundingTime": 1728604800000
+            //         }
+            //     ]
+            // }
+            //
+            return this.parseTicker(this.safeDict((response != null && response.ContainsKey("data") ? response["data"] : null), 0, new Dictionary<string, object>() {}), market);
         } else
         {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType));
-        }
-        if ((((response != null && response.ContainsKey("data") ? response["data"] : null)) is var hxArr112287 && ((hxArr112287 is IList<object>) || (hxArr112287.GetType().IsGenericType && hxArr112287.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            return this.parseTicker(this.safeDict((response != null && response.ContainsKey("data") ? response["data"] : null), 0, new Dictionary<string, object>() {}), market);
         }
         return this.parseTicker((response != null && response.ContainsKey("data") ? response["data"] : null), market);
     }
@@ -4607,7 +4622,12 @@ public partial class bingx : Exchange
             marketType = "spot";
         }
         string? marketId = this.safeString2(orderData, "symbol", "s");
-        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? marketId : null, market, null, marketType);
+        string? marketIdOrUndefined = null;
+        if ((market == null))
+        {
+            marketIdOrUndefined = marketId;
+        }
+        Dictionary<string, object> marketResolved = this.safeMarket(marketIdOrUndefined, market, null, marketType);
         string? side = this.safeStringLower2(orderData, "side", "S");
         Int64? timestamp = this.safeIntegerN(orderData, new List<object>() {"time", "transactTime", "E", "createdTime"});
         string transactTime = this.safeString(orderData, "transactTime", "");
@@ -6116,7 +6136,7 @@ public partial class bingx : Exchange
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         string? rawType = this.safeString(transaction, "transferType");
         string type = "withdrawal";
-        if ((rawType == "0") || ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("insertTime"))))
+        if ((rawType == "0") || (!(this.safeInteger(transaction, "insertTime") == null)))
         {
             type = "deposit";
         }

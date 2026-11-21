@@ -1577,7 +1577,12 @@ public partial class digifinex : Exchange
         string? amountString = this.safeStringN(trade, new List<object>() {"amount", "volume", "size"});
         string? marketId = this.safeStringUpper2(trade, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market);
-        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? marketId : null, market);
+        string? marketIdResolved = null;
+        if ((market == null))
+        {
+            marketIdResolved = marketId;
+        }
+        Dictionary<string, object> marketResolved = this.safeMarket(marketIdResolved, market);
         Int64? timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         string? side = this.safeString2(trade, "type", "side");
         string? type = null;

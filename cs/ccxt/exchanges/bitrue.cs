@@ -2736,7 +2736,7 @@ public partial class bitrue : Exchange
         Int64? limitResolved = null;
         if ((limit != null))
         {
-            limitResolved = ((limit > 1000)) ? 1000 : limit;
+            limitResolved = (limit > 1000) ? 1000 : limit;
             request["limit"] = limitResolved;
         }
         if ((this.safeBool(market, "swap", false) == true))
@@ -3321,7 +3321,7 @@ public partial class bitrue : Exchange
         Int64? limitResolved = null;
         if ((limit != null))
         {
-            limitResolved = ((limit > 200)) ? 200 : limit;
+            limitResolved = (limit > 200) ? 200 : limit;
             request["limit"] = limitResolved;
         }
         Int64? until = this.safeInteger(parameters, "until");
@@ -3690,10 +3690,12 @@ public partial class bitrue : Exchange
     public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbol"))))
+        string? paramsSymbol = this.safeString(parameters, "symbol");
+        string? paramsLimit = this.safeString(parameters, "limit");
+        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && ((paramsSymbol == null)))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("limit"))))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((paramsLimit != null)))
         {
             Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});

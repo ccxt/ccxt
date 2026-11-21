@@ -1679,7 +1679,7 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (((limit != null)) && ((limit > 15)))
+        if (((limit != null)) && (limit > 15))
         {
             request["limit"] = 200; // default is 15, max is 200
         }

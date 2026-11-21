@@ -2148,9 +2148,9 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Int64? triggerAfter = 0;
-        if (((timeout != null)) && ((timeout > 0)))
+        if (((timeout != null)) && (timeout > 0))
         {
-            triggerAfter = ((timeout > 900000)) ? 900000 : timeout;
+            triggerAfter = (timeout > 900000) ? 900000 : timeout;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "triggerAfter", triggerAfter },

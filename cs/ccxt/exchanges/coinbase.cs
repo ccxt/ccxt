@@ -768,9 +768,9 @@ public partial class coinbase : Exchange
         string? cursor = this.safeString(pagination, "next_starting_after");
         List<object> accounts = this.safeList(response, "data", new List<object>() {});
         int length = accounts.Count;
-        int lastIndex = (length - 1);
-        if (((cursor != null)) && (cursor != ""))
+        if ((length > 0) && ((cursor != null)) && (cursor != ""))
         {
+            int lastIndex = (length - 1);
             ((List<object>)accounts)[Convert.ToInt32(lastIndex)] = this.extend(this.safeDict(accounts, lastIndex, new Dictionary<string, object>() {}), new Dictionary<string, object>() {
                 { "next_starting_after", cursor },
             });
@@ -4447,7 +4447,7 @@ public partial class coinbase : Exchange
         }
         int maxLimit = 300;
         Int64? limitValue = this.parseToInt(maxLimit);
-        if (((limit != null)) && ((limit < maxLimit)))
+        if (((limit != null)) && (limit.Value < maxLimit))
         {
             limitValue = this.parseToInt(limit);
         }

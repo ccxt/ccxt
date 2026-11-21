@@ -2208,7 +2208,7 @@ public partial class bittrade : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Int64? limitResolved = (((limit == null)) || ((limit > 100))) ? 100 : limit;
+        Int64? limitResolved = (((limit == null)) || (limit > 100)) ? 100 : limit;
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2246,7 +2246,7 @@ public partial class bittrade : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Int64? limitResolved = (((limit == null)) || ((limit > 100))) ? 100 : limit;
+        Int64? limitResolved = (((limit == null)) || (limit > 100)) ? 100 : limit;
         if ((this.markets == null))
         {
             await this.loadMarkets();

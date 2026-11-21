@@ -1148,17 +1148,18 @@ public partial class hitbtc : ccxt.hitbtc
             Int64? limit = this.safeInteger(this.options, "ordersLimit");
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        List<object> data = ((List<object>)this.safeValue(message, "params", new List<object>() {}));
-        if ((data is IList<object> hxList49580))
+        IDictionary<string, object> dataDict = this.safeDict(message, "params");
+        if ((dataDict != null))
         {
-            for (int i = 0; i < hxList49580.Count; i++)
-            {
-                object order = hxList49580[i];
-                this.handleOrderHelper(client, message, order);
-            }
+            this.handleOrderHelper(client, message, dataDict);
         } else
         {
-            this.handleOrderHelper(client, message, data);
+            List<object> data = this.safeList(message, "params", new List<object>() {});
+            for (int i = 0; i < data.Count; i++)
+            {
+                object order = data[i];
+                this.handleOrderHelper(client, message, order);
+            }
         }
         return message;
     }
@@ -1615,12 +1616,14 @@ public partial class hitbtc : ccxt.hitbtc
         //
         string? messageHash = this.safeString(message, "id");
         object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
-        if ((result is IList<object> hxList69410))
+        if ((result is IList<object> hxList69479))
         {
             List<object> parsedOrders = new List<object>() {};
-            for (int i = 0; i < hxList69410.Count; i++)
+            List<object> rows = this.safeList(message, "result", new List<object>() {});
+            int rowsLength = rows.Count;
+            for (int i = 0; i < rowsLength; i++)
             {
-                ccxt.Order parsedOrder = this.parseWsOrder(hxList69410[i]);
+                ccxt.Order parsedOrder = this.parseWsOrder((rows != null && i < rows.Count ? rows[i] : null));
                 parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
             }
             client.resolve(parsedOrders, messageHash);
@@ -1689,11 +1692,12 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if ((result is IList<object> hxList72009))
+            if ((result is IList<object> hxList72181))
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
-                int arrayLength = hxList72009.Count;
+                List<object> rows = this.safeList(message, "result", new List<object>() {});
+                int arrayLength = rows.Count;
                 if (((arrayLength == 0)) || (first.ContainsKey("client_order_id")))
                 {
                     this.handleOrderRequest(client, message);

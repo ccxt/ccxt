@@ -412,11 +412,12 @@ public partial class btcbox : Exchange
             Dictionary<string, object> currency = this.currency(code);
             string currencyId = this.safeString(currency, "id", "");
             string free = (currencyId + "_balance");
-            if (inOp(response, free))
+            string? freeValue = this.safeString(response, free);
+            if ((freeValue != null))
             {
                 Dictionary<string, object> account = this.account();
                 string used = (currencyId + "_lock");
-                account["free"] = this.safeString(response, free);
+                account["free"] = freeValue;
                 account["used"] = this.safeString(response, used);
                 result[(string)code] = account;
             }
@@ -942,7 +943,7 @@ public partial class btcbox : Exchange
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ((code >= 400))
+        if (code >= 400)
         {
             return null;  // resort to defaultErrorHandler
         }
