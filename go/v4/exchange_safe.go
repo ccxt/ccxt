@@ -1192,3 +1192,19 @@ func (this *BaseExchange) SafeListNSliceDefault(dictionaryOrList any, keys any, 
 	}
 	return defaultValue
 }
+
+// SafeStringList: the first present key's value, a list read as its elements' strings and any other
+// string or number as a one-element list; nil where no key holds one of those.
+func (this *BaseExchange) SafeStringList(dictionaryOrList any, keys []any) []string {
+	value := SafeValueN(dictionaryOrList, keys)
+	if value == nil {
+		return nil
+	}
+	if IsArray(value) {
+		return joinListValue(value)
+	}
+	if s, ok := SafeStringN([]any{value}, []any{0}, nil).(string); ok {
+		return []string{s}
+	}
+	return nil
+}

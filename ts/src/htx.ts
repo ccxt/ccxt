@@ -6020,16 +6020,11 @@ export default class htx extends Exchange {
         let query: Dict = this.omit (paramsMarketType, [ 'stop', 'stopLossTakeProfit', 'trigger' ]);
         let response = undefined;
         if (marketType === 'spot') {
-            let clientOrderIds = this.safeValue2 (query, 'client-order-id', 'clientOrderId');
-            clientOrderIds = this.safeValue2 (query, 'client-order-ids', 'clientOrderIds', clientOrderIds);
+            const clientOrderIds = this.safeStringList (query, [ 'client-order-ids', 'clientOrderIds', 'client-order-id', 'clientOrderId' ]);
             if (clientOrderIds === undefined) {
                 request['order-ids'] = ids;
             } else {
-                if (typeof clientOrderIds === 'string') {
-                    request['client-order-ids'] = [ clientOrderIds ];
-                } else {
-                    request['client-order-ids'] = clientOrderIds;
-                }
+                request['client-order-ids'] = clientOrderIds;
                 query = this.omit (query, [ 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ]);
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchcancel (this.extend (request, query));

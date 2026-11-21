@@ -1653,6 +1653,7 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'safeList': 'List<object>',
     'safeList2': 'List<object>',
     'safeListN': 'List<object>',
+    'safeStringList': 'List<object>',
     // Exchange.Time.cs (iso8601/ymd* are declared `string` but return null for a null input)
     'parse8601': 'Int64?',
     // parseDate (Exchange.Time.cs): a non-string / unparseable input returns null, every other
@@ -14198,6 +14199,8 @@ export const CSHARP_METHOD_RETURN_TYPES = {
     'parsePredictionTrades': 'IList<object>',
     'outcome': 'IDictionary<string, object>',
     'safeOutcomeSymbol': 'string?',
+    // safeStringList: every return is a fresh one-string list or the safeListN List<object>
+    'safeStringList': 'List<object>',
     // helpers returning the caller's dictionary: mergeBalanceAccount and grvt createSignedRequest return
     // their dict argument on every path, and every in-tree caller passes a fresh dict literal (the
     // local family: a dict-literal declaration whose last write is this call).

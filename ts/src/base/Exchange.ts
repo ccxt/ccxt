@@ -3337,6 +3337,20 @@ export class BaseExchange {
         return defaultValue;
     }
 
+    safeStringList (dictionaryOrList: any, keys: NullableIndexType[]): Strings {
+        /**
+         * @ignore
+         * @method
+         * @description a value that is a string or a list of strings by API contract, read as a list (a string becomes a one-element list)
+         * @returns {string[]|undefined}
+         */
+        const str = this.safeStringN (dictionaryOrList, keys);
+        if (str !== undefined) {
+            return [ str ];
+        }
+        return this.safeListN (dictionaryOrList, keys);
+    }
+
     safeList (dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];
     safeList (dictionaryOrList: any, key: NullableIndexType, defaultValue?: any[]): any[] | undefined;
     safeList (dictionaryOrList: any, key: NullableIndexType, defaultValue: NullableList = undefined): any[] | undefined {

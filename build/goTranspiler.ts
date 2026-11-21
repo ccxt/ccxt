@@ -14781,6 +14781,8 @@ ${constStatements.join('\n')}
             // Handle*AndParams pairs, MarketSymbols and MarketCodes, exchange_misc.go ImplodeHostname): drop the copies
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOptionAndParams2?', 'HandleOption(?:Bool|Integer)AndParams2?',
                 'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'HandleTriggerPricesAndParams', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname', 'MarketIds' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+            // safeStringList is hand-written in exchange_safe.go with its []string answer: drop the copy
+            [/func\s+\(this \*BaseExchange\)\s+SafeStringList\([^{]*\{[\s\S]*?\n\}\n/g, ''],
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*
