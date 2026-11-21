@@ -412,7 +412,7 @@ func (this *Htx) HandleTrades(client any, message map[string]any) map[string]any
 	//     }
 	//
 	var tick, _ = message["tick"].(map[string]any)
-	var data []any = ccxt.SafeListTyped(tick, "data")
+	var data, _ = tick["data"].([]any)
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -1094,7 +1094,7 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 }
 func (this *Htx) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
 		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
@@ -1104,7 +1104,7 @@ func (this *Htx) HandleOrderBookSubscription(client any, message map[string]any,
 		orderbook.Fields().Nonce = nil
 		orderbook.SetCache([]any{})
 	}
-	if *this.SafeBool(market, "spot", false) {
+	if market.Spot {
 		this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
 	}
 }
@@ -1165,9 +1165,17 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		}
 	} else {
 		typeVar = (*this.SafeString(this.Options, "defaultType", "spot"))
-		typeVar = ccxt.DerefScalar(this.SafeString(params, "type", typeVar))
+		if derefPtr := this.SafeString(params, "type", typeVar); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		subType = (*this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
-		subType = ccxt.DerefScalar(this.SafeString(params, "subType", subType))
+		if derefPtr := this.SafeString(params, "subType", subType); derefPtr != nil {
+			subType = *derefPtr
+		} else {
+			subType = nil
+		}
 	}
 	var symbolResolved *string
 	if market != nil {
@@ -1369,9 +1377,17 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		}
 	} else {
 		typeVar = (*this.SafeString(this.Options, "defaultType", "spot"))
-		typeVar = ccxt.DerefScalar(this.SafeString(params, "type", typeVar))
+		if derefPtr := this.SafeString(params, "type", typeVar); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		subType = (*this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
-		subType = ccxt.DerefScalar(this.SafeString(params, "subType", subType))
+		if derefPtr := this.SafeString(params, "subType", subType); derefPtr != nil {
+			subType = *derefPtr
+		} else {
+			subType = nil
+		}
 	}
 	var symbolResolved any = func() any {
 		if market != nil {
@@ -1956,12 +1972,7 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 	var side any = nil
 	if typeVar != nil {
 		var typeParts []string = ccxt.Split(typeVar, "-")
-		side = func() any {
-			if 0 >= 0 && 0 < len(typeParts) {
-				return typeParts[0]
-			}
-			return nil
-		}()
+		side = typeParts[0]
 		typeVar = func() any {
 			if 1 >= 0 && 1 < len(typeParts) {
 				return typeParts[1]
@@ -2542,7 +2553,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "ch")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(data, "changeTime", this.SafeInteger(message, "ts"))
 	if timestamp != nil {
 		this.Balance["timestamp"] = *timestamp
@@ -2575,10 +2586,10 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 		}
 		if topic != nil && *topic == "account" {
 			var accountData, _ = message["data"].(map[string]any)
-			var details []any = ccxt.SafeListTyped(accountData, "details")
+			var details, _ = accountData["details"].([]any)
 			var detailsLength int = len(details)
 			for i := 0; i < detailsLength; i++ {
-				var detail map[string]any = ccxt.SafeMapTyped(details, i)
+				var detail, _ = details[i].(map[string]any)
 				var currencyId *string = this.SafeString(detail, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				if code == nil {
@@ -2597,7 +2608,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 		if dataLength == 0 {
 			return
 		}
-		var first map[string]any = ccxt.SafeMapTyped(data, 0)
+		var first, _ = data[0].(map[string]any)
 		var splitTopic []string = strings.Split(*topic, ".")
 		var messageHash *string = this.SafeString(splitTopic, 0)
 		var subscription any = this.SafeDict2(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, ccxt.Add(messageHash, ".*"))
@@ -2660,7 +2671,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 			} else {
 				// isolated margin
 				for i := 0; i < len(data); i++ {
-					var isolatedBalance map[string]any = ccxt.SafeMapTyped(data, i)
+					var isolatedBalance, _ = data[i].(map[string]any)
 					var account map[string]any = this.Account()
 					account["free"] = this.SafeString(isolatedBalance, "margin_balance", "margin_available")
 					account["used"] = this.SafeString(isolatedBalance, "margin_frozen")
@@ -2675,7 +2686,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 		} else {
 			// inverse branch
 			for i := 0; i < len(data); i++ {
-				var balance map[string]any = ccxt.SafeMapTyped(data, i)
+				var balance, _ = data[i].(map[string]any)
 				var currencyId *string = this.SafeString(balance, "symbol")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()

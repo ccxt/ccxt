@@ -915,7 +915,7 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 	this.Balance[marketType] = this.SafeDict(this.Balance, marketType, map[string]any{})
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsBalance(message))
 	var marketBalance map[string]any = this.SafeDictMap(this.Balance, marketType, map[string]any{})
-	var reserved []any = []any{"free", "used", "total"}
+	var reserved []string = []string{"free", "used", "total"}
 	var keys []string = nil
 	if parsed != nil {
 		keys = make([]string, 0, len(parsed))
@@ -1264,8 +1264,14 @@ func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var data, _ = message["data"].([]any)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(first))
 	var symbol string = *this.SafeString(fundingRate, "symbol", "")
 	this.FundingRates[symbol] = fundingRate
@@ -1302,12 +1308,12 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 	}()
 	// if ccxt.OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
 	var isOHLCV bool = (channelName == "candle")
-	var symbolsRaw any = func() any {
-		if isOHLCV {
-			return this.GetListFromObjectValues(symbolsArray, 0)
-		}
-		return symbolsArray
-	}()
+	var symbolsRaw any
+	if isOHLCV {
+		symbolsRaw = this.GetListFromObjectValues(symbolsArray, 0)
+	} else {
+		symbolsRaw = symbolsArray
+	}
 	var symbols []string = this.MarketSymbols(symbolsRaw, nil, true, true)
 	var firstMarket map[string]any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)

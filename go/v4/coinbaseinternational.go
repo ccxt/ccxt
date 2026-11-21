@@ -869,18 +869,18 @@ func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
 			symbol = *base + "/" + *quote + ":" + *settle
 		}
 	}
-	var linear any = func() any {
-		if isSpot {
-			return nil
-		}
-		return (settle == quote || (settle != nil && quote != nil && *settle == *quote))
-	}()
-	var inverse any = func() any {
-		if isSpot {
-			return nil
-		}
-		return (settle != quote && (settle == nil || quote == nil || *settle != *quote))
-	}()
+	var linear any
+	if isSpot {
+		linear = nil
+	} else {
+		linear = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
+	}
+	var inverse any
+	if isSpot {
+		inverse = nil
+	} else {
+		inverse = (settle != quote && (settle == nil || quote == nil || *settle != *quote))
+	}
 	var marketSettle *string
 	if isSpot {
 		marketSettle = nil
@@ -2042,7 +2042,8 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan AsyncResult[Balances
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 	if !this.IsNativeDeribitCredentials() {
 		// Account summaries are arrays; retain the gateway info shape without dropping balances.
-		var summaries []any = SafeListTyped(result, "summaries")
+		var summaries []any
+		summaries, _ = result["summaries"].([]any)
 		if summaries != nil {
 
 			ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(summaries))}
@@ -3056,7 +3057,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 	//         }
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var order map[string]any = this.SafeDictMap(result, "order", map[string]any{})
 	var trades any = this.SafeList(result, "trades", []any{})
 	order["trades"] = trades
@@ -3884,8 +3885,12 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan AsyncResult[[]Trade
 	//         }
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
-	var trades []any = this.SafeListSlice(result, "trades", []any{})
+	var result, _ = response["result"].(map[string]any)
+	var trades []any
+	trades, _ = result["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil

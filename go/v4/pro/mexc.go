@@ -283,12 +283,12 @@ func (this *Mexc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchTickers", market, params)
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
-	var url any = func() any {
-		if isSpot {
-			return this.UrlsApiSections["ws"]["spot"]
-		}
-		return this.UrlsApiSections["ws"]["swap"]
-	}()
+	var url any
+	if isSpot {
+		url = this.UrlsApiSections["ws"]["spot"]
+	} else {
+		url = this.UrlsApiSections["ws"]["swap"]
+	}
 	var request map[string]any = map[string]any{}
 	if isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchTickers does not support spot markets"))
@@ -384,12 +384,12 @@ func (this *Mexc) HandleTickers(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var channelStartsWithSpot bool = strings.HasPrefix(channel, "spot")
 	var marketIdIsUndefined bool = (marketId == nil)
-	var isSpot any = func() any {
-		if marketIdIsUndefined {
-			return channelStartsWithSpot
-		}
-		return market["spot"]
-	}()
+	var isSpot any
+	if marketIdIsUndefined {
+		isSpot = channelStartsWithSpot
+	} else {
+		isSpot = market["spot"]
+	}
 	var spotPrefix string = "spot:"
 	var messageHashPrefix string = ""
 	if isSpot == true {
@@ -885,7 +885,11 @@ func (this *Mexc) HandleOHLCV(client any, message any) {
 		var d map[string]any = ccxt.SafeDict2Typed(message, "d", "data", map[string]any{})
 		var rawOhlcv map[string]any = this.SafeDictMap(d, "k", d)
 		var timeframeId *string = this.SafeString2(rawOhlcv, "i", "interval")
-		var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
+		var timeframes map[string]any
+		timeframes, _ = this.Options["timeframes"].(map[string]any)
+		if timeframes == nil {
+			timeframes = map[string]any{}
+		}
 		timeframe = this.FindTimeframe(timeframeId, timeframes)
 		var marketId *string = this.SafeString2(message, "s", "symbol")
 		market = this.SafeMarket(marketId)
@@ -1054,7 +1058,10 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any
 func (this *Mexc) GetCacheIndex(orderbook any, cache []any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
-	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
+	var firstDelta map[string]any
+	if len(cache) > 0 {
+		firstDelta, _ = cache[0].(map[string]any)
+	}
 	var firstDeltaNonce *int64 = this.SafeIntegerN(firstDelta, []any{"r", "version", "fromVersion"})
 	if (nonce == nil) || (firstDeltaNonce == nil) {
 		return int64(-1)
@@ -1063,7 +1070,7 @@ func (this *Mexc) GetCacheIndex(orderbook any, cache []any) any {
 		return int64(-1)
 	}
 	for i := 0; i < len(cache); i++ {
-		var delta map[string]any = ccxt.SafeMapTyped(cache, i)
+		var delta, _ = cache[i].(map[string]any)
 		var deltaNonce *int64 = this.SafeIntegerN(delta, []any{"r", "version", "fromVersion"})
 		if deltaNonce == nil {
 			continue
@@ -2250,12 +2257,12 @@ func (this *Mexc) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArg
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchTickers", market, params)
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
-	var url any = func() any {
-		if isSpot {
-			return this.UrlsApiSections["ws"]["spot"]
-		}
-		return this.UrlsApiSections["ws"]["swap"]
-	}()
+	var url any
+	if isSpot {
+		url = this.UrlsApiSections["ws"]["spot"]
+	} else {
+		url = this.UrlsApiSections["ws"]["swap"]
+	}
 	var request map[string]any = map[string]any{}
 	if isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchTickers does not support spot markets"))

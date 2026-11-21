@@ -1280,12 +1280,12 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	}
 	// every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
 	// symbol iteration order differs per language
-	var symbolsSorted any = func() any {
-		if symbols == nil {
-			return this.Sort(this.Symbols)
-		}
-		return symbols
-	}()
+	var symbolsSorted any
+	if symbols == nil {
+		symbolsSorted = this.Sort(this.Symbols)
+	} else {
+		symbolsSorted = symbols
+	}
 	var symbolsNormalized []string = this.MarketSymbols(symbolsSorted)
 	var loc *string = this.SafeString(params, "loc", "us")
 	var ids []string = this.MarketIdsStrings(symbolsNormalized)

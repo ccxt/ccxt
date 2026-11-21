@@ -61,7 +61,11 @@ func (this *Derive) Describe() map[string]any {
 	})
 }
 func (this *Derive) RequestId(url *string) int64 {
-	var options map[string]any = this.SafeDictMap(this.Options, "requestId", map[string]any{})
+	var options map[string]any
+	options, _ = this.Options["requestId"].(map[string]any)
+	if options == nil {
+		options = map[string]any{}
+	}
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
 	if url != nil {
@@ -180,12 +184,12 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 	var topic *string = this.SafeString(params, "channel")
 	if !(this.Orderbooks[*symbol] != nil) {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-		var subscription any = func() any {
-			if topic == nil {
-				return nil
-			}
-			return client.(ccxt.ClientInterface).SubscriptionGet(topic)
-		}()
+		var subscription any
+		if topic == nil {
+			subscription = nil
+		} else {
+			subscription = client.(ccxt.ClientInterface).SubscriptionGet(topic)
+		}
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
@@ -754,7 +758,7 @@ func (this *Derive) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	if !authenticated {
 		var requestId int64 = this.RequestId(url)
 		var now *string = this.NumberToString(this.Nonce())
-		var signature any = this.SignMessage(now, this.PrivateKey)
+		var signature string = this.SignMessage(now, this.PrivateKey)
 		var configuredWalletAddress *string = this.SafeString(this.Options, "deriveWalletAddress")
 		// v3: the owner wallet is the user's own EOA
 		var deriveWalletAddress string
@@ -942,7 +946,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 	//
 	var params, _ = message["params"].(map[string]any)
 	var topic *string = this.SafeString(params, "channel")
-	var rawOrders []any = ccxt.SafeListTyped(params, "data")
+	var rawOrders, _ = params["data"].([]any)
 	for i := 0; i < len(rawOrders); i++ {
 		var data any = rawOrders[i]
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
@@ -1124,7 +1128,7 @@ func (this *Derive) HandleMyTrade(client any, message map[string]any) {
 	}
 	var params, _ = message["params"].(map[string]any)
 	var topic *string = this.SafeString(params, "channel")
-	var rawTrades []any = ccxt.SafeListTyped(params, "data")
+	var rawTrades, _ = params["data"].([]any)
 	for i := 0; i < len(rawTrades); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrades[i]))
 		myTrades.Append(trade)
@@ -1316,7 +1320,11 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 			this.PositionsByType[*subaccountIdKey] = ccxt.NewArrayCacheBySymbolBySide()
 		}
 	}
-	var loadedSnapshots map[string]any = this.SafeDictMap(this.Options, "loadedPositionsSnapshots", map[string]any{})
+	var loadedSnapshots map[string]any
+	loadedSnapshots, _ = this.Options["loadedPositionsSnapshots"].(map[string]any)
+	if loadedSnapshots == nil {
+		loadedSnapshots = map[string]any{}
+	}
 	var subaccountIdKeyKnown bool
 	if subaccountIdKey != nil {
 		_, subaccountIdKeyKnown = loadedSnapshots[*subaccountIdKey]
@@ -1475,7 +1483,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 	var topic *string = this.SafeString(params, "channel", "")
 	var topicParts []string = strings.Split(*topic, ".")
 	var subaccountIdKey *string = this.SafeString(topicParts, 0)
-	var data []any = ccxt.SafeListTyped(params, "data")
+	var data, _ = params["data"].([]any)
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
@@ -1645,7 +1653,7 @@ func (this *Derive) HandleAuth(client any, message map[string]any) {
 	// }
 	//
 	var messageHash string = "authenticated"
-	var ids []any = ccxt.SafeListTyped(message, "result")
+	var ids, _ = message["result"].([]any)
 	var idsLength int = len(ids)
 	if idsLength > 0 {
 		// client.resolve (message, messageHash)

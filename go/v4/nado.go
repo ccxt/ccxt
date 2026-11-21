@@ -987,8 +987,9 @@ func (this *Nado) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		}
 		response = r3.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var cancelledOrders []any = SafeListTyped(data, "cancelled_orders")
+	var data, _ = response["data"].(map[string]any)
+	var cancelledOrders []any
+	cancelledOrders, _ = data["cancelled_orders"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{
@@ -1124,8 +1125,9 @@ func (this *Nado) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		}
 		response = r3.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var cancelledOrders []any = SafeListTyped(data, "cancelled_orders")
+	var data, _ = response["data"].(map[string]any)
+	var cancelledOrders []any
+	cancelledOrders, _ = data["cancelled_orders"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{
@@ -1611,7 +1613,8 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//     }
 	//
 	var closedOrders []any = []any{}
-	var orders []any = SafeListTyped(response, "orders")
+	var orders []any
+	orders, _ = response["orders"].([]any)
 	for i := 0; i < len(orders); i++ {
 		var order any = orders[i]
 		if this.IsArchiveOrderClosed(order) {
@@ -1802,8 +1805,10 @@ func (this *Nado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	//         ]
 	//     }
 	//
-	var matches []any = SafeListTyped(response, "matches")
-	var txs []any = SafeListTyped(response, "txs")
+	var matches []any
+	matches, _ = response["matches"].([]any)
+	var txs []any
+	txs, _ = response["txs"].([]any)
 	var txsBySubmission map[string]any = this.IndexBy(txs, "submission_idx")
 	var trades []any = []any{}
 	for i := 0; i < len(matches); i++ {
@@ -2054,8 +2059,10 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[[]Transac
 	//         ]
 	//     }
 	//
-	var events []any = SafeListTyped(response, "events")
-	var txs []any = SafeListTyped(response, "txs")
+	var events []any
+	events, _ = response["events"].([]any)
+	var txs []any
+	txs, _ = response["txs"].([]any)
 	var transactions []any = []any{}
 	for i := 0; i < len(events); i++ {
 		var event any = events[i]
@@ -2242,11 +2249,11 @@ func (this *Nado) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 		"type": "status",
 	}
 
-	r := <-this.GatewayPublicGetQuery(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.GatewayPublicGetQuery(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "status": "success",
@@ -2264,7 +2271,7 @@ func (this *Nado) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -2757,7 +2764,8 @@ func (this *Nado) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	//         "next_idx": "1314805"
 	//     }
 	//
-	var fundingPayments []any = SafeListTyped(response, "funding_payments")
+	var fundingPayments []any
+	fundingPayments, _ = response["funding_payments"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(fundingPayments); i++ {
 		result = append(result, this.ParseFundingHistory(fundingPayments[i], market))
@@ -3012,12 +3020,11 @@ func (this *Nado) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
 	var request map[string]any = map[string]any{
 		"ticker_id": tickerId,
-		"depth": func() any {
-			if limit == nil {
-				return 100
-			}
-			return limit
-		}(),
+	}
+	if limit == nil {
+		request["depth"] = 100
+	} else {
+		request["depth"] = limit
 	}
 
 	r1 := <-this.GatewayV2PublicGetOrderbook(this.Extend(request, params))
@@ -3997,12 +4004,12 @@ func (this *Nado) CreateSubaccount(walletAddress any, optionalArgs ...any) strin
 	if IsEqual(walletAddress, nil) {
 		panic(ArgumentsRequired(this.Id + " createSubaccount() requires walletAddress"))
 	}
-	var subaccountName any = func() any {
-		if subaccount == nil {
-			return "default"
-		}
-		return subaccount
-	}()
+	var subaccountName any
+	if subaccount == nil {
+		subaccountName = "default"
+	} else {
+		subaccountName = subaccount
+	}
 	var address string = strings.ToLower(this.Remove0xPrefix(walletAddress))
 	if len(address) != 40 {
 		panic(BadRequest(this.Id + " createOrder() requires a 20-byte walletAddress"))

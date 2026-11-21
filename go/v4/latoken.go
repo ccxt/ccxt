@@ -594,7 +594,11 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			panic(r.Err)
 		}
 	}
-	var currencies map[string]any = this.SafeDictMap(this.Options, "cachedCurrencies", map[string]any{})
+	var currencies map[string]any
+	currencies, _ = this.Options["cachedCurrencies"].(map[string]any)
+	if currencies == nil {
+		currencies = map[string]any{}
+	}
 	var currenciesById map[string]any = this.IndexBy(currencies, "id")
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
@@ -1004,8 +1008,10 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	// observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
 	// for over half an hour - such a level is a deleted level their
 	// aggregation failed to drop, so it is removed here
-	var rawAsks []any = SafeListTyped(response, "ask")
-	var rawBids []any = SafeListTyped(response, "bid")
+	var rawAsks []any
+	rawAsks, _ = response["ask"].([]any)
+	var rawBids []any
+	rawBids, _ = response["bid"].([]any)
 	var asks []any = []any{}
 	var bids []any = []any{}
 	for i := 0; i < len(rawAsks); i++ {
@@ -1457,11 +1463,11 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan AsyncResult[TradingFeeInt
 		"quote":    market["quoteId"],
 	}
 
-	r1 := <-this.PublicGetTradeFeeCurrencyQuote(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PublicGetTradeFeeCurrencyQuote(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	//
 	//     {
@@ -1472,7 +1478,7 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan AsyncResult[TradingFeeInt
 	//     }
 	//
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     market["symbol"],
 		"maker":      this.SafeNumber(response, "makerFee"),
 		"taker":      this.SafeNumber(response, "takerFee"),
@@ -1504,11 +1510,11 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan AsyncResult[TradingFeeIn
 		"quote":    market["quoteId"],
 	}
 
-	r1 := <-this.PrivateGetAuthTradeFeeCurrencyQuote(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetAuthTradeFeeCurrencyQuote(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	//
 	//     {
@@ -1519,7 +1525,7 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan AsyncResult[TradingFeeIn
 	//     }
 	//
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     market["symbol"],
 		"maker":      this.SafeNumber(response, "makerFee"),
 		"taker":      this.SafeNumber(response, "takerFee"),

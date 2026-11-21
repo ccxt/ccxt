@@ -190,7 +190,7 @@ func (this *Apex) HandleTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var trades []any = ccxt.SafeListTyped(message, "data")
+	var trades, _ = message["data"].([]any)
 	var topic *string = this.SafeString(message, "topic")
 	var parts []string = strings.Split(*topic, ".")
 	var marketId *string = this.SafeString(parts, 2)
@@ -770,7 +770,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	//         "type": "snapshot"
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var topic *string = this.SafeString(message, "topic")
 	var topicParts []string = strings.Split(*topic, ".")
 	var topicLength int = len(topicParts)

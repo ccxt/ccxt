@@ -1129,7 +1129,7 @@ func (this *BaseExchange) CreateSpotOrders(orders []OrderRequest, options ...Cre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateSpotOrdersAsync(orders, opts.Params)
+	r := <-this.CreateSpotOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1143,7 +1143,7 @@ func (this *BaseExchange) CreateContractOrders(orders []OrderRequest, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateContractOrdersAsync(orders, opts.Params)
+	r := <-this.CreateContractOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -2214,7 +2214,7 @@ func (this *Exchange) CreateOrdersWs(orders []OrderRequest, options ...CreateOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersWsAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersWsAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -3015,7 +3015,7 @@ func (this *Exchange) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

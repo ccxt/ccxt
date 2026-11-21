@@ -528,7 +528,8 @@ func (this *Luno) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	//         ]
 	//     }
 	//
-	var currenciesData []any = SafeListTyped(response, "data")
+	var currenciesData []any
+	currenciesData, _ = response["data"].([]any)
 	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
 	var values []any = nil
 	if grouped != nil {
@@ -657,12 +658,12 @@ func (this *Luno) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		// rates below are read from Luno's own Help Centre fee article for the ZAR
 		// market; markets quoted in other fiat currencies are left on the
 		// exchange-wide default until their schedules are verified the same way.
-		var fiats []any = []any{"ZAR"}
+		var fiats []string = []string{"ZAR"}
 		// live-but-unverified counters, kept on the exchange-wide default; the market
 		// list is geo-filtered so this is a superset of any one region's view, and
 		// ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-		var unverifiedQuotes []any = []any{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
-		var stablecoins []any = []any{"USDT", "USDC"}
+		var unverifiedQuotes []string = []string{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
+		var stablecoins []string = []string{"USDT", "USDC"}
 		var taker *float64 = nil
 		var maker *float64 = nil
 		if this.InArray(quote, fiats) {
@@ -1286,7 +1287,8 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var rawTickers []any = SafeListTyped(response, "tickers")
+	var rawTickers []any
+	rawTickers, _ = response["tickers"].([]any)
 	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
 	var ids []string = nil
 	if tickers != nil {
@@ -1736,11 +1738,11 @@ func (this *Luno) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 		"pair": market["id"],
 	}
 
-	r1 := <-this.PrivateGetFeeInfo(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetFeeInfo(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	//
 	//     {
@@ -1750,7 +1752,7 @@ func (this *Luno) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	//     }
 	//
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     symbol,
 		"maker":      this.SafeNumber(response, "maker_fee"),
 		"taker":      this.SafeNumber(response, "taker_fee"),
@@ -1906,12 +1908,12 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan AsyncResult[[]LedgerEntry], o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var entryValue any = func() any {
-		if entry == nil {
-			return int64(-1)
-		}
-		return entry
-	}()
+	var entryValue any
+	if entry == nil {
+		entryValue = int64(-1)
+	} else {
+		entryValue = entry
+	}
 	var limitValue int64
 	if limit == nil {
 		limitValue = 1

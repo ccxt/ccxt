@@ -193,7 +193,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		if (symbols == nil) && ((stock != nil && *stock) || (explicitSource != nil && *explicitSource == "External") || (channel != nil)) && (market["stock"] != true) {
 			continue
 		}
-		var marketSelection any = this.HandleStockParams(methodName, query, market)
+		var marketSelection []any = this.HandleStockParams(methodName, query, market)
 		var marketStock *bool = this.SafeBool(marketSelection, 0, false)
 		var marketParams map[string]any = this.SafeDictMap(marketSelection, 1, map[string]any{})
 		var isRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
@@ -211,7 +211,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 			"stock":  marketStock,
 			"source": source,
 		})
-		var request any = this.StockDataRequest(methodName, requestParams, market)
+		var request map[string]any = this.StockDataRequest(methodName, requestParams, market)
 		var tickerSymbol string = *this.SafeString(request, "symbol", "")
 		var topic string = "ticker." + tickerSymbol
 		if channel != nil {
@@ -1782,8 +1782,8 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 		// cache the triggering delta before a synchronous snapshot can inspect the cache
 		storedOrderBook.AppendCache(data)
 		// stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
-		var market map[string]any = this.Market(symbol)
-		var isStockMarket bool = (market["stock"] == true) || ((marketId != nil) && ((strings.Index(*marketId, ".US_") >= 0) || (strings.Index(*marketId, ".HK_") >= 0)))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var isStockMarket bool = (market.Stock != nil && *market.Stock) || ((marketId != nil) && ((strings.Index(*marketId, ".US_") >= 0) || (strings.Index(*marketId, ".HK_") >= 0)))
 		var defaultSnapshotDelay int
 		if isStockMarket {
 			defaultSnapshotDelay = 0
@@ -1823,7 +1823,10 @@ func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
 func (this *Backpack) GetCacheIndex(orderbook any, cache []any) any {
 	//
 	// {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
-	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
+	var firstDelta map[string]any
+	if len(cache) > 0 {
+		firstDelta, _ = cache[0].(map[string]any)
+	}
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDeltaStart *int64 = this.SafeInteger(firstDelta, "U")
 	var cacheLength int = len(cache)
@@ -1837,7 +1840,7 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache []any) any {
 		return int64(-1)
 	}
 	for i := 0; i < cacheLength; i++ {
-		var delta map[string]any = ccxt.SafeMapTyped(cache, i)
+		var delta, _ = cache[i].(map[string]any)
 		var deltaStart *int64 = this.SafeInteger(delta, "U")
 		var deltaEnd *int64 = this.SafeInteger(delta, "u")
 		if (deltaStart == nil) || (deltaEnd == nil) {
@@ -2231,7 +2234,11 @@ func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
 	if assetId == nil {
 		return false
 	}
-	var assets map[string]any = this.SafeDictMap(this.Options, "wsBalanceAssets", map[string]any{})
+	var assets map[string]any
+	assets, _ = this.Options["wsBalanceAssets"].(map[string]any)
+	if assets == nil {
+		assets = map[string]any{}
+	}
 	assets[*assetId] = map[string]any{
 		"available": this.SafeString(data, "A"),
 		"locked":    this.SafeString(data, "L"),

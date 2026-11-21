@@ -232,13 +232,16 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 func (this *Xt) GetCacheIndex(orderbook any, cache []any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
-	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
+	var firstDelta map[string]any
+	if len(cache) > 0 {
+		firstDelta, _ = cache[0].(map[string]any)
+	}
 	var firstDeltaNonce *int64 = this.SafeInteger2(firstDelta, "i", "u")
 	if (nonce != nil) && (firstDeltaNonce != nil) && (*nonce < *firstDeltaNonce-1) {
 		return int64(-1)
 	}
 	for i := 0; i < len(cache); i++ {
-		var delta map[string]any = ccxt.SafeMapTyped(cache, i)
+		var delta, _ = cache[i].(map[string]any)
 		var deltaNonce *int64 = this.SafeInteger2(delta, "i", "u")
 		if (deltaNonce != nil) && (nonce != nil) && (*deltaNonce >= *nonce) {
 			return i
@@ -1547,8 +1550,11 @@ func (this *Xt) HandleTickers(client any, message map[string]any) map[string]any
 	//        ]
 	//    }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var firstTicker map[string]any = ccxt.SafeMapTyped(data, 0)
+	var data, _ = message["data"].([]any)
+	var firstTicker map[string]any
+	if 0 < len(data) {
+		firstTicker, _ = data[0].(map[string]any)
+	}
 	var spotTest *string = this.SafeString2(firstTicker, "cv", "aq")
 	var tradeType string = "contract"
 	if spotTest != nil {
@@ -2137,10 +2143,10 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	if tradeSymbol == nil {
 		return
 	}
-	var market map[string]any = this.Market(tradeSymbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(tradeSymbol))
 	stored.Append(parsedTrade)
 	var tradeType string = "spot"
-	if *this.SafeBool(market, "contract", false) {
+	if market.Contract {
 		tradeType = "contract"
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+tradeType)
@@ -2169,12 +2175,12 @@ func (this *Xt) HandleMessage(client any, message map[string]any) {
 			"position":     this.HandlePosition,
 			"fund_rate":    this.HandleFundingRate,
 		}
-		var method any = func() any {
-			if topic == nil {
-				return nil
-			}
-			return this.SafeValue(methods, topic)
-		}()
+		var method any
+		if topic == nil {
+			method = nil
+		} else {
+			method = this.SafeValue(methods, topic)
+		}
 		if topic != nil && *topic == "trade" {
 			var data, _ = message["data"].(map[string]any)
 			_, has1 := data["oi"]

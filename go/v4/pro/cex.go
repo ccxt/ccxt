@@ -187,7 +187,11 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	if (currentSymbol != nil) && !ccxt.IsEqual(currentSymbol, symbol) {
 		panic(ccxt.ArgumentsRequired(this.Id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance"))
 	}
-	var watchTradesDict map[string]any = this.SafeDictMap(this.Options, "watchTrades", map[string]any{})
+	var watchTradesDict map[string]any
+	watchTradesDict, _ = this.Options["watchTrades"].(map[string]any)
+	if watchTradesDict == nil {
+		watchTradesDict = map[string]any{}
+	}
 	ccxt.AddElementToObject(watchTradesDict, "symbol", symbol)
 	this.Options["watchTrades"] = watchTradesDict
 	if this.Markets == nil {
@@ -298,7 +302,7 @@ func (this *Cex) HandleTrade(client any, message map[string]any) {
 }
 func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 	// elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var symbol *string = this.SafeString(this.Options["watchTrades"], "symbol")
 	if symbol == nil {
 		return
@@ -1524,7 +1528,7 @@ func (this *Cex) HandleOHLCV(client any, message map[string]any) {
 	//         "pair": "BTC:USD"
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var pair *string = this.SafeString(message, "pair")
 	var symbol string = this.PairToSymbol(pair)
 	if symbol == "" {

@@ -398,11 +398,11 @@ func (this *Coincheck) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetExchangeStatus(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetExchangeStatus(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "exchange_status": [
@@ -419,11 +419,12 @@ func (this *Coincheck) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 	//         ]
 	//     }
 	//
-	var exchangeStatuses []any = SafeListTyped(response, "exchange_status")
+	var exchangeStatuses []any
+	exchangeStatuses, _ = response["exchange_status"].([]any)
 	var status string = "ok"
 	var updated *int64 = nil
 	for i := 0; i < len(exchangeStatuses); i++ {
-		var exchangeStatus map[string]any = SafeMapTyped(exchangeStatuses, i)
+		var exchangeStatus, _ = exchangeStatuses[i].(map[string]any)
 		var rawStatus *string = this.SafeString(exchangeStatus, "status")
 		if updated == nil {
 			updated = this.SafeTimestamp(exchangeStatus, "timestamp")
@@ -438,7 +439,7 @@ func (this *Coincheck) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 		"updated": updated,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -1086,16 +1087,16 @@ func (this *Coincheck) createOrderBody(ch chan AsyncResult[Order], symbol string
 		request["amount"] = amount
 	}
 
-	r1 := <-this.PrivatePostExchangeOrders(this.Extend(request, this.Omit(params, "cost")))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostExchangeOrders(this.Extend(request, this.Omit(params, "cost")))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	var id *string = this.SafeString(response, "id")
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"id":   id,
-		"info": response,
+		"info": responseReply.Raw,
 	}, market)}
 	return nil
 }

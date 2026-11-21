@@ -585,7 +585,11 @@ func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 }
 func (this *Bitvavo) ParseMarkets(markets any) []any {
 	var result []any = []any{}
-	var defaultFees map[string]any = this.SafeDictMap(this.Fees, "trading", map[string]any{})
+	var defaultFees map[string]any
+	defaultFees, _ = this.Fees["trading"].(map[string]any)
+	if defaultFees == nil {
+		defaultFees = map[string]any{}
+	}
 	var feesByCategory, _ = this.Fees["byCategory"].(map[string]any)
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market map[string]any = SafeMapTyped(markets, i)
@@ -1918,11 +1922,11 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"symbol": currency["id"],
 	}
 
-	r1 := <-this.PrivateGetDeposit(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetDeposit(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
@@ -1934,7 +1938,7 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	this.CheckAddress(address)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": code,
 		"network":  nil,
 		"address":  address,
@@ -2143,7 +2147,7 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol string, typeVar string, 
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var amountRemaining *float64 = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"})
@@ -2173,7 +2177,10 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol string, typeVar string, 
 	} else {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
-	request["market"] = market["id"]
+	request["market"] = nil
+	if market.Id != nil {
+		request["market"] = *market.Id
+	}
 	return request
 }
 

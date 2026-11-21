@@ -761,7 +761,7 @@ func (this *Woo) HandleTickers(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -888,7 +888,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
@@ -1634,8 +1634,8 @@ func (this *Woo) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	_ = market
 	var orderId *string = this.SafeString2(order, "orderId", "algoOrderId")
 	var marketId *string = this.SafeString(order, "symbol")
-	var marketResolved map[string]any = this.Market(marketId)
-	var symbol *string = this.SafeString(marketResolved, "symbol")
+	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
+	var symbol *string = marketResolved.Symbol
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),

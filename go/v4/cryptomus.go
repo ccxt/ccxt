@@ -516,7 +516,8 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 	//         ]
 	//     }
 	//
-	var coins []any = SafeListTyped(response, "result")
+	var coins []any
+	coins, _ = response["result"].([]any)
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
 	var groupedArray []any = nil
 	if groupedById != nil {
@@ -793,10 +794,11 @@ func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var dataList []any = []any{}
 	if data != nil {
-		dataList = ArrayTyped(data)
+		dataList = data
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(dataList, market, since, limit))}
@@ -1169,7 +1171,8 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTyped(response, "result")
+	var result []any
+	result, _ = response["result"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(result); i++ {
 		orders = append(orders, OrderToMap(this.ParseOrder(result[i], market)))
@@ -1372,7 +1375,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) Order {
 	}, marketResolved)
 }
 func (this *Cryptomus) ParseOrderStatus(optionalArgs ...any) *string {
-	status := GetArg(optionalArgs, 0, nil)
+	var status *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = status
 	var statuses map[string]any = map[string]any{
 		"active":              "open",
@@ -1404,11 +1407,11 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PrivateGetV2UserApiExchangeAccountTariffs(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PrivateGetV2UserApiExchangeAccountTariffs(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         result: {
@@ -1475,7 +1478,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
-			"info":       response,
+			"info":       responseReply.Raw,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(makerFee),
 			"taker":      this.ParseNumber(takerFee),
@@ -1542,13 +1545,13 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) map[string]any {
 		var stringToSign string = jsonParamsBase64 + this.Secret
 		var signature string = this.HashString(this.Encode(stringToSign), md5, "hex")
 		privateHeaders["sign"] = signature
-		var privateBody *string = func() *string {
-			if method != "GET" {
-				retStr := jsonParams
-				return &retStr
-			}
-			return nil
-		}()
+		var privateBody *string
+		if method != "GET" {
+			retStr := jsonParams
+			privateBody = &retStr
+		} else {
+			privateBody = nil
+		}
 		return map[string]any{
 			"url":     url,
 			"method":  method,

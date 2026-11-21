@@ -79,7 +79,11 @@ func (this *Woofipro) Describe() map[string]any {
 	})
 }
 func (this *Woofipro) RequestId(url string) int64 {
-	var options map[string]any = this.SafeDictMap(this.Options, "requestId", map[string]any{})
+	var options map[string]any
+	options, _ = this.Options["requestId"].(map[string]any)
+	if options == nil {
+		options = map[string]any{}
+	}
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
 	options[url] = newValue
@@ -380,7 +384,7 @@ func (this *Woofipro) HandleTickers(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -460,7 +464,7 @@ func (this *Woofipro) HandleBidAsk(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1473,7 +1477,7 @@ func (this *Woofipro) HandlePositions(client any, message map[string]any) {
 	//    }
 	//
 	var data, _ = message["data"].(map[string]any)
-	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
+	var rawPositions, _ = data["positions"].([]any)
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}

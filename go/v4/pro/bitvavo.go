@@ -136,7 +136,7 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[[]any], me
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var messageHashes []any = []any{methodName}
+	var messageHashes []string = []string{methodName}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
@@ -255,7 +255,7 @@ func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
 	//
 	this.HandleBidAsk(client, message)
 	var event *string = this.SafeString(message, "event")
-	var tickers []any = ccxt.SafeListTyped(message, "data")
+	var tickers, _ = message["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
 		var data any = tickers[i]
@@ -320,7 +320,7 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 }
 func (this *Bitvavo) HandleBidAsk(client any, message map[string]any) {
 	var event string = "bidask"
-	var tickers []any = ccxt.SafeListTyped(message, "data")
+	var tickers, _ = message["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
 		var data any = tickers[i]
@@ -463,7 +463,7 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "trades"
 	var marketIds []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
@@ -685,7 +685,7 @@ func (this *Bitvavo) HandleOHLCV(client any, message map[string]any) {
 	// use a reverse lookup in a static map instead
 	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash string = name + "@" + *this.SafeString(message, "market", "") + "_" + *interval
-	var candles []any = ccxt.SafeListTyped(message, "candle")
+	var candles, _ = message["candle"].([]any)
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
@@ -743,7 +743,7 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 		}
 	}
 	var name string = "candles"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var marketIdsByInterval map[string]any = map[string]any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = symbolsAndTimeframes[i]
@@ -1014,7 +1014,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "book"
 	var marketIds []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
@@ -1299,7 +1299,11 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	var limits map[string]any = this.SafeDictMap(this.Options, "orderBookLimits", map[string]any{})
+	var limits map[string]any
+	limits, _ = this.Options["orderBookLimits"].(map[string]any)
+	if limits == nil {
+		limits = map[string]any{}
+	}
 	var storedLimit *int64 = this.SafeInteger(limits, symbol)
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) || (storedLimit != limit && (storedLimit == nil || limit == nil || *storedLimit != *limit)) {
 		if symbol != nil {

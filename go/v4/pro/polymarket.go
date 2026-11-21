@@ -392,7 +392,7 @@ func (this *Polymarket) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var channels []string = []string{}
 	if symbolsNormalized == nil {
 		messageHashes = append(messageHashes, "tickers")
@@ -489,7 +489,7 @@ func (this *Polymarket) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]cc
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var channels []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
@@ -890,7 +890,7 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	var rows []any = ccxt.SafeListTyped(message, "data")
+	var rows, _ = message["data"].([]any)
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
 		return

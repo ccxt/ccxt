@@ -710,7 +710,8 @@ func (this *Foxbit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	//      }
 	//    ]
 	//  }
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any
 	if 0 < len(data) {
 		result, _ = data[0].(map[string]any)
@@ -827,7 +828,8 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	//         "taker": "0.005"
 	//     }
 	// ]
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var entry any = data[i]
@@ -876,12 +878,11 @@ func (this *Foxbit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var defaultLimit int = 20
 	var request map[string]any = map[string]any{
 		"market": market["id"],
-		"depth": func() any {
-			if limit == nil {
-				return defaultLimit
-			}
-			return limit
-		}(),
+	}
+	if limit == nil {
+		request["depth"] = defaultLimit
+	} else {
+		request["depth"] = limit
 	}
 
 	r1 := <-this.V3PublicGetMarketsMarketOrderbook(this.Extend(request, params))
@@ -1088,11 +1089,11 @@ func (this *Foxbit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		}
 	}
 
-	r1 := <-this.V3PrivateGetAccounts(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V3PrivateGetAccounts(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	// {
 	//     "data": [
 	//         {
@@ -1103,12 +1104,13 @@ func (this *Foxbit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	//         }
 	//     ]
 	// }
-	var accounts []any = SafeListTyped(response, "data")
+	var accounts []any
+	accounts, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 	}
 	for i := 0; i < len(accounts); i++ {
-		var account map[string]any = SafeMapTyped(accounts, i)
+		var account, _ = accounts[i].(map[string]any)
 		var currencyId *string = this.SafeString(account, "currency_symbol")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var total *string = this.SafeString(account, "balance")
@@ -1400,12 +1402,12 @@ func (this *Foxbit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Foxbit) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Foxbit) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1419,7 +1421,7 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = SafeMapTyped(orders, i)
+		var order map[string]any = orders[i]
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var typeVar *string = this.SafeStringUpper(order, "type", "")
@@ -1547,7 +1549,8 @@ func (this *Foxbit) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	//         }
 	//     ]
 	// }
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any
 	if 0 < len(data) {
 		result, _ = data[0].(map[string]any)
@@ -1592,9 +1595,12 @@ func (this *Foxbit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		"type": "ALL",
 	}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		request["type"] = "MARKET"
-		request["market_symbol"] = market["id"]
+		request["market_symbol"] = nil
+		if market.Id != nil {
+			request["market_symbol"] = *market.Id
+		}
 	}
 
 	r1 := <-this.V3PrivatePutOrdersCancel(this.Extend(request, params))
@@ -2149,11 +2155,11 @@ func (this *Foxbit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.StatusPublicGetStatus(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.StatusPublicGetStatus(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	// {
 	//     "data": {
 	//       "id": 1,
@@ -2168,8 +2174,8 @@ func (this *Foxbit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	//     "meta": {
 	//     }
 	// }
-	var data map[string]any = SafeMapTyped(response, "data")
-	var attributes map[string]any = SafeMapTyped(data, "attributes")
+	var data, _ = response["data"].(map[string]any)
+	var attributes, _ = data["attributes"].(map[string]any)
 	var statusRaw *string = this.SafeString(attributes, "status")
 	var statusMap map[string]any = map[string]any{
 		"NORMAL":            "ok",
@@ -2181,7 +2187,7 @@ func (this *Foxbit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 		"updated": this.Parse8601(this.SafeString(attributes, "updatedAt")),
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -3210,7 +3216,7 @@ func (this *Foxbit) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

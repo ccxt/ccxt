@@ -2948,8 +2948,12 @@ func (this *Xt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var trades []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["result"].(map[string]any)
+	var trades []any
+	trades, _ = data["items"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -3340,8 +3344,8 @@ func (this *Xt) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 
@@ -3401,9 +3405,9 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = SafeStringPtr(market["symbol"])
-	if *this.SafeBool(market, "spot", false) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = market.Symbol
+	if market.Spot {
 		_, has1 := params["trailingPercent"]
 		_, has2 := params["trailingAmount"]
 		_, has3 := params["trailingTriggerPrice"]
@@ -4221,8 +4225,12 @@ func (this *Xt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...an
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var orders []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["result"].(map[string]any)
+	var orders []any
+	orders, _ = data["items"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -4922,12 +4930,12 @@ func (this *Xt) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalA
 	//     }
 	//
 	var isContractResponse bool = ((subType != nil) || (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future"))
-	var order any = func() any {
-		if isContractResponse {
-			return response
-		}
-		return this.SafeDict(response, "result", map[string]any{})
-	}()
+	var order any
+	if isContractResponse {
+		order = response
+	} else {
+		order = this.SafeDict(response, "result", map[string]any{})
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -5489,8 +5497,12 @@ func (this *Xt) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArgs
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var ledger []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["result"].(map[string]any)
+	var ledger []any
+	ledger, _ = data["items"].([]any)
+	if ledger == nil {
+		ledger = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(ledger, currency, since, limit))}
 	return nil
@@ -6528,7 +6540,7 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 	//         }
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var items []map[string]any = this.SafeListMapsTyped(result, "items")
 	var rates []any = []any{}
 	for i := 0; i < len(items); i++ {
@@ -6661,12 +6673,12 @@ func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) FundingRate 
 	var symbol *string = this.SafeSymbol(marketId, market, "_", "swap")
 	var timestamp *int64 = this.SafeInteger(contract, "nextCollectionTime")
 	var collectionInterval *string = this.SafeString(contract, "collectionInternal")
-	var interval any = func() any {
-		if collectionInterval != nil {
-			return (*collectionInterval + "h")
-		}
-		return nil
-	}()
+	var interval any
+	if collectionInterval != nil {
+		interval = (*collectionInterval + "h")
+	} else {
+		interval = nil
+	}
 	return FundingRateFromMap(map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
@@ -6903,12 +6915,12 @@ func (this *Xt) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeIn
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
-		var matchesSubType any = func() any {
-			if isInverse {
-				return market["inverse"]
-			}
-			return market["linear"]
-		}()
+		var matchesSubType any
+		if isInverse {
+			matchesSubType = market["inverse"]
+		} else {
+			matchesSubType = market["linear"]
+		}
 		if (*this.SafeBool(market, "contract", false)) && (matchesSubType == true) {
 			result[symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(fee, market))
 		}
@@ -7016,11 +7028,12 @@ func (this *Xt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], o
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var items []any = SafeListTyped(data, "items")
+	var data, _ = response["result"].(map[string]any)
+	var items []any
+	items, _ = data["items"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(items); i++ {
-		var entry map[string]any = SafeMapTyped(items, i)
+		var entry, _ = items[i].(map[string]any)
 		result = append(result, this.ParseFundingHistory(entry, market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
@@ -7401,8 +7414,12 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], optio
 	//         }
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
-	var items []any = this.SafeListSlice(result, "items", []any{})
+	var result, _ = response["result"].(map[string]any)
+	var items []any
+	items, _ = result["items"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 	var positions []any = this.ParsePositions(items, symbolsNormalized)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
@@ -7783,12 +7800,12 @@ func (this *Xt) editOrderBody(ch chan AsyncResult[Order], id string, symbol stri
 		}
 		response = r5.Value
 	}
-	var result any = func() any {
-		if *this.SafeBool(market, "swap", false) {
-			return response
-		}
-		return this.SafeDict(response, "result", map[string]any{})
-	}()
+	var result any
+	if *this.SafeBool(market, "swap", false) {
+		result = response
+	} else {
+		result = this.SafeDict(response, "result", map[string]any{})
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil

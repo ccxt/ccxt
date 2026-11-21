@@ -720,12 +720,12 @@ func (this *Deepcoin) ParseMarket(market any) map[string]any {
 	var maxAmount *float64 = this.ParseNumber(Precise.StringMax(maxMarketSize, maxLimitSize))
 	var state *string = this.SafeString(market, "state")
 	var isMargin bool = spot && (Precise.StringGt(maxLeverage, "1"))
-	var isInverse any = func() any {
-		if swap {
-			return (isLinear != true)
-		}
-		return nil
-	}()
+	var isInverse any
+	if swap {
+		isInverse = (isLinear != true)
+	} else {
+		isInverse = nil
+	}
 	return this.Extend(fees, map[string]any{
 		"id":       id,
 		"symbol":   symbol,
@@ -2124,13 +2124,13 @@ func (this *Deepcoin) CreateOrderRequest(symbol string, typeVar string, side str
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	// const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
 	var isTriggerOrder bool = (triggerPrice != nil)
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		if (!(*this.SafeBool(market, "spot", false))) || (triggerPrice != nil) {
+		if (!market.Spot) || (triggerPrice != nil) {
 			panic(BadRequest(this.Id + " createOrder() accepts a cost parameter for spot non-trigger market orders only"))
 		}
 	}
@@ -2349,7 +2349,7 @@ func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params an
 		retStr2 := "post_only"
 		return &retStr2, paramsOmitted
 	}
-	return SafeStringPtr(typeVar), paramsOmitted
+	return &typeVar, paramsOmitted
 }
 
 /**
@@ -2535,7 +2535,8 @@ func (this *Deepcoin) fetchClosedOrderBody(ch chan AsyncResult[Order], id string
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var entry map[string]any
 	if 0 < len(data) {
 		entry, _ = data[0].(map[string]any)
@@ -2591,7 +2592,8 @@ func (this *Deepcoin) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var length int = len(data)
 	if length == 0 {
 		panic(OrderNotFound(this.Id + " fetchOpenOrder() could not find order id " + id))

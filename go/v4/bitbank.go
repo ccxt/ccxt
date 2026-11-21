@@ -1361,19 +1361,23 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"asset": currency["id"],
 	}
 
-	r1 := <-this.PrivateGetUserWithdrawalAccount(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetUserWithdrawalAccount(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
-	var data map[string]any = SafeMapTyped(response, "data")
+	var response map[string]any = responseReply.Value
+	var data, _ = response["data"].(map[string]any)
 	// Not sure about this if there could be more than one account...
-	var accounts []any = SafeListTyped(data, "accounts")
-	var firstAccount map[string]any = SafeMapTyped(accounts, 0)
+	var accounts []any
+	accounts, _ = data["accounts"].([]any)
+	var firstAccount map[string]any
+	if 0 < len(accounts) {
+		firstAccount, _ = accounts[0].(map[string]any)
+	}
 	var address *string = this.SafeString(firstAccount, "address")
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": currency["code"],
 		"network":  nil,
 		"address":  address,

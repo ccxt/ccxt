@@ -250,7 +250,7 @@ func (this *P2b) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 	var watchTickerOptions, _ = this.Options["watchTicker"].(map[string]any)
 	var name string = *this.SafeString(watchTickerOptions, "name", "state") // or price
 	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchTickers", "name", name)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
@@ -340,7 +340,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			messageHashes = append(messageHashes, "deals::"+symbolsNormalized[i])
@@ -449,13 +449,20 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) map[string]any 
 	//    }
 	//
 	var params, _ = message["params"].([]any)
-	var data []any = ccxt.SafeListTyped(params, 0)
+	var data []any
+	if 0 < len(params) {
+		data, _ = params[0].([]any)
+	}
 	var method *string = this.SafeString(message, "method")
 	var splitMethod []string = strings.Split(*method, ".")
 	var channel *string = this.SafeString(splitMethod, 0)
 	var marketId *string = this.SafeString(data, 7)
 	var market map[string]any = this.SafeMarket(marketId)
-	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any
+	timeframes, _ = this.Options["timeframes"].(map[string]any)
+	if timeframes == nil {
+		timeframes = map[string]any{}
+	}
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var symbol *string = this.SafeString(market, "symbol")
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
@@ -502,8 +509,11 @@ func (this *P2b) HandleTrade(client any, message map[string]any) map[string]any 
 	//        "id": null
 	//    }
 	//
-	var data []any = ccxt.SafeListTyped(message, "params")
-	var trades []any = ccxt.SafeListTyped(data, 1)
+	var data, _ = message["params"].([]any)
+	var trades []any
+	if 1 < len(data) {
+		trades, _ = data[1].([]any)
+	}
 	var marketId *string = this.SafeString(data, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -555,13 +565,16 @@ func (this *P2b) HandleTicker(client any, message map[string]any) map[string]any
 	//        "id": null
 	//    }
 	//
-	var data []any = ccxt.SafeListTyped(message, "params")
+	var data, _ = message["params"].([]any)
 	var marketId *string = this.SafeString(data, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var method *string = this.SafeString(message, "method")
 	var splitMethod []string = strings.Split(*method, ".")
 	var messageHashStart *string = this.SafeString(splitMethod, 0)
-	var tickerData map[string]any = ccxt.SafeMapTyped(data, 1)
+	var tickerData map[string]any
+	if 1 < len(data) {
+		tickerData, _ = data[1].(map[string]any)
+	}
 	var ticker map[string]any = nil
 	if method != nil && *method == "price.update" {
 		var lastPrice *string = this.SafeString(data, 1)
@@ -600,9 +613,12 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	//        "id": null
 	//    }
 	//
-	var params []any = ccxt.SafeListTyped(message, "params")
+	var params, _ = message["params"].([]any)
 	var isFullUpdate *bool = this.SafeBool(params, 0, false)
-	var data map[string]any = ccxt.SafeMapTyped(params, 1)
+	var data map[string]any
+	if 1 < len(params) {
+		data, _ = params[1].(map[string]any)
+	}
 	var asks []any = ccxt.SafeListTyped(data, "asks")
 	var bids []any = ccxt.SafeListTyped(data, "bids")
 	var marketId *string = this.SafeString(params, 2)

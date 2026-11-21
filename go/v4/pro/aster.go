@@ -230,7 +230,7 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -306,7 +306,7 @@ func (this *Aster) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -458,7 +458,7 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -539,7 +539,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -698,7 +698,7 @@ func (this *Aster) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -771,7 +771,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -961,7 +961,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1041,7 +1041,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1385,7 +1385,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1458,7 +1458,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1680,7 +1680,7 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1759,7 +1759,7 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var subscriptionArgs []any = []any{}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1943,10 +1943,18 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				var listenKeys map[string]any = this.SafeDictMap(this.Options, "listenKey", map[string]any{})
+				var listenKeys map[string]any
+				listenKeys, _ = this.Options["listenKey"].(map[string]any)
+				if listenKeys == nil {
+					listenKeys = map[string]any{}
+				}
 				listenKeys[typeVar] = *listenKey
 				this.Options["listenKey"] = listenKeys
-				var lastAuthenticatedTimes map[string]any = this.SafeDictMap(this.Options, "lastAuthenticatedTime", map[string]any{})
+				var lastAuthenticatedTimes map[string]any
+				lastAuthenticatedTimes, _ = this.Options["lastAuthenticatedTime"].(map[string]any)
+				if lastAuthenticatedTimes == nil {
+					lastAuthenticatedTimes = map[string]any{}
+				}
 				lastAuthenticatedTimes[typeVar] = time
 				this.Options["lastAuthenticatedTime"] = lastAuthenticatedTimes
 				var keepAliveParams map[string]any = this.Extend(map[string]any{
@@ -2003,7 +2011,11 @@ func (this *Aster) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
 						ccxt.AddElementToObject(this.Options["listenKey"], typeVar, nil)
-						var lastAuthenticatedTimes map[string]any = this.SafeDictMap(this.Options, "lastAuthenticatedTime", map[string]any{})
+						var lastAuthenticatedTimes map[string]any
+						lastAuthenticatedTimes, _ = this.Options["lastAuthenticatedTime"].(map[string]any)
+						if lastAuthenticatedTimes == nil {
+							lastAuthenticatedTimes = map[string]any{}
+						}
 						lastAuthenticatedTimes[typeVar] = 0
 						this.Options["lastAuthenticatedTime"] = lastAuthenticatedTimes
 
@@ -2719,7 +2731,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
 							var feeCost any = this.Sum(fee["cost"], tradeFee["cost"])
 							var feeCostString *string = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
-							ccxt.AddElementToObject(ccxt.GetValue(order, "fee"), "cost", func() any {
+							ccxt.AddElementToObject(order["fee"], "cost", func() any {
 								if feeCostString == nil {
 									return nil
 								}
@@ -2945,12 +2957,12 @@ func (this *Aster) HandleMessage(client any, message map[string]any) {
 		"executionReport":         this.HandleOrderUpdate,
 		"ORDER_TRADE_UPDATE":      this.HandleOrderUpdate,
 	}
-	var method any = func() any {
-		if event == nil {
-			return nil
-		}
-		return this.SafeValue(methods, event)
-	}()
+	var method any
+	if event == nil {
+		method = nil
+	} else {
+		method = this.SafeValue(methods, event)
+	}
 	if method != nil {
 		ccxt.CallDynamically(method, client, messageInner)
 	}

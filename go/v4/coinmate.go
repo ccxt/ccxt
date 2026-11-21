@@ -928,8 +928,11 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 		request["timestampFrom"] = *since
 	}
 	if code != nil {
-		var currency map[string]any = this.Currency(code)
-		request["currency"] = currency["id"]
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		request["currency"] = nil
+		if currency.Id != nil {
+			request["currency"] = *currency.Id
+		}
 	}
 
 	r1 := <-this.PrivatePostTransferHistory(this.Extend(request, params))
@@ -1233,8 +1236,11 @@ func (this *Coinmate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		"limit": limitResolved,
 	}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["currencyPair"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["currencyPair"] = nil
+		if market.Id != nil {
+			request["currencyPair"] = *market.Id
+		}
 	}
 	if since != nil {
 		request["timestampFrom"] = *since

@@ -344,12 +344,12 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan ccxt.AsyncResult[[]map[strin
  * @param {string} sportXeventId the fixture id to keep
  * @returns {object[]} the raw markets of that fixture only
  */
-func (this *Sxbet) FilterRawMarketsByFixture(rawMarkets []any, sportXeventId any) []any {
+func (this *Sxbet) FilterRawMarketsByFixture(rawMarkets []any, sportXeventId string) []any {
 	var result []any = []any{}
 	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
 		var raw any = rawMarkets[i]
-		if ccxt.IsEqual(this.SafeString(raw, "sportXeventId"), sportXeventId) {
+		if this.SafeString(raw, "sportXeventId") != nil && *this.SafeString(raw, "sportXeventId") == sportXeventId {
 			result = append(result, raw)
 		}
 	}
@@ -557,7 +557,7 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		}
 		// the venue's sportXeventId filter on /markets/active is unreliable (observed live
 		// returning every fixture) — enforce the scope client-side
-		rawMarkets = this.FilterRawMarketsByFixture(rawMarkets, eventId)
+		rawMarkets = this.FilterRawMarketsByFixture(rawMarkets, *eventId)
 	} else if leagueId != nil {
 
 		r1 := <-this.FetchRawMarketsPagedAsync(this.Extend(map[string]any{
@@ -659,12 +659,12 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func (this *Sxbet) FetchEventAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionEvent] {
+func (this *Sxbet) FetchEventAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionEvent] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionEvent], 1)
 	go this.fetchEventBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent], id any, optionalArgs ...any) any {
+func (this *Sxbet) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -686,7 +686,7 @@ func (this *Sxbet) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent]
 	rawMarkets = this.FilterRawMarketsByFixture(rawMarkets, id)
 	var rawMarketsLength int = len(rawMarkets)
 	if rawMarketsLength == 0 {
-		panic(ccxt.BadSymbol(ccxt.Add(this.Id+" fetchEvent() could not find an active fixture ", id)))
+		panic(ccxt.BadSymbol(this.Id + " fetchEvent() could not find an active fixture " + id))
 	}
 	var event map[string]any = this.ParseEvent(id, rawMarkets)
 	this.IndexEventOutcomes(event)
@@ -736,7 +736,7 @@ func (this *Sxbet) MatchesEventQuery(raw any, queries any) bool {
  * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
  * @returns {object} an event structure
  */
-func (this *Sxbet) ParseEvent(fixtureId any, rawMarkets any) map[string]any {
+func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 	var marketsList []any = []any{}
 	var anyActive bool = false
 	var earliestGameTime *int64 = this.SafeInteger(map[string]any{}, "gameTime")
@@ -1071,13 +1071,13 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	}
 	nonceResult := r4.Value
 	var nonceHex any = this.HexToRlpBytes(nonceResult)
-	var nonce *string = func() *string {
-		if ccxt.IsEqual(nonceHex, "") {
-			retStr := "0"
-			return &retStr
-		}
-		return this.NumberToString(this.HexToInt(nonceHex))
-	}()
+	var nonce *string
+	if ccxt.IsEqual(nonceHex, "") {
+		retStr := "0"
+		nonce = &retStr
+	} else {
+		nonce = this.NumberToString(this.HexToInt(nonceHex))
+	}
 
 	r5 := <-this.FetchErc20NameAsync(rpcUrl, *tokenAddress)
 	if r5.Err != nil {
@@ -1131,15 +1131,15 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	}
 	var rest map[string]any = this.OmitDict(paramsSpender, []any{"amount", "tokenAddress", "deadline", "rpcUrl"})
 
-	r6 := <-this.SxbetPrivatePostUserTransferToProxy(this.Extend(request, rest))
-	if r6.Err != nil {
-		panic(r6.Err)
+	responseReply := <-this.SxbetPrivatePostUserTransferToProxy(this.Extend(request, rest))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r6.Raw
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
+	var response map[string]any = responseReply.Value
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- ccxt.AsyncResult[map[string]any]{Value: map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 		"id":   this.SafeString(data, "sessionId"),
 	}}
 	return nil
@@ -1327,14 +1327,18 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 		"waitForOutcome": waitForOutcome,
 	}
 
-	r2 := <-this.SxbetPrivatePostOrdersV3(this.Extend(request, rest))
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseReply := <-this.SxbetPrivatePostOrdersV3(this.Extend(request, rest))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r2.Raw
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var results []any = ccxt.SafeListTyped(data, "orders")
-	var first map[string]any = ccxt.SafeMapTyped(results, 0)
+	var response map[string]any = responseReply.Value
+	var data, _ = response["data"].(map[string]any)
+	var results []any
+	results, _ = data["orders"].([]any)
+	var first map[string]any
+	if 0 < len(results) {
+		first, _ = results[0].(map[string]any)
+	}
 	var status *string = this.SafeStringUpper(first, "status")
 	if status != nil && *status == "FAILED" {
 		var reason *string = this.SafeString(first, "reason", "FAILED")
@@ -1388,7 +1392,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString2(first, "orderId", "orderHash"),
 		"clientOrderId": this.SafeString(first, "clientOrderId", clientOrderId),
-		"info":          response,
+		"info":          responseReply.Raw,
 		"timestamp":     now,
 		"datetime":      this.Iso8601(now),
 		"status":        orderStatus,
@@ -1910,7 +1914,11 @@ func (this *Sxbet) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 	if data == nil {
 		data = map[string]any{}
 	}
-	var row map[string]any = this.SafeDictMap(data, "order", data)
+	var row map[string]any
+	row, _ = data["order"].(map[string]any)
+	if row == nil {
+		row = data
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.ParsePredictionOrder(row, outcomeObj))}
 	return nil
@@ -2156,11 +2164,11 @@ func (this *Sxbet) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
 	var usdcAddress *string = this.SafeStringLower(activeAsset, "baseToken", "")
 
-	r1 := <-this.SxbetPrivateGetUserBalanceV3(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.SxbetPrivateGetUserBalanceV3(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     { "status": "success", "data": { "balances": [ {
 	//         "userAddress": "0xC3f4...", "wallet": "0x19D1...",
@@ -2168,15 +2176,16 @@ func (this *Sxbet) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	//         "availableAmount": "0", "pendingAvailableAmount": "0",
 	//         "escrowedAmount": "0", "pendingEscrowAmount": "0" } ] } }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var balances []any = ccxt.SafeListTyped(data, "balances")
+	var data, _ = response["data"].(map[string]any)
+	var balances []any
+	balances, _ = data["balances"].([]any)
 	var result map[string]any = map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 	}
 	var usdcDecimals string = "1000000"
 	var balancesLength int = len(balances)
 	for i := 0; i < balancesLength; i++ {
-		var row map[string]any = ccxt.SafeMapTyped(balances, i)
+		var row, _ = balances[i].(map[string]any)
 		var tokenAddress *string = this.SafeStringLower(row, "tokenAddress", "")
 		// every sxbet market is denominated in the active base token, surfaced under 'USDC'
 		// rows of any other token keep their contract address for the code
@@ -2455,12 +2464,12 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 	} else {
 		heldNumber = 2
 	}
-	var won any = func() any {
-		if (winner != nil) && !isVoid {
-			return (winner != nil && *winner == int64(heldNumber))
-		}
-		return nil
-	}()
+	var won any
+	if (winner != nil) && !isVoid {
+		won = (winner != nil && *winner == int64(heldNumber))
+	} else {
+		won = nil
+	}
 	var usdcDecimals string = "1000000"
 	var stake *string = ccxt.Precise.StringDiv(this.SafeString(trade, "totalStake", "0"), usdcDecimals, 6)
 	var payout *string = ccxt.Precise.StringDiv(this.SafeString(settlement, "settleReturnAmount", "0"), usdcDecimals, 6)
@@ -2957,18 +2966,18 @@ func (this *Sxbet) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionOr
 func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne bool) map[string]any {
 	var oneDenom string = "100000000000000000000"
 	var usdcDecimals string = "1000000"
-	var ownLevels any = func() any {
-		if isOutcomeOne {
-			return this.SafeList(snapshot, "outcomeOne", []any{})
-		}
-		return this.SafeList(snapshot, "outcomeTwo", []any{})
-	}()
-	var oppositeLevels any = func() any {
-		if isOutcomeOne {
-			return this.SafeList(snapshot, "outcomeTwo", []any{})
-		}
-		return this.SafeList(snapshot, "outcomeOne", []any{})
-	}()
+	var ownLevels any
+	if isOutcomeOne {
+		ownLevels = this.SafeList(snapshot, "outcomeOne", []any{})
+	} else {
+		ownLevels = this.SafeList(snapshot, "outcomeTwo", []any{})
+	}
+	var oppositeLevels any
+	if isOutcomeOne {
+		oppositeLevels = this.SafeList(snapshot, "outcomeTwo", []any{})
+	} else {
+		oppositeLevels = this.SafeList(snapshot, "outcomeOne", []any{})
+	}
 	var bids []any = []any{}
 	var ownLevelsLength int = ccxt.GetArrayLength(ownLevels)
 	for i := 0; i < ownLevelsLength; i++ {
@@ -3213,7 +3222,11 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 		return
 	}
 	var requestIdString *string = this.SafeString(msg, "id")
-	var pendingRequests map[string]any = this.SafeDictMap(this.Options, "wsPendingRequests", map[string]any{})
+	var pendingRequests map[string]any
+	pendingRequests, _ = this.Options["wsPendingRequests"].(map[string]any)
+	if pendingRequests == nil {
+		pendingRequests = map[string]any{}
+	}
 	var pendingEntry map[string]any = ccxt.SafeMapTyped(pendingRequests, requestIdString)
 	var errorReply map[string]any = ccxt.SafeMapTyped(msg, "error")
 	if errorReply != nil {
@@ -4665,7 +4678,7 @@ func (this *Sxbet) CreateMarketSellOrderWithCost(outcome string, cost float64, p
 	return res, nil
 }
 func (this *Sxbet) CreateOrders(orders []ccxt.PredictionOrderRequest, params map[string]any) ([]ccxt.PredictionOrder, error) {
-	r := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), params)
+	r := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToMapRows(orders), params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

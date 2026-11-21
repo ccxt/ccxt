@@ -1189,11 +1189,11 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		paramsOmitted = this.OmitDict(params, "network")
 	}
 
-	r1 := <-this.PrivatePostWalletCryptoAddress(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostWalletCryptoAddress(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
 	//
@@ -1204,7 +1204,7 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"address":  this.SafeString(response, "address"),
 		"tag":      this.SafeString(response, "payment_id"),
 		"network":  nil,
-		"info":     response,
+		"info":     responseReply.Raw,
 	})}
 	return nil
 }
@@ -4673,13 +4673,13 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan AsyncResult[MarginModificatio
 		}
 	}
 	var stringAmount *string = this.NumberToString(amount)
-	var amountValue *string = func() *string {
-		if stringAmount == nil || *stringAmount != "0" {
-			return this.AmountToPrecision(symbol, stringAmount)
-		}
+	var amountValue *string
+	if stringAmount == nil || *stringAmount != "0" {
+		amountValue = this.AmountToPrecision(symbol, stringAmount)
+	} else {
 		retStr := "0"
-		return &retStr
-	}()
+		amountValue = &retStr
+	}
 	var request map[string]any = map[string]any{
 		"symbol":         market["id"],
 		"margin_balance": amountValue,
@@ -5128,12 +5128,11 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 		var isDefault *bool = this.SafeBool(networkEntry, "default", false)
 		var withdrawResult map[string]any = map[string]any{
 			"fee": withdrawFee,
-			"percentage": func() any {
-				if withdrawFee != nil {
-					return false
-				}
-				return nil
-			}(),
+		}
+		if withdrawFee != nil {
+			withdrawResult["percentage"] = false
+		} else {
+			withdrawResult["percentage"] = nil
 		}
 		if isDefault != nil && *isDefault {
 			result["withdraw"] = withdrawResult

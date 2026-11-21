@@ -1376,16 +1376,16 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request[baseId] = this.AmountToPrecision(symbol, amount)
 	}
 
-	r1 := <-this.PrivatePostTrade(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	resultReply := <-this.PrivatePostTrade(this.Extend(request, paramsOmitted))
+	if resultReply.Err != nil {
+		panic(resultReply.Err)
 	}
-	result := r1.Raw
-	var data map[string]any = SafeMapTyped(result, "return")
+	var result map[string]any = resultReply.Value
+	var data, _ = result["return"].(map[string]any)
 	var id *string = this.SafeString(data, "order_id")
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info": result,
+		"info": resultReply.Raw,
 		"id":   id,
 	}, market)}
 	return nil
@@ -1495,11 +1495,11 @@ func (this *Indodax) fetchTransactionFeeBody(ch chan AsyncResult[map[string]any]
 		"currency": currency["id"],
 	}
 
-	r1 := <-this.PrivatePostWithdrawFee(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostWithdrawFee(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "success": 1,
@@ -1510,11 +1510,11 @@ func (this *Indodax) fetchTransactionFeeBody(ch chan AsyncResult[map[string]any]
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "return")
+	var data, _ = response["return"].(map[string]any)
 	var currencyId *string = this.SafeString(data, "currency")
 
 	ch <- AsyncResult[map[string]any]{Value: map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"rate":     this.SafeNumber(data, "withdraw_fee"),
 		"currency": this.SafeCurrencyCode(currencyId, currency),
 	}}

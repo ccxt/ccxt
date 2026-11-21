@@ -535,7 +535,11 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "index")
 	var name *string = this.SafeString(rawCurrency, "name")
 	var code *string = this.SafeCurrencyCode(name)
-	var cachedCurrenciesByIdDict1 map[string]any = this.SafeDictMap(this.Options, "cachedCurrenciesById", map[string]any{})
+	var cachedCurrenciesByIdDict1 map[string]any
+	cachedCurrenciesByIdDict1, _ = this.Options["cachedCurrenciesById"].(map[string]any)
+	if cachedCurrenciesByIdDict1 == nil {
+		cachedCurrenciesByIdDict1 = map[string]any{}
+	}
 	if id != nil {
 		if name != nil {
 			cachedCurrenciesByIdDict1[*id] = *name
@@ -579,7 +583,11 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) map[string]any {
 			}
 			var baseCode *string = this.SafeCurrencyCode(nameWithoutU)
 			if code != nil {
-				var spotCurrencyMappingDict2 map[string]any = this.SafeDictMap(this.Options, "spotCurrencyMapping", map[string]any{})
+				var spotCurrencyMappingDict2 map[string]any
+				spotCurrencyMappingDict2, _ = this.Options["spotCurrencyMapping"].(map[string]any)
+				if spotCurrencyMappingDict2 == nil {
+					spotCurrencyMappingDict2 = map[string]any{}
+				}
 				if baseCode != nil {
 					spotCurrencyMappingDict2[*code] = *baseCode
 				} else {
@@ -765,14 +773,18 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 					data["collateralTokenName"] = collateralTokenCode
 					// eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
 					var safeCode *string = this.SafeCurrencyCode(name)
-					var hip3Code *string = func() *string {
-						if safeCode == nil {
-							return name
-						}
+					var hip3Code *string
+					if safeCode == nil {
+						hip3Code = name
+					} else {
 						retStr := strings.Replace(*safeCode, ":", "-", 1)
-						return &retStr
-					}()
-					var hip3TokensByName map[string]any = this.SafeDictMap(this.Options, "hip3TokensByName", map[string]any{})
+						hip3Code = &retStr
+					}
+					var hip3TokensByName map[string]any
+					hip3TokensByName, _ = this.Options["hip3TokensByName"].(map[string]any)
+					if hip3TokensByName == nil {
+						hip3TokensByName = map[string]any{}
+					}
 					if name != nil {
 						hip3TokensByName[*name] = map[string]any{
 							"quote": collateralTokenCode,
@@ -2816,7 +2828,7 @@ func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[Order], symbol stri
 	}
 	order, globalParams := this.ParseCreateEditOrderArgs(nil, &symbol, &typeVar, &side, amount, price, params)
 
-	r1 := <-this.CreateOrdersAsync([]any{order}, globalParams)
+	r1 := <-this.CreateOrdersAsync([]map[string]any{order}, globalParams)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2941,12 +2953,12 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan AsyncResult[Order], symbol 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hyperliquid) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Hyperliquid) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3007,7 +3019,7 @@ func (this *Hyperliquid) createOrdersBody(ch chan AsyncResult[[]Order], orders [
 	return nil
 }
 func (this *Hyperliquid) CreateOrderRequest(symbol string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
-	price := GetArg(optionalArgs, 0, nil)
+	var price *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3048,7 +3060,11 @@ func (this *Hyperliquid) CreateOrderRequest(symbol string, typeVar *string, side
 		} else {
 			px = Precise.StringMul(price, Precise.StringSub("1", slippage))
 		}
-		px = DerefScalar(this.PriceToPrecision(symbol, px)) // round after adding slippage
+		if derefPtr := this.PriceToPrecision(symbol, px); derefPtr != nil { // round after adding slippage
+			px = *derefPtr
+		} else {
+			px = nil
+		}
 	} else {
 		if derefPtr := this.PriceToPrecision(symbol, price); derefPtr != nil {
 			px = *derefPtr
@@ -3094,7 +3110,7 @@ func (this *Hyperliquid) CreateOrderRequest(symbol string, typeVar *string, side
 	}
 	return orderObj
 }
-func (this *Hyperliquid) CreateOrdersRequest(orders []any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) CreateOrdersRequest(orders []map[string]any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @name hyperliquid#createOrdersRequest
@@ -3111,7 +3127,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []any, optionalArgs ...any) 
 	var hasClientOrderId bool = false
 	var ordersLength int = len(orders)
 	for i := 0; i < ordersLength; i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
 		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 		if clientOrderId != nil {
@@ -3120,7 +3136,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []any, optionalArgs ...any) 
 	}
 	if hasClientOrderId {
 		for i := 0; i < ordersLength; i++ {
-			var rawOrder map[string]any = SafeMapTyped(orders, i)
+			var rawOrder map[string]any = orders[i]
 			var orderParams map[string]any = SafeMapTyped(rawOrder, "params")
 			var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 			if clientOrderId == nil {
@@ -3133,7 +3149,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []any, optionalArgs ...any) 
 	var orderReq []any = []any{}
 	var grouping string = "na"
 	for i := 0; i < ordersLength; i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var market MarketInterface = MarketInterfaceFromMap(this.Market(marketId))
 		var symbol *string = market.Symbol
@@ -3795,9 +3811,17 @@ func (this *Hyperliquid) EditOrdersRequest(orders []map[string]any, optionalArgs
 			} else {
 				px = Precise.StringMul(px, Precise.StringSub("1", slippage))
 			}
-			px = DerefScalar(this.PriceToPrecision(symbol, px))
+			if derefPtr := this.PriceToPrecision(symbol, px); derefPtr != nil {
+				px = *derefPtr
+			} else {
+				px = nil
+			}
 		} else {
-			px = DerefScalar(this.PriceToPrecision(symbol, px))
+			if derefPtr := this.PriceToPrecision(symbol, px); derefPtr != nil {
+				px = *derefPtr
+			} else {
+				px = nil
+			}
 		}
 		var sz *string = this.AmountToPrecision(symbol, amount)
 		var orderType map[string]any = map[string]any{}
@@ -5626,12 +5650,12 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan AsyncResult[MarginModifi
 	var market map[string]any = this.Market(symbol)
 	var asset int64 = this.ParseToInt(market["baseId"])
 	var szAbs int64 = this.ParseToInt(Precise.StringMul(this.AmountToPrecision(symbol, amount), "1000000"))
-	var sz any = func() any {
-		if typeVar == "reduce" {
-			return -szAbs
-		}
-		return szAbs
-	}()
+	var sz any
+	if typeVar == "reduce" {
+		sz = -szAbs
+	} else {
+		sz = szAbs
+	}
 	var nonce int64 = this.IncrementingNonce()
 	var updateAction map[string]any = map[string]any{
 		"type":  "updateIsolatedMargin",
@@ -7491,7 +7515,7 @@ func (this *Hyperliquid) CreateOrders(orders []OrderRequest, options ...CreateOr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

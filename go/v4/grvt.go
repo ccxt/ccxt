@@ -4129,13 +4129,13 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	var isPostOnly *bool = this.SafeBool(order, "post_only")
 	var isReduceOnly *bool = this.SafeBool(order, "reduce_only")
 	var timeInForceRaw *string = this.SafeString(order, "time_in_force")
-	var timeInForce *string = func() *string {
-		if isPostOnly != nil && *isPostOnly == true {
-			retStr := "PO"
-			return &retStr
-		}
-		return this.ParseTimeInForce(timeInForceRaw)
-	}()
+	var timeInForce *string
+	if isPostOnly != nil && *isPostOnly == true {
+		retStr := "PO"
+		timeInForce = &retStr
+	} else {
+		timeInForce = this.ParseTimeInForce(timeInForceRaw)
+	}
 	var size *string = nil
 	var side *string = nil
 	var price *string = nil

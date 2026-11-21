@@ -525,7 +525,7 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 			}
 			singleResponse = r1.Value
 		}
-		var singleResult map[string]any = ccxt.SafeMapTyped(singleResponse, "result")
+		var singleResult, _ = singleResponse["result"].(map[string]any)
 		var singleData map[string]any = this.SafeDictMap(singleResult, "data", map[string]any{})
 		var single map[string]any = this.ParseEvent(singleData)
 		this.IndexEventOutcomes(single)
@@ -612,17 +612,17 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func (this *Opinion) FetchEventAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionEvent] {
+func (this *Opinion) FetchEventAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionEvent] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionEvent], 1)
 	go this.fetchEventBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Opinion) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent], id any, optionalArgs ...any) any {
+func (this *Opinion) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var isSlug bool = (ccxt.GetIndexOf(id, "-") >= 0)
+	var isSlug bool = (strings.Index(id, "-") >= 0)
 	var response map[string]any = nil
 	if isSlug {
 
@@ -643,7 +643,7 @@ func (this *Opinion) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEven
 		}
 		response = r1.Value
 	}
-	var result map[string]any = ccxt.SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var data map[string]any = this.SafeDictMap(result, "data", map[string]any{})
 	var event map[string]any = this.ParseEvent(data)
 	this.IndexEventOutcomes(event)
@@ -1537,28 +1537,28 @@ func (this *Opinion) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 		"orderId": id,
 	}
 
-	r1 := <-this.OpinionPrivatePostOrderCancel(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.OpinionPrivatePostOrderCancel(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
-	var result map[string]any = ccxt.SafeMapTyped(response, "result")
+	var response map[string]any = responseReply.Value
+	var result, _ = response["result"].(map[string]any)
 	var canceled *bool = this.SafeBool(result, "result", false)
 	// a false result does NOT mean the order is still open — it may already be filled,
 	// already cancelled, or unknown; don't invent a status the venue didn't report.
 	// error responses with an errno never reach this line, handleErrors throws on them
-	var status *string = func() *string {
-		if canceled != nil && *canceled {
-			retStr := "canceled"
-			return &retStr
-		}
-		return nil
-	}()
+	var status *string
+	if canceled != nil && *canceled {
+		retStr := "canceled"
+		status = &retStr
+	} else {
+		status = nil
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.SafePredictionOrder(map[string]any{
 		"id":     id,
 		"status": status,
-		"info":   response,
+		"info":   responseReply.Raw,
 	}))}
 	return nil
 }
@@ -1968,7 +1968,11 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var cacheKey string = "tradeMarketsById"
-	var cached map[string]any = this.SafeDictMap(this.Options, cacheKey, map[string]any{})
+	var cached map[string]any
+	cached, _ = this.Options[cacheKey].(map[string]any)
+	if cached == nil {
+		cached = map[string]any{}
+	}
 	var idStr string = ccxt.ToString(marketId)
 	var existing map[string]any = this.SafeDictMap(cached, idStr)
 	if existing != nil {
@@ -2744,12 +2748,12 @@ func (this *Opinion) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*sym]
 	var sideStr *string = this.SafeString(message, "side")
-	var bookSide any = func() any {
-		if sideStr != nil && *sideStr == "bids" {
-			return orderbook.GetBids()
-		}
-		return orderbook.GetAsks()
-	}()
+	var bookSide any
+	if sideStr != nil && *sideStr == "bids" {
+		bookSide = orderbook.GetBids()
+	} else {
+		bookSide = orderbook.GetAsks()
+	}
 	var price *float64 = this.SafeNumber(message, "price")
 	var size *float64 = this.SafeNumber(message, "size")
 	bookSide.(ccxt.IOrderBookSide).StoreArray([]any{price, size})
@@ -2830,7 +2834,11 @@ func (this *Opinion) HandleTicker(client any, message map[string]any) {
 		"last":      last,
 		"info":      message,
 	}, outcomeObj)
-	var cachedTickers map[string]any = this.SafeDictMap(this.Options, "wsTickers", map[string]any{})
+	var cachedTickers map[string]any
+	cachedTickers, _ = this.Options["wsTickers"].(map[string]any)
+	if cachedTickers == nil {
+		cachedTickers = map[string]any{}
+	}
 	cachedTickers[*sym] = ticker
 	this.Options["wsTickers"] = cachedTickers
 	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
@@ -3902,7 +3910,7 @@ func (this *Opinion) CreateMarketSellOrderWithCost(outcome string, cost float64,
 	return res, nil
 }
 func (this *Opinion) CreateOrders(orders []ccxt.PredictionOrderRequest, params map[string]any) ([]ccxt.PredictionOrder, error) {
-	r := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), params)
+	r := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToMapRows(orders), params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

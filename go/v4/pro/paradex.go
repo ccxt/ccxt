@@ -1069,7 +1069,11 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) map[string]
 		// one cache per market, kept in the options next to the request id counter: this.liquidations
 		// is typed as a single cache in some languages and initialized as a map in others
 		var liquidation any = this.ParseWsLiquidation(data)
-		var caches map[string]any = this.SafeDictMap(this.Options, "liquidationsBySymbol", map[string]any{})
+		var caches map[string]any
+		caches, _ = this.Options["liquidationsBySymbol"].(map[string]any)
+		if caches == nil {
+			caches = map[string]any{}
+		}
 		var liquidations any = this.SafeValue(caches, symbol)
 		if liquidations == nil {
 			liquidations = ccxt.NewArrayCache(this.SafeInteger(this.Options, "liquidationsLimit", 1000))
@@ -1395,13 +1399,13 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 		for i := 0; i < len(levels); i++ {
 			var level map[string]any = ccxt.SafeMapTyped(levels, i)
 			var price *string = this.SafeString(level, "price")
-			var size *string = func() *string {
-				if isDelete {
-					retStr := "0"
-					return &retStr
-				}
-				return this.SafeString(level, "size")
-			}()
+			var size *string
+			if isDelete {
+				retStr := "0"
+				size = &retStr
+			} else {
+				size = this.SafeString(level, "size")
+			}
 			if this.SafeString(level, "side") != nil && *this.SafeString(level, "side") == "BUY" {
 				bids = append(bids, []any{price, size})
 			} else {
@@ -1859,7 +1863,7 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	// one subscription with a market filter: a subscription per market is a request per market, and
 	// the all-markets one is thousands of frames a second, mostly options, decoded to be dropped
 	var scopedHash string = channel + ":scoped"
-	var subscribeHashes []any = []any{}
+	var subscribeHashes []string = []string{}
 	var missing []any = []any{}
 	var missingHashes []any = []any{}
 	// messageHashes[i] is the hash the summaries of symbols[i] resolve
@@ -2625,7 +2629,7 @@ func (this *Paradex) HandleBalance(client any, message map[string]any) {
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
-	var reserved []any = []any{"free", "used", "total"}
+	var reserved []string = []string{"free", "used", "total"}
 	var keys []string = ccxt.ObjectKeys(balance)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -2823,7 +2827,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]c
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var channel string = "funding_data"
 	var url string = this.GetWsUrl()
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {

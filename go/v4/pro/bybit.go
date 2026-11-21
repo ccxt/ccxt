@@ -216,7 +216,8 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[string], opti
 	var typeVar *string = nil
 	var market map[string]any = nil
 	var wsUrls map[string]any = this.UrlsApiSections["ws"]
-	var accessibilityUrls map[string]any = ccxt.SafeMapTyped(wsUrls, accessibility)
+	var accessibilityUrls map[string]any
+	accessibilityUrls, _ = wsUrls[accessibility].(map[string]any)
 	var url any = this.UrlsApi["ws"]
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -819,7 +820,11 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 		var topicLength int = len(topicParts)
 		var marketId *string = this.SafeString(topicParts, topicLength-1)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, typeVar)
-		symbol = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbol = *derefPtr
+		} else {
+			symbol = nil
+		}
 		// update the info in place
 		var ticker any = ccxt.TickerToMap(this.Tickers[symbol.(string)])
 		var rawTicker map[string]any = this.SafeDictMap(ticker, "info", map[string]any{})
@@ -827,7 +832,11 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 	}
 	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(tickerInput))
 	if updateType == "snapshot" {
-		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol"))
+		if derefPtr := this.SafeString(parsed, "symbol"); derefPtr != nil {
+			symbol = *derefPtr
+		} else {
+			symbol = nil
+		}
 	}
 	if symbol == nil {
 		return
@@ -1236,7 +1245,7 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 	//         "type": "snapshot"
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var topic string = *this.SafeString(message, "topic", "")
 	var topicParts []string = strings.Split(topic, ".")
 	var topicLength int = len(topicParts)
@@ -1469,9 +1478,9 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	}
 	var defaultLimit int = 500
 	if limitParam == nil {
-		var firstMarket map[string]any = this.Market(symbolsNormalized[0])
+		var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
 		defaultLimit = func() int {
-			if *this.SafeBool(firstMarket, "spot", false) {
+			if firstMarket.Spot {
 				return 50
 			}
 			return 500
@@ -2205,7 +2214,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 	var topic string = *this.SafeString(message, "topic", "")
 	var spot bool = (topic == "ticketInfo")
 	var executionFast bool = (topic == "execution.fast")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -2465,7 +2474,7 @@ func (this *Bybit) HandlePositions(client any, message map[string]any) {
 	}
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
-	var rawPositions []any = ccxt.SafeListTyped(message, "data")
+	var rawPositions, _ = message["data"].([]any)
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = rawPositions[i]
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
@@ -2656,9 +2665,9 @@ func (this *Bybit) HandleLiquidation(client any, message map[string]any) {
 	//     }
 	//
 	if ccxt.IsArray(message["data"]) {
-		var rawLiquidations []any = ccxt.SafeListTyped(message, "data")
+		var rawLiquidations, _ = message["data"].([]any)
 		for i := 0; i < len(rawLiquidations); i++ {
-			var rawLiquidation map[string]any = ccxt.SafeMapTyped(rawLiquidations, i)
+			var rawLiquidation, _ = rawLiquidations[i].(map[string]any)
 			var marketId *string = this.SafeString(rawLiquidation, "s")
 			var market map[string]any = this.SafeMarket(marketId, nil, "", "contract")
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -2993,7 +3002,7 @@ func (this *Bybit) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders ccxt.WsArrayCache = this.Orders
-	var rawOrders []any = ccxt.SafeListTyped(message, "data")
+	var rawOrders, _ = message["data"].([]any)
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(rawOrders); i++ {
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
@@ -3271,7 +3280,7 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 	if topic != nil && *topic == "outboundAccountInfo" {
 		accountStr := "spot"
 		account = &accountStr
-		var data []any = ccxt.SafeListTyped(message, "data")
+		var data, _ = message["data"].([]any)
 		for i := 0; i < len(data); i++ {
 			var B []any = this.SafeListSlice(data[i], "B", []any{})
 			rawBalances = this.ArrayConcat(rawBalances, B)
@@ -3279,7 +3288,7 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 		info = rawBalances
 	}
 	if topic != nil && *topic == "wallet" {
-		var data []any = ccxt.SafeListTyped(message, "data")
+		var data, _ = message["data"].([]any)
 		for i := 0; i < len(data); i++ {
 			var result map[string]any = ccxt.SafeMapTyped(data, 0)
 			account = this.SafeStringLower(result, "accountType")

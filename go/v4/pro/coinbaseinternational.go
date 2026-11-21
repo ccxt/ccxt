@@ -268,7 +268,7 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool
 			panic(r.Err)
 		}
 	}
-	var unWatchMessageHashes []any = []any{}
+	var unWatchMessageHashes []string = []string{}
 	var channelsLength int = len(channels)
 	for i := 0; i < channelsLength; i++ {
 		unWatchMessageHashes = append(unWatchMessageHashes, "unsubscribe:"+*this.SafeString(channels, i, ""))
@@ -859,16 +859,19 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan ccxt.AsyncResul
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers any = nil
-	if !ccxt.StructAbsent(r1.Value) {
-		tickers = ccxt.StructBox(r1.Value, ccxt.TickerMapToMap)
-	}
+	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
 	var result map[string]any = map[string]any{}
-	var tickerSymbols []string = ccxt.ObjectKeys(tickers)
+	var tickerSymbols []string = nil
+	if tickers != nil {
+		tickerSymbols = make([]string, 0, len(tickers))
+		for objectKey := range tickers {
+			tickerSymbols = append(tickerSymbols, objectKey)
+		}
+	}
 	var tickerSymbolsLength int = len(tickerSymbols)
 	for i := 0; i < tickerSymbolsLength; i++ {
 		var symbol string = tickerSymbols[i]
-		var ticker map[string]any = ccxt.MapTyped(ccxt.GetValue(tickers, symbol))
+		var ticker map[string]any = ccxt.MapTyped(tickers[symbol])
 		result[symbol] = ccxt.FundingRateToMap(this.ParseFundingRate(ticker["info"], this.Market(symbol)))
 	}
 
@@ -1818,7 +1821,7 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 func (this *Coinbaseinternational) HandleTrades(client any, message map[string]any) map[string]any {
 	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel", "")
-	var data []any = ccxt.SafeListTyped(params, "data")
+	var data, _ = params["data"].([]any)
 	var parts []string = strings.Split(*channel, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
@@ -2512,7 +2515,7 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 	}
 	result := r1.Value
 	var order map[string]any = this.SafeDictMap(result, "order", map[string]any{})
-	ccxt.AddElementToObject(order, "trades", this.SafeList(result, "trades", []any{}))
+	order["trades"] = this.SafeList(result, "trades", []any{})
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -2578,7 +2581,7 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt
 	}
 	result := r1.Value
 	var order map[string]any = this.SafeDictMap(result, "order", map[string]any{})
-	ccxt.AddElementToObject(order, "trades", this.SafeList(result, "trades", []any{}))
+	order["trades"] = this.SafeList(result, "trades", []any{})
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(order, market)}
 	return nil

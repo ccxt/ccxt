@@ -3100,9 +3100,16 @@ func (this *Bingx) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	if data != nil {
-		var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+		var first map[string]any
+		if 0 < len(data) {
+			first, _ = data[0].(map[string]any)
+		}
+		if first == nil {
+			first = map[string]any{}
+		}
 
 		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(first, market)}
 		return nil
@@ -3288,7 +3295,8 @@ func (this *Bingx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	//         ]
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "data")
+	var tickers []any
+	tickers, _ = response["data"].([]any)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
 	return nil
@@ -3435,7 +3443,8 @@ func (this *Bingx) fetchMarkPricesBody(ch chan AsyncResult[map[string]Ticker], o
 	//         ]
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "data")
+	var tickers []any
+	tickers, _ = response["data"].([]any)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
 	return nil
@@ -3837,8 +3846,12 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sym
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var records []any = this.SafeListSlice(data, "positionHistory", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var records []any
+	records, _ = data["positionHistory"].([]any)
+	if records == nil {
+		records = []any{}
+	}
 	var positions []any = this.ParsePositions(records)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySymbolSinceLimit(positions, symbol, since, limit))}
@@ -3968,7 +3981,13 @@ func (this *Bingx) fetchPositionBody(ch chan AsyncResult[Position], symbol strin
 		response = r2.Value
 	}
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(first, market)}
 	return nil
@@ -4736,12 +4755,12 @@ func (this *Bingx) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
  * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bingx) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Bingx) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Bingx) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4756,7 +4775,7 @@ func (this *Bingx) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, 
 	var ordersRequests []any = []any{}
 	var marketIds []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol", "")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		marketIds = append(marketIds, marketId)
@@ -5483,7 +5502,11 @@ func (this *Bingx) cancelOrderBody(ch chan AsyncResult[Order], id string, option
 	//    }
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var order map[string]any = this.SafeDictMap(data, "order", data)
+	var order map[string]any
+	order, _ = data["order"].(map[string]any)
+	if order == nil {
+		order = data
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -5556,7 +5579,7 @@ func (this *Bingx) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	} else {
 		panic(BadRequest(this.Id + " cancelAllOrders is only supported for spot and swap markets."))
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var orders []any = SafeList2Typed(data, "success", "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders))}
@@ -5643,7 +5666,7 @@ func (this *Bingx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, 
 		}
 		response = r2.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var success []any = SafeList2Typed(data, "success", "orders", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(success))}
@@ -5827,7 +5850,11 @@ func (this *Bingx) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 		}
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var order map[string]any = this.SafeDictMap(data, "order", data)
+	var order map[string]any
+	order, _ = data["order"].(map[string]any)
+	if order == nil {
+		order = data
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -6175,7 +6202,7 @@ func (this *Bingx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var orders []any = SafeList2Typed(data, "orders", "list", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
@@ -6411,7 +6438,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 			response = r5.Value
 		}
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var orders []any = SafeList2Typed(data, "orders", "list", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
@@ -6459,27 +6486,25 @@ func (this *Bingx) transferBody(ch chan AsyncResult[TransferEntry], code string,
 		swapId = "USDTMPerp"
 	}
 	var request map[string]any = map[string]any{
-		"fromAccount": func() any {
-			if fromAccount == "swap" {
-				return swapId
-			}
-			return fromIdMapped
-		}(),
-		"toAccount": func() any {
-			if toAccount == "swap" {
-				return swapId
-			}
-			return toIdMapped
-		}(),
 		"asset":  currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
-
-	r1 := <-this.ApiAssetV1PrivatePostTransfer(this.Extend(request, paramsSubType))
-	if r1.Err != nil {
-		panic(r1.Err)
+	if fromAccount == "swap" {
+		request["fromAccount"] = swapId
+	} else {
+		request["fromAccount"] = fromIdMapped
 	}
-	response := r1.Raw
+	if toAccount == "swap" {
+		request["toAccount"] = swapId
+	} else {
+		request["toAccount"] = toIdMapped
+	}
+
+	responseReply := <-this.ApiAssetV1PrivatePostTransfer(this.Extend(request, paramsSubType))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
+	}
+	var response map[string]any = responseReply.Value
 	var data map[string]any = SafeMapTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
@@ -6494,7 +6519,7 @@ func (this *Bingx) transferBody(ch chan AsyncResult[TransferEntry], code string,
 	//     }
 	//
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(map[string]any{
-		"info":        response,
+		"info":        responseReply.Raw,
 		"id":          this.SafeString2(data, "transferId", "tranId"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
@@ -6742,10 +6767,7 @@ func (this *Bingx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var addressStructures any = nil
-	if !StructAbsent(r.Value) {
-		addressStructures = StructBox(r.Value, DepositAddressMapToMap)
-	}
+	var addressStructures map[string]any = StructResultMap(r.Value, DepositAddressMapToMap)
 	if network != nil {
 
 		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(addressStructures, network))}
@@ -6758,7 +6780,13 @@ func (this *Bingx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 			ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(addressStructures, defaultNetworkForCurrency))}
 			return nil
 		} else {
-			var keys []string = ObjectKeys(addressStructures)
+			var keys []string = nil
+			if addressStructures != nil {
+				keys = make([]string, 0, len(addressStructures))
+				for objectKey := range addressStructures {
+					keys = append(keys, objectKey)
+				}
+			}
 			var key *string = this.SafeString(keys, 0)
 
 			ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(addressStructures, key))}
@@ -6780,8 +6808,8 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	_ = currency
 	var tag *string = this.SafeString(depositAddress, "tag")
 	var currencyId *string = this.SafeString(depositAddress, "coin")
-	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
-	var code *string = this.SafeString(currencyResolved, "code")
+	var currencyResolved Currency = CurrencyFromMap(this.SafeCurrency(currencyId, currency))
+	var code *string = currencyResolved.Code
 	var rawAddress *string = this.SafeString2(depositAddress, "addressWithPrefix", "address")
 	var networkId *string = this.SafeString(depositAddress, "network")
 	var networkCode *string = this.NetworkIdToCode(networkId, code)
@@ -6790,7 +6818,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	var address *string = rawAddress
 	if rawAddress != nil {
 		var isPrefixed bool = strings.HasPrefix(*rawAddress, "0x") || strings.HasPrefix(*rawAddress, "0X")
-		var evmNetworks []any = []any{"BEP20", "ERC20", "HECO", "MATIC", "POLYGON", "ARBITRUM", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
+		var evmNetworks []string = []string{"BEP20", "ERC20", "HECO", "MATIC", "POLYGON", "ARBITRUM", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
 		if !isPrefixed && this.InArray(networkCode, evmNetworks) {
 			addressStr := "0x" + *rawAddress
 			address = &addressStr
@@ -7725,12 +7753,15 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]D
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response any = nil
-	if r1.Value != nil {
-		response = r1.Value
-	}
+	var response map[string]any = r1.Value
 	var depositWithdrawFees map[string]any = map[string]any{}
-	var responseCodes []string = ObjectKeys(response)
+	var responseCodes []string = nil
+	if response != nil {
+		responseCodes = make([]string, 0, len(response))
+		for objectKey := range response {
+			responseCodes = append(responseCodes, objectKey)
+		}
+	}
 	for i := 0; i < len(responseCodes); i++ {
 		var code string = responseCodes[i]
 		if (codes == nil) || (this.InArray(code, codes)) {
@@ -8120,7 +8151,7 @@ func (this *Bingx) closeAllPositionsBody(ch chan AsyncResult[[]Position], option
 		}
 		response = r2.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var success []any = SafeListTyped(data, "success")
 	var positions []any = []any{}
 	for i := 0; i < len(success); i++ {
@@ -8169,11 +8200,11 @@ func (this *Bingx) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], 
 		panic(NotSupported(this.Id + " fetchPositionMode() is not supported for inverse swap markets"))
 	}
 
-	r1 := <-this.SwapV1PrivateGetPositionSideDual(paramsSubType)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.SwapV1PrivateGetPositionSideDual(paramsSubType)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "code": "0",
@@ -8184,11 +8215,11 @@ func (this *Bingx) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], 
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var dualSidePosition *string = this.SafeString(data, "dualSidePosition")
 
 	ch <- AsyncResult[PositionModeInfo]{Value: PositionModeInfoFromMap(map[string]any{
-		"info":   response,
+		"info":   responseReply.Raw,
 		"hedged": (dualSidePosition != nil && *dualSidePosition == "true"),
 	})}
 	return nil
@@ -8525,12 +8556,12 @@ func (this *Bingx) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInter
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = func() any {
-		if market != nil {
-			return market["symbol"]
-		}
-		return nil
-	}()
+	var symbol any
+	if market != nil {
+		symbol = market["symbol"]
+	} else {
+		symbol = nil
+	}
 	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
@@ -8716,7 +8747,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 		version = section[2]
 		access = section[3]
 	}
-	var flatAccountPaths []any = []any{"account/apiPermissions", "account/apiRestrictions"}
+	var flatAccountPaths []string = []string{"account/apiPermissions", "account/apiRestrictions"}
 	if !this.InArray(pathValue, flatAccountPaths) {
 		if (typeVar == "spot") && (version == "v3") {
 			url += "/api"
@@ -8745,12 +8776,12 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			parsedParams = this.ParseParams(paramsSorted)
 			encodeRequest = this.Rawencode(parsedParams, true)
 		}
-		var encodeRequestSafe any = func() any {
-			if encodeRequest == nil {
-				return ""
-			}
-			return encodeRequest
-		}()
+		var encodeRequestSafe any
+		if encodeRequest == nil {
+			encodeRequestSafe = ""
+		} else {
+			encodeRequestSafe = encodeRequest
+		}
 		var signature string = this.Hmac(this.Encode(encodeRequestSafe), this.Encode(this.Secret), sha256)
 		requestHeaders = map[string]any{
 			"X-BX-APIKEY":  this.ApiKey,
@@ -9497,7 +9528,7 @@ func (this *Bingx) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

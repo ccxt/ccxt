@@ -280,7 +280,10 @@ func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
 }
 func (this *Bitstamp) GetCacheIndex(orderbook any, deltas []any) any {
 	// we will consider it a fail
-	var firstElement map[string]any = ccxt.SafeMapTyped(deltas, 0)
+	var firstElement map[string]any
+	if len(deltas) > 0 {
+		firstElement, _ = deltas[0].(map[string]any)
+	}
 	var firstElementNonce *int64 = this.SafeInteger(firstElement, "microtimestamp")
 	if firstElementNonce == nil {
 		return int64(-1)
@@ -290,7 +293,7 @@ func (this *Bitstamp) GetCacheIndex(orderbook any, deltas []any) any {
 		return int64(-1)
 	}
 	for i := 0; i < len(deltas); i++ {
-		var delta map[string]any = ccxt.SafeMapTyped(deltas, i)
+		var delta, _ = deltas[i].(map[string]any)
 		var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 		if deltaNonce == nonce || (deltaNonce != nil && nonce != nil && *deltaNonce == *nonce) {
 			return i + 1
@@ -800,12 +803,12 @@ func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 	//
 	var channel *string = this.SafeString(message, "channel")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var subscription any = func() any {
-		if channel == nil {
-			return nil
-		}
-		return this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel)
-	}()
+	var subscription any
+	if channel == nil {
+		subscription = nil
+	} else {
+		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel)
+	}
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
 		// cleanUnsubscription deletes the subscription, so a trade frame
@@ -899,12 +902,12 @@ func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	//
 	var channel *string = this.SafeString(message, "channel")
 	var order map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var subscription any = func() any {
-		if channel == nil {
-			return nil
-		}
-		return this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel)
-	}()
+	var subscription any
+	if channel == nil {
+		subscription = nil
+	} else {
+		subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel)
+	}
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
 		// cleanUnsubscription deletes the subscription, so an order frame

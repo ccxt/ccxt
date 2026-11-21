@@ -781,15 +781,15 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		"price":         price,
 	}
 
-	r1 := <-this.PrivatePostTrade(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostTrade(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
-	var data map[string]any = SafeMapTyped(response, "return")
+	var response map[string]any = responseReply.Value
+	var data, _ = response["return"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 		"id":   this.NumberToString(data["order_id"]),
 	}, market)}
 	return nil

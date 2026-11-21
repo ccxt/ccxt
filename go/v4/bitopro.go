@@ -1609,8 +1609,8 @@ func (this *Bitopro) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var id *string = this.SafeString(market, "uppercaseId")
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var id *string = market.UppercaseId
 	var request map[string]any = map[string]any{}
 	if id != nil {
 		request[*id] = ids
@@ -1672,8 +1672,11 @@ func (this *Bitopro) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["pair"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["pair"] = nil
+		if market.Id != nil {
+			request["pair"] = *market.Id
+		}
 
 		r1 := <-this.PrivateDeleteOrdersPair(this.Extend(request, params))
 		if r1.Err != nil {

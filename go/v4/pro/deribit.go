@@ -605,7 +605,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = this.SafeMarket(marketId)
-	var trades []any = ccxt.SafeListTyped(params, "data")
+	var trades, _ = params["data"].([]any)
 	if ccxt.IsEqual(this.SafeDict(this.Trades, symbol), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		if symbol != nil {
@@ -1296,12 +1296,12 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], cha
 	var rawSubscriptions []any = []any{}
 	var messageHashes []any = []any{}
 	var isOHLCV bool = (channelName == "chart.trades")
-	var symbols any = func() any {
-		if isOHLCV {
-			return this.GetListFromObjectValues(symbolsArray, 0)
-		}
-		return symbolsArray
-	}()
+	var symbols any
+	if isOHLCV {
+		symbols = this.GetListFromObjectValues(symbolsArray, 0)
+	} else {
+		symbols = symbolsArray
+	}
 	this.MarketSymbols(symbols, nil, false)
 	if symbolsArray == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMultipleWrapper() symbolsArray is required"))

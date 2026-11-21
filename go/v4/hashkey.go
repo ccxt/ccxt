@@ -3142,8 +3142,8 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() is supported for spot markets only"))
 	}
 	var req map[string]any = map[string]any{
@@ -3470,12 +3470,12 @@ func (this *Hashkey) createSwapOrderBody(ch chan AsyncResult[Order], symbol stri
  * @param {object} [params] extra parameters specific to the api endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hashkey) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3489,7 +3489,7 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -3531,7 +3531,7 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	var result []any = SafeListTyped(response, "result")
 	var responseOrders []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var responseEntry map[string]any = SafeMapTyped(result, i)
+		var responseEntry, _ = result[i].(map[string]any)
 		var responseOrder map[string]any = this.SafeDictMap(responseEntry, "order", map[string]any{})
 		responseOrders = append(responseOrders, responseOrder)
 	}
@@ -4336,7 +4336,10 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 			typeVar = "limit"
 		}
 	}
-	var timeInForce any = DerefScalar(this.SafeString(order, "timeInForce"))
+	var timeInForce any
+	if derefPtr := this.SafeString(order, "timeInForce"); derefPtr != nil {
+		timeInForce = *derefPtr
+	}
 	var postOnly any = nil
 	typeVartimeInForcepostOnlyVariable := this.ParseOrderTypeTimeInForceAndPostOnly(typeVar, timeInForce)
 	typeVar = GetValue(typeVartimeInForcepostOnlyVariable, 0)
@@ -4693,12 +4696,7 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		}
 	}
 
-	r1 := <-this.FetchPositionsForSymbolAsync(StringArg(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return symbols[0]
-		}
-		return nil
-	}()), this.Extend(map[string]any{
+	r1 := <-this.FetchPositionsForSymbolAsync(StringArg(symbols[0]), this.Extend(map[string]any{
 		"methodName": "fetchPositions",
 	}, params))
 	if r1.Err != nil {
@@ -5405,7 +5403,8 @@ func (this *Hashkey) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	//         "updateTimestamp": "1722320137809"
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var fee map[string]any = this.SafeDictMap(data, i, map[string]any{})
@@ -5502,12 +5501,12 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		headersSigned["INPUT-SOURCE"] = this.SafeString(this.Options, "broker", "10000700011")
 		headersSigned["broker_sign"] = signature
-		var bodyResolved any = func() any {
-			if method == "GET" {
-				return nil
-			}
-			return bodySigned
-		}()
+		var bodyResolved any
+		if method == "GET" {
+			bodyResolved = nil
+		} else {
+			bodyResolved = bodySigned
+		}
 		return map[string]any{
 			"url":     url,
 			"method":  method,
@@ -6115,7 +6114,7 @@ func (this *Hashkey) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

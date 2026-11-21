@@ -1077,7 +1077,8 @@ func (this *Extended) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	//       ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var marketData, _ = data[i].(map[string]any)
@@ -1393,13 +1394,17 @@ func (this *Extended) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//         }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1502,13 +1507,17 @@ func (this *Extended) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	//         }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1611,13 +1620,13 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "q", "qty")
 	var sideRaw *string = this.SafeString2(trade, "S", "side")
-	var side *string = func() *string {
-		if sideRaw != nil {
-			retStr := strings.ToLower(*sideRaw)
-			return &retStr
-		}
-		return nil
-	}()
+	var side *string
+	if sideRaw != nil {
+		retStr := strings.ToLower(*sideRaw)
+		side = &retStr
+	} else {
+		side = nil
+	}
 	var feeCost *string = this.SafeString(trade, "fee")
 	var fee any = func() any {
 		if feeCost == nil {
@@ -1718,12 +1727,11 @@ func (this *Extended) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"market":     market["id"],
 		"candleType": candleType,
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
-		"limit": func() any {
-			if limit != nil {
-				return limit
-			}
-			return 100
-		}(),
+	}
+	if limit != nil {
+		request["limit"] = limit
+	} else {
+		request["limit"] = 100
 	}
 	if until != nil {
 		request["endTime"] = until
@@ -1872,13 +1880,17 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	//       }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2299,13 +2311,17 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2464,13 +2480,17 @@ func (this *Extended) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 	//         }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2631,11 +2651,11 @@ func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"})
 
-	r2 := <-this.V1PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseReply := <-this.V1PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r2.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "status": "OK",
@@ -2645,7 +2665,7 @@ func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string
 	var now int64 = this.Milliseconds()
 
 	ch <- AsyncResult[Transaction]{Value: TransactionFromMap(map[string]any{
-		"info":        response,
+		"info":        responseReply.Raw,
 		"id":          this.SafeString(response, "data"),
 		"txid":        nil,
 		"timestamp":   now,
@@ -2733,13 +2753,17 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2813,11 +2837,11 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution"})
 
-	r2 := <-this.V1PrivatePostUserTransfer(this.Extend(request, paramsOmitted))
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseReply := <-this.V1PrivatePostUserTransfer(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r2.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "status": "OK",
@@ -2827,7 +2851,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var validSignature *bool = this.SafeBool(data, "validSignature")
 	var now int64 = this.Milliseconds()
 	var status string = "pending"
@@ -2840,7 +2864,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	}
 
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(map[string]any{
-		"info":        response,
+		"info":        responseReply.Raw,
 		"id":          this.SafeString(data, "id"),
 		"timestamp":   now,
 		"datetime":    this.Iso8601(now),
@@ -3045,7 +3069,8 @@ func (this *Extended) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -3102,7 +3127,8 @@ func (this *Extended) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var fee map[string]any = this.SafeDictMap(data, i, map[string]any{})
@@ -3184,7 +3210,8 @@ func (this *Extended) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(this.SafeDict(data, 0, map[string]any{}), market)}
 	return nil
@@ -3467,13 +3494,17 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 	//         }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -4657,13 +4688,17 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//       }
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,

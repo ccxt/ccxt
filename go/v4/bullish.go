@@ -1118,7 +1118,7 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 	})
 }
 func (this *Bullish) ParseMarketType(optionalArgs ...any) *string {
-	typeVar := GetArg(optionalArgs, 0, nil)
+	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = typeVar
 	var defaultType *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = defaultType
@@ -3207,7 +3207,11 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[*string], optionalArgs 
 			var account map[string]any = SafeMapTyped(accounts, i)
 			var name *string = this.SafeString(account, "tradingAccountName")
 			if name != nil && *name == "Primary Account" {
-				tradingAccountId = DerefScalar(this.SafeString(account, "tradingAccountId"))
+				if derefPtr := this.SafeString(account, "tradingAccountId"); derefPtr != nil {
+					tradingAccountId = *derefPtr
+				} else {
+					tradingAccountId = nil
+				}
 				break
 			}
 		}
@@ -3471,8 +3475,11 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	}
 	var code *string = this.SafeString(params, "code")
 	if code != nil {
-		var currency map[string]any = this.Currency(code)
-		request["symbol"] = currency["id"]
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		request["symbol"] = nil
+		if currency.Id != nil {
+			request["symbol"] = *currency.Id
+		}
 
 		r2 := <-this.PrivateGetV1AccountsAssetSymbol(this.Extend(request, params))
 		if r2.Err != nil {
@@ -3632,8 +3639,8 @@ func (this *Bullish) ParsePosition(position any, optionalArgs ...any) Position {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketResolved map[string]any = this.SafeMarket(this.SafeString(position, "symbol"), market)
-	var symbol *string = this.SafeString(marketResolved, "symbol")
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(this.SafeString(position, "symbol"), market))
+	var symbol *string = marketResolved.Symbol
 	var timestamp *int64 = this.SafeInteger(position, "createdAtTimestamp")
 	var side *string = this.SafeString(position, "side")
 	return this.SafePosition(map[string]any{

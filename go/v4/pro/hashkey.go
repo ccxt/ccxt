@@ -900,7 +900,7 @@ func (this *Hashkey) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var listenKey *string = r1.Value
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	if symbolsNormalized == nil {
 		messageHashes = append(messageHashes, messageHash)
 	} else {
@@ -1300,7 +1300,7 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], list
 	}
 	return nil
 }
-func (this *Hashkey) HandleListMessage(client any, message any) {
+func (this *Hashkey) HandleListMessage(client any, message []any) {
 	this.HandleStreamMessage(client, this.SafeDict(message, 0, map[string]any{}))
 }
 func (this *Hashkey) HandleMessage(client any, message map[string]any) {

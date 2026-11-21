@@ -577,7 +577,8 @@ func (this *Coinone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         ]
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "tickers")
+	var tickers []any
+	tickers, _ = response["tickers"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
 		var entry, _ = tickers[i].(map[string]any)
@@ -941,7 +942,8 @@ func (this *Coinone) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "tickers")
+	var data []any
+	data, _ = response["tickers"].([]any)
 	var ticker map[string]any
 	if 0 < len(data) {
 		ticker, _ = data[0].(map[string]any)

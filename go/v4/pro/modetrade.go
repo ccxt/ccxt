@@ -79,7 +79,11 @@ func (this *Modetrade) Describe() map[string]any {
 	})
 }
 func (this *Modetrade) RequestId(url string) int64 {
-	var options map[string]any = this.SafeDictMap(this.Options, "requestId", map[string]any{})
+	var options map[string]any
+	options, _ = this.Options["requestId"].(map[string]any)
+	if options == nil {
+		options = map[string]any{}
+	}
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
 	options[url] = newValue
@@ -388,7 +392,7 @@ func (this *Modetrade) HandleTickers(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -468,7 +472,7 @@ func (this *Modetrade) HandleBidAsk(client any, message map[string]any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1148,8 +1152,8 @@ func (this *Modetrade) ParseWsOrder(order any, optionalArgs ...any) map[string]a
 	_ = market
 	var orderId *string = this.SafeString(order, "orderId")
 	var marketId *string = this.SafeString(order, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = this.SafeString(marketResolved, "symbol")
+	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
@@ -1234,7 +1238,7 @@ func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 	var dataIsArray bool = ccxt.IsArray(data)
 	if dataIsArray {
 		// algoexecutionreport
-		var dataList []any = ccxt.SafeListTyped(message, "data")
+		var dataList, _ = message["data"].([]any)
 		var dataListLength int = len(dataList)
 		for i := 0; i < dataListLength; i++ {
 			var order any = dataList[i]
@@ -1517,14 +1521,14 @@ func (this *Modetrade) HandlePositions(client any, message map[string]any) {
 	//    }
 	//
 	var data, _ = message["data"].(map[string]any)
-	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
+	var rawPositions, _ = data["positions"].([]any)
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition map[string]any = ccxt.SafeMapTyped(rawPositions, i)
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var marketId *string = this.SafeString(rawPosition, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var position map[string]any = this.ParseWsPosition(rawPosition, market)
@@ -1779,12 +1783,12 @@ func (this *Modetrade) HandleMessage(client any, message map[string]any) {
 		"bbos":                this.HandleBidAsk,
 	}
 	var event *string = this.SafeString(message, "event")
-	var method any = func() any {
-		if event == nil {
-			return nil
-		}
-		return this.SafeValue(methods, event)
-	}()
+	var method any
+	if event == nil {
+		method = nil
+	} else {
+		method = this.SafeValue(methods, event)
+	}
 	if method != nil {
 		ccxt.CallDynamically(method, client, message)
 		return

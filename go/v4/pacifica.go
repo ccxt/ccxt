@@ -2334,13 +2334,13 @@ func (this *Pacifica) BatchOrdersRequest(actions []any) map[string]any {
 		"actions": actions,
 	}
 }
-func (this *Pacifica) CreateOrdersRequest(orders []any, optionalArgs ...any) map[string]any {
+func (this *Pacifica) CreateOrdersRequest(orders []map[string]any, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var actions []any = []any{}
 	var timestamp int64 = this.Milliseconds() // unified sequence
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = SafeMapTyped(orders, i)
+		var order map[string]any = orders[i]
 		var symbol *string = this.SafeString(order, "symbol")
 		var side *string = this.SafeString(order, "side")
 		var price *string = this.SafeString(order, "price")
@@ -2372,12 +2372,12 @@ func (this *Pacifica) CreateOrdersRequest(orders []any, optionalArgs ...any) map
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Pacifica) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Pacifica) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2632,9 +2632,12 @@ func (this *Pacifica) CancelAllOrdersRequest(symbol *string, optionalArgs ...any
 	var excludeReduceOnly *bool = this.SafeBool(params, "excludeReduceOnly", false)
 	sigPayload["exclude_reduce_only"] = excludeReduceOnly
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		sigPayload["all_symbols"] = false
-		sigPayload["symbol"] = market["id"]
+		sigPayload["symbol"] = nil
+		if market.Id != nil {
+			sigPayload["symbol"] = *market.Id
+		}
 	} else {
 		sigPayload["all_symbols"] = true
 	}
@@ -2793,11 +2796,11 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	var request map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "clientOrderId"})
 
-	r2 := <-this.PrivatePostOrdersEdit(this.Extend(request, paramsOmitted))
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseReply := <-this.PrivatePostOrdersEdit(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r2.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// {
 	//     'data': {
@@ -2805,26 +2808,26 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var orderId *string = this.SafeString(data, "order_id")
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"id":     orderId,
-		"info":   response,
+		"info":   responseReply.Raw,
 		"symbol": symbol,
 	})}
 	return nil
 }
-func (this *Pacifica) EditOrderRequest(id *string, symbol string, typeVar string, side string, amount any, price any, market map[string]any, optionalArgs ...any) map[string]any {
+func (this *Pacifica) EditOrderRequest(id *string, symbol string, typeVar string, side string, amount *float64, price *float64, market map[string]any, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount!"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price"))
 	}
 	var operationType string = "edit_order"
@@ -3009,7 +3012,8 @@ func (this *Pacifica) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	//   "code": null
 	// }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var info any = data[i]
@@ -3489,7 +3493,8 @@ func (this *Pacifica) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	//   "code": null
 	// }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	// return last state, history_id is the per-event sequence, created_at can tie within a millisecond
 	var sorted []any = this.SortBy(data, "history_id", true)
 	var lastIdx int = len(sorted)
@@ -3780,7 +3785,8 @@ func (this *Pacifica) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	//   "code": null,
 	//   "last_order_id": 1557431179
 	// }
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		result = append(result, PositionToMap(this.ParsePosition(data[i], nil)))
@@ -5668,7 +5674,7 @@ func (this *Pacifica) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

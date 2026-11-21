@@ -322,11 +322,11 @@ func (this *Bitbns) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.V1GetPlatformStatus(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.V1GetPlatformStatus(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "data":{
@@ -348,7 +348,7 @@ func (this *Bitbns) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -1098,7 +1098,8 @@ func (this *Bitbns) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	//         "code":200
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -1721,11 +1722,11 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		"symbol": currency["id"],
 	}
 
-	r1 := <-this.V1PostGetCoinAddressSymbol(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V1PostGetCoinAddressSymbol(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "data":{
@@ -1736,13 +1737,13 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	//         "error":null
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var address *string = this.SafeString(data, "token")
 	var tag *string = this.SafeString(data, "tag")
 	this.CheckAddress(address)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": code,
 		"network":  nil,
 		"address":  address,
@@ -1782,13 +1783,13 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) map[string]any {
 	if queryLength > 0 {
 		postBody = this.Json(query)
 	}
-	var requestBody *string = func() *string {
-		if method == "POST" {
-			retStr := postBody
-			return &retStr
-		}
-		return nil
-	}()
+	var requestBody *string
+	if method == "POST" {
+		retStr := postBody
+		requestBody = &retStr
+	} else {
+		requestBody = nil
+	}
 	if method == "GET" {
 		if queryLength > 0 {
 			url += "?" + this.Urlencode(query)

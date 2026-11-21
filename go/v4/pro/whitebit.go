@@ -150,7 +150,7 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) map[string
 	//     "id": null
 	// }
 	//
-	var params []any = ccxt.SafeListTyped(message, "params")
+	var params, _ = message["params"].([]any)
 	for i := 0; i < len(params); i++ {
 		var data any = params[i]
 		var marketId *string = this.SafeString(data, 7)
@@ -271,12 +271,15 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	//     "id":null
 	//  }
 	//
-	var params []any = ccxt.SafeListTyped(message, "params")
+	var params, _ = message["params"].([]any)
 	var isSnapshot *bool = this.SafeBool(params, 0, false)
 	var marketId *string = this.SafeString(params, 2)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string = market.Symbol
-	var data map[string]any = ccxt.SafeMapTyped(params, 1)
+	var data map[string]any
+	if 1 < len(params) {
+		data, _ = params[1].(map[string]any)
+	}
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
@@ -423,7 +426,7 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) map[strin
 	//       "id": null
 	//   }
 	//
-	var tickers []any = ccxt.SafeListTyped(message, "params")
+	var tickers, _ = message["params"].([]any)
 	var marketId *string = this.SafeString(tickers, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -531,7 +534,7 @@ func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var params []any = ccxt.SafeListTyped(message, "params")
+	var params, _ = message["params"].([]any)
 	var marketId *string = this.SafeString(params, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -814,8 +817,11 @@ func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalAr
 	//
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
-	var params []any = ccxt.SafeListTyped(message, "params")
-	var data map[string]any = ccxt.SafeMapTyped(params, 1)
+	var params, _ = message["params"].([]any)
+	var data map[string]any
+	if 1 < len(params) {
+		data, _ = params[1].(map[string]any)
+	}
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1086,9 +1092,9 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 		return
 	}
 	var isMargin bool = (strings.Index(*method, "Margin") >= 0)
-	var data []any = ccxt.SafeListTyped(message, "params")
+	var data, _ = message["params"].([]any)
 	for i := 0; i < len(data); i++ {
-		var balanceDict map[string]any = ccxt.SafeMapTyped(data, i)
+		var balanceDict, _ = data[i].(map[string]any)
 		this.Balance["info"] = this.SafeDict(data, i, map[string]any{})
 		if isMargin {
 			var currencyId *string = this.SafeString(balanceDict, "a")

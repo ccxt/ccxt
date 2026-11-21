@@ -639,7 +639,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, obLimit)
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
+	var units, _ = message["orderbook_units"].([]any)
 	var gen2TimestampStr *string = this.SafeString2(message, "timestamp", "datetime")
 	var timestamp int64 = this.Milliseconds()
 	if gen2TimestampStr != nil {
@@ -653,7 +653,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var bidsSnapshot []any = []any{}
 	var asksSnapshot []any = []any{}
 	for i := 0; i < len(units); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(units, i)
+		var entry, _ = units[i].(map[string]any)
 		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
 		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
 		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
@@ -1037,12 +1037,12 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash string = "myAsset"
-	var assets []any = ccxt.SafeListTyped(message, "assets")
+	var assets, _ = message["assets"].([]any)
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	for i := 0; i < len(assets); i++ {
-		var asset map[string]any = ccxt.SafeMapTyped(assets, i)
+		var asset, _ = assets[i].(map[string]any)
 		var currencyId *string = this.SafeString(asset, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1081,7 +1081,11 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
  * @returns {object[]} the SUBSCRIBE frame to send
  */
 func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType string, subscription map[string]any) []any {
-	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any
+	wsOptions, _ = this.Options["ws"].(map[string]any)
+	if wsOptions == nil {
+		wsOptions = map[string]any{}
+	}
 	var subscriptions map[string]any = this.SafeDictMap(wsOptions, "gen2Subscriptions", map[string]any{})
 	subscriptions[subscriptionType] = subscription
 	wsOptions["gen2Subscriptions"] = subscriptions
@@ -1112,7 +1116,11 @@ func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[ccxt.ClientInterf
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any
+	wsOptions, _ = this.Options["ws"].(map[string]any)
+	if wsOptions == nil {
+		wsOptions = map[string]any{}
+	}
 	var authenticated *string = this.SafeString(wsOptions, "token")
 	if authenticated == nil {
 		var payload map[string]any = map[string]any{
@@ -1323,8 +1331,8 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 	var feeCost *string = this.SafeString(order, "paid_fee")
 	var fee map[string]any = nil
 	if feeCost != nil {
-		var marketForFee map[string]any = this.SafeMarket(marketId, market)
-		var feeCurrency *string = this.SafeString(marketForFee, "quote")
+		var marketForFee ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+		var feeCurrency *string = marketForFee.QuoteCurrency
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrency,

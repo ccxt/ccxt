@@ -340,12 +340,12 @@ func (this *PredictionExchange) fetchEventsBody(ch chan AsyncResult[[]Prediction
 	_ = params
 	panic(NotSupported(this.Id + " fetchEvents() is not supported yet"))
 }
-func (this *PredictionExchange) FetchEventAsync(id any, optionalArgs ...any) <-chan AsyncResult[PredictionEvent] {
+func (this *PredictionExchange) FetchEventAsync(id string, optionalArgs ...any) <-chan AsyncResult[PredictionEvent] {
 	ch := make(chan AsyncResult[PredictionEvent], 1)
 	go this.fetchEventBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) fetchEventBody(ch chan AsyncResult[PredictionEvent], id any, optionalArgs ...any) any {
+func (this *PredictionExchange) fetchEventBody(ch chan AsyncResult[PredictionEvent], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -571,7 +571,7 @@ func (this *PredictionExchange) ShortenSlug(slug any) string {
 		"trillion":                "T",
 		"percent":                 "pct",
 	}
-	var stopWords []any = []any{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
+	var stopWords []string = []string{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
 	var lower string
 	if IsEqual(slug, nil) {
 		lower = ""
@@ -1558,12 +1558,12 @@ func (this *PredictionExchange) fetchOpenInterestBody(ch chan AsyncResult[Predic
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]PredictionOrder] {
+func (this *PredictionExchange) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]PredictionOrder] {
 	ch := make(chan AsyncResult[[]PredictionOrder], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createOrdersBody(ch chan AsyncResult[[]PredictionOrder], orders []any, optionalArgs ...any) any {
+func (this *PredictionExchange) createOrdersBody(ch chan AsyncResult[[]PredictionOrder], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1928,19 +1928,18 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 		"cost":                this.ParseNumber(cost),
 		"fee":                 fee,
 		"reduceOnly":          this.SafeBool(outcomeOrder, "reduceOnly"),
-		"postOnly": func() any {
-			if postOnlyValue != nil {
-				return postOnlyValue
-			}
-			return derivedPostOnly
-		}(),
-		"trades":    trades,
-		"outcome":   this.SafeString(outcomeOrder, "outcome"),
-		"outcomeId": this.SafeString(outcomeOrder, "outcomeId"),
-		"label":     this.SafeString(outcomeOrder, "label"),
-		"market":    this.SafeString(outcomeOrder, "market"),
-		"event":     this.SafeString(outcomeOrder, "event"),
-		"info":      this.SafeValue(outcomeOrder, "info", outcomeOrder),
+		"trades":              trades,
+		"outcome":             this.SafeString(outcomeOrder, "outcome"),
+		"outcomeId":           this.SafeString(outcomeOrder, "outcomeId"),
+		"label":               this.SafeString(outcomeOrder, "label"),
+		"market":              this.SafeString(outcomeOrder, "market"),
+		"event":               this.SafeString(outcomeOrder, "event"),
+		"info":                this.SafeValue(outcomeOrder, "info", outcomeOrder),
+	}
+	if postOnlyValue != nil {
+		result["postOnly"] = postOnlyValue
+	} else {
+		result["postOnly"] = derivedPostOnly
 	}
 	return result
 }
@@ -2293,6 +2292,7 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 	}
 	// RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
 	var byteLength int64 = this.ParseToInt(float64(GetLength(hex)) / 2)
+
 	if byteLength == 0 {
 		return "80"
 	}
@@ -2316,6 +2316,7 @@ func (this *PredictionExchange) RlpEncodeList(items []any) string {
 		concatenated = concatenated + *this.SafeString(items, i, "")
 	}
 	var byteLength int64 = this.ParseToInt(float64(len(concatenated)) / 2)
+
 	if byteLength < 56 {
 		return this.IntToBase16(192+byteLength) + concatenated
 	}

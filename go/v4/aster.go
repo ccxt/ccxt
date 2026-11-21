@@ -2904,11 +2904,11 @@ func (this *Aster) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.FapiPrivateGetV3PositionSideDual(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.FapiPrivateGetV3PositionSideDual(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 
 	//
 	//     {
@@ -2916,7 +2916,7 @@ func (this *Aster) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], 
 	//     }
 	//
 	ch <- AsyncResult[PositionModeInfo]{Value: PositionModeInfoFromMap(map[string]any{
-		"info":   response,
+		"info":   responseReply.Raw,
 		"hedged": this.SafeBool(response, "dualSidePosition"),
 	})}
 	return nil
@@ -3645,12 +3645,12 @@ func (this *Aster) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Aster) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Aster) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Aster) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Aster) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3667,7 +3667,7 @@ func (this *Aster) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, 
 		panic(InvalidOrder(this.Id + " createOrders() order list max 5 orders"))
 	}
 	for i := 0; i < ordersLength; i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var currentMarket map[string]any = this.Market(marketId)
 		orderSymbols = append(orderSymbols, currentMarket["symbol"])
@@ -5152,12 +5152,12 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 		var position any = positions[i]
 		var marketId *string = this.SafeString(position, "symbol")
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		var code any = func() any {
-			if *this.SafeBool(market, "linear", false) {
-				return market["quote"]
-			}
-			return market["base"]
-		}()
+		var code any
+		if *this.SafeBool(market, "linear", false) {
+			code = market["quote"]
+		} else {
+			code = market["base"]
+		}
 		var maintenanceMargin *string = this.SafeString(position, "maintMargin")
 		// check for maintenance margin so empty positions are not returned
 		var isPositionOpen bool = (maintenanceMargin == nil || *maintenanceMargin != "0") && (maintenanceMargin == nil || *maintenanceMargin != "0.00000000")
@@ -5472,7 +5472,11 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})
 			}
-			var leverageBracketsDict map[string]any = this.SafeDictMap(this.Options, "leverageBrackets", map[string]any{})
+			var leverageBracketsDict map[string]any
+			leverageBracketsDict, _ = this.Options["leverageBrackets"].(map[string]any)
+			if leverageBracketsDict == nil {
+				leverageBracketsDict = map[string]any{}
+			}
 			if symbol != nil {
 				leverageBracketsDict[*symbol] = result
 			}
@@ -6754,7 +6758,7 @@ func (this *Aster) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

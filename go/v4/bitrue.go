@@ -764,17 +764,23 @@ func (this *Bitrue) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.SpotV1PublicGetPing(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.SpotV1PublicGetPing(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// empty means working status.
 	//
 	//     {}
 	//
-	var keys []string = ObjectKeys(response)
+	var keys []string = nil
+	if response != nil {
+		keys = make([]string, 0, len(response))
+		for objectKey := range response {
+			keys = append(keys, objectKey)
+		}
+	}
 	var keysLength int = len(keys)
 	var formattedStatus string = "ok"
 	if keysLength > 0 {
@@ -786,7 +792,7 @@ func (this *Bitrue) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ..
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -2340,8 +2346,8 @@ func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order],
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "swap", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Swap {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports swap orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -3679,7 +3685,8 @@ func (this *Bitrue) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var coins []any = SafeListTyped(response, "coins")
+	var coins []any
+	coins, _ = response["coins"].([]any)
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(coins, codes, "coin"))}
 	return nil

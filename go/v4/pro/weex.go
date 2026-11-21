@@ -454,7 +454,7 @@ func (this *Weex) HandleTicker(client any, message map[string]any) {
 	if market == nil {
 		return
 	}
-	var tickers []any = ccxt.SafeListTyped(message, "d")
+	var tickers, _ = message["d"].([]any)
 	var data map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 	var ticker map[string]any = this.ParseWsTicker(data, market)
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -753,7 +753,7 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
 	var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
-	var data []any = ccxt.SafeListTyped(message, "d")
+	var data, _ = message["d"].([]any)
 	var newTrades []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var rawTrade map[string]any = this.SafeDictMap(data, i, map[string]any{})
@@ -1115,8 +1115,11 @@ func (this *Weex) HandleOHLCV(client any, message map[string]any) {
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var data []any = ccxt.SafeListTyped(message, "d")
-	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
+	var data, _ = message["d"].([]any)
+	var firstEntry map[string]any
+	if 0 < len(data) {
+		firstEntry, _ = data[0].(map[string]any)
+	}
 	var interval *string = this.SafeString(firstEntry, "i")
 	var timeframe *string = this.FindTimeframe(interval)
 	var stored ccxt.WsArrayCache
@@ -1791,7 +1794,7 @@ func (this *Weex) HandleMyTrades(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trades ccxt.WsArrayCache = this.MyTrades
-	var data []any = ccxt.SafeListTyped(message, "d")
+	var data, _ = message["d"].([]any)
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = this.SafeDictMap(data, i, map[string]any{})
@@ -2059,7 +2062,7 @@ func (this *Weex) HandleOrders(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "d")
+	var data, _ = message["d"].([]any)
 	var symbols map[string]any = map[string]any{}
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2417,9 +2420,9 @@ func (this *Weex) HandleBalance(client any, message map[string]any) {
 	var messageHash string = accountType + ":balance"
 	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
 	balance["info"] = message
-	var balanceUpdates []any = ccxt.SafeListTyped(message, "d")
+	var balanceUpdates, _ = message["d"].([]any)
 	for i := 0; i < len(balanceUpdates); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(balanceUpdates, i)
+		var entry, _ = balanceUpdates[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2668,7 +2671,7 @@ func (this *Weex) HandlePositions(client any, message map[string]any) {
 	}
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
-	var data []any = ccxt.SafeListTyped(message, "d")
+	var data, _ = message["d"].([]any)
 	for i := 0; i < len(data); i++ {
 		var rawPosition map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var position map[string]any = this.ParseWsPosition(rawPosition)

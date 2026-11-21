@@ -1105,7 +1105,7 @@ func (this *Kraken) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		panic(r.Err)
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, false)
-	var unsubMessageHashes []any = []any{}
+	var unsubMessageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		unsubMessageHashes = append(unsubMessageHashes, "unsubscribe:"+this.GetMessageHash("trade", nil, symbolsNormalized[i]))
 	}
@@ -1485,8 +1485,11 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var typeVar *string = this.SafeString(message, "type")
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var first map[string]any = ccxt.SafeMapTyped(data, 0)
+	var data, _ = message["data"].([]any)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	var symbol *string = this.SafeString(first, "symbol")
 	var a []any = this.SafeListSlice(first, "asks", []any{})
 	var b []any = this.SafeListSlice(first, "bids", []any{})
@@ -2071,7 +2074,11 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 			var length int = len(stored.ToArray())
 			if (limit != nil && *limit == int64(length)) && (previousOrder == nil) {
 				var first any = ccxt.GetValue(stored, 0)
-				var symbolsByOrderId map[string]any = this.SafeDictMap(this.Options, "symbolsByOrderId", map[string]any{})
+				var symbolsByOrderId map[string]any
+				symbolsByOrderId, _ = this.Options["symbolsByOrderId"].(map[string]any)
+				if symbolsByOrderId == nil {
+					symbolsByOrderId = map[string]any{}
+				}
 				var firstId *string = this.SafeString(first, "id")
 				if firstId != nil {
 					if _, ok := symbolsByOrderId[*firstId]; ok {
@@ -2449,8 +2456,11 @@ func (this *Kraken) HandleMessage(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
 	if channel != nil {
 		if channel != nil && *channel == "executions" {
-			var data []any = ccxt.SafeListTyped(message, "data")
-			var first map[string]any = ccxt.SafeMapTyped(data, 0)
+			var data, _ = message["data"].([]any)
+			var first map[string]any
+			if 0 < len(data) {
+				first, _ = data[0].(map[string]any)
+			}
 			var execType *string = this.SafeString(first, "exec_type")
 			var channelStr string
 			if execType != nil && *execType == "trade" {

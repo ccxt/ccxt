@@ -213,8 +213,18 @@ func (this *Lighter) HandleDeltas(bookside any, deltas []any) {
 }
 func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook ccxt.OrderBookInterface) any {
 	var data, _ = message["order_book"].(map[string]any)
-	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "asks", []any{}))
-	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "bids", []any{}))
+	var deltas1338 []any
+	deltas1338, _ = data["asks"].([]any)
+	if deltas1338 == nil {
+		deltas1338 = []any{}
+	}
+	this.HandleDeltas(orderbook.GetAsks(), deltas1338)
+	var deltas1348 []any
+	deltas1348, _ = data["bids"].([]any)
+	if deltas1348 == nil {
+		deltas1348 = []any{}
+	}
+	this.HandleDeltas(orderbook.GetBids(), deltas1348)
 	orderbook.SetNonce(this.SafeInteger(data, "offset"))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	orderbook.SetTimestamp(timestamp)
@@ -861,12 +871,12 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
 	//         "type": "subscribed/trade"
 	//     }
 	//
-	var liquidationData []any = ccxt.SafeListTyped(message, "liquidation_trades")
+	var liquidationData, _ = message["liquidation_trades"].([]any)
 	var liquidationDataLength int = len(liquidationData)
 	if liquidationDataLength > 0 {
 		this.HandleLiquidation(client, message)
 	}
-	var data []any = ccxt.SafeListTyped(message, "trades")
+	var data, _ = message["trades"].([]any)
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
@@ -1065,13 +1075,13 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 		} else {
 			feeRateRaw = this.SafeString(trade, "taker_fee")
 		}
-		var feeRate *string = func() *string {
-			if feeRateRaw != nil {
-				return ccxt.Precise.StringDiv(feeRateRaw, "1000000")
-			}
+		var feeRate *string
+		if feeRateRaw != nil {
+			feeRate = ccxt.Precise.StringDiv(feeRateRaw, "1000000")
+		} else {
 			retStr := "0"
-			return &retStr
-		}()
+			feeRate = &retStr
+		}
 		var feeAmount *string = ccxt.Precise.StringMul(costString, feeRate)
 		fee = map[string]any{
 			"cost":     feeAmount,
@@ -1377,7 +1387,7 @@ func (this *Lighter) HandleLiquidation(client any, message map[string]any) {
 	//         "type": "subscribed/trade"
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "liquidation_trades")
+	var data, _ = message["liquidation_trades"].([]any)
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)

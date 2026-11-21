@@ -897,9 +897,9 @@ func (this *Alpaca) HandleConnected(client any, message any) any {
 	//
 	return message
 }
-func (this *Alpaca) HandleCryptoMessage(client any, message any) {
-	for i := 0; i < ccxt.GetArrayLength(message); i++ {
-		var data any = ccxt.GetValue(message, i)
+func (this *Alpaca) HandleCryptoMessage(client any, message []any) {
+	for i := 0; i < len(message); i++ {
+		var data any = message[i]
 		var T *string = this.SafeString(data, "T")
 		var msg *string = this.SafeString(data, "msg")
 		if T != nil && *T == "subscription" {
@@ -942,7 +942,7 @@ func (this *Alpaca) HandleTradingMessage(client any, message map[string]any) {
 func (this *Alpaca) HandleMessage(client any, message map[string]any) {
 	this.HandleTradingMessage(client, message)
 }
-func (this *Alpaca) HandleListMessage(client any, message any) {
+func (this *Alpaca) HandleListMessage(client any, message []any) {
 	this.HandleCryptoMessage(client, message)
 }
 func (this *Alpaca) HandleAuthenticate(client any, message any) {

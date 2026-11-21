@@ -166,7 +166,7 @@ func (this *Onetrading) HandleBalanceSnapshot(client any, message map[string]any
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
-	var reserved []any = []any{"free", "used", "total"}
+	var reserved []string = []string{"free", "used", "total"}
 	var keys []string = nil
 	if balance != nil {
 		keys = make([]string, 0, len(balance))
@@ -303,7 +303,7 @@ func (this *Onetrading) HandleTicker(client any, message map[string]any) {
 	//         "time": "2022-06-23T16:41:00.004162Z"
 	//     }
 	//
-	var tickers []any = ccxt.SafeListTyped(message, "ticker_updates")
+	var tickers, _ = message["ticker_updates"].([]any)
 	var datetime *string = this.SafeString(message, "time")
 	for i := 0; i < len(tickers); i++ {
 		var ticker any = tickers[i]
@@ -928,7 +928,7 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var rawOrders []any = ccxt.SafeListTyped(message, "orders")
+	var rawOrders, _ = message["orders"].([]any)
 	var rawOrdersLength int = len(rawOrders)
 	if rawOrdersLength == 0 {
 		return
@@ -1418,7 +1418,11 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var dateTime *string = this.SafeString(message, "time")
 	var timeframeId map[string]any = ccxt.SafeMapTyped(message, "granularity")
-	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any
+	timeframes, _ = this.Options["timeframes"].(map[string]any)
+	if timeframes == nil {
+		timeframes = map[string]any{}
+	}
 	var timeframe *string = this.FindTimeframe(timeframeId, timeframes)
 	var channel *string = nil
 	if timeframe != nil {

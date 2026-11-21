@@ -595,12 +595,12 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 		var amount *float64 = this.SafeFloat(bidask, 8)
 		var side *int64 = this.SafeInteger(bidask, 9)
 		// 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-		var orderbookSide any = func() any {
-			if side != nil && *side == 0 {
-				return orderbook.GetBids()
-			}
-			return orderbook.GetAsks()
-		}()
+		var orderbookSide any
+		if side != nil && *side == 0 {
+			orderbookSide = orderbook.GetBids()
+		} else {
+			orderbookSide = orderbook.GetAsks()
+		}
 		// 0 new, 1 update, 2 remove
 		if typeVar != nil && *typeVar == 0 {
 			orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)

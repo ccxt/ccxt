@@ -567,7 +567,7 @@ func (this *Poloniex) HandleOrderRequest(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var order any = data[i]
@@ -838,7 +838,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 		"symbols": marketIds,
 	}
 	var request map[string]any = this.Extend(subscribe, params)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			messageHashes = append(messageHashes, name+"::"+symbolsNormalized[i])
@@ -1019,12 +1019,12 @@ func (this *Poloniex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var symbolResolved any = func() any {
-		if symbol == nil {
-			return nil
-		}
-		return this.Symbol(symbol)
-	}()
+	var symbolResolved any
+	if symbol == nil {
+		symbolResolved = nil
+	} else {
+		symbolResolved = this.Symbol(symbol)
+	}
 	var symbols any = func() any {
 		if symbolResolved == nil {
 			return nil
@@ -1087,12 +1087,12 @@ func (this *Poloniex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var symbolResolved any = func() any {
-		if symbol == nil {
-			return nil
-		}
-		return this.Symbol(symbol)
-	}()
+	var symbolResolved any
+	if symbol == nil {
+		symbolResolved = nil
+	} else {
+		symbolResolved = this.Symbol(symbol)
+	}
 	var symbols any = func() any {
 		if symbolResolved == nil {
 			return nil
@@ -1205,7 +1205,7 @@ func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	// the object keeps its identity and deltas that arrived while the
 	// snapshot was in flight are not overwritten; the free/used/total
 	// aggregates are rebuilt from the merged currencies by safeBalance
-	var reserved []any = []any{"info", "timestamp", "datetime", "free", "used", "total"}
+	var reserved []string = []string{"info", "timestamp", "datetime", "free", "used", "total"}
 	var keys []string = ccxt.ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -1272,23 +1272,30 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) map[string
 	//    }
 	//
 	var dataList, _ = message["data"].([]any)
-	var data map[string]any = ccxt.SafeMapTyped(dataList, 0)
+	var data map[string]any
+	if 0 < len(dataList) {
+		data, _ = dataList[0].(map[string]any)
+	}
 	var channel *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = this.SafeMarket(symbol)
-	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any
+	timeframes, _ = this.Options["timeframes"].(map[string]any)
+	if timeframes == nil {
+		timeframes = map[string]any{}
+	}
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var parsed any = this.ParseWsOHLCV(data, market)
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any = func() any {
-		if timeframe == nil {
-			return nil
-		}
-		return this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
-	}()
+	var stored any
+	if timeframe == nil {
+		stored = nil
+	} else {
+		stored = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	}
 	if symbol != nil {
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1325,9 +1332,9 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) map[string
 	//        ]
 	//    }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var item map[string]any = ccxt.SafeMapTyped(data, i)
+		var item, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
 			var trade map[string]any = this.ParseWsTrade(item)
@@ -1522,7 +1529,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string
 	//        ]
 	//    }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1530,7 +1537,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string
 	var orders ccxt.WsArrayCache = this.Orders
 	var marketIds []string = []string{}
 	for i := 0; i < len(data); i++ {
-		var order map[string]any = ccxt.SafeMapTyped(data, i)
+		var order, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(order, "symbol")
 		var eventType *string = this.SafeString(order, "eventType")
 		if marketId != nil {
@@ -1625,7 +1632,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string
 				if (!ccxt.IsEqual(ccxt.GetValue(previousOrder["fee"], "cost"), nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
 					var stringOrderCost *string = this.NumberToString(ccxt.GetValue(previousOrder["fee"], "cost"))
 					var stringTradeCost *string = this.NumberToString(this.SafeNumber(trade["fee"], "cost"))
-					ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
+					ccxt.AddElementToObject(previousOrder["fee"], "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
 				}
 				var rawState *string = this.SafeString(order, "state")
 				var state *string = this.ParseStatus(rawState)
@@ -1747,7 +1754,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) map[strin
 	//        ]
 	//    }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var item any = data[i]
@@ -1825,12 +1832,12 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 	//        "action": "update"
 	//    }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var typeVar *string = this.SafeString(message, "action")
 	var snapshot bool = (typeVar != nil && *typeVar == "snapshot")
 	var update bool = (typeVar != nil && *typeVar == "update")
 	for i := 0; i < len(data); i++ {
-		var item map[string]any = ccxt.SafeMapTyped(data, i)
+		var item, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(item, "symbol")
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 		var symbol *string = market.Symbol
@@ -1911,13 +1918,16 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	// message keeps a reference to the old object while ccxt.Client.resolve is
 	// a no-op with no waiter, so updates landing in that window would
 	// never reach that consumer (same class as kraken issue #26773)
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var messageHash string = "balances"
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
 	this.Balance["info"] = this.SafeList(message, "data", []any{})
-	var firstBalance map[string]any = ccxt.SafeMapTyped(data, 0)
+	var firstBalance map[string]any
+	if 0 < len(data) {
+		firstBalance, _ = data[0].(map[string]any)
+	}
 	var timestamp *int64 = this.SafeInteger(firstBalance, "ts")
 	if timestamp != nil {
 		this.Balance["timestamp"] = *timestamp
@@ -1930,7 +1940,7 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 		this.Balance["datetime"] = nil
 	}
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = ccxt.SafeMapTyped(data, i)
+		var balance, _ = data[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var newAccount map[string]any = this.Account()
@@ -2005,7 +2015,7 @@ func (this *Poloniex) HandleMessage(client any, message map[string]any) {
 	} else if typeVar == nil {
 		this.HandleOrderRequest(client, message)
 	} else if method != nil {
-		var data []any = ccxt.SafeListTyped(message, "data")
+		var data, _ = message["data"].([]any)
 		var dataLength int = len(data)
 		if dataLength > 0 {
 			ccxt.CallDynamically(method, client, message)
@@ -2021,8 +2031,12 @@ func (this *Poloniex) HandleUnsubscription(client any, message map[string]any) {
 	//    }
 	//
 	var channel *string = this.SafeString(message, "channel", "")
-	var marketIds []any = ccxt.SafeListTyped(message, "symbols")
-	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
+	var marketIds, _ = message["symbols"].([]any)
+	var timeframes map[string]any
+	timeframes, _ = this.Options["timeframes"].(map[string]any)
+	if timeframes == nil {
+		timeframes = map[string]any{}
+	}
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	for i := 0; i < len(marketIds); i++ {
 		var symbol *string = this.SafeSymbol(this.SafeString(marketIds, i))
@@ -2075,7 +2089,10 @@ func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) boo
 	var id *string = this.SafeString(message, "id")
 	var event *string = this.SafeString(message, "event")
 	var data, _ = message["data"].([]any)
-	var first map[string]any = ccxt.SafeMapTyped(data, 0)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	var orderId *string = this.SafeString(first, "orderId")
 	if (event != nil && *event == "error") || (orderId != nil && *orderId == "0") {
 		{

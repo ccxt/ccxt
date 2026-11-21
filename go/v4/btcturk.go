@@ -686,7 +686,8 @@ func (this *Btcturk) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = SafeListTyped(response, "data")
+	var tickers []any
+	tickers, _ = response["data"].([]any)
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
@@ -857,10 +858,11 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 	//       ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var dataList []any = []any{}
 	if data != nil {
-		dataList = ArrayTyped(data)
+		dataList = data
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(dataList, market, since, limit))}
@@ -1003,12 +1005,18 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//        ]
 	//    }
 	//
-	var timestamp []any = SafeListTyped(response, "t")
-	var high []any = SafeListTyped(response, "h")
-	var open []any = SafeListTyped(response, "o")
-	var low []any = SafeListTyped(response, "l")
-	var close []any = SafeListTyped(response, "c")
-	var volume []any = SafeListTyped(response, "v")
+	var timestamp []any
+	timestamp, _ = response["t"].([]any)
+	var high []any
+	high, _ = response["h"].([]any)
+	var open []any
+	open, _ = response["o"].([]any)
+	var low []any
+	low, _ = response["l"].([]any)
+	var close []any
+	close, _ = response["c"].([]any)
+	var volume []any
+	volume, _ = response["v"].([]any)
 	var rows []any = []any{}
 	for i := 0; i < len(timestamp); i++ {
 		rows = append(rows, map[string]any{
@@ -1285,7 +1293,8 @@ func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//     }
 	//   ]
 	// }
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -1433,10 +1442,11 @@ func (this *Btcturk) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//       "code": "0"
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var dataList []any = []any{}
 	if data != nil {
-		dataList = ArrayTyped(data)
+		dataList = data
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(dataList, market, since, limit))}

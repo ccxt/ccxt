@@ -64,7 +64,11 @@ func (this *Mudrex) SetBrokerHeaders() {
 	if brokerId == nil {
 		return
 	}
-	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any
+	wsOptions, _ = this.Options["ws"].(map[string]any)
+	if wsOptions == nil {
+		wsOptions = map[string]any{}
+	}
 	var innerOptions map[string]any = this.SafeDictMap(wsOptions, "options", map[string]any{})
 	var headers map[string]any = this.SafeDictMap(innerOptions, "headers", map[string]any{})
 	if brokerId != nil {

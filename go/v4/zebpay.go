@@ -1253,7 +1253,7 @@ func (this *Zebpay) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		}
 		response = r1.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var items []any = this.SafeListSlice(data, "items", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(items, market, since, limit))}
@@ -1628,10 +1628,10 @@ func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var response map[string]any = nil
 	var request map[string]any = map[string]any{}
-	if *this.SafeBool(market, "spot", false) {
+	if market.Spot {
 		request["orderId"] = id
 
 		r1 := <-this.PrivateSpotDeleteV2ExOrder(this.Extend(request, params))
@@ -1645,7 +1645,10 @@ func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a clientOrderId parameter for swap orders"))
 		}
 		request["clientOrderId"] = clientOrderId
-		request["symbol"] = market["id"]
+		request["symbol"] = nil
+		if market.Id != nil {
+			request["symbol"] = *market.Id
+		}
 
 		r2 := <-this.PrivateSwapDeleteV1TradeOrder(this.Extend(request, params))
 		if r2.Err != nil {
@@ -1776,7 +1779,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			panic(r1.Err)
 		}
 		response = r1.Value
-		var responseData map[string]any = SafeMapTyped(response, "data")
+		var responseData, _ = response["data"].(map[string]any)
 		orders = ArrayTyped(this.SafeList(responseData, "items", []any{}))
 	} else {
 		if since != nil {
@@ -1791,7 +1794,7 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			panic(r2.Err)
 		}
 		response = r2.Value
-		var responseData map[string]any = SafeMapTyped(response, "data")
+		var responseData, _ = response["data"].(map[string]any)
 		orders = ArrayTyped(this.SafeList(responseData, "data", []any{}))
 	}
 

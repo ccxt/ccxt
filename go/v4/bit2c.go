@@ -497,8 +497,10 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	// feed filters these rows out, so a non-positive amount is a dead order
 	// their full snapshot failed to purge - it is removed here, which also
 	// uncrosses the book. rows are positional price and amount pairs
-	var rawBids []any = SafeListTyped(orderbook, "bids")
-	var rawAsks []any = SafeListTyped(orderbook, "asks")
+	var rawBids []any
+	rawBids, _ = orderbook["bids"].([]any)
+	var rawAsks []any
+	rawAsks, _ = orderbook["asks"].([]any)
 	var bids []any = []any{}
 	var asks []any = []any{}
 	for i := 0; i < len(rawBids); i++ {

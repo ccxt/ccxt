@@ -3482,7 +3482,11 @@ func (this *Dydx) SetSandboxMode(enable bool) {
 	// rewrite testnet parameters
 	this.Options["chainName"] = "dydx-testnet-4"
 	this.Options["chainId"] = 11155111
-	var feeDenomDict map[string]any = this.SafeDictMap(this.Options, "feeDenom", map[string]any{})
+	var feeDenomDict map[string]any
+	feeDenomDict, _ = this.Options["feeDenom"].(map[string]any)
+	if feeDenomDict == nil {
+		feeDenomDict = map[string]any{}
+	}
 	feeDenomDict["CHAINTOKEN_DENOM"] = "adv4tnt"
 	this.Options["feeDenom"] = feeDenomDict
 }

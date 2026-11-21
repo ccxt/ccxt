@@ -1869,8 +1869,8 @@ func (this *Bigone) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order],
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -2574,11 +2574,11 @@ func (this *Bigone) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	}
 	networkCode, paramsOmitted := this.HandleNetworkCodeAndParams(params)
 
-	r1 := <-this.PrivateGetAssetsAssetSymbolAddress(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetAssetsAssetSymbolAddress(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// the actual response format is not the same as the documented one
 	// the data key contains an array in the actual response
@@ -2596,7 +2596,8 @@ func (this *Bigone) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var dataLength int = len(data)
 	if dataLength < 1 {
 		panic(ExchangeError(this.Id + " fetchDepositAddress() returned empty address response"))
@@ -2609,7 +2610,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	this.CheckAddress(address)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": code,
 		"network":  this.NetworkIdToCode(selectedNetworkId, code),
 		"address":  address,

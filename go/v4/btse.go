@@ -867,7 +867,11 @@ func (this *Btse) ParseMarket(market any) map[string]any {
 			typeVar = "swap"
 		}
 	}
-	var fees map[string]any = this.SafeDictMap(this.Fees, "contract", map[string]any{})
+	var fees map[string]any
+	fees, _ = this.Fees["contract"].(map[string]any)
+	if fees == nil {
+		fees = map[string]any{}
+	}
 	if isSpot {
 		fees = this.SafeDictMap(this.Fees, "spot", map[string]any{})
 	}
@@ -1564,8 +1568,8 @@ func (this *Btse) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTie
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "contract", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Contract {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 	}
 
@@ -1692,7 +1696,8 @@ func (this *Btse) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	//     }
 	//
 	// a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-	var rows []any = SafeListTyped(response, "data")
+	var rows []any
+	rows, _ = response["data"].([]any)
 	var data map[string]any = this.SafeDictMap(response, "data", this.SafeDict(rows, 0, map[string]any{}))
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
@@ -1781,7 +1786,8 @@ func (this *Btse) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var rows []any = SafeListTyped(response, "data")
+	var rows []any
+	rows, _ = response["data"].([]any)
 	var interest map[string]any = this.SafeDictMap(response, "data", this.SafeDict(rows, 0, map[string]any{}))
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(interest, market)}
@@ -1821,7 +1827,8 @@ func (this *Btse) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenInte
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var row any = data[i]
@@ -1890,7 +1897,8 @@ func (this *Btse) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var rows []any = SafeListTyped(response, "data")
+	var rows []any
+	rows, _ = response["data"].([]any)
 	var data map[string]any = this.SafeDictMap(response, "data", this.SafeDict(rows, 0, map[string]any{}))
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
@@ -1930,7 +1938,8 @@ func (this *Btse) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var row any = data[i]
@@ -2485,8 +2494,8 @@ func (this *Btse) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	if *this.SafeBool(market, "spot", false) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if market.Spot {
 
 		r1 := <-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params)
 		if r1.Err != nil {

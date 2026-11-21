@@ -471,11 +471,11 @@ func (this *Polymarket) fetchStatusBody(ch chan AsyncResult[Status], optionalArg
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetInfoExchange(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetInfoExchange(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "name": "Polymarket",
@@ -496,7 +496,7 @@ func (this *Polymarket) fetchStatusBody(ch chan AsyncResult[Status], optionalArg
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -766,13 +766,17 @@ func (this *Polymarket) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	var ticker map[string]any = SafeMapTyped(tickers, symbolResolved)
-	if ticker == nil {
+	var tickers map[string]Ticker = r1.Value
+	var ticker Ticker
+	var tickerOk bool
+	if symbolResolved != nil {
+		ticker, tickerOk = tickers[*symbolResolved]
+	}
+	if !tickerOk {
 		panic(BadSymbol(this.Id + " fetchTicker() could not find a ticker for " + *symbolResolved))
 	}
 
-	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
+	ch <- AsyncResult[Ticker]{Value: ticker}
 	return nil
 }
 
@@ -1221,7 +1225,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	var paramsOmitted map[string]any = params
 	paginateparamsOmittedVariable := TupleSlice(this.HandleOptionAndParams(paramsOmitted, "fetchOHLCV", "paginate"))
 	paginate = GetValueBool(paginateparamsOmittedVariable, 0, false)
-	paramsOmitted = MapTyped(paginateparamsOmittedVariable[1])
+	paramsOmitted = paginateparamsOmittedVariable[1].(map[string]any)
 	if paginate {
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsOmitted, 1000)
@@ -1335,13 +1339,17 @@ func (this *Polymarket) fetchFundingRateBody(ch chan AsyncResult[FundingRate], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var fundingRates map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	var fundingRate map[string]any = SafeMapTyped(fundingRates, symbolResolved)
-	if fundingRate == nil {
+	var fundingRates map[string]FundingRate = r1.Value
+	var fundingRate FundingRate
+	var fundingRateOk bool
+	if symbolResolved != nil {
+		fundingRate, fundingRateOk = fundingRates[*symbolResolved]
+	}
+	if !fundingRateOk {
 		panic(BadSymbol(this.Id + " fetchFundingRate() could not find the funding rate for " + *symbolResolved))
 	}
 
-	ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(fundingRate)}
+	ch <- AsyncResult[FundingRate]{Value: fundingRate}
 	return nil
 }
 
@@ -1468,7 +1476,7 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 	var paramsOmitted map[string]any = params
 	paginateparamsOmittedVariable := TupleSlice(this.HandleOptionAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate"))
 	paginate = GetValueBool(paginateparamsOmittedVariable, 0, false)
-	paramsOmitted = MapTyped(paginateparamsOmittedVariable[1])
+	paramsOmitted = paginateparamsOmittedVariable[1].(map[string]any)
 	if paginate {
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "1h", paramsOmitted, 100)
@@ -1562,16 +1570,17 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var openInterests any = nil
-	if !StructAbsent(r1.Value) {
-		openInterests = StructBox(r1.Value, OpenInterestMapToMap)
+	var openInterests map[string]OpenInterest = r1.Value
+	var openInterest OpenInterest
+	var openInterestOk bool
+	if symbolResolved != nil {
+		openInterest, openInterestOk = openInterests[*symbolResolved]
 	}
-	var openInterest map[string]any = SafeMapTyped(openInterests, symbolResolved)
-	if openInterest == nil {
+	if !openInterestOk {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() could not find the open interest for " + *symbolResolved))
 	}
 
-	ch <- AsyncResult[OpenInterest]{Value: OpenInterestFromMap(openInterest)}
+	ch <- AsyncResult[OpenInterest]{Value: openInterest}
 	return nil
 }
 
@@ -1685,7 +1694,8 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 	//         ]
 	//     }
 	//
-	var schedule []any = SafeListTyped(response, "fee_schedule")
+	var schedule []any
+	schedule, _ = response["fee_schedule"].([]any)
 	var byCategory map[string]any = map[string]any{}
 	for i := 0; i < len(schedule); i++ {
 		var entry any = schedule[i]
@@ -1783,12 +1793,12 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 	if price != nil {
 		priceString = this.PriceToPrecision(symbol, price)
 	}
-	var reduceOnlyValue any = func() any {
-		if reduceOnly != nil && *reduceOnly {
-			return true
-		}
-		return nil
-	}()
+	var reduceOnlyValue any
+	if reduceOnly != nil && *reduceOnly {
+		reduceOnlyValue = true
+	} else {
+		reduceOnlyValue = nil
+	}
 	// the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
 	// trigger - undefined entries are removed and later entries shift left,
 	// the venue rebuilds the same compact array from the body to verify
@@ -1861,7 +1871,7 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		"params": params,
 	}
 
-	r1 := <-this.CreateOrdersAsync([]any{order}, params)
+	r1 := <-this.CreateOrdersAsync([]map[string]any{order}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1892,12 +1902,12 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
  * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Polymarket) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Polymarket) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1912,7 +1922,7 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 	var ordersMarkets []any = []any{}
 	var ordersEntries []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = MapTyped(orders[i])
+		var rawOrder map[string]any = orders[i]
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var typeVar *string = this.SafeStringLower(rawOrder, "type")
@@ -2503,11 +2513,11 @@ func (this *Polymarket) fetchBalanceBody(ch chan AsyncResult[Balances], optional
 		panic(r1.Err)
 	}
 
-	r2 := <-this.PrivateGetAccountPortfolio(params)
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseReply := <-this.PrivateGetAccountPortfolio(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r2.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "positions": [],
@@ -2526,7 +2536,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan AsyncResult[Balances], optional
 	var margin map[string]any = SafeMapTyped(response, "margin")
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result map[string]any = map[string]any{
-		"info":      response,
+		"info":      responseReply.Raw,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
@@ -2580,7 +2590,8 @@ func (this *Polymarket) fetchPositionsBody(ch chan AsyncResult[[]Position], opti
 	}
 	var response map[string]any = r2.Value
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var rows []any = SafeListTyped(response, "positions")
+	var rows []any
+	rows, _ = response["positions"].([]any)
 	var positions []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		// the wrapper timestamp flows into the parser through the merged input
@@ -4618,7 +4629,7 @@ func (this *Polymarket) CreateOrders(orders []OrderRequest, options ...CreateOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

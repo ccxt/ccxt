@@ -409,7 +409,10 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 		}
 	}
 	if records != nil {
-		var rawOHLCV []any = ccxt.SafeListTyped(records, 0)
+		var rawOHLCV []any
+		if 0 < len(records) {
+			rawOHLCV, _ = records[0].([]any)
+		}
 		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		stored.Append(parsed)
 	} else {

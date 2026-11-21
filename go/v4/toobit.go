@@ -1833,8 +1833,11 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(symbolsNormalized[0])
-			request["symbol"] = market["id"]
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			request["symbol"] = nil
+			if market.Id != nil {
+				request["symbol"] = *market.Id
+			}
 		}
 	}
 
@@ -1904,8 +1907,11 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], op
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(symbolsNormalized[0])
-			request["symbol"] = market["id"]
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			request["symbol"] = nil
+			if market.Id != nil {
+				request["symbol"] = *market.Id
+			}
 		}
 	}
 
@@ -1990,8 +1996,11 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(symbolsNormalized[0])
-			request["symbol"] = market["id"]
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			request["symbol"] = nil
+			if market.Id != nil {
+				request["symbol"] = *market.Id
+			}
 		}
 	}
 
@@ -3520,12 +3529,12 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 		results = append(results, this.Extend(this.ParseTransactionWithType(this.SafeDictMap(response, i, map[string]any{}), currency, transactType), paramsUntil))
 	}
 	var sorted []any = this.SortBy(results, "timestamp")
-	var currencyCode any = func() any {
-		if currency != nil {
-			return currency["code"]
-		}
-		return nil
-	}()
+	var currencyCode any
+	if currency != nil {
+		currencyCode = currency["code"]
+	} else {
+		currencyCode = nil
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(sorted, currencyCode, since, limit))}
 	return nil

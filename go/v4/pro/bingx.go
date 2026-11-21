@@ -1884,7 +1884,7 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 	if _, ok := data["P"]; !ok {
 		return
 	}
-	var rawPositions []any = ccxt.SafeListTyped(data, "P")
+	var rawPositions, _ = data["P"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = rawPositions[i]
@@ -2505,11 +2505,11 @@ func (this *Bingx) HandleMessage(client any, message map[string]any) {
 		var isExecution bool = (status != nil && *status == "FILLED")
 		if (typeVar != nil && *typeVar == "TRADE") && (status != nil && *status == "PARTIALLY_FILLED") {
 			var marketId *string = this.SafeString(data, "s")
-			var market map[string]any = this.SafeMarket(marketId, nil, "-", "swap")
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, "-", "swap"))
 			// parseTrade gates its `l`/`L` last-fill preference on the same
 			// `market['linear'] === true`, so an unresolved market id must be skipped here:
 			// delivering it would report the order aggregate `q`/`p` as a single fill.
-			isExecution = (market["linear"] == true) && (this.SafeString(data, "l") != nil) && (this.SafeString(data, "L") != nil)
+			isExecution = (market.Linear != nil && *market.Linear) && (this.SafeString(data, "l") != nil) && (this.SafeString(data, "L") != nil)
 		}
 		if (typeVar != nil && *typeVar == "TRADE") && isExecution {
 			this.HandleMyTrades(client, message)

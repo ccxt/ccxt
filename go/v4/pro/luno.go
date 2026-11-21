@@ -127,7 +127,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var rawTrades []any = ccxt.SafeListTyped(message, "trade_updates")
+	var rawTrades, _ = message["trade_updates"].([]any)
 	var length int = len(rawTrades)
 	if length == 0 {
 		return

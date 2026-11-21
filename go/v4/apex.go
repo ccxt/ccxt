@@ -705,12 +705,12 @@ func (this *Apex) ParseCurrency(currency any) map[string]any {
 	}
 	var networksLength int = len(networkKeys)
 	var emptyChains bool = (networksLength == 0) // non-functional coins
-	var valueForEmpty any = func() any {
-		if emptyChains {
-			return false
-		}
-		return nil
-	}()
+	var valueForEmpty any
+	if emptyChains {
+		valueForEmpty = false
+	} else {
+		valueForEmpty = nil
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      currency,
 		"code":      code,
@@ -1000,7 +1000,8 @@ func (this *Apex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = SafeListTyped(response, "data")
+	var tickers []any
+	tickers, _ = response["data"].([]any)
 	var rawTicker map[string]any
 	if 0 < len(tickers) {
 		rawTicker, _ = tickers[0].(map[string]any)
@@ -1382,7 +1383,8 @@ func (this *Apex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = SafeListTyped(response, "data")
+	var tickers []any
+	tickers, _ = response["data"].([]any)
 	var rawTicker map[string]any
 	if 0 < len(tickers) {
 		rawTicker, _ = tickers[0].(map[string]any)
@@ -2219,7 +2221,7 @@ func (this *Apex) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		}
 		response = r1.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(data)}
 	return nil

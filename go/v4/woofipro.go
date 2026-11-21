@@ -804,11 +804,11 @@ func (this *Woofipro) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.V1PublicGetPublicSystemInfo(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.V1PublicGetPublicSystemInfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "success": true,
@@ -819,7 +819,7 @@ func (this *Woofipro) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	//         "timestamp": "1709274106602"
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var status *string = this.SafeString(data, "status")
 	if status == nil {
 		statusStr := "error"
@@ -837,7 +837,7 @@ func (this *Woofipro) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -2166,11 +2166,11 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 		}
 	}
 
-	r1 := <-this.V1PrivateGetClientInfo(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V1PrivateGetClientInfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// {
 	//     "success": true,
@@ -2206,7 +2206,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
-			"info":       response,
+			"info":       responseReply.Raw,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
 			"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
@@ -2745,12 +2745,12 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woofipro) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Woofipro) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2764,7 +2764,7 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -3173,8 +3173,11 @@ func (this *Woofipro) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["symbol"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["symbol"] = nil
+		if market.Id != nil {
+			request["symbol"] = *market.Id
+		}
 	}
 	var response any = nil
 	if trigger != nil && *trigger == true {
@@ -3322,7 +3325,7 @@ func (this *Woofipro) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	// }
 	//
 	var parsedOrders any = this.SafeDict(response, "data", response)
-	if IsEqual(parsedOrders, nil) {
+	if parsedOrders == nil {
 		parsedOrders = map[string]any{}
 	}
 
@@ -5617,7 +5620,7 @@ func (this *Woofipro) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

@@ -183,7 +183,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name stri
 	var resolvedPerSymbol bool = !isBatch || (messageHashPrefix == "orderbooks") // handleOrderBook resolves only per-symbol hashes, also on the batch channels
 	var wsUrls map[string]any = this.UrlsApiSections["ws"]
 	var url *string = this.SafeString(wsUrls, "public")
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	if (symbolsNormalized != nil) && resolvedPerSymbol {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbolId string = symbolsNormalized[i]
@@ -1985,7 +1985,7 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
-	var reserved []any = []any{"free", "used", "total"}
+	var reserved []string = []string{"free", "used", "total"}
 	var keys []string = nil
 	if balance != nil {
 		keys = make([]string, 0, len(balance))

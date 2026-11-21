@@ -1155,12 +1155,12 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	} else {
 		// the endpoint returns the oldest candles first, so request a window that covers `limit` candles
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		var end any = func() any {
-			if until != nil {
-				return until
-			}
-			return this.Milliseconds()
-		}()
+		var end any
+		if until != nil {
+			end = until
+		} else {
+			end = this.Milliseconds()
+		}
 		request["startTime"] = Subtract(end, requestLimit*duration)
 	}
 	if until != nil {
@@ -1748,12 +1748,12 @@ func (this *Bit2me) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		} else {
 			start = 0
 		}
-		var end any = func() any {
-			if until != nil {
-				return until
-			}
-			return this.Milliseconds()
-		}()
+		var end any
+		if until != nil {
+			end = until
+		} else {
+			end = this.Milliseconds()
+		}
 		request["startTime"] = this.Iso8601(start)
 		request["endTime"] = this.Iso8601(end)
 	}
@@ -2117,12 +2117,12 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		} else {
 			start = 0
 		}
-		var end any = func() any {
-			if until != nil {
-				return until
-			}
-			return this.Milliseconds()
-		}()
+		var end any
+		if until != nil {
+			end = until
+		} else {
+			end = this.Milliseconds()
+		}
 		request["startTime"] = this.Iso8601(start)
 		request["endTime"] = this.Iso8601(end)
 	}

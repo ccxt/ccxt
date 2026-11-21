@@ -704,9 +704,13 @@ func (this *Lighter) handleAccountIndexBody(ch chan AsyncResult[MapPair[int64]],
 		//     ]
 		// }
 		//
-		var subAccounts any = this.SafeList(res, "sub_accounts")
+		var subAccounts []any
+		subAccounts, _ = res["sub_accounts"].([]any)
 		if subAccounts != nil {
-			var account map[string]any = SafeMapTyped(subAccounts, 0)
+			var account map[string]any
+			if 0 < len(subAccounts) {
+				account, _ = subAccounts[0].(map[string]any)
+			}
 			if account == nil {
 				panic(ArgumentsRequired(this.Id + " " + methodName1 + "() requires an " + optionName1 + " or " + optionName2 + " parameter"))
 			}
@@ -928,7 +932,11 @@ func (this *Lighter) CheckIfStandardTierAsync(accountIndex any) <-chan AsyncResu
 func (this *Lighter) checkIfStandardTierBody(ch chan AsyncResult[bool], accountIndex any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var tiersForAccountIndexes map[string]any = this.SafeDictMap(this.Options, "tiersForAccountIndexes", map[string]any{})
+	var tiersForAccountIndexes map[string]any
+	tiersForAccountIndexes, _ = this.Options["tiersForAccountIndexes"].(map[string]any)
+	if tiersForAccountIndexes == nil {
+		tiersForAccountIndexes = map[string]any{}
+	}
 	var accountIndexStr *string = this.NumberToString(accountIndex)
 	var isStandardTier *bool = this.SafeBool(tiersForAccountIndexes, accountIndexStr)
 	if isStandardTier != nil {
@@ -1636,11 +1644,11 @@ func (this *Lighter) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.RootGet(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.RootGet(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "status": "1",
@@ -1658,7 +1666,7 @@ func (this *Lighter) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -1831,13 +1839,13 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			baseId = &baseIdStr
 		}
 		var quoteId string = "USDC"
-		var settleId *string = func() *string {
-			if typeVar != nil && *typeVar == "swap" {
-				retStr := "USDC"
-				return &retStr
-			}
-			return nil
-		}()
+		var settleId *string
+		if typeVar != nil && *typeVar == "swap" {
+			retStr := "USDC"
+			settleId = &retStr
+		} else {
+			settleId = nil
+		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		if (base == nil) || (quote == nil) {
@@ -2570,7 +2578,8 @@ func (this *Lighter) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "funding_rates")
+	var data []any
+	data, _ = response["funding_rates"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var exchange *string = this.SafeString(data[i], "exchange")
@@ -2624,11 +2633,11 @@ func (this *Lighter) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		"value": accountIndex,
 	}
 
-	r1 := <-this.PublicGetAccount(this.Extend(request, paramsAccountIndex))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PublicGetAccount(this.Extend(request, paramsAccountIndex))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "code": "200",
@@ -2674,7 +2683,7 @@ func (this *Lighter) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	//     }
 	//
 	var result map[string]any = map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 	}
 	var accounts []any = SafeListTyped(response, "accounts")
 	for i := 0; i < len(accounts); i++ {
@@ -2840,7 +2849,8 @@ func (this *Lighter) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	//     }
 	//
 	var allPositions []any = []any{}
-	var accounts []any = SafeListTyped(response, "accounts")
+	var accounts []any
+	accounts, _ = response["accounts"].([]any)
 	for i := 0; i < len(accounts); i++ {
 		var account, _ = accounts[i].(map[string]any)
 		var positions []any = SafeListTyped(account, "positions")

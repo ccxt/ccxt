@@ -914,7 +914,7 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 			}
 		}
 		if channel != nil && *channel == "trade_snapshot" {
-			var trades []any = ccxt.SafeListTyped(message, "trades")
+			var trades, _ = message["trades"].([]any)
 			var length int = len(trades)
 			for i := 0; i < length; i++ {
 				// need reverse to correct chronology
@@ -1205,7 +1205,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[s
 			if (!ccxt.IsEqual(previousFee["cost"], nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
 				var stringOrderCost *string = this.NumberToString(previousFee["cost"])
 				var stringTradeCost *string = this.NumberToString(this.SafeNumber(trade["fee"], "cost"))
-				ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
+				ccxt.AddElementToObject(previousOrder["fee"], "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
 			}
 			// update the newUpdates count
 			orders.Append(ccxt.OrderToMap(this.SafeOrder(previousOrder)))
@@ -1299,7 +1299,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 	//            ...
 	//        ]
 	//    }
-	var orders []any = ccxt.SafeListTyped(message, "orders")
+	var orders, _ = message["orders"].([]any)
 	// reuse the existing cache: replacing it would orphan consumers holding
 	// a reference to the old one across a reconnect snapshot
 	if this.Orders == nil {
@@ -2026,7 +2026,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
  * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
  */
 func (this *Krakenfutures) PruneStaleBalanceKeys(balanceObject map[string]any, seenKeys map[string]any) map[string]any {
-	var reserved []any = []any{"info", "timestamp", "datetime", "free", "used", "total", "debt"}
+	var reserved []string = []string{"info", "timestamp", "datetime", "free", "used", "total", "debt"}
 	var keys []string = nil
 	if balanceObject != nil {
 		keys = make([]string, 0, len(balanceObject))
@@ -2068,7 +2068,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var trades []any = ccxt.SafeListTyped(message, "fills")
+	var trades, _ = message["fills"].([]any)
 	var stored ccxt.WsArrayCache = this.MyTrades
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2173,7 +2173,7 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], u
 	var url *string = this.UrlsApiStrings["ws"]
 	// symbols are required
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, false)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var rawSubs []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var messageHash string = this.GetMessageHash(unifiedName, nil, this.Symbol(symbolsNormalized[i]))

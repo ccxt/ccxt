@@ -881,9 +881,9 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		var tierObject map[string]any
-		if *this.SafeBool(market, "spot", false) {
+		if market.Spot {
 			tierObject = firstSpotTier
 		} else {
 			tierObject = firstFuturesTier
@@ -920,11 +920,11 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 		}
 	}
 
-	r1 := <-this.PrivateGetAccountFees(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetAccountFees(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// {
 	//    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
@@ -956,7 +956,8 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 	//    ]
 	// }
 	//
-	var activeFeeTier []any = SafeListTyped(response, "active_fee_tiers")
+	var activeFeeTier []any
+	activeFeeTier, _ = response["active_fee_tiers"].([]any)
 	var spotFees map[string]any = SafeMapTyped(activeFeeTier, 0)
 	var futuresFees map[string]any = SafeMapTyped(activeFeeTier, 1)
 	var spotMakerFee *string = this.SafeString(spotFees, "maker_fee")
@@ -973,21 +974,21 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		var makerFee *string
-		if *this.SafeBool(market, "spot", false) {
+		if market.Spot {
 			makerFee = spotMakerFee
 		} else {
 			makerFee = futuresMakerFee
 		}
 		var takerFee *string
-		if *this.SafeBool(market, "spot", false) {
+		if market.Spot {
 			takerFee = spotTakerFee
 		} else {
 			takerFee = futuresTakerFee
 		}
 		result[symbol] = map[string]any{
-			"info":       response,
+			"info":       responseReply.Raw,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(makerFee),
 			"taker":      this.ParseNumber(takerFee),
@@ -1430,7 +1431,8 @@ func (this *Onetrading) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	//         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
 	//     ]
 	//
-	var ohlcv []any = SafeListTyped(response, "candlesticks")
+	var ohlcv []any
+	ohlcv, _ = response["candlesticks"].([]any)
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcv, market, timeframe, since, limitResolved))}
 	return nil
@@ -1920,8 +1922,11 @@ func (this *Onetrading) cancelAllOrdersBody(ch chan AsyncResult[[]Order], option
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["instrument_code"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["instrument_code"] = nil
+		if market.Id != nil {
+			request["instrument_code"] = *market.Id
+		}
 	}
 
 	r1 := <-this.PrivateDeleteAccountOrders(this.Extend(request, params))
@@ -2482,13 +2487,13 @@ func (this *Onetrading) Sign(path string, optionalArgs ...any) map[string]any {
 			"Accept":        "application/json",
 			"Authorization": "Bearer " + this.ApiKey,
 		}
-		var bodyJson *string = func() *string {
-			if method == "POST" {
-				jsonText := this.Json(query)
-				return &jsonText
-			}
-			return nil
-		}()
+		var bodyJson *string
+		if method == "POST" {
+			retStr := this.Json(query)
+			bodyJson = &retStr
+		} else {
+			bodyJson = nil
+		}
 		if method == "POST" {
 			headersSigned["Content-Type"] = "application/json"
 		} else {

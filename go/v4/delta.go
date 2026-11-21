@@ -588,11 +588,11 @@ func (this *Delta) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetSettings(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetSettings(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "result": {
@@ -646,7 +646,7 @@ func (this *Delta) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var underMaintenance *string = this.SafeString(result, "under_maintenance")
 	var status string = "ok"
 	if underMaintenance != nil && *underMaintenance == "true" {
@@ -659,7 +659,7 @@ func (this *Delta) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...
 		"updated": updated,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -1698,7 +1698,8 @@ func (this *Delta) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	//         "success":true
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "result")
+	var tickers []any
+	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
 		var rawTicker any = tickers[i]

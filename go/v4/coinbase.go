@@ -847,7 +847,8 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan AsyncResult[[]Account], option
 	}
 	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "next_starting_after")
-	var accounts []any = SafeListTyped(response, "data")
+	var accounts []any
+	accounts, _ = response["data"].([]any)
 	var length int = len(accounts)
 	var lastIndex int64 = int64(length) - 1
 	if (cursor != nil) && (cursor == nil || *cursor != "") {
@@ -930,14 +931,15 @@ func (this *Coinbase) fetchAccountsV3Body(ch chan AsyncResult[[]Account], option
 	//         "size": 9
 	//     }
 	//
-	var accounts []any = SafeListTyped(response, "accounts")
+	var accounts []any
+	accounts, _ = response["accounts"].([]any)
 	var accountsLength int = len(accounts)
 	var cursor *string = this.SafeString(response, "cursor")
 	if (accountsLength > 0) && (cursor != nil) && (cursor == nil || *cursor != "") {
 		var lastIndex int64 = int64(accountsLength) - 1
-		AddElementToObject(accounts, lastIndex, this.Extend(this.SafeDict(accounts, lastIndex, map[string]any{}), map[string]any{
+		accounts[lastIndex] = this.Extend(this.SafeDict(accounts, lastIndex, map[string]any{}), map[string]any{
 			"cursor": cursor,
-		}))
+		})
 	}
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts, paramsPaginate))}
@@ -1102,11 +1104,11 @@ func (this *Coinbase) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 		"account_id": accountId,
 	}
 
-	r1 := <-this.V2PrivatePostAccountsAccountIdAddresses(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V2PrivatePostAccountsAccountIdAddresses(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "data": {
@@ -1143,7 +1145,7 @@ func (this *Coinbase) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var tag *string = this.SafeString(data, "destination_tag")
 	var address *string = this.SafeString(data, "address")
 
@@ -1152,7 +1154,7 @@ func (this *Coinbase) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 		"tag":      tag,
 		"address":  address,
 		"network":  nil,
-		"info":     response,
+		"info":     responseReply.Raw,
 	})}
 	return nil
 }
@@ -2596,7 +2598,11 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan AsyncResult[Currencie
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = this.SafeDictMap(this.Options, "fetchCurrencies", map[string]any{})
+	var options map[string]any
+	options, _ = this.Options["fetchCurrencies"].(map[string]any)
+	if options == nil {
+		options = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(options, "timestamp")
 	var expires int64 = *this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()
@@ -2725,12 +2731,20 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		var code *string = this.SafeCurrencyCode(id)
 		var name *string = this.SafeString(currency, "name")
 		if code != nil {
-			var networksDict1 map[string]any = this.SafeDictMap(this.Options, "networks", map[string]any{})
+			var networksDict1 map[string]any
+			networksDict1, _ = this.Options["networks"].(map[string]any)
+			if networksDict1 == nil {
+				networksDict1 = map[string]any{}
+			}
 			networksDict1[*code] = strings.ToLower(*name)
 			this.Options["networks"] = networksDict1
 		}
 		if code != nil {
-			var networksByIdDict2 map[string]any = this.SafeDictMap(this.Options, "networksById", map[string]any{})
+			var networksByIdDict2 map[string]any
+			networksByIdDict2, _ = this.Options["networksById"].(map[string]any)
+			if networksByIdDict2 == nil {
+				networksByIdDict2 = map[string]any{}
+			}
 			networksByIdDict2[*code] = strings.ToLower(*name)
 			this.Options["networksById"] = networksByIdDict2
 		}
@@ -4109,8 +4123,8 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -7012,11 +7026,11 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 		"product_type": productType,
 	}
 
-	r1 := <-this.V3PrivateGetBrokerageTransactionSummary(this.Extend(request, paramsMarketType))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V3PrivateGetBrokerageTransactionSummary(this.Extend(request, paramsMarketType))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// {
 	//     total_volume: '0',
@@ -7046,11 +7060,11 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol *string = this.SafeString(this.Symbols, i, "")
-		var market map[string]any = this.Market(symbol)
-		if (isSpot && (*this.SafeBool(market, "spot", false))) || (!isSpot && (!(*this.SafeBool(market, "spot", false)))) {
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		if (isSpot && (market.Spot)) || (!isSpot && (!market.Spot)) {
 			if symbol != nil {
 				result[*symbol] = map[string]any{
-					"info":       response,
+					"info":       responseReply.Raw,
 					"symbol":     symbol,
 					"maker":      maker_fee,
 					"taker":      taker_fee,

@@ -1157,8 +1157,12 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 	var isArray bool = (IsArray(response))
 	if !isString && !isArray {
 		marketId = this.SafeStringLower(response, "symbol")
-		amountPrecision = this.SafeNumber(response, "tick_size")             // right, exchange has an imperfect naming and this turns out to be an amount-precision
-		tickSize = DerefScalar(this.SafeNumber(response, "quote_increment")) // this is tick-size actually
+		amountPrecision = this.SafeNumber(response, "tick_size")                       // right, exchange has an imperfect naming and this turns out to be an amount-precision
+		if derefPtr := this.SafeNumber(response, "quote_increment"); derefPtr != nil { // this is tick-size actually
+			tickSize = *derefPtr
+		} else {
+			tickSize = nil
+		}
 		minSize = this.SafeNumber(response, "min_order_size")
 		status = this.ParseMarketActive(this.SafeString(response, "status"))
 		if derefPtr := this.SafeString(response, "base_currency"); derefPtr != nil {
@@ -1847,11 +1851,11 @@ func (this *Gemini) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 		}
 	}
 
-	r1 := <-this.PrivatePostV1Notionalvolume(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostV1Notionalvolume(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//      {
 	//          "web_maker_fee_bps": 25,
@@ -1891,7 +1895,7 @@ func (this *Gemini) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
-			"info":       response,
+			"info":       responseReply.Raw,
 			"symbol":     symbol,
 			"maker":      maker,
 			"taker":      taker,
@@ -2925,11 +2929,11 @@ func (this *Gemini) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"currency": currency["id"],
 	}
 
-	r1 := <-this.PrivatePostV1DepositCurrencyNewAddress(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostV1DepositCurrencyNewAddress(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	var address *string = this.SafeString(response, "address")
 	this.CheckAddress(address)
 
@@ -2938,7 +2942,7 @@ func (this *Gemini) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"address":  address,
 		"tag":      nil,
 		"network":  nil,
-		"info":     response,
+		"info":     responseReply.Raw,
 	})}
 	return nil
 }

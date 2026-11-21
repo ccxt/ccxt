@@ -763,11 +763,11 @@ func (this *Modetrade) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.V1PublicGetPublicSystemInfo(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.V1PublicGetPublicSystemInfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "success": true,
@@ -778,7 +778,7 @@ func (this *Modetrade) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 	//         "timestamp": "1709274106602"
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var status *string = this.SafeString(data, "status")
 	if status == nil {
 		statusStr := "error"
@@ -796,7 +796,7 @@ func (this *Modetrade) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -2079,11 +2079,11 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 		}
 	}
 
-	r1 := <-this.V1PrivateGetClientInfo(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V1PrivateGetClientInfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	// {
 	//     "success": true,
@@ -2120,7 +2120,7 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = symbols[i]
 			result[symbol] = map[string]any{
-				"info":       response,
+				"info":       responseReply.Raw,
 				"symbol":     symbol,
 				"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
 				"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
@@ -2666,12 +2666,12 @@ func (this *Modetrade) createOrderBody(ch chan AsyncResult[Order], symbol string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Modetrade) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Modetrade) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2685,7 +2685,7 @@ func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders []a
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		if marketId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
@@ -3087,8 +3087,11 @@ func (this *Modetrade) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optiona
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["symbol"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["symbol"] = nil
+		if market.Id != nil {
+			request["symbol"] = *market.Id
+		}
 	}
 	var response any = nil
 	if trigger != nil && *trigger == true {
@@ -4247,12 +4250,12 @@ func (this *Modetrade) withdrawBody(ch chan AsyncResult[Transaction], code strin
 	var verifyingContractAddress *string = this.SafeString(this.Options, "verifyingContractAddress")
 	var chainId *string = this.SafeString(params, "chainId")
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
-	var coinNetwork any = func() any {
-		if chainId == nil {
-			return map[string]any{}
-		}
-		return this.SafeDict(currencyNetworks, chainId, map[string]any{})
-	}()
+	var coinNetwork any
+	if chainId == nil {
+		coinNetwork = map[string]any{}
+	} else {
+		coinNetwork = this.SafeDict(currencyNetworks, chainId, map[string]any{})
+	}
 	var coinNetworkId *float64 = this.SafeNumber(coinNetwork, "id")
 	if coinNetworkId == nil {
 		panic(BadRequest(this.Id + " withdraw() require chainId parameter"))
@@ -5272,7 +5275,7 @@ func (this *Modetrade) CreateOrders(orders []OrderRequest, options ...CreateOrde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

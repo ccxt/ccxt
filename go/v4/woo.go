@@ -931,11 +931,11 @@ func (this *Woo) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.V3PublicGetSystemInfo(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.V3PublicGetSystemInfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "success": true,
@@ -947,7 +947,7 @@ func (this *Woo) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...an
 	//         "timestamp": 1751442989564
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var statusCode *string = this.SafeString(data, "status")
 	var status string = "maintenance"
 	if statusCode == nil {
@@ -961,7 +961,7 @@ func (this *Woo) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...an
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -1438,11 +1438,11 @@ func (this *Woo) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeI
 		}
 	}
 
-	r1 := <-this.V3PrivateGetAccountInfo(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V3PrivateGetAccountInfo(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "success": true,
@@ -1487,7 +1487,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeI
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
-			"info":       response,
+			"info":       responseReply.Raw,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
 			"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
@@ -1727,8 +1727,8 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 
@@ -1767,8 +1767,8 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 
@@ -2340,8 +2340,11 @@ func (this *Woo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["symbol"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["symbol"] = nil
+		if market.Id != nil {
+			request["symbol"] = *market.Id
+		}
 	}
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
@@ -2594,8 +2597,12 @@ func (this *Woo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 		}
 		response = r3.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var orders []any
+	orders, _ = data["rows"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -3082,7 +3089,10 @@ func (this *Woo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 	var data map[string]any = SafeMapTyped(response, "data")
 	var rows []any
 	rows, _ = data["rows"].([]any)
-	var first map[string]any = SafeMapTyped(rows, 0)
+	var first map[string]any
+	if 0 < len(rows) {
+		first, _ = rows[0].(map[string]any)
+	}
 	if first == nil {
 		panic(BadSymbol(this.Id + " fetchTicker() could not find ticker data for " + symbol))
 	}
@@ -3130,8 +3140,8 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 			// BadRequest, so callers (and the live test harness) can tell "wrong market
 			// type" apart from a malformed request, marketSymbols still enforces that the
 			// rest of the list matches
-			var firstMarket map[string]any = this.Market(symbols[0])
-			if !(*this.SafeBool(firstMarket, "swap", false)) {
+			var firstMarket MarketInterface = MarketInterfaceFromMap(this.Market(symbols[0]))
+			if !firstMarket.Swap {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
 		}
@@ -4532,12 +4542,12 @@ func (this *Woo) repayMarginBody(ch chan AsyncResult[MarginLoan], code string, a
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Market(symbol)["symbol"]
-		}
-		return nil
-	}()
+	var symbolResolved any
+	if symbol != nil {
+		symbolResolved = this.Market(symbol)["symbol"]
+	} else {
+		symbolResolved = nil
+	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"token":  currency["id"],
@@ -5599,8 +5609,11 @@ func (this *Woo) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(symbolsNormalized[0])
-			request["symbol"] = market["id"]
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			request["symbol"] = nil
+			if market.Id != nil {
+				request["symbol"] = *market.Id
+			}
 		}
 	}
 
@@ -6224,8 +6237,11 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optionalA
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(symbolsNormalized[0])
-			request["symbol"] = market["id"]
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			request["symbol"] = nil
+			if market.Id != nil {
+				request["symbol"] = *market.Id
+			}
 		}
 	}
 

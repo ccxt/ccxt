@@ -1168,7 +1168,7 @@ func (this *Bithumb) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[m
 func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1186,13 +1186,13 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		// Bithumb v2 ticker payloads are inconsistent for all-market calls,
 		// so we aggregate 300 markets per request only when symbols are not provided.
 		var marketIds []string = []string{}
-		var symbolsForMarketIds any = this.Symbols
+		var symbolsForMarketIds []string = this.Symbols
 		if symbols != nil {
 			symbolsForMarketIds = symbols
 		}
-		var symbolsForMarketIdsLength int = GetArrayLength(symbolsForMarketIds)
+		var symbolsForMarketIdsLength int = len(symbolsForMarketIds)
 		for i := 0; i < symbolsForMarketIdsLength; i++ {
-			var market map[string]any = this.Market(GetValue(symbolsForMarketIds, i))
+			var market map[string]any = this.Market(symbolsForMarketIds[i])
 			marketIds = append(marketIds, this.GetGen2MarketId(market))
 		}
 		var marketIdsLength int = len(marketIds)
@@ -1318,8 +1318,8 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		}
 		if symbols != nil {
 			var requiredQuotes map[string]any = map[string]any{}
-			for i := 0; i < GetArrayLength(symbols); i++ {
-				var symbol *string = SafeStringPtr(GetValue(symbols, i))
+			for i := 0; i < len(symbols); i++ {
+				var symbol *string = SafeStringPtr(symbols[i])
 				var market map[string]any = this.Market(symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
 				if quoteId != nil {
@@ -1971,12 +1971,12 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bithumb) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1999,7 +1999,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	var ordersRequests []any = []any{}
 	var orderSymbols []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a symbol"))
@@ -3539,7 +3539,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	})
 }
 func (this *Bithumb) ParseTransactionStatusByType(status *string, optionalArgs ...any) *string {
-	typeVar := GetArg(optionalArgs, 0, nil)
+	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = typeVar
 	if typeVar == nil {
 		return status
@@ -4549,7 +4549,7 @@ func (this *Bithumb) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

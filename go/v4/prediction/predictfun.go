@@ -336,12 +336,12 @@ func (this *Predictfun) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
  * @param {string} [params.slug] event slug, overrides the id argument when both are given
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func (this *Predictfun) FetchEventAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionEvent] {
+func (this *Predictfun) FetchEventAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionEvent] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionEvent], 1)
 	go this.fetchEventBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent], id any, optionalArgs ...any) any {
+func (this *Predictfun) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
@@ -1418,7 +1418,7 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predict
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info, _ = outcomeObj["info"].(map[string]any)
 	var request map[string]any = map[string]any{
 		"id": this.SafeString(info, "marketId"),
 	}
@@ -1518,7 +1518,7 @@ func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info, _ = outcomeObj["info"].(map[string]any)
 	var request map[string]any = map[string]any{
 		"id": this.SafeString(info, "marketId"),
 	}
@@ -1794,7 +1794,7 @@ func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info, _ = outcomeObj["info"].(map[string]any)
 	var request map[string]any = map[string]any{
 		"marketId": this.SafeString(info, "marketId"),
 	}
@@ -2339,7 +2339,10 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	var isYieldBearing bool = (this.SafeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing) != nil && *this.SafeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing) == true)
 	var defaultExpiration *int64 = this.SafeInteger(this.Options, "defaultExpiration", 3600) // 1 hour
 	var expirationDelta *int64 = defaultExpiration
-	var expiration any = ccxt.DerefScalar(this.SafeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration"))
+	var expiration any
+	if derefPtr := this.SafeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration"); derefPtr != nil {
+		expiration = *derefPtr
+	}
 	if expiration == nil {
 		if isMarket {
 			expirationDelta = this.SafeInteger(this.Options, "marketOrderExpiration", defaultExpiration)
@@ -2404,11 +2407,11 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		"data": data,
 	}
 
-	r2 := <-this.PredictfunPostV1Orders(this.Extend(request, paramsOmitted))
-	if r2.Err != nil {
-		panic(r2.Err)
+	responseReply := <-this.PredictfunPostV1Orders(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r2.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "data": {
@@ -2420,7 +2423,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	//         "success ": true
 	//     }
 	//
-	var result map[string]any = ccxt.SafeMapTyped(response, "data")
+	var result, _ = response["data"].(map[string]any)
 
 	// the venue answers with an id and a hash and nothing else - no price, size, side or
 	// status - so the returned order is built from what was requested and signed, with only
@@ -2428,7 +2431,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString2(result, "orderHash", "hash"),
 		"clientOrderId": nil,
-		"info":          response,
+		"info":          responseReply.Raw,
 		"timestamp":     nil,
 		"datetime":      nil,
 		"status":        nil,
@@ -2596,7 +2599,7 @@ func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info, _ = outcomeObj["info"].(map[string]any)
 	// scope the call to the outcome's market so the wallet's other positions are not paged through
 	var request map[string]any = map[string]any{
 		"marketId": this.SafeString(info, "marketId"),
@@ -3592,7 +3595,7 @@ func (this *Predictfun) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info, _ = outcomeObj["info"].(map[string]any)
 	var marketId *string = this.SafeString(info, "marketId")
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBook() could not resolve the market id of " + outcome))
@@ -3659,7 +3662,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], out
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info, _ = outcomeObj["info"].(map[string]any)
 	var marketId *string = this.SafeString(info, "marketId")
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOrderBook() could not resolve the market id of " + outcome))
@@ -4882,7 +4885,7 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 	// attaching it to public reads would hand the venue a wallet credential they do not need.
 	// note v1/positions/{address} reads someone else's positions and is deliberately absent,
 	// as is v1/orders/matches, which is the public trade feed
-	var walletPaths []any = []any{"v1/orders", "v1/orders/{hash}", "v1/orders/remove", "v1/orders/remove-by-hash", "v1/account", "v1/account/activity", "v1/account/referral", "v1/positions", "v1/oauth/finalize", "v1/oauth/orders", "v1/oauth/orders/create", "v1/oauth/orders/cancel", "v1/oauth/positions"}
+	var walletPaths []string = []string{"v1/orders", "v1/orders/{hash}", "v1/orders/remove", "v1/orders/remove-by-hash", "v1/account", "v1/account/activity", "v1/account/referral", "v1/positions", "v1/oauth/finalize", "v1/oauth/orders", "v1/oauth/orders/create", "v1/oauth/orders/cancel", "v1/oauth/positions"}
 	var jwtToken *string = this.SafeString(this.Options, "jwtToken")
 	// unlike the API key, the JWT IS required on the testnet - wallet endpoints there answer
 	// 401 without it, so it is attached on both hosts
@@ -5592,7 +5595,7 @@ func (this *Predictfun) CreateMarketSellOrderWithCost(outcome string, cost float
 	return res, nil
 }
 func (this *Predictfun) CreateOrders(orders []ccxt.PredictionOrderRequest, params map[string]any) ([]ccxt.PredictionOrder, error) {
-	r := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToArray(orders), params)
+	r := <-this.CreateOrdersAsync(ccxt.ConvertPredictionOrderRequestListToMapRows(orders), params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

@@ -501,8 +501,14 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			continue
 		}
 		var symbol string = *base + "/" + *quote
-		var taker any = DerefScalar(this.SafeNumber(this.Fees["trading"], "taker"))
-		var maker any = DerefScalar(this.SafeNumber(this.Fees["trading"], "maker"))
+		var taker any
+		if derefPtr := this.SafeNumber(this.Fees["trading"], "taker"); derefPtr != nil {
+			taker = *derefPtr
+		}
+		var maker any
+		if derefPtr := this.SafeNumber(this.Fees["trading"], "maker"); derefPtr != nil {
+			maker = *derefPtr
+		}
 		var contract bool = swap || future
 		if contract {
 			maker = 0
@@ -924,11 +930,11 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 		"product_code": market["id"],
 	}
 
-	r1 := <-this.PrivateGetGettradingcommission(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetGettradingcommission(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//   {
 	//       commission_rate: '0.0020'
@@ -937,7 +943,7 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	var fee *float64 = this.SafeNumber(response, "commission_rate")
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     market["symbol"],
 		"maker":      fee,
 		"taker":      fee,
@@ -987,17 +993,17 @@ func (this *Bitflyer) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		"size":             amount,
 	}
 
-	r1 := <-this.PrivatePostSendchildorder(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	resultReply := <-this.PrivatePostSendchildorder(this.Extend(request, params))
+	if resultReply.Err != nil {
+		panic(resultReply.Err)
 	}
-	result := r1.Raw
+	var result map[string]any = resultReply.Value
 	// { "status": - 200, "error_message": "Insufficient funds", "data": null }
 	var id *string = this.SafeString(result, "child_order_acceptance_id")
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"id":   id,
-		"info": result,
+		"info": resultReply.Raw,
 	})}
 	return nil
 }

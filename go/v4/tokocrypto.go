@@ -2869,11 +2869,11 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 	// has support for the 'network' parameter
 	// https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
 
-	r1 := <-this.PrivateGetOpenV1DepositsAddress(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetOpenV1DepositsAddress(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "code":0,
@@ -2889,7 +2889,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 	//         "timestamp":1660685915746
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var address *string = this.SafeString(data, "address")
 	var tag *string = this.SafeString(data, "addressTag", "")
 	if len(*tag) == 0 {
@@ -2898,7 +2898,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 	this.CheckAddress(address)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": code,
 		"network":  this.NetworkIdToCode(this.SafeString(data, "network"), code),
 		"address":  address,
@@ -3331,13 +3331,13 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 				"X-MBX-APIKEY": this.ApiKey,
 				"Content-Type": "application/x-www-form-urlencoded",
 			}
-			var bodyStream *string = func() *string {
-				if method != "GET" {
-					urlencodeText := this.Urlencode(params)
-					return &urlencodeText
-				}
-				return nil
-			}()
+			var bodyStream *string
+			if method != "GET" {
+				retStr := this.Urlencode(params)
+				bodyStream = &retStr
+			} else {
+				bodyStream = nil
+			}
 			return map[string]any{
 				"url":     url,
 				"method":  method,

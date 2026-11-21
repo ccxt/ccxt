@@ -84,7 +84,7 @@ func (this *Toobit) Ping(client any) any {
 		"ping": this.Milliseconds(),
 	}
 }
-func (this *Toobit) HandleListMessage(client any, message any) {
+func (this *Toobit) HandleListMessage(client any, message []any) {
 	// private streams
 	var methods map[string]any = map[string]any{
 		"trade":                        this.HandleTrades,
@@ -99,7 +99,7 @@ func (this *Toobit) HandleListMessage(client any, message any) {
 		"ticketInfo":                   this.HandleMyTrade,
 		"outboundContractPositionInfo": this.HandlePositions,
 	}
-	for i := 0; i < ccxt.GetArrayLength(message); i++ {
+	for i := 0; i < len(message); i++ {
 		var item any = ccxt.GetValue(message, i)
 		var event *string = this.SafeString(item, "e")
 		var method any = this.SafeValue(methods, event)

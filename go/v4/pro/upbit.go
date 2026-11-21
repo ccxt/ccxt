@@ -76,7 +76,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
 	var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var marketId *string = this.SafeString(marketIds, i, "")
 		var symbol string = symbolsNormalized[i]
@@ -432,12 +432,12 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	// the "REALTIME" deltas are not incremental
 	// therefore we reset the orderbook on each update
 	// and reinitialize it again with new bidasks
-	var data []any = ccxt.SafeListTyped(message, "orderbook_units")
+	var data, _ = message["orderbook_units"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var bidsSnapshot []any = []any{}
 	var asksSnapshot []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
 		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
 		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
@@ -512,7 +512,11 @@ func (this *Upbit) Authenticate(optionalArgs ...any) {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any
+	wsOptions, _ = this.Options["ws"].(map[string]any)
+	if wsOptions == nil {
+		wsOptions = map[string]any{}
+	}
 	var authenticated *string = this.SafeString(wsOptions, "token")
 	if authenticated == nil {
 		var auth map[string]any = map[string]any{
@@ -896,12 +900,12 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var cachedOrders ccxt.WsArrayCache = this.Orders
-	var orders any = func() any {
-		if symbol == nil {
-			return map[string]any{}
-		}
-		return this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-	}()
+	var orders any
+	if symbol == nil {
+		orders = map[string]any{}
+	} else {
+		orders = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+	}
 	var order map[string]any
 	if orderId == nil {
 		order = nil
@@ -1002,7 +1006,7 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 	//     "stream_type": "REALTIME"
 	// }
 	//
-	var data []any = ccxt.SafeListTyped(message, "assets")
+	var data, _ = message["assets"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if timestamp != nil {
 		this.Balance["timestamp"] = *timestamp
@@ -1015,7 +1019,7 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 		this.Balance["datetime"] = nil
 	}
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = ccxt.SafeMapTyped(data, i)
+		var balance, _ = data[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var available *string = this.SafeString(balance, "balance")

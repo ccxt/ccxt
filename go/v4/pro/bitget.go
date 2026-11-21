@@ -128,8 +128,7 @@ func (this *Bitget) GetInstType(methodName string, market any, optionalArgs ...a
 	instTypeOption, paramsInstType := this.HandleOptionStringAndParams(paramsProductType, methodName, "instType", instTypeDefault)
 	if (uta == true) && (instTypeOption != nil) {
 		var instTypeLower string = strings.ToLower(*instTypeOption)
-		retStr := instTypeLower
-		return &retStr, paramsInstType
+		return &instTypeLower, paramsInstType
 	}
 	return instTypeOption, paramsInstType
 }
@@ -878,7 +877,7 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseWsOHLCV(data[i], market)
 		stored.Append(parsed)
@@ -1595,7 +1594,7 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var length int = len(data)
 	// fix chronological order by reversing
 	for i := 0; i < length; i++ {
@@ -1947,7 +1946,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 		this.PositionsByType[instType] = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.PositionsByType[instType]
-	var rawPositions []any = ccxt.SafeListTyped(message, "data")
+	var rawPositions, _ = message["data"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = rawPositions[i]
@@ -2320,8 +2319,11 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	} else {
 		marketType = "contract"
 	}
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var first map[string]any = ccxt.SafeMapTyped(data, 0)
+	var data, _ = message["data"].([]any)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	var category *string = this.SafeStringLower(first, "category", instType)
 	var isLinearSwap bool = (category != nil && *category == "usdt-futures")
 	var isInverseSwap bool = (category != nil && *category == "coin-futures")
@@ -2880,7 +2882,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var length int = len(data)
 	var messageHash string = "myTrades"
 	var arg, _ = message["arg"].(map[string]any)
@@ -3081,7 +3083,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 	//
 	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var rawBalance any = data[i]
 		if instType != nil && *instType == "uta" {
@@ -3203,12 +3205,12 @@ func (this *Bitget) watchPublicBody(ch chan ccxt.AsyncResult[any], uta any, mess
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = func() any {
-		if uta == true {
-			return this.UrlsApiSections["ws"]["utaPublic"]
-		}
-		return this.UrlsApiSections["ws"]["public"]
-	}()
+	var url any
+	if uta == true {
+		url = this.UrlsApiSections["ws"]["utaPublic"]
+	} else {
+		url = this.UrlsApiSections["ws"]["public"]
+	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
@@ -3243,12 +3245,12 @@ func (this *Bitget) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], uta any, m
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = func() any {
-		if uta == true {
-			return this.UrlsApiSections["ws"]["utaPublic"]
-		}
-		return this.UrlsApiSections["ws"]["public"]
-	}()
+	var url any
+	if uta == true {
+		url = this.UrlsApiSections["ws"]["utaPublic"]
+	} else {
+		url = this.UrlsApiSections["ws"]["public"]
+	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
@@ -3296,12 +3298,12 @@ func (this *Bitget) unWatchPrivateBody(ch chan ccxt.AsyncResult[bool], uta any, 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var isUta bool = (uta == true)
-	var url any = func() any {
-		if isUta {
-			return this.UrlsApiSections["ws"]["utaPrivate"]
-		}
-		return this.UrlsApiSections["ws"]["private"]
-	}()
+	var url any
+	if isUta {
+		url = this.UrlsApiSections["ws"]["utaPrivate"]
+	} else {
+		url = this.UrlsApiSections["ws"]["private"]
+	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")
@@ -3355,12 +3357,12 @@ func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta a
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = func() any {
-		if uta == true {
-			return this.UrlsApiSections["ws"]["utaPublic"]
-		}
-		return this.UrlsApiSections["ws"]["public"]
-	}()
+	var url any
+	if uta == true {
+		url = this.UrlsApiSections["ws"]["utaPublic"]
+	} else {
+		url = this.UrlsApiSections["ws"]["public"]
+	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var argsArrayFirst map[string]any = ccxt.SafeMapTyped(argsArray, 0)
@@ -3446,12 +3448,12 @@ func (this *Bitget) watchPrivateBody(ch chan ccxt.AsyncResult[any], uta any, mes
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = func() any {
-		if uta == true {
-			return this.UrlsApiSections["ws"]["utaPrivate"]
-		}
-		return this.UrlsApiSections["ws"]["private"]
-	}()
+	var url any
+	if uta == true {
+		url = this.UrlsApiSections["ws"]["utaPrivate"]
+	} else {
+		url = this.UrlsApiSections["ws"]["private"]
+	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
 		var instType *string = this.SafeString(args, "instType")

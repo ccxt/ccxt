@@ -1147,18 +1147,18 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 			symbol = *base + "/" + *quote + ":" + *quote + "-" + this.Yymmdd(expiry) + "-" + *this.SafeString(market, "strike", "") + "-" + symbolOptionType
 			contract = true
 		}
-		var isLinear any = func() any {
-			if contract == true {
-				return true
-			}
-			return nil
-		}()
-		var isInverse any = func() any {
-			if contract == true {
-				return false
-			}
-			return nil
-		}()
+		var isLinear any
+		if contract == true {
+			isLinear = true
+		} else {
+			isLinear = nil
+		}
+		var isInverse any
+		if contract == true {
+			isInverse = false
+		} else {
+			isInverse = nil
+		}
 		result = append(result, map[string]any{
 			"id":             this.SafeString(market, "symbol"),
 			"symbol":         symbol,
@@ -2118,12 +2118,12 @@ func (this *Cryptocom) createOrderBody(ch chan AsyncResult[Order], symbol string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptocom) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Cryptocom) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Cryptocom) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2137,7 +2137,7 @@ func (this *Cryptocom) createOrdersBody(ch chan AsyncResult[[]Order], orders []a
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -5269,7 +5269,7 @@ func (this *Cryptocom) CreateOrders(orders []OrderRequest, options ...CreateOrde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

@@ -702,7 +702,11 @@ func (this *Bit2me) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	request["type"] = orderType
 	request["clientOrderId"] = clientOrderId
 	// the response carries no request id, it is matched by the client order id, and an error only by the symbol
-	var pending map[string]any = this.SafeDictMap(this.Options, "pendingWsOrders", map[string]any{})
+	var pending map[string]any
+	pending, _ = this.Options["pendingWsOrders"].(map[string]any)
+	if pending == nil {
+		pending = map[string]any{}
+	}
 	if clientOrderId != nil {
 		pending[*clientOrderId] = market["id"]
 	}
@@ -772,7 +776,11 @@ func (this *Bit2me) HandleCreateOrder(client any, message map[string]any) {
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 	var clientOrderId *string = this.SafeString(data, "clientOrderId")
 	if clientOrderId != nil {
-		var pending map[string]any = this.SafeDictMap(this.Options, "pendingWsOrders", map[string]any{})
+		var pending map[string]any
+		pending, _ = this.Options["pendingWsOrders"].(map[string]any)
+		if pending == nil {
+			pending = map[string]any{}
+		}
 		this.Options["pendingWsOrders"] = this.Omit(pending, clientOrderId)
 		this.SettleRequest(client, "added-order:"+*clientOrderId, order)
 	}
@@ -914,8 +922,8 @@ func (this *Bit2me) HandleCancelOrders(client any, message map[string]any) {
 	//     }
 	//
 	var data, _ = message["data"].(map[string]any)
-	var deleted []any = ccxt.SafeListTyped(data, "ordersDeleted")
-	var notDeleted []any = ccxt.SafeListTyped(data, "ordersNotDeletedReasons")
+	var deleted, _ = data["ordersDeleted"].([]any)
+	var notDeleted, _ = data["ordersNotDeletedReasons"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(deleted); i++ {
 		var entry any = ccxt.DerefScalar(deleted[i])
@@ -1000,7 +1008,7 @@ func (this *Bit2me) HandleCancelAllOrders(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var data, _ = message["data"].(map[string]any)
-	var ids []any = ccxt.SafeListTyped(data, "cancelledOrders")
+	var ids, _ = data["cancelledOrders"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(ids); i++ {
 		orders = append(orders, ccxt.OrderToMap(this.SafeOrder(map[string]any{
@@ -1134,7 +1142,11 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 	if event != nil && *event == "added-order" {
 		// the error carries no client order id, reject every order of the symbol still waiting for a response
 		var marketId *string = this.SafeString(message, "symbol")
-		var pending map[string]any = this.SafeDictMap(this.Options, "pendingWsOrders", map[string]any{})
+		var pending map[string]any
+		pending, _ = this.Options["pendingWsOrders"].(map[string]any)
+		if pending == nil {
+			pending = map[string]any{}
+		}
 		var clientOrderIds []string = nil
 		if pending != nil {
 			clientOrderIds = make([]string, 0, len(pending))

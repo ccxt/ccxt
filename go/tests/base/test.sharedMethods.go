@@ -9,18 +9,18 @@ import "strconv"
 
 func LogTemplate(exchange ccxt.ICoreExchange, method any, entry any) any {
 	// there are cases when exchange is undefined (eg. base tests)
-	var id any = func() any {
-		if !IsEqual(exchange, nil) {
-			return exchange.GetId()
-		}
-		return "undefined"
-	}()
-	var methodString any = func() any {
-		if method != nil {
-			return method
-		}
-		return "undefined"
-	}()
+	var id any
+	if !IsEqual(exchange, nil) {
+		id = exchange.GetId()
+	} else {
+		id = "undefined"
+	}
+	var methodString any
+	if method != nil {
+		methodString = method
+	} else {
+		methodString = "undefined"
+	}
 	var entryString string
 	if !IsEqual(exchange, nil) && (entry != nil) {
 		entryString = exchange.Json(entry)

@@ -102,7 +102,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Coincheck) HandleOrderBook(client any, message any) {
+func (this *Coincheck) HandleOrderBook(client any, message []any) {
 	//
 	//     [
 	//         "btc_jpy",
@@ -188,7 +188,7 @@ func (this *Coincheck) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Coincheck) HandleTrades(client any, message any) {
+func (this *Coincheck) HandleTrades(client any, message []any) {
 	//
 	//     [
 	//         [
@@ -211,7 +211,7 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	for i := 0; i < ccxt.GetArrayLength(message); i++ {
+	for i := 0; i < len(message); i++ {
 		var data any = this.SafeValue(message, i)
 		var trade map[string]any = this.ParseWsTrade(data)
 		stored.Append(trade)
@@ -255,7 +255,7 @@ func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) map[string]a
 		"fee":          nil,
 	}, market))
 }
-func (this *Coincheck) HandleListMessage(client any, message any) {
+func (this *Coincheck) HandleListMessage(client any, message []any) {
 	var data any = this.SafeList(message, 0)
 	if data == nil {
 		this.HandleOrderBook(client, message)

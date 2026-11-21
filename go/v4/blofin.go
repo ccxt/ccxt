@@ -1005,7 +1005,8 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -1118,7 +1119,8 @@ func (this *Blofin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -1168,7 +1170,8 @@ func (this *Blofin) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol strin
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -1576,7 +1579,8 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	}
 	var response map[string]any = r2.Value
 	var rates []any = []any{}
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var rate map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
@@ -1692,7 +1696,8 @@ func (this *Blofin) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	//        "msg": ""
 	//    }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var entry map[string]any
 	if 0 < len(data) {
 		entry, _ = data[0].(map[string]any)
@@ -2200,7 +2205,10 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		return nil
 	}
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	var order map[string]any = OrderToMap(this.ParseOrder(first, market))
 	order["type"] = typeVar
 	order["side"] = side
@@ -2363,7 +2371,8 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		panic(r3.Err)
 	}
 	var response map[string]any = r3.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var order map[string]any
 	if 0 < len(data) {
 		order, _ = data[0].(map[string]any)
@@ -2382,12 +2391,12 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blofin) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Blofin) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2401,7 +2410,7 @@ func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -2489,7 +2498,7 @@ func (this *Blofin) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		}
 		response = r2.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	if data == nil {
 		panic(OrderNotFound(this.Id + " fetchOrder() could not find order " + id))
 	}
@@ -2981,7 +2990,8 @@ func (this *Blofin) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//     }
 	//
 	// one row per currency + chain pair, group them per currency
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var dataByCurrencyId map[string]any = this.GroupBy(data, "currency")
 	var currencies []any = nil
 	if dataByCurrencyId != nil {
@@ -3126,7 +3136,8 @@ func (this *Blofin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -3194,7 +3205,8 @@ func (this *Blofin) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var dataByCurrencyId map[string]any = this.GroupBy(data, "currency")
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(dataByCurrencyId, codes))}
@@ -3287,7 +3299,8 @@ func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id any, o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	// only accept a row that matches the requested id, in case the
 	// venue ignores the filter and returns the latest records instead
 	var dataLength int = len(data)
@@ -3349,7 +3362,8 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	// only accept a row that matches the requested id (or clientId), in
 	// case the venue ignores the filter and returns the latest records
 	var dataLength int = len(data)
@@ -3935,7 +3949,8 @@ func (this *Blofin) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var position map[string]any
 	if 0 < len(data) {
 		position, _ = data[0].(map[string]any)
@@ -5423,7 +5438,7 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

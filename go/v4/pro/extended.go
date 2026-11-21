@@ -473,9 +473,12 @@ func (this *Extended) HandleMyTrades(client any, message map[string]any) {
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
 	var data, _ = message["data"].(map[string]any)
-	var rawTrades []any = ccxt.SafeListTyped(data, "trades")
+	var rawTrades, _ = data["trades"].([]any)
 	var symbols map[string]any = map[string]any{}
-	var first map[string]any = ccxt.SafeMapTyped(rawTrades, 0)
+	var first map[string]any
+	if 0 < len(rawTrades) {
+		first, _ = rawTrades[0].(map[string]any)
+	}
 	if first == nil {
 		return
 	}
@@ -605,9 +608,12 @@ func (this *Extended) HandlePositions(client any, message map[string]any) {
 	}
 	var stored ccxt.WsArrayCache = this.Positions
 	var data, _ = message["data"].(map[string]any)
-	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
+	var rawPositions, _ = data["positions"].([]any)
 	var newPositions []any = []any{}
-	var first map[string]any = ccxt.SafeMapTyped(rawPositions, 0)
+	var first map[string]any
+	if 0 < len(rawPositions) {
+		first, _ = rawPositions[0].(map[string]any)
+	}
 	if first == nil {
 		return
 	}
@@ -673,7 +679,10 @@ func (this *Extended) HandleOrders(client any, message map[string]any) {
 	var data, _ = message["data"].(map[string]any)
 	var rawOrders, _ = data["orders"].([]any)
 	var symbols map[string]any = map[string]any{}
-	var first map[string]any = ccxt.SafeMapTyped(rawOrders, 0)
+	var first map[string]any
+	if 0 < len(rawOrders) {
+		first, _ = rawOrders[0].(map[string]any)
+	}
 	if first == nil {
 		return
 	}
@@ -958,8 +967,11 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 	//         "seq": 2
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var first map[string]any = ccxt.SafeMapTyped(data, 0)
+	var data, _ = message["data"].([]any)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	if first == nil {
 		return
 	}
@@ -1123,7 +1135,7 @@ func (this *Extended) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data[i]))
 		stored.Append(parsed)

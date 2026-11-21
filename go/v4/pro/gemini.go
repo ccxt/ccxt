@@ -967,7 +967,7 @@ func (this *Gemini) HandleSubscription(client any, message map[string]any) map[s
 	//
 	return message
 }
-func (this *Gemini) HandleOrder(client any, message any) {
+func (this *Gemini) HandleOrder(client any, message []any) {
 	//
 	//     [
 	//         {
@@ -997,7 +997,7 @@ func (this *Gemini) HandleOrder(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders ccxt.WsArrayCache = this.Orders
-	for i := 0; i < ccxt.GetArrayLength(message); i++ {
+	for i := 0; i < len(message); i++ {
 		var order map[string]any = this.ParseWsOrder(this.SafeValue(message, i))
 		orders.Append(order)
 	}
@@ -1088,7 +1088,7 @@ func (this *Gemini) ParseWsOrderType(typeVar *string) *string {
 func (this *Gemini) HandleError(client any, message any) {
 	panic(ccxt.ExchangeError(this.Json(message)))
 }
-func (this *Gemini) HandleListMessage(client any, message any) {
+func (this *Gemini) HandleListMessage(client any, message []any) {
 	this.HandleOrder(client, message)
 }
 func (this *Gemini) HandleMessage(client any, message any) {

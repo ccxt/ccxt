@@ -784,7 +784,7 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 		return
 	}
 	var tick, _ = message["tick"].(map[string]any)
-	var data []any = ccxt.SafeListTyped(tick, "data")
+	var data, _ = tick["data"].([]any)
 	var appended bool = false
 	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	for i := 0; i < len(data); i++ {
@@ -984,7 +984,11 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	var wsInterval *string = this.SafeString(parts, 4)
-	var futuresTimeframes map[string]any = this.SafeDictMap(this.Options, "futuresTimeframes", map[string]any{})
+	var futuresTimeframes map[string]any
+	futuresTimeframes, _ = this.Options["futuresTimeframes"].(map[string]any)
+	if futuresTimeframes == nil {
+		futuresTimeframes = map[string]any{}
+	}
 	var timeframe *string = this.FindTimeframe(wsInterval, futuresTimeframes)
 	if timeframe == nil {
 		return
@@ -1125,12 +1129,12 @@ func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs 
 	var quoteVolume any = this.ConvertFromRawQuantity(symbol, rawAmount)
 	var close *float64 = this.SafeNumber(tick, "close")
 	var rose *float64 = this.SafeNumber(tick, "rose")
-	var percentage any = func() any {
-		if rose == nil {
-			return nil
-		}
-		return (*rose * 100)
-	}()
+	var percentage any
+	if rose == nil {
+		percentage = nil
+	} else {
+		percentage = (*rose * 100)
+	}
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"info":          tick,
 		"symbol":        symbol,

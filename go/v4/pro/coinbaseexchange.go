@@ -152,7 +152,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan ccxt.AsyncResult[any
 	}
 	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var productIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -642,7 +642,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncRes
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds []string = this.MarketIds(symbolsNormalized)
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < symbolsLength; i++ {
 		messageHashes = append(messageHashes, name+":"+*this.SafeString(marketIds, i, ""))
 	}
@@ -1302,13 +1302,13 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 	} else if typeVar != nil && *typeVar == "l2update" {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.Parse8601(this.SafeString(message, "time"))
-		var changes []any = ccxt.SafeListTyped(message, "changes")
+		var changes, _ = message["changes"].([]any)
 		var sides map[string]any = map[string]any{
 			"sell": "asks",
 			"buy":  "bids",
 		}
 		for i := 0; i < len(changes); i++ {
-			var change []any = ccxt.SafeListTyped(changes, i)
+			var change, _ = changes[i].([]any)
 			var key *string = this.SafeString(change, 0)
 			var side *string = this.SafeString(sides, key)
 			var price *float64 = this.SafeNumber(change, 1)

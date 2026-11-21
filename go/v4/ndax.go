@@ -627,11 +627,11 @@ func (this *Ndax) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetPing(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetPing(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "msg":"PONG"
@@ -647,7 +647,7 @@ func (this *Ndax) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -2423,8 +2423,11 @@ func (this *Ndax) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		"AccountId": accountId,
 	}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["IntrumentId"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["IntrumentId"] = nil
+		if market.Id != nil {
+			request["IntrumentId"] = *market.Id
+		}
 	}
 
 	r2 := <-this.PrivatePostCancelAllOrders(this.Extend(request, paramsOmitted))
@@ -2961,7 +2964,11 @@ func (this *Ndax) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	//     ]
 	//
 	var grouped map[string]any = this.GroupBy(response, "ChangeReason")
-	var trades []any = this.SafeListSlice(grouped, "Trade", []any{})
+	var trades []any
+	trades, _ = grouped["Trade"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -3327,12 +3334,12 @@ func (this *Ndax) ParseTransactionStatusByType(optionalArgs ...any) *string {
 			"Confirmed2Fa":      "pending",
 		},
 	}
-	var statuses any = func() any {
-		if typeVar == nil {
-			return map[string]any{}
-		}
-		return this.SafeDict(statusesByType, typeVar, map[string]any{})
-	}()
+	var statuses any
+	if typeVar == nil {
+		statuses = map[string]any{}
+	} else {
+		statuses = this.SafeDict(statusesByType, typeVar, map[string]any{})
+	}
 	if status == nil {
 		return nil
 	}
@@ -3517,7 +3524,8 @@ func (this *Ndax) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	//         ]
 	//     }
 	//
-	var templateTypes []any = SafeListTyped(withdrawTemplateTypesResponse, "TemplateTypes")
+	var templateTypes []any
+	templateTypes, _ = withdrawTemplateTypesResponse["TemplateTypes"].([]any)
 	var firstTemplateType map[string]any
 	if 0 < len(templateTypes) {
 		firstTemplateType, _ = templateTypes[0].(map[string]any)

@@ -2316,7 +2316,8 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id an
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var transaction map[string]any
 	if 0 < len(data) {
 		transaction, _ = data[0].(map[string]any)

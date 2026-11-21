@@ -1525,16 +1525,16 @@ func (this *Bitso) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		request["price"] = this.PriceToPrecision(market["symbol"], price)
 	}
 
-	r1 := <-this.PrivatePostOrders(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostOrders(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
-	var payload map[string]any = SafeMapTyped(response, "payload")
+	var response map[string]any = responseReply.Value
+	var payload, _ = response["payload"].(map[string]any)
 	var id *string = this.SafeString(payload, "oid")
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 		"id":   id,
 	}, market)}
 	return nil
@@ -1573,22 +1573,23 @@ func (this *Bitso) cancelOrderBody(ch chan AsyncResult[Order], id string, option
 		"oid": id,
 	}
 
-	r1 := <-this.PrivateDeleteOrdersOid(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateDeleteOrdersOid(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "success": true,
 	//         "payload": ["yWTQGxDMZ0VimZgZ"]
 	//     }
 	//
-	var payload []any = SafeListTyped(response, "payload")
+	var payload []any
+	payload, _ = response["payload"].([]any)
 	var orderId *string = this.SafeString(payload, 0)
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 		"id":   orderId,
 	})}
 	return nil
@@ -1639,7 +1640,8 @@ func (this *Bitso) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, 
 	//         "payload": ["yWTQGxDMZ0VimZgZ"]
 	//     }
 	//
-	var payload []any = SafeListTyped(response, "payload")
+	var payload []any
+	payload, _ = response["payload"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(payload); i++ {
 		var id *string = this.SafeString(payload, i)
@@ -1690,7 +1692,8 @@ func (this *Bitso) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
 	//     }
 	//
-	var payload []any = SafeListTyped(response, "payload")
+	var payload []any
+	payload, _ = response["payload"].([]any)
 	var canceledOrders []any = []any{}
 	for i := 0; i < len(payload); i++ {
 		var id *string = this.SafeString(payload, i)
@@ -1861,7 +1864,8 @@ func (this *Bitso) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var payload []any = SafeListTyped(response, "payload")
+	var payload []any
+	payload, _ = response["payload"].([]any)
 	var numOrders int = len(payload)
 	if numOrders == 1 {
 
@@ -1987,7 +1991,8 @@ func (this *Bitso) fetchDepositBody(ch chan AsyncResult[Transaction], id any, op
 	//         }]
 	//     }
 	//
-	var transactions []any = SafeListTyped(response, "payload")
+	var transactions []any
+	transactions, _ = response["payload"].([]any)
 	var first map[string]any
 	if 0 < len(transactions) {
 		first, _ = transactions[0].(map[string]any)
@@ -2107,12 +2112,12 @@ func (this *Bitso) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 		"fund_currency": currency["id"],
 	}
 
-	r1 := <-this.PrivateGetFundingDestination(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetFundingDestination(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
-	var payload map[string]any = SafeMapTyped(response, "payload")
+	var response map[string]any = responseReply.Value
+	var payload, _ = response["payload"].(map[string]any)
 	var address *string = this.SafeString(payload, "account_identifier")
 	var tag *string = nil
 	if strings.Index(*address, "?dt=") >= 0 {
@@ -2123,7 +2128,7 @@ func (this *Bitso) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	this.CheckAddress(address)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": code,
 		"network":  nil,
 		"address":  address,
@@ -2432,8 +2437,8 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 			if resultValue == nil {
 				result[*code] = this.DepositWithdrawFee(map[string]any{})
 			}
-			AddElementToObject(GetValue(GetValue(result, code), "withdraw"), "fee", withdrawFee)
-			AddElementToObject(GetValue(GetValue(result, code), "info"), code, withdrawFee)
+			AddElementToObject(GetValue(result[*code], "withdraw"), "fee", withdrawFee)
+			AddElementToObject(GetValue(result[*code], "info"), code, withdrawFee)
 		}
 	}
 	return result
@@ -2551,7 +2556,10 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	//     }
 	//
 	var payload []any = SafeListTyped(response, "payload")
-	var first map[string]any = SafeMapTyped(payload, 0)
+	var first map[string]any
+	if 0 < len(payload) {
+		first, _ = payload[0].(map[string]any)
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(first, currency)}
 	return nil
@@ -2605,13 +2613,13 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	var status *string = this.SafeString(transaction, "status")
 	var withdrawId *string = this.SafeString(transaction, "wid")
 	var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currencyResolved, "code"))
-	var networkCodeUpper *string = func() *string {
-		if networkCode != nil {
-			retStr := strings.ToUpper(*networkCode)
-			return &retStr
-		}
-		return nil
-	}()
+	var networkCodeUpper *string
+	if networkCode != nil {
+		retStr := strings.ToUpper(*networkCode)
+		networkCodeUpper = &retStr
+	} else {
+		networkCodeUpper = nil
+	}
 	var ternaryStr194120 string = "withdrawal"
 	if withdrawId == nil {
 		ternaryStr194120 = "deposit"

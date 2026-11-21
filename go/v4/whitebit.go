@@ -1105,11 +1105,11 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 		}
 	}
 
-	r1 := <-this.V4PublicGetFee(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.V4PublicGetFee(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//      {
 	//          "1INCH":{
@@ -1135,7 +1135,13 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 	//           {...}
 	//      }
 	//
-	var currenciesIds []string = ObjectKeys(response)
+	var currenciesIds []string = nil
+	if response != nil {
+		currenciesIds = make([]string, 0, len(response))
+		for objectKey := range response {
+			currenciesIds = append(currenciesIds, objectKey)
+		}
+	}
 	var withdrawFees map[string]any = map[string]any{}
 	var depositFees map[string]any = map[string]any{}
 	for i := 0; i < len(currenciesIds); i++ {
@@ -1163,7 +1169,7 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 	ch <- AsyncResult[map[string]any]{Value: map[string]any{
 		"withdraw": withdrawFees,
 		"deposit":  depositFees,
-		"info":     response,
+		"info":     responseReply.Raw,
 	}}
 	return nil
 }
@@ -1320,21 +1326,19 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 			var depositFee *float64 = this.SafeNumber(deposit, "fixed")
 			var withdrawResult map[string]any = map[string]any{
 				"fee": withdrawFee,
-				"percentage": func() any {
-					if withdrawFee != nil {
-						return false
-					}
-					return nil
-				}(),
+			}
+			if withdrawFee != nil {
+				withdrawResult["percentage"] = false
+			} else {
+				withdrawResult["percentage"] = nil
 			}
 			var depositResult map[string]any = map[string]any{
 				"fee": depositFee,
-				"percentage": func() any {
-					if depositFee != nil {
-						return false
-					}
-					return nil
-				}(),
+			}
+			if depositFee != nil {
+				depositResult["percentage"] = false
+			} else {
+				depositResult["percentage"] = nil
 			}
 			if networkId != nil {
 				var networkIdPart string
@@ -4281,7 +4285,8 @@ func (this *Whitebit) fetchAccountsBody(ch chan AsyncResult[[]Account], optional
 	//         ]
 	//     }
 	//
-	var subAccounts []any = SafeListTyped(response, "data")
+	var subAccounts []any
+	subAccounts, _ = response["data"].([]any)
 	for i := 0; i < len(subAccounts); i++ {
 		var subAccount map[string]any = this.SafeDictMap(subAccounts, i, map[string]any{})
 		var accountId *string = this.SafeString(subAccount, "id")
@@ -4454,12 +4459,12 @@ func (this *Whitebit) withdrawBody(ch chan AsyncResult[Transaction], code string
 		"address": address,
 	}
 	var uniqueIdParam any = this.SafeValue(paramsWithdrawTag, "uniqueId")
-	var uniqueId any = func() any {
-		if uniqueIdParam == nil {
-			return this.Uuid22()
-		}
-		return uniqueIdParam
-	}()
+	var uniqueId any
+	if uniqueIdParam == nil {
+		uniqueId = this.Uuid22()
+	} else {
+		uniqueId = uniqueIdParam
+	}
 	request["uniqueId"] = uniqueId
 	if tag != nil {
 		request["memo"] = tag
@@ -4674,7 +4679,8 @@ func (this *Whitebit) fetchDepositBody(ch chan AsyncResult[Transaction], id any,
 	//         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//     }
 	//
-	var records []any = SafeListTyped(response, "records")
+	var records []any
+	records, _ = response["records"].([]any)
 	var first map[string]any
 	if 0 < len(records) {
 		first, _ = records[0].(map[string]any)
@@ -5312,10 +5318,11 @@ func (this *Whitebit) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	//        "total": 300                                                                                    // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//    }
 	//
-	var records []any = SafeListTyped(response, "records")
+	var records []any
+	records, _ = response["records"].([]any)
 	var recordsList []any = []any{}
 	if records != nil {
-		recordsList = ArrayTyped(records)
+		recordsList = records
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(recordsList, currency, since, limit))}

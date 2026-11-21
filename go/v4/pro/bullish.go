@@ -146,7 +146,11 @@ func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	var cookies map[string]any = map[string]any{
 		"JWT_COOKIE": token,
 	}
-	var wsDict map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	var wsDict map[string]any
+	wsDict, _ = this.Options["ws"].(map[string]any)
+	if wsDict == nil {
+		wsDict = map[string]any{}
+	}
 	wsDict["cookies"] = cookies
 	this.Options["ws"] = wsDict
 	var id string = strconv.FormatInt(this.RequestId(), 10)
@@ -460,7 +464,7 @@ func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
 		"asks": asks,
 	}
 	var parsed map[string]any = this.ParseOrderBook(snapshot, symbol, timestamp)
-	var sequenceNumberRange []any = ccxt.SafeListTyped(data, "sequenceNumberRange")
+	var sequenceNumberRange, _ = data["sequenceNumberRange"].([]any)
 	if len(sequenceNumberRange) > 0 {
 		var lastIndex int64 = int64(len(sequenceNumberRange)) - 1
 		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)

@@ -6456,11 +6456,11 @@ func (this *Binance) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.SapiGetSystemStatus(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.SapiGetSystemStatus(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "status": 0,              // 0: normal，1：system maintenance
@@ -6477,7 +6477,7 @@ func (this *Binance) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -9217,12 +9217,12 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Binance) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Binance) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Binance) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9237,7 +9237,7 @@ func (this *Binance) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	var ordersRequests []any = []any{}
 	var orderSymbols []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		orderSymbols = append(orderSymbols, marketId)
 		var typeVar *string = this.SafeString(rawOrder, "type")
@@ -10196,8 +10196,8 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan AsyncResult[Order], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketOrderWithCost() supports spot orders only"))
 	}
 	var req map[string]any = map[string]any{
@@ -10239,8 +10239,8 @@ func (this *Binance) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	var req map[string]any = map[string]any{
@@ -10282,8 +10282,8 @@ func (this *Binance) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 	params["quoteOrderQty"] = cost
@@ -12299,7 +12299,10 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	if (!stock) && (typeVar == nil || *typeVar != "option") && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
-	var endTime any = DerefScalar(this.SafeInteger2(paramsPaginate, "until", "endTime"))
+	var endTime any
+	if derefPtr := this.SafeInteger2(paramsPaginate, "until", "endTime"); derefPtr != nil {
+		endTime = *derefPtr
+	}
 	if since != nil {
 		var startTime *int64 = since
 		request["startTime"] = startTime
@@ -12311,12 +12314,12 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if (currentTimestamp - *since) >= int64(oneWeek) {
 			if (endTime == nil) && (*this.SafeBool(market, "linear", false)) {
 				endTime = this.Sum(startTime, oneWeek)
-				var endTimeValue any = func() any {
-					if endTime == nil {
-						return 0
-					}
-					return endTime
-				}()
+				var endTimeValue any
+				if endTime == nil {
+					endTimeValue = 0
+				} else {
+					endTimeValue = endTime
+				}
 				endTime = mathMin(endTimeValue, currentTimestamp)
 			}
 		}
@@ -12681,7 +12684,8 @@ func (this *Binance) fetchMyDustTradesBody(ch chan AsyncResult[[]Trade], optiona
 	//         },
 	//       ]
 	//     }
-	var results []any = SafeListTyped(response, "userAssetDribblets")
+	var results []any
+	results, _ = response["userAssetDribblets"].([]any)
 	var rows int64 = *this.SafeInteger(response, "total", 0)
 	var data []any = []any{}
 	for i := 0; int64(i) < rows; i++ {
@@ -12721,7 +12725,10 @@ func (this *Binance) ParseDustTrade(trade any, optionalArgs ...any) any {
 	var tradedCurrency *string = this.SafeCurrencyCode(currencyId)
 	var bnb Currency = CurrencyFromMap(this.Currency("BNB"))
 	var earnedCurrency *string = bnb.Code
-	var applicantSymbol any = Add(*earnedCurrency+"/", tradedCurrency)
+	var applicantSymbol any = nil
+	if earnedCurrency != nil && tradedCurrency != nil {
+		applicantSymbol = *earnedCurrency + "/" + *tradedCurrency
+	}
 	var tradedCurrencyIsQuote bool = false
 	if (this.Markets != nil) && (InOp(this.Markets, applicantSymbol)) {
 		tradedCurrencyIsQuote = true
@@ -13836,7 +13843,7 @@ func (this *Binance) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any
 			var networkCode *string = this.NetworkIdToCode(networkId, code)
 			var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 			if (code != nil) && (networkCode != nil) {
-				AddElementToObject(GetValue(withdrawFees, code), networkCode, fee)
+				AddElementToObject(withdrawFees[*code], networkCode, fee)
 			}
 		}
 	}
@@ -14836,12 +14843,12 @@ func (this *Binance) ParseAccountPositions(account any, optionalArgs ...any) any
 		var position any = positions[i]
 		var marketId *string = this.SafeString(position, "symbol")
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		var code any = func() any {
-			if *this.SafeBool(market, "linear", false) {
-				return market["quote"]
-			}
-			return market["base"]
-		}()
+		var code any
+		if *this.SafeBool(market, "linear", false) {
+			code = market["quote"]
+		} else {
+			code = market["base"]
+		}
 		var maintenanceMargin *string = this.SafeString(position, "maintMargin")
 		// check for maintenance margin so empty positions are not returned
 		var isPositionOpen bool = (maintenanceMargin == nil || *maintenanceMargin != "0") && (maintenanceMargin == nil || *maintenanceMargin != "0.00000000")
@@ -15458,7 +15465,11 @@ func (this *Binance) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})
 			}
-			var leverageBracketsDict map[string]any = this.SafeDictMap(this.Options, "leverageBrackets", map[string]any{})
+			var leverageBracketsDict map[string]any
+			leverageBracketsDict, _ = this.Options["leverageBrackets"].(map[string]any)
+			if leverageBracketsDict == nil {
+				leverageBracketsDict = map[string]any{}
+			}
 			if symbol != nil {
 				leverageBracketsDict[*symbol] = result
 			}
@@ -18044,8 +18055,11 @@ func (this *Binance) fetchIsolatedBorrowRatesBody(ch chan AsyncResult[map[string
 	var symbol *string = this.SafeString(params, "symbol")
 	var paramsOmitted map[string]any = this.OmitDict(params, "symbol")
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		request["symbol"] = market["id"]
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		request["symbol"] = nil
+		if market.Id != nil {
+			request["symbol"] = *market.Id
+		}
 	}
 
 	responseRecv := <-this.SapiGetMarginIsolatedMarginData(this.Extend(request, paramsOmitted))
@@ -18247,11 +18261,11 @@ func (this *Binance) createGiftCodeBody(ch chan AsyncResult[map[string]any], cod
 		"amount": amount,
 	}
 
-	r1 := <-this.SapiPostGiftcardCreateCode(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.SapiPostGiftcardCreateCode(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "code": "000000",
@@ -18260,12 +18274,12 @@ func (this *Binance) createGiftCodeBody(ch chan AsyncResult[map[string]any], cod
 	//         "success": true
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var giftcardCode *string = this.SafeString(data, "code")
 	var id *string = this.SafeString(data, "referenceNo")
 
 	ch <- AsyncResult[map[string]any]{Value: map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"id":       id,
 		"code":     giftcardCode,
 		"currency": code,
@@ -18402,8 +18416,11 @@ func (this *Binance) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInteres
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if code != nil {
-		var currency map[string]any = this.Currency(code)
-		request["asset"] = currency["id"]
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		request["asset"] = nil
+		if currency.Id != nil {
+			request["asset"] = *currency.Id
+		}
 	}
 	if since != nil {
 		request["startTime"] = *since
@@ -20264,8 +20281,11 @@ func (this *Binance) fetchConvertTradeBody(ch chan AsyncResult[Conversion], id s
 		var msInDay int = 86400000
 		var now int64 = this.Milliseconds()
 		if code != nil {
-			var currency map[string]any = this.Currency(code)
-			request["asset"] = currency["id"]
+			var currency Currency = CurrencyFromMap(this.Currency(code))
+			request["asset"] = nil
+			if currency.Id != nil {
+				request["asset"] = *currency.Id
+			}
 		}
 		request["tranId"] = id
 		request["startTime"] = now - int64(msInDay)
@@ -20367,8 +20387,11 @@ func (this *Binance) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversi
 	var fromCurrencyKey string
 	var toCurrencyKey string
 	if code != nil && *code == "BUSD" {
-		var currency map[string]any = this.Currency(code)
-		request["asset"] = currency["id"]
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		request["asset"] = nil
+		if currency.Id != nil {
+			request["asset"] = *currency.Id
+		}
 		if limit != nil {
 			request["size"] = *limit
 		}
@@ -21424,7 +21447,7 @@ func (this *Binance) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

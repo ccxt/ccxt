@@ -301,7 +301,7 @@ func (this *Phemex) HandleTicker(client any, message map[string]any) {
 		var ticker map[string]any = this.SafeDictMap(message, "spot_market24h", map[string]any{})
 		tickers = append(tickers, ccxt.TickerToMap(this.ParseTicker(ticker)))
 	} else if _, ok := message["data"]; ok {
-		var data []any = ccxt.SafeListTyped(message, "data")
+		var data, _ = message["data"].([]any)
 		for i := 0; i < len(data); i++ {
 			tickers = append(tickers, this.ParsePerpetualTicker(data[i]))
 		}
@@ -577,12 +577,12 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = (market["settle"] == "USDT")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = market.Symbol
+	var isSwap bool = market.Swap
+	var settleIsUSDT bool = (market.Settle != nil && *market.Settle == "USDT")
 	var name string = "spot_market24h"
-	if isSwap != nil && *isSwap == true {
+	if isSwap == true {
 		if settleIsUSDT {
 			name = "perp_market24h_pack_p"
 		} else {
@@ -641,11 +641,11 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var first *string = &symbolsNormalized[0]
-	var market map[string]any = this.Market(first)
-	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = (market["settle"] == "USDT")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(first))
+	var isSwap bool = market.Swap
+	var settleIsUSDT bool = (market.Settle != nil && *market.Settle == "USDT")
 	var name string = "spot_market24h"
-	if isSwap != nil && *isSwap == true {
+	if isSwap == true {
 		if settleIsUSDT {
 			name = "perp_market24h_pack_p"
 		} else {

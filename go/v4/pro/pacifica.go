@@ -91,7 +91,11 @@ func (this *Pacifica) SetupApiKeyHeaders(optionalArgs ...any) {
 			headers["PF-API-KEY"] = this.Options["apiKey"]
 		}
 	}
-	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any
+	wsOptions, _ = this.Options["ws"].(map[string]any)
+	if wsOptions == nil {
+		wsOptions = map[string]any{}
+	}
 	var wsSubOptions map[string]any = this.SafeDictMap(wsOptions, "options", map[string]any{})
 	wsSubOptions["headers"] = headers
 	wsOptions["options"] = wsSubOptions
@@ -260,7 +264,7 @@ func (this *Pacifica) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
+	var request map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -354,7 +358,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + "cancelOrders() requires a \"symbol\" argument!"))
 	}
-	var request any = this.CancelOrdersRequest(ids, symbol, params)
+	var request map[string]any = this.CancelOrdersRequest(ids, symbol, params)
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -465,7 +469,7 @@ func (this *Pacifica) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
 	}
-	var request any = this.CancelOrderRequest(id, symbol, params)
+	var request map[string]any = this.CancelOrderRequest(id, symbol, params)
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -556,7 +560,7 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 		}
 	}
 	var operationType string = "cancel_all_orders"
-	var request any = this.CancelAllOrdersRequest(symbol, params)
+	var request map[string]any = this.CancelAllOrdersRequest(symbol, params)
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -767,7 +771,7 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(entry, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string = market.Symbol
-	var levels []any = ccxt.SafeListTyped(entry, "l")
+	var levels, _ = entry["l"].([]any)
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
 		"asks": this.SafeList(levels, 1, []any{}),
@@ -1125,7 +1129,7 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 	// }
 	//
 	var parsedTickers []any = []any{}
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var info any = data[i]
 		var marketId *string = this.SafeString(info, "symbol")
@@ -1177,7 +1181,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 	}
 	var trades ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var dataLength int = len(data)
 	if dataLength == 0 {
 		return
@@ -1363,8 +1367,11 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	//   ]
 	// }
 	//
-	var entry []any = ccxt.SafeListTyped(message, "data")
-	var first map[string]any = ccxt.SafeMapTyped(entry, 0)
+	var entry, _ = message["data"].([]any)
+	var first map[string]any
+	if 0 < len(entry) {
+		first, _ = entry[0].(map[string]any)
+	}
 	var marketId *string = this.SafeString(first, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string = market.Symbol
@@ -1851,7 +1858,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	//     }
 	//   ]
 	// }
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

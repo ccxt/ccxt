@@ -451,11 +451,11 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan AsyncResult[Currency], id any, 
 		"currency": id,
 	}
 
-	r := <-this.PrivateGetWithdrawsChance(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PrivateGetWithdrawsChance(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "member_level": {
@@ -494,9 +494,9 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan AsyncResult[Currency], id any, 
 	//         }
 	//     }
 	//
-	var memberInfo map[string]any = SafeMapTyped(response, "member_level")
-	var currencyInfo map[string]any = SafeMapTyped(response, "currency")
-	var withdrawLimits map[string]any = SafeMapTyped(response, "withdraw_limit")
+	var memberInfo, _ = response["member_level"].(map[string]any)
+	var currencyInfo, _ = response["currency"].(map[string]any)
+	var withdrawLimits, _ = response["withdraw_limit"].(map[string]any)
 	var canWithdraw *bool = this.SafeBool(withdrawLimits, "can_withdraw")
 	var walletState *string = this.SafeString(currencyInfo, "wallet_state")
 	var walletLocked *bool = this.SafeBool(memberInfo, "wallet_locked")
@@ -524,7 +524,7 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan AsyncResult[Currency], id any, 
 	var code *string = this.SafeCurrencyCode(currencyId)
 
 	ch <- AsyncResult[Currency]{Value: CurrencyFromMap(map[string]any{
-		"info":      response,
+		"info":      responseReply.Raw,
 		"id":        currencyId,
 		"code":      code,
 		"name":      code,
@@ -584,11 +584,11 @@ func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[MarketInterface], id 
 		"market": id,
 	}
 
-	r := <-this.PrivateGetOrdersChance(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PrivateGetOrdersChance(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "bid_fee": "0.0015",
@@ -685,7 +685,7 @@ func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[MarketInterface], id 
 				"min": this.SafeNumber(bid, "min_total"),
 				"max": this.SafeNumber(marketInfo, "max_total"),
 			},
-			"info": response,
+			"info": responseReply.Raw,
 		},
 	}))}
 	return nil
@@ -1411,11 +1411,11 @@ func (this *Upbit) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 		"market": market["id"],
 	}
 
-	r1 := <-this.PrivateGetOrdersChance(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetOrdersChance(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "bid_fee": "0.0005",
@@ -1458,7 +1458,7 @@ func (this *Upbit) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 	var maker *string = Precise.StringMax(makerAskFee, makerBidFee)
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(map[string]any{
-		"info":       response,
+		"info":       responseReply.Raw,
 		"symbol":     symbol,
 		"maker":      this.ParseNumber(maker),
 		"taker":      this.ParseNumber(taker),
@@ -3156,7 +3156,7 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"amount": amount,
 	}
@@ -3170,7 +3170,10 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		}
 		var paramsOmitted map[string]any = this.OmitDict(paramsTag, []any{"network"})
 		request["net_type"] = network
-		request["currency"] = currency["id"]
+		request["currency"] = nil
+		if currency.Id != nil {
+			request["currency"] = *currency.Id
+		}
 		request["address"] = address
 		if tagResolved != nil {
 			request["secondary_address"] = *tagResolved

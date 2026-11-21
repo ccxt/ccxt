@@ -696,15 +696,17 @@ func (this *Bittrade) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any]
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(symbolsResolved); i++ {
 		var symbol *string = SafeStringPtr(GetValue(symbolsResolved, i))
-		r1 := <-this.FetchTradingLimitsByIdAsync(this.MarketId(symbol), params)
-		if r1.Err != nil {
-			panic(r1.Err)
+		r45429 := <-this.FetchTradingLimitsByIdAsync(this.MarketId(symbol), params)
+		if r45429.Err != nil {
+			panic(r45429.Err)
 		}
-		var r1ValueBox any = nil
-		if r1.Value != nil {
-			r1ValueBox = r1.Value
+		if symbol != nil {
+			var r45429ValueBox any = nil
+			if r45429.Value != nil {
+				r45429ValueBox = r45429.Value
+			}
+			result[*symbol] = r45429ValueBox
 		}
-		AddElementToObject(result, symbol, r1ValueBox)
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: result}
@@ -1198,7 +1200,8 @@ func (this *Bittrade) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = SafeListTyped(response, "data")
+	var tickers []any
+	tickers, _ = response["data"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
@@ -1484,7 +1487,8 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var trades []any = SafeListTyped(data[i], "data")
@@ -2316,8 +2320,8 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "spot", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false

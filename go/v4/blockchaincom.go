@@ -738,12 +738,12 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketId *string = this.SafeString(order, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var exchangeOrderId *string = this.SafeString(order, "exOrdId")
-	var price *string = func() *string {
-		if typeVar == nil || *typeVar != "market" {
-			return this.SafeString(order, "price")
-		}
-		return nil
-	}()
+	var price *string
+	if typeVar == nil || *typeVar != "market" {
+		price = this.SafeString(order, "price")
+	} else {
+		price = nil
+	}
 	var average *float64 = this.SafeNumber(order, "avgPx")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
@@ -974,11 +974,11 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan AsyncResult[map[string]T
 		}
 	}
 
-	r1 := <-this.PrivateGetFees(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetFees(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "makerRate": "0.002",
@@ -993,7 +993,7 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan AsyncResult[map[string]T
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
-			"info":   response,
+			"info":   responseReply.Raw,
 			"symbol": symbol,
 			"maker":  makerFee,
 			"taker":  takerFee,
@@ -1308,11 +1308,11 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan AsyncResult[DepositAd
 		"currency": currency["id"],
 	}
 
-	r1 := <-this.PrivatePostDepositsCurrency(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostDepositsCurrency(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	var rawAddress *string = this.SafeString(response, "address")
 	var tag *string = nil
 	var address *string = nil
@@ -1324,7 +1324,7 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan AsyncResult[DepositAd
 	}
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
-		"info":     response,
+		"info":     responseReply.Raw,
 		"currency": currency["code"],
 		"network":  nil,
 		"address":  address,
@@ -1709,11 +1709,11 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 		"account": accountName,
 	}
 
-	r1 := <-this.PrivateGetAccounts(this.Extend(request, paramsOmitted))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetAccounts(this.Extend(request, paramsOmitted))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "primary": [
@@ -1734,7 +1734,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 		panic(ExchangeError(this.Id + " fetchBalance() could not find the \"" + *accountName + "\" account"))
 	}
 	var result map[string]any = map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 	}
 	for i := 0; i < len(balances); i++ {
 		var entry map[string]any = SafeMapTyped(balances, i)

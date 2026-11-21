@@ -1114,12 +1114,12 @@ func (this *Weex) ParseCurrency(rawCurrency any) map[string]any {
 	}
 	var networksLength int = len(networkKeys)
 	var emptyChains bool = (networksLength == 0) // non-functional coins
-	var valueForEmpty any = func() any {
-		if emptyChains {
-			return false
-		}
-		return nil
-	}()
+	var valueForEmpty any
+	if emptyChains {
+		valueForEmpty = false
+	} else {
+		valueForEmpty = nil
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
 		"code":      code,
@@ -1928,8 +1928,8 @@ func (this *Weex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if *this.SafeBool(market, "spot", false) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if market.Spot {
 
 		r1 := <-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params)
 		if r1.Err != nil {
@@ -2084,12 +2084,12 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 	var paramsOmitted map[string]any = this.OmitDict(paramsHistorical, []any{"historical", "until", "price"})
 	var response []any = nil
 	// hardcap threshold
-	var limitResolved any = func() any {
-		if limit == nil {
-			return nil
-		}
-		return mathMin(limit, 1000)
-	}()
+	var limitResolved any
+	if limit == nil {
+		limitResolved = nil
+	} else {
+		limitResolved = mathMin(limit, 1000)
+	}
 	// the recent-klines endpoints ignore startTime and endTime and only ever return the
 	// latest candles, so a request bounded by since or until has to go through the history
 	// endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
@@ -2909,8 +2909,8 @@ func (this *Weex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if *this.SafeBool(market, "contract", false) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if market.Contract {
 
 		r1 := <-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params)
 		if r1.Err != nil {

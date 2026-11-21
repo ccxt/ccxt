@@ -252,12 +252,12 @@ func (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.ICoreExchange) {
 			var fullKey any = Add(Add(exchangeId, "_"), credential)
 			var credentialEnvName string = ToUpper(fullKey) // example: KRAKEN_APIKEY
 			var envVars any = GetEnvVars()
-			var credentialValue any = func() any {
-				if InOp(envVars, credentialEnvName) {
-					return GetValue(envVars, credentialEnvName)
-				}
-				return nil
-			}()
+			var credentialValue any
+			if InOp(envVars, credentialEnvName) {
+				credentialValue = GetValue(envVars, credentialEnvName)
+			} else {
+				credentialValue = nil
+			}
 			if !IsEqual(credentialValue, nil) && (credentialValue != "") {
 				SetExchangeProp(exchange, credential, credentialValue)
 			}
@@ -520,12 +520,12 @@ func (this *testMainClass) testSafeBody(ch chan ccxt.AsyncResult[any], methodNam
 							var isAuthError bool = (IsInstance(e, AuthenticationError))
 							var isNotSupported bool = (IsInstance(e, NotSupported))
 							var isOperationFailed bool = (IsInstance(e, OperationFailed)) // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-							var lastUrlMsg any = func() any {
-								if EvalTruthy(this.WsTests) {
-									return ""
-								}
-								return Add(Add(" (Last url: ", this.GetLastRequestUrl(exchange)), " )")
-							}()
+							var lastUrlMsg any
+							if EvalTruthy(this.WsTests) {
+								lastUrlMsg = ""
+							} else {
+								lastUrlMsg = Add(Add(" (Last url: ", this.GetLastRequestUrl(exchange)), " )")
+							}
 							if isOperationFailed {
 								// if last retry was gone with same `tempFailure` error, then let's eventually return false
 								if i == maxRetries-1 {
@@ -2265,12 +2265,12 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 			}
 			return newOutput
 		}() // we store undefined as nulls in the json file so we need to convert it back
-		var sanitizedStoredOutput any = func() any {
-			if EvalTruthy((IsNullValue(storedOutput))) {
-				return nil
-			}
-			return storedOutput
-		}()
+		var sanitizedStoredOutput any
+		if EvalTruthy((IsNullValue(storedOutput))) {
+			sanitizedStoredOutput = nil
+		} else {
+			sanitizedStoredOutput = storedOutput
+		}
 		// a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
 		// typed core hits constantly (its Num fields are real doubles, so an unset
 		// cost arrives as 0.0 rather than as a string). Test for undefined instead.
@@ -2533,12 +2533,12 @@ func (this *testMainClass) AssertStaticIsolatedPosition(exchange ccxt.ICoreExcha
 	if (!IsEqual(entryMargin, nil)) && (entryPrice != nil) && (liquidationPrice != nil) && (contracts != nil) && (contractSize != nil) && (maintenanceMargin != nil) {
 		if (IsGreaterThan(entryMargin, 0)) && (*entryPrice > 0) && (*liquidationPrice > 0) && (*contracts > 0) && (*contractSize > 0) && (*maintenanceMargin > 0) {
 			var symbol any = ccxt.DerefScalar(exchange.SafeString(entry, "symbol"))
-			var market any = func() any {
-				if !IsEqual(symbol, nil) {
-					return exchange.SafeDict(exchange.GetMarkets(), symbol)
-				}
-				return nil
-			}()
+			var market any
+			if !IsEqual(symbol, nil) {
+				market = exchange.SafeDict(exchange.GetMarkets(), symbol)
+			} else {
+				market = nil
+			}
 			var isInverse bool = (!IsEqual(market, nil)) && EvalTruthy(exchange.SafeBool(market, "inverse", false))
 			var priceDiff any = 0
 			if isInverse {
@@ -2559,12 +2559,12 @@ func (this *testMainClass) AssertStaticIsolatedPosition(exchange ccxt.ICoreExcha
 			var lossFromEntry any = Multiply(Multiply(priceDiff, contracts), contractSize)
 			var calculatedMm any = Subtract(entryMargin, lossFromEntry)
 			this.AssertStaticError(IsGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm)
-			var mmDiff any = func() any {
-				if IsGreaterThan(calculatedMm, maintenanceMargin) {
-					return (Subtract(calculatedMm, maintenanceMargin))
-				}
-				return (Subtract(maintenanceMargin, calculatedMm))
-			}()
+			var mmDiff any
+			if IsGreaterThan(calculatedMm, maintenanceMargin) {
+				mmDiff = (Subtract(calculatedMm, maintenanceMargin))
+			} else {
+				mmDiff = (Subtract(maintenanceMargin, calculatedMm))
+			}
 			var maxTolerance any = Multiply(entryMargin, 0.05)
 			this.AssertStaticError(IsLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm)
 		}
@@ -2675,12 +2675,12 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan ccxt.AsyncResult[an
 			// silently corrupt when a header literal contains a local/parameter name of sign ()
 			var storedHeaders any = exchange.SafeDict(data, "headers")
 			if !IsEqual(storedHeaders, nil) {
-				var sentHeaders any = func() any {
-					if !IsEqual(exchange.GetLast_request_headers(), nil) {
-						return exchange.GetLast_request_headers()
-					}
-					return map[string]any{}
-				}()
+				var sentHeaders any
+				if !IsEqual(exchange.GetLast_request_headers(), nil) {
+					sentHeaders = exchange.GetLast_request_headers()
+				} else {
+					sentHeaders = map[string]any{}
+				}
 				var storedHeaderKeys []string = ObjectKeys(storedHeaders)
 				for i := 0; i < len(storedHeaderKeys); i++ {
 					var headerKey string = storedHeaderKeys[i]
@@ -3003,18 +3003,18 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan ccxt.AsyncResult
 	defer ReturnPanicError(ch)
 	testName := GetArg(optionalArgs, 0, nil)
 	_ = testName
-	var globalOptions any = func() any {
-		if IsEqual(GetValue(exchangeData, "options"), nil) {
-			return map[string]any{}
-		}
-		return GetValue(exchangeData, "options")
-	}()
-	var methods any = func() any {
-		if IsEqual(GetValue(exchangeData, "methods"), nil) {
-			return map[string]any{}
-		}
-		return GetValue(exchangeData, "methods")
-	}()
+	var globalOptions any
+	if IsEqual(GetValue(exchangeData, "options"), nil) {
+		globalOptions = map[string]any{}
+	} else {
+		globalOptions = GetValue(exchangeData, "options")
+	}
+	var methods any
+	if IsEqual(GetValue(exchangeData, "methods"), nil) {
+		methods = map[string]any{}
+	} else {
+		methods = GetValue(exchangeData, "methods")
+	}
 	var methodsNames []string = ObjectKeys(methods)
 	for i := 0; i < len(methodsNames); i++ {
 		var method string = methodsNames[i]
@@ -4011,7 +4011,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}
 			}()
 			// try block:
-			var orders []any = []any{map[string]any{
+			var orders []map[string]any = []map[string]any{map[string]any{
 				"symbol": "BTC/USDT:USDT",
 				"type":   "limit",
 				"side":   "sell",
@@ -4056,7 +4056,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}
 			}()
 			// try block:
-			var linearConditionalOrders []any = []any{map[string]any{
+			var linearConditionalOrders []map[string]any = []map[string]any{map[string]any{
 				"symbol": "BTC/USDT:USDT",
 				"type":   "limit",
 				"side":   "buy",
@@ -4096,7 +4096,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}
 			}()
 			// try block:
-			var inverseConditionalOrders []any = []any{map[string]any{
+			var inverseConditionalOrders []map[string]any = []map[string]any{map[string]any{
 				"symbol": "BTC/USD:BTC",
 				"type":   "limit",
 				"side":   "buy",

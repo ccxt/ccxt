@@ -864,7 +864,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		"swap":  "PERP",
 		"stock": "RFQ",
 	}
-	var supportedTypes []any = []any{"SPOT", "PERP", "RFQ"}
+	var supportedTypes []string = []string{"SPOT", "PERP", "RFQ"}
 	var marketTypes []any = []any{}
 	for i := 0; i < len(requestedTypes); i++ {
 		var requestedType *string = this.SafeString(requestedTypes, i, "")
@@ -1094,7 +1094,10 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	var minPrice *float64 = this.SafeNumber(priceFilter, "minPrice")
 	var pricePrecision *float64 = this.SafeNumber(priceFilter, "tickSize")
 	var quantityFilter map[string]any = SafeMapTyped(filters, "quantity")
-	var maxQuantity any = DerefScalar(this.SafeNumber(quantityFilter, "maxQuantity"))
+	var maxQuantity any
+	if derefPtr := this.SafeNumber(quantityFilter, "maxQuantity"); derefPtr != nil {
+		maxQuantity = *derefPtr
+	}
 	var minQuantity *float64 = this.SafeNumber(quantityFilter, "minQuantity")
 	var amountPrecision *float64 = this.SafeNumber(quantityFilter, "stepSize")
 	var typeVar string
@@ -1246,7 +1249,7 @@ func (this *Backpack) HandleStockParams(methodName string, params any, optionalA
 		}
 		return nil
 	}()
-	if (market != nil) && EvalTruthy(stock) && !(*this.SafeBool(market, "stock", false)) {
+	if (market != nil) && (stockPtr != nil && *stockPtr) && !(*this.SafeBool(market, "stock", false)) {
 		panic(BadSymbol(this.Id + " " + methodName + "() requires a stock market"))
 	}
 	return []any{stock, query}
@@ -2168,12 +2171,12 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
 	}
 	var defaultLimit int = 100
-	var windowLimit any = func() any {
-		if limit == nil {
-			return defaultLimit
-		}
-		return mathMin(limit, 2000)
-	}()
+	var windowLimit any
+	if limit == nil {
+		windowLimit = defaultLimit
+	} else {
+		windowLimit = mathMin(limit, 2000)
+	}
 	var limitResolved any = nil
 	if limit != nil {
 		limitResolved = windowLimit
@@ -2195,12 +2198,12 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	}
 	request["endTime"] = this.ParseToInt(Divide(untilValue, 1000))
 	var price *string = this.SafeString(paramsUntil, "price")
-	var paramsOmitted any = func() any {
-		if price != nil {
-			return this.Omit(paramsUntil, "price")
-		}
-		return paramsUntil
-	}()
+	var paramsOmitted any
+	if price != nil {
+		paramsOmitted = this.Omit(paramsUntil, "price")
+	} else {
+		paramsOmitted = paramsUntil
+	}
 	if price != nil {
 		request["priceType"] = this.Capitalize(price)
 	}
@@ -2785,11 +2788,11 @@ func (this *Backpack) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.PublicGetApiV1Status(params)
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGetApiV1Status(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "message":null,
@@ -2806,7 +2809,7 @@ func (this *Backpack) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -3609,12 +3612,12 @@ func (this *Backpack) acceptRfqQuoteBody(ch chan AsyncResult[any], id string, qu
  * @param {boolean} [params.stock] selects tokenized stock spot execution for all orders, otherwise inferred per symbol
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Backpack) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Backpack) CreateOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3631,7 +3634,7 @@ func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	var ordersRequests []any = []any{}
 	var stock *bool = this.SafeBool(selection, 0, false)
 	for i := 0; i < len(orders); i++ {
-		var rawOrder map[string]any = SafeMapTyped(orders, i)
+		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
@@ -4627,18 +4630,18 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var requestParams any = func() any {
-		if IsArray(params) {
-			return params
-		}
-		return this.Omit(params, []any{"stock", "defaultStock", "rfq", "callerMethodName"})
-	}()
-	var sortedParams any = func() any {
-		if IsArray(requestParams) {
-			return requestParams
-		}
-		return this.Keysort(requestParams)
-	}()
+	var requestParams any
+	if IsArray(params) {
+		requestParams = params
+	} else {
+		requestParams = this.Omit(params, []any{"stock", "defaultStock", "rfq", "callerMethodName"})
+	}
+	var sortedParams any
+	if IsArray(requestParams) {
+		sortedParams = requestParams
+	} else {
+		sortedParams = this.Keysort(requestParams)
+	}
 	var headersSigned map[string]any = map[string]any{}
 	var bodySigned *string = nil
 	if apiName == "private" {
@@ -5399,7 +5402,7 @@ func (this *Backpack) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.CreateOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

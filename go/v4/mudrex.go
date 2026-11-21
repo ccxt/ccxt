@@ -442,8 +442,8 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var assetTicks map[string]any = SafeMapTyped(data, "asset_ticks")
+	var data, _ = response["data"].(map[string]any)
+	var assetTicks, _ = data["asset_ticks"].(map[string]any)
 	var ohlcvs []any = this.SafeListSlice(assetTicks, strings.ToLower(assetPair), []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
@@ -896,15 +896,15 @@ func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 		"is_symbol": 1,
 	}
 
-	r1 := <-this.PrivateGetFuturesAssetIdLeverage(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivateGetFuturesAssetIdLeverage(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
-	var data map[string]any = SafeMapTyped(response, "data")
+	var response map[string]any = responseReply.Value
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- AsyncResult[Leverage]{Value: LeverageFromMap(map[string]any{
-		"info":          response,
+		"info":          responseReply.Raw,
 		"symbol":        symbol,
 		"marginMode":    this.SafeStringLower(data, "margin_type"),
 		"longLeverage":  this.SafeNumber(data, "leverage"),
@@ -1969,7 +1969,8 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 			panic(r1.Err)
 		}
 		var response map[string]any = r1.Value
-		var data []any = SafeListTyped(response, "data")
+		var data []any
+		data, _ = response["data"].([]any)
 		var dataLength int = len(data)
 		for i := 0; i < len(data); i++ {
 			var entry any = data[i]

@@ -1117,12 +1117,12 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				bookside = orderbookItem.GetBids()
 			}
 			// price = 0 means that you have to remove the order from your book
-			var amount any = func() any {
-				if ccxt.Precise.StringGt(price, "0") {
-					return size
-				}
-				return "0"
-			}()
+			var amount any
+			if ccxt.Precise.StringGt(price, "0") {
+				amount = size
+			} else {
+				amount = "0"
+			}
 			var idString *string = this.SafeString(deltas, 0)
 			bookside.StoreArray([]any{this.ParseNumber(price), this.ParseNumber(amount), idString})
 		} else {
@@ -1761,7 +1761,7 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"trades":             nil,
 	}, marketResolved))
 }
-func (this *Bitfinex) HandleListMessage(client any, message any) {
+func (this *Bitfinex) HandleListMessage(client any, message []any) {
 	var channelId *string = this.SafeString(message, 0)
 	var heartbeat *string = this.SafeString(message, 1)
 	if heartbeat != nil && *heartbeat == "hb" {

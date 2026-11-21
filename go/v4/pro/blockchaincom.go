@@ -139,9 +139,9 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 	// in that window invisible to the consumer forever (same class as
 	// issue #26773)
 	this.Balance["info"] = message
-	var balances []any = ccxt.SafeListTyped(message, "balances")
+	var balances, _ = message["balances"].([]any)
 	for i := 0; i < len(balances); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(balances, i)
+		var entry, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -683,7 +683,7 @@ func (this *Blockchaincom) HandleOrders(client any, message map[string]any) {
 	} else if event != nil && *event == "rejected" {
 		panic(ccxt.ExchangeError(this.Id + " " + this.Json(message)))
 	} else if event != nil && *event == "snapshot" {
-		var orders []any = ccxt.SafeListTyped(message, "orders")
+		var orders, _ = message["orders"].([]any)
 		for i := 0; i < len(orders); i++ {
 			var order any = orders[i]
 			var parsedOrder any = this.ParseWsOrder(order)

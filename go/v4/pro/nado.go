@@ -1046,7 +1046,7 @@ func (this *Nado) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 		productId = &productIdValue
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchOrders", "subaccount", "default")
-	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
+	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "order_update",
 		"subaccount": sender,
@@ -1117,7 +1117,7 @@ func (this *Nado) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalArgs
 		productId = &productIdValue
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchOrders", "subaccount", "default")
-	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
+	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "order_update",
 		"subaccount": sender,
@@ -1187,7 +1187,7 @@ func (this *Nado) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 		productId = &productIdValue
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchMyTrades", "subaccount", "default")
-	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
+	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "fill",
 		"subaccount": sender,
@@ -1258,7 +1258,7 @@ func (this *Nado) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		productId = &productIdValue
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchMyTrades", "subaccount", "default")
-	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
+	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "fill",
 		"subaccount": sender,
@@ -1329,7 +1329,7 @@ func (this *Nado) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		}
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "watchPositions", "subaccount", "default")
-	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
+	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "position_change",
 		"subaccount": sender,
@@ -1400,7 +1400,7 @@ func (this *Nado) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optionalA
 		}
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "unWatchPositions", "subaccount", "default")
-	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
+	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var stream map[string]any = map[string]any{
 		"type":       "position_change",
 		"subaccount": sender,
@@ -1988,7 +1988,7 @@ func (this *Nado) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(params, "authenticate", "recvWindow", 5000)
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(paramsRecvWindow, "authenticate", "subaccount", "default")
 	var id int64 = this.RequestId()
-	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
+	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var expiration any = this.Sum(this.Milliseconds(), recvWindow)
 	var tx map[string]any = map[string]any{
 		"sender":     sender,
@@ -2088,12 +2088,12 @@ func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamT
 		if !clientSubscription {
 			var market any = ccxt.GetValue(markets, i)
 			var id int64 = this.RequestId()
-			var requestParams any = func() any {
-				if subscriptionParams == nil {
-					return params
-				}
-				return ccxt.GetValue(subscriptionParams, i)
-			}()
+			var requestParams any
+			if subscriptionParams == nil {
+				requestParams = params
+			} else {
+				requestParams = ccxt.GetValue(subscriptionParams, i)
+			}
 			var request map[string]any = this.CreatePublicSubscriptionRequest("subscribe", streamType, market, id, requestParams)
 			var subscribeHash string = "subscribe:" + this.Json(request["stream"])
 			var streamSubscription bool = client.(ccxt.ClientInterface).SubscriptionSafe(subscribeHash) != nil
@@ -2178,12 +2178,12 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool], stre
 		var messageHash *string = this.SafeString(messageHashes, i, "")
 		var id int64 = this.RequestId()
 		var unsubscribeHash string = "unsubscribe:" + *messageHash
-		var requestParams any = func() any {
-			if subscriptionParams == nil {
-				return params
-			}
-			return ccxt.GetValue(subscriptionParams, i)
-		}()
+		var requestParams any
+		if subscriptionParams == nil {
+			requestParams = params
+		} else {
+			requestParams = ccxt.GetValue(subscriptionParams, i)
+		}
 		var request map[string]any = this.CreatePublicSubscriptionRequest("unsubscribe", streamType, ccxt.GetValue(markets, i), id, requestParams)
 		var subscription map[string]any = map[string]any{
 			"id":          id,

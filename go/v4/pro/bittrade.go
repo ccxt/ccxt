@@ -243,7 +243,7 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) map[strin
 	//     }
 	//
 	var tick, _ = message["tick"].(map[string]any)
-	var data []any = ccxt.SafeListTyped(tick, "data")
+	var data, _ = tick["data"].([]any)
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message

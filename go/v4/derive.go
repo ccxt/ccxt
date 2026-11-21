@@ -1271,12 +1271,12 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		linear = true
 		inverse = false
 	}
-	var contractSize any = func() any {
-		if spot {
-			return nil
-		}
-		return 1
-	}()
+	var contractSize any
+	if spot {
+		contractSize = nil
+	} else {
+		contractSize = 1
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1851,12 +1851,12 @@ func (this *Derive) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[strin
 	}
 	var parsed []any = this.ParseSettlements(settlements, market)
 	var sorted []any = this.SortBy(parsed, "timestamp")
-	var symbolResolved any = func() any {
-		if market != nil {
-			return market["symbol"]
-		}
-		return nil
-	}()
+	var symbolResolved any
+	if market != nil {
+		symbolResolved = market["symbol"]
+	} else {
+		symbolResolved = nil
+	}
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil
@@ -2833,7 +2833,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//         }
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var rawOrder map[string]any = this.SafeDictMap(result, "raw_data")
 	if rawOrder == nil {
 		rawOrder = this.SafeDictMap(result, "order", map[string]any{})
@@ -3543,8 +3543,12 @@ func (this *Derive) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var orders []any = this.SafeListSlice(data, "orders", []any{})
+	var data, _ = response["result"].(map[string]any)
+	var orders []any
+	orders, _ = data["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	var parsedOrders []any = this.ParseOrders(orders, market)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit))}
@@ -4682,7 +4686,8 @@ func (this *Derive) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	//         ]
 	//     }
 	//
-	var result []any = SafeListTyped(response, "result")
+	var result []any
+	result, _ = response["result"].([]any)
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result))}
 	return nil

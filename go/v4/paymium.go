@@ -709,14 +709,14 @@ func (this *Paymium) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["price"] = price
 	}
 
-	r1 := <-this.PrivatePostUserOrders(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.PrivatePostUserOrders(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
-		"info": response,
+		"info": responseReply.Raw,
 		"id":   this.SafeString(response, "uuid"),
 	}, market)}
 	return nil
