@@ -6395,6 +6395,7 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
 // a whole-statement numeric literal write takes the printed literal's own box (`1` Integer,
 // `1L` Long, `1.5` Double); never inside a ternary, whose other arm may print an `(Object)` cast
 function dataflowPlainWriteType (printer, node, context) {
+    const h = h27j02IntProducerWrite (printer, node); if (h !== undefined) return h;
     return (node?.kind === ts.SyntaxKind.NumericLiteral) ? literalTypeOfNumericLiteral (printer, node) : (dataflowLiteralArmsType (printer, node) ?? dataflowValueType (printer, node, context));
 }
 
@@ -23059,6 +23060,7 @@ function r87j3SumCounter (printer, declaration) {
     if (selfSteps > 0 && !mapValueRead) {
         nativeUse = true;
     }
+    if (!nativeUse && sumWrites > 0 && h27j02NativeSelfSums (printer, declaration)) nativeUse = true;
     if ((sumWrites === 0 && !r87j3SumWrite (printer, declaration, declaration.initializer)) || !nativeUse) {
         return false;
     }
@@ -29003,3 +29005,37 @@ function h27j01PushIsMap (printer, value) {
 }
 
 // ===== end h27-J01
+
+// ===== h27-J02
+// a base `this.precisionFromString (..)` write: hand-written `int`, autoboxed to a non-null Integer
+function h27j02IntProducerWrite (printer, node) {
+    return (node !== undefined && ts.isCallExpression (node) && isThisCall (node) && node.expression.name.text === 'precisionFromString'
+        && javaBaseProducerType (printer, node) === 'Integer') ? 'Integer' : undefined;
+}
+
+// every non-literal write is `x = this.sum (x, <proven non-null long>)`: printed as the native long add
+function h27j02NativeSelfSums (printer, declaration) {
+    const checker = printer.getChecker ();
+    let seen = 0;
+    for (const n of identifierIndex (enclosingFunction (declaration)).get (declaration.name.text) ?? []) {
+        const parent = n.parent;
+        if (n === declaration.name || !ts.isBinaryExpression (parent) || parent.left !== n || parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+            continue;
+        }
+        if (r87j3IntLiteral (parent.right)) {
+            continue;
+        }
+        const call = r87j3BaseSum (printer, parent.right);
+        if (call === undefined) {
+            return false;
+        }
+        const self = call.arguments.filter ((a) => ts.isIdentifier (unwrapParens (a)) && checker.getSymbolAtLocation (unwrapParens (a))?.valueDeclaration?.resolve () === declaration);
+        const other = call.arguments.find ((a) => !self.includes (a));
+        if (self.length !== 1 || other === undefined || r90j3LongOperand (printer, other) === undefined) {
+            return false;
+        }
+        seen++;
+    }
+    return seen > 0;
+}
+// ===== end h27-J02
