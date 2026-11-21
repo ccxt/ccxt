@@ -2,7 +2,7 @@
 
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
-import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
+import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired, BadRequest } from './errors.js';
 import type { Str, Strings, Num, Int, Bool, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, PredictionOutcomeHandle, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
@@ -91,7 +91,18 @@ export default class PredictionExchange extends BaseExchange {
         if (singleQuery !== undefined) {
             return [ singleQuery ];
         }
-        return this.safeList (params, 'queries', []);
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        const rawQueries: any[] = this.toArray (this.safeList (params, 'queries', []));
+        const rawQueriesLength = rawQueries.length;
+        const queries: string[] = [];
+        for (let i = 0; i < rawQueriesLength; i++) {
+            const query = this.safeString (rawQueries, i);
+            if (query === undefined) {
+                throw new BadRequest (this.id + ' params.queries must be a list of strings');
+            }
+            queries.push (query);
+        }
+        return queries;
     }
 
     requireEventQuery (params: Dict = {}) {

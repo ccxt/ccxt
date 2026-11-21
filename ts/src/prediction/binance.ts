@@ -154,7 +154,7 @@ export default class binance extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        const queries = this.parseSearchQueries (params) as any[];
+        const queries = this.parseSearchQueries (params);
         const queriesLength = queries.length;
         if (queriesLength > 0) {
             const eventParams = this.omit (params, [ 'limit' ]);

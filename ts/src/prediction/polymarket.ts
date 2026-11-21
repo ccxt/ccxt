@@ -354,7 +354,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        const queries = this.parseSearchQueries (params) as any[];
+        const queries = this.parseSearchQueries (params);
         const rest = this.omit (params, [ 'query', 'queries' ]);
         const queriesLength = queries.length;
         let rawEvents: Dict[] = [];
