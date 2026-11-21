@@ -2875,7 +2875,10 @@ export default class binance extends binanceRest {
             if (isSpot) {
                 tickerFallbackType = 'spot';
             }
-            const tickerMarketType = (tickerMarketById !== undefined) ? this.safeValue (tickerMarketById, 'type') : tickerFallbackType;
+            let tickerMarketType: Str = tickerFallbackType;
+            if (tickerMarketById !== undefined) {
+                tickerMarketType = this.safeString (tickerMarketById, 'type');
+            }
             const parsedTicker = this.parseWsTicker (ticker, tickerMarketType);
             const symbol = parsedTicker['symbol'];
             if (symbol !== undefined) {

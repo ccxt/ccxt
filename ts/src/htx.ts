@@ -5681,8 +5681,8 @@ export default class htx extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const [ currentMarginMode ] = this.handleMarginModeAndParams ('createOrders', orderParams);
             if (currentMarginMode !== undefined) {

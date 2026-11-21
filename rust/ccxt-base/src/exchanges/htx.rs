@@ -1979,12 +1979,13 @@ impl crate::exchange_generated::ExchangeBase for Htx {
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cost_to_precision" => crate::Value::from(self.cost_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
-                "create_contract_order_request" => Value::Dict(self.create_contract_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_contract_order_request" => Value::Dict(self.create_contract_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "create_spot_order_request" => Value::Dict(self.create_spot_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "create_spot_order_request" => Value::Dict(self.create_spot_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64),
+                    &args[5.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "create_trailing_percent_order" => crate::types::IntoRaw::into_raw(self.create_trailing_percent_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).and_then(crate::Value::as_f64), args.get(7).cloned().unwrap_or_default()).await),
                 "fetch_account_id_by_type" => self.fetch_account_id_by_type(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -8872,9 +8873,8 @@ impl Htx {
  * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
  * @returns {object} request to be sent to the exchange
  */
-    pub async fn create_spot_order_request(&mut self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
-        let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
+    pub async fn create_spot_order_request(&mut self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -8965,7 +8965,7 @@ impl Htx {
             if (cost.is_some()) {
                 quoteAmount = self.amount_to_precision(symbol, cost);
             }  else if (createMarketBuyOrderRequiresPrice == Some(true)) {
-                if (price == Value::Null) {
+                if (price.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                 }  else {
                     // despite that cost = amount * price is in quote currency and should have quote precision
@@ -8974,20 +8974,20 @@ impl Htx {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    let amountString: Option<String> = self.number_to_string(&amount);
-                    let priceString: Option<String> = self.number_to_string(&price);
+                    let amountString: Option<String> = self.number_to_string(Value::from(amount));
+                    let priceString: Option<String> = self.number_to_string(Value::from(price));
                     quoteAmount = self.amount_to_precision(symbol, crate::precise::Precise::stringMul(&amountString, &priceString));
                 }
             }  else {
-                quoteAmount = self.amount_to_precision(symbol, &amount);
+                quoteAmount = self.amount_to_precision(symbol, Value::from(amount));
             }
             request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol, amount)));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }
         let limitOrderTypes: crate::value::Dict = self.safe_dict_k_t(&options, "limitOrderTypes");
         if (matches!(orderType.as_deref(), Some(__k) if limitOrderTypes.contains_key(__k))) {
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(paramsCost, &["triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"], &[]);
         return self.extend_t(Value::Map(request), &[&paramsOmitted]);
@@ -8995,7 +8995,7 @@ impl Htx {
     Default::default()
 }
 
-    pub fn create_contract_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
+    pub fn create_contract_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -9035,7 +9035,7 @@ impl Htx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contract_code".to_string(), Value::from((market).id.as_deref()));
-                m.insert("volume".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
+                m.insert("volume".to_string(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
             m
         });
         let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(type_var == Some("post_only")), &[params]);
@@ -9278,10 +9278,10 @@ impl Htx {
             if isTrailingPercentOrder {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder() does not support trailing orders for spot markets")));
             }
-            let spotRequest: crate::value::Dict = self.create_spot_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]).await;
+            let spotRequest: crate::value::Dict = self.create_spot_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]).await;
             response = self.spot_private_post_v1_order_orders_place(&[&Value::Dict(spotRequest)]).await;
         }  else {
-            let contractRequest: crate::value::Dict = self.create_contract_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]);
+            let contractRequest: crate::value::Dict = self.create_contract_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), &[&Value::from(price), &params]);
             if ((market).linear == Some(true)) {
                 if isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder {
                     response = self.contract_private_post_v5_algo_order(&[&Value::from(&contractRequest)]).await;
@@ -9499,8 +9499,8 @@ impl Htx {
             }
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
-            let amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
-            let price: Value = self.safe_value_k(&rawOrder, "price", &[]);
+            let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
+            let price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let marginResult = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[&Value::from(&orderParams)]);
             let currentMarginMode: Option<String> = marginResult.0.as_str().map(str::to_owned);
@@ -9516,9 +9516,9 @@ impl Htx {
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut orderRequest: Value = Value::Null;
             if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
-                orderRequest = Value::Dict(self.create_spot_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount.clone(), &[&price, &Value::from(&orderParams)]).await);
+                orderRequest = Value::Dict(self.create_spot_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, price, &[&Value::from(&orderParams)]).await);
             }  else {
-                orderRequest = Value::Dict(self.create_contract_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[&price, &Value::Dict(orderParams)]));
+                orderRequest = Value::Dict(self.create_contract_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[&Value::from(price), &Value::Dict(orderParams)]));
             }
             orderRequest = self.omit(orderRequest, Value::Str("marginMode".into()), &[]);
             std::sync::Arc::make_mut(&mut ordersRequests).push(orderRequest);
@@ -11122,14 +11122,14 @@ impl Htx {
             }
             }
         }  else {
-            let cursor: Value = self.safe_value_k(&data, "current_page", &[]);
+            let cursor: Option<i64> = self.safe_integer_k(&data, "current_page", &[]).as_i64();
             let result: crate::value::List = self.safe_list_k_t(&data, "data");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_22: bool = true;
                 while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (result.len() as i64) } {
                 let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&result, Value::Int(i));
-                if let Some(__rdm) = &mut entry { std::sync::Arc::make_mut(__rdm).insert("current_page".to_string(), Value::from(cursor.clone())); }
+                if let Some(__rdm) = &mut entry { std::sync::Arc::make_mut(__rdm).insert("current_page".to_string(), Value::from(cursor)); }
                 let marketId: Option<String> = self.safe_string_k_opt(&entry, "contract_code", &[]);
                 let symbolInner: Value = self.safe_symbol(marketId.as_deref(), None, &[]);
                 let timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_time", &[]).as_i64();
