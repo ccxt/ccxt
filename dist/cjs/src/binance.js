@@ -14756,11 +14756,20 @@ class binance extends binance$1["default"] {
         else {
             request['symbol'] = market['id'];
         }
-        let response = undefined;
         if (this.safeBool(market, 'option', false)) {
-            response = await this.eapiPublicGetOpenInterest(this.extend(request, params));
+            const optionResponse = await this.eapiPublicGetOpenInterest(this.extend(request, params));
+            const symbolValue = market['symbol'];
+            const result = this.parseOpenInterestsHistory(optionResponse, market);
+            for (let i = 0; i < result.length; i++) {
+                const item = this.safeDict(result, i);
+                if (this.safeString(item, 'symbol') === symbolValue) {
+                    return item;
+                }
+            }
+            throw new errors.NullResponse(this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
         }
-        else if (this.safeBool(market, 'inverse', false)) {
+        let response = undefined;
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPublicGetOpenInterest(this.extend(request, params));
         }
         else {
@@ -14796,20 +14805,7 @@ class binance extends binance$1["default"] {
         //         }
         //     ]
         //
-        if (this.safeBool(market, 'option', false)) {
-            const symbolValue = market['symbol'];
-            const result = this.parseOpenInterestsHistory(response, market);
-            for (let i = 0; i < result.length; i++) {
-                const item = this.safeDict(result, i);
-                if (this.safeString(item, 'symbol') === symbolValue) {
-                    return item;
-                }
-            }
-            throw new errors.NullResponse(this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
-        }
-        else {
-            return this.parseOpenInterest(response, market);
-        }
+        return this.parseOpenInterest(response, market);
     }
     parseOpenInterest(interest, market = undefined) {
         const timestamp = this.safeInteger2(interest, 'timestamp', 'time');

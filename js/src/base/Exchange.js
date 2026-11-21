@@ -2795,6 +2795,19 @@ export class BaseExchange {
         }
         return defaultValue;
     }
+    safeStringList(dictionaryOrList, keys) {
+        /**
+         * @ignore
+         * @method
+         * @description a value that is a string or a list of strings by API contract, read as a list (a string becomes a one-element list)
+         * @returns {string[]|undefined}
+         */
+        const str = this.safeStringN(dictionaryOrList, keys);
+        if (str !== undefined) {
+            return [str];
+        }
+        return this.safeListN(dictionaryOrList, keys);
+    }
     safeList(dictionaryOrList, key, defaultValue = undefined) {
         /**
          * @ignore
@@ -8299,19 +8312,25 @@ export class BaseExchange {
         //
         // the value of greeks is either a dict or a list
         //
-        const results = [];
         if (Array.isArray(greeks)) {
-            for (let i = 0; i < greeks.length; i++) {
-                results.push(this.extend(this.parseGreeks(greeks[i]), params));
-            }
+            return this.parseAllGreeksList(greeks, symbols, params);
         }
-        else {
-            const marketIds = Object.keys(greeks);
-            for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
-                const market = this.safeMarket(marketId);
-                results.push(this.extend(this.parseGreeks(greeks[marketId], market), params));
-            }
+        return this.parseAllGreeksDict(greeks, symbols, params);
+    }
+    parseAllGreeksList(greeks, symbols = undefined, params = {}) {
+        const results = [];
+        for (let i = 0; i < greeks.length; i++) {
+            results.push(this.extend(this.parseGreeks(greeks[i]), params));
+        }
+        return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
+    }
+    parseAllGreeksDict(greeks, symbols = undefined, params = {}) {
+        const results = [];
+        const marketIds = Object.keys(greeks);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket(marketId);
+            results.push(this.extend(this.parseGreeks(greeks[marketId], market), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }

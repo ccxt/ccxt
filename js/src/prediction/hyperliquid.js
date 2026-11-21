@@ -1391,15 +1391,14 @@ export default class hyperliquid extends Exchange {
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const assetId = this.safeInteger(outcomeInfo, 'assetId');
         const nonce = this.incrementingNonce();
-        const clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
+        const clientOrderIds = this.safeStringList(params, ['clientOrderId', 'client_id']);
         const paramsOmitted = this.omit(params, ['clientOrderId', 'client_id']);
         const cancelReq = [];
         const cancelAction = { 'type': 'cancel', 'cancels': [] };
-        if (clientOrderId !== undefined) {
-            const cloids = Array.isArray(clientOrderId) ? clientOrderId : [clientOrderId];
+        if (clientOrderIds !== undefined) {
             cancelAction['type'] = 'cancelByCloid';
-            for (let i = 0; i < cloids.length; i++) {
-                cancelReq.push({ 'asset': assetId, 'cloid': cloids[i] });
+            for (let i = 0; i < clientOrderIds.length; i++) {
+                cancelReq.push({ 'asset': assetId, 'cloid': clientOrderIds[i] });
             }
         }
         else {
@@ -1426,13 +1425,8 @@ export default class hyperliquid extends Exchange {
         const statuses = this.safeList(data, 'statuses', []);
         const outcomeSymbol = this.safeString(outcomeObj, 'outcome', outcome);
         let requestIds = ids;
-        if (clientOrderId !== undefined) {
-            if (Array.isArray(clientOrderId)) {
-                requestIds = clientOrderId;
-            }
-            else {
-                requestIds = [clientOrderId];
-            }
+        if (clientOrderIds !== undefined) {
+            requestIds = clientOrderIds;
         }
         const orders = [];
         for (let i = 0; i < statuses.length; i++) {
@@ -1448,7 +1442,7 @@ export default class hyperliquid extends Exchange {
             const requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
             const order = {
                 'id': requestId,
-                'clientOrderId': (clientOrderId !== undefined) ? requestId : undefined,
+                'clientOrderId': (clientOrderIds !== undefined) ? requestId : undefined,
                 'info': status,
                 'status': 'canceled',
                 'outcome': outcomeSymbol,

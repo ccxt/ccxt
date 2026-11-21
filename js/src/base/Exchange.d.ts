@@ -572,6 +572,7 @@ export declare class BaseExchange {
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: any[]): any[] | undefined;
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
+    safeStringList(dictionaryOrList: any, keys: NullableIndexType[]): Strings;
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue?: any[]): any[] | undefined;
     storeByKey(dict: Dict, key: NullableIndexType, value: any): void;
@@ -1026,6 +1027,8 @@ export declare class BaseExchange {
     parseLiquidations(liquidations: Dict[], market?: Market, since?: Int, limit?: Int): Liquidation[];
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     parseAllGreeks(greeks: any, symbols?: Strings, params?: Dict): AllGreeks;
+    parseAllGreeksList(greeks: Dict[], symbols?: Strings, params?: Dict): AllGreeks;
+    parseAllGreeksDict(greeks: Dict, symbols?: Strings, params?: Dict): AllGreeks;
     parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
     parseOptionChain(response: Dict[], currencyKey?: Str, symbolKey?: Str): OptionChain;
     parseMarginModes(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): MarginModes;

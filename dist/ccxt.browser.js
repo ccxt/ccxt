@@ -179236,6 +179236,20 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         }
         return defaultValue;
     }
+    safeStringList(dictionaryOrList, keys) {
+        /**
+         * @ignore
+         * @method
+         * @description a value that is a string or a list of strings by API contract, read as a list (a string becomes a one-element list)
+         * @returns {string[]|undefined}
+         */ const str = this.safeStringN(dictionaryOrList, keys);
+        if (str !== undefined) {
+            return [
+                str
+            ];
+        }
+        return this.safeListN(dictionaryOrList, keys);
+    }
     safeList(dictionaryOrList, key, defaultValue = undefined) {
         /**
          * @ignore
@@ -184832,18 +184846,25 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         //
         // the value of greeks is either a dict or a list
         //
-        const results = [];
         if (Array.isArray(greeks)) {
-            for(let i = 0; i < greeks.length; i++){
-                results.push(this.extend(this.parseGreeks(greeks[i]), params));
-            }
-        } else {
-            const marketIds = Object.keys(greeks);
-            for(let i = 0; i < marketIds.length; i++){
-                const marketId = marketIds[i];
-                const market = this.safeMarket(marketId);
-                results.push(this.extend(this.parseGreeks(greeks[marketId], market), params));
-            }
+            return this.parseAllGreeksList(greeks, symbols, params);
+        }
+        return this.parseAllGreeksDict(greeks, symbols, params);
+    }
+    parseAllGreeksList(greeks, symbols = undefined, params = {}) {
+        const results = [];
+        for(let i = 0; i < greeks.length; i++){
+            results.push(this.extend(this.parseGreeks(greeks[i]), params));
+        }
+        return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
+    }
+    parseAllGreeksDict(greeks, symbols = undefined, params = {}) {
+        const results = [];
+        const marketIds = Object.keys(greeks);
+        for(let i = 0; i < marketIds.length; i++){
+            const marketId = marketIds[i];
+            const market = this.safeMarket(marketId);
+            results.push(this.extend(this.parseGreeks(greeks[marketId], market), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
@@ -216814,10 +216835,20 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         } else {
             request['symbol'] = market['id'];
         }
-        let response = undefined;
         if (this.safeBool(market, 'option', false)) {
-            response = await this.eapiPublicGetOpenInterest(this.extend(request, params));
-        } else if (this.safeBool(market, 'inverse', false)) {
+            const optionResponse = await this.eapiPublicGetOpenInterest(this.extend(request, params));
+            const symbolValue = market['symbol'];
+            const result = this.parseOpenInterestsHistory(optionResponse, market);
+            for(let i = 0; i < result.length; i++){
+                const item = this.safeDict(result, i);
+                if (this.safeString(item, 'symbol') === symbolValue) {
+                    return item;
+                }
+            }
+            throw new _base_errors_js__rspack_import_2.NullResponse(this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
+        }
+        let response = undefined;
+        if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiPublicGetOpenInterest(this.extend(request, params));
         } else {
             response = await this.fapiPublicGetOpenInterest(this.extend(request, params));
@@ -216852,19 +216883,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     ]
         //
-        if (this.safeBool(market, 'option', false)) {
-            const symbolValue = market['symbol'];
-            const result = this.parseOpenInterestsHistory(response, market);
-            for(let i = 0; i < result.length; i++){
-                const item = this.safeDict(result, i);
-                if (this.safeString(item, 'symbol') === symbolValue) {
-                    return item;
-                }
-            }
-            throw new _base_errors_js__rspack_import_2.NullResponse(this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
-        } else {
-            return this.parseOpenInterest(response, market);
-        }
+        return this.parseOpenInterest(response, market);
     }
     parseOpenInterest(interest, market = undefined) {
         const timestamp = this.safeInteger2(interest, 'timestamp', 'time');
@@ -322003,7 +322022,7 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
         }
         request['newOrderRespType'] = newOrderRespType;
         const paramsRequest = this.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        let response = {};
+        let response = undefined;
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));
         } else {
@@ -378197,7 +378216,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrder() supports cost parameter for spot market buy orders only');
         }
         const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
-        let response = {};
+        let response = undefined;
         const test = this.safeBool(params, 'test', false);
         if (test) {
             response = await this.privatePostApiV1SpotOrderTest(request);
@@ -395932,18 +395951,16 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         ]);
         let response = undefined;
         if (marketType === 'spot') {
-            let clientOrderIds = this.safeValue2(query, 'client-order-id', 'clientOrderId');
-            clientOrderIds = this.safeValue2(query, 'client-order-ids', 'clientOrderIds', clientOrderIds);
+            const clientOrderIds = this.safeStringList(query, [
+                'client-order-ids',
+                'clientOrderIds',
+                'client-order-id',
+                'clientOrderId'
+            ]);
             if (clientOrderIds === undefined) {
                 request['order-ids'] = ids;
             } else {
-                if (typeof clientOrderIds === 'string') {
-                    request['client-order-ids'] = [
-                        clientOrderIds
-                    ];
-                } else {
-                    request['client-order-ids'] = clientOrderIds;
-                }
+                request['client-order-ids'] = clientOrderIds;
                 query = this.omit(query, [
                     'client-order-id',
                     'client-order-ids',
@@ -402717,7 +402734,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
          * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, (default is false)
          * @returns {object} the raw request object to be sent to the exchange
          */ const market = this.market(symbol);
-        let clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
+        const clientOrderIds = this.safeStringList(params, [
+            'clientOrderId',
+            'client_id'
+        ]);
         const fast = this.safeBool(params, 'fast', false);
         let params2 = this.omit(params, [
             'clientOrderId',
@@ -402734,17 +402754,12 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             'cancels': []
         };
         const baseId = this.parseToNumeric(market['baseId']);
-        if (clientOrderId !== undefined) {
-            if (!Array.isArray(clientOrderId)) {
-                clientOrderId = [
-                    clientOrderId
-                ];
-            }
+        if (clientOrderIds !== undefined) {
             cancelAction['type'] = 'cancelByCloid';
-            for(let i = 0; i < clientOrderId.length; i++){
+            for(let i = 0; i < clientOrderIds.length; i++){
                 cancelReq.push({
                     'asset': baseId,
-                    'cloid': this.safeString(clientOrderId, i)
+                    'cloid': this.safeString(clientOrderIds, i)
                 });
             }
         } else {
@@ -413942,7 +413957,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         //         }
         //     }
         //
-        const sendStatus = this.safeValue(response, 'sendStatus');
+        const sendStatus = this.safeDict(response, 'sendStatus');
         const status = this.safeString(sendStatus, 'status');
         this.verifyOrderActionSuccess(status, 'createOrder', [
             'filled'
@@ -500498,7 +500513,10 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const assetId = this.safeInteger(outcomeInfo, 'assetId');
         const nonce = this.incrementingNonce();
-        const clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
+        const clientOrderIds = this.safeStringList(params, [
+            'clientOrderId',
+            'client_id'
+        ]);
         const paramsOmitted = this.omit(params, [
             'clientOrderId',
             'client_id'
@@ -500508,15 +500526,12 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             'type': 'cancel',
             'cancels': []
         };
-        if (clientOrderId !== undefined) {
-            const cloids = Array.isArray(clientOrderId) ? clientOrderId : [
-                clientOrderId
-            ];
+        if (clientOrderIds !== undefined) {
             cancelAction['type'] = 'cancelByCloid';
-            for(let i = 0; i < cloids.length; i++){
+            for(let i = 0; i < clientOrderIds.length; i++){
                 cancelReq.push({
                     'asset': assetId,
-                    'cloid': cloids[i]
+                    'cloid': clientOrderIds[i]
                 });
             }
         } else {
@@ -500546,14 +500561,8 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         const statuses = this.safeList(data, 'statuses', []);
         const outcomeSymbol = this.safeString(outcomeObj, 'outcome', outcome);
         let requestIds = ids;
-        if (clientOrderId !== undefined) {
-            if (Array.isArray(clientOrderId)) {
-                requestIds = clientOrderId;
-            } else {
-                requestIds = [
-                    clientOrderId
-                ];
-            }
+        if (clientOrderIds !== undefined) {
+            requestIds = clientOrderIds;
         }
         const orders = [];
         for(let i = 0; i < statuses.length; i++){
@@ -500569,7 +500578,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             const requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
             const order = {
                 'id': requestId,
-                'clientOrderId': clientOrderId !== undefined ? requestId : undefined,
+                'clientOrderId': clientOrderIds !== undefined ? requestId : undefined,
                 'info': status,
                 'status': 'canceled',
                 'outcome': outcomeSymbol,
@@ -661145,8 +661154,10 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const isContractResponse = subType !== undefined || type === 'swap' || type === 'future';
-        const order = isContractResponse ? response : this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
+        if (isContractResponse) {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, 'result', {}), market);
     }
     /**
      * @method
@@ -663219,8 +663230,10 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         }
-        const result = this.safeBool(market, 'swap', false) ? response : this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        if (this.safeBool(market, 'swap', false)) {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, 'result', {}), market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //

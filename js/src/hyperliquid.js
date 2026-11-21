@@ -2631,7 +2631,7 @@ export default class hyperliquid extends Exchange {
          * @returns {object} the raw request object to be sent to the exchange
          */
         const market = this.market(symbol);
-        let clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
+        const clientOrderIds = this.safeStringList(params, ['clientOrderId', 'client_id']);
         const fast = this.safeBool(params, 'fast', false);
         let params2 = this.omit(params, ['clientOrderId', 'client_id', 'fast']);
         const nonce = this.incrementingNonce();
@@ -2645,15 +2645,12 @@ export default class hyperliquid extends Exchange {
             'cancels': [],
         };
         const baseId = this.parseToNumeric(market['baseId']);
-        if (clientOrderId !== undefined) {
-            if (!Array.isArray(clientOrderId)) {
-                clientOrderId = [clientOrderId];
-            }
+        if (clientOrderIds !== undefined) {
             cancelAction['type'] = 'cancelByCloid';
-            for (let i = 0; i < clientOrderId.length; i++) {
+            for (let i = 0; i < clientOrderIds.length; i++) {
                 cancelReq.push({
                     'asset': baseId,
-                    'cloid': this.safeString(clientOrderId, i),
+                    'cloid': this.safeString(clientOrderIds, i),
                 });
             }
         }

@@ -2569,7 +2569,7 @@ class hashkey extends hashkey$1["default"] {
             throw new errors.NotSupported(this.id + ' createOrder() supports cost parameter for spot market buy orders only');
         }
         const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
-        let response = {};
+        let response = undefined;
         const test = this.safeBool(params, 'test', false);
         if (test) {
             response = await this.privatePostApiV1SpotOrderTest(request);
