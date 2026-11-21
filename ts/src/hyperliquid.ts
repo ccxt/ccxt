@@ -5083,7 +5083,8 @@ export default class hyperliquid extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo (this.extend (request, paramsOmitted));
+        const fundingResponse = await this.publicPostInfo (this.extend (request, paramsOmitted));
+        const response: List = this.infoList (fundingResponse);
         //
         // [
         //     {

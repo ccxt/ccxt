@@ -12638,7 +12638,7 @@ export default class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchFundingHistory', 'defaultType', 'swap');
         const type = this.safeString (paramsUntil, 'type', defaultType);
         const paramsOmitted: Dict = this.omit (paramsUntil, 'type');
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (this.isLinear (type, subType)) {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmIncome (this.extend (requestUntil, paramsOmitted));

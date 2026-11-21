@@ -7417,6 +7417,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'editOrdersRequest': { 0: '[]map[string]any' },
     // PredictionExchange event filters (no override): the one caller hands the typed `[]any` event list
     'filterEventsByStatus': { 0: '[]any' }, 'filterEventsByTags': { 0: '[]any' }, 'filterEventsBySearchIn': { 0: '[]any' },
+    // base List param; every ts/src caller hands a `[]any` row list (typed receive, safeList or row-list producer)
+    'parseIncomes': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
