@@ -7331,19 +7331,22 @@ function goTernaryAnyTyped (content: string): string {
         }
         const ta = goTernaryAnyArmType (a, fn);
         const tb = goTernaryAnyArmType (b, fn);
-        if ((ta === undefined) || (tb === undefined)) { return m; }
+        // no common arm type: keep the `any` box and fill it per branch (each store boxes what the literal returned)
+        const [ a0, b0 ] = [ a, b ];
+        const box = () => ((vName !== undefined) && !/func\(|\}\(\)/.test (cond + a0 + b0)) ? ind + 'var ' + lhs + ' any\n' + ind + 'if ' + cond + ' {\n' + body + lhs + ' = ' + a0 + '\n' + ind + '} else {\n' + body + lhs + ' = ' + b0 + '\n' + ind + '}' : m;
+        if ((ta === undefined) || (tb === undefined)) { return box (); }
         let t: string | undefined = undefined;
         if ((ta === tb) && (ta !== 'nil') && (ta !== 'intlit')) { t = ta; } else if ((ta === 'intlit') && (tb === 'int64')) { a = 'int64(' + a + ')'; t = tb; } else if ((tb === 'intlit') && (ta === 'int64')) { b = 'int64(' + b + ')'; t = ta; }
         const od = (v: string) => v.replace (/^(this|exchange)\.Omit\(/, '$1.OmitDict(');
         if (ta === 'omitdict') { a = od (a); }
         if (tb === 'omitdict') { b = od (b); }
         if (((ta === 'omitdict') || (tb === 'omitdict')) && [ ta, tb ].every ((x) => (x === 'omitdict') || (x === 'map[string]any'))) { t = 'map[string]any'; }
-        if (t === undefined) { return m; }
+        if (t === undefined) { return box (); }
         // the box is read only as a plain operand: no compare, assertion, address, index or later write
         const rest = fn.split (m).join ('');
         const n = '\\b' + lhs + '\\b';
         if (fn.split (m).length !== 2 || new RegExp ('(?:' + n + ' *(?:[=!]=|:?=[^=]|\\.\\(|\\[|\\+|-)|[=!]= *' + n + '|&' + lhs + '\\b|IsEqual\\([^\\n]*' + n + '|\\bvar ' + lhs + ' )').test (rest)) {
-            return m;
+            return box ();
         }
         return ind + 'var ' + lhs + ' ' + t + '\n' + ind + 'if ' + cond + ' {\n' + body + lhs + ' = ' + a + '\n' + ind + '} else {\n' + body + lhs + ' = ' + b + '\n' + ind + '}';
     }));
@@ -7388,8 +7391,10 @@ function goTernaryAnyTypedCheck (): string[] {
     if (!f (iife ('s', 'this.SafeString(r, \"a\")', 'this.SafeStringUpper(r, \"b\")') + '\treturn this.M(s)\n').includes ('var s *string\n')) { problems.push ('ternary any typed: *string'); }
     for (const keep of [ iife ('o', 'map[string]any{}', 'p') + '\treturn o\n', iife ('o', 'e', 'nil') + '\treturn map[string]any{\"e\": o}\n',
         iife ('o', 'map[string]any{}', 'r') + '\tif o == nil {\n\t}\n\treturn nil\n', iife ('o', '1', 'e') + '\treturn o\n', iife ('o', 'e', 'e') + '\to = nil\n\treturn nil\n', iife ('o', 'this.Omit(p, \"a\")', 'r') + '\treturn this.M(o)\n' ]) {
-        if (f (keep) !== head + 'func (this *K) F(r map[string]any, e *int64, p any) any {\n' + keep + '}\n') { problems.push ('ternary any typed kept: ' + f (keep)); }
+        if (!f (keep).includes ('\tvar o any\n\tif r == nil {\n')) { problems.push ('ternary any typed kept: ' + f (keep)); }
     }
+    const shadow = iife ('o', 'o', 'r') + '\treturn o\n';
+    if (f (shadow) !== head + 'func (this *K) F(r map[string]any, e *int64, p any) any {\n' + shadow + '}\n') { problems.push ('ternary any box: self read kept: ' + f (shadow)); }
     return problems;
 }
 
