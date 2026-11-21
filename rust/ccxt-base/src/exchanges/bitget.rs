@@ -13783,12 +13783,13 @@ if _try_result.is_err() {
         //         }
         //     }
         //
-        let data: Value = self.safe_value_k(&response, "data", &[]);
         if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
+            let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let bills: crate::value::List = self.safe_list_k_t(&data, "bills");
             return self.parse_ledger(&bills, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         }
-        return self.parse_ledger(data, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
+        let rows: crate::value::List = self.safe_list_k_t(&response, "data");
+        return self.parse_ledger(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         Value::Null
         }).await?))
     }

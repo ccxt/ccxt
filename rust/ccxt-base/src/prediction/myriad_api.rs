@@ -13,8 +13,8 @@ use crate::exchange::ExchangeRuntime;
 
 impl Myriad {
     /// Auto-generated wrapper for the `myriadPublicGetQuestions` implicit endpoint.
-    pub async fn myriad_public_get_questions(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_questions".into()), optional_args).await
+    pub async fn myriad_public_get_questions(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("myriad_public_get_questions", optional_args).await
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetQuestionsId` implicit endpoint.
@@ -23,8 +23,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarkets` implicit endpoint.
-    pub async fn myriad_public_get_markets(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_markets".into()), optional_args).await
+    pub async fn myriad_public_get_markets(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("myriad_public_get_markets", optional_args).await
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarketsId` implicit endpoint.
@@ -38,8 +38,8 @@ impl Myriad {
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarketsIdEvents` implicit endpoint.
-    pub async fn myriad_public_get_markets_id_events(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("myriad_public_get_markets_id_events".into()), optional_args).await
+    pub async fn myriad_public_get_markets_id_events(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("myriad_public_get_markets_id_events", optional_args).await
     }
 
     /// Auto-generated wrapper for the `myriadPublicGetMarketsIdOrderbook` implicit endpoint.

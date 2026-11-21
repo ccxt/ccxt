@@ -1235,8 +1235,8 @@ if _try_result.is_err() {
         if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")));
         }
-        let deltasOptionparamsDeltasVariable = self.handle_option_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("deltas".into()), &[Value::Bool(false)]);
-        let deltasOption: bool = deltasOptionparamsDeltasVariable.0.as_bool() == Some(true);
+        let deltasOptionparamsDeltasVariable = self.handle_option_bool_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("deltas".into()), &[Value::Bool(false)]);
+        let deltasOption: bool = deltasOptionparamsDeltasVariable.0 == Some(true);
         let paramsDeltas: crate::value::Dict = deltasOptionparamsDeltasVariable.1;
         let deltas: bool = (deltasOption) || ((limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) > ((15i64) as f64)));
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
@@ -1341,8 +1341,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
-        let deltasOptionparamsDeltasVariable = self.handle_option_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("deltas".into()), &[Value::Bool(false)]);
-        let deltasOption: bool = deltasOptionparamsDeltasVariable.0.as_bool() == Some(true);
+        let deltasOptionparamsDeltasVariable = self.handle_option_bool_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("deltas".into()), &[Value::Bool(false)]);
+        let deltasOption: bool = deltasOptionparamsDeltasVariable.0 == Some(true);
         let paramsDeltas: crate::value::Dict = deltasOptionparamsDeltasVariable.1;
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));

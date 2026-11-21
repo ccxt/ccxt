@@ -2377,10 +2377,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = (market).symbol.clone();
-        let stockparamsStockVariable = self.handle_option_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("stock".into()), &[]);
-        let stock: Value = stockparamsStockVariable.0;
+        let stockparamsStockVariable = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
+        let stock: bool = stockparamsStockVariable.0 == Some(true);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.1;
-        if (match &(stock) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+        if (stock) {
             if (timeframe.as_str() != Some("5m")) && (timeframe.as_str() != Some("1h")) && (timeframe.as_str() != Some("1d")) && (timeframe.as_str() != Some("1w")) && (timeframe.as_str() != Some("1M")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")));
             }
@@ -7360,7 +7360,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                                     if (feeCostString.is_none()) {
                                         feeCostString = Some("0".to_string());
                                     }
-                                    if let Some(__d) = &mut order { add_element_to_object(get_value_mut(std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert(Value::Null), &Value::Int(i)), &Value::Str("cost".into()), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null })); }
+                                    if let Some(__d) = &mut order { let __r06v = Value::from((match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
+                                        if let Value::Arr(__a) = std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert(Value::Null) { if let Some(Value::Dict(__f)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__f).insert("cost".into(), __r06v); } } }
                                     insertNewFeeCurrency = false;
                                     break;
                                 }

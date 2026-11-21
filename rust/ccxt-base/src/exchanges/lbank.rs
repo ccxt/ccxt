@@ -1890,7 +1890,7 @@ impl Lbank {
         //    }
         //
         let currenciesData: crate::value::List = self.safe_list_k_t(&response, "data");
-        let grouped: crate::value::Dict = self.group_by(Value::Arr(currenciesData), Value::Str("assetCode".into()), &[]).into_dict();
+        let grouped: crate::value::Dict = self.group_by(Value::Arr(currenciesData), Value::Str("assetCode".into()), &[]);
         let mut values: crate::value::List = crate::value::List::new(grouped.values().cloned().collect());
         return self.parse_currencies(&values);
         Value::Null

@@ -1668,7 +1668,7 @@ impl Latoken {
         });
         let types: crate::value::Dict = self.safe_dict_k_t(&self.options, "types");
         let accountType: Option<String> = self.safe_string_opt(&types, Value::from(type_var.as_deref()), &[&type_var]);
-        let balancesByType: crate::value::Dict = self.group_by(response, Value::Str("type".into()), &[]).into_dict();
+        let balancesByType: crate::value::Dict = self.group_by(response, Value::Str("type".into()), &[]);
         let balances: crate::value::List = self.safe_list_t(&balancesByType, accountType.map(Value::from).unwrap_or(Value::Null));
         let firstBalance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(0));
         let mut maxTimestamp: Option<i64> = self.safe_integer_k(&firstBalance, "timestamp", &[]).as_i64();

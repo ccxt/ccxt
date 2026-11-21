@@ -1172,14 +1172,15 @@ impl Deribit {
         }
         let params: crate::value::Dict = message.key_dict("params");
         let channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let data: Value = self.safe_value_k(&params, "data", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]);
+        let dataList: Option<crate::value::List> = self.safe_list_k_o(&params, "data");
         let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&data, Value::Arr(_))) {
-            orders = self.parse_orders(data.clone(), None, &[]);
+        if (dataList.is_some()) {
+            orders = self.parse_orders(&dataList, None, &[]);
         }  else {
+            let data: Value = self.safe_value_k(&params, "data", &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]);
             let order: crate::value::Dict = self.parse_order(data, None);
             orders = std::sync::Arc::new(vec![Value::Dict(order)]);
         }

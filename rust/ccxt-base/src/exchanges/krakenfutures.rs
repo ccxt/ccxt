@@ -3368,23 +3368,22 @@ impl Krakenfutures {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let __ws_arg_7 = self.extend(Value::Map({
+        let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
             m
-        }), &[params]);
+        });
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_cancelorder(&[&__ws_arg_7]).await.unwrap_or_default();
-        let status: Option<String> = self.safe_string_k_opt(self.safe_dict_k(&response, "cancelStatus", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]), "status", &[]);
+        let cancelStatus: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "cancelStatus");
+        let status: Option<String> = self.safe_string_k_opt(&cancelStatus, "status", &[]);
         self.verify_order_action_success(status.map(Value::from).unwrap_or(Value::Null), "cancelOrder", &[]);
         let mut order: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
-        if (response.contains_key("cancelStatus")) {
-            order = <Self as crate::exchange::DerivedExchange>::parse_order(self, crate::value::KeyRead::key_read(&&response, "cancelStatus"), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        if (cancelStatus.is_some()) {
+            order = <Self as crate::exchange::DerivedExchange>::parse_order(self, &cancelStatus, None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         }
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();

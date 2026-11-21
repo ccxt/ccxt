@@ -2628,8 +2628,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                                 if (self.safe_string_k(&orderFee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
                                     let feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&orderFee, "cost")]);
                                     let feeCostString: Option<String> = self.currency_to_precision((tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)).as_str(), feeCost, &[]);
-                                    if let Some(__d) = &mut order { add_element_to_object(get_value_mut(std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert(Value::Null), &Value::Int(i)), &Value::Str("cost".into()),
-                                        (if (feeCostString.is_none()) { Value::Null } else { (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }) })); }
+                                    if let Some(__d) = &mut order { let __r06v = Value::from((if (feeCostString.is_none()) { Value::Null } else { (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }) }));
+                                        if let Value::Arr(__a) = std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert(Value::Null) { if let Some(Value::Dict(__f)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__f).insert("cost".into(), __r06v); } } }
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -2642,8 +2642,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                             if (self.safe_string_k(&fee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
                                 let feeCost: Value = self.sum(&[crate::value::KeyRead::key_read(&&fee, "cost"), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
                                 let feeCostString: Option<String> = self.currency_to_precision((tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)).as_str(), feeCost, &[]);
-                                if let Some(__d) = &mut order { add_element_to_object(std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null), &Value::Str("cost".into()),
-                                    (if (feeCostString.is_none()) { Value::Null } else { (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }) })); }
+                                if let Some(__d) = &mut order { let __r06v = Value::from((if (feeCostString.is_none()) { Value::Null } else { (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }) }));
+                                    if let Value::Dict(__f) = std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__f).insert("cost".into(), __r06v); } }
                             }  else if (self.safe_string_k(&fee, "currency", &[]) == Value::Null) {
                                 if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), tradeFee.clone()); }
                             }  else {

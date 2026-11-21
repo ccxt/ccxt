@@ -2668,12 +2668,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let response: crate::value::Dict = self.kalshi_private_get_portfolio_settlements(&[&__ws_arg_8]).await.unwrap_or_default();
         let rawSettlements: crate::value::List = self.safe_list_k_t(&response, "settlements");
         let rawSettlementsLength: i64 = rawSettlements.len() as i64;
-        let mut parsed: Vec<Value> = Vec::new();
+        let mut parsed: Vec<crate::value::Dict> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_23: bool = true;
             while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < rawSettlementsLength } {
-            parsed.push(Value::Dict(self.parse_settlement(rawSettlements.get(i as usize).cloned().unwrap_or(Value::Null), None)));
+            parsed.push(self.parse_settlement(rawSettlements.get(i as usize).cloned().unwrap_or(Value::Null), None));
         }
         }
         let wantedOutcomeObj: Option<crate::types::Market> = (if (outcome != Value::Null) { self.outcome(outcome.as_str()) } else { None });
@@ -2683,7 +2683,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_24: bool = true;
             while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (parsed.len() as i64) } {
-            let settlement: crate::value::Dict = self.safe_dict_t(&parsed, Value::Int(i));
+            let settlement: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or_default();
             if (wantedOutcome.is_none()) || ((wantedOutcome.as_deref() == self.safe_string_k(&settlement, "outcome", &[]).as_str())) {
                 result.push(Value::Dict(settlement));
             }

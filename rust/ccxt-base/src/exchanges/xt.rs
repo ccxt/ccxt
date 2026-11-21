@@ -4919,10 +4919,7 @@ impl Xt {
             }
             request.insert("positionSide".into(), Value::from(requestType));
         }
-        let mut response: crate::value::Dict = std::sync::Arc::new({
-            let m = indexmap::IndexMap::new();
-            m
-        });
+        let mut response: Option<crate::value::Dict> = None;
         let triggerPrice: Option<f64> = self.safe_number2(&paramsOmitted4, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
         let stopLoss: Option<f64> = self.safe_number2(&paramsOmitted4, Value::Str("stopLoss".into()), Value::Str("triggerStopPrice".into()), &[]).as_f64();
         let takeProfit: Option<f64> = self.safe_number2(&paramsOmitted4, Value::Str("takeProfit".into()), Value::Str("triggerProfitPrice".into()), &[]).as_f64();
@@ -4964,10 +4961,10 @@ impl Xt {
             let paramsOmitted3: crate::value::Dict = self.omit_t(&paramsMarginMode, &["trailingPercent", "trailingAmount", "trailingTriggerPrice"], &[]);
             if ((market).linear == Some(true)) {
                 let __ws_arg_22 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_linear_post_future_trade_v1_entrust_create_track(&[&__ws_arg_22]).await.unwrap_or_default();
+                response = self.private_linear_post_future_trade_v1_entrust_create_track(&[&__ws_arg_22]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_23 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_inverse_post_future_trade_v1_entrust_create_track(&[&__ws_arg_23]).await.unwrap_or_default();
+                response = self.private_inverse_post_future_trade_v1_entrust_create_track(&[&__ws_arg_23]).await;
             }
         }  else if isTrigger {
             request.insert("timeInForce".into(), (if (timeInForce.is_none()) { Value::Str("GTC".into()) } else { timeInForce.map(Value::from).unwrap_or(Value::Null) }));
@@ -4982,10 +4979,10 @@ impl Xt {
             let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsOmitted4, Value::Str("triggerPrice".into()), &[]);
             if ((market).linear == Some(true)) {
                 let __ws_arg_24 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_linear_post_future_trade_v1_entrust_create_plan(&[&__ws_arg_24]).await.unwrap_or_default();
+                response = self.private_linear_post_future_trade_v1_entrust_create_plan(&[&__ws_arg_24]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_25 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_inverse_post_future_trade_v1_entrust_create_plan(&[&__ws_arg_25]).await.unwrap_or_default();
+                response = self.private_inverse_post_future_trade_v1_entrust_create_plan(&[&__ws_arg_25]).await;
             }
         }  else if isStopLoss || isTakeProfit {
             if isStopLoss {
@@ -4996,20 +4993,20 @@ impl Xt {
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsOmitted4, &["stopLoss", "takeProfit"], &[]);
             if ((market).linear == Some(true)) {
                 let __ws_arg_26 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_linear_post_future_trade_v1_entrust_create_profit(&[&__ws_arg_26]).await.unwrap_or_default();
+                response = self.private_linear_post_future_trade_v1_entrust_create_profit(&[&__ws_arg_26]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_27 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_inverse_post_future_trade_v1_entrust_create_profit(&[&__ws_arg_27]).await.unwrap_or_default();
+                response = self.private_inverse_post_future_trade_v1_entrust_create_profit(&[&__ws_arg_27]).await;
             }
         }  else {
             request.insert("orderSide".into(), (if let Some(__s) = Some(side) { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             request.insert("orderType".into(), (if let Some(__s) = Some(type_var) { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             if ((market).linear == Some(true)) {
                 let __ws_arg_28 = self.extend(&request, &[&paramsOmitted4]);
-                response = self.private_linear_post_future_trade_v1_order_create(&[&__ws_arg_28]).await.unwrap_or_default();
+                response = self.private_linear_post_future_trade_v1_order_create(&[&__ws_arg_28]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted4]);
-                response = self.private_inverse_post_future_trade_v1_order_create(&[&__ws_arg_29]).await.unwrap_or_default();
+                response = self.private_inverse_post_future_trade_v1_order_create(&[&__ws_arg_29]).await;
             }
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);

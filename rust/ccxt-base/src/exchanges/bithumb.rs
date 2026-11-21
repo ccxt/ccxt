@@ -2547,8 +2547,8 @@ impl Bithumb {
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
         if (generation == Some(2)) {
-            let paginateparamsPaginateVariable = self.handle_option_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
-            let paginate: bool = paginateparamsPaginateVariable.0.as_bool() == Some(true);
+            let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+            let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
             let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
             if paginate {
                 return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit, timeframe.as_str(), &[&Value::from(&paramsPaginate), &Value::Int(200)]).await;

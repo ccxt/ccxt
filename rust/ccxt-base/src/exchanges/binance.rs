@@ -17857,9 +17857,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchLeverages() supports linear and inverse contracts only")));
         }
-        let mut leverages: crate::value::List = self.safe_list_k_t(&response, "positions");
-        if let Value::Arr(__a) = response {
-            leverages = __a;
+        let mut leverages: Option<crate::value::List> = self.safe_list_k_or_o(&response, "positions", Value::from(vec![]));
+        if (matches!(&response, Value::Arr(_))) {
+            leverages = Some(self.to_array_t(response));
         }
         return self.parse_leverages(&leverages, &[Value::from(symbols), Value::Str("symbol".into())]);
         Value::Null
@@ -19769,9 +19769,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchMarginModes () supports linear and inverse subTypes only")));
         }
-        let mut assets: crate::value::List = self.safe_list_k_t(&response, "positions");
-        if let Value::Arr(__a) = response {
-            assets = __a;
+        let mut assets: Option<crate::value::List> = self.safe_list_k_or_o(&response, "positions", Value::from(vec![]));
+        if (matches!(&response, Value::Arr(_))) {
+            assets = Some(self.to_array_t(response));
         }
         return self.parse_margin_modes(&assets, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into()), Value::Str("swap".into())]);
         Value::Null

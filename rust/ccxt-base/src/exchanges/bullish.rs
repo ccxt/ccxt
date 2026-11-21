@@ -1188,7 +1188,7 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "get_timestamp" => self.get_timestamp(),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "handle_pagination_params" => self.handle_pagination_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
+                "handle_pagination_params" => Value::Dict(self.handle_pagination_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_since_and_until" => self.handle_since_and_until(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_token" => self.handle_token(&args[..].iter().collect::<Vec<_>>()).await,
                 "load_account" => self.load_account(&args[..].iter().collect::<Vec<_>>()).await,
@@ -2214,7 +2214,7 @@ impl Bullish {
         let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTrades", since, &[&Value::from(&paramsPaginate)]).into_dict();
+            let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTrades", since, &[&Value::from(&paramsPaginate)]);
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::Dict(paramsPagination), &Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2284,7 +2284,7 @@ impl Bullish {
             let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
             let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
             if paginate {
-                let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchMyTrades", since, &[&Value::from(&paramsPaginate)]).into_dict();
+                let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchMyTrades", since, &[&Value::from(&paramsPaginate)]);
                 return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::Dict(paramsPagination), &Value::Int(100)]).await;
             }
             let paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since, &[&Value::from(&paramsPaginate)]).into_dict();
@@ -2561,7 +2561,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchFundingRateHistory", since, &[&Value::from(&paramsPaginate)]).into_dict();
+            let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchFundingRateHistory", since, &[&Value::from(&paramsPaginate)]);
             return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::Dict(paramsPagination), &Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2650,7 +2650,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let paginate: bool = self.safe_bool_k_opt(&params, "paginate", &[Value::Bool(false)]).unwrap_or(false);
         if paginate {
-            let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchOrders", since, &[&params]).into_dict();
+            let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchOrders", since, &[&params]);
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::Dict(paramsPagination), &Value::Int(100)]).await;
         }
         let mut market: Option<crate::types::Market> = None;
@@ -2714,7 +2714,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }).await?))
     }
 
-    pub fn handle_pagination_params(&self, method: &str, since: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub fn handle_pagination_params(&self, method: &str, since: Option<i64>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2733,15 +2733,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]);
         let until: Option<i64> = self.safe_integer_k(&paramsExtended, "until", &[]).as_i64();
         if (until.is_none()) {
-            return self.extend(&paramsExtended, &[Value::Map({
+            return self.extend_t(&paramsExtended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("until".to_string(), Value::from(now));
     m
 })]);
         }
-        return Value::Dict(paramsExtended);
+        return paramsExtended;
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_since_and_until(&self, since: Option<i64>, optional_args: &[&Value]) -> Value {
@@ -3734,7 +3734,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
-            let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTransfers", since, &[&Value::from(&paramsPaginate)]).into_dict();
+            let paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTransfers", since, &[&Value::from(&paramsPaginate)]);
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[&code, &Value::from(since), &Value::from(limit), &Value::Dict(paramsPagination), &Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

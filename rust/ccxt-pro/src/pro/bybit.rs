@@ -660,7 +660,7 @@ impl Bybit {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrderWs() requires a symbol argument")));
         }
-        let mut orderRequest: Value = self.parent.cancel_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]);
+        let mut orderRequest: Value = Value::Dict(self.parent.cancel_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]));
         let url: Option<String> = self.implode_hostname(self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let requestId: String = format!("{}", self.request_id());

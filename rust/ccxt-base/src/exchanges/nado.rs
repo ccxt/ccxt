@@ -826,7 +826,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
             match method {
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_request" => self.cancel_all_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "cancel_all_orders_request" => Value::Dict(self.cancel_all_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_request" => self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -879,7 +879,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_x18" => self.parse_x18(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "query_contracts" => self.query_contracts(&args[..].iter().collect::<Vec<_>>()).await,
+                "query_contracts" => Value::Dict(self.query_contracts(&args[..].iter().collect::<Vec<_>>()).await),
                 "query_transactions_by_event_type" => self.query_transactions_by_event_type(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_i64), args.get(5).and_then(crate::Value::as_i64), &args[6.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -1677,7 +1677,7 @@ impl Nado {
             rawAppendix = self.create_order_appendix(isTriggerOrder, &[&Value::from(&paramsRecvWindow)]);
         }
         order.insert("appendix".into(), rawAppendix.map(Value::from).unwrap_or(Value::Null));
-        let contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
+        let contracts: crate::value::Dict = self.query_contracts(&[]).await;
         let chainId: Option<String> = self.safe_string_k_opt(&contracts, "chain_id", &[]);
         let signature: Option<String> = self.sign_order(Value::Map(order.clone()), productId, chainId.as_deref());
         placeOrder.insert("order".into(), Value::Map(order));
@@ -1841,7 +1841,7 @@ impl Nado {
                 m.insert("appendix".to_string(), rawAppendix.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
+        let contracts: crate::value::Dict = self.query_contracts(&[]).await;
         let chainId: Option<String> = self.safe_string_k_opt(&contracts, "chain_id", &[]);
         let endpointAddress: Option<String> = self.safe_string_k_opt(&contracts, "endpoint_addr", &[]);
         if (endpointAddress.is_none()) {
@@ -1943,7 +1943,7 @@ impl Nado {
         }
         let trigger: Option<bool> = self.safe_bool2_opt(&params, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["stop", "trigger"], &[]);
-        let request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[&Value::Dict(paramsOmitted)]).await.into_dict();
+        let request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[&Value::Dict(paramsOmitted)]).await;
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
             response = self.trigger_private_post_execute(&[&Value::from(&request)]).await;
@@ -1979,7 +1979,7 @@ impl Nado {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_product_orders execute
  */
-    pub async fn cancel_all_orders_request(&mut self, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub async fn cancel_all_orders_request(&mut self, symbol: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2004,7 +2004,7 @@ impl Nado {
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
+        let contracts: crate::value::Dict = self.query_contracts(&[]).await;
         let chainId: Option<String> = self.safe_string_k_opt(&contracts, "chain_id", &[]);
         let endpointAddress: Option<String> = self.safe_string_k_opt(&contracts, "endpoint_addr", &[]);
         if (endpointAddress.is_none()) {
@@ -2027,9 +2027,9 @@ impl Nado {
                 m.insert("cancel_product_orders".to_string(), Value::Map(cancelProductOrders));
             m
         });
-        return self.extend(Value::Map(request), &[&paramsOmitted]);
+        return self.extend_t(Value::Map(request), &[&paramsOmitted]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2134,7 +2134,7 @@ impl Nado {
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
+        let contracts: crate::value::Dict = self.query_contracts(&[]).await;
         let chainId: Option<String> = self.safe_string_k_opt(&contracts, "chain_id", &[]);
         let endpointAddress: Option<String> = self.safe_string_k_opt(&contracts, "endpoint_addr", &[]);
         if (endpointAddress.is_none()) {
@@ -2291,7 +2291,7 @@ impl Nado {
         if (limit.is_some()) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(500)));
         }
-        let contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
+        let contracts: crate::value::Dict = self.query_contracts(&[]).await;
         let chainId: Option<String> = self.safe_string_k_opt(&contracts, "chain_id", &[]);
         let endpointAddress: Option<String> = self.safe_string_k_opt(&contracts, "endpoint_addr", &[]);
         let signature: Option<String> = self.sign_fetch_trigger_orders(Value::Map(tx), chainId.as_deref(), endpointAddress.as_deref());
@@ -4117,7 +4117,7 @@ impl Nado {
         return Some(format!("{}{}", Value::Str(format!("{}{}", "0x", address).into()), self.pad_hex(encoded.as_deref().unwrap_or_default(), 24.0, &[&Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null)));
 }
 
-    pub async fn query_contracts(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn query_contracts(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4136,12 +4136,12 @@ impl Nado {
     m
 })]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayContracts".into(), __be_tmp); } }
         }
-        return self.safe_dict_k(&self.options, "gatewayContracts", &[Value::Map({
+        return self.safe_dict_k_or(&self.options, "gatewayContracts", Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]);
+}));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn order_verifying_contract(&self, productId: Option<i64>) -> Option<String> {

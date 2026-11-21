@@ -460,8 +460,8 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "fetch_outcomes" => self.fetch_outcomes(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_raw_events_by_search" => self.fetch_raw_events_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_raw_events_list" => self.fetch_raw_events_list(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_events_by_search" => Value::Arr(self.fetch_raw_events_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_raw_events_list" => Value::Arr(self.fetch_raw_events_list(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1432,9 +1432,9 @@ impl Polymarket {
         let queriesLength: i64 = queries.len() as i64;
         let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(&queries, &[&Value::from(&rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_by_search(&queries, &[&Value::from(&rest)]).await;
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[&Value::Dict(rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_list(&[&Value::Dict(rest)]).await;
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: indexmap::IndexMap<String, Value> = ({
@@ -1479,7 +1479,7 @@ impl Polymarket {
  * @param {int} [params.limit] page size per search query, defaults to 50
  * @returns {object[]} an array of raw gamma event objects
  */
-    pub async fn fetch_raw_events_by_search(&mut self, queries: &[crate::Value], optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_events_by_search(&mut self, queries: &[crate::Value], optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1614,9 +1614,7 @@ impl Polymarket {
             }
         }
         }
-        return Value::from(rawEvents);
-
-    Value::Null
+        return std::sync::Arc::new(rawEvents);
 }
 
 /*
@@ -1668,7 +1666,7 @@ impl Polymarket {
  * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
  * @returns {object[]} an array of raw gamma event objects
  */
-    pub async fn fetch_raw_events_list(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_events_list(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1718,7 +1716,7 @@ impl Polymarket {
                     m
                 }), &[&params]);
                 std::sync::Arc::make_mut(&mut singleTagParams).insert("tags".into(), Value::from(vec![requestedTags.get(ti as usize).cloned().unwrap_or(Value::Null)]));
-                let tagEvents: crate::value::List = Box::pin(self.fetch_raw_events_list(&[&Value::Dict(singleTagParams)])).await.into_list();
+                let tagEvents: crate::value::List = Box::pin(self.fetch_raw_events_list(&[&Value::Dict(singleTagParams)])).await;
                 {
                                         let mut ei: i64 = 0;
                     let mut __for_first_10: bool = true;
@@ -1733,7 +1731,7 @@ impl Polymarket {
                 }
             }
             }
-            return Value::from(unioned);
+            return std::sync::Arc::new(unioned);
         }
         if requestedTagsLength > 0 {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
@@ -1809,11 +1807,9 @@ impl Polymarket {
         }
         let allRawEventsLength: i64 = allRawEvents.len() as i64;
         if (limit.is_some() && Some(allRawEventsLength) > limit) {
-            return Value::Arr(self.array_slice(Value::from(allRawEvents), Value::Int(0), &[Value::from(limit)]));
+            return self.array_slice(Value::from(allRawEvents), Value::Int(0), &[Value::from(limit)]);
         }
-        return Value::from(allRawEvents);
-
-    Value::Null
+        return std::sync::Arc::new(allRawEvents);
 }
 
     pub fn parse_event_to_markets(&self, mut event: Value) -> crate::value::List {
@@ -4095,9 +4091,9 @@ impl Polymarket {
             let responseIsArray: bool = response.is_some();
             rawEvents = (if (responseIsArray) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(&queries, &[&Value::from(&rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_by_search(&queries, &[&Value::from(&rest)]).await;
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[&Value::Dict(rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_list(&[&Value::Dict(rest)]).await;
         }
         // Parse and merge into class-level caches
         if (self.exchange.events.clone() == Value::Null) {

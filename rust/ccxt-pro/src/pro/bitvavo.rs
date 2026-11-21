@@ -1788,7 +1788,7 @@ impl Bitvavo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        let request: crate::value::Dict = self.parent.cancel_order_request(id.as_str(), symbol.as_str(), &[params]).into_dict();
+        let request: crate::value::Dict = self.parent.cancel_order_request(id.as_str(), symbol.as_str(), &[params]);
         return self.watch_request("privateCancelOrder", Value::Dict(request)).await;
         Value::Null
         }).await?))

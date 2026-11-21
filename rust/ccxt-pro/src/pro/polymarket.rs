@@ -772,12 +772,12 @@ impl Polymarket {
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        let data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let dataList: Option<crate::value::List> = (match message.get("data") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => None });
         let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
-        if let Value::Arr(__a) = data {
-            rows = __a;
+        if (dataList.is_some()) {
+            rows = dataList.unwrap_or_default();
         }  else {
-            std::sync::Arc::make_mut(&mut rows).push(data);
+            std::sync::Arc::make_mut(&mut rows).push((match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null }));
         }
         let rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {
@@ -1248,12 +1248,12 @@ impl Polymarket {
         //         ]
         //     }
         //
-        let data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let dataList: Option<crate::value::List> = (match message.get("data") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => None });
         let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
-        if let Value::Arr(__a) = data {
-            rows = __a;
+        if (dataList.is_some()) {
+            rows = dataList.unwrap_or_default();
         }  else {
-            std::sync::Arc::make_mut(&mut rows).push(data);
+            std::sync::Arc::make_mut(&mut rows).push((match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null }));
         }
         let rowsLength: i64 = rows.len() as i64;
         if (rowsLength == 0) {

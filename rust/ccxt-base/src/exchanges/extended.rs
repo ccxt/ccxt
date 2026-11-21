@@ -907,7 +907,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_extended_account" => self.fetch_extended_account(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_extended_account" => Value::Dict(self.fetch_extended_account(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_funding_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -3097,7 +3097,7 @@ impl Extended {
         if ((address.len() as i64) as f64) <= ((42i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")));
         }
-        let account: crate::value::Dict = self.fetch_extended_account(&[]).await.into_dict();
+        let account: crate::value::Dict = self.fetch_extended_account(&[]).await;
         let amountString: Option<String> = self.currency_to_precision(code.as_str(), Value::from(amount), &[]);
         let accountId: Option<String> = self.safe_string_k_opt(&account, "accountId", &[]);
         let settlement: indexmap::IndexMap<String, Value> = self.create_withdrawal_settlement_data(address.as_str().unwrap_or_default(), amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, &[&Value::from(&paramsWithdrawTag)]).as_map().cloned().unwrap_or_default();
@@ -3251,7 +3251,7 @@ impl Extended {
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let account: crate::value::Dict = self.fetch_extended_account(&[]).await.into_dict();
+        let account: crate::value::Dict = self.fetch_extended_account(&[]).await;
         let currentAccountId: String = self.safe_string_k(&account, "accountId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (fromAccount != Value::Null) && (fromAccount.as_str().unwrap_or_default().to_string() != currentAccountId) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " transfer() can only transfer from the authenticated account")));
@@ -3789,29 +3789,29 @@ impl Extended {
     Value::Null
 }
 
-    pub async fn fetch_extended_account(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_extended_account(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let cachedAccount: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "account");
         if (cachedAccount.is_some()) {
-            return self.safe_dict_k(&self.options, "account", &[Value::Map({
+            return self.safe_dict_k_or(&self.options, "account", Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]);
+}));
         }
         let accountData: crate::value::Dict = self.fetch_account(&[&params]).await.into_dict();
         { let __be_tmp = self.safe_dict_k(&accountData, "info", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("account".into(), __be_tmp); } }
-        return self.safe_dict_k(&self.options, "account", &[Value::Map({
+        return self.safe_dict_k_or(&self.options, "account", Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]);
+}));
 
-    Value::Null
+    Default::default()
 }
 
     pub fn create_order_settlement_data(&self, isBuy: bool, amountString: &str, priceString: &str, optional_args: &[&Value]) -> Value {
@@ -4024,7 +4024,7 @@ impl Extended {
         let settlementDefault: Option<i64> = (if (expiryEpochMillis.is_some()) { (if let Some(__l) = (self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiryEpochMillis { Some(__l + 999) } else { None })) { Some((__l as f64) / 1000.0) } else { None })))) { Some(__l + 1209600) } else { None }) } else { None });
         let settlementExpiration: Option<i64> = self.safe_integer_k(&paramsBuilder, "settlementExpiration", &[Value::from(settlementDefault)]).as_i64();
         let mut nonce: Option<String> = self.number_to_string(self.nonce());
-        let account: crate::value::Dict = self.fetch_extended_account(&[]).await.into_dict();
+        let account: crate::value::Dict = self.fetch_extended_account(&[]).await;
         let starkKey: Option<String> = self.safe_string_k_opt(&account, "l2Key", &[]);
         let collateralPosition: Option<String> = self.safe_string_k_opt(&account, "l2Vault", &[]);
         let info: crate::value::Dict = self.safe_dict_k_t(&market, "info");

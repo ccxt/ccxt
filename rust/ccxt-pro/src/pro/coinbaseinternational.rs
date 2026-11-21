@@ -828,14 +828,15 @@ impl Coinbaseinternational {
         }
         let params: crate::value::Dict = message.key_dict("params");
         let channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
-        let data: Value = self.safe_value_k(&params, "data", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]);
+        let dataList: Option<crate::value::List> = self.safe_list_k_o(&params, "data");
         let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&data, Value::Arr(_))) {
-            orders = self.parse_orders(data.clone(), None, &[]);
+        if (dataList.is_some()) {
+            orders = self.parse_orders(&dataList, None, &[]);
         }  else {
+            let data: Value = self.safe_value_k(&params, "data", &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]);
             orders = std::sync::Arc::new(vec![Value::Dict(self.parse_order(data, None))]);
         }
         let ordersLength: i64 = orders.len() as i64;

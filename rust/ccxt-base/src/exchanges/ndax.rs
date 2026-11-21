@@ -3081,7 +3081,7 @@ impl Ndax {
         //         },
         //     ]
         //
-        let grouped: crate::value::Dict = self.group_by(response, Value::Str("ChangeReason".into()), &[]).into_dict();
+        let grouped: crate::value::Dict = self.group_by(response, Value::Str("ChangeReason".into()), &[]);
         let trades: crate::value::List = self.safe_list_k_t(&grouped, "Trade");
         return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null

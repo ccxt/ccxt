@@ -39,7 +39,7 @@ pub fn testGroupBy() {
         m.insert("foo".to_string(), Value::Str("c".into()));
     m
 })]);
-    let currentValue: Value = exchange.group_by(sampleArray, Value::Str("foo".into()), &[]);
+    let currentValue: Value = Value::Dict(exchange.group_by(sampleArray, Value::Str("foo".into()), &[]));
     let storedValue: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::from(vec![Value::Map({

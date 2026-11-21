@@ -1599,7 +1599,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "prepare_account_request" => Value::Dict(self.prepare_account_request(args.get(0).and_then(crate::Value::as_i64), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
-                "prepare_account_request_with_currency_code" => { let __t = self.prepare_account_request_with_currency_code(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await; Value::from(vec![__t.0, Value::Dict(__t.1)]) },
+                "prepare_account_request_with_currency_code" => { let __t = self.prepare_account_request_with_currency_code(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await; Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
@@ -2984,7 +2984,7 @@ impl Coinbase {
     m
 }));
         let requestparamsValueVariable = self.prepare_account_request_with_currency_code(code, limit, &[&params]).await;
-        let request: crate::value::Dict = requestparamsValueVariable.0.into_dict();
+        let request: crate::value::Dict = requestparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestparamsValueVariable.1;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4600,7 +4600,7 @@ if _try_result.is_err() {
             currency = Some(self.currency(code.as_str()));
         }
         let requestparamsValueVariable = self.prepare_account_request_with_currency_code(code.as_str(), limit, &[&Value::Dict(paramsPaginate)]).await;
-        let request: crate::value::Dict = requestparamsValueVariable.0.into_dict();
+        let request: crate::value::Dict = requestparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestparamsValueVariable.1;
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
@@ -4703,7 +4703,7 @@ if _try_result.is_err() {
     Default::default()
 }
 
-    pub async fn prepare_account_request_with_currency_code(&mut self, code: Option<&str>, limit: Option<i64>, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
+    pub async fn prepare_account_request_with_currency_code(&mut self, code: Option<&str>, limit: Option<i64>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4728,7 +4728,7 @@ if _try_result.is_err() {
             }
             request.insert("account_id".into(), foundAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        return (Value::Map(request), paramsOmitted);
+        return (std::sync::Arc::new(request), paramsOmitted);
 }
 
 /*
@@ -6247,7 +6247,7 @@ if _try_result.is_err() {
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let requestparamsValueVariable = self.prepare_account_request_with_currency_code(self.safe_string_k(&currency, "code", &[]).as_str(), None, &[&params]).await;
-        let request: crate::value::Dict = requestparamsValueVariable.0.into_dict();
+        let request: crate::value::Dict = requestparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestparamsValueVariable.1;
         let __ws_arg_55 = self.extend(request, &[&paramsValue]);
         let response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[&__ws_arg_55]).await.unwrap_or_default();

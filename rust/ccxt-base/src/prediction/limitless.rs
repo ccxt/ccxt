@@ -3661,8 +3661,10 @@ if _try_result.is_err() {
 }));
         let mut paramsValue: crate::value::Dict = params.into_dict();
         if (outcome != Value::Null) {
-            let mut warn: bool = true;
-            { let __destr_tmp = self.handle_option_and_params(&paramsValue, Value::Str("cancelAllOrders".into()), Value::Str("warnOnCancelAllOrdersWithOutcome".into()), &[Value::Bool(warn)]); warn = __destr_tmp.0.as_bool() == Some(true); paramsValue = __destr_tmp.1; }
+            let warnparamsWarnVariable = self.handle_option_bool_and_params(&paramsValue, Value::Str("cancelAllOrders".into()), Value::Str("warnOnCancelAllOrdersWithOutcome".into()), &[Value::Bool(true)]);
+            let warn: bool = warnparamsWarnVariable.0 == Some(true);
+            let paramsWarn: crate::value::Dict = warnparamsWarnVariable.1;
+            paramsValue = paramsWarn;
             if warn {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")));
             }
@@ -3719,13 +3721,13 @@ if _try_result.is_err() {
             let outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome.as_str(), &[]).await;
             outcomeSymbol = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
         }
-        let mut paginate: bool = false;
         let maxLimit: i64 = 100;
-        let mut paramsValue: crate::value::Dict = params.into_dict();
-        { let __destr_tmp = self.handle_option_and_params(&paramsValue, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(paginate)]); paginate = __destr_tmp.0.as_bool() == Some(true); paramsValue = __destr_tmp.1; }
+        let paginateparamsValueVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let paginate: bool = paginateparamsValueVariable.0 == Some(true);
+        let paramsValue: crate::value::Dict = paginateparamsValueVariable.1;
         if paginate {
-            paramsValue = self.omit_t(&paramsValue, Value::Str("paginate".into()), &[]);
-            return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[&outcome, &Value::from(since), &Value::from(limit), &Value::from(&paramsValue), &Value::Str("nextCursor".into()), &Value::Str("cursor".into()), &Value::Null, &Value::from(maxLimit)]).await;
+            let paramsCursor: crate::value::Dict = self.omit_t(&paramsValue, Value::Str("paginate".into()), &[]);
+            return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[&outcome, &Value::from(since), &Value::from(limit), &Value::Dict(paramsCursor), &Value::Str("nextCursor".into()), &Value::Str("cursor".into()), &Value::Null, &Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();

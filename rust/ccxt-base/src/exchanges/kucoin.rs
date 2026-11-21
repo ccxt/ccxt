@@ -9845,17 +9845,14 @@ impl Kucoin {
                 response = self.private_get_orders_order_id(&[&__ws_arg_76]).await;
             }
         }
-        let mut responseData: Value = self.safe_value_k(&response, "data", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]);
-        if (matches!(&responseData, Value::Arr(_))) {
-            responseData = self.safe_dict(&responseData, Value::Int(0), &[Value::Map({
+        let mut responseData: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
+        if (responseData.is_none()) {
+            responseData = self.safe_dict_or_o(self.safe_list_k(&response, "data", &[Value::from(vec![])]), Value::Int(0), Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]);
+}));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, responseData, market.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &responseData, market.as_ref()).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

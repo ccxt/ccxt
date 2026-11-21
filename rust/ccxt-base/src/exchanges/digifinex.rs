@@ -2218,7 +2218,7 @@ impl Digifinex {
         //     }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let groupedById: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]).into_dict();
+        let groupedById: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]);
         let mut values: crate::value::List = crate::value::List::new(groupedById.values().cloned().collect());
         return self.parse_currencies(&values);
         Value::Null

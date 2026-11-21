@@ -623,7 +623,7 @@ impl Pacifica {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrderWs() requires a symbol argument")));
         }
-        let request: crate::value::Dict = self.parent.cancel_order_request(id, symbol.as_str(), &[params]).into_dict();
+        let request: crate::value::Dict = self.parent.cancel_order_request(id, symbol.as_str(), &[params]);
         let isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -706,7 +706,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let operationType: String = "cancel_all_orders".to_string();
-        let request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[&params]).into_dict();
+        let request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[&params]);
         let isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {

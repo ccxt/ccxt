@@ -258,8 +258,8 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "fetch_raw_markets_paged" => Value::Arr(self.fetch_raw_markets_paged(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_settlements" => crate::types::IntoRaw::into_raw(self.fetch_settlements(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_sxbet_best_odds" => self.fetch_sxbet_best_odds(args.get(0).cloned().unwrap_or_default().to_str_vec(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_sxbet_book_snapshot" => self.fetch_sxbet_book_snapshot(args.get(0).and_then(crate::Value::as_text).as_deref()).await,
-                "fetch_sxbet_proxy" => self.fetch_sxbet_proxy().await,
+                "fetch_sxbet_book_snapshot" => Value::Dict(self.fetch_sxbet_book_snapshot(args.get(0).and_then(crate::Value::as_text).as_deref()).await),
+                "fetch_sxbet_proxy" => Value::Dict(self.fetch_sxbet_proxy().await),
                 "fetch_sxbet_realtime_token" => self.fetch_sxbet_realtime_token().await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1348,14 +1348,14 @@ impl Sxbet {
  * @see https://docs.sx.bet/api-reference/get-user-proxy
  * @returns {object} the raw proxy data ({obv3ProxyWalletAddress, deployed, multisigSafeAddress})
  */
-    pub async fn fetch_sxbet_proxy(&mut self) -> Value {
+    pub async fn fetch_sxbet_proxy(&mut self) -> crate::value::Dict {
         let response: crate::value::Dict = self.sxbet_private_get_user_proxy(&[]).await.unwrap_or_default();
-        return self.safe_dict_k(&response, "data", &[Value::Map({
+        return self.safe_dict_k_or(&response, "data", Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]);
+}));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1382,7 +1382,7 @@ impl Sxbet {
         if (amount.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " approve() requires params.amount - the USDC amount to move into the proxy wallet")));
         }
-        let proxy: crate::value::Dict = self.fetch_sxbet_proxy().await.into_dict();
+        let proxy: crate::value::Dict = self.fetch_sxbet_proxy().await;
         let deployed: bool = self.safe_bool_k_opt(&proxy, "deployed", &[Value::Bool(false)]).unwrap_or(false);
         if !deployed {
             self.sxbet_private_post_user_deploy_proxy(&[]).await;
@@ -1391,7 +1391,7 @@ impl Sxbet {
                 let mut __for_first_13: bool = true;
                 while { if !__for_first_13 { i += 1; } __for_first_13 = false; (i as f64) < ((30i64) as f64) } {
                 self.sleep(Value::Int(2000)).await;
-                let state: crate::value::Dict = self.fetch_sxbet_proxy().await.into_dict();
+                let state: crate::value::Dict = self.fetch_sxbet_proxy().await;
                 if matches!(self.safe_bool_k(&state, "deployed", &[Value::Bool(false)]), Value::Bool(true)) {
                     break;
                 }
@@ -2727,19 +2727,19 @@ impl Sxbet {
  * @param {string} marketHash the market hash
  * @returns {object} the raw snapshot data
  */
-    pub async fn fetch_sxbet_book_snapshot(&mut self, marketHash: Option<&str>) -> Value {
+    pub async fn fetch_sxbet_book_snapshot(&mut self, marketHash: Option<&str>) -> crate::value::Dict {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHash".to_string(), Value::from(marketHash));
             m
         });
         let response: crate::value::Dict = self.sxbet_public_get_orderbook_v3_snapshot(&[&Value::Map(request)]).await.unwrap_or_default();
-        return self.safe_dict_k(&response, "data", &[Value::Map({
+        return self.safe_dict_k_or(&response, "data", Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]);
+}));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2767,7 +2767,7 @@ impl Sxbet {
         let marketHash: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[]);
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
-        let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await.into_dict();
+        let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
         let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot);
         return self.parse_prediction_ticker(&raw, outcomeObj.as_ref());
         Value::Null
@@ -2896,7 +2896,7 @@ impl Sxbet {
                 let mut __for_first_27: bool = true;
                 while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < hashesLength } {
                 let marketHash: Option<String> = hashesOrder.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await.into_dict();
+                let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
                 rowsByHash.insert(marketHash.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_sxbet_snapshot_best_odds(&snapshot)));
             }
             }
@@ -3448,7 +3448,7 @@ impl Sxbet {
         if (self.orderbooks.lookup(&sym).is_none()) {
             // seed from the REST snapshot so the book is served before the first publication
             self.set_ws_option("wsWatchedBooks", sym.as_str(), Value::from(marketHash.clone()));
-            let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(Some(marketHash.as_str())).await.into_dict();
+            let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(Some(marketHash.as_str())).await;
             self.apply_sxbet_ws_snapshot(&snapshot);
             if (self.orderbooks.lookup(&sym).is_none()) {
                 let emptyBook: crate::pro::order_book::Book = self.order_book(&[Value::Map({
@@ -3617,7 +3617,7 @@ impl Sxbet {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
-            let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await.into_dict();
+            let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
             let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot);
             let ticker: Value = self.parse_prediction_ticker(&raw, outcomeObj.as_ref());
             self.set_ws_option("wsTickers", sym.as_str(), ticker);

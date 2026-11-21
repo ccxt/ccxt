@@ -3854,7 +3854,7 @@ impl Blofin {
         //
         // one row per currency + chain pair, group them per currency
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let dataByCurrencyId: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]).into_dict();
+        let dataByCurrencyId: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]);
         let currencies: crate::value::List = crate::value::List::new(dataByCurrencyId.values().cloned().collect());
         return self.parse_currencies(&currencies);
         Value::Null
@@ -3965,7 +3965,7 @@ impl Blofin {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let response: crate::value::Dict = self.private_get_asset_currencies(&[&params]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let dataByCurrencyId: Value = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]);
+        let dataByCurrencyId: Value = Value::Dict(self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]));
         return self.parse_deposit_withdraw_fees(dataByCurrencyId, &[Value::from(codes)]);
         Value::Null
         }).await?))
@@ -4564,7 +4564,7 @@ impl Blofin {
         let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
             let symbolsLength: i64 = symbols.len() as i64;
-            if (symbolsLength == 0) {
+            if symbolsLength > 0 {
                 market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }

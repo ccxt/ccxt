@@ -1214,7 +1214,7 @@ impl Krakenfutures {
                 if (previousFee.get("cost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
                     let stringOrderCost: Option<String> = self.number_to_string(previousFee.get("cost").cloned().unwrap_or(Value::Null));
                     let stringTradeCost: Option<String> = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
-                    if let Some(__d) = &mut previousOrder { add_element_to_object(std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost)); }
+                    if let Some(__d) = &mut previousOrder { if let Value::Dict(__f) = std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__f).insert("cost".into(), Value::from(crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost))); } }
                 }
                 // update the newUpdates count
                 orders.append(Value::Dict(self.safe_order(previousOrder.map_or(Value::Null, Value::Dict), None)));

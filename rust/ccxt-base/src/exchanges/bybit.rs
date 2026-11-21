@@ -2391,7 +2391,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_order_request" => self.cancel_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]),
+                "cancel_order_request" => Value::Dict(self.cancel_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_for_symbols" => crate::types::IntoRaw::into_raw(self.cancel_orders_for_symbols(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_convert_trade" => crate::types::IntoRaw::into_raw(self.create_convert_trade(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -8598,7 +8598,7 @@ impl Bybit {
         }).await?))
     }
 
-    pub fn cancel_order_request(&self, id: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn cancel_order_request(&self, id: &str, symbol: Option<&str>, optional_args: &[Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -8622,9 +8622,9 @@ impl Bybit {
         let category: Option<String> = categoryparamsCategoryVariable.0.as_str().map(str::to_owned);
         let paramsCategory: crate::value::Dict = categoryparamsCategoryVariable.1;
         request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
-        return self.extend(Value::Map(request), &[&paramsCategory]);
+        return self.extend_t(Value::Map(request), &[&paramsCategory]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -8659,7 +8659,7 @@ impl Bybit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let requestExtended: crate::value::Dict = self.cancel_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).into_dict();
+        let requestExtended: crate::value::Dict = self.cancel_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]);
         let response: crate::value::Dict = self.private_post_v5_order_cancel(&[&Value::Dict(requestExtended)]).await.unwrap_or_default();
         //
         //     {
@@ -12852,7 +12852,7 @@ impl Bybit {
         let marketIds: Option<crate::value::List> = self.market_ids(symbols.as_array());
         let idKey: Value = (if (marketIdKey == Value::Null) { Value::Str("symbol".into()) } else { marketIdKey });
         let filteredResults: crate::value::List = self.filter_by_array(response, idKey.clone(), &marketIds, &[Value::Bool(false)]).into_list();
-        let grouped: crate::value::Dict = self.group_by(Value::Arr(filteredResults), idKey, &[]).into_dict();
+        let grouped: crate::value::Dict = self.group_by(Value::Arr(filteredResults), idKey, &[]);
         let mut keys: Vec<Value> = Value::Array(grouped.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;

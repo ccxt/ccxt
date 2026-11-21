@@ -72,7 +72,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "parse_ws_rfq_order" => self.parse_ws_rfq_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "prepare_ws_stock_params" => self.prepare_ws_stock_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "prepare_ws_stock_params" => Value::Dict(self.prepare_ws_stock_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)).await),
                 "subscribe_ws_tickers" => self.subscribe_ws_tickers(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_balance" => self.un_watch_balance(&args[..].iter().collect::<Vec<_>>()).await,
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -254,7 +254,7 @@ impl Backpack {
  * @param {object} params exchange-specific parameters
  * @returns {object} local parameters with the validated stock selector
  */
-    pub async fn prepare_ws_stock_params(&mut self, methodName: &str, params: impl Into<crate::Value>) -> Value {
+    pub async fn prepare_ws_stock_params(&mut self, methodName: &str, params: impl Into<crate::Value>) -> crate::value::Dict {
         let params: Value = params.into();
         let stockqueryVariable = self.handle_option_bool_and_params(params, Value::from(methodName), Value::Str("stock".into()), &[]);
         let mut stock: Option<bool> = stockqueryVariable.0;
@@ -263,15 +263,15 @@ impl Backpack {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (stock.is_none()) {
-            return Value::from(&query);
+            return query;
         }
-        return self.extend(query, &[Value::Map({
+        return self.extend_t(query, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), stock.map_or(Value::Null, Value::Bool));
     m
 })]);
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -320,7 +320,7 @@ impl Backpack {
 }));
         let mut bidAsk = get_arg(optional_args, 2, Value::Bool(false));
         let unwatch: bool = get_arg(optional_args, 3, Value::Bool(false)).is_truthy();
-        let query: crate::value::Dict = self.prepare_ws_stock_params(methodName, params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params(methodName, params).await;
         let stock: bool = self.safe_bool_k_opt(&query, "stock", &[Value::Bool(false)]).unwrap_or(false);
         let explicitSource: Option<String> = self.safe_string_k_opt(&query, "source", &[]);
         let channel: Option<String> = self.safe_string_k_opt(&query, "channel", &[]);
@@ -1062,7 +1062,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = self.prepare_ws_stock_params("watchOHLCV", params).await;
+        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchOHLCV", params).await);
         let result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols(vec![vec![symbol.to_string(), timeframe.to_string()]], since, limit, query).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
 
         return crate::value::KeyRead::read(&&result, &symbol).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
@@ -1094,7 +1094,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = self.prepare_ws_stock_params("watchOHLCV", params).await;
+        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchOHLCV", params).await);
         return crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol, timeframe])])).to_str_vec_vec(), query).await);
         Value::Null
         }).await?))
@@ -1126,7 +1126,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await;
         let symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")));
@@ -1185,7 +1185,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await;
         let symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")));
@@ -1287,7 +1287,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = self.prepare_ws_stock_params("watchTrades", params).await;
+        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchTrades", params).await);
         return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(vec![symbol.to_string()], since, limit, query).await);
         Value::Null
         }).await?))
@@ -1315,7 +1315,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = self.prepare_ws_stock_params("watchTrades", params).await;
+        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchTrades", params).await);
         return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(vec![symbol.to_string()], query).await);
         Value::Null
         }).await?))
@@ -1347,7 +1347,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchTradesForSymbols", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchTradesForSymbols", params).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1404,7 +1404,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchTradesForSymbols", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchTradesForSymbols", params).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1558,7 +1558,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = self.prepare_ws_stock_params("watchOrderBook", params).await;
+        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchOrderBook", params).await);
         return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(vec![symbol.to_string()], limit, query).await);
         Value::Null
         }).await?))
@@ -1589,7 +1589,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrderBookForSymbols", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrderBookForSymbols", params).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1640,7 +1640,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = self.prepare_ws_stock_params("watchOrderBook", params).await;
+        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchOrderBook", params).await);
         return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols(vec![symbol.to_string()], query).await);
         Value::Null
         }).await?))
@@ -1668,7 +1668,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrderBookForSymbols", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrderBookForSymbols", params).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1835,7 +1835,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrders", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrders", params).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1893,7 +1893,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrders", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrders", params).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2034,7 +2034,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchBalance", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchBalance", params).await;
         let stock: bool = self.safe_bool_k_opt(&query, "stock", &[Value::Bool(false)]).unwrap_or(false);
         if stock && (self.safe_list_k(&self.options, "securities", &[]) == Value::Null) {
             self.parent.fetch_securities(&[]).await;
@@ -2090,7 +2090,7 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: crate::value::Dict = self.prepare_ws_stock_params("watchBalance", params).await.into_dict();
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchBalance", params).await;
         return self.watch_private(Value::from(vec![Value::Str("account.balanceUpdate".into())]), Value::from(vec![Value::Str("unsubscribe:balance".into())]), &[self.omit(&query, Value::Str("stock".into()), &[]), Value::Bool(true)]).await;
 
     Value::Null

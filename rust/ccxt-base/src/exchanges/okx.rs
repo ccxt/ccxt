@@ -6190,7 +6190,7 @@ impl Okx {
         //    }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let dataByCurrencyId: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("ccy".into()), &[]).into_dict();
+        let dataByCurrencyId: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("ccy".into()), &[]);
         let currencies: crate::value::List = crate::value::List::new(dataByCurrencyId.values().cloned().collect());
         return self.parse_currencies(&currencies);
         Value::Null

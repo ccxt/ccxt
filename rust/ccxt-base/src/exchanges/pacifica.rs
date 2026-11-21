@@ -885,9 +885,9 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "bind_agent_wallet" => self.bind_agent_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_request" => self.cancel_all_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "cancel_all_orders_request" => Value::Dict(self.cancel_all_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_order_request" => self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]),
+                "cancel_order_request" => Value::Dict(self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_request" => self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
                 "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
@@ -3296,7 +3296,7 @@ if _try_result.is_err() {
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (ids.len() as i64) } {
             let id: Option<String> = self.safe_string_opt(&ids, Value::Int(i), &[]);
-            let request: crate::value::Dict = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), symbol, &[params.clone()]).into_dict();
+            let request: crate::value::Dict = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), symbol, &[params.clone()]);
             let action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Cancel".into()));
@@ -3319,7 +3319,7 @@ if _try_result.is_err() {
                 m
             });
             let __ws_arg_14 = self.extend(Value::Map(cloidParams), &[&paramsOmitted]);
-            let request: crate::value::Dict = self.cancel_order_request(cloid, symbol, &[__ws_arg_14]).into_dict();
+            let request: crate::value::Dict = self.cancel_order_request(cloid, symbol, &[__ws_arg_14]);
             let action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Cancel".into()));
@@ -3360,7 +3360,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[&params]).into_dict();
+        let request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[&params]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["excludeReduceOnly", "expiryWindow"], &[]);
         let __ws_arg_15 = self.extend(request, &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_orders_cancel_all(&[&__ws_arg_15]).await.unwrap_or_default();
@@ -3373,7 +3373,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn cancel_all_orders_request(&self, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub fn cancel_all_orders_request(&self, symbol: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3393,9 +3393,9 @@ if _try_result.is_err() {
             sigPayload.insert("all_symbols".into(), Value::Bool(true));
         }
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params);
-        return Value::Dict(request);
+        return request;
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -3431,7 +3431,7 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires a symbol argument")));
         }
-        let request: crate::value::Dict = self.cancel_order_request(id.clone(), symbol.as_str(), &[params.clone()]).into_dict();
+        let request: crate::value::Dict = self.cancel_order_request(id.clone(), symbol.as_str(), &[params.clone()]);
         let isStopOrder: bool = self.safe_bool2_opt(&params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow", "trigger", "stop", "clientOrderId"], &[]);
         let mut response: Option<crate::value::Dict> = None;
@@ -3466,7 +3466,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn cancel_order_request(&self, id: impl Into<crate::Value>, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn cancel_order_request(&self, id: impl Into<crate::Value>, symbol: Option<&str>, optional_args: &[Value]) -> crate::value::Dict {
         let id: Value = id.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3490,9 +3490,9 @@ if _try_result.is_err() {
             sigPayload.insert("order_id".into(), Value::from(self.parse_to_int(id)));
         }
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params);
-        return Value::Dict(request);
+        return request;
 
-    Value::Null
+    Default::default()
 }
 
 /*

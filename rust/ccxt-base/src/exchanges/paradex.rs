@@ -1288,7 +1288,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "filter_loaded_summaries" => self.filter_loaded_summaries(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "filter_transactions_by_kind" => Value::Arr(self.filter_transactions_by_kind(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "get_system_config" => self.get_system_config().await,
+                "get_system_config" => Value::Dict(self.get_system_config().await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "onboarding" => self.onboarding(&args[..]).await,
@@ -1311,7 +1311,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "prepare_paradex_domain" => Value::Dict(self.prepare_paradex_domain(&args[..].iter().collect::<Vec<_>>()).await),
-                "retrieve_account" => self.retrieve_account().await,
+                "retrieve_account" => Value::Dict(self.retrieve_account().await),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -3344,22 +3344,22 @@ impl Paradex {
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), Some(privateKey).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 }
 
-    pub async fn get_system_config(&mut self) -> Value {
+    pub async fn get_system_config(&mut self) -> crate::value::Dict {
         if (self.safe_dict_k(&self.options, "systemConfig", &[]) == Value::Null) {
             let response: crate::value::Dict = self.public_get_system_config(&[]).await.unwrap_or_default();
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("systemConfig".into(), Value::Dict(response)); }
         }
-        return self.safe_dict_k(&self.options, "systemConfig", &[Value::Map({
+        return self.safe_dict_k_or(&self.options, "systemConfig", Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]);
+}));
 
-    Value::Null
+    Default::default()
 }
 
     pub async fn prepare_paradex_domain(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let l1: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let systemConfig: crate::value::Dict = self.get_system_config().await.into_dict();
+        let systemConfig: crate::value::Dict = self.get_system_config().await;
         if l1 {
             let l1D: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3382,10 +3382,10 @@ impl Paradex {
     Default::default()
 }
 
-    pub async fn retrieve_account(&mut self) -> Value {
+    pub async fn retrieve_account(&mut self) -> crate::value::Dict {
         if (self.safe_dict_k(&self.options, "paradexAccount", &[]) == Value::Null) {
             self.check_required_credentials(&[]);
-            let systemConfig: crate::value::Dict = self.get_system_config().await.into_dict();
+            let systemConfig: crate::value::Dict = self.get_system_config().await;
             let domain: crate::value::Dict = self.prepare_paradex_domain(&[&Value::Bool(true)]).await;
             let messageTypes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3407,12 +3407,12 @@ impl Paradex {
             let account: indexmap::IndexMap<String, Value> = self.retrieve_stark_account(signature.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&systemConfig, "paraclear_account_hash", &[]), self.safe_string_k(&systemConfig, "paraclear_account_proxy_hash", &[])).as_map().cloned().unwrap_or_default();
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), Value::Map(account)); }
         }
-        return self.safe_dict_k(&self.options, "paradexAccount", &[Value::Map({
+        return self.safe_dict_k_or(&self.options, "paradexAccount", Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]);
+}));
 
-    Value::Null
+    Default::default()
 }
 
     pub async fn onboarding(&mut self, optional_args: &[Value]) -> Value {
@@ -3420,7 +3420,7 @@ impl Paradex {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let account: crate::value::Dict = self.retrieve_account().await.into_dict();
+        let account: crate::value::Dict = self.retrieve_account().await;
         let req: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("Onboarding".into()));
@@ -3464,7 +3464,7 @@ impl Paradex {
                 return cachedToken.map(Value::from).unwrap_or(Value::Null);
             }
         }
-        let account: crate::value::Dict = self.retrieve_account().await.into_dict();
+        let account: crate::value::Dict = self.retrieve_account().await;
         // https://docs.paradex.trade/api-reference/general-information/authentication
         let expires: Option<i64> = (if let Some(__l) = now { Some(__l + 180) } else { None });
         let req: indexmap::IndexMap<String, Value> = ({
@@ -3694,7 +3694,7 @@ impl Paradex {
     pub async fn sign_order_request(&mut self, request: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let request: Value = request.into();
         let modify: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let account: crate::value::Dict = self.retrieve_account().await.into_dict();
+        let account: crate::value::Dict = self.retrieve_account().await;
         let now: i64 = self.milliseconds();
         let orderType: Option<String> = self.safe_string_k_opt(&request, "type", &[]);
         if (orderType.is_none()) {

@@ -3677,7 +3677,7 @@ impl Bitstamp {
         //         ...
         //     ]
         //
-        let responseByCurrencyId: Value = self.group_by(response, Value::Str("currency".into()), &[]);
+        let responseByCurrencyId: Value = Value::Dict(self.group_by(response, Value::Str("currency".into()), &[]));
         return self.parse_deposit_withdraw_fees(responseByCurrencyId, &[Value::from(codes)]);
         Value::Null
         }).await?))

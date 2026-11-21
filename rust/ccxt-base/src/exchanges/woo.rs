@@ -3132,8 +3132,8 @@ impl Woo {
         let tokenNetworkResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let tokenRows: crate::value::List = self.safe_list_k_t(&tokenResponse, "rows");
         let tokenNetworkRows: crate::value::List = self.safe_list_k_t(&tokenNetworkResponse, "rows");
-        let networksById: crate::value::Dict = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]).into_dict();
-        let tokensById: crate::value::Dict = self.group_by(Value::Arr(tokenRows), Value::Str("balance_token".into()), &[]).into_dict();
+        let networksById: crate::value::Dict = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]);
+        let tokensById: crate::value::Dict = self.group_by(Value::Arr(tokenRows), Value::Str("balance_token".into()), &[]);
         let currencyIds: Vec<Value> = Value::Array(tokensById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;

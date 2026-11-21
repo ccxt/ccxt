@@ -1546,7 +1546,7 @@ impl Poloniex {
                     if (crate::value::get_value_k(&crate::value::KeyRead::key_read(&&previousOrder, "fee"), "cost") != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
                         let stringOrderCost: Option<String> = self.number_to_string(crate::value::get_value_k(&crate::value::KeyRead::key_read(&&previousOrder, "fee"), "cost"));
                         let stringTradeCost: Option<String> = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
-                        if let Some(__d) = &mut previousOrder { add_element_to_object(std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost)); }
+                        if let Some(__d) = &mut previousOrder { if let Value::Dict(__f) = std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__f).insert("cost".into(), Value::from(crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost))); } }
                     }
                     let rawState: Option<String> = self.safe_string_k_opt(&order, "state", &[]);
                     let state: Option<String> = self.parse_status(rawState.as_deref());

@@ -585,7 +585,7 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
             match method {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_order_request" => self.cancel_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "cancel_order_request" => Value::Dict(self.cancel_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -1908,20 +1908,20 @@ impl Hibachi {
         }).await?))
     }
 
-    pub fn cancel_order_request(&self, id: &str) -> Value {
+    pub fn cancel_order_request(&self, id: &str) -> crate::value::Dict {
         let bigid: Value = self.convert_to_big_int(Value::from(id));
         let idbase16: String = self.int_to_base16(bigid, &[]);
         let idPadded: String = format!("{:0>16}", idbase16);
         let message: crate::value::Bytes = self.base16_to_binary(Value::from(idPadded), &[]);
         let signature: Option<String> = self.sign_message(Value::from(&message), (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("orderId".to_string(), Value::from(id));
         m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -1946,7 +1946,7 @@ impl Hibachi {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: indexmap::IndexMap<String, Value> = self.cancel_order_request(id.as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = Value::Dict(self.cancel_order_request(id.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
         request.insert("accountId".into(), self.get_account_id());
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_delete_trade_order(&[&__ws_arg_7]).await.unwrap_or_default();
@@ -1988,7 +1988,7 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (ids.len() as i64) } {
-            let mut orderRequest: crate::value::Dict = self.cancel_order_request(self.safe_string(&ids, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or_default()).into_dict();
+            let mut orderRequest: crate::value::Dict = self.cancel_order_request(self.safe_string(&ids, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or_default());
             std::sync::Arc::make_mut(&mut orderRequest).insert("action".into(), Value::Str("cancel".into()));
             orders.push(Value::Dict(orderRequest));
         }

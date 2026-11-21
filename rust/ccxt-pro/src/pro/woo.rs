@@ -1752,21 +1752,21 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //     }
         //
         let topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        if (matches!(&data, Value::Arr(_))) {
+        let dataList: Option<crate::value::List> = (match message.get("data") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => None });
+        if (dataList.is_some()) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
-                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (data.len() as i64) } {
-                let order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let tradeId: Option<String> = self.omit_zero(self.safe_string_k(&data, "tradeId", &[]));
+                while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (dataList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let tradeId: Option<String> = self.omit_zero(self.safe_string_k(&dataList, "tradeId", &[]));
                 if (tradeId.is_some()) {
-                    self.handle_my_trade(client, order.clone());
+                    self.handle_my_trade(client, dataList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 }
-                self.handle_order(client, order, topic.clone().map(Value::from).unwrap_or(Value::Null));
+                self.handle_order(client, dataList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), topic.clone().map(Value::from).unwrap_or(Value::Null));
             }
             }
         }  else {
+            let data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
             // executionreport
             let tradeId: Option<String> = self.omit_zero(self.safe_string_k(&data, "tradeId", &[]));
             if (tradeId.is_some()) {

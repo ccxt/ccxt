@@ -2483,7 +2483,7 @@ pub trait ExchangeBase:
             add_element_to_object(&mut featuresObj, &Value::Str("createOrder".into()), createOrder);
         }
         // other methods
-        let keys: Vec<Value> = object_keys(&featuresObj).as_array().cloned().unwrap_or_default();
+        let keys: Vec<Value> = Value::Array(featuresObj.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_84: bool = true;
@@ -3029,7 +3029,7 @@ pub trait ExchangeBase:
             quoteCurrencies = self.sort_by_t(Value::Arr(quoteCurrencies), Value::Str("code".into()), &[Value::Bool(false), Value::Str("".into())]);
             { let __t = self.map_to_safe_map(Value::Dict(self.index_by(Value::Arr(baseCurrencies.clone()), Value::Str("code".into())))); self.baseCurrencies = __t; }
             { let __t = self.map_to_safe_map(Value::Dict(self.index_by(Value::Arr(quoteCurrencies.clone()), Value::Str("code".into())))); self.quoteCurrencies = __t; }
-            let groupedCurrencies: crate::value::Dict = self.group_by(self.array_concat(Value::Arr(baseCurrencies), Value::Arr(quoteCurrencies)), Value::Str("code".into()), &[]).into_dict();
+            let groupedCurrencies: crate::value::Dict = self.group_by(self.array_concat(Value::Arr(baseCurrencies), Value::Arr(quoteCurrencies)), Value::Str("code".into()), &[]);
             let codes: Vec<Value> = Value::Array(groupedCurrencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let mut resultingCurrencies: Vec<Value> = Vec::new();
             {
@@ -3321,7 +3321,7 @@ pub trait ExchangeBase:
                                 let mut i: i64 = 0;
                 let mut __for_first_95: bool = true;
                 while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < reducedLength } {
-                { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &Value::Int(i))); add_element_to_object(&mut reducedFees, &Value::Int(i), __be_tmp); }
+                { let __be_tmp = self.parse_fee_numeric(reducedFees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); add_element_to_object(&mut reducedFees, &Value::Int(i), __be_tmp); }
             }
             }
             if !parseFee && (reducedLength == 0) {
@@ -3720,7 +3720,7 @@ pub trait ExchangeBase:
                                 let mut i: i64 = 0;
                 let mut __for_first_99: bool = true;
                 while { if !__for_first_99 { i += 1; } __for_first_99 = false; i < reducedLength } {
-                { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &Value::Int(i))); add_element_to_object(&mut reducedFees, &Value::Int(i), __be_tmp); }
+                { let __be_tmp = self.parse_fee_numeric(reducedFees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); add_element_to_object(&mut reducedFees, &Value::Int(i), __be_tmp); }
             }
             }
             fees = reducedFees.clone();
@@ -7987,26 +7987,51 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ...
         //     ]
         //
-        let mut results: Vec<Value> = Vec::new();
         if (matches!(&pricesData, Value::Arr(_))) {
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_143: bool = true;
-                while { if !__for_first_143 { i += 1; } __for_first_143 = false; i < (pricesData.len() as i64) } {
-                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, pricesData.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), None), &[&params]));
-            }
-            }
-        }  else {
-            let marketIds: Vec<Value> = object_keys(&pricesData).as_array().cloned().unwrap_or_default();
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_144: bool = true;
-                while { if !__for_first_144 { i += 1; } __for_first_144 = false; i < (marketIds.len() as i64) } {
-                let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-                let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, get_value(&pricesData, marketId.as_deref()), Some(&market)), &[&params]));
-            }
-            }
+            return self.parse_last_prices_list(pricesData, &[symbols, params]);
+        }
+        return self.parse_last_prices_dict(pricesData, &[symbols, params]);
+
+    Value::Null
+}
+
+    fn parse_last_prices_list(&self, mut pricesData: Value, optional_args: &[Value]) -> Value {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params = get_arg(optional_args, 1, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
+        let __pricesData_empty = Vec::new();
+        let pricesData = pricesData.as_array().unwrap_or(&__pricesData_empty);
+        let mut results: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { i += 1; } __for_first_143 = false; i < (pricesData.len() as i64) } {
+            results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, pricesData.get(i as usize).cloned().unwrap_or(Value::Null), None), &[&params]));
+        }
+        }
+        return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr), &[Value::Bool(false)]), Value::Str("symbol".into())));
+
+    Value::Null
+}
+
+    fn parse_last_prices_dict(&self, mut pricesData: Value, optional_args: &[Value]) -> Value {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params = get_arg(optional_args, 1, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
+        let mut results: Vec<Value> = Vec::new();
+        let marketIds: Vec<Value> = object_keys(&pricesData).as_array().cloned().unwrap_or_default();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_144: bool = true;
+            while { if !__for_first_144 { i += 1; } __for_first_144 = false; i < (marketIds.len() as i64) } {
+            let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+            let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
+            results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, (if let (Some(__m), Some(__k)) = (pricesData.as_map(), marketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Some(&market)), &[&params]));
+        }
         }
         return Value::Dict(self.index_by(self.filter_by_array(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr), &[Value::Bool(false)]), Value::Str("symbol".into())));
 
@@ -8042,26 +8067,51 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ...
         //     ]
         //
-        let mut results: Vec<Value> = Vec::new();
         if (matches!(&tickers, Value::Arr(_))) {
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_145: bool = true;
-                while { if !__for_first_145 { i += 1; } __for_first_145 = false; i < (tickers.len() as i64) } {
-                results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, tickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), None)), &[&params]));
-            }
-            }
-        }  else {
-            let marketIds: Vec<Value> = object_keys(&tickers).as_array().cloned().unwrap_or_default();
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_146: bool = true;
-                while { if !__for_first_146 { i += 1; } __for_first_146 = false; i < (marketIds.len() as i64) } {
-                let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-                let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-                results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, get_value(&tickers, marketId.as_deref()), Some(&market))), &[&params]));
-            }
-            }
+            return self.parse_tickers_list(tickers, &[symbols, params]);
+        }
+        return self.parse_tickers_dict(tickers, &[symbols, params]);
+
+    Value::Null
+}
+
+    fn parse_tickers_list(&self, mut tickers: Value, optional_args: &[Value]) -> Value {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params = get_arg(optional_args, 1, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
+        let __tickers_empty = Vec::new();
+        let tickers = tickers.as_array().unwrap_or(&__tickers_empty);
+        let mut results: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_145: bool = true;
+            while { if !__for_first_145 { i += 1; } __for_first_145 = false; i < (tickers.len() as i64) } {
+            results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, tickers.get(i as usize).cloned().unwrap_or(Value::Null), None)), &[&params]));
+        }
+        }
+        return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr)]);
+
+    Value::Null
+}
+
+    fn parse_tickers_dict(&self, mut tickers: Value, optional_args: &[Value]) -> Value {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params = get_arg(optional_args, 1, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
+        let mut results: Vec<Value> = Vec::new();
+        let marketIds: Vec<Value> = object_keys(&tickers).as_array().cloned().unwrap_or_default();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_146: bool = true;
+            while { if !__for_first_146 { i += 1; } __for_first_146 = false; i < (marketIds.len() as i64) } {
+            let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+            let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
+            results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, (if let (Some(__m), Some(__k)) = (tickers.as_map(), marketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Some(&market))), &[&params]));
+        }
         }
         return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr)]);
 
@@ -13519,6 +13569,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_isolated_borrow_rates" => self.parse_isolated_borrow_rates(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_last_price" => <Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_last_prices" => self.parse_last_prices(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_last_prices_dict" => self.parse_last_prices_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_last_prices_list" => self.parse_last_prices_list(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ledger" => self.parse_ledger(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
             "parse_ledger_entry" => <Self as crate::exchange_generated::ExchangeBase>::parse_ledger_entry(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_leverage" => <Self as crate::exchange_generated::ExchangeBase>::parse_leverage(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -13555,6 +13607,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_precision" => self.parse_precision(&args[..]),
             "parse_ticker" => Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_tickers" => self.parse_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_tickers_dict" => self.parse_tickers_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "parse_tickers_list" => self.parse_tickers_list(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_to_int" => crate::Value::from(self.parse_to_int(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "parse_to_numeric" => self.parse_to_numeric(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_trade" => Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_trade(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),

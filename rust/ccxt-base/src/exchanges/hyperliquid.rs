@@ -6408,8 +6408,22 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit_t(&params2, &["until"], &[]);
         }
         let __ws_arg_32 = self.extend(Value::Map(request), &[&params2]);
-        let response: crate::value::Dict = self.call_method_t("public_post_info", &[&__ws_arg_32]).await;
-        return self.parse_ledger(&response, None, &[&Value::from(since), &Value::from(limit)]);
+        let response: Value = self.public_post_info(&[&__ws_arg_32]).await;
+        //
+        // [
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // ]
+        //
+        let rows: Option<crate::value::List> = Some(Self::info_list(response));
+        return self.parse_ledger(&rows, None, &[&Value::from(since), &Value::from(limit)]);
         Value::Null
         }).await?))
     }

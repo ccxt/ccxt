@@ -1703,7 +1703,7 @@ impl Nado {
         if (requestIdString.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " ws execute requires params.id")));
         }
-        let request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[&Value::Dict(paramsExtended)]).await.into_dict();
+        let request: crate::value::Dict = self.parent.cancel_all_orders_request(symbol.as_str(), &[&Value::Dict(paramsExtended)]).await;
         let response: crate::value::Dict = self.watch_execute_request(requestIdString.as_deref().unwrap_or_default(), &request).await.into_dict();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let cancelledOrders: crate::value::List = self.safe_list_k_t(&data, "cancelled_orders");
@@ -1883,7 +1883,7 @@ impl Nado {
                 m.insert("expiration".to_string(), Value::from(self.number_to_string(Value::from(expiration))));
             m
         });
-        let contracts: crate::value::Dict = self.parent.query_contracts(&[]).await.into_dict();
+        let contracts: crate::value::Dict = self.parent.query_contracts(&[]).await;
         let chainId: Option<String> = self.safe_string_k_opt(&contracts, "chain_id", &[]);
         let endpointAddress: Option<String> = self.safe_string_k_opt(&contracts, "endpoint_addr", &[]);
         if (endpointAddress.is_none()) {
