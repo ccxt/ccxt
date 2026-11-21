@@ -4341,7 +4341,6 @@ impl Blofin {
             method = Some("privatePostTradeCancelTpsl".to_string());
         }
         if (clientOrderIds == Value::Null) {
-            let orderIds: Value = self.parse_ids(ids);
             if (tpslIds != Value::Null) {
                 {
                                         let mut i: i64 = 0;
@@ -4359,18 +4358,18 @@ impl Blofin {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_9: bool = true;
-                while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (orderIds.len() as i64) } {
+                while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (ids.len() as i64) } {
                 if (trigger == Some(true)) {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("tpslId".to_string(), self.safe_string(&orderIds, Value::Int(i), &[]));
+                            m.insert("tpslId".to_string(), self.safe_string(&ids, Value::Int(i), &[]));
                             m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                         m
                     }));
                 }  else {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("orderId".to_string(), self.safe_string(&orderIds, Value::Int(i), &[]));
+                            m.insert("orderId".to_string(), self.safe_string(&ids, Value::Int(i), &[]));
                             m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                         m
                     }));

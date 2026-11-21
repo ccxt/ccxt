@@ -4345,11 +4345,14 @@ impl Nado {
         let config = config.as_map().unwrap_or(&__config_empty);
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
-        if (config.contains_key("byType")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("type"))) {
-            let queryType: Value = params.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+        if (config.contains_key("byType")) {
             let byType: Value = config.get("byType").cloned().unwrap_or(Value::Null);
-            if (matches!((&byType, &queryType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return get_value(&byType, &queryType);
+            let queryType: Option<String> = self.safe_string_k_opt(&params, "type", &[]);
+            if (queryType.is_some()) {
+                let typeCost: Option<i64> = self.safe_integer(&byType, queryType.map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
+                if (typeCost.is_some()) {
+                    return Value::from(typeCost);
+                }
             }
         }
         let byQuery: Option<crate::value::Dict> = self.safe_dict_k_o(&config, "byQuery");

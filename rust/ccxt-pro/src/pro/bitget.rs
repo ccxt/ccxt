@@ -919,9 +919,9 @@ impl Bitget {
         }
         let timeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "timeframes");
         let interval: Option<String> = self.safe_string_opt(&timeframes, timeframe, &[]);
-        let mut channel: Option<String> = None;
+        let mut channel: String = "".to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: Option<String> = None;
+        let mut messageHash: String = "".to_string();
         let values = self.handle_option_bool_and_params(params.clone(), Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
         let uta: Option<bool> = values.0;
         let isStock: Option<bool> = (market).stock;
@@ -946,18 +946,18 @@ impl Bitget {
             m
         });
         if isStockOrUta {
-            channel = Some("kline".to_string());
-            args.insert("topic".into(), channel.clone().map(Value::from).unwrap_or(Value::Null));
+            channel = "kline".to_string();
+            args.insert("topic".into(), Value::from(channel.clone()));
             args.insert("symbol".into(), Value::from((market).id.as_deref()));
             args.insert("interval".into(), interval.map(Value::from).unwrap_or(Value::Null));
-            messageHash = Some(format!("{}{}", "kline", symbol));
+            messageHash = format!("{}{}", "kline", symbol);
         }  else {
-            channel = Some(format!("{}{}", "candle", interval.as_deref().unwrap_or("null")));
-            args.insert("channel".into(), channel.clone().map(Value::from).unwrap_or(Value::Null));
+            channel = format!("{}{}", "candle", interval.as_deref().unwrap_or("null"));
+            args.insert("channel".into(), Value::from(channel.clone()));
             args.insert("instId".into(), Value::from((market).id.as_deref()));
-            messageHash = Some(format!("{}{}", "candles:", interval.as_deref().unwrap_or("null")));
+            messageHash = format!("{}{}", "candles:", interval.as_deref().unwrap_or("null"));
         }
-        return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_deref().unwrap_or_default(), messageHash.as_deref().unwrap_or_default(), "watchOHLCV", &[&paramsRequest]).await;
+        return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_str(), messageHash.as_str(), "watchOHLCV", &[&paramsRequest]).await;
         Value::Null
         }).await?))
     }
@@ -1206,7 +1206,8 @@ impl Bitget {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", Value::from(messageHashTopic)).into()), ":").into()), (market).symbol);
+        let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", Value::from(messageHashTopic)).into()), ":").into()), marketSymbol);
         let utaparamsUtaVariable = self.handle_option_bool_and_params(params, Value::from(methodName), Value::Str("uta".into()), &[Value::Bool(false)]);
         let mut uta: Option<bool> = utaparamsUtaVariable.0;
         let paramsUta: crate::value::Dict = utaparamsUtaVariable.1;
@@ -2266,7 +2267,8 @@ impl Bitget {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = self.safe_string_k_opt(&market, "symbol", &[]);
             marketId = self.safe_string_k_opt(&market, "id", &[]);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbolResolved.as_deref().unwrap_or("null"));
+            let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), marketSymbol);
         }
         let utaparamsUtaVariable = self.handle_option_bool_and_params(paramsTrigger, Value::Str("watchOrders".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
         let mut uta: Option<bool> = utaparamsUtaVariable.0;
@@ -2496,7 +2498,7 @@ impl Bitget {
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
             let parsed: crate::value::Dict = self.parse_ws_order(&order, Some(&market));
             stored.append(Value::from(&parsed));
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
                 marketSymbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }

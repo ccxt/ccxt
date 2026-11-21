@@ -537,8 +537,7 @@ impl Coinbaseexchange {
         let symbolValue: String = self.symbol(symbol.as_str());
         let name: String = "user".to_string();
         let messageHash: String = "myTrades".to_string();
-        let authentication: crate::value::Dict = self.authenticate().into_dict();
-        let __ws_arg_0 = self.extend(params, &[&authentication]);
+        let __ws_arg_0 = self.extend(params, &[self.authenticate()]);
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_0]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -578,8 +577,7 @@ impl Coinbaseexchange {
         }
         let name: String = "user".to_string();
         let messageHash: String = "myTrades".to_string();
-        let authentication: crate::value::Dict = self.authenticate().into_dict();
-        let __ws_arg_1 = self.extend(params, &[&authentication]);
+        let __ws_arg_1 = self.extend(params, &[self.authenticate()]);
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.as_str(), &[&symbolsNormalized.map_or(Value::Null, Value::Arr), &Value::from(messageHash), &__ws_arg_1]).await.into();
         let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
@@ -621,8 +619,7 @@ impl Coinbaseexchange {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]);
         let name: String = "user".to_string();
         let messageHash: String = "orders".to_string();
-        let authentication: crate::value::Dict = self.authenticate().into_dict();
-        let __ws_arg_2 = self.extend(params, &[&authentication]);
+        let __ws_arg_2 = self.extend(params, &[self.authenticate()]);
         let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.as_str(), &[&symbolsNormalized.map_or(Value::Null, Value::Arr), &Value::from(messageHash), &__ws_arg_2]).await.into();
         let first: crate::value::Dict = self.safe_dict_t(Value::from(&orders), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
@@ -667,8 +664,7 @@ impl Coinbaseexchange {
         let symbolValue: String = self.symbol(symbol.as_str());
         let name: String = "user".to_string();
         let messageHash: String = "orders".to_string();
-        let authentication: crate::value::Dict = self.authenticate().into_dict();
-        let __ws_arg_3 = self.extend(params, &[&authentication]);
+        let __ws_arg_3 = self.extend(params, &[self.authenticate()]);
         let mut orders: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(messageHash.as_str()), &[__ws_arg_3]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -735,8 +731,7 @@ impl Coinbaseexchange {
                 m.insert("limit".to_string(), Value::from(limit));
             m
         });
-        let authentication: crate::value::Dict = self.authenticate().into_dict();
-        let __ws_arg_4 = self.extend(request, &[&authentication]);
+        let __ws_arg_4 = self.extend(request, &[self.authenticate()]);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_4, &messageHashes, Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
@@ -769,7 +764,6 @@ impl Coinbaseexchange {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), Value::from((market).id.as_deref().unwrap_or("")));
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let subscribe: indexmap::IndexMap<String, Value> = ({
@@ -783,13 +777,12 @@ impl Coinbaseexchange {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
-                m.insert("symbol".to_string(), Value::from(symbolValue));
+                m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("limit".to_string(), Value::from(limit));
             m
         });
-        let authentication: crate::value::Dict = self.authenticate().into_dict();
-        let __ws_arg_5 = self.extend(request, &[&authentication]);
+        let __ws_arg_5 = self.extend(request, &[self.authenticate()]);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
@@ -816,7 +809,7 @@ impl Coinbaseexchange {
         let marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (marketId.is_some()) {
             let trade: Value = self.parse_ws_trade(message.clone(), None);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
@@ -936,8 +929,8 @@ impl Coinbaseexchange {
             idKey = "maker_order_id".to_string();
         }
         if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("order".to_string(), self.safe_string(trade, Value::from(idKey), &[])); }
-        let parsedSymbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
-        let marketResolved: crate::types::Market = (match self.market(parsedSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let parsedSymbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let marketResolved: crate::types::Market = (match self.market(parsedSymbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let feeCurrency: String = (marketResolved).quote.clone();
         let mut feeCost: Option<String> = None;
         let cost: Option<String> = self.safe_string_k_opt(&parsed, "cost", &[]);
@@ -1232,7 +1225,7 @@ impl Coinbaseexchange {
         let marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (marketId.is_some()) {
             let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, message.clone(), None).map_or(Value::Null, Value::Dict);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
             }
@@ -1297,7 +1290,7 @@ impl Coinbaseexchange {
         let type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let name: String = "level2".to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
         let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
@@ -1310,7 +1303,7 @@ impl Coinbaseexchange {
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-            let snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[]);
+            let snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_str()), &[]);
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }  else if (type_var.as_deref() == Some("l2update")) {

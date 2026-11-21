@@ -648,7 +648,7 @@ impl Bitopro {
             let m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let originalHeaders: Value = wsInnerOptions.get("headers").cloned().unwrap_or(Value::Null);
+        let originalHeaders: indexmap::IndexMap<String, Value> = self.safe_dict_k(&wsInnerOptions, "headers", &[]).as_map().cloned().unwrap_or_default();
         let headers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-BITOPRO-API".to_string(), Value::Str("ccxt".into()));
@@ -660,7 +660,7 @@ impl Bitopro {
         wsInnerOptions.insert("headers".into(), Value::Map(headers));
         // instantiate client
         self.client(&Value::from(url));
-        wsInnerOptions.insert("headers".into(), originalHeaders);
+        wsInnerOptions.insert("headers".into(), Value::Map(originalHeaders));
 }
 
 /*

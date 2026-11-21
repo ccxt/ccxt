@@ -385,7 +385,9 @@ impl Weex {
         let timestamp: String = format!("{}", self.nonce());
         let payload: String = format!("{}{}", timestamp, "/v3/ws/private");
         let signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(&self.secret), "sha256", &[Value::Str("base64".into())]);
-        let originalHeaders: crate::value::Dict = self.safe_dict_t(crate::value::get_value_k(&self.options.get("ws").cloned().unwrap_or(Value::Null), "options"), Value::Str("headers".into()));
+        let wsOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "ws");
+        let wsInnerOptions: crate::value::Dict = self.safe_dict_k_t(&wsOptions, "options");
+        let originalHeaders: crate::value::Dict = self.safe_dict_k_t(&wsInnerOptions, "headers");
         let userAgent: String = self.safe_string_k(&originalHeaders, "User-Agent", &[Value::Str("ccxt".into())]).as_str().unwrap_or("ccxt").to_string();
         let extendedOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -674,10 +676,8 @@ impl Weex {
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "C", &[]).as_i64();
         let close: Option<String> = self.safe_string_k_opt(&ticker, "c", &[]);
         let mut symbol: Option<String> = None;
-        if (market.is_none()) {
-            symbol = None;
-        }  else {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
+        if (market.is_some()) {
+            symbol = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -954,10 +954,8 @@ impl Weex {
         //
         let timestamp: Option<i64> = self.safe_integer_k(&trade, "T", &[]).as_i64();
         let mut symbol: Option<String> = None;
-        if (market.is_none()) {
-            symbol = None;
-        }  else {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
+        if (market.is_some()) {
+            symbol = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         let isBuyerMaker: Option<bool> = self.safe_bool_k_opt(&trade, "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Option<String> = None;
@@ -1661,7 +1659,7 @@ impl Weex {
             return;
         }
         let ticker: crate::value::Dict = self.parse_ws_bid_ask(message, Some(&market));
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         }
@@ -1672,10 +1670,8 @@ impl Weex {
     pub fn parse_ws_bid_ask(&self, mut message: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let timestamp: Option<i64> = self.safe_integer_k(&message, "E", &[]).as_i64();
         let mut symbol: Option<String> = None;
-        if (market.is_none()) {
-            symbol = None;
-        }  else {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
+        if (market.is_some()) {
+            symbol = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();

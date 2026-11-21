@@ -833,7 +833,8 @@ impl Hyperliquid {
                         }  else {
                             bucketLabel = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "BETWEEN_", get_value(&thresholds, &Value::from((if let Some(__l) = index { Some(__l - 1) } else { None })))).into()), "_").into()), get_value(&thresholds, &Value::from(index)));
                         }
-                        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), bucketLabel).into()), questionExpiryPart));
+                        let upperUnderlying: Option<String> = questionUnderlying.as_deref().map(str::to_uppercase);
+                        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", upperUnderlying.as_deref().unwrap_or("null"), "_").into()), bucketLabel).into()), questionExpiryPart));
                     }
                 }
                 let isFallbackLike: bool = (rawDescription.as_deref() == Some("other")) || (nameLower.as_deref().unwrap_or_default().contains("fallback")) || (nameLower.as_deref().unwrap_or_default().contains("other"));

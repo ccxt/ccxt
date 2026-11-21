@@ -439,7 +439,7 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_place");
         let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
@@ -1711,13 +1711,13 @@ impl Gate {
         // todo add options support
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
         let messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".candlesticks");
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", interval.as_deref().unwrap_or("null")).into()), ":").into()), (market).symbol);
         let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
-        let payload: crate::value::List = std::sync::Arc::new(vec![interval.map(Value::from).unwrap_or(Value::Null), marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let payload: crate::value::List = std::sync::Arc::new(vec![interval.map(Value::from).unwrap_or(Value::Null), Value::from(marketId)]);
         let mut ohlcv: Value = self.subscribe_public(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), &[&params]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -1757,7 +1757,7 @@ impl Gate {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = (market).symbol.clone();
-        let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
         let messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".candlesticks");
@@ -1771,7 +1771,7 @@ impl Gate {
                 m.insert("time".to_string(), Value::Int(self.seconds()));
                 m.insert("channel".to_string(), Value::from(channel));
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("payload".to_string(), Value::from(vec![Value::from(interval.as_deref()), marketId.map(Value::from).unwrap_or(Value::Null)]));
+                m.insert("payload".to_string(), Value::from(vec![Value::from(interval.as_deref()), Value::from(marketId)]));
             m
         });
         // mirrors the subscription shape base cleanCache() expects for ohlcv
@@ -2458,9 +2458,9 @@ impl Gate {
         }
         let mut payload: crate::value::List = std::sync::Arc::new(vec![Value::Str(format!("{}{}", "!", "all").into())]);
         if (market.is_some()) {
-            messageHash.push_str(&format!("{}{}", ":", crate::value::KeyRead::key_read(&&market, "id")));
-            let mid: Option<String> = crate::value::KeyRead::key_read(&&market, "id").as_str().map(str::to_owned);
+            let mid: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             if (mid.is_some()) {
+                messageHash.push_str(&format!("{}{}", ":", mid.as_deref().unwrap_or("null")));
                 payload = std::sync::Arc::new(vec![mid.map(Value::from).unwrap_or(Value::Null)]);
             }
         }

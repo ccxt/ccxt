@@ -6527,10 +6527,10 @@ impl Htx {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchOrderBook() returned empty response")));
         }
         if (matches!(&response, Value::Dict(__d) if __d.contains_key("tick"))) {
-            if (self.safe_value_k(&response, "tick", &[]) == Value::Null) {
+            let tick: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "tick");
+            if (tick.is_none()) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrderBook() returned empty response: ").into()), json_stringify(&response))));
             }
-            let tick: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "tick");
             let timestamp: Option<i64> = self.safe_integer_k(&tick, "ts", &[self.safe_integer_k(&response, "ts", &[])]).as_i64();
             let mut result: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&tick, symbol, &[Value::from(timestamp)]));
             result.insert("nonce".into(), self.safe_integer_k(&tick, "version", &[]));

@@ -577,10 +577,8 @@ impl Binance {
 }
 
     pub fn get_ws_url(&self, mut type_var: Value, mut category: Value) -> Option<String> {
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         if (type_var.as_str() == Some("option")) || (type_var.as_str() == Some("optionMarket")) || (type_var.as_str() == Some("optionPrivate")) {
             return self.safe_string_opt(&wsUrls, &type_var, &[&Value::Str("".into())]);
         }
@@ -625,10 +623,8 @@ impl Binance {
         if (type_var == Some("linear")) {
             return Some(format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(Value::from(type_var), Value::Str("private".into())).map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), Value::from(listenKey)));
         }
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsUrl: Option<String> = self.safe_string_opt(&wsUrls, Value::from(type_var), &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " getPrivateWsUrl() has no websocket url for this market type")));
@@ -638,10 +634,8 @@ impl Binance {
 
     pub fn get_stock_ws_url(&self, optional_args: &[&Value]) -> Value {
         let streamType = get_arg(optional_args, 0, Value::Str("market".into()));
-        let wsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()), &[Value::Map({
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsUrls: indexmap::IndexMap<String, Value> = self.safe_dict_k(&urlsApi, "ws", &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -1461,10 +1455,8 @@ impl Binance {
         if (marketType.as_deref() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOrderBookWs only supports swap markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, marketType.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -2798,10 +2790,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (type_var.as_deref() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchTickerWs only supports swap markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -2874,10 +2864,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOHLCVWs only supports spot or swap markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, marketType.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -3938,10 +3926,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
  */
     pub async fn ensure_user_data_stream_ws_subscribe_signature(&mut self, optional_args: &[&Value]) -> Value {
         let marketType = get_arg(optional_args, 0, Value::Str("spot".into()));
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, &marketType, &[]);
         if (url.is_none()) {
@@ -4044,10 +4030,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_k_opt(&wsApiDict, "spot", &[]);
         if (url.is_none()) {
@@ -4549,10 +4533,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (type_var.as_deref() != Some("spot")) && (type_var.as_deref() != Some("linear")) && (type_var.as_deref() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchBalanceWs only supports spot or swap markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -4735,10 +4717,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (type_var.as_deref() != Some("linear")) && (type_var.as_deref() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchPositionsWs only supports swap markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -4863,10 +4843,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut urlType: Option<String> = type_var.clone();
         if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             // route to WebSocket API connection where the user data stream is subscribed
-            let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]), Value::Str("ws".into()));
+            let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+            let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
             let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
             url = self.safe_string_k_opt(&wsApiDict, "spot", &[&Value::Str("".into())]);
         }  else {
@@ -5136,10 +5114,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("linear")) && (marketType.as_deref() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrderWs only supports spot or swap markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, marketType.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -5337,10 +5313,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("linear")) && (marketType.as_deref() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " editOrderWs only supports spot or swap markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, Value::from(marketType.as_deref()), &[]);
         if (url.is_none()) {
@@ -5528,10 +5502,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let type_var: Option<String> = self.get_market_type("cancelOrderWs", Some(&market), &[&params]);
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -5617,10 +5589,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (type_var.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " cancelAllOrdersWs only supports spot markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -5690,10 +5660,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (type_var.as_deref() != Some("spot")) && (type_var.as_deref() != Some("linear")) && (type_var.as_deref() != Some("inverse")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOrderWs only supports spot or swap markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -5773,10 +5741,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (type_var.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOrdersWs only supports spot markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -5885,10 +5851,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (type_var.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOpenOrdersWs only supports spot markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -6037,10 +6001,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut url: Option<String> = Some("".to_string());
         if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             // route orders to ws-api user data stream
-            let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]), Value::Str("ws".into()));
+            let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+            let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
             let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
             url = self.safe_string_k_opt(&wsApiDict, "spot", &[&Value::Str("".into())]);
         }  else {
@@ -7039,10 +7001,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (type_var.as_deref() != Some("spot")) && (type_var.as_deref() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMyTradesWs does not support ").into()), type_var.as_deref().unwrap_or("null")).into()), " markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -7123,10 +7083,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (type_var.as_deref() != Some("spot")) && (type_var.as_deref() != Some("linear")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchTradesWs does not support ").into()), type_var.as_deref().unwrap_or("null")).into()), " markets")));
         }
-        let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
+        let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
         let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
         let url: Option<String> = self.safe_string_opt(&wsApiDict, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
         if (url.is_none()) {
@@ -7285,10 +7243,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut isPortfolioMargin: Option<bool> = portfolioMarginAndParams.0;
         let mut url: Option<String> = Some("".to_string());
         if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
-            let wsApiUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]), Value::Str("ws".into()));
+            let urlsApi: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+            let wsApiUrls: crate::value::Dict = self.safe_dict_k_t(&urlsApi, "ws");
             let wsApiDict: crate::value::Dict = self.safe_dict_k_t(&wsApiUrls, "ws-api");
             url = self.safe_string_k_opt(&wsApiDict, "spot", &[&Value::Str("".into())]);
         }  else {

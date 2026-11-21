@@ -260,7 +260,7 @@ impl Phemex {
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let marketValue: &crate::types::Market = &marketResolved;
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_product_k(&ticker, "timestamp", Value::Float(0.000001), &[]).as_i64();
         let lastString: Option<String> = self.from_ep(self.safe_string_k(&ticker, "close", &[]), &[&crate::Value::from(marketValue)]);
         let last: Value = self.parse_number(Value::from(lastString.as_deref()), &[]);
@@ -326,7 +326,7 @@ impl Phemex {
         let marketId: Option<String> = self.safe_string_opt(&ticker, Value::Int(0), &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let marketValue: &crate::types::Market = &marketResolved;
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let lastString: Option<String> = self.from_ep(self.safe_string(&ticker, Value::Int(4), &[]), &[&crate::Value::from(marketValue)]);
         let last: Value = self.parse_number(Value::from(lastString.as_deref()), &[]);
         let quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(&ticker, Value::Int(6), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]);
@@ -629,8 +629,8 @@ impl Phemex {
         let name: String = "trade".to_string();
         let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol.as_deref().unwrap_or("null"));
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -683,13 +683,13 @@ impl Phemex {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let candles: crate::value::List = self.safe_list2_t(message, Value::Str("kline".into()), Value::Str("kline_p".into()));
         let first: crate::value::List = self.safe_list_t(&candles, Value::Int(0));
         let interval: Option<String> = self.safe_string_opt(&first, Value::Int(1), &[]);
         let timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe.is_some()) {
-            let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
+            let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol);
             let mut ohlcvs: Vec<Value> = self.parse_ohlc_vs(&candles, Some(&market), &[]).to_vec();
             CacheShelves::ensure(&mut self.ohlcvs, &symbol);
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
@@ -1231,16 +1231,16 @@ impl Phemex {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let depth: Option<i64> = (match __pro_message.get("depth") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let name: String = "orderbook".to_string();
-        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol.as_deref().unwrap_or("null"));
+        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol);
         let nonce: Option<i64> = (match __pro_message.get("sequence") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let timestamp: Option<i64> = self.safe_integer_product_k(&message, "timestamp", Value::Float(0.000001), &[]).as_i64();
         if (type_var.as_deref() == Some("snapshot")) {
             let book: crate::value::Dict = self.safe_dict2_t(&message, Value::Str("book".into()), Value::Str("orderbook_p".into()));
-            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(&book, symbol.as_deref().unwrap_or_default(), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Int(0), &Value::Int(1), &crate::Value::from(&market)]);
+            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(&book, symbol.as_str(), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Int(0), &Value::Int(1), &crate::Value::from(&market)]);
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
@@ -1460,7 +1460,7 @@ impl Phemex {
             let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let parsed: crate::value::Dict = self.parse_trade(rawTrade, None);
             cachedTrades.append(Value::from(&parsed));
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (type_var.is_none()) {
                 let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
                 type_var = (if (marketSettle.as_deref() == Some("USDT")) { Some("perpetual".to_string()) } else { market.raw.at("type").as_str().map(str::to_owned) });
@@ -1768,13 +1768,13 @@ impl Phemex {
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (parsedOrders.len() as i64) } {
             let parsed: Option<crate::value::Dict> = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             self.orders.append(parsed.clone().map_or(Value::Null, Value::Dict));
-            let symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let symbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (type_var.is_none()) {
                 let isUsdt: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
                 type_var = (if isUsdt { Some("perpetual".to_string()) } else { Some((market).market_type.clone()) });
             }
-            marketIds.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
+            marketIds.insert(symbol, Value::Bool(true));
         }
         }
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -1922,7 +1922,7 @@ impl Phemex {
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let marketValue: &crate::types::Market = &marketResolved;
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let status: Option<String> = self.parent.parse_order_status(self.safe_string_k(&order, "ordStatus", &[]).as_str());
         let side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
         let type_var: Option<String> = self.parent.parse_order_type(self.safe_string_k(&order, "ordType", &[]).as_str());

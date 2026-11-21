@@ -3357,8 +3357,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut mi: i64 = 0;
                 let mut __for_first_27: bool = true;
                 while { if !__for_first_27 { mi += 1; } __for_first_27 = false; mi < parsedMarketsLength } {
-                let m: Value = parsedMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null);
-                add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m);
+                let marketKey: Option<String> = self.safe_string_k_opt(parsedMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null), "market", &[]);
+                if (marketKey.is_some()) {
+                    if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketKey.as_deref().unwrap_or("null").to_string(), parsedMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null)); }
+                }
             }
             }
         }

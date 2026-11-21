@@ -2244,8 +2244,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (subMessageHashes.len() as i64) } {
-            let subHash: Option<String> = subMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let unsubHash: Option<String> = unsubMessageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let subHash: Option<String> = self.safe_string_opt(&subMessageHashes, Value::Int(i), &[]);
+            let unsubHash: Option<String> = self.safe_string_opt(&unsubMessageHashes, Value::Int(i), &[]);
             self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[]);
         }
         }

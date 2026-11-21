@@ -105,7 +105,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_product_k(&ticker, "timestamp", Value::Float(0.000001), &[]).as_i64();
         let last: Value = self.from_ep(self.safe_string2(&ticker, Value::Str("lastEp".into()), Value::Str("closeRp".into()), &[]).as_str(), &[&crate::Value::from(&marketResolved)]).map(Value::from).unwrap_or(Value::Null);
         let quoteVolume: Value = self.from_er(self.safe_string2(&ticker, Value::Str("turnoverEv".into()), Value::Str("turnoverRv".into()), &[]), Some(&marketResolved)).map(Value::from).unwrap_or(Value::Null);
@@ -337,7 +337,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         let mut feeCurrencyCode: Option<String> = None;
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let mut orderId: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
         if (matches!(&trade, Value::Arr(_))) {
@@ -582,7 +582,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let collateral: Option<String> = self.safe_string2_opt(&position, Value::Str("positionMargin".into()), Value::Str("positionMarginRv".into()), &[]);
         let notionalString: Option<String> = self.safe_string2_opt(&position, Value::Str("value".into()), Value::Str("valueRv".into()), &[]);
         let maintenanceMarginPercentageString: Option<String> = self.safe_string2_opt(&position, Value::Str("maintMarginReq".into()), Value::Str("maintMarginReqRr".into()), &[]);
@@ -4268,7 +4268,7 @@ impl Phemex {
         }
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let price: Value = self.from_ep(self.safe_string_k(&order, "priceEp", &[]).as_str(), &[&crate::Value::from(&marketResolved)]).map(Value::from).unwrap_or(Value::Null);
         let amount: Value = self.from_ev(self.safe_string_k(&order, "baseQtyEv", &[]).as_str(), &[&crate::Value::from(&marketResolved)]).map(Value::from).unwrap_or(Value::Null);
         let remaining: Option<String> = self.omit_zero(self.from_ev(self.safe_string_k(&order, "leavesBaseQtyEv", &[]).as_str(), &[&crate::Value::from(&marketResolved)]).map(Value::from).unwrap_or(Value::Null));

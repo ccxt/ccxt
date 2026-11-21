@@ -213,7 +213,8 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             }
         }
         // if it is a private trade
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("id"))) {
+        let tradeId: Option<String> = self.safe_string_k_opt(&trade, "id", &[]);
+        if (tradeId.is_some()) {
             if (amountString.is_some()) {
                 let isAmountNeg: bool = crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool().unwrap_or(false);
                 if isAmountNeg {
@@ -490,14 +491,14 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             let parsedTransaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, item.clone(), currency).as_map().cloned().unwrap_or_default();
             let mut direction: Option<String> = None;
             let transactionCurrency: Option<String> = self.safe_string_k_opt(&parsedTransaction, "currency", &[]);
-            let hasTransactionCurrency: bool = !(matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) && (transactionCurrency.is_some());
+            let itemAmount: Option<String> = self.safe_string_k_opt(&item, "amount", &[]);
+            let hasTransactionCurrency: bool = (itemAmount.is_none()) && (transactionCurrency.is_some());
             let mut currencyResolved: Option<crate::types::Currency> = currency.cloned();
             if hasTransactionCurrency {
                 currencyResolved = Some(self.currency(self.safe_string_k(&parsedTransaction, "currency", &[]).as_str()));
             }
-            if (matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) {
-                let amount: Option<String> = self.safe_string_k_opt(&item, "amount", &[]);
-                direction = (if crate::precise::Precise::stringGt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { Some("in".to_string()) } else { Some("out".to_string()) });
+            if (itemAmount.is_some()) {
+                direction = (if crate::precise::Precise::stringGt(&itemAmount, &Value::Str("0".into())).as_bool() == Some(true) { Some("in".to_string()) } else { Some("out".to_string()) });
             }  else if (transactionCurrency.is_some()) {
                 let amount: Option<String> = self.safe_string_opt(&item, self.safe_string_k(&currencyResolved, "id", &[]), &[]);
                 direction = (if crate::precise::Precise::stringGt(&amount, &Value::Str("0".into())).as_bool() == Some(true) { Some("in".to_string()) } else { Some("out".to_string()) });
@@ -618,8 +619,9 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         let feeCost: Option<String> = self.safe_string_k_opt(&transaction, "fee", &[]);
         let mut feeCurrency: Option<String> = None;
         let mut amount: Option<String> = None;
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("amount"))) {
-            amount = self.safe_string_k_opt(&transaction, "amount", &[]);
+        let transactionAmount: Option<String> = self.safe_string_k_opt(&transaction, "amount", &[]);
+        if (transactionAmount.is_some()) {
+            amount = transactionAmount;
         }  else if (currency.is_some()) {
             amount = self.safe_string_opt(&transaction, crate::value::KeyRead::key_read(&currency, "id"), &[]);
             feeCurrency = crate::value::KeyRead::key_read(&currency, "code").into_opt_string();
@@ -632,13 +634,14 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }
         let mut status: Option<String> = Some("ok".to_string());
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("status"))) {
-            status = self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str());
+        let rawStatus: Option<String> = self.safe_string_k_opt(&transaction, "status", &[]);
+        if (rawStatus.is_some()) {
+            status = self.parse_transaction_status(rawStatus.as_deref());
         }
         let mut type_var: Option<String> = None;
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("type"))) {
+        let rawType: Option<String> = self.safe_string_k_opt(&transaction, "type", &[]);
+        if (rawType.is_some()) {
             // from fetchDepositsWithdrawals
-            let rawType: Option<String> = self.safe_string_k_opt(&transaction, "type", &[]);
             if (rawType.as_deref() == Some("0")) {
                 type_var = Some("deposit".to_string());
             }  else if (rawType.as_deref() == Some("1")) {

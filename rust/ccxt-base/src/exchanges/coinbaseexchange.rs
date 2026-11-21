@@ -191,7 +191,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         }
         let price: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&trade, "size", &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2084,8 +2084,8 @@ impl Coinbaseexchange {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let entry: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::from(delimiter.clone())]);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker_list(self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]), Some(&market)));
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(symbol, self.parse_ticker_list(self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]), Some(&market)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -2712,8 +2712,7 @@ impl Coinbaseexchange {
             if (costParam.is_some()) {
                 request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.as_str(), costParam)));
             }  else if (price.is_some()) {
-                request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.as_str(), (match (&(Value::from(amount)), &(Value::from(price))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
+                request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.as_str(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::from(self.number_to_string(price))))));
             }  else {
                 request.insert("size".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             }
@@ -3285,10 +3284,9 @@ impl Coinbaseexchange {
     m
 }));
         let response: Value = self.fetch2(path, &[api, method, params, config]).await;
-        if !matches!(&response, Value::Str(_)) {
-            if (in_op(&response, &Value::Str("message".into()))) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response))));
-            }
+        let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
+        if (message.is_some()) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response))));
         }
         return response;
 

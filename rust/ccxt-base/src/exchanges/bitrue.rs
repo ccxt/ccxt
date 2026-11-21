@@ -193,7 +193,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
             side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) }); // this is a true side
         }
         let mut fee: Option<crate::value::Dict> = None;
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("commission"))) {
+        let commission: Option<String> = self.safe_string_k_opt(&trade, "commission", &[]);
+        if (commission.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_string2(&trade, Value::Str("commission".into()), Value::Str("fee".into()), &[]));
@@ -288,16 +289,19 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let filled: Option<String> = self.safe_string_k_opt(&order, "executedQty", &[]);
         let mut timestamp: Option<i64> = None;
         let mut lastTradeTimestamp: Option<i64> = None;
-        if (matches!(&order, Value::Dict(__d) if __d.contains_key("time"))) {
-            timestamp = self.safe_integer_k(&order, "time", &[]).as_i64();
-        }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime"))) {
-            timestamp = self.safe_integer_k(&order, "transactTime", &[]).as_i64();
-        }  else if (matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime"))) {
+        let time: Option<i64> = self.safe_integer_k(&order, "time", &[]).as_i64();
+        let transactTime: Option<i64> = self.safe_integer_k(&order, "transactTime", &[]).as_i64();
+        let updateTime: Option<i64> = self.safe_integer_k(&order, "updateTime", &[]).as_i64();
+        if (time.is_some()) {
+            timestamp = time;
+        }  else if (transactTime.is_some()) {
+            timestamp = transactTime;
+        }  else if (updateTime.is_some()) {
             if (status.as_deref() == Some("open")) {
                 if crate::precise::Precise::stringGt(&filled, &Value::Str("0".into())).as_bool() == Some(true) {
-                    lastTradeTimestamp = self.safe_integer_k(&order, "updateTime", &[]).as_i64();
+                    lastTradeTimestamp = updateTime;
                 }  else {
-                    timestamp = self.safe_integer_k(&order, "updateTime", &[]).as_i64();
+                    timestamp = updateTime;
                 }
             }
         }
@@ -325,7 +329,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -801,10 +805,10 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let txid: Option<String> = self.safe_string_k_opt(&transaction, "txid", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&transaction, "createdAt", &[]).as_i64();
         let updated: Option<i64> = self.safe_integer_k(&transaction, "updatedAt", &[]).as_i64();
-        let payAmount: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("payAmount"));
-        let ctime: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("ctime"));
+        let payAmount: Option<String> = self.safe_string_k_opt(&transaction, "payAmount", &[]);
+        let ctime: Option<String> = self.safe_string_k_opt(&transaction, "ctime", &[]);
         let mut type_var: String = "deposit".to_string();
-        if payAmount || ctime {
+        if (payAmount.is_some()) || (ctime.is_some()) {
             type_var = "withdrawal".to_string();
         }
         let status: Option<String> = self.parse_transaction_status_by_type(self.safe_string_k(&transaction, "status", &[]).as_str(), Some(type_var.as_str()));

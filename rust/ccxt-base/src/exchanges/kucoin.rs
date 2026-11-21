@@ -61,7 +61,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
 }
     fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let trade: Value = trade.into();
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("liquidityRole"))) {
+        if (self.safe_string_k(&trade, "liquidityRole", &[]) != Value::Null) {
             return Some(self.parse_my_uta_trade(trade.clone(), market));
         }
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
@@ -79,7 +79,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
         let tradeType: Option<String> = self.safe_string_k_opt(&order, "tradeType", &[]);
         let utaTradeTypes: crate::value::List = std::sync::Arc::new(vec![Value::Str("SPOT".into()), Value::Str("CROSS".into()), Value::Str("ISOLATED".into()), Value::Str("FUTURES".into())]); // tradeType specific for uta endpoint
         let mut isUtaOrder: bool = self.in_array(&tradeType, &utaTradeTypes);
-        if (matches!(&order, Value::Dict(__d) if __d.contains_key("sizeUnit"))) {
+        if (self.safe_string_k(&order, "sizeUnit", &[]) != Value::Null) {
             isUtaOrder = true;
         }
         if isUtaOrder {
@@ -281,9 +281,9 @@ impl crate::exchange::DerivedExchange for Kucoin {
         }
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(&position, "closeTime", &[]).as_i64();
         if (lastUpdateTimestamp.is_none()) {
-            if (matches!(&position, Value::Dict(__d) if __d.contains_key("closingTime"))) {
+            if (self.safe_string_k(&position, "closingTime", &[]) != Value::Null) {
                 lastUpdateTimestamp = self.safe_integer_product_k(&position, "closingTime", Value::Float(0.000001), &[]).as_i64();
-            }  else if (matches!(&position, Value::Dict(__d) if __d.contains_key("updateTime"))) {
+            }  else if (self.safe_string_k(&position, "updateTime", &[]) != Value::Null) {
                 lastUpdateTimestamp = self.safe_integer_product_k(&position, "updateTime", Value::Float(0.000001), &[]).as_i64();
             }
         }
@@ -7698,7 +7698,7 @@ impl Kucoin {
             }
             let sizeString: Option<String> = self.amount_to_precision(symbol, amount);
             if (sizeString.is_some()) {
-                request.insert("size".into(), (match sizeString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null }));
+                request.insert("size".into(), Value::from(self.parse_to_int(sizeString.map(Value::from).unwrap_or(Value::Null))));
             }
         }
         self.check_trigger_prices(&paramsOmitted);
@@ -11208,7 +11208,7 @@ impl Kucoin {
         let createdAt: Option<i64> = self.safe_integer_k(&trade, "createdAt", &[]).as_i64();
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         let mut timestamp: Option<i64> = createdAt;
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("dealValue"))) && (createdAt.is_some()) {
+        if (self.safe_string_k(&trade, "dealValue", &[]) != Value::Null) && (createdAt.is_some()) {
             timestamp = (if let Some(__l) = createdAt { Some(__l * 1000) } else { None });
         }
         if (nanoseconds.is_some()) {
@@ -11344,7 +11344,7 @@ impl Kucoin {
         let createdAt: Option<i64> = self.safe_integer_k(&trade, "createdAt", &[]).as_i64();
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         let mut timestamp: Option<i64> = createdAt;
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("dealValue"))) && (createdAt.is_some()) {
+        if (self.safe_string_k(&trade, "dealValue", &[]) != Value::Null) && (createdAt.is_some()) {
             timestamp = (if let Some(__l) = createdAt { Some(__l * 1000) } else { None });
         }
         if (nanoseconds.is_some()) {
@@ -13978,7 +13978,7 @@ impl Kucoin {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("leverage".to_string(), Value::Str(format!("{}", Value::from(leverage)).into()));
+                m.insert("leverage".to_string(), Value::from(self.number_to_string(Value::from(leverage))));
             m
         });
         let uta: bool = self.is_uta_enabled(&[]).await.as_bool().unwrap_or_default();

@@ -529,7 +529,11 @@ impl crate::exchange::DerivedExchange for Weex {
             amountPrecision = self.parse_number(amountPrecisionString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             pricePrecision = self.parse_number(pricePrecisionString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
-        let fees: indexmap::IndexMap<String, Value> = self.safe_dict(&self.fees, (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) }), &[Value::Map({
+        let mut feesKey: String = "contract".to_string();
+        if isSpot {
+            feesKey = "spot".to_string();
+        }
+        let fees: indexmap::IndexMap<String, Value> = self.safe_dict(&self.fees, Value::from(feesKey), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -1207,7 +1211,7 @@ impl crate::exchange::DerivedExchange for Weex {
             let timestamp: Option<String> = self.number_to_string(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.as_deref().unwrap_or("null"), method).into()), "/").into()), endpoint);
             if hasJsonBody {
-                payload.push_str(requestBody.as_deref().unwrap_or("null"));
+                payload = format!("{}{}", payload, json_stringify(&query));
             }
             let signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(&self.secret), "sha256", &[Value::Str("base64".into())]);
             requestHeaders = ({
@@ -4987,7 +4991,6 @@ impl Weex {
             let m = indexmap::IndexMap::new();
             m
         });
-        let mut items: Value = Value::Null;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
@@ -5007,7 +5010,8 @@ impl Weex {
             let paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_35 = self.extend(requestUntil, &[&paramsUntil]);
             let contractResponse: crate::value::Dict = self.contract_private_post_capi_v3_account_income(&[&__ws_arg_35]).await.unwrap_or_default();
-            items = self.safe_list_k(&contractResponse, "items", &[Value::from(vec![])]);
+            let contractItems: crate::value::List = self.safe_list_k_t(&contractResponse, "items");
+            return self.parse_ledger(&contractItems, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         }  else if (accountType.as_deref() == Some("funding")) {
             if (since.is_some()) {
                 request.insert("startTime".into(), Value::from(since));
@@ -5020,7 +5024,8 @@ impl Weex {
             let paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_36 = self.extend(requestUntil, &[&paramsUntil]);
             let fundingResponse: crate::value::Dict = self.private_post_api_v3_account_funding_bills(&[&__ws_arg_36]).await.unwrap_or_default();
-            items = self.safe_list_k(&fundingResponse, "items", &[Value::from(vec![])]);
+            let fundingItems: crate::value::List = self.safe_list_k_t(&fundingResponse, "items");
+            return self.parse_ledger(&fundingItems, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         }  else {
             if (since.is_some()) {
                 request.insert("after".into(), Value::from(since));
@@ -5033,9 +5038,9 @@ impl Weex {
             let paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_37 = self.extend(requestUntil, &[&paramsUntil]);
             let billsResponse: crate::value::List = self.private_post_api_v3_account_bills(&[&__ws_arg_37]).await.unwrap_or_default();
-            items = self.to_array(&billsResponse);
+            let billsItems: crate::value::List = self.to_array_t(&billsResponse);
+            return self.parse_ledger(&billsItems, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         }
-        return self.parse_ledger(items, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         Value::Null
         }).await?))
     }

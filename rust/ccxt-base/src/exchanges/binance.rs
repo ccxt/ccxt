@@ -486,7 +486,7 @@ impl crate::exchange::DerivedExchange for Binance {
             marketType = "spot".to_string();
         }
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::from(marketType)]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let mut side: Option<String> = None;
         let buyerMaker: Option<bool> = self.safe_bool2_opt(&trade, Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]);
         let mut takerOrMaker: Option<String> = None;
@@ -1175,7 +1175,7 @@ impl crate::exchange::DerivedExchange for Binance {
             marketType = "contract".to_string();
         }
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::from(marketType.clone())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let filled: String = self.safe_string_n(&order, Value::from(vec![Value::Str("executedQty".into()), Value::Str("filledQty".into()), Value::Str("actualQty".into())]), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string(); // actualQty: algo orders
         let mut timestamp: Option<i64> = self.safe_integer2(&order, Value::Str("time".into()), Value::Str("createTime".into()), &[]).as_i64(); // order of the keys matters here
         if (timestamp.is_none()) {
@@ -11419,7 +11419,7 @@ impl Binance {
                 m.insert("limit".to_string(), Value::from(limitValue));
             m
         });
-        let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+        let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOHLCV() missing marketId")));
         }
@@ -15938,10 +15938,10 @@ impl Binance {
                                 let mut i: i64 = 0;
                 let mut __for_first_28: bool = true;
                 while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (fees.len() as i64) } {
-                let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None));
-                let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
+                let fee: crate::value::Dict = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None);
+                let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
                 if (symbol.is_some()) {
-                    spotFees.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
+                    spotFees.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
                 }
             }
             }
@@ -17125,7 +17125,7 @@ impl Binance {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("swap".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let side: Option<String> = self.safe_string_lower_k_opt(&position, "side", &[]);
         let mut quantity: Option<String> = self.safe_string_k_opt(&position, "quantity", &[]);
         if (side.as_deref() != Some("long")) {

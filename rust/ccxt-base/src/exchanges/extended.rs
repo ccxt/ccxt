@@ -4627,8 +4627,6 @@ impl Extended {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut response: Option<crate::value::Dict> = None;
-        let mut order: Option<crate::value::Dict> = None;
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "client_id"], &[]);
         if (clientOrderId.is_some()) {
@@ -4638,12 +4636,12 @@ impl Extended {
                 m
             });
             let __ws_arg_28 = self.extend(request, &[&paramsOmitted]);
-            response = self.v1_private_get_user_orders_external_external_id(&[&__ws_arg_28]).await;
+            let response: crate::value::Dict = self.v1_private_get_user_orders_external_external_id(&[&__ws_arg_28]).await.unwrap_or_default();
             let data: crate::value::List = self.safe_list_k_t(&response, "data");
-            order = self.safe_dict_or_o(&data, Value::Int(0), Value::Map({
+            return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-}));
+})]), market.as_ref()).map_or(Value::Null, Value::Dict);
         }  else {
             if (id == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrder() requires an id argument")));
@@ -4654,14 +4652,11 @@ impl Extended {
                 m
             });
             let __ws_arg_29 = self.extend(request, &[&paramsOmitted]);
-            response = self.v1_private_get_user_orders_id(&[&__ws_arg_29]).await;
-            order = self.safe_dict_k_or_o(&response, "data", Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+            let response: crate::value::Dict = self.v1_private_get_user_orders_id(&[&__ws_arg_29]).await.unwrap_or_default();
+            let order: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+            return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, market.as_ref()).map_or(Value::Null, Value::Dict);
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, market.as_ref());
-        None
+        Value::Null
         }).await?))
     }
 

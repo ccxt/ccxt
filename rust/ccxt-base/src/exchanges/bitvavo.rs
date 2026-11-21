@@ -2596,7 +2596,8 @@ impl Bitvavo {
         if (clientOrderId.is_none()) {
             std::sync::Arc::make_mut(&mut request).insert("orderId".into(), Value::from(id));
         }
-        let operatorId: Value = (self.handle_option_and_params(&paramsOmitted, Value::Str("editOrder".into()), Value::Str("operatorId".into()), &[])).0;
+        let operatorIdVariable = self.handle_option_and_params(&paramsOmitted, Value::Str("editOrder".into()), Value::Str("operatorId".into()), &[]);
+        let operatorId: Value = operatorIdVariable.0;
         if (operatorId != Value::Null) {
             std::sync::Arc::make_mut(&mut request).insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {

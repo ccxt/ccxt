@@ -135,7 +135,7 @@ impl crate::exchange::DerivedExchange for Woo {
         //         "isMaker": 0
         //     }
         //
-        let isFromFetchOrder: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("id"));
+        let isFromFetchOrder: bool = self.safe_string_k(&trade, "id", &[]) != Value::Null;
         let timestampString: Option<String> = self.safe_string2_opt(&trade, Value::Str("executed_timestamp".into()), Value::Str("executedTimestamp".into()), &[]);
         let mut timestamp: Option<i64> = None;
         if (timestampString.is_some()) {

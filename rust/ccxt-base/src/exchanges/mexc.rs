@@ -200,7 +200,8 @@ impl crate::exchange::DerivedExchange for Mexc {
         let mut costString: Option<String> = None;
         let mut marketResolved: Option<crate::types::Market> = None;
         // if swap
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("v"))) {
+        let swapVolume: Option<String> = self.safe_string_k_opt(&trade, "v", &[]);
+        if (swapVolume.is_some()) {
             //
             // swap: fetchTrades
             //
@@ -278,7 +279,8 @@ impl crate::exchange::DerivedExchange for Mexc {
             priceString = self.safe_string2_opt(&trade, Value::Str("price".into()), Value::Str("p".into()), &[]);
             orderId = self.safe_string_k_opt(&trade, "orderId", &[]);
             // if swap
-            if (matches!(&trade, Value::Dict(__d) if __d.contains_key("positionMode"))) {
+            let positionMode: Option<String> = self.safe_string_k_opt(&trade, "positionMode", &[]);
+            if (positionMode.is_some()) {
                 timestamp = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
                 amountString = self.safe_string_k_opt(&trade, "vol", &[]);
                 side = self.parse_contract_order_side(self.safe_string_k(&trade, "side", &[]).as_str());

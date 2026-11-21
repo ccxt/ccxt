@@ -269,7 +269,7 @@ impl crate::exchange::DerivedExchange for Grvt {
         //        "ack": true
         //    }
         //
-        if (matches!(&order, Value::Dict(__d) if __d.contains_key("ack"))) {
+        if (self.safe_bool_k(&order, "ack", &[]) != Value::Null) {
             return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -3699,7 +3699,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     }
 
     pub fn convert_to_big_int_custom(&self, mut x: Value) -> Value {
-        return self.number_to_string(x).and_then(|__s| __s.trim().parse::<i64>().ok()).map(Value::Int).unwrap_or(Value::Null);
+        return Value::from(self.parse_to_int(x));
 
     Value::Null
 }
@@ -3725,10 +3725,9 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let sizeParts: crate::value::List = crate::value::List::new(if let Some(__s) = size.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
             let mut sizeDec: String = self.safe_string(&sizeParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let sizeDecLength: i64 = (((sizeDec.chars().count() as i64)) + 0); // php tr
-            let sizeDigits: Value = (match &(if let Some(__s) = size.as_deref() { Some(__s.replace(".", "")) } else { None }).map(Value::from).unwrap_or(Value::Null) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
+            let sizeDigits: Option<i64> = self.parse_to_int((if let Some(__s) = size.as_deref() { Some(__s.replace(".", "")) } else { None }).map(Value::from).unwrap_or(Value::Null));
             let mut denominator: f64 = f64::powf(10.0, (sizeDecLength as f64));
-            let sizeInteger: Value = (match (((match (&(sizeDigits), &(Value::from(sizeMultiplier))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+            let sizeInteger: Value = (match ((Value::from((if let Some(__l) = sizeDigits { Some((__l as f64) * sizeMultiplier) } else { None }))).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
             let mut legOrder: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("assetID".to_string(), self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "instrument_hash", &[]));
@@ -3738,14 +3737,13 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             });
             let limitPrice: Option<String> = self.safe_string_k_opt(&leg, "limit_price", &[]);
             if (limitPrice.is_some()) && (Value::from(self.omit_zero(limitPrice.clone().map(Value::from).unwrap_or(Value::Null))) != Value::Null) {
-                let price: Value = limitPrice.map(Value::from).unwrap_or(Value::Null);
-                let limitParts: crate::value::List = crate::value::List::new(if let Some(__s) = price.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
+                let price: Option<String> = limitPrice;
+                let limitParts: crate::value::List = crate::value::List::new(if let Some(__s) = price.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
                 let mut limitDec: String = self.safe_string(&limitParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let limitDecLength: i64 = (((limitDec.chars().count() as i64)) + 0); // php tr
-                let priceDigits: Value = (match &price.as_str().map(|__s| Value::Str(__s.replace(".", "").into())).unwrap_or_else(|| price.clone()) { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
+                let priceDigits: Option<i64> = self.parse_to_int((if let Some(__s) = price.as_deref() { Some(__s.replace(".", "")) } else { None }).map(Value::from).unwrap_or(Value::Null));
                 denominator = f64::powf(10.0, (limitDecLength as f64));
-                let priceInteger: Value = (match (((match (&(priceDigits), &(Value::from(priceMultiplier))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null })).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
+                let priceInteger: Value = (match ((Value::from((if let Some(__l) = priceDigits { Some(__l * priceMultiplier) } else { None }))).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
                 legOrder.insert("limitPrice".into(), Value::from(self.parse_to_int(priceInteger)));
             }  else {
                 legOrder.insert("limitPrice".into(), Value::Int(0)); // should be zero to validate type-check
@@ -3771,9 +3769,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         });
         if (structureType == Some("EIP712_ORDER_WITH_BUILDER_TYPE")) && matches!(self.safe_bool_k(&self.options, "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
             returnValue.insert("builder".into(), order.get("builder").cloned().unwrap_or(Value::Null));
-            returnValue.insert("builderFee".into(), Value::from(self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&(match order.get("builder_fee") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
-                Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue.insert("builderFee".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(self.fee_amount_multiplier())), &(match order.get("builder_fee") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
+                Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("0".into()) })))));
         }
         return Value::Map(returnValue);
 
@@ -4651,9 +4648,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     m
 })]).as_map().cloned().unwrap_or_default();
         if (structureType == "EIP712_TRANSFER_TYPE") {
-            let amountMultiplier: Value = self.convert_to_big_int_custom(Value::Str("1000000".into()));
-            let amountInt: Value = (match (&(request.get("num_tokens").cloned().unwrap_or(Value::Null)), &(amountMultiplier)) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x * __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
-                Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x * __y), _ => Value::Null } });
+            let amountMultiplier: i64 = self.convert_to_big_int_custom(Value::Str("1000000".into())).as_i64().unwrap_or_default();
+            let amountInt: Option<String> = crate::precise::Precise::stringMul(&self.safe_string(&*request, Value::Str("num_tokens".into()), &[Value::Str("0".into())]), &Value::from(self.number_to_string(Value::from(amountMultiplier)))).as_str().map(str::to_owned);
             if (currencyObj == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createSignedRequest() missing currencyObj")));
             }
@@ -4664,7 +4660,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                     m.insert("toAccount".to_string(), request.get("to_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("toSubAccount".to_string(), request.get("to_sub_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("tokenCurrency".to_string(), currencyObj.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
-                    m.insert("numTokens".to_string(), Value::from(self.parse_to_int(amountInt)));
+                    m.insert("numTokens".to_string(), Value::from(self.parse_to_int(amountInt.map(Value::from).unwrap_or(Value::Null))));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m
@@ -4679,8 +4675,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                     m.insert("fromAccount".to_string(), request.get("from_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("toEthAddress".to_string(), request.get("to_eth_address").cloned().unwrap_or(Value::Null));
                     m.insert("tokenCurrency".to_string(), currencyObj.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
-                    m.insert("numTokens".to_string(), Value::from(self.parse_to_int((match (&(request.get("num_tokens").cloned().unwrap_or(Value::Null)), &(amountMultiplier)) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x * __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
-                        Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x * __y), _ => Value::Null } }))));
+                    m.insert("numTokens".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.safe_string(&*request, Value::Str("num_tokens".into()), &[Value::Str("0".into())]), &Value::from(self.number_to_string(amountMultiplier))))));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m
@@ -4693,10 +4688,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 let mut m = indexmap::IndexMap::new();
                     m.insert("mainAccountID".to_string(), request.get("main_account_id").cloned().unwrap_or(Value::Null));
                     m.insert("builderAccountID".to_string(), request.get("builder_account_id").cloned().unwrap_or(Value::Null));
-                    m.insert("maxFutureFeeRate".to_string(), Value::from(self.parse_to_int((match (&(self.safe_string(&*request, Value::Str("max_futures_fee_rate".into()), &[]).as_str().and_then(|__s| __s.trim().parse::<f64>().ok()).map(Value::Float).unwrap_or(Value::Null)), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                        (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
-                    m.insert("maxSpotFeeRate".to_string(), Value::from(self.parse_to_int((match (&(self.safe_string(&*request, Value::Str("max_spot_fee_rate".into()), &[]).as_str().and_then(|__s| __s.trim().parse::<f64>().ok()).map(Value::Float).unwrap_or(Value::Null)), &(amountMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                        (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
+                    m.insert("maxFutureFeeRate".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.safe_string(&*request, Value::Str("max_futures_fee_rate".into()), &[Value::Str("0".into())]), &Value::from(self.number_to_string(&amountMultiplier))))));
+                    m.insert("maxSpotFeeRate".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.safe_string(&*request, Value::Str("max_spot_fee_rate".into()), &[Value::Str("0".into())]), &Value::from(self.number_to_string(amountMultiplier))))));
                     m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));
                     m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m

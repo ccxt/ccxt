@@ -862,16 +862,14 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         if (msg.is_some()) && (msg.as_deref() == Some("")) && (sMsg.is_some()) {
             msg = sMsg;
         }
-        let errorList: Option<crate::value::List> = self.safe_list_k_o(&data, "errorList");
-        if (errorList.is_some()) {
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_5: bool = true;
-                while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (errorList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let entry: crate::value::Dict = self.safe_dict_t(&errorList, Value::Int(i));
-                errorCode = self.safe_string_k_opt(&entry, "errorCode", &[]);
-            }
-            }
+        let errorList: crate::value::List = self.safe_list_k_t(&data, "errorList");
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (errorList.len() as i64) } {
+            let entry: crate::value::Dict = self.safe_dict_t(&errorList, Value::Int(i));
+            errorCode = self.safe_string_k_opt(&entry, "errorCode", &[]);
+        }
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         if (sCode.is_none()) && (errorCode.is_some()) {

@@ -153,8 +153,8 @@ impl crate::exchange::DerivedExchange for Coinbase {
         let mut ask: Option<f64> = self.safe_number_k(&ticker, "ask", &[]).as_f64();
         let mut bidVolume: Option<f64> = None;
         let mut askVolume: Option<f64> = None;
-        if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("bids"))) {
-            let bids: crate::value::List = self.safe_list_k_t(&ticker, "bids");
+        let bids: Option<crate::value::List> = self.safe_list_k_o(&ticker, "bids");
+        if (bids.is_some()) {
             let asks: crate::value::List = self.safe_list_k_t(&ticker, "asks");
             let firstBid: crate::value::Dict = self.safe_dict_t(&bids, Value::Int(0));
             let firstAsk: crate::value::Dict = self.safe_dict_t(&asks, Value::Int(0));
@@ -421,11 +421,11 @@ impl crate::exchange::DerivedExchange for Coinbase {
         let limitGTC: Option<crate::value::Dict> = self.safe_dict_k_o(&orderConfiguration, "limit_limit_gtc");
         let limitGTD: Option<crate::value::Dict> = self.safe_dict_k_o(&orderConfiguration, "limit_limit_gtd");
         let limitIOC: Option<crate::value::Dict> = self.safe_dict_k_o(&orderConfiguration, "sor_limit_ioc");
-        let stopLimitGTC: Value = self.safe_dict_k(&orderConfiguration, "stop_limit_stop_limit_gtc", &[]);
-        let stopLimitGTD: Value = self.safe_dict_k(&orderConfiguration, "stop_limit_stop_limit_gtd", &[]);
+        let stopLimitGTC: Option<crate::value::Dict> = self.safe_dict_k_o(&orderConfiguration, "stop_limit_stop_limit_gtc");
+        let stopLimitGTD: Option<crate::value::Dict> = self.safe_dict_k_o(&orderConfiguration, "stop_limit_stop_limit_gtd");
         let marketIOC: crate::value::Dict = self.safe_dict_k_t(&orderConfiguration, "market_market_ioc");
         let isLimit: bool = (limitGTC.is_some()) || (limitGTD.is_some()) || (limitIOC.is_some());
-        let isStop: bool = (stopLimitGTC != Value::Null) || (stopLimitGTD != Value::Null);
+        let isStop: bool = (stopLimitGTC.is_some()) || (stopLimitGTD.is_some());
         let mut price: Option<String> = None;
         let mut amount: Option<String> = None;
         let mut postOnly: Option<bool> = None;
@@ -443,7 +443,12 @@ impl crate::exchange::DerivedExchange for Coinbase {
             amount = self.safe_string_k_opt(&target, "base_size", &[]);
             postOnly = self.safe_bool_k(&target, "post_only", &[]).as_bool();
         }  else if isStop {
-            let stopTarget: crate::value::Dict = (if (stopLimitGTC != Value::Null) { stopLimitGTC } else { stopLimitGTD }).into_dict();
+            let mut stopTarget: Option<crate::value::Dict> = None;
+            if (stopLimitGTC.is_some()) {
+                stopTarget = stopLimitGTC;
+            }  else {
+                stopTarget = stopLimitGTD;
+            }
             price = self.safe_string_k_opt(&stopTarget, "limit_price", &[]);
             amount = self.safe_string_k_opt(&stopTarget, "base_size", &[]);
             postOnly = self.safe_bool_k(&stopTarget, "post_only", &[]).as_bool();

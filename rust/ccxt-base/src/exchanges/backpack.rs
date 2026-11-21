@@ -2296,9 +2296,9 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let selection = self.handle_stock_params("fetchCurrencies", params, None);
-        let stock: bool = selection.0.unwrap_or(false);
-        let query: crate::value::Dict = selection.1;
+        let stockqueryVariable = self.handle_option_bool_and_params(params, Value::Str("fetchCurrencies".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
+        let stock: bool = stockqueryVariable.0 == Some(true);
+        let query: crate::value::Dict = stockqueryVariable.1;
         let response: crate::value::List = self.public_get_api_v1_assets(&[&Value::Dict(query)]).await.unwrap_or_default();
         //
         //     [
@@ -2370,9 +2370,9 @@ impl Backpack {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let selection = self.handle_stock_params("fetchMarkets", params, None);
-        let stock: bool = selection.0.unwrap_or(false);
-        let query: crate::value::Dict = selection.1;
+        let stockqueryVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMarkets".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
+        let stock: bool = stockqueryVariable.0 == Some(true);
+        let query: crate::value::Dict = stockqueryVariable.1;
         let marketType: Option<String> = self.safe_string_k_opt(&query, "marketType", &[]);
         let mut defaultTypes: Vec<Value> = Vec::new();
         if (marketType.is_some()) {
@@ -2990,9 +2990,9 @@ impl Backpack {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let selection = self.handle_stock_params("fetchTickers", params.clone(), None);
-        let stockOnly: bool = selection.0.unwrap_or(false);
-        let query: crate::value::Dict = selection.1;
+        let stockOnlyqueryVariable = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchTickers".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
+        let stockOnly: bool = stockOnlyqueryVariable.0 == Some(true);
+        let query: crate::value::Dict = stockOnlyqueryVariable.1;
         let source: Option<String> = self.safe_string_k_opt(&query, "source", &[&Value::Str("Venue".into())]);
         let mut symbolsLength: i64 = 0;
         if (symbols != Value::Null) {
@@ -3705,9 +3705,9 @@ impl Backpack {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let selection = self.handle_stock_params("fetchBalance", params, None);
-        let stock: bool = selection.0.unwrap_or(false);
-        let query: crate::value::Dict = selection.1;
+        let stockqueryVariable = self.handle_option_bool_and_params(params, Value::Str("fetchBalance".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
+        let stock: bool = stockqueryVariable.0 == Some(true);
+        let query: crate::value::Dict = stockqueryVariable.1;
         let response: crate::value::Dict = self.private_get_api_v1_capital(&[&Value::Dict(query)]).await.unwrap_or_default();
         if stock {
             let mut securities: Value = self.safe_list_k(&self.options, "securities", &[]);
@@ -4225,13 +4225,13 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let selection = self.handle_stock_params("createOrders", params.clone(), None);
-        let query: crate::value::Dict = selection.1;
+        let stockqueryVariable = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
+        let mut stock: Option<bool> = stockqueryVariable.0;
+        let query: crate::value::Dict = stockqueryVariable.1;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
-        let stock: bool = selection.0.unwrap_or(false);
         {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
@@ -4247,8 +4247,8 @@ impl Backpack {
                 let m = indexmap::IndexMap::new();
                 m
             });
-            if stock || !matches!(self.safe_bool2(&params, Value::Str("stock".into()), Value::Str("defaultStock".into()), &[Value::Bool(true)]), Value::Bool(true)) {
-                baseParams.insert("stock".into(), Value::Bool(stock));
+            if (stock == Some(true)) || !matches!(self.safe_bool2(&params, Value::Str("stock".into()), Value::Str("defaultStock".into()), &[Value::Bool(true)]), Value::Bool(true)) {
+                baseParams.insert("stock".into(), stock.map_or(Value::Null, Value::Bool));
             }
             let baseQuery: crate::value::Dict = self.extend_t(Value::Map(baseParams), &[&query]);
             let extendedParams: crate::value::Dict = self.extend_t(baseQuery, &[&orderParams]);

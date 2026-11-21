@@ -1481,24 +1481,18 @@ impl Indodax {
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_open_orders(&[&__ws_arg_6]).await.unwrap_or_default();
-        let openOrdersResult: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]).as_map().cloned().unwrap_or_default();
-        let rawOrders: Value = openOrdersResult.get("orders").cloned().unwrap_or(Value::Null);
+        let openOrdersResult: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         // { success: 1, return: { orders: null }} if no orders
-        if (rawOrders == Value::Null) || (rawOrders == Value::Null) {
-            return Value::from(vec![]);
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (symbol != Value::Null) {
-            return Value::Arr(self.parse_orders(rawOrders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
+            let rawOrders: crate::value::List = self.safe_list_k_t(&openOrdersResult, "orders");
+            return Value::Arr(self.parse_orders(&rawOrders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         let ordersDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&openOrdersResult, "orders", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+            let m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let marketIds: Vec<Value> = Value::Array(ordersDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut exchangeOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         {

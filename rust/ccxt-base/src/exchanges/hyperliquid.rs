@@ -295,7 +295,10 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
             postOnly = Some(tif.as_deref() == Some("ALO"));
         }
         let isTrigger: bool = self.safe_bool_k_opt(&entry, "isTrigger", &[Value::Bool(false)]).unwrap_or(false);
-        let triggerPx: Option<f64> = (if isTrigger { self.safe_number_k(&entry, "triggerPx", &[]).as_f64() } else { None });
+        let mut triggerPx: Option<f64> = None;
+        if isTrigger {
+            triggerPx = self.safe_number_k(&entry, "triggerPx", &[]).as_f64();
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         let orderTypeRaw: Value = self.safe_string_lower_k(&entry, "orderType", &[Value::Str("".into())]);
@@ -2298,7 +2301,8 @@ impl Hyperliquid {
             }
             let pricePrecisionStr: Option<String> = self.number_to_string(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            let baseId: Option<String> = self.number_to_string((match (&(Value::from(index)), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+            let indexInt: i64 = self.safe_integer_k(&market, "index", &[Value::Int(0)]).as_i64().unwrap_or(0);
+            let baseId: Option<String> = self.number_to_string(Value::Int((indexInt + 10000)));
             let entry: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketName.map(Value::from).unwrap_or(Value::Null));

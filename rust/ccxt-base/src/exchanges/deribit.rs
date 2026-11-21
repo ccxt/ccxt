@@ -3201,7 +3201,10 @@ impl Deribit {
         let defaultLimit: i64 = 1000;
         let windowLimit: i64 = limit.unwrap_or(defaultLimit);
         let limitResolved: Option<i64> = (if ((since.is_none()) && (limit.is_none())) { Some(defaultLimit) } else { limit });
-        let sinceResolved: Option<i64> = (if (since.is_none()) { None } else { (if let Some(__m0) = ((if let Some(__l) = since { Some(__l - 1) } else { None })) { Some(i64::max(__m0, 0)) } else { None }) });
+        let mut sinceResolved: Option<i64> = None;
+        if (since.is_some()) {
+            sinceResolved = (if let Some(__m0) = ((if let Some(__l) = since { Some(__l - 1) } else { None })) { Some(i64::max(__m0, 0)) } else { None });
+        }
         if (since.is_none()) {
             request.insert("start_timestamp".into(), Value::Int((now - ((((((windowLimit - 1)) * duration)) * 1000)))));
             request.insert("end_timestamp".into(), Value::from(now));

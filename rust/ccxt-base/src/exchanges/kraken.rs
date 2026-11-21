@@ -4381,17 +4381,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
 
     pub fn parse_transactions_by_type(&self, type_var: &str, transactions: impl Into<crate::Value>, code: Option<&str>, since: Option<i64>, limit: Option<i64>) -> Value {
-        let transactions: Value = transactions.into();
+        let mut transactions: Value = transactions.into();
+        let __transactions_empty = Vec::new();
+        let transactions = transactions.as_array().unwrap_or(&__transactions_empty);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { i += 1; } __for_first_16 = false; (i as f64) < Value::Int(transactions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (transactions.len() as i64) } {
             let __ws_arg_20 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::from(type_var));
                 m
-            }), &[get_value(&transactions, &Value::Int(i))]);
+            }), &[transactions.get(i as usize).cloned().unwrap_or(Value::Null)]);
             let transaction: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, __ws_arg_20, None).into_dict();
             result.push(Value::Dict(transaction));
         }
