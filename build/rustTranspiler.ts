@@ -6824,6 +6824,7 @@ const RUST_PARSE_LIST_FNS = [
     'fetch_securities',
     'separate_bids_or_asks',
     'fetch_hip3_markets',
+    'get_v5_linear_channel_and_message_hash',
 ];
 // venue-declared members of the list above: typed only in a file whose own declaration passes the proof
 const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
@@ -6848,7 +6849,8 @@ function typeParseListReturns(content: string): string {
             || /^\s*return Value::from\(vec!\[(?:Value::.*)?\]\);$/.test(l) || vecRet(l)
             || new RegExp(String.raw`^\s*return ${self}.*\);$`).test(l)
             || (name === 'parse_positions' && /^\s*return self\.filter_by_array_positions\(.*\);$/.test(l))
-            || listLocalRet(l) || new RegExp(String.raw`^\s*return Value::Arr\(${self}.*\)\);$`).test(l));
+            || listLocalRet(l) || new RegExp(String.raw`^\s*return Value::Arr\(${self}.*\)\);$`).test(l)
+            || h29r03ValueVecRet(l, sig, body) !== undefined);
         if (!ok) { failed.add(name); return whole; }
         typed.add(name);
         const b = body.replace(/^(\s*return )Value::Arr\((self\.filter_by_\w+\(.*\))\);$/gm, '$1$2;')
@@ -6856,7 +6858,8 @@ function typeParseListReturns(content: string): string {
             .replace(/^(\s*return )Value::from\(vec!\[\]\);$/gm, '$1Default::default();')
             .replace(/^(\s*return )Value::from\((vec!\[Value::.*\])\);$/gm, '$1std::sync::Arc::new($2);')
             .replace(new RegExp(String.raw`^(\s*return )Value::from\((${vecs.join('|') || '(?!)'})\);$`, 'gm'), '$1std::sync::Arc::new($2);')
-            .replace(/^(\s*return self\.filter_by_array_positions\(.*\));$/gm, '$1.into_list();');
+            .replace(/^(\s*return self\.filter_by_array_positions\(.*\));$/gm, '$1.into_list();')
+            .split('\n').map((l) => h29r03ValueVecRet(l, sig, body) ?? l).join('\n');
         return `${sig}crate::value::List${open}${b}\n}`;
     });
     // the base set is declared in exchange_generated.rs; parse_settlements exists only where a venue declares it
@@ -6888,6 +6891,17 @@ function typeParseListReturns(content: string): string {
     }
     return out + content.slice(last);
 }
+
+// ===== h29-H29-R03
+// `return Value::from(vec![a, b, Value::Dict(c)]);` where each bare name is a `Value` param or a `let` declared `: Value`
+function h29r03ValueVecRet(l: string, sig: string, body: string): string | undefined {
+    const r = /^(\s*return )Value::from\((vec!\[(.+)\])\);$/.exec(l);
+    if (r === null) return undefined;
+    const ok = r[3].split(', ').every((e) => /^Value::\w+\(\w+\)$/.test(e) || (/^\w+$/.test(e)
+        && new RegExp(String.raw`(?:\(|, )(?:mut )?${e}: Value\b|\blet (?:mut )?${e}: Value = `).test(`${sig}\n${body}`)));
+    return ok ? `${r[1]}std::sync::Arc::new(${r[2]});` : undefined;
+}
+// ===== end h29-H29-R03
 
 // A venue `Vec<Value>` local (or a parse_prediction_positions result) used only by `push(Value::Dict(x))`, `.len()`
 // and element reads (`.get(i)..into_dict()` or `safe_dict_t(&v, Value::Int(i))`) holds proven maps: it becomes
