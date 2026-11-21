@@ -1711,7 +1711,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const [ stock, paramsStock ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock');
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'stock', false);
         if (stock === true) {
             if ((timeframe !== '5m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
                 throw new BadRequest (this.id + ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes');

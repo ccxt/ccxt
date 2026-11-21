@@ -1327,7 +1327,7 @@ export default class bithumb extends Exchange {
         let response: any = undefined;
         let data: List = [];
         if (generation === 2) {
-            const [ paginate, paramsPaginate ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+            const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
             if (paginate) {
                 return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200) as OHLCV[];
             }
