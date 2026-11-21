@@ -447,7 +447,7 @@ export default class okx extends okxRest {
         //     }
         // ]
         //
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawfr = this.safeDict (data, i);
             const fundingRate = this.parseFundingRate (rawfr);
@@ -915,7 +915,7 @@ export default class okx extends okxRest {
         //        ]
         //    }
         //
-        const rawLiquidations: Dict[] = this.safeList (message, 'data', []) as List;
+        const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
@@ -1016,7 +1016,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const rawLiquidations: Dict[] = this.safeList (message, 'data', []) as List;
+        const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const eventType = this.safeString (rawLiquidation, 'eventType');
@@ -2678,7 +2678,7 @@ export default class okx extends okxRest {
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 } else {
-                    const data = this.safeList (message, 'data', []) as List;
+                    const data = this.safeList (message, 'data', []);
                     for (let i = 0; i < data.length; i++) {
                         const d = this.safeDict (data, i);
                         errorCode = this.safeString (d, 'sCode');
