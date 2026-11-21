@@ -4534,6 +4534,7 @@ function auditSelfTest (): string[] {
         h27J05HoistPureValuesSelfTest,
         h28J05HoistSelfTest,
         h29J05HoistSelfTest,
+        h30J05HoistSelfTest,
     ];
     return problems.concat(...wired.map((selfTest) => selfTest()));
 }
@@ -7941,6 +7942,7 @@ function containerOpsHoistStatement (t: string, at: number, close: number, args:
     const h27 = h27J05HoistPureValues (t, at, close, args, lineStart, indent, fresh); if (h27 !== undefined) return h27;
     const h28 = h28J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h28 !== undefined) return h28;
     const h29 = h29J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h29 !== undefined) return h29;
+    const h30 = h30J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h30 !== undefined) return h30;
     const prefix = t.slice (lineStart, at);
     if (!containerOpsHoistPrefix ().test (prefix) || /^\s*(?:if|for|while|switch|else|case|do|try|catch|synchronized)\b/.test (prefix)) return undefined;
     const before = t.slice (0, lineStart).trimEnd ();
@@ -9785,3 +9787,101 @@ function h29J05HoistSelfTest (): string[] {
     return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h29-J05 hoist self test: ${name}\n${out}`);
 }
 // ===== end h29-J05
+
+// ===== h30-J05: (1) values and the already-evaluated part of the prefix are both write-free (base readers,
+// GetValue, Objects.equals, fresh HashMap / ArrayList), so they commute; (2) after any call, values built only from
+// member-declared locals and literals; (3) `T x = c ? null : newMap(..);` becomes `T x = null; if (!(c)) {..}`.
+const H30J05_READERS = /^(?:(?:this|\w+\.this)\.(?:safeString|safeString2|safeBool|safeNumber|safeInteger|arrayConcat)|Precise\.stringAdd|(?:io\.github\.ccxt\.)?Helpers\.(?:GetValue|newMap)|java\.util\.Objects\.equals|Arrays\.asList)$/;
+function h30J05Mask (e: string): string {
+    return e.replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => 'S'.repeat (m.length));
+}
+function h30J05WriteFree (e: string, anonPut: boolean, mapLocal: (n: string) => boolean): boolean {
+    const m = h30J05Mask (e);
+    if (m.includes ('"') || /->|\+\+|--|\bswitch\b|\byield\b|[^=!<>]=(?!=)/.test (m)) return false;
+    for (const n of m.matchAll (/\bnew\s+([\w.]+)(<[^()]*>)?\s*\(/g)) if (!/^(?:java\.util\.)?(?:HashMap|ArrayList)$/.test (n[1])) return false;
+    const stripped = m.replace (/\bnew\s+[\w.]+(?:<[^()]*>)?\s*\(/g, '(');
+    for (const c of stripped.matchAll (/([\w.]+)\s*\(/g)) {
+        if (H30J05_READERS.test (c[1])) continue;
+        if (anonPut && c[1] === 'put' && /\(\) \{\{/.test (m)) continue;
+        // Map.get on a Map-cast receiver or a Map-declared local only reads
+        if (c[1] === '.get' || (/^[A-Za-z_]\w*\.get$/.test (c[1]) && mapLocal (c[1].slice (0, -4)))) continue;
+        return false;
+    }
+    return true;
+}
+// the prefix with the names of calls still open at the literal removed (those run after their arguments)
+function h30J05Evaluated (prefix: string): string {
+    const m = h30J05Mask (prefix);
+    const open: number[] = [];
+    for (let k = 0; k < m.length; k++) {
+        if (m[k] === '(') open.push (k);
+        else if (m[k] === ')') open.pop ();
+    }
+    let out = m;
+    for (const k of open.reverse ()) {
+        const name = /(?:\.?[A-Za-z_]\w*)+$/.exec (out.slice (0, k));
+        if (name !== null) out = out.slice (0, k - name[0].length) + ' '.repeat (name[0].length) + out.slice (k);
+    }
+    return out;
+}
+function h30J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    const prefix = t.slice (lineStart, at);
+    if (/^\s*(?:(?:if|for|while|switch|else|case|do|try|catch|synchronized|yield|throw)\b|\}|\/\/)/.test (prefix)) return undefined;
+    const prev = t.slice (0, lineStart).replace (/(?:\n[ \t]*\/\/[^\n]*)+\s*$/, '').trimEnd ();
+    const last = prev.slice (prev.lastIndexOf ('\n') + 1);
+    if (/^\s*\/\//.test (last) || !(/[;{}]$/.test (prev) || /^[^"\/]*;[ \t]*\/\/[^\n]*$/.test (last))) return undefined;
+    const lead = /^\s*(?:return |[\w.]+(?:<[\w.?, <>]*>)? [A-Za-z_]\w* = |[A-Za-z_]\w* = )?/.exec (prefix)![0];
+    const values = args.filter ((a, i) => i % 2 === 1);
+    const n = fresh;
+    const emit = (body: string[]) => ({ text: body.join ('\n'), end: close + 1 });
+    const puts = (v: string) => args.reduce ((acc: string[], a, i) => (i % 2 === 0 ? [ ...acc, `${v}.put(${a}, ${args[i + 1]});` ] : acc), []);
+    const ternary = /^(\s*)((?:[\w.]+(?:<[\w.?, <>]*>)? )?)([A-Za-z_]\w*) = (.+) \? null : \(*$/.exec (prefix);
+    if (ternary !== null && ternary[2] !== "" && ternary[2] !== "var " && !h30J05Mask (ternary[4]).includes ('?') && !/[^=!<>]=(?!=)/.test (h30J05Mask (ternary[4]))) {
+        const opens = (/\(*$/.exec (prefix)![0]).length;
+        let end = close + 1;
+        for (let k = 0; k < opens; k++) { if (t[end] !== ')') return undefined; end++; }
+        if (t[end] !== ';' || new RegExp (`\\b${ternary[3]}\\b`).test (values.join (' '))) return undefined;
+        const v = n ();
+        const out = [ `${indent}${ternary[2]}${ternary[3]} = null;`, `${indent}if (!(${ternary[4].trim ()}))`, `${indent}{`,
+            `${indent}    java.util.HashMap<String, Object> ${v} = new java.util.HashMap<String, Object>();`,
+            ...puts (v).map ((p) => `${indent}    ${p}`), `${indent}    ${ternary[3]} = ${v};`, `${indent}}` ];
+        return { text: out.join ('\n'), end: end + 1 };
+    }
+    const evaluated = h30J05Evaluated (prefix.slice (lead.length));
+    let flat = evaluated;
+    for (let k = 0; k < 20 && /\([^()]*\)/.test (flat); k++) flat = flat.replace (/\([^()]*\)/g, 'X');
+    if (/\?|->|\binstanceof\b/.test (flat)) return undefined;
+    if (/[^=!<>]=(?!=)|\+\+|--/.test (evaluated)) return undefined;
+    const declared = memberDeclaredTypeOf (t, true);
+    const localOnly = (e: string) => {
+        const m = h30J05Mask (e);
+        if (/[^=!<>]=(?!=)|\+\+|--|->/.test (m)) return false;
+        const calls = [ ...m.matchAll (/([\w.]+)\s*\(/g) ].map ((c) => c[1]);
+        if (calls.some ((c) => c !== 'java.util.Objects.equals')) return false;
+        const ids = m.replace (/java\.util\.Objects\.equals/g, ' ').match (/[A-Za-z_][\w.]*/g) ?? [];
+        return ids.every ((id) => /^(?:null|true|false|S+)$/.test (id) || (/^[A-Za-z_]\w*$/.test (id) && id !== 'this' && declared (id) !== undefined));
+    };
+    const mapLocal = (x: string) => /^(?:java\.util\.)?(?:Map|HashMap)<String, Object>$/.test (declared (x) ?? '');
+    const commute = h30J05WriteFree (evaluated, false, mapLocal) && values.every ((v) => h30J05WriteFree (v, true, mapLocal));
+    if (!commute && !values.every (localOnly)) return undefined;
+    const v = n ();
+    return emit ([ `${indent}java.util.HashMap<String, Object> ${v} = new java.util.HashMap<String, Object>();`, ...puts (v).map ((p) => `${indent}${p}`), `${prefix}${v}` ]);
+}
+function h30J05HoistSelfTest (): string[] {
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'write-free prefix and values', '        l.add(this.extend(Helpers.GetValue(this.fees, "t"), Helpers.newMap("a", this.safeBool(p, "k", (Object) null), "b", (s + "/"))));', '        j39v1.put("a", this.safeBool(p, "k", (Object) null));\n        j39v1.put("b", (s + "/"));\n        l.add(this.extend(Helpers.GetValue(this.fees, "t"), j39v1));' ],
+        [ 'field receiver, arrayConcat', '        this.options.put("c", this.extend(o, Helpers.newMap("a", this.arrayConcat(l, l), "b", s)));', '        j39v1.put("a", this.arrayConcat(l, l));\n        j39v1.put("b", s);\n        this.options.put("c", this.extend(o, j39v1));' ],
+        [ 'local ternary after call', '        return this.extend(this.f(p), Helpers.newMap("a", (java.util.Objects.equals(s, "0")) ? "ok" : "no"));', '        j39v1.put("a", (java.util.Objects.equals(s, "0")) ? "ok" : "no");\n        return this.extend(this.f(p), j39v1);' ],
+        [ 'ternary arm', '        Map<String, Object> f = ((java.util.Objects.equals(s, null))) ? null : Helpers.newMap("a", s, "b", this.g());', '        Map<String, Object> f = null;\n        if (!(((java.util.Objects.equals(s, null)))))\n        {\n            java.util.HashMap<String, Object> j39v1 = new java.util.HashMap<String, Object>();\n            j39v1.put("a", s);\n            j39v1.put("b", this.g());\n            f = j39v1;\n        }' ],
+        // negatives: a writing call before the literal with a call value, a field in a local-only value, an unknown reader, a nested ternary, a write in the condition
+        [ 'call value after call', '        return this.extend(this.f(p), Helpers.newMap("a", this.safeString(p, "k")));', 'switch (0)' ],
+        [ 'field after call', '        return this.extend(this.f(p), Helpers.newMap("a", (java.util.Objects.equals(this.x, "0")) ? "ok" : "no"));', 'switch (0)' ],
+        [ 'unknown reader', '        l.add(this.extend(Helpers.GetValue(this.fees, "t"), Helpers.newMap("a", this.g(p))));', 'switch (0)' ],
+        [ 'two ternaries', '        Map<String, Object> f = (s == null) ? null : (o == null) ? null : Helpers.newMap("a", this.g());', 'switch (0)' ],
+        [ 'write in condition', '        Map<String, Object> f = ((s = null) == null) ? null : Helpers.newMap("a", s);', 'switch (0)' ],
+        [ 'self reference', '        Map<String, Object> f = (s == null) ? null : Helpers.newMap("a", this.g(f));', 'switch (0)' ],
+    ];
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h30-J05 hoist self test: ${name}\n${out}`);
+}
+// ===== end h30-J05
