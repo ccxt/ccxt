@@ -2783,7 +2783,11 @@ export default class phemex extends Exchange {
             }
             request['qtyType'] = qtyType;
             if (qtyType === 'ByQuote') {
-                let cost = this.safeNumber (orderParams, 'cost');
+                const costParam = this.safeNumber (orderParams, 'cost');
+                let cost: Num = amount;
+                if (costParam !== undefined) {
+                    cost = this.safeNumber (orderParams, 'cost');
+                }
                 orderParams = this.omit (orderParams, 'cost');
                 if (this.safeBool (this.options, 'createOrderByQuoteRequiresPrice', false)) {
                     if (price !== undefined) {
@@ -2791,11 +2795,10 @@ export default class phemex extends Exchange {
                         const priceString = this.numberToString (price);
                         const quoteAmount = Precise.stringMul (amountString, priceString);
                         cost = this.parseNumber (quoteAmount);
-                    } else if (cost === undefined) {
+                    } else if (costParam === undefined) {
                         throw new ArgumentsRequired (this.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter');
                     }
                 }
-                cost = (cost === undefined) ? amount : cost;
                 const costString = this.costToPrecision (symbol, cost);
                 request['quoteQtyEv'] = this.toEv (costString, market);
             } else {

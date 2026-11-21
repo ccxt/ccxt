@@ -1220,7 +1220,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'results', []);
-        if (request['market'] === 'ALL') {
+        if (this.safeString (request, 'market') === 'ALL') {
             return this.parseTickers (this.filterLoadedSummaries (data), symbolsNormalized);
         }
         return this.parseTickers (data, symbolsNormalized);
@@ -1393,7 +1393,7 @@ export default class paradex extends Exchange {
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
         const data: Dict[] = this.safeList (response, 'results', []);
         // only a perpetual funds, the other rows are dropped before they are parsed
-        if (request['market'] === 'ALL') {
+        if (this.safeString (request, 'market') === 'ALL') {
             return this.parseFundingRates (this.filterLoadedSummaries (data, 'swap'), symbolsNormalized);
         }
         return this.parseFundingRates (data, symbolsNormalized);
@@ -3641,7 +3641,7 @@ export default class paradex extends Exchange {
         //
         const results: Dict[] = this.safeList (response, 'results', []);
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        if (request['market'] === 'ALL') {
+        if (this.safeString (request, 'market') === 'ALL') {
             return this.parseAllGreeks (this.filterLoadedSummaries (results, 'option'), symbolsNormalized);
         }
         return this.parseAllGreeks (results, symbolsNormalized);
@@ -3975,9 +3975,10 @@ export default class paradex extends Exchange {
             // the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             const [ paginationCalls, paramsCalls ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
-            let endAt = this.safeInteger (paramsCalls, 'until');
-            if (endAt === undefined) {
-                endAt = Math.min (this.milliseconds (), this.sum (since, paginationCalls * 5000 * rowSpacing));
+            const until = this.safeInteger (paramsCalls, 'until');
+            let endAt = Math.min (this.milliseconds (), this.sum (since, paginationCalls * 5000 * rowSpacing));
+            if (until !== undefined) {
+                endAt = until;
             }
             const paramsEndAt = this.extend (this.omit (paramsPaginate, 'until'), { 'end_at': endAt });
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
