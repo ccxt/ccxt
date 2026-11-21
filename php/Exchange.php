@@ -3602,6 +3602,19 @@ class BaseExchange {
         return $defaultValue;
     }
 
+    public function safe_string_list(mixed $dictionaryOrList, array $keys) {
+        /**
+         * @ignore
+         * a value that is a string or a list of strings by API contract, read as a list (a string becomes a one-element list)
+         * @return {string[]|null}
+         */
+        $str = $this->safe_string_n($dictionaryOrList, $keys);
+        if ($str !== null) {
+            return array( $str );
+        }
+        return $this->safe_list_n($dictionaryOrList, $keys);
+    }
+
     public function safe_list(mixed $dictionaryOrList, int|string|null $key, ?array $defaultValue = null) {
         /**
          * @ignore
@@ -9286,18 +9299,27 @@ class BaseExchange {
         //
         // the value of greeks is either a dict or a list
         //
-        $results = array();
         if ((gettype($greeks) === 'array' && array_keys($greeks) === array_keys(array_keys($greeks)))) {
-            for ($i = 0; $i < count($greeks); $i++) {
-                $results[] = $this->extend($this->parse_greeks($greeks[$i]), $params);
-            }
-        } else {
-            $marketIds = is_array($greeks) ? array_keys($greeks) : array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $market = $this->safe_market($marketId);
-                $results[] = $this->extend($this->parse_greeks($greeks[$marketId], $market), $params);
-            }
+            return $this->parse_all_greeks_list($greeks, $symbols, $params);
+        }
+        return $this->parse_all_greeks_dict($greeks, $symbols, $params);
+    }
+
+    public function parse_all_greeks_list(array $greeks, ?array $symbols = null, $params = array()) {
+        $results = array();
+        for ($i = 0; $i < count($greeks); $i++) {
+            $results[] = $this->extend($this->parse_greeks($greeks[$i]), $params);
+        }
+        return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
+    }
+
+    public function parse_all_greeks_dict(array $greeks, ?array $symbols = null, $params = array()) {
+        $results = array();
+        $marketIds = is_array($greeks) ? array_keys($greeks) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->safe_market($marketId);
+            $results[] = $this->extend($this->parse_greeks($greeks[$marketId], $market), $params);
         }
         return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }

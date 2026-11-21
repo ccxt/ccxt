@@ -14839,10 +14839,20 @@ class binance extends Exchange {
         } else {
             $request['symbol'] = $market['id'];
         }
-        $response = null;
         if ($this->safe_bool($market, 'option', false)) {
-            $response = Async\await($this->eapiPublicGetOpenInterest($this->extend($request, $params)));
-        } elseif ($this->safe_bool($market, 'inverse', false)) {
+            $optionResponse = Async\await($this->eapiPublicGetOpenInterest($this->extend($request, $params)));
+            $symbolValue = $market['symbol'];
+            $result = $this->parse_open_interests_history($optionResponse, $market);
+            for ($i = 0; $i < count($result); $i++) {
+                $item = $this->safe_dict($result, $i);
+                if ($this->safe_string($item, 'symbol') === $symbolValue) {
+                    return $item;
+                }
+            }
+            throw new NullResponse($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbolValue);
+        }
+        $response = null;
+        if ($this->safe_bool($market, 'inverse', false)) {
             $response = Async\await($this->dapiPublicGetOpenInterest($this->extend($request, $params)));
         } else {
             $response = Async\await($this->fapiPublicGetOpenInterest($this->extend($request, $params)));
@@ -14877,19 +14887,7 @@ class binance extends Exchange {
         //         }
         //     ]
         //
-        if ($this->safe_bool($market, 'option', false)) {
-            $symbolValue = $market['symbol'];
-            $result = $this->parse_open_interests_history($response, $market);
-            for ($i = 0; $i < count($result); $i++) {
-                $item = $this->safe_dict($result, $i);
-                if ($this->safe_string($item, 'symbol') === $symbolValue) {
-                    return $item;
-                }
-            }
-            throw new NullResponse($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbolValue);
-        } else {
-            return $this->parse_open_interest($response, $market);
-        }
+        return $this->parse_open_interest($response, $market);
     }
 
     public function parse_open_interest(?array $interest, ?array $market = null): array {

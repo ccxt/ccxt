@@ -6008,16 +6008,11 @@ class htx extends Exchange {
         $query = $this->omit($paramsMarketType, array( 'stop', 'stopLossTakeProfit', 'trigger' ));
         $response = null;
         if ($marketType === 'spot') {
-            $clientOrderIds = $this->safe_value_2($query, 'client-order-id', 'clientOrderId');
-            $clientOrderIds = $this->safe_value_2($query, 'client-order-ids', 'clientOrderIds', $clientOrderIds);
+            $clientOrderIds = $this->safe_string_list($query, array( 'client-order-ids', 'clientOrderIds', 'client-order-id', 'clientOrderId' ));
             if ($clientOrderIds === null) {
                 $request['order-ids'] = $ids;
             } else {
-                if (gettype($clientOrderIds) === 'string') {
-                    $request['client-order-ids'] = array( $clientOrderIds );
-                } else {
-                    $request['client-order-ids'] = $clientOrderIds;
-                }
+                $request['client-order-ids'] = $clientOrderIds;
                 $query = $this->omit($query, array( 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ));
             }
             $response = $this->spotPrivatePostV1OrderOrdersBatchcancel($this->extend($request, $query));

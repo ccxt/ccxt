@@ -2590,7 +2590,7 @@ class hashkey extends Exchange {
             throw new NotSupported($this->id . ' createOrder() supports cost parameter for spot market buy orders only');
         }
         $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
-        $response = array();
+        $response = null;
         $test = $this->safe_bool($params, 'test', false);
         if ($test) {
             $response = $this->privatePostApiV1SpotOrderTest($request);

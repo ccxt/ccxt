@@ -4130,7 +4130,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('exerciseHistory', array('eapiPublic'), 'GET', $params, array("cost" => 3));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function eapipublic_get_openinterest($params = array()) {
         return $this->request('openInterest', array('eapiPublic'), 'GET', $params, array("cost" => 3));
@@ -9428,7 +9428,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('exerciseHistory', array('eapiPublic'), 'GET', $params, array("cost" => 3));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function eapiPublicGetOpenInterest($params = array()) {
         return $this->request('openInterest', array('eapiPublic'), 'GET', $params, array("cost" => 3));

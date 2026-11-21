@@ -2650,7 +2650,7 @@ class hyperliquid extends Exchange {
          * @return {array} the raw $request object to be sent to the exchange
          */
         $market = $this->market($symbol);
-        $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
+        $clientOrderIds = $this->safe_string_list($params, array( 'clientOrderId', 'client_id' ));
         $fast = $this->safe_bool($params, 'fast', false);
         $params2 = $this->omit($params, array( 'clientOrderId', 'client_id', 'fast' ));
         $nonce = $this->incrementing_nonce();
@@ -2664,15 +2664,12 @@ class hyperliquid extends Exchange {
             'cancels' => array(),
         );
         $baseId = $this->parse_to_numeric($market['baseId']);
-        if ($clientOrderId !== null) {
-            if ((gettype($clientOrderId) !== 'array' || array_keys($clientOrderId) !== array_keys(array_keys($clientOrderId)))) {
-                $clientOrderId = array( $clientOrderId );
-            }
+        if ($clientOrderIds !== null) {
             $cancelAction['type'] = 'cancelByCloid';
-            for ($i = 0; $i < count($clientOrderId); $i++) {
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $cancelReq[] = array(
                     'asset' => $baseId,
-                    'cloid' => $this->safe_string($clientOrderId, $i),
+                    'cloid' => $this->safe_string($clientOrderIds, $i),
                 );
             }
         } else {

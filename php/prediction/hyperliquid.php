@@ -1428,15 +1428,14 @@ class hyperliquid extends Exchange {
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $assetId = $this->safe_integer($outcomeInfo, 'assetId');
         $nonce = $this->incrementing_nonce();
-        $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
+        $clientOrderIds = $this->safe_string_list($params, array( 'clientOrderId', 'client_id' ));
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         $cancelReq = array();
         $cancelAction = array( 'type' => 'cancel', 'cancels' => array() );
-        if ($clientOrderId !== null) {
-            $cloids = (gettype($clientOrderId) === 'array' && array_keys($clientOrderId) === array_keys(array_keys($clientOrderId))) ? $clientOrderId : array( $clientOrderId );
+        if ($clientOrderIds !== null) {
             $cancelAction['type'] = 'cancelByCloid';
-            for ($i = 0; $i < count($cloids); $i++) {
-                $cancelReq[] = array( 'asset' => $assetId, 'cloid' => $cloids[$i] );
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
+                $cancelReq[] = array( 'asset' => $assetId, 'cloid' => $clientOrderIds[$i] );
             }
         } else {
             $cancelAction['type'] = 'cancel';
@@ -1462,12 +1461,8 @@ class hyperliquid extends Exchange {
         $statuses = $this->safe_list($data, 'statuses', array());
         $outcomeSymbol = $this->safe_string($outcomeObj, 'outcome', $outcome);
         $requestIds = $ids;
-        if ($clientOrderId !== null) {
-            if ((gettype($clientOrderId) === 'array' && array_keys($clientOrderId) === array_keys(array_keys($clientOrderId)))) {
-                $requestIds = $clientOrderId;
-            } else {
-                $requestIds = array( $clientOrderId );
-            }
+        if ($clientOrderIds !== null) {
+            $requestIds = $clientOrderIds;
         }
         $orders = array();
         for ($i = 0; $i < count($statuses); $i++) {
@@ -1483,7 +1478,7 @@ class hyperliquid extends Exchange {
             $requestId = $this->safe_string($requestIds, $i, $this->safe_string($requestIds, 0));
             $order = array(
                 'id' => $requestId,
-                'clientOrderId' => ($clientOrderId !== null) ? $requestId : null,
+                'clientOrderId' => ($clientOrderIds !== null) ? $requestId : null,
                 'info' => $status,
                 'status' => 'canceled',
                 'outcome' => $outcomeSymbol,

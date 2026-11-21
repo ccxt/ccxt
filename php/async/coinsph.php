@@ -1539,7 +1539,7 @@ class coinsph extends Exchange {
         }
         $request['newOrderRespType'] = $newOrderRespType;
         $paramsRequest = $this->omit($paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        $response = array();
+        $response = null;
         if ($testOrder) {
             $response = Async\await($this->privatePostOpenapiV1OrderTest($this->extend($request, $paramsRequest)));
         } else {
