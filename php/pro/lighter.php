@@ -1186,7 +1186,7 @@ class lighter extends \ccxt\async\lighter {
             $assetIds = is_array($assets) ? array_keys($assets) : array();
             for ($i = 0; $i < count($assetIds); $i++) {
                 $assetId = $assetIds[$i];
-                $asset = $this->safe_dict($assets, $assetId);
+                $asset = $this->safe_dict($assets, $assetId, array());
                 $codeId = $this->safe_string($asset, 'symbol');
                 $code = $this->safe_currency_code($codeId);
                 $account = $this->account();
@@ -1679,8 +1679,8 @@ class lighter extends \ccxt\async\lighter {
             for ($i = 0; $i < count($subscriptionHashes); $i++) {
                 $subscriptionHash = $subscriptionHashes[$i];
                 if (str_starts_with($subscriptionHash, 'ticker')) {
-                    $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
-                    $subscriptionParams = $this->safe_dict($subscription, 'params');
+                    $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash, array());
+                    $subscriptionParams = $this->safe_dict($subscription, 'params', array());
                     $subscribedChannel = $this->safe_string($subscriptionParams, 'channel');
                     if ($subscribedChannel === 'market_stats/all') {
                         unset($client->subscriptions[$subscriptionHash]);

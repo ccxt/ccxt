@@ -327,7 +327,8 @@ class hyperliquid extends Exchange {
                         } else {
                             $bucketLabel = 'BETWEEN_' . $thresholds[$index - 1] . '_' . $thresholds[$index];
                         }
-                        return strtoupper($questionUnderlying) . '_' . $bucketLabel . $questionExpiryPart;
+                        $upperUnderlying = strtoupper($questionUnderlying);
+                        return $upperUnderlying . '_' . $bucketLabel . $questionExpiryPart;
                     }
                 }
                 $isFallbackLike = ($rawDescription === 'other') || (mb_strpos($nameLower, 'fallback') !== false) || (mb_strpos($nameLower, 'other') !== false);

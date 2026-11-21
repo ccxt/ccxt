@@ -5264,7 +5264,7 @@ class binance extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limitValue,
         );
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         if ($marketId === null) {
             throw new ExchangeError($this->id . ' fetchOHLCV() missing marketId');
         }
@@ -5577,7 +5577,7 @@ class binance extends Exchange {
             $marketType = 'spot';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = null;
         $buyerMaker = $this->safe_bool_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
@@ -6913,7 +6913,7 @@ class binance extends Exchange {
             $marketType = 'contract';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $filled = $this->safe_string_n($order, array( 'executedQty', 'filledQty', 'actualQty' ), '0'); // actualQty: algo orders
         $timestamp = $this->safe_integer_2($order, 'time', 'createTime'); // order of the keys matters here
         if ($timestamp === null) {
@@ -11194,7 +11194,7 @@ class binance extends Exchange {
             $fees = $this->to_array($response);
             for ($i = 0; $i < count($fees); $i++) {
                 $fee = $this->parse_trading_fee($fees[$i]);
-                $symbol = $fee['symbol'];
+                $symbol = $this->safe_string($fee, 'symbol');
                 if ($symbol !== null) {
                     $spotFees[$symbol] = $fee;
                 }
@@ -12421,7 +12421,7 @@ class binance extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null, 'swap');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $side = $this->safe_string_lower($position, 'side');
         $quantity = $this->safe_string($position, 'quantity');
         if ($side !== 'long') {

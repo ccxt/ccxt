@@ -1063,7 +1063,11 @@ class weex extends Exchange {
             $amountPrecision = $this->parse_number($amountPrecisionString);
             $pricePrecision = $this->parse_number($pricePrecisionString);
         }
-        $fees = $this->safe_dict($this->fees, $isSpot ? 'spot' : 'contract', array());
+        $feesKey = 'contract';
+        if ($isSpot) {
+            $feesKey = 'spot';
+        }
+        $fees = $this->safe_dict($this->fees, $feesKey, array());
         if ($id === null) {
             throw new ExchangeError($this->id . ' method() missing id');
         }
@@ -3430,7 +3434,6 @@ class weex extends Exchange {
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $accountType = $this->safe_string($accountsByType, $marketType, $marketType);
         $request = array();
-        $items = null;
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -3447,7 +3450,8 @@ class weex extends Exchange {
             }
             list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsMarketType);
             $contractResponse = $this->contractPrivatePostCapiV3AccountIncome($this->extend($requestUntil, $paramsUntil));
-            $items = $this->safe_list($contractResponse, 'items', array());
+            $contractItems = $this->safe_list($contractResponse, 'items', array());
+            return $this->parse_ledger($contractItems, $currency, $since, $limit);
         } elseif ($accountType === 'funding') {
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -3457,7 +3461,8 @@ class weex extends Exchange {
             }
             list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsMarketType);
             $fundingResponse = $this->privatePostApiV3AccountFundingBills($this->extend($requestUntil, $paramsUntil));
-            $items = $this->safe_list($fundingResponse, 'items', array());
+            $fundingItems = $this->safe_list($fundingResponse, 'items', array());
+            return $this->parse_ledger($fundingItems, $currency, $since, $limit);
         } else {
             if ($since !== null) {
                 $request['after'] = $since;
@@ -3467,9 +3472,9 @@ class weex extends Exchange {
             }
             list($requestUntil, $paramsUntil) = $this->handle_until_option('before', $request, $paramsMarketType);
             $billsResponse = $this->privatePostApiV3AccountBills($this->extend($requestUntil, $paramsUntil));
-            $items = $this->to_array($billsResponse);
+            $billsItems = $this->to_array($billsResponse);
+            return $this->parse_ledger($billsItems, $currency, $since, $limit);
         }
-        return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -4402,7 +4407,7 @@ class weex extends Exchange {
             $timestamp = $this->number_to_string($this->nonce());
             $payload = $timestamp . $method . '/' . $endpoint;
             if ($hasJsonBody) {
-                $payload .= $requestBody;
+                $payload = $payload . $this->json($query);
             }
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $requestHeaders = array(

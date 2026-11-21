@@ -975,7 +975,8 @@ class hyperliquid extends Exchange {
             }
             $pricePrecisionStr = $this->number_to_string($pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            $baseId = $this->number_to_string($index + 10000);
+            $indexInt = $this->safe_integer($market, 'index', 0);
+            $baseId = $this->number_to_string($indexInt + 10000);
             $entry = array(
                 'id' => $marketName,
                 'symbol' => $mappedSymbol,
@@ -3728,7 +3729,10 @@ class hyperliquid extends Exchange {
             $postOnly = ($tif === 'ALO');
         }
         $isTrigger = $this->safe_bool($entry, 'isTrigger', false);
-        $triggerPx = $isTrigger ? $this->safe_number($entry, 'triggerPx') : null;
+        $triggerPx = null;
+        if ($isTrigger) {
+            $triggerPx = $this->safe_number($entry, 'triggerPx');
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');

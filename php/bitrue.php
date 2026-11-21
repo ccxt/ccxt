@@ -1797,7 +1797,8 @@ class bitrue extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell'; // this is a true side
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('commission' ?? '', $trade)) {
+        $commission = $this->safe_string($trade, 'commission');
+        if ($commission !== null) {
             $fee = array(
                 'cost' => $this->safe_string_2($trade, 'commission', 'fee'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAssert')),
@@ -1947,16 +1948,19 @@ class bitrue extends Exchange {
         $filled = $this->safe_string($order, 'executedQty');
         $timestamp = null;
         $lastTradeTimestamp = null;
-        if (is_array($order) && array_key_exists('time' ?? '', $order)) {
-            $timestamp = $this->safe_integer($order, 'time');
-        } elseif (is_array($order) && array_key_exists('transactTime' ?? '', $order)) {
-            $timestamp = $this->safe_integer($order, 'transactTime');
-        } elseif (is_array($order) && array_key_exists('updateTime' ?? '', $order)) {
+        $time = $this->safe_integer($order, 'time');
+        $transactTime = $this->safe_integer($order, 'transactTime');
+        $updateTime = $this->safe_integer($order, 'updateTime');
+        if ($time !== null) {
+            $timestamp = $time;
+        } elseif ($transactTime !== null) {
+            $timestamp = $transactTime;
+        } elseif ($updateTime !== null) {
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
-                    $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
+                    $lastTradeTimestamp = $updateTime;
                 } else {
-                    $timestamp = $this->safe_integer($order, 'updateTime');
+                    $timestamp = $updateTime;
                 }
             }
         }
@@ -2855,10 +2859,10 @@ class bitrue extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->safe_integer($transaction, 'createdAt');
         $updated = $this->safe_integer($transaction, 'updatedAt');
-        $payAmount = (is_array($transaction) && array_key_exists('payAmount' ?? '', $transaction));
-        $ctime = (is_array($transaction) && array_key_exists('ctime' ?? '', $transaction));
+        $payAmount = $this->safe_string($transaction, 'payAmount');
+        $ctime = $this->safe_string($transaction, 'ctime');
         $type = 'deposit';
-        if ($payAmount || $ctime) {
+        if (($payAmount !== null) || ($ctime !== null)) {
             $type = 'withdrawal';
         }
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);

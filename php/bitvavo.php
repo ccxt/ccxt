@@ -1679,7 +1679,7 @@ class bitvavo extends Exchange {
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
         }
-        $operatorId = $this->handle_option_and_params($paramsOmitted, 'editOrder', 'operatorId')[0];
+        list($operatorId) = $this->handle_option_and_params($paramsOmitted, 'editOrder', 'operatorId');
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
         } else {

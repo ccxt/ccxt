@@ -971,13 +971,10 @@ class indodax extends Exchange {
         }
         $response = Async\await($this->privatePostOpenOrders($this->extend($request, $params)));
         $openOrdersResult = $this->safe_dict($response, 'return', array());
-        $rawOrders = $openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if (($rawOrders === null) || ($rawOrders === null)) {
-            return array();
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if ($symbol !== null) {
+            $rawOrders = $this->safe_list($openOrdersResult, 'orders', array());
             return $this->parse_orders($rawOrders, $market, $since, $limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched

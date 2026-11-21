@@ -2518,8 +2518,8 @@ class coinbase extends Exchange {
         $ask = $this->safe_number($ticker, 'ask');
         $bidVolume = null;
         $askVolume = null;
-        if ((is_array($ticker) && array_key_exists('bids' ?? '', $ticker))) {
-            $bids = $this->safe_list($ticker, 'bids', array());
+        $bids = $this->safe_list($ticker, 'bids');
+        if ($bids !== null) {
             $asks = $this->safe_list($ticker, 'asks', array());
             $firstBid = $this->safe_dict($bids, 0, array());
             $firstAsk = $this->safe_dict($asks, 0, array());
@@ -3575,7 +3575,12 @@ class coinbase extends Exchange {
             $amount = $this->safe_string($target, 'base_size');
             $postOnly = $this->safe_bool($target, 'post_only');
         } elseif ($isStop) {
-            $stopTarget = ($stopLimitGTC !== null) ? $stopLimitGTC : $stopLimitGTD;
+            $stopTarget = null;
+            if ($stopLimitGTC !== null) {
+                $stopTarget = $stopLimitGTC;
+            } else {
+                $stopTarget = $stopLimitGTD;
+            }
             $price = $this->safe_string($stopTarget, 'limit_price');
             $amount = $this->safe_string($stopTarget, 'base_size');
             $postOnly = $this->safe_bool($stopTarget, 'post_only');

@@ -4430,7 +4430,7 @@ class kucoin extends Exchange {
             }
             $sizeString = $this->amount_to_precision($symbol, $amount);
             if ($sizeString !== null) {
-                $request['size'] = intval($sizeString);
+                $request['size'] = $this->parse_to_int($sizeString);
             }
         }
         $this->check_trigger_prices($paramsOmitted);
@@ -6510,7 +6510,7 @@ class kucoin extends Exchange {
         $tradeType = $this->safe_string($order, 'tradeType');
         $utaTradeTypes = array( 'SPOT', 'CROSS', 'ISOLATED', 'FUTURES' ); // tradeType specific for uta endpoint
         $isUtaOrder = $this->in_array($tradeType, $utaTradeTypes);
-        if (is_array($order) && array_key_exists('sizeUnit' ?? '', $order)) { // property specific for uta endpoint
+        if ($this->safe_string($order, 'sizeUnit') !== null) { // property specific for uta endpoint
             $isUtaOrder = true;
         }
         if ($isUtaOrder) {
@@ -7471,7 +7471,7 @@ class kucoin extends Exchange {
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
-        if (is_array($trade) && array_key_exists('liquidityRole' ?? '', $trade)) { // property specific to myTrades from uta endpoint
+        if ($this->safe_string($trade, 'liquidityRole') !== null) { // property specific to myTrades from uta endpoint
             return $this->parse_my_uta_trade($trade, $market);
         }
         $marketId = $this->safe_string($trade, 'symbol');
@@ -7580,7 +7580,7 @@ class kucoin extends Exchange {
         $createdAt = $this->safe_integer($trade, 'createdAt');
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         $timestamp = $createdAt;
-        if ((is_array($trade) && array_key_exists('dealValue' ?? '', $trade)) && ($createdAt !== null)) {
+        if (($this->safe_string($trade, 'dealValue') !== null) && ($createdAt !== null)) {
             $timestamp = $createdAt * 1000;
         }
         if ($nanoseconds !== null) {
@@ -7710,7 +7710,7 @@ class kucoin extends Exchange {
         $createdAt = $this->safe_integer($trade, 'createdAt');
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         $timestamp = $createdAt;
-        if ((is_array($trade) && array_key_exists('dealValue' ?? '', $trade)) && ($createdAt !== null)) {
+        if (($this->safe_string($trade, 'dealValue') !== null) && ($createdAt !== null)) {
             $timestamp = $createdAt * 1000;
         }
         if ($nanoseconds !== null) {
@@ -10424,7 +10424,7 @@ class kucoin extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'leverage' => (string) $leverage,
+            'leverage' => $this->number_to_string($leverage),
         );
         $uta = Async\await($this->is_uta_enabled());
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($paramsMarginMode, 'setLeverage', 'uta', $uta);
@@ -11354,9 +11354,9 @@ class kucoin extends Exchange {
         }
         $lastUpdateTimestamp = $this->safe_integer($position, 'closeTime');
         if ($lastUpdateTimestamp === null) {
-            if (is_array($position) && array_key_exists('closingTime' ?? '', $position)) {
+            if ($this->safe_string($position, 'closingTime') !== null) {
                 $lastUpdateTimestamp = $this->safe_integer_product($position, 'closingTime', 0.000001);
-            } elseif (is_array($position) && array_key_exists('updateTime' ?? '', $position)) {
+            } elseif ($this->safe_string($position, 'updateTime') !== null) {
                 $lastUpdateTimestamp = $this->safe_integer_product($position, 'updateTime', 0.000001);
             }
         }

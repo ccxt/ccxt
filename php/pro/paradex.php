@@ -281,11 +281,11 @@ class paradex extends \ccxt\async\paradex {
         return true;
     }
 
-    public function unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $start, $params = array()): PromiseInterface {
+    public function unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, int $start, $params = array()): PromiseInterface {
         return Async\async(self::do_unsubscribe_channels_from(...))($url, $topic, $channels, $subMessageHashes, $symbols, $start, $params);
     }
 
-    private function do_unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $start, $params = array()) {
+    private function do_unsubscribe_channels_from(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, int $start, $params = array()) {
         /**
          * @ignore
          * unsubscribes from the $channels from an index on, after one was $refused, their errors are dropped as the first one is thrown
@@ -311,11 +311,11 @@ class paradex extends \ccxt\async\paradex {
         return $refused;
     }
 
-    public function unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $index, $params = array()): PromiseInterface {
+    public function unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, int $index, $params = array()): PromiseInterface {
         return Async\async(self::do_unsubscribe_channel_at(...))($url, $topic, $channels, $subMessageHashes, $symbols, $index, $params);
     }
 
-    private function do_unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, float $index, $params = array()) {
+    private function do_unsubscribe_channel_at(string $url, string $topic, array $channels, array $subMessageHashes, array $symbols, int $index, $params = array()) {
         /**
          * @ignore
          * unsubscribes from one $channel of a list, the reply forgets its $subscription and rejects its watchers, the liquidations of a market with its trades

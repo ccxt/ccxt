@@ -172,7 +172,7 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $options = $this->safe_dict($this->options, 'watchTicker', array());
         $topic = $this->safe_string($options, 'name', 'market.{marketId}.detail');
         if ($topic === 'market.{marketId}.ticker' && $market['type'] !== 'spot') {
@@ -257,7 +257,7 @@ class htx extends \ccxt\async\htx {
         $timestamp = $this->safe_integer($message, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         if ($symbol !== null) {
             $this->tickers[$symbol] = $ticker;
         }
@@ -287,7 +287,7 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $marketId = $this->safe_string($market, 'id', '');
         $messageHash = 'market.' . $marketId . '.trade.detail';
         $url = $this->get_url_by_market_type($market['type'], $market['linear']);
@@ -356,7 +356,7 @@ class htx extends \ccxt\async\htx {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $tradesCache = $this->safe_value($this->trades, $symbol);
         if ($tradesCache === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -394,7 +394,7 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $marketId = $this->safe_string($market, 'id', '');
         $messageHash = 'market.' . $marketId . '.kline.' . $interval;
@@ -461,7 +461,7 @@ class htx extends \ccxt\async\htx {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_string($parts, 3);
         $timeframe = $this->find_timeframe($interval);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
@@ -500,7 +500,7 @@ class htx extends \ccxt\async\htx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $allowedLimits = array( 5, 20, 150, 400 );
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
@@ -603,7 +603,7 @@ class htx extends \ccxt\async\htx {
             $messages = $orderbook->cache;
             $firstMessage = $this->safe_dict($messages, 0, array());
             $snapshot = $this->parse_order_book($data, $symbol);
-            $tick = $this->safe_dict($firstMessage, 'tick');
+            $tick = $this->safe_dict($firstMessage, 'tick', array());
             $sequence = $this->safe_integer($tick, 'prevSeqNum');
             $nonce = $this->safe_integer($data, 'seqNum');
             if ($nonce === null) {
@@ -783,7 +783,7 @@ class htx extends \ccxt\async\htx {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $orderbook = $this->orderbooks[$symbol];
         $tick = $this->safe_dict($message, 'tick', array());
         $seqNum = $this->safe_integer($tick, 'seqNum');
@@ -2562,7 +2562,7 @@ class htx extends \ccxt\async\htx {
             if ($subscription !== null) {
                 $errorCode = $this->safe_string($message, 'err-code');
                 try {
-                    $this->throw_exactly_matched_exception($wsExceptions['exact'], $errorCode, $this->json($message));
+                    $this->throw_exactly_matched_exception($this->safe_dict($wsExceptions, 'exact', array()), $errorCode, $this->json($message));
                     throw new ExchangeError($this->json($message));
                 } catch (Exception $e) {
                     $messageHash = $this->safe_string($subscription, 'messageHash');

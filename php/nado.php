@@ -3224,11 +3224,14 @@ class nado extends Exchange {
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
-        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
-            $queryType = $params['type'];
+        if (is_array($config) && array_key_exists('byType' ?? '', $config)) {
             $byType = $config['byType'];
-            if (is_array($byType) && array_key_exists($queryType ?? '', $byType)) {
-                return $byType[$queryType];
+            $queryType = $this->safe_string($params, 'type');
+            if ($queryType !== null) {
+                $typeCost = $this->safe_integer($byType, $queryType);
+                if ($typeCost !== null) {
+                    return $typeCost;
+                }
             }
         }
         $byQuery = $this->safe_dict($config, 'byQuery');

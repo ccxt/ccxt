@@ -2869,7 +2869,6 @@ class blofin extends Exchange {
             $method = 'privatePostTradeCancelTpsl';
         }
         if ($clientOrderIds === null) {
-            $orderIds = $this->parse_ids($ids);
             if ($tpslIds !== null) {
                 for ($i = 0; $i < count($tpslIds); $i++) {
                     $request[] = array(
@@ -2878,15 +2877,15 @@ class blofin extends Exchange {
                     );
                 }
             }
-            for ($i = 0; $i < count($orderIds); $i++) {
+            for ($i = 0; $i < count($ids); $i++) {
                 if ($trigger === true) {
                     $request[] = array(
-                        'tpslId' => $this->safe_string($orderIds, $i),
+                        'tpslId' => $this->safe_string($ids, $i),
                         'instId' => $market['id'],
                     );
                 } else {
                     $request[] = array(
-                        'orderId' => $this->safe_string($orderIds, $i),
+                        'orderId' => $this->safe_string($ids, $i),
                         'instId' => $market['id'],
                     );
                 }

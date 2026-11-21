@@ -1743,7 +1743,8 @@ class mexc extends Exchange {
         $costString = null;
         $marketResolved = null;
         // if swap
-        if (is_array($trade) && array_key_exists('v' ?? '', $trade)) {
+        $swapVolume = $this->safe_string($trade, 'v');
+        if ($swapVolume !== null) {
             //
             // swap: fetchTrades
             //
@@ -1821,7 +1822,8 @@ class mexc extends Exchange {
             $priceString = $this->safe_string_2($trade, 'price', 'p');
             $orderId = $this->safe_string($trade, 'orderId');
             // if swap
-            if (is_array($trade) && array_key_exists('positionMode' ?? '', $trade)) {
+            $positionMode = $this->safe_string($trade, 'positionMode');
+            if ($positionMode !== null) {
                 $timestamp = $this->safe_integer($trade, 'timestamp');
                 $amountString = $this->safe_string($trade, 'vol');
                 $side = $this->parse_contract_order_side($this->safe_string($trade, 'side'));

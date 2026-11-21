@@ -3105,7 +3105,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type(string $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_transactions_by_type(string $type, array $transactions, ?string $code = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction($this->extend(array(

@@ -194,7 +194,7 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.order_place';
         $url = $this->get_url_by_market($market);
@@ -1184,7 +1184,7 @@ class gate extends \ccxt\async\gate {
         // todo add options support
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.candlesticks';
@@ -1221,7 +1221,7 @@ class gate extends \ccxt\async\gate {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageType = $this->get_type_by_market($market);
         $channel = $messageType . '.candlesticks';
@@ -1821,9 +1821,9 @@ class gate extends \ccxt\async\gate {
         }
         $payload = array( '!' . 'all' );
         if ($market !== null) {
-            $messageHash .= ':' . $market['id'];
-            $mid = $market['id'];
+            $mid = $this->safe_string($market, 'id');
             if ($mid !== null) {
+                $messageHash .= ':' . $mid;
                 $payload = array( $mid );
             }
         }

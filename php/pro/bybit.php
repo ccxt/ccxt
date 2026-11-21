@@ -419,7 +419,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'ticker:' . $symbolValue;
         $url = Async\await($this->get_url_by_market_type($symbolValue, false, 'watchTicker', $params));
         $paramsValue = $this->clean_params($params);
@@ -823,7 +823,7 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
             $data = $symbolsAndTimeframes[$i];
             $market = $this->market($data[0]);
-            $symbolString = $market['symbol'];
+            $symbolString = $this->safe_string($market, 'symbol', '');
             $unfiedTimeframe = $data[1];
             $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
             $marketId = $this->safe_string($market, 'id', '');
@@ -867,7 +867,7 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
             $data = $symbolsAndTimeframes[$i];
             $market = $this->market($data[0]);
-            $symbolString = $market['symbol'];
+            $symbolString = $this->safe_string($market, 'symbol', '');
             $unfiedTimeframe = $data[1];
             $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
             $marketId = $this->safe_string($market, 'id', '');
@@ -940,7 +940,7 @@ class bybit extends \ccxt\async\bybit {
             $marketType = 'spot';
         }
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
@@ -1171,7 +1171,7 @@ class bybit extends \ccxt\async\bybit {
             $marketType = 'spot';
         }
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $timestamp = $this->safe_integer($message, 'ts');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
@@ -1361,7 +1361,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1409,7 +1409,7 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         $id = $this->safe_string_n($trade, array( 'i', 'T', 'v' ));
-        $isContract = (is_array($trade) && array_key_exists('BT' ?? '', $trade));
+        $isContract = ($this->safe_bool($trade, 'BT') !== null);
         $marketType = 'spot';
         if ($isContract) {
             $marketType = 'contract';
@@ -1419,7 +1419,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $marketId = $this->safe_string($trade, 's');
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $timestamp = $this->safe_integer_2($trade, 't', 'T');
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
@@ -1679,7 +1679,7 @@ class bybit extends \ccxt\async\bybit {
                 }
                 $parsed = $this->parse_trade($rawTrade);
             }
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol === null) {
                 continue;
             }
@@ -1917,7 +1917,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $url = Async\await($this->get_url_by_market_type($symbolValue, false, 'watchLiquidations', $params));
         list($method, $paramsMethod) = $this->handle_option_string_and_params($this->clean_params($params), 'watchLiquidations', 'method', 'allLiquidation');
         $messageHash = 'liquidations::' . $symbolValue;
@@ -1966,7 +1966,7 @@ class bybit extends \ccxt\async\bybit {
                 $rawLiquidation = $this->safe_dict($rawLiquidations, $i);
                 $marketId = $this->safe_string($rawLiquidation, 's');
                 $market = $this->safe_market($marketId, null, '', 'contract');
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_string($market, 'symbol', '');
                 $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
                 if ($this->liquidations === null) {
                     $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
@@ -1981,7 +1981,7 @@ class bybit extends \ccxt\async\bybit {
             $rawLiquidation = $this->safe_dict($message, 'data', array());
             $marketId = $this->safe_string($rawLiquidation, 'symbol');
             $market = $this->safe_market($marketId, null, '', 'contract');
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
             if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
@@ -2248,7 +2248,7 @@ class bybit extends \ccxt\async\bybit {
             // } else {
             //     parsed = this.parseOrder (rawOrders[i]);
             // }
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol === null) {
                 continue;
             }

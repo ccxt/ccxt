@@ -1041,7 +1041,7 @@ class coinbaseexchange extends Exchange {
             $marketId = $marketIds[$i];
             $entry = $this->safe_list($response, $marketId, array());
             $market = $this->safe_market($marketId, null, $delimiter);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $result[$symbol] = $this->parse_ticker_list($this->safe_list($entry, 0, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
@@ -1161,7 +1161,7 @@ class coinbaseexchange extends Exchange {
         }
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'size');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
@@ -1728,7 +1728,7 @@ class coinbaseexchange extends Exchange {
             if ($costParam !== null) {
                 $request['funds'] = $this->cost_to_precision($symbol, $costParam);
             } elseif ($price !== null) {
-                $request['funds'] = $this->cost_to_precision($symbol, $amount * $price);
+                $request['funds'] = $this->cost_to_precision($symbol, Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price)));
             } else {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
             }
@@ -2386,10 +2386,9 @@ class coinbaseexchange extends Exchange {
 
     private function do_request(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
         $response = $this->do_fetch2($path, $api, $method, $params, $config);
-        if (gettype($response) !== 'string') {
-            if (is_array($response) && array_key_exists('message' ?? '', $response)) {
-                throw new ExchangeError($this->id . ' ' . $this->json($response));
-            }
+        $message = $this->safe_string($response, 'message');
+        if ($message !== null) {
+            throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return $response;
     }

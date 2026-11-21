@@ -5376,13 +5376,14 @@ class BaseExchange extends \ccxt\BaseExchange {
             return null;
         }
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol');
         $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
             $pricePrecision = $this->number_to_string($market['precision']['price']);
             if ($pricePrecision === null) {
-                throw new BadSymbol($this->id . ' priceToPrecision() market ' . $market['symbol'] . ' has no price precision');
+                throw new BadSymbol($this->id . ' priceToPrecision() market ' . $marketSymbol . ' has no price precision');
             }
-            throw new InvalidOrder($this->id . ' price of ' . $market['symbol'] . ' must be greater than minimum price precision of ' . $pricePrecision);
+            throw new InvalidOrder($this->id . ' price of ' . $marketSymbol . ' must be greater than minimum price precision of ' . $pricePrecision);
         }
         return $result;
     }
@@ -5392,13 +5393,14 @@ class BaseExchange extends \ccxt\BaseExchange {
             return null;
         }
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol');
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
             $amountPrecision = $this->number_to_string($market['precision']['amount']);
             if ($amountPrecision === null) {
-                throw new BadSymbol($this->id . ' amountToPrecision() market ' . $market['symbol'] . ' has no amount precision');
+                throw new BadSymbol($this->id . ' amountToPrecision() market ' . $marketSymbol . ' has no amount precision');
             }
-            throw new InvalidOrder($this->id . ' amount of ' . $market['symbol'] . ' must be greater than minimum amount precision of ' . $amountPrecision);
+            throw new InvalidOrder($this->id . ' amount of ' . $marketSymbol . ' must be greater than minimum amount precision of ' . $amountPrecision);
         }
         return $result;
     }
@@ -5737,8 +5739,9 @@ class BaseExchange extends \ccxt\BaseExchange {
         $fundingRates = array();
         for ($i = 0; $i < count($response); $i++) {
             $parsed = $this->parse_funding_rate($response[$i]);
-            if ($parsed['symbol'] !== null) {
-                $fundingRates[$parsed['symbol']] = $parsed;
+            $symbol = $this->safe_string($parsed, 'symbol');
+            if ($symbol !== null) {
+                $fundingRates[$symbol] = $parsed;
             }
         }
         return $this->index_by($this->filter_by_array($fundingRates, 'symbol', $symbols, false), 'symbol');
@@ -5909,8 +5912,9 @@ class BaseExchange extends \ccxt\BaseExchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $parsed = $this->parse_open_interest($response[$i]);
-            if ($parsed['symbol'] !== null) {
-                $result[$parsed['symbol']] = $parsed;
+            $symbol = $this->safe_string($parsed, 'symbol');
+            if ($symbol !== null) {
+                $result[$symbol] = $parsed;
             }
         }
         return $this->index_by($this->filter_by_array($result, 'symbol', $symbols, false), 'symbol');
@@ -6301,8 +6305,9 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function create_ohlcv_object(string $symbol, string $timeframe, array $data) {
         $res = array();
-        $res[$symbol] = array();
-        $res[$symbol][$timeframe] = $data;
+        $inner = array();
+        $inner[$timeframe] = $data;
+        $res[$symbol] = $inner;
         return $res;
     }
 
@@ -7820,10 +7825,10 @@ class Exchange extends BaseExchange {
     }
 
     private function do_fetch_rest_order_book_safe(mixed $symbol, ?int $limit = null, $params = array()) {
-        $fetchSnapshotMaxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 3);
+        list($fetchSnapshotMaxRetries, $fetchParams) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'maxRetries', 3);
         for ($i = 0; $i < $fetchSnapshotMaxRetries; $i++) {
             try {
-                $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $fetchParams));
                 return $orderBook;
             } catch (Exception $e) {
                 if (($i + 1) === $fetchSnapshotMaxRetries) {

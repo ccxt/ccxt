@@ -462,7 +462,7 @@ class bitopro extends \ccxt\async\bitopro {
         $this->extend_exchange_options($defaultOptions);
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
         $wsInnerOptions = $this->safe_dict($wsOptions, 'options', array());
-        $originalHeaders = $wsInnerOptions['headers'];
+        $originalHeaders = $this->safe_dict($wsInnerOptions, 'headers');
         $headers = array(
             'X-BITOPRO-API' => 'ccxt',
             'X-BITOPRO-APIKEY' => $this->apiKey,

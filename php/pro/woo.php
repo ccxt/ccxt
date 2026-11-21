@@ -1724,8 +1724,8 @@ class woo extends \ccxt\async\woo {
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
         $unsubMessageHashes = $this->safe_list($subscription, 'unsubMessageHashes', array());
         for ($i = 0; $i < count($subMessageHashes); $i++) {
-            $subHash = $subMessageHashes[$i];
-            $unsubHash = $unsubMessageHashes[$i];
+            $subHash = $this->safe_string($subMessageHashes, $i);
+            $unsubHash = $this->safe_string($unsubMessageHashes, $i);
             $this->clean_unsubscription($client, $subHash, $unsubHash);
         }
         $this->clean_cache($subscription);

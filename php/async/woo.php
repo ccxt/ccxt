@@ -943,7 +943,7 @@ class woo extends Exchange {
         //         "isMaker": 0
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
+        $isFromFetchOrder = ($this->safe_string($trade, 'id') !== null);
         $timestampString = $this->safe_string_2($trade, 'executed_timestamp', 'executedTimestamp');
         $timestamp = null;
         if ($timestampString !== null) {

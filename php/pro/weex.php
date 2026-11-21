@@ -155,7 +155,9 @@ class weex extends \ccxt\async\weex {
         $timestamp = (string) $this->nonce();
         $payload = $timestamp . '/v3/ws/private';
         $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-        $originalHeaders = $this->safe_dict($this->options['ws']['options'], 'headers');
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $wsInnerOptions = $this->safe_dict($wsOptions, 'options', array());
+        $originalHeaders = $this->safe_dict($wsInnerOptions, 'headers', array());
         $userAgent = $this->safe_string($originalHeaders, 'User-Agent', 'ccxt');
         $extendedOptions = array(
             'ws' => array(
@@ -380,10 +382,8 @@ class weex extends \ccxt\async\weex {
         $timestamp = $this->safe_integer($ticker, 'C');
         $close = $this->safe_string($ticker, 'c');
         $symbol = null;
-        if ($market === null) {
-            $symbol = null;
-        } else {
-            $symbol = $market['symbol'];
+        if ($market !== null) {
+            $symbol = $this->safe_string($market, 'symbol');
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -599,10 +599,8 @@ class weex extends \ccxt\async\weex {
         //
         $timestamp = $this->safe_integer($trade, 'T');
         $symbol = null;
-        if ($market === null) {
-            $symbol = null;
-        } else {
-            $symbol = $market['symbol'];
+        if ($market !== null) {
+            $symbol = $this->safe_string($market, 'symbol');
         }
         $isBuyerMaker = $this->safe_bool($trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         $side = null;
@@ -1175,7 +1173,7 @@ class weex extends \ccxt\async\weex {
             return;
         }
         $ticker = $this->parse_ws_bid_ask($message, $market);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         if ($symbol !== null) {
             $this->bidsasks[$symbol] = $ticker;
         }
@@ -1186,10 +1184,8 @@ class weex extends \ccxt\async\weex {
     public function parse_ws_bid_ask(array $message, ?array $market = null): array {
         $timestamp = $this->safe_integer($message, 'E');
         $symbol = null;
-        if ($market === null) {
-            $symbol = null;
-        } else {
-            $symbol = $market['symbol'];
+        if ($market !== null) {
+            $symbol = $this->safe_string($market, 'symbol');
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,

@@ -200,7 +200,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $marketId = $this->safe_string($data, 'market');
             $market = $this->safe_market($marketId, null, '-');
             $ticker = $this->parse_ticker($data, $market);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             $this->tickers[$symbol] = $ticker;
             $result[] = $ticker;
             if ($event !== null) {
@@ -306,7 +306,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $marketId = $this->safe_string($message, 'market');
         $market = $this->safe_market($marketId, null, '-');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $name = 'trades';
         $messageHash = $name . '@' . $this->safe_string($message, 'market', '');
         $trade = $this->parse_trade($message, $market);
@@ -442,9 +442,9 @@ class bitvavo extends \ccxt\async\bitvavo {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $name = 'candles';
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageHash = $name . '@' . $this->safe_string($market, 'id', '') . '_' . $interval;
         $url = $this->safe_string($this->urls['api'], 'ws');
@@ -504,7 +504,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $name = 'candles';
         $marketId = $this->safe_string($message, 'market');
         $market = $this->safe_market($marketId, null, '-');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_string($message, 'interval', '');
         // use a reverse lookup in a static map instead
         $timeframe = $this->find_timeframe($interval);
@@ -670,7 +670,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $name = 'book';
         $messageHash = $name . '@' . $this->safe_string($market, 'id', '');
         $url = $this->safe_string($this->urls['api'], 'ws');
@@ -857,7 +857,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $event = $this->safe_string($message, 'event', '');
         $marketId = $this->safe_string($message, 'market');
         $market = $this->safe_market($marketId, null, '-');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $messageHash = $event . '@' . $this->safe_string($message, 'market', '');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -1076,8 +1076,8 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $marketId = $market['id'];
+        $symbolValue = $this->safe_string($market, 'symbol');
+        $marketId = $this->safe_string($market, 'id');
         $url = $this->safe_string($this->urls['api'], 'ws');
         $name = 'account';
         $messageHash = 'order:' . $symbolValue;
@@ -1119,8 +1119,8 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $marketId = $market['id'];
+        $symbolValue = $this->safe_string($market, 'symbol');
+        $marketId = $this->safe_string($market, 'id');
         $url = $this->safe_string($this->urls['api'], 'ws');
         $name = 'account';
         $messageHash = 'myTrades:' . $symbolValue;
@@ -1861,7 +1861,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $marketId = $this->safe_string($message, 'market');
         $market = $this->safe_market($marketId, null, '-');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $messageHash = 'order:' . $symbol;
         $order = $this->parse_order($message, $market);
         if ($this->orders === null) {
@@ -1891,7 +1891,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $marketId = $this->safe_string($message, 'market');
         $market = $this->safe_market($marketId, null, '-');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $messageHash = 'myTrades:' . $symbol;
         $trade = $this->parse_trade($message, $market);
         if ($this->myTrades === null) {

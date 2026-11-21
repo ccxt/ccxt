@@ -2300,7 +2300,7 @@ class grvt extends Exchange {
     }
 
     public function convert_to_big_int_custom(mixed $x): int {
-        return intval($this->number_to_string($x));
+        return $this->parse_to_int($x);
     }
 
     public function eip_message_for_order(array $order, ?string $structureType): array {
@@ -2319,7 +2319,7 @@ class grvt extends Exchange {
             $sizeParts = explode('.', $size);
             $sizeDec = $this->safe_string($sizeParts, 1, '');
             $sizeDecLength = strlen($sizeDec) + 0; // php tr
-            $sizeDigits = intval(str_replace('.', '', $size));
+            $sizeDigits = $this->parse_to_int(str_replace('.', '', $size));
             $denominator = pow(10, $sizeDecLength);
             $sizeInteger = $sizeDigits * $sizeMultiplier / $denominator;
             $legOrder = array(
@@ -2333,7 +2333,7 @@ class grvt extends Exchange {
                 $limitParts = explode('.', $price);
                 $limitDec = $this->safe_string($limitParts, 1, '');
                 $limitDecLength = strlen($limitDec) + 0; // php tr
-                $priceDigits = intval(str_replace('.', '', $price));
+                $priceDigits = $this->parse_to_int(str_replace('.', '', $price));
                 $denominator = pow(10, $limitDecLength);
                 $priceInteger = $priceDigits * $priceMultiplier / $denominator;
                 $legOrder['limitPrice'] = $this->parse_to_int($priceInteger);
@@ -2355,7 +2355,7 @@ class grvt extends Exchange {
         );
         if ($structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && $this->safe_bool($this->options, 'builderFee', true)) {
             $returnValue['builder'] = $order['builder'];
-            $returnValue['builderFee'] = $this->parse_to_int($this->convert_to_big_int_custom($this->fee_amount_multiplier()) * floatval($this->safe_string($order, 'builder_fee'))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            $returnValue['builderFee'] = $this->parse_to_int(Precise::string_mul($this->number_to_string($this->fee_amount_multiplier()), $this->safe_string($order, 'builder_fee', '0')));
         }
         return $returnValue;
     }
@@ -3149,7 +3149,7 @@ class grvt extends Exchange {
         //        "ack": true
         //    }
         //
-        if (is_array($order) && array_key_exists('ack' ?? '', $order)) {
+        if ($this->safe_bool($order, 'ack') !== null) {
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => null,
@@ -3345,7 +3345,7 @@ class grvt extends Exchange {
         $requestSignature = $this->safe_dict($request, 'signature', array());
         if ($structureType === 'EIP712_TRANSFER_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
-            $amountInt = $request['num_tokens'] * $amountMultiplier;
+            $amountInt = Precise::string_mul($this->safe_string($request, 'num_tokens', '0'), $this->number_to_string($amountMultiplier));
             if ($currencyObj === null) {
                 throw new ExchangeError($this->id . ' createSignedRequest() missing currencyObj');
             }
@@ -3368,7 +3368,7 @@ class grvt extends Exchange {
                 'fromAccount' => $request['from_account_id'],
                 'toEthAddress' => $request['to_eth_address'],
                 'tokenCurrency' => $currencyObj['numericId'],
-                'numTokens' => $this->parse_to_int($request['num_tokens'] * $amountMultiplier),
+                'numTokens' => $this->parse_to_int(Precise::string_mul($this->safe_string($request, 'num_tokens', '0'), $this->number_to_string($amountMultiplier))),
                 'nonce' => $requestSignature['nonce'],
                 'expiration' => $requestSignature['expiration'],
             );
@@ -3379,8 +3379,8 @@ class grvt extends Exchange {
             $messageData = array(
                 'mainAccountID' => $request['main_account_id'],
                 'builderAccountID' => $request['builder_account_id'],
-                'maxFutureFeeRate' => $this->parse_to_int(floatval($this->safe_string($request, 'max_futures_fee_rate')) * $amountMultiplier),
-                'maxSpotFeeRate' => $this->parse_to_int(floatval($this->safe_string($request, 'max_spot_fee_rate')) * $amountMultiplier),
+                'maxFutureFeeRate' => $this->parse_to_int(Precise::string_mul($this->safe_string($request, 'max_futures_fee_rate', '0'), $this->number_to_string($amountMultiplier))),
+                'maxSpotFeeRate' => $this->parse_to_int(Precise::string_mul($this->safe_string($request, 'max_spot_fee_rate', '0'), $this->number_to_string($amountMultiplier))),
                 'nonce' => $requestSignature['nonce'],
                 'expiration' => $requestSignature['expiration'],
             );

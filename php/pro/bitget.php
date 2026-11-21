@@ -618,9 +618,9 @@ class bitget extends \ccxt\async\bitget {
         }
         $timeframes = $this->safe_dict($this->options, 'timeframes');
         $interval = $this->safe_string($timeframes, $timeframe);
-        $channel = null;
+        $channel = '';
         $market = $this->market($symbol);
-        $messageHash = null;
+        $messageHash = '';
         $values = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'uta', false);
         $uta = $values[0];
         $isStock = $market['stock'];
@@ -872,7 +872,8 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'unsubscribe:' . $messageHashTopic . ':' . $market['symbol'];
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $messageHash = 'unsubscribe:' . $messageHashTopic . ':' . $marketSymbol;
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, $methodName, 'uta', false);
         list($privateChannel, $paramsPrivateChannel) = $this->handle_option_bool_and_params($paramsUta, $methodName, 'privateChannel', false);
         list($instType, $paramsInstType) = $this->get_inst_type($methodName, $market, $uta, $paramsPrivateChannel);
@@ -1778,7 +1779,8 @@ class bitget extends \ccxt\async\bitget {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
             $marketId = $this->safe_string($market, 'id');
-            $messageHash = $messageHash . ':' . $symbolResolved;
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $messageHash = $messageHash . ':' . $marketSymbol;
         }
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsTrigger, 'watchOrders', 'uta', false);
         $productType = $this->safe_string($paramsUta, 'productType');
@@ -1803,7 +1805,8 @@ class bitget extends \ccxt\async\bitget {
             list($instType, $paramsInstType) = $this->get_inst_type('watchOrders', $market, $uta, $paramsSubType);
         }
         if ($type === 'spot' && ($symbolResolved !== null)) {
-            $subscriptionHash = $subscriptionHash . ':' . $symbolResolved;
+            $resolvedSymbol = $symbolResolved;
+            $subscriptionHash = $subscriptionHash . ':' . $resolvedSymbol;
         }
         if ($isTrigger === true) {
             $subscriptionHash = $subscriptionHash . ':stop'; // we don't want to re-use the same subscription hash for stop orders
@@ -1984,7 +1987,7 @@ class bitget extends \ccxt\async\bitget {
             $market = $this->safe_market($marketId, null, null, $marketType);
             $parsed = $this->parse_ws_order($order, $market);
             $stored->append($parsed);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol !== null) {
                 $marketSymbols[$symbol] = true;
             }

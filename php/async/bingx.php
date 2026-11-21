@@ -3751,18 +3751,19 @@ class bingx extends Exchange {
             $result = $data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        $fixedMembers = array();
         $stopLossDict = $this->safe_dict($result, 'stopLoss');
         $stopLoss = $this->safe_string($result, 'stopLoss');
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if (($stopLossDict === null) && ($stopLoss !== null) && (mb_strpos($stopLoss, '{') === 0)) {
-            $result['stopLoss'] = $this->parse_json($stopLoss);
+            $fixedMembers['stopLoss'] = $this->parse_json($stopLoss);
         }
         $takeProfit = $this->safe_string($result, 'takeProfit');
         if (($takeProfit !== null) && (mb_strpos($takeProfit, '{') === 0)) {
-            $result['takeProfit'] = $this->parse_json($takeProfit);
+            $fixedMembers['takeProfit'] = $this->parse_json($takeProfit);
         }
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend($result, $fixedMembers), $market);
     }
 
     public function create_orders(array $orders, $params = array()): PromiseInterface {

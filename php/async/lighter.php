@@ -456,9 +456,9 @@ class lighter extends Exchange {
     }
 
     public function get_lighter_private_key(string $strAccountIndex, string $strApiKeyIndex) {
-        $auths = $this->safe_dict($this->options, 'auths');
-        $accountAuths = $this->safe_dict($auths, $strAccountIndex);
-        $apiKeyAuths = $this->safe_dict($accountAuths, $strApiKeyIndex);
+        $auths = $this->safe_dict($this->options, 'auths', array());
+        $accountAuths = $this->safe_dict($auths, $strAccountIndex, array());
+        $apiKeyAuths = $this->safe_dict($accountAuths, $strApiKeyIndex, array());
         return $this->safe_string($apiKeyAuths, 'lighterPrivateKey');
     }
 
@@ -594,9 +594,9 @@ class lighter extends Exchange {
             $res = $this->handle_option_and_params_2(array(), 'createAuth', 'accountIndex', 'account_index');
             $accountIndex = $this->safe_string($res, 0);
         }
-        $auths = $this->safe_dict($this->options, 'auths');
-        $accountAuths = $this->safe_dict($auths, $accountIndex);
-        $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex);
+        $auths = $this->safe_dict($this->options, 'auths', array());
+        $accountAuths = $this->safe_dict($auths, $accountIndex, array());
+        $cachedAuth = $this->safe_dict($accountAuths, $apiKeyIndex, array());
         $cachedDeadline = $this->safe_integer($cachedAuth, 'deadline');
         $minimumRemaining = $this->safe_integer($this->options, 'authDeadlineMinimumRemaining', 60);
         if (($cachedDeadline !== null) && ($minimumRemaining !== null) && ($cachedDeadline - $minimumRemaining >= $this->seconds())) {
@@ -1993,11 +1993,11 @@ class lighter extends Exchange {
         $result = array( 'info' => $response );
         $accounts = $this->safe_list($response, 'accounts', array());
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $this->safe_dict($accounts, $i);
+            $account = $this->safe_dict($accounts, $i, array());
             if ($type === 'spot') {
                 $assets = $this->safe_list($account, 'assets', array());
                 for ($j = 0; $j < count($assets); $j++) {
-                    $asset = $this->safe_dict($assets, $j);
+                    $asset = $this->safe_dict($assets, $j, array());
                     $codeId = $this->safe_string($asset, 'symbol');
                     $code = $this->safe_currency_code($codeId);
                     $balance = $this->extend($this->account(), $this->safe_dict($result, $code, array()));
@@ -2118,7 +2118,7 @@ class lighter extends Exchange {
         $allPositions = array();
         $accounts = $this->safe_list($response, 'accounts', array());
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = $this->safe_dict($accounts, $i);
+            $account = $this->safe_dict($accounts, $i, array());
             $positions = $this->safe_list($account, 'positions', array());
             for ($j = 0; $j < count($positions); $j++) {
                 $allPositions[] = $positions[$j];

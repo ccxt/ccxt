@@ -2474,10 +2474,10 @@ class htx extends Exchange {
             throw new NullResponse($this->id . ' fetchOrderBook() returned empty response');
         }
         if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
-            if ($this->safe_value($response, 'tick') === null) {
+            $tick = $this->safe_dict($response, 'tick');
+            if ($tick === null) {
                 throw new BadSymbol($this->id . ' fetchOrderBook() returned empty response => ' . $this->json($response));
             }
-            $tick = $this->safe_dict($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
             $result = $this->parse_order_book($tick, $symbol, $timestamp);
             $result['nonce'] = $this->safe_integer($tick, 'version');

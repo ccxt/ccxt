@@ -1976,27 +1976,42 @@ class aster extends \ccxt\async\aster {
                         // accumulate order fees
                         $fees = $this->safe_list($order, 'fees', array());
                         $fee = $this->safe_dict($order, 'fee');
+                        $tradeFeeCurrency = $this->safe_string($tradeFee, 'currency');
+                        $tradeFeeCost = $this->safe_number($tradeFee, 'cost');
                         if (!$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
+                            $newFees = array();
                             for ($i = 0; $i < count($fees); $i++) {
-                                $orderFee = $fees[$i];
-                                if ($this->safe_string($orderFee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
-                                    $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
-                                    $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
-                                    $order['fees'][$i]['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
+                                $orderFee = $this->extend(array(), $fees[$i]);
+                                if ($insertNewFeeCurrency && $this->safe_string($orderFee, 'currency') === $tradeFeeCurrency) {
+                                    $feeCost = $this->sum($tradeFeeCost, $this->safe_number($orderFee, 'cost'));
+                                    $feeCostString = $this->currency_to_precision($tradeFeeCurrency, $feeCost);
+                                    if ($feeCostString !== null) {
+                                        $orderFee['cost'] = floatval($feeCostString);
+                                    } else {
+                                        $orderFee['cost'] = null;
+                                    }
                                     $insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                $newFees[] = $orderFee;
                             }
                             if ($insertNewFeeCurrency) {
-                                $order['fees'][] = $tradeFee;
+                                $newFees[] = $tradeFee;
                             }
+                            $order['fees'] = $newFees;
                         } elseif ($fee !== null) {
-                            if ($this->safe_string($fee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
-                                $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
-                                $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
-                                $order['fee']['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
-                            } elseif ($this->safe_string($fee, 'currency') === null) {
+                            $feeCurrency = $this->safe_string($fee, 'currency');
+                            if ($feeCurrency === $tradeFeeCurrency) {
+                                $feeCost = $this->sum($this->safe_number($fee, 'cost'), $tradeFeeCost);
+                                $feeCostString = $this->currency_to_precision($tradeFeeCurrency, $feeCost);
+                                $newFee = $this->extend(array(), $fee);
+                                if ($feeCostString !== null) {
+                                    $newFee['cost'] = floatval($feeCostString);
+                                } else {
+                                    $newFee['cost'] = null;
+                                }
+                                $order['fee'] = $newFee;
+                            } elseif ($feeCurrency === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
                                 $order['fees'] = array( $fee, $tradeFee );
