@@ -2680,7 +2680,7 @@ export default class ndax extends Exchange {
         if (template === undefined) {
             throw new ExchangeError (this.id + ' withdraw() could not find a withdraw template for ' + currency['code']);
         }
-        const withdrawTemplate = JSON.parse (template);
+        const withdrawTemplate: Dict = this.extend ({}, JSON.parse (template));
         withdrawTemplate['ExternalAddress'] = address;
         if (tagWithdrawTag !== undefined) {
             if ('Memo' in withdrawTemplate) {
