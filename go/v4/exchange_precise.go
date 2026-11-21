@@ -16,10 +16,10 @@ type PreciseStruct struct {
 
 var Precise = &PreciseStruct{}
 
-func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
+func NewPrecise(number2 any, dec2 ...int) *PreciseStruct {
 	var dec int
 	if len(dec2) > 0 {
-		dec = int(ParseInt(dec2[0]))
+		dec = dec2[0]
 	} else {
 		dec = math.MinInt32
 	}
@@ -85,7 +85,7 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 		numerator = new(big.Int).Mul(p.integer, exponent)
 	}
 	result := new(big.Int).Quo(numerator, other.integer)
-	return NewPrecise(result.String(), precision)
+	return NewPrecise(result.String(), int(precision))
 }
 
 func (p *PreciseStruct) Add(other *PreciseStruct) *PreciseStruct {
