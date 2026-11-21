@@ -7485,7 +7485,7 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'unWatchOrderBookForSymbols': { 0: '[]string' },
     // createOrders (orders: OrderRequest[]) prints `orders []any` on the base, every venue and
     // ICreateOrders: every caller already hands over a `[]any`
-    'createOrders': { 0: '[]any' },
+    'createOrders': { 0: '[]map[string]any' },
     // base list params every caller hands a `[]any` (typed locals, SortBy/ToArray results, literals);
     // IDerivedExchange declares GetCacheIndex/HandleBookDeltas with the same slice
     'getCacheIndex': { 1: '[]any' }, 'handleBookDeltas': { 1: '[]any' }, 'handleDeltasWithKeys': { 1: '[]any' },
@@ -7505,9 +7505,9 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'parseFundingRates': { 0: '[]any' }, 'parseFundingRateHistories': { 0: '[]any' },
     'parseLongShortRatioHistory': { 0: '[]any' }, 'parseIsolatedBorrowRates': { 0: '[]any' },
     // createOrdersWs (orders: OrderRequest[]) on the base, gate and hyperliquid; the typed wrapper converts
-    'createOrdersWs': { 0: '[]any' },
+    'createOrdersWs': { 0: '[]map[string]any' },
     // venue createOrdersRequest (gate, hyperliquid, pacifica): callers are createOrders/createOrdersWs cores
-    'createOrdersRequest': { 0: '[]any' },
+    'createOrdersRequest': { 0: '[]map[string]any' },
     // symbols-and-timeframes rows (string[][]): literals print `[][]any{[]any{..}}`, the wrapper converts its [][]string
     'watchOHLCVForSymbols': { 0: '[][]any' }, 'unWatchOHLCVForSymbols': { 0: '[][]any' },
     // base List params every ts/src caller hands a `[]any` local; ParseDepositAddresses' interface line matches
@@ -7532,6 +7532,9 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'parseIncomes': { 0: '[]any' },
     // ws list frames (handleListMessage (client, message: List)): the hand-written dispatch hands the asserted []any
     'handleListMessage': { 1: '[]any' },
+    // order-row lists the createOrders cores hand over whole (kucoin spot/contract, bitget uta)
+    'createSpotOrders': { 0: '[]map[string]any' }, 'createContractOrders': { 0: '[]map[string]any' },
+    'createUtaOrders': { 0: '[]map[string]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
@@ -14195,7 +14198,7 @@ class NewTranspiler {
         let params = methodWrapper.parameters.map((param: any) => {
             if (methodName === 'createOrders' && param.name === 'orders') {
                 // prediction venues batch PredictionOrderRequest (outcome) not OrderRequest (symbol)
-                return this.isPrediction ? 'ConvertPredictionOrderRequestListToArray(orders)' : 'ConvertOrderRequestListToArray(orders)'; // quick fix, check this later
+                return this.isPrediction ? 'ConvertPredictionOrderRequestListToMapRows(orders)' : 'ConvertOrderRequestListToMapRows(orders)';
             }
 
             const sliceConversion = GO_WRAPPER_SLICE_CONVERSIONS[String (param.type ?? '')];

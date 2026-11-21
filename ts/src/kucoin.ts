@@ -4732,9 +4732,8 @@ export default class kucoin extends Exchange {
         }
         let isSpot = false;
         let isContract = false;
-        const ordersList = this.toArray (orders);
-        for (let i = 0; i < ordersList.length; i++) {
-            const order = this.safeDict (ordersList, i);
+        for (let i = 0; i < orders.length; i++) {
+            const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
@@ -4776,9 +4775,8 @@ export default class kucoin extends Exchange {
         }
         const ordersRequests: List = [];
         let symbol: Str = undefined;
-        const ordersList = this.toArray (orders);
-        for (let i = 0; i < ordersList.length; i++) {
-            const rawOrder = this.safeDict (ordersList, i);
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             if (marketId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
@@ -4867,9 +4865,8 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        const ordersList = this.toArray (orders);
-        for (let i = 0; i < ordersList.length; i++) {
-            const rawOrder = this.safeDict (ordersList, i);
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');

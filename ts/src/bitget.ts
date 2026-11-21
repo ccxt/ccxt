@@ -6275,8 +6275,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        const firstOrder = this.safeDict (orders, 0);
-        let symbol: Str = this.safeString (firstOrder, 'symbol');
+        let symbol: Str = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
@@ -6351,8 +6350,7 @@ export default class bitget extends Exchange {
             return await this.createUtaOrders (orders, paramsUTA);
         }
         const ordersRequests: List = [];
-        const firstOrder = this.safeDict (orders, 0);
-        let symbol: Str = this.safeString (firstOrder, 'symbol');
+        let symbol: Str = undefined;
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);

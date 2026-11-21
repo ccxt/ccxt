@@ -1401,25 +1401,22 @@ type PredictionOrderRequest struct {
 }
 
 func ConvertPredictionOrderRequestListToArray(orderRequests []PredictionOrderRequest) []any {
-	result := make([]any, 0, len(orderRequests))
-	for _, orderRequest := range orderRequests {
-		outcome := *orderRequest.Outcome
-		orderType := *orderRequest.Type
-		side := *orderRequest.Side
-		amount := *orderRequest.Amount
-		price := *orderRequest.Price
-		parameters := orderRequest.Parameters
-		individualOrderRequest := map[string]any{
-			"outcome": outcome,
-			"type":    orderType,
-			"side":    side,
-			"amount":  amount,
-			"price":   price,
-			"params":  parameters,
-		}
-		result = append(result, individualOrderRequest)
-	}
+	return MapSliceToList(ConvertPredictionOrderRequestListToMapRows(orderRequests))
+}
 
+// ConvertPredictionOrderRequestListToMapRows hands typed prediction order requests to a core taking map rows
+func ConvertPredictionOrderRequestListToMapRows(orderRequests []PredictionOrderRequest) []map[string]any {
+	result := make([]map[string]any, 0, len(orderRequests))
+	for _, orderRequest := range orderRequests {
+		result = append(result, map[string]any{
+			"outcome": *orderRequest.Outcome,
+			"type":    *orderRequest.Type,
+			"side":    *orderRequest.Side,
+			"amount":  *orderRequest.Amount,
+			"price":   *orderRequest.Price,
+			"params":  orderRequest.Parameters,
+		})
+	}
 	return result
 }
 

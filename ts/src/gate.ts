@@ -4635,8 +4635,13 @@ export default class gate extends Exchange {
         }
         await this.loadUnifiedStatus ();
         const ordersRequests = this.createOrdersRequest (orders, params);
-        const firstOrder = orders[0];
-        const market = this.market (firstOrder['symbol']);
+        let symbol: Str = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            if (i === 0) {
+                symbol = this.safeString (orders[i], 'symbol');
+            }
+        }
+        const market = this.market (symbol);
         let response = undefined;
         if (this.safeBool (market, 'spot', false)) {
             response = await this.privateSpotPostBatchOrders (ordersRequests);

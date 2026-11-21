@@ -209,8 +209,13 @@ export default class gate extends gateRest {
             await this.loadMarkets ();
         }
         const request = this.createOrdersRequest (orders, params);
-        const firstOrder = orders[0];
-        const market = this.market (firstOrder['symbol']);
+        let symbol: Str = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            if (i === 0) {
+                symbol = this.safeString (orders[i], 'symbol');
+            }
+        }
+        const market = this.market (symbol);
         if (!this.safeBool (market, 'swap', false)) {
             throw new NotSupported (this.id + ' createOrdersWs is not supported for swap markets');
         }
