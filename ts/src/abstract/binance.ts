@@ -2549,7 +2549,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('exerciseHistory', [ 'eapiPublic' ], 'GET', params, { 'cost': 3 });
     }
 
-    eapiPublicGetOpenInterest (params = {}): Promise<Dict> {
+    eapiPublicGetOpenInterest (params = {}): Promise<List> {
         return this.request ('openInterest', [ 'eapiPublic' ], 'GET', params, { 'cost': 3 });
     }
 

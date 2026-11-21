@@ -18507,6 +18507,8 @@ for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_H27_C02)) {
 }
 // base parseTransfers: every caller passes a List<object> (mexc via safeList); no override
 CORE_LIST_ARGS['parseTransfers'] = Object.assign ({}, CORE_LIST_ARGS['parseTransfers'] ?? {}, { 0: 'IList<object>' });
+// base parseOpenInterestsHistory: every caller passes a List<object> (binance options via the eapi list endpoint); no override
+CORE_LIST_ARGS['parseOpenInterestsHistory'] = Object.assign ({}, CORE_LIST_ARGS['parseOpenInterestsHistory'] ?? {}, { 0: 'IList<object>' });
 
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //

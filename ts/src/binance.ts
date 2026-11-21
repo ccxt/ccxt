@@ -1028,7 +1028,7 @@ export default class binance extends Exchange {
                         'trades': { 'cost': 5 } as Endpoint<List>,
                         'historicalTrades': { 'cost': 20 } as Endpoint<List>,
                         'exerciseHistory': { 'cost': 3 } as Endpoint<List>,
-                        'openInterest': { 'cost': 3 } as Endpoint<Dict>,
+                        'openInterest': { 'cost': 3 } as Endpoint<List>,
                     },
                 },
                 'eapiPrivate': {
@@ -14507,10 +14507,20 @@ export default class binance extends Exchange {
         } else {
             request['symbol'] = market['id'];
         }
-        let response: NullableDict = undefined;
         if (this.safeBool (market, 'option', false)) {
-            response = await this.eapiPublicGetOpenInterest (this.extend (request, params));
-        } else if (this.safeBool (market, 'inverse', false)) {
+            const optionResponse = await this.eapiPublicGetOpenInterest (this.extend (request, params));
+            const symbolValue: string = market['symbol'];
+            const result = this.parseOpenInterestsHistory (optionResponse, market);
+            for (let i = 0; i < result.length; i++) {
+                const item = this.safeDict (result, i);
+                if (this.safeString (item, 'symbol') === symbolValue) {
+                    return item as OpenInterest;
+                }
+            }
+            throw new NullResponse (this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
+        }
+        let response: NullableDict = undefined;
+        if (this.safeBool (market, 'inverse', false)) {
             response = await this.dapiPublicGetOpenInterest (this.extend (request, params));
         } else {
             response = await this.fapiPublicGetOpenInterest (this.extend (request, params));
@@ -14545,19 +14555,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        if (this.safeBool (market, 'option', false)) {
-            const symbolValue: string = market['symbol'];
-            const result = this.parseOpenInterestsHistory (response, market);
-            for (let i = 0; i < result.length; i++) {
-                const item = this.safeDict (result, i);
-                if (this.safeString (item, 'symbol') === symbolValue) {
-                    return item as OpenInterest;
-                }
-            }
-            throw new NullResponse (this.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue);
-        } else {
-            return this.parseOpenInterest (response, market);
-        }
+        return this.parseOpenInterest (response, market);
     }
 
     override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
