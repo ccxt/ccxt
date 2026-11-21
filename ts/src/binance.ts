@@ -9531,8 +9531,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < rows; i++) {
             const logs: Dict[] = this.safeList (results[i], 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
-                logs[j]['isDustTrade'] = true;
-                data.push (logs[j]);
+                data.push (this.extend (logs[j], { 'isDustTrade': true }));
             }
         }
         const trades = this.parseTrades (data, undefined, since, limit);
@@ -10618,17 +10617,18 @@ export default class binance extends Exchange {
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const networkList: Dict[] = this.safeList (entry, 'networkList', []);
-            if (code !== undefined) {
-                withdrawFees[code] = {};
-            }
+            const networkFees: Dict = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = this.safeDict (networkList, j);
                 const networkId = this.safeString (networkEntry, 'network');
                 const networkCode = this.networkIdToCode (networkId, code);
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
-                if ((code !== undefined) && (networkCode !== undefined)) {
-                    withdrawFees[code][networkCode] = fee;
+                if (networkCode !== undefined) {
+                    networkFees[networkCode] = fee;
                 }
+            }
+            if (code !== undefined) {
+                withdrawFees[code] = networkFees;
             }
         }
         return {

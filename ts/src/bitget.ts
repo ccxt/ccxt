@@ -4710,7 +4710,7 @@ export default class bitget extends Exchange {
         } else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType: Str = undefined;
             [ productType, paramsMarginMode ] = this.handleProductTypeAndParams (undefined, paramsMarginMode);
-            paramsMarginMode['productType'] = productType;
+            paramsMarginMode = this.extend (paramsMarginMode, { 'productType': productType });
             response = await this.publicMixGetV2MixMarketContracts (paramsMarginMode);
         } else {
             throw new NotSupported (this.id + ' does not support ' + marketType + ' market');
