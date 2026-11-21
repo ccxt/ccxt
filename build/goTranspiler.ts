@@ -1617,6 +1617,12 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, ta
             declAt = o.index + name.length + 1;
             continue;
         }
+        // `var x, _ = m[k].(map[string]any)`: the comma-ok typed map read already declares the map type
+        if (/^\t+var $/.test (lead) && /^, _ = [\w.]+\[[^\]\n]+\]\.\(map\[string\]any\)\s*$/.test (after)) {
+            decls++;
+            types.add ('map[string]any');
+            continue;
+        }
         const safeDictInit = /^ any = (this\.SafeDict(2|N)?\(.*\))\s*$/.exec (after);
         if (/^\t+var $/.test (lead) && (safeDictInit !== null) && (goChanClose (safeDictInit[1], safeDictInit[1].indexOf ('(')) === safeDictInit[1].length)) {
             decls++;
@@ -3136,10 +3142,11 @@ function goChan3Pass (content: string, table: Map<string, string> = goChan3Table
 // the round trip is the identity (as for same-T forwards), so the row is read from the typed value; a missing key or
 // an empty list gives the zero T, as FromMap(nil) did
 function goChan3StructRowReads (content: string): string {
-    const box = /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n\1var (\w+) map\[string\]any = \4SafeMapTyped\(\2, (\w+)\)\n/gm;
+    const box = /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n\1(?:var (\w+) map\[string\]any = \4SafeMapTyped\(\2, (\w+)\)|var (\w+), _ = \2\[(\w+)\]\.\(map\[string\]any\))\n/gm;
     const edits: Edit[] = [];
     for (let m = box.exec (content); m !== null; m = box.exec (content)) {
-        const [ whole, ind, name, boxType, q, rm, elemM, toList, rl, row, key ] = m;
+        const [ whole, ind, name, boxType, q, rm, elemM, toList, rl ] = m;
+        const [ row, key ] = (m[9] !== undefined) ? [ m[9], m[10] ] : [ m[11], m[12] ];
         const isList = (boxType === '[]any');
         const elem = isList ? Object.keys (GO_CHAN3_STRUCT_LISTS).find ((t) => GO_CHAN3_STRUCT_LISTS[t].to === toList) : elemM;
         if ((elem === undefined) || (isList !== (key === '0'))) {
@@ -3235,10 +3242,11 @@ function goChan3StructRowRecv (content: string): string {
 // as goChan3StructRowReads, for a row tested `if row == nil {` before its FromMap: the boxed row is nil exactly when
 // the key is missing / the list is empty (TToMap of a present struct is never nil), so the test reads that
 function goChan3StructRowNilReads (content: string): string {
-    const box = /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n\1var (\w+) map\[string\]any = \4SafeMapTyped\(\2, (\w+)\)\n\1if \9 == nil \{\n/gm;
+    const box = /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n\1(?:var (\w+) map\[string\]any = \4SafeMapTyped\(\2, (\w+)\)|var (\w+), _ = \2\[(\w+)\]\.\(map\[string\]any\))\n\1if \9\11 == nil \{\n/gm;
     const edits: Edit[] = [];
     for (let m = box.exec (content); m !== null; m = box.exec (content)) {
-        const [ whole, ind, name, boxType, q, rm, elemM, toList, rl, row, key ] = m;
+        const [ whole, ind, name, boxType, q, rm, elemM, toList, rl ] = m;
+        const [ row, key ] = (m[9] !== undefined) ? [ m[9], m[10] ] : [ m[11], m[12] ];
         const isList = (boxType === '[]any');
         const elem = isList ? Object.keys (GO_CHAN3_STRUCT_LISTS).find ((t) => GO_CHAN3_STRUCT_LISTS[t].to === toList) : elemM;
         if ((elem === undefined) || (isList !== (key === '0')) || (elem === 'map[string]any') || (elem === 'string')) {
