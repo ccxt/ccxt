@@ -5,6 +5,8 @@ import jsdocPlugin from 'eslint-plugin-jsdoc';
 import unusedImportsPlugin from 'eslint-plugin-unused-imports';
 import importPlugin from 'eslint-plugin-import';
 import globals from 'globals';
+import ccxtSafePlugin from './eslint-rules/index.mjs';
+import { CCXT_SAFE_FILES } from './eslint-rules/_scope.mjs';
 
 const sharedPlugins = {
     '@typescript-eslint': tsPlugin,
@@ -352,5 +354,11 @@ export default [
         rules: {
             'no-param-reassign': ['error', { 'props': false }],
         },
+    },
+    {
+        // ccxt-safe: transpile-safety rules from eslint-rules/ (ratcheted per file by eslint-rules/baseline/<rule>.json)
+        files: CCXT_SAFE_FILES,
+        plugins: { 'ccxt-safe': ccxtSafePlugin },
+        rules: Object.fromEntries (Object.keys (ccxtSafePlugin.rules).map ((name) => [ 'ccxt-safe/' + name, 'error' ])),
     },
 ];
