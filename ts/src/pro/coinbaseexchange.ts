@@ -69,7 +69,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        let messageHash = messageHashStart;
+        let messageHash: string = messageHashStart;
         const productIds: Str[] = [];
         if (symbol !== undefined) {
             market = this.market (symbol);

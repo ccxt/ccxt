@@ -11872,7 +11872,7 @@ export default class kucoin extends Exchange {
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
         const paramsOmitted: Dict = this.omit (params, 'version');
-        let endpoint = '/api/' + version + '/' + this.implodeParams (path, paramsOmitted);
+        let endpoint: string = '/api/' + version + '/' + this.implodeParams (path, paramsOmitted);
         if (apiName === 'utaV2') {
             endpoint = '/api/ua/v2/' + this.implodeParams (path, paramsOmitted);
         }
@@ -11890,14 +11890,14 @@ export default class kucoin extends Exchange {
             }
         }
         const query = this.omit (paramsOmitted, this.extractParams (path));
-        let endpart = '';
+        let endpart: string = '';
         const headersBase: NullableDict = {};
         let bodyJson: Str = undefined;
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const tradeType = this.safeString (query, 'tradeType');
+        const tradeType: string = this.safeString (query, 'tradeType', '');
         if (!this.isEmpty (query)) {
             if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode (query);
@@ -11905,8 +11905,8 @@ export default class kucoin extends Exchange {
                 if ((endpoint === '/api/ua/v1/classic/order/place') || (endpoint === '/api/ua/v1/classic/order/place/batch') || (endpoint === '/api/ua/v1/classic/order/cancel') || (endpoint === '/api/ua/v1/classic/order/cancel/batch')) {
                     endpoint += '?tradeType=' + tradeType;
                 }
-                bodyJson = this.json (query);
-                endpart = bodyJson;
+                endpart = this.json (query);
+                bodyJson = endpart;
                 headersBase['Content-Type'] = 'application/json';
             }
         }

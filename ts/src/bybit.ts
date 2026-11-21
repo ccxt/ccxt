@@ -1620,8 +1620,8 @@ export default class bybit extends Exchange {
                 quote = 'USDT';
             }
         }
-        const strike = this.safeString (optionParts, 2);
-        const optionType = this.safeString (optionParts, 3);
+        const strike: string = this.safeString (optionParts, 2, '');
+        const optionType: string = this.safeString (optionParts, 3, '');
         const datetime = this.convertExpireDate (expiry);
         let amountPrecision: Num = undefined;
         let pricePrecision: Num = undefined;
