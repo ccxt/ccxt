@@ -1330,9 +1330,9 @@ impl crate::exchange::DerivedExchange for Phemex {
             let timestamp: i64 = self.seconds();
             let xPhemexRequestExpiry: i64 = self.safe_integer_k(&self.options, "x-phemex-request-expiry", &[Value::Int(60)]).as_i64().unwrap_or(60);
             let expiry: i64 = (timestamp + xPhemexRequestExpiry);
-            let expiryString: Value = Value::Str(format!("{}", expiry).into());
+            let expiryString: String = format!("{}", expiry);
             privateHeaders.insert("x-phemex-access-token".into(), self.apiKey.clone());
-            privateHeaders.insert("x-phemex-request-expiry".into(), expiryString.clone());
+            privateHeaders.insert("x-phemex-request-expiry".into(), Value::from(expiryString.as_str()));
             let mut payload: Option<String> = Some("".to_string());
             if (method.as_str() == Some("POST")) {
                 let isOrderPlacement: bool = (path == "g-orders") || (path == "spot/orders") || (path == "orders");

@@ -1776,7 +1776,7 @@ impl Gate {
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
-                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from(symbolValue.as_str()), (if (cacheTimeframe.is_some()) { cacheTimeframe.clone().map(Value::from).unwrap_or(Value::Null) } else { timeframe })])]));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from(symbolValue.as_str()), (if (cacheTimeframe.is_some()) { cacheTimeframe.map(Value::from).unwrap_or(Value::Null) } else { timeframe })])]));
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subMessageHash)]));
             m
@@ -2356,7 +2356,7 @@ impl Gate {
             }
         }
         }
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":positions::").into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":positions::").into())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
@@ -2529,7 +2529,7 @@ impl Gate {
             let m = indexmap::IndexMap::new();
             m
         });
-        let parsedOrders: Vec<Value> = Value::Arr(self.parse_orders(&orders, None, &[])).as_array().cloned().unwrap_or_default();
+        let parsedOrders: Vec<Value> = self.parse_orders(&orders, None, &[]).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;

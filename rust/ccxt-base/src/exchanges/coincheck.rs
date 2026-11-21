@@ -1058,7 +1058,7 @@ impl Coincheck {
         }
         let response: crate::value::Dict = self.private_get_exchange_orders_opens(&[&params]).await.unwrap_or_default();
         let rawOrders: crate::value::List = self.safe_list_k_t(&response, "orders");
-        let parsedOrders: Vec<Value> = Value::Arr(self.parse_orders(&rawOrders, market.as_ref(), &[&Value::from(since), &Value::from(limit)])).as_array().cloned().unwrap_or_default();
+        let parsedOrders: Vec<Value> = self.parse_orders(&rawOrders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]).to_vec();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

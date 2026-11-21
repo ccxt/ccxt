@@ -330,7 +330,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "complete_raw_topics" => self.complete_raw_topics(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
+                "complete_raw_topics" => Value::Arr(self.complete_raw_topics(args.get(0).cloned().unwrap_or(crate::Value::Null)).await),
                 "create_market_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -347,7 +347,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_quote" => Value::Dict(self.fetch_quote(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_topic_detail" => self.fetch_raw_topic_detail(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_raw_topics" => self.fetch_raw_topics(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_topics" => Value::Arr(self.fetch_raw_topics(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_wallet" => self.fetch_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -662,7 +662,7 @@ impl Binance {
         }
         let maxMarkets: Option<i64> = self.safe_integer_k(&params, "limit", &[self.safe_integer(&self.options, Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(200)])]).as_i64();
         let rest: crate::value::Dict = self.omit_t(params, &["query", "queries", "limit"], &[]);
-        let rawTopics: Vec<Value> = self.fetch_raw_topics(Value::from(maxMarkets), &[&Value::Dict(rest)]).await.as_array().cloned().unwrap_or_default();
+        let rawTopics: Vec<Value> = self.fetch_raw_topics(Value::from(maxMarkets), &[&Value::Dict(rest)]).await.to_vec();
         let mut parsedEvents: Vec<Value> = Vec::new();
         let mut flatMarkets: Vec<Value> = Vec::new();
         let rawTopicsLength: i64 = rawTopics.len() as i64;
@@ -699,7 +699,7 @@ impl Binance {
  * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
  * @returns {object[]} raw market topic objects
  */
-    pub async fn fetch_raw_topics(&mut self, mut maxTopics: Value, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_topics(&mut self, mut maxTopics: Value, optional_args: &[&Value]) -> crate::value::List {
         let rest = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -778,9 +778,7 @@ impl Binance {
             }
             offset = (offset + pageTopicsLength);
         }
-        return Value::from(collected);
-
-    Value::Null
+        return std::sync::Arc::new(collected);
 }
 
 /*
@@ -816,7 +814,7 @@ impl Binance {
  * @param {object[]} rawTopics raw market topic objects
  * @returns {object[]} raw market topic objects with usable nested markets
  */
-    pub async fn complete_raw_topics(&mut self, rawTopics: impl Into<crate::Value>) -> Value {
+    pub async fn complete_raw_topics(&mut self, rawTopics: impl Into<crate::Value>) -> crate::value::List {
         let mut rawTopics: Value = rawTopics.into();
         let __rawTopics_empty = Vec::new();
         let rawTopics = rawTopics.as_array().unwrap_or(&__rawTopics_empty);
@@ -847,9 +845,7 @@ impl Binance {
             }
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*
@@ -955,8 +951,8 @@ impl Binance {
                 }
             }
             let __ws_arg_2 = self.extend(Value::Map(listingRequest), &[&rest]);
-            let listed: crate::value::List = self.fetch_raw_topics(Value::from(fetchCap), &[&__ws_arg_2]).await.into_list();
-            rawTopics = self.complete_raw_topics(&listed).await.into_list();
+            let listed: crate::value::List = self.fetch_raw_topics(Value::from(fetchCap), &[&__ws_arg_2]).await;
+            rawTopics = self.complete_raw_topics(&listed).await;
         }
         let rawTopicsLength: i64 = rawTopics.len() as i64;
         let mut result: Vec<Value> = Vec::new();
@@ -1069,7 +1065,7 @@ impl Binance {
         if (limitResolved.is_some() && Some(collectedLength) > limitResolved) {
             capped = Value::Arr(self.array_slice(collected, Value::Int(0), &[Value::from(limitResolved)]));
         }
-        return self.complete_raw_topics(capped).await;
+        return Value::Arr(self.complete_raw_topics(capped).await);
 
     Value::Null
 }
@@ -2189,7 +2185,7 @@ impl Binance {
         // }
         //
         let trades: crate::value::List = self.safe_list_k_t(&response, "orders");
-        let parsedTrades: crate::value::List = self.parse_prediction_trades(Value::Arr(trades), &[crate::Value::from(outcomeObj.as_ref())]).into_list();
+        let parsedTrades: crate::value::List = self.parse_prediction_trades(Value::Arr(trades), &[crate::Value::from(outcomeObj.as_ref())]);
         return self.filter_by_outcome_since_limit(Value::Arr(parsedTrades), &[outcome, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))

@@ -426,7 +426,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "fetch_orders_helper" => self.fetch_orders_helper(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_raw_topics_by_queries" => self.fetch_raw_topics_by_queries(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_topics_by_queries" => Value::Arr(self.fetch_raw_topics_by_queries(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
@@ -1011,7 +1011,7 @@ impl Predictfun {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
-            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[&Value::from(&paramsValue)]).await.into_list();
+            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[&Value::from(&paramsValue)]).await;
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -1269,7 +1269,7 @@ impl Predictfun {
  * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
  * @returns {object[]} an array of raw market topics, each with a nested markets list
  */
-    pub async fn fetch_raw_topics_by_queries(&mut self, mut queries: Value, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_topics_by_queries(&mut self, mut queries: Value, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1449,9 +1449,7 @@ impl Predictfun {
             }
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 /*
@@ -2379,7 +2377,7 @@ impl Predictfun {
             }
         }
         }
-        return self.parse_prediction_trades(Value::from(flattenTrades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_prediction_trades(Value::from(flattenTrades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2521,7 +2519,7 @@ impl Predictfun {
             }
         }
         }
-        return self.parse_prediction_trades(Value::from(flattenTrades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_prediction_trades(Value::from(flattenTrades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }

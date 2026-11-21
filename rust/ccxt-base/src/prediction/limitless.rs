@@ -808,7 +808,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "expand_group_rows" => self.expand_group_rows(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "expand_group_rows" => Value::Arr(self.expand_group_rows(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_event" => crate::types::IntoRaw::into_raw(self.fetch_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1457,7 +1457,7 @@ impl Limitless {
         });
         // group rows carry their tradeable children in a nested `markets` list — expand them
         // into regular rows before parsing (a group row itself has no tokens)
-        let expandedRaw: Vec<Value> = self.expand_group_rows(&allRaw).as_array().cloned().unwrap_or_default();
+        let expandedRaw: Vec<Value> = self.expand_group_rows(&allRaw).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
@@ -1546,7 +1546,7 @@ impl Limitless {
         // a group response carries its tradeable children in `markets` (each a full market row
         // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
         // and wraps as its own one-market event, which parseEvent's loop then parses
-        let rows: crate::value::List = self.expand_group_rows(Value::from(vec![Value::from(&response)])).into_list();
+        let rows: crate::value::List = self.expand_group_rows(Value::from(vec![Value::from(&response)]));
         let wrapped: crate::value::Dict = self.extend_t(response, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("markets".to_string(), Value::Arr(rows));
@@ -1570,7 +1570,7 @@ impl Limitless {
  * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
  * @returns {object[]} raw single-market rows only
  */
-    pub fn expand_group_rows(&self, rawRows: impl Into<crate::Value>) -> Value {
+    pub fn expand_group_rows(&self, rawRows: impl Into<crate::Value>) -> crate::value::List {
         let mut rawRows: Value = rawRows.into();
         let __rawRows_empty = Vec::new();
         let rawRows = rawRows.as_array().unwrap_or(&__rawRows_empty);
@@ -1605,9 +1605,7 @@ impl Limitless {
             }
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
     pub fn parse_event(&self, event: impl Into<crate::Value>) -> crate::value::Dict {
@@ -2391,7 +2389,7 @@ impl Limitless {
             filtered.push(Value::Dict(row));
         }
         }
-        return self.parse_prediction_trades(Value::from(filtered), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_prediction_trades(Value::from(filtered), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -3819,7 +3817,7 @@ if _try_result.is_err() {
             }
         }
         }
-        let parsedTrades: crate::value::List = self.parse_prediction_trades(Value::from(trades), &[Value::Null]).into_list();
+        let parsedTrades: crate::value::List = self.parse_prediction_trades(Value::from(trades), &[Value::Null]);
         return self.filter_by_outcome_since_limit(Value::Arr(parsedTrades), &[outcomeSymbol.map(Value::from).unwrap_or(Value::Null), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
@@ -4141,7 +4139,7 @@ if _try_result.is_err() {
         });
         // group rows carry their tradeable children in a nested `markets` list — expand them
         // into regular rows before parsing (a group row itself has no tokens)
-        let expandedMarkets: Vec<Value> = self.expand_group_rows(Value::from(rawMarkets)).as_array().cloned().unwrap_or_default();
+        let expandedMarkets: Vec<Value> = self.expand_group_rows(Value::from(rawMarkets)).to_vec();
         let rawMarketsLength: i64 = expandedMarkets.len() as i64;
         {
                         let mut i: i64 = 0;

@@ -1567,11 +1567,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let marketId: Option<String> = self.safe_string2_opt(message, Value::Str("s".into()), Value::Str("symbol".into()), &[&futuresMarketId]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut trade: Value = Value::Null;
+        let mut trade: Option<crate::value::Dict> = None;
         if (market).spot {
-            trade = Value::Dict(self.parse_ws_trade(&data, Some(&market)));
+            trade = Some(self.parse_ws_trade(&data, Some(&market)));
         }  else if (data.is_some()) {
-            trade = Value::Dict(self.parse_trade(data.map_or(Value::Null, Value::Dict), Some(&market)));
+            trade = Some(self.parse_trade(data.map_or(Value::Null, Value::Dict), Some(&market)));
         }  else {
             return;
         }
@@ -1579,7 +1579,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        self.myTrades.append(trade);
+        self.myTrades.append(trade.map_or(Value::Null, Value::Dict));
         client.resolve(Value::from(&self.myTrades), messageHash.as_str());
         let symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol);
         client.resolve(Value::from(&self.myTrades), symbolSpecificMessageHash.as_str());
@@ -1817,15 +1817,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let marketId: Option<String> = self.safe_string2_opt(&message, Value::Str("s".into()), Value::Str("symbol".into()), &[&futuresMarketId]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut parsed: Value = Value::Null;
+        let mut parsed: Option<crate::value::Dict> = None;
         if (market).spot {
-            parsed = Value::Dict(self.parse_ws_order(&data, Some(&market)));
+            parsed = Some(self.parse_ws_order(&data, Some(&market)));
             let sendTime: Option<i64> = (match __pro_message.get("sendTime") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
             if (sendTime.is_some()) {
-                if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("lastTradeTimestamp".to_string(), Value::from(sendTime)); }
+                if let Some(__d) = &mut parsed { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".to_string(), Value::from(sendTime)); }
             }
         }  else if (data.is_some()) {
-            parsed = Value::Dict(self.parse_order(data.map_or(Value::Null, Value::Dict), Some(&market)));
+            parsed = Some(self.parse_order(data.map_or(Value::Null, Value::Dict), Some(&market)));
         }  else {
             return;
         }
@@ -1833,7 +1833,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        self.orders.append(parsed);
+        self.orders.append(parsed.map_or(Value::Null, Value::Dict));
         client.resolve(Value::from(&self.orders), messageHash.as_str());
         let symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol);
         client.resolve(Value::from(&self.orders), symbolSpecificMessageHash.as_str());

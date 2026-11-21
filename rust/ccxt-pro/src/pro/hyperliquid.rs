@@ -884,8 +884,9 @@ impl Hyperliquid {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("watchMyTrades", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: crate::value::Dict = self.parent.handle_public_address("watchMyTrades", params.clone()).1;
+        let userAddressparamsValueVariable = self.parent.handle_public_address("watchMyTrades", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -978,8 +979,9 @@ impl Hyperliquid {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("watchMyLiquidationsForSymbols", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: crate::value::Dict = self.parent.handle_public_address("watchMyLiquidationsForSymbols", params.clone()).1;
+        let userAddressparamsValueVariable = self.parent.handle_public_address("watchMyLiquidationsForSymbols", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1051,8 +1053,9 @@ impl Hyperliquid {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")));
         }
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("unWatchMyTrades", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: crate::value::Dict = self.parent.handle_public_address("unWatchMyTrades", params.clone()).1;
+        let userAddressparamsValueVariable = self.parent.handle_public_address("unWatchMyTrades", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
         let messageHash: String = "unsubscribe:myTrades".to_string();
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
@@ -1711,9 +1714,10 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("watchBalance", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: Value = Value::Dict(self.parent.handle_public_address("watchBalance", params.clone()).1);
-        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[&paramsValue]);
+        let userAddressparamsValueVariable = self.parent.handle_public_address("watchBalance", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
+        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[&Value::from(&paramsValue)]);
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let unifiedResult = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[&Value::Bool(false), &Value::from(&paramsMarketType)]).await;
@@ -1775,9 +1779,10 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("unWatchBalance", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: Value = Value::Dict(self.parent.handle_public_address("unWatchBalance", params.clone()).1);
-        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("unWatchBalance".into()), None, &[&paramsValue]);
+        let userAddressparamsValueVariable = self.parent.handle_public_address("unWatchBalance", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
+        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("unWatchBalance".into()), None, &[&Value::from(&paramsValue)]);
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let unifiedResult = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[&Value::Bool(false), &Value::from(&paramsMarketType)]).await;
@@ -2000,8 +2005,9 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("watchPositions", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: crate::value::Dict = self.parent.handle_public_address("watchPositions", params.clone()).1;
+        let userAddressparamsValueVariable = self.parent.handle_public_address("watchPositions", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
         let topic: String = "clearinghouseState".to_string();
         let mut messageHash: String = format!("{}{}", topic, "::positions");
         let hasSymbols: bool = (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true));
@@ -2075,7 +2081,7 @@ impl Hyperliquid {
         }
         }
         let baseMessageHash: String = "clearinghouseState::positions".to_string();
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::from(baseMessageHash.clone())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::from(baseMessageHash.clone())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
@@ -2124,8 +2130,9 @@ impl Hyperliquid {
         }
         let messageHash: String = "unsubscribe:clearinghouseState".to_string();
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("unWatchPositions", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: crate::value::Dict = self.parent.handle_public_address("unWatchPositions", params.clone()).1;
+        let userAddressparamsValueVariable = self.parent.handle_public_address("unWatchPositions", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -2171,8 +2178,9 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("watchOrders", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: crate::value::Dict = self.parent.handle_public_address("watchOrders", params.clone()).1;
+        let userAddressparamsValueVariable = self.parent.handle_public_address("watchOrders", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "order".to_string();
         if (symbol != Value::Null) {
@@ -2244,8 +2252,9 @@ impl Hyperliquid {
         }
         let messageHash: String = "unsubscribe:order".to_string();
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.parent.handle_public_address("unWatchOrders", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsValue: crate::value::Dict = self.parent.handle_public_address("unWatchOrders", params.clone()).1;
+        let userAddressparamsValueVariable = self.parent.handle_public_address("unWatchOrders", params);
+        let userAddress: Option<String> = userAddressparamsValueVariable.0.as_str().map(str::to_owned);
+        let paramsValue: crate::value::Dict = userAddressparamsValueVariable.1;
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));

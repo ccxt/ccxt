@@ -637,7 +637,7 @@ impl Sxbet {
 }));
         let rest: crate::value::Dict = self.omit_t(&params, &["limit"], &[]);
         let userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
-        let rawMarkets: Vec<Value> = Value::Arr(self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::from(userLimit)]).await).as_array().cloned().unwrap_or_default();
+        let rawMarkets: Vec<Value> = self.fetch_raw_markets_paged(&[&Value::Dict(rest), &Value::from(userLimit)]).await.to_vec();
         let mut markets: Vec<Value> = Vec::new();
         let rawMarketsLength: i64 = rawMarkets.len() as i64;
         {

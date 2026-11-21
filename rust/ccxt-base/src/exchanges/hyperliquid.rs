@@ -2410,9 +2410,10 @@ impl Hyperliquid {
 }));
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         let shouldRefresh: bool = (self.safe_string2(&params, Value::Str("user".into()), Value::Str("address".into()), &[]) != Value::Null) && (self.safe_bool_k(&params, "enableUnifiedMargin", &[]) == Value::Null);
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchBalance", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchBalance", params).1;
-        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[&Value::Dict(paramsPublicAddress)]);
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchBalance", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
+        let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[&Value::from(&paramsPublicAddress)]);
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[&Value::from(&paramsMarketType)]);
@@ -2886,8 +2887,9 @@ impl Hyperliquid {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchTrades", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchTrades", params).1;
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchTrades", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3460,8 +3462,7 @@ if _try_result.is_err() {
             m
         });
         if (address.is_none()) {
-            publicAddress = self.safe_string_opt({ let __t = self.handle_public_address("isUnifiedEnabled", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-            paramsPublicAddress = Value::Dict(self.handle_public_address("isUnifiedEnabled", params.clone()).1);
+            { let __destr_tmp = self.handle_public_address("isUnifiedEnabled", params.clone()); publicAddress = __destr_tmp.0.as_str().map(str::to_owned); paramsPublicAddress = Value::Dict(__destr_tmp.1); }
         }
         let userAddress: Option<String> = (if (address.is_some()) { address.map(str::to_owned) } else { publicAddress });
         let paramsAddress: Value = (if (address.is_some()) { params } else { paramsPublicAddress });
@@ -4989,8 +4990,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchOpenOrders", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchOpenOrders", params).1;
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchOpenOrders", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
         let methodparamsMethodVariable = self.handle_option_string_and_params(&paramsPublicAddress, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("frontendOpenOrders".into())]);
         let method: Option<String> = methodparamsMethodVariable.0.as_str().map(str::to_owned);
         let paramsMethod: crate::value::Dict = methodparamsMethodVariable.1;
@@ -5176,8 +5178,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchOrders", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchOrders", params).1;
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchOrders", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5274,9 +5277,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut userAddress: Option<String> = None;
-        let mut params2: Option<crate::value::Dict> = None;
-        userAddress = self.safe_string_opt({ let __t = self.handle_public_address("fetchOrder", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        params2 = Some(self.handle_public_address("fetchOrder", params).1);
+        let mut params2: crate::value::Dict = Default::default();
+        { let __destr_tmp = self.handle_public_address("fetchOrder", params); userAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = __destr_tmp.1; }
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5292,7 +5294,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (clientOrderId.is_some()) {
-            params2 = self.omit_o(&params2, Value::Str("clientOrderId".into()), &[]);
+            params2 = self.omit_t(&params2, Value::Str("clientOrderId".into()), &[]);
             request.insert("oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
             let isClientOrderId: bool = ((id.len() as i64) as f64) >= ((34i64) as f64);
@@ -5394,8 +5396,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchMyTrades", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchMyTrades", params).1;
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchMyTrades", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5454,8 +5457,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchMyLiquidations", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchMyLiquidations", params).1;
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchMyLiquidations", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5610,8 +5614,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchPositions", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchPositions", params).1;
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchPositions", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -6023,19 +6028,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
         let mut transferMethod: Option<String> = None;
-        let mut query: Value = params;
-        { let __destr_tmp = self.handle_option_string_and_params(query.clone(), Value::Str("transfer".into()), Value::Str("method".into()), &[]); transferMethod = __destr_tmp.0.as_str().map(str::to_owned); query = Value::Dict(__destr_tmp.1); }
+        let mut query: crate::value::Dict = params.into_dict();
+        { let __destr_tmp = self.handle_option_string_and_params(&query, Value::Str("transfer".into()), Value::Str("method".into()), &[]); transferMethod = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
         let mut masterAddress: Option<String> = None;
-        masterAddress = self.safe_string_opt({ let __t = self.handle_public_address("transfer", query.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        query = Value::Dict(self.handle_public_address("transfer", query).1);
+        { let __destr_tmp = self.handle_public_address("transfer", Value::from(&query)); masterAddress = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
         let mut useSendAsset: bool = transferMethod.as_deref() == Some("sendAsset");
         if (transferMethod.is_none()) {
             let mut isUnified: Option<bool> = None;
-            { let __destr_tmp = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[&Value::Bool(false), &query]).await; isUnified = __destr_tmp.0; query = Value::Dict(__destr_tmp.1); }
+            { let __destr_tmp = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[&Value::Bool(false), &Value::from(&query)]).await; isUnified = __destr_tmp.0; query = __destr_tmp.1; }
             useSendAsset = (isUnified == Some(true));
         }
         if useSendAsset {
-            let paramsSendAsset: Value = query;
+            let paramsSendAsset: crate::value::Dict = std::sync::Arc::clone(&query);
             let sendAssetCurrency: crate::types::Currency = self.currency(code.as_str());
             let sendAssetCurrencyInfo: crate::value::Dict = self.safe_dict_k_t(&sendAssetCurrency, "info");
             let sendAssetToken: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&sendAssetCurrencyInfo, "name", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&sendAssetCurrencyInfo, "tokenId", &[Value::Str("".into())]));
@@ -6251,8 +6255,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchTradingFee", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchTradingFee", params).1;
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchTradingFee", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -6389,9 +6394,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = None;
-        let mut params2: Option<crate::value::Dict> = None;
-        userAddress = self.safe_string_opt({ let __t = self.handle_public_address("fetchLedger", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        params2 = Some(self.handle_public_address("fetchLedger", params).1);
+        let mut params2: crate::value::Dict = Default::default();
+        { let __destr_tmp = self.handle_public_address("fetchLedger", params); userAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = __destr_tmp.1; }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
@@ -6404,7 +6408,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let until: Option<i64> = self.safe_integer_k(&params2, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
-            params2 = self.omit_o(&params2, &["until"], &[]);
+            params2 = self.omit_t(&params2, &["until"], &[]);
         }
         let __ws_arg_32 = self.extend(Value::Map(request), &[&params2]);
         let response: crate::value::Dict = self.call_method_t("public_post_info", &[&__ws_arg_32]).await;
@@ -6454,9 +6458,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = None;
-        let mut params2: Value = Value::Null;
-        userAddress = self.safe_string_opt({ let __t = self.handle_public_address("fetchDepositsWithdrawals", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        params2 = Value::Dict(self.handle_public_address("fetchDepositsWithdrawals", params).1);
+        let mut params2: crate::value::Dict = Default::default();
+        { let __destr_tmp = self.handle_public_address("fetchDepositsWithdrawals", params); userAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = __destr_tmp.1; }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
@@ -6472,7 +6475,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDeposits requires since while until is set")));
             }
             request.insert("endTime".into(), Value::from(until));
-            params2 = self.omit(params2, &["until"], &[]);
+            params2 = self.omit_t(&params2, &["until"], &[]);
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[&params2]);
         let depositLedger: crate::value::List = Self::info_list(self.public_post_info(&[&__ws_arg_33]).await);
@@ -6491,7 +6494,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let records: crate::value::List = self.extract_type_from_delta(&depositLedger);
         let mut vaultAddress: Option<String> = None;
-        { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = Value::Dict(__destr_tmp.1); }
+        { let __destr_tmp = self.handle_option_string_and_params(&params2, Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = __destr_tmp.1; }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
         if (vaultAddress.is_none()) {
             let filtered: Value = self.filter_by_array(&records, Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into())]), &[Value::Bool(false)]);
@@ -6546,9 +6549,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = None;
-        let mut params2: Value = Value::Null;
-        userAddress = self.safe_string_opt({ let __t = self.handle_public_address("fetchDepositsWithdrawals", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        params2 = Value::Dict(self.handle_public_address("fetchDepositsWithdrawals", params).1);
+        let mut params2: crate::value::Dict = Default::default();
+        { let __destr_tmp = self.handle_public_address("fetchDepositsWithdrawals", params); userAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = __destr_tmp.1; }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
@@ -6561,7 +6563,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let until: Option<i64> = self.safe_integer_k(&params2, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
-            params2 = self.omit(params2, &["until"], &[]);
+            params2 = self.omit_t(&params2, &["until"], &[]);
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[&params2]);
         let withdrawalLedger: crate::value::List = Self::info_list(self.public_post_info(&[&__ws_arg_34]).await);
@@ -6580,7 +6582,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let records: crate::value::List = self.extract_type_from_delta(&withdrawalLedger);
         let mut vaultAddress: Option<String> = None;
-        { let __destr_tmp = self.handle_option_string_and_params(params2.clone(), Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = Value::Dict(__destr_tmp.1); }
+        { let __destr_tmp = self.handle_option_string_and_params(&params2, Value::Str("fetchDepositsWithdrawals".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.0.as_str().map(str::to_owned); params2 = __destr_tmp.1; }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
         if (vaultAddress.is_none()) {
             let filtered: Value = self.filter_by_array(&records, Value::Str("type".into()), Value::from(vec![Value::Str("withdraw".into())]), &[Value::Bool(false)]);
@@ -6706,8 +6708,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let userAddress: Option<String> = self.safe_string_opt({ let __t = self.handle_public_address("fetchFundingHistory", params.clone()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }, Value::Int(0), &[]);
-        let paramsPublicAddress: crate::value::Dict = self.handle_public_address("fetchFundingHistory", params).1;
+        let userAddressparamsPublicAddressVariable = self.handle_public_address("fetchFundingHistory", params);
+        let userAddress: Option<String> = userAddressparamsPublicAddressVariable.0.as_str().map(str::to_owned);
+        let paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.1;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
@@ -6723,7 +6726,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.call_method_t("public_post_info", &[&__ws_arg_36]).await;
+        let response: Option<crate::value::List> = Some(Self::info_list(self.public_post_info(&[&__ws_arg_36]).await));
         return self.parse_incomes(&response, &[crate::Value::from(market.as_ref()), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))

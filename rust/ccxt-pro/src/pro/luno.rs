@@ -98,7 +98,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
     {
         Box::pin(async move {
             match method {
-                "custom_parse_bid_ask" => self.custom_parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "custom_parse_bid_ask" => Value::Arr(self.custom_parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "custom_parse_order_book" => self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -120,7 +120,7 @@ impl Luno {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "custom_parse_bid_ask" => self.custom_parse_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "custom_parse_bid_ask" => Value::Arr(self.custom_parse_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "custom_parse_order_book" => self.custom_parse_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -456,13 +456,13 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (bidasksValue.len() as i64) } {
-            result.push(self.custom_parse_bid_ask(bidasksValue.get(i as usize).cloned().unwrap_or(Value::Null), &[&priceKey, &amountKey, &thirdKey]));
+            result.push(Value::Arr(self.custom_parse_bid_ask(bidasksValue.get(i as usize).cloned().unwrap_or(Value::Null), &[&priceKey, &amountKey, &thirdKey])));
         }
         }
         return std::sync::Arc::new(result);
 }
 
-    pub fn custom_parse_bid_ask(&self, bidask: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub fn custom_parse_bid_ask(&self, bidask: impl Into<crate::Value>, optional_args: &[&Value]) -> crate::value::List {
         let bidask: Value = bidask.into();
         let priceKey = get_arg(optional_args, 0, Value::Str("price".into()));
         let amountKey = get_arg(optional_args, 1, Value::Str("volume".into()));
@@ -473,9 +473,7 @@ impl Luno {
         if (thirdKey != Value::Null) {
             result.push(self.safe_string(bidask, thirdKey, &[]));
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut message: Value) {
@@ -549,7 +547,7 @@ impl Luno {
         }
         let createUpdate: Option<crate::value::Dict> = self.safe_dict_k_o(&message, "create_update");
         if (createUpdate.is_some()) {
-            let bidAskArray: crate::value::List = self.custom_parse_bid_ask(&createUpdate, &[&Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("order_id".into())]).into_list();
+            let bidAskArray: crate::value::List = self.custom_parse_bid_ask(&createUpdate, &[&Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("order_id".into())]);
             let type_var: Option<String> = self.safe_string_k_opt(&createUpdate, "type", &[]);
             if (type_var.as_deref() == Some("ASK")) {
                 asksOrderSide.store_array(Value::from(&bidAskArray));

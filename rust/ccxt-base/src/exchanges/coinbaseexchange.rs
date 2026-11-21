@@ -2949,7 +2949,7 @@ impl Coinbaseexchange {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (entries.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut entries, &Value::Int(i)), &Value::Str("currency".into()), code.clone());
+            if let Value::Arr(__a) = &mut entries { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(code.clone())); } }
         }
         }
         return self.parse_ledger(entries, Some(&currency), &[&Value::from(since), &Value::from(limit)]);
@@ -3050,7 +3050,7 @@ impl Coinbaseexchange {
                 let account_id: Option<String> = self.safe_string_k_opt(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "account_id", &[]);
                 let account: crate::value::Dict = self.safe_dict_t(self.accountsById.clone(), account_id.map(Value::from).unwrap_or(Value::Null));
                 let codeInner: Option<String> = self.safe_string_k_opt(&account, "code", &[]);
-                add_element_to_object(get_value_mut(&mut response, &Value::Int(i)), &Value::Str("currency".into()), codeInner.map(Value::from).unwrap_or(Value::Null));
+                if let Value::Arr(__a) = &mut response { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(codeInner.map(Value::from).unwrap_or(Value::Null))); } }
             }
             }
         }  else {
@@ -3087,7 +3087,7 @@ impl Coinbaseexchange {
                                 let mut i: i64 = 0;
                 let mut __for_first_7: bool = true;
                 while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (response.len() as i64) } {
-                add_element_to_object(get_value_mut(&mut response, &Value::Int(i)), &Value::Str("currency".into()), code.clone());
+                if let Value::Arr(__a) = &mut response { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(code.clone())); } }
             }
             }
         }

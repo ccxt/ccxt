@@ -1701,7 +1701,7 @@ impl Poloniex {
             }
         }
         }
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("ticker::".into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("ticker::".into())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;

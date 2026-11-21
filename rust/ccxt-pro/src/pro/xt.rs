@@ -1284,7 +1284,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let data: crate::value::Dict = message.key_dict("data");
         let position: crate::value::Dict = self.parse_position(Value::Dict(data), None);
         self.positions.append(Value::from(&position));
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("position::contract".into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("position::contract".into())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
@@ -1482,7 +1482,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let messageHashStart: String = format!("{}{}", Value::Str(format!("{}{}", (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }), Value::Str("::".into())).into()), tradeType);
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", messageHashStart, "::").into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", messageHashStart, "::").into())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;

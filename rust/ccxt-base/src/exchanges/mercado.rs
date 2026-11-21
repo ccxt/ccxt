@@ -399,7 +399,7 @@ impl crate::exchange_generated::ExchangeBase for Mercado {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "orders_to_trades" => self.orders_to_trades(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "orders_to_trades" => Value::Arr(self.orders_to_trades(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1595,13 +1595,13 @@ impl Mercado {
         let responseData: crate::value::Dict = self.safe_dict_k_t(&response, "response_data");
         let ordersRaw: crate::value::List = self.safe_list_k_t(&responseData, "orders");
         let orders: crate::value::List = self.parse_orders(&ordersRaw, Some(&market), &[&Value::from(since), &Value::from(limit)]);
-        let trades: crate::value::List = self.orders_to_trades(Value::Arr(orders)).into_list();
+        let trades: crate::value::List = self.orders_to_trades(Value::Arr(orders));
         return Value::Arr(self.filter_by_symbol_since_limit(&trades, Some((market).symbol.as_str()), since, limit, &[]));
         Value::Null
         }).await?))
     }
 
-    pub fn orders_to_trades(&self, mut orders: Value) -> Value {
+    pub fn orders_to_trades(&self, mut orders: Value) -> crate::value::List {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1617,9 +1617,7 @@ impl Mercado {
             }
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 

@@ -1432,7 +1432,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
-            let parsed: Vec<Value> = Value::Arr(self.parse_orders(Value::Arr(orders), None, &[])).as_array().cloned().unwrap_or_default();
+            let parsed: Vec<Value> = self.parse_orders(Value::Arr(orders), None, &[]).to_vec();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_11: bool = true;
@@ -1601,7 +1601,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             self.positions.append(Value::Dict(position));
         }
         }
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("positions::".into())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;

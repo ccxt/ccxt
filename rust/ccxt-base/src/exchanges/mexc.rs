@@ -523,12 +523,7 @@ impl crate::exchange::DerivedExchange for Mexc {
     m
 }), None));
         }
-        let mut id: Value = Value::Null;
-        if matches!(&order, Value::Str(_)) {
-            id = order.clone();
-        }  else {
-            id = self.safe_string2(&order, Value::Str("orderId".into()), Value::Str("id".into()), &[]);
-        }
+        let id: Option<String> = self.safe_string2_opt(&order, Value::Str("orderId".into()), Value::Str("id".into()), &[]);
         let mut timeInForce: Option<String> = self.parse_order_time_in_force(self.safe_string_k(&order, "timeInForce", &[]).as_str());
         let typeRaw: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
         if (timeInForce.is_none()) {
@@ -555,7 +550,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOrderId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1058,31 +1053,13 @@ impl crate::exchange::DerivedExchange for Mexc {
 }
     fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let leverage: Value = leverage.into();
-        let mut marginMode: Option<String> = None;
-        let mut longLeverage: Option<i64> = None;
-        let mut shortLeverage: Option<i64> = None;
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_13: bool = true;
-            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (leverage.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&leverage, Value::Int(i));
-            let openType: Option<i64> = self.safe_integer_k(&entry, "openType", &[]).as_i64();
-            let positionType: Option<i64> = self.safe_integer_k(&entry, "positionType", &[]).as_i64();
-            if (positionType == Some(1)) {
-                longLeverage = self.safe_integer_k(&entry, "leverage", &[]).as_i64();
-            }  else if (positionType == Some(2)) {
-                shortLeverage = self.safe_integer_k(&entry, "leverage", &[]).as_i64();
-            }
-            marginMode = (if (openType == Some(1)) { Some("isolated".to_string()) } else { Some("cross".to_string()) });
-        }
-        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), leverage);
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
-        m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
-        m.insert("longLeverage".to_string(), Value::from(longLeverage));
-        m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
+        m.insert("marginMode".to_string(), Value::Null);
+        m.insert("longLeverage".to_string(), Value::Null);
+        m.insert("shortLeverage".to_string(), Value::Null);
     m
 });
 
@@ -1472,6 +1449,7 @@ impl crate::exchange_generated::ExchangeBase for Mexc {
                 "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_leverage" => self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_leverage_list" => self.parse_leverage_list(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4296,7 +4274,7 @@ impl Mexc {
             //     }
             //
             let data: Option<crate::value::Dict> = self.safe_dict_k_o(&swapResponse, "data");
-            candles = self.convert_trading_view_to_ohlcv(&data, &[Value::Str("time".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("vol".into())]).into_list();
+            candles = self.convert_trading_view_to_ohlcv(&data, &[Value::Str("time".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("vol".into())]);
         }
         return Value::Arr(self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(since), limit]));
         Value::Null
@@ -7994,11 +7972,45 @@ impl Mexc {
         //         ]
         //     }
         //
-        let data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, data, Some(&market));
+        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        return self.parse_leverage_list(&data, Some(&market));
         Value::Null
         }).await?))
     }
+
+    pub fn parse_leverage_list(&self, leverages: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let leverages: Value = leverages.into();
+        let mut marginMode: Option<String> = None;
+        let mut longLeverage: Option<i64> = None;
+        let mut shortLeverage: Option<i64> = None;
+        let numLeverages: i64 = leverages.len() as i64;
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < numLeverages } {
+            let entry: crate::value::Dict = self.safe_dict_t(&leverages, Value::Int(i));
+            let openType: Option<i64> = self.safe_integer_k(&entry, "openType", &[]).as_i64();
+            let positionType: Option<i64> = self.safe_integer_k(&entry, "positionType", &[]).as_i64();
+            if (positionType == Some(1)) {
+                longLeverage = self.safe_integer_k(&entry, "leverage", &[]).as_i64();
+            }  else if (positionType == Some(2)) {
+                shortLeverage = self.safe_integer_k(&entry, "leverage", &[]).as_i64();
+            }
+            marginMode = (if (openType == Some(1)) { Some("isolated".to_string()) } else { Some("cross".to_string()) });
+        }
+        }
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), leverages);
+        m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
+        m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
+        m.insert("longLeverage".to_string(), Value::from(longLeverage));
+        m.insert("shortLeverage".to_string(), Value::from(shortLeverage));
+    m
+});
+
+    Value::Null
+}
 
 
     pub fn handle_margin_mode_and_params(&self, mut methodName: Value, optional_args: &[&Value]) -> (Value, crate::value::Dict) {

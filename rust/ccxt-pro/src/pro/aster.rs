@@ -2376,7 +2376,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             self.positions.append(Value::Dict(position));
         }
         }
-        let mut messageHashes: crate::value::List = self.find_message_hashes(client, Value::from(messageHash.clone())).into_list();
+        let mut messageHashes: crate::value::List = self.find_message_hashes(client, Value::from(messageHash.clone()));
         if !(messageHashes.is_empty()) {
             {
                                 let mut i: i64 = 0;
@@ -2755,7 +2755,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let parsed: crate::value::Dict = self.parse_ws_order(message, Some(&market));
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         self.orders.append(Value::Dict(parsed));
-        let mut messageHashes: crate::value::List = self.find_message_hashes(client, Value::from(messageHash.clone())).into_list();
+        let mut messageHashes: crate::value::List = self.find_message_hashes(client, Value::from(messageHash.clone()));
         if !(messageHashes.is_empty()) {
             let symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbol);
             client.resolve(Value::from(&self.orders), symbolMessageHash.as_str());

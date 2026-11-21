@@ -15034,7 +15034,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_23: bool = true;
             while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (responseList.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut responseList, &Value::Int(i)), &Value::Str("type".into()), Value::Str("deposit".into()));
+            if let Value::Arr(__a) = &mut responseList { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("deposit".into())); } }
         }
         }
         return Value::Arr(self.parse_transactions(responseList, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
@@ -15134,7 +15134,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_24: bool = true;
             while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (responseList.len() as i64) } {
-            add_element_to_object(get_value_mut(&mut responseList, &Value::Int(i)), &Value::Str("type".into()), Value::Str("withdrawal".into()));
+            if let Value::Arr(__a) = &mut responseList { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("withdrawal".into())); } }
         }
         }
         return Value::Arr(self.parse_transactions(responseList, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));

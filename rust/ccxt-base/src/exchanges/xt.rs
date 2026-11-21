@@ -4837,7 +4837,7 @@ impl Xt {
                         request.insert("quoteQty".into(), Value::from(self.cost_to_precision(Some(symbol), costCalculated.map(Value::from).unwrap_or(Value::Null))));
                     }
                 }  else {
-                    let amountCost: Value = (if (cost.is_some()) { cost.clone().map(Value::from).unwrap_or(Value::Null) } else { amount.clone() });
+                    let amountCost: Value = (if (cost.is_some()) { cost.map(Value::from).unwrap_or(Value::Null) } else { amount.clone() });
                     request.insert("quoteQty".into(), Value::from(self.cost_to_precision(Some(symbol), amountCost)));
                 }
             }

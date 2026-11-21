@@ -3129,7 +3129,7 @@ impl Okx {
             }
             let mut stored: Value = (if (channel.as_deref() == Some("orders-algo")) { self.triggerOrders.clone() } else { Value::from(&self.orders) });
             let mut marketIds: Vec<Value> = Vec::new();
-            let parsed: Vec<Value> = Value::Arr(self.parse_orders(Value::Arr(orders), None, &[])).as_array().cloned().unwrap_or_default();
+            let parsed: Vec<Value> = self.parse_orders(Value::Arr(orders), None, &[]).to_vec();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_26: bool = true;

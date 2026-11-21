@@ -2581,7 +2581,7 @@ impl Hyperliquid {
         }  else if !matches!(&response, Value::Str(_)) {
             trades = self.to_array(response);
         }
-        return self.parse_prediction_trades(trades, &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_prediction_trades(trades, &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2650,7 +2650,7 @@ impl Hyperliquid {
         }
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
-        let parsedTrades: crate::value::List = self.parse_prediction_trades(fills, &[Value::Null]).into_list();
+        let parsedTrades: crate::value::List = self.parse_prediction_trades(fills, &[Value::Null]);
         return self.filter_by_outcome_since_limit(Value::Arr(parsedTrades), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))

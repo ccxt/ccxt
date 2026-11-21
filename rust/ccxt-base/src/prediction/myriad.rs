@@ -341,8 +341,8 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_raw_market_by_id" => self.fetch_raw_market_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_raw_markets_by_search" => self.fetch_raw_markets_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_raw_markets_list" => self.fetch_raw_markets_list(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_markets_by_search" => Value::Arr(self.fetch_raw_markets_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_raw_markets_list" => Value::Arr(self.fetch_raw_markets_list(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_question_by_id" => self.fetch_raw_question_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_raw_questions_by_search" => self.fetch_raw_questions_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_raw_questions_list" => self.fetch_raw_questions_list(&args[..].iter().collect::<Vec<_>>()).await,
@@ -807,9 +807,9 @@ impl Myriad {
         let queriesLength: i64 = queries.len() as i64;
         let mut rawMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
-            rawMarkets = self.fetch_raw_markets_by_search(&queries, &[&Value::from(&rest)]).await.into_list();
+            rawMarkets = self.fetch_raw_markets_by_search(&queries, &[&Value::from(&rest)]).await;
         }  else {
-            rawMarkets = self.fetch_raw_markets_list(&[&Value::Dict(rest)]).await.into_list();
+            rawMarkets = self.fetch_raw_markets_list(&[&Value::Dict(rest)]).await;
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: indexmap::IndexMap<String, Value> = ({
@@ -848,7 +848,7 @@ impl Myriad {
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
  * @returns {object[]} an array of raw myriad market objects
  */
-    pub async fn fetch_raw_markets_by_search(&mut self, queries: &[crate::Value], optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_markets_by_search(&mut self, queries: &[crate::Value], optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -892,9 +892,7 @@ impl Myriad {
             }
         }
         }
-        return Value::from(rawMarkets);
-
-    Value::Null
+        return std::sync::Arc::new(rawMarkets);
 }
 
 /*
@@ -907,7 +905,7 @@ impl Myriad {
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
  * @returns {object[]} an array of raw myriad market objects
  */
-    pub async fn fetch_raw_markets_list(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_markets_list(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -956,9 +954,7 @@ impl Myriad {
                 break;
             }
         }
-        return Value::from(allRawMarkets);
-
-    Value::Null
+        return std::sync::Arc::new(allRawMarkets);
 }
 
 /*
@@ -4134,7 +4130,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             trades.push(row.map_or(Value::Null, Value::Dict));
         }
         }
-        return self.parse_prediction_trades(Value::from(trades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_prediction_trades(Value::from(trades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4191,7 +4187,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut rawQuestions: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // some markets are only discoverable through the questions search endpoint
-            let responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(&queries, &[&Value::from(&rest)]).await, self.fetch_raw_questions_by_search(&queries, &[&Value::from(&rest)]).await])).await;
+            let responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_by_search(&queries, &[&Value::from(&rest)]).await), self.fetch_raw_questions_by_search(&queries, &[&Value::from(&rest)]).await])).await;
             rawMarkets = self.safe_list_t(&responses, Value::Int(0));
             rawQuestions = self.safe_list_t(&responses, Value::Int(1));
         }  else if (eventId.is_some()) {
@@ -4207,7 +4203,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let requestedTagsLength: i64 = requestedTags.len() as i64;
             if (requestedTagsLength == 0) {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                let listResponses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_list(&[&Value::from(&rest)]).await, self.fetch_raw_questions_list(&[&Value::from(&rest)]).await])).await;
+                let listResponses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_list(&[&Value::from(&rest)]).await), self.fetch_raw_questions_list(&[&Value::from(&rest)]).await])).await;
                 rawMarkets = self.safe_list_t(&listResponses, Value::Int(0));
                 rawQuestions = self.safe_list_t(&listResponses, Value::Int(1));
             }  else {
@@ -4223,7 +4219,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                let responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(&tagQueries, &[&Value::from(&rest)]).await, self.fetch_raw_questions_by_search(&tagQueries, &[&Value::from(&rest)]).await])).await;
+                let responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_by_search(&tagQueries, &[&Value::from(&rest)]).await), self.fetch_raw_questions_by_search(&tagQueries, &[&Value::from(&rest)]).await])).await;
                 rawMarkets = self.safe_list_t(&responses, Value::Int(0));
                 rawQuestions = self.safe_list_t(&responses, Value::Int(1));
             }

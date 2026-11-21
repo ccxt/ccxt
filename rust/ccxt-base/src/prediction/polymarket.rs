@@ -1446,7 +1446,7 @@ impl Polymarket {
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { rei += 1; } __for_first_1 = false; rei < (rawEvents.len() as i64) } {
             let rawEvent: crate::value::Dict = self.safe_dict_t(&rawEvents, Value::Int(rei));
-            let ccxtMarkets: Vec<Value> = Value::Arr(self.parse_event_to_markets(Value::from(&rawEvent))).as_array().cloned().unwrap_or_default();
+            let ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::from(&rawEvent)).to_vec();
             {
                                 let mut mi: i64 = 0;
                 let mut __for_first_0: bool = true;
@@ -2047,11 +2047,11 @@ impl Polymarket {
                 if (self.markets.is_none()) {
                     { let __t = self.create_safe_dictionary(&[]); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
                 }
-                let ccxtMarkets: Vec<Value> = Value::Arr(self.parse_event_to_markets(Value::Map({
+                let ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("markets".to_string(), rawMarkets);
                     m
-                }))).as_array().cloned().unwrap_or_default();
+                })).to_vec();
                 let ccxtMarketsLength: i64 = ccxtMarkets.len() as i64;
                 {
                                         let mut i: i64 = 0;
@@ -2130,11 +2130,11 @@ impl Polymarket {
     m
 })]).await;
                 let rawMarkets: Value = (if (response.is_some()) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
-                let ccxtMarkets: Vec<Value> = Value::Arr(self.parse_event_to_markets(Value::Map({
+                let ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("markets".to_string(), rawMarkets);
                     m
-                }))).as_array().cloned().unwrap_or_default();
+                })).to_vec();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_22: bool = true;
@@ -2895,7 +2895,7 @@ impl Polymarket {
             }
         }
         }
-        return self.parse_prediction_trades(Value::from(filteredTrades), &[Value::Null, Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_prediction_trades(Value::from(filteredTrades), &[Value::Null, Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2937,7 +2937,7 @@ impl Polymarket {
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.clob_private_get_data_trades(&[&__ws_arg_7]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let rawTrades: Value = (if (response.is_some()) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
-        return self.parse_prediction_trades(rawTrades, &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_prediction_trades(rawTrades, &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }

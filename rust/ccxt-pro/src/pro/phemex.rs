@@ -690,7 +690,7 @@ impl Phemex {
         let timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe.is_some()) {
             let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
-            let mut ohlcvs: Vec<Value> = Value::Arr(self.parse_ohlc_vs(&candles, Some(&market), &[])).as_array().cloned().unwrap_or_default();
+            let mut ohlcvs: Vec<Value> = self.parse_ohlc_vs(&candles, Some(&market), &[]).to_vec();
             CacheShelves::ensure(&mut self.ohlcvs, &symbol);
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
             if (stored.is_none()) {

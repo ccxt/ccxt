@@ -713,7 +713,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "compact_signable" => self.compact_signable(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "compact_signable" => Value::Arr(self.compact_signable(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()),
@@ -2293,7 +2293,7 @@ impl Polymarket {
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
         let row: Value = Value::from(vec![Value::from(instrumentId), Value::Bool(isBuy), priceString.clone().map(Value::from).unwrap_or(Value::Null), quantity.clone().map(Value::from).unwrap_or(Value::Null), tif.clone().map(Value::from).unwrap_or(Value::Null), postOnly.clone(), reduceOnlyValue.map_or(Value::Null, Value::Bool), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let signable: crate::value::List = self.compact_signable(row).into_list();
+        let signable: crate::value::List = self.compact_signable(row);
         let mut entry: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("iid".to_string(), Value::from(instrumentId));
@@ -4040,7 +4040,7 @@ impl Polymarket {
  * @param {any[]} row the positional array to compact
  * @returns {any[]} the compacted array
  */
-    pub fn compact_signable(&self, row: impl Into<crate::Value>) -> Value {
+    pub fn compact_signable(&self, row: impl Into<crate::Value>) -> crate::value::List {
         let mut row: Value = row.into();
         let __row_empty = Vec::new();
         let row = row.as_array().unwrap_or(&__row_empty);
@@ -4054,9 +4054,7 @@ impl Polymarket {
             }
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
     pub fn price_to_precision(&self, symbol: Option<&str>, price: impl crate::value::ScalarArg) -> Option<String> {

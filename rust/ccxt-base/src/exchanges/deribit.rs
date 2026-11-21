@@ -3240,7 +3240,7 @@ impl Deribit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let ohlcvs: Value = self.convert_trading_view_to_ohlcv(&result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
+        let ohlcvs: Value = Value::Arr(self.convert_trading_view_to_ohlcv(&result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]));
         return Value::Arr(self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, Value::from(sinceResolved), Value::from(limitResolved)]));
         Value::Null
         }).await?))

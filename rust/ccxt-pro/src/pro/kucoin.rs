@@ -4020,7 +4020,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let messageHash: String = format!("{}{}", "position:", symbol.as_deref().unwrap_or("null"));
         let data: crate::value::Dict = message.key_dict("data");
         let mut newPosition: Value = Value::Dict(self.parse_position(Value::Dict(data), None));
-        let keys: Vec<Value> = object_keys(&newPosition).as_array().cloned().unwrap_or_default();
+        let keys: Vec<Value> = Value::Array(newPosition.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
@@ -4075,7 +4075,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let currentPosition: crate::value::Dict = self.get_current_position(symbol.as_deref().unwrap_or_default()).into_dict();
         let mut newPosition: Value = Value::Dict(self.parse_ws_uta_position(&data, None));
-        let keys: Vec<Value> = object_keys(&newPosition).as_array().cloned().unwrap_or_default();
+        let keys: Vec<Value> = Value::Array(newPosition.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;

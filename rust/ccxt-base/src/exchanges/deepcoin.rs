@@ -1835,7 +1835,7 @@ impl Deepcoin {
     pub fn set_markets(&mut self, mut markets: Value, optional_args: &[Value]) -> Value {
         let currencies = get_arg(optional_args, 0, Value::Null);
         let result: Value = self.super_set_markets(markets, currencies);
-        let symbols: Vec<Value> = Value::Array(result.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let symbols: Vec<Value> = Value::Array(result.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;

@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Htx {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "get_order_channel_and_message_hash" => self.get_order_channel_and_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()),
+                "get_order_channel_and_message_hash" => Value::Arr(self.get_order_channel_and_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
                 "get_v5_linear_channel_and_message_hash" => self.get_v5_linear_channel_and_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -103,7 +103,7 @@ impl Htx {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "get_order_channel_and_message_hash" => self.get_order_channel_and_message_hash(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).copied().cloned().unwrap_or_default()).as_ref(), &args[3.min(args.len())..]),
+            "get_order_channel_and_message_hash" => Value::Arr(self.get_order_channel_and_message_hash(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).copied().cloned().unwrap_or_default()).as_ref(), &args[3.min(args.len())..])),
             "get_v5_linear_channel_and_message_hash" => self.get_v5_linear_channel_and_message_hash(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
@@ -1305,7 +1305,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             })]);
         }  else {
-            let channelAndMessageHash: crate::value::List = self.get_order_channel_and_message_hash(type_var.clone().map(Value::from).unwrap_or(Value::Null), subType.clone().map(Value::from).unwrap_or(Value::Null), market.as_ref(), &[&paramsRequest]).into_list();
+            let channelAndMessageHash: crate::value::List = self.get_order_channel_and_message_hash(type_var.clone().map(Value::from).unwrap_or(Value::Null), subType.clone().map(Value::from).unwrap_or(Value::Null), market.as_ref(), &[&paramsRequest]);
             channel = self.safe_string_opt(&channelAndMessageHash, Value::Int(0), &[]);
             let orderMessageHash: Option<String> = self.safe_string_opt(&channelAndMessageHash, Value::Int(1), &[]);
             // we will take advantage of the order messageHash because already handles stuff
@@ -1332,7 +1332,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }).await?))
     }
 
-    pub fn get_order_channel_and_message_hash(&self, mut type_var: Value, mut subType: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> Value {
+    pub fn get_order_channel_and_message_hash(&self, mut type_var: Value, mut subType: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1386,9 +1386,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 channel = format!("{}{}", Value::Str(format!("{}{}", prefix.as_deref().unwrap_or("null"), ".").into()), "*");
             }
         }
-        return Value::from(vec![Value::from(channel), messageHash.map(Value::from).unwrap_or(Value::Null)]);
-
-    Value::Null
+        return std::sync::Arc::new(vec![Value::from(channel), messageHash.map(Value::from).unwrap_or(Value::Null)]);
 }
 
     pub fn get_v5_linear_channel_and_message_hash(&self, mut topic: Value, optional_args: &[&Value]) -> Value {
@@ -1483,7 +1481,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             })]);
         }  else {
-            let channelAndMessageHash: crate::value::List = self.get_order_channel_and_message_hash(type_var.clone().map(Value::from).unwrap_or(Value::Null), subType.clone().map(Value::from).unwrap_or(Value::Null), market.as_ref(), &[&paramsRequest]).into_list();
+            let channelAndMessageHash: crate::value::List = self.get_order_channel_and_message_hash(type_var.clone().map(Value::from).unwrap_or(Value::Null), subType.clone().map(Value::from).unwrap_or(Value::Null), market.as_ref(), &[&paramsRequest]);
             channel = self.safe_string_opt(&channelAndMessageHash, Value::Int(0), &[]);
             messageHash = self.safe_string_opt(&channelAndMessageHash, Value::Int(1), &[]);
         }
@@ -2254,7 +2252,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (prefixes.len() as i64) } {
-                let messageHashes: crate::value::List = self.find_message_hashes(client, prefixes.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
+                let messageHashes: crate::value::List = self.find_message_hashes(client, prefixes.get(i as usize).cloned().unwrap_or(Value::Null));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_3: bool = true;
@@ -2302,7 +2300,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (marginModes.len() as i64) } {
             let marginMode: Option<&str> = marginModes.get(i as usize).copied();
             let marginModePositions: Option<crate::value::List> = self.safe_list_or_o(&positionsByMarginMode, Value::from(marginMode.as_deref()), Value::from(vec![]));
-            let messageHashes: Value = self.find_message_hashes(client, Value::Str(format!("{}{}", marginMode.as_deref().unwrap_or("null"), ":positions::").into()));
+            let messageHashes: Value = Value::Arr(self.find_message_hashes(client, Value::Str(format!("{}{}", marginMode.as_deref().unwrap_or("null"), ":positions::").into())));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_6: bool = true;

@@ -1274,7 +1274,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_securities" => self.fetch_securities(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_securities" => Value::Arr(self.fetch_securities(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_stock_indicative_quote" => self.fetch_stock_indicative_quote(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -2414,7 +2414,7 @@ impl Backpack {
         let response: crate::value::List = self.public_get_api_v1_markets(&[&Value::Map(marketQuery)]).await.unwrap_or_default();
         let mut securities: crate::value::List = std::sync::Arc::new(Vec::new());
         if includeRfq {
-            securities = self.fetch_securities(&[]).await.into_list();
+            securities = self.fetch_securities(&[]).await;
         }
         let securityById: crate::value::Dict = self.index_by(Value::Arr(securities.clone()), Value::Str("asset".into()));
         let mut markets: Vec<Value> = Vec::new();
@@ -2521,16 +2521,14 @@ impl Backpack {
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} security metadata, not account holdings or proof of equity ownership
  */
-    pub async fn fetch_securities(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_securities(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let response: crate::value::List = self.public_get_api_v1_securities(&[&params]).await.unwrap_or_default();
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("securities".into(), Value::from(&response)); }
-        return Value::Arr(response);
-
-    Value::Null
+        return response;
 }
 
 /*
@@ -3714,7 +3712,7 @@ impl Backpack {
         if stock {
             let mut securities: Value = self.safe_list_k(&self.options, "securities", &[]);
             if (securities == Value::Null) {
-                securities = self.fetch_securities(&[]).await;
+                securities = Value::Arr(self.fetch_securities(&[]).await);
             }
             let securityIds: crate::value::Dict = self.index_by(securities, Value::Str("asset".into()));
             let mut balances: indexmap::IndexMap<String, Value> = ({

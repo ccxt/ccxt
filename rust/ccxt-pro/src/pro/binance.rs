@@ -6871,7 +6871,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             cache.append(Value::Dict(position));
         }
         }
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", accountType.as_deref().unwrap_or("null"), ":positions::").into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", accountType.as_deref().unwrap_or("null"), ":positions::").into())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_30: bool = true;
@@ -7528,7 +7528,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             cache.append(Value::Dict(position));
         }
         }
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", accountType, ":positions::").into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", accountType, ":positions::").into())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_34: bool = true;

@@ -2191,7 +2191,7 @@ impl Opinion {
             }
         }
         }
-        return self.parse_prediction_trades(Value::Arr(trades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_prediction_trades(Value::Arr(trades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }

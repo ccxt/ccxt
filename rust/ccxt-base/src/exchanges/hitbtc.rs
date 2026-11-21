@@ -3433,7 +3433,7 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchClosedOrders() not support this market type")));
             }
         }
-        let parsed: Vec<Value> = Value::Arr(self.parse_orders(&response, market.as_ref(), &[&Value::from(since), &Value::from(limit)])).as_array().cloned().unwrap_or_default();
+        let parsed: Vec<Value> = self.parse_orders(&response, market.as_ref(), &[&Value::from(since), &Value::from(limit)]).to_vec();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

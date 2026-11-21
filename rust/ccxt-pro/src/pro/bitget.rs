@@ -2089,7 +2089,7 @@ impl Bitget {
             cache.append(Value::Dict(position));
         }
         }
-        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", instType, ":positions::").into())).as_array().cloned().unwrap_or_default();
+        let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str(format!("{}{}", instType, ":positions::").into())).to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
