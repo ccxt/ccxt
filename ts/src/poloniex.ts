@@ -2954,8 +2954,9 @@ export default class poloniex extends Exchange {
         //    }
         //
         const marketId = this.safeString (contract, 's');
-        const fundingTimestamp = this.safeInteger (contract, 'fT');
-        const nextFundingTimestamp = this.safeInteger (contract, 'nFT');
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        const previousFundingTimestamp = this.safeInteger (contract, 'fT');
+        const fundingTimestamp = this.safeInteger (contract, 'nFT');
         const intervalMilliseconds = Precise.stringSub (this.safeString (contract, 'nFT'), this.safeString (contract, 'fT'));
         return {
             'info': contract,
@@ -2966,15 +2967,15 @@ export default class poloniex extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (contract, 'fR'),
+            'fundingRate': this.safeNumber (contract, 'nFR'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': this.safeNumber (contract, 'nFR'),
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber (contract, 'fR'),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
             'interval': this.parseFundingInterval (intervalMilliseconds),
         } as FundingRate;
     }

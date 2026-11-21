@@ -36,14 +36,14 @@
                     "timestamp": null,
                     "datetime": null,
                     "fundingRate": 0.0001,
-                    "fundingTimestamp": 1795276800000,
-                    "fundingDatetime": "2026-11-21T16:00:00.000Z",
-                    "nextFundingRate": 0.0001,
-                    "nextFundingTimestamp": 1795305600000,
-                    "nextFundingDatetime": "2026-11-22T00:00:00.000Z",
-                    "previousFundingRate": null,
-                    "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null,
+                    "fundingTimestamp": 1795305600000,
+                    "fundingDatetime": "2026-11-22T00:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": 0.0001,
+                    "previousFundingTimestamp": 1795276800000,
+                    "previousFundingDatetime": "2026-11-21T16:00:00.000Z",
                     "interval": "8h"
                 }
             }
