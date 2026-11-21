@@ -19640,6 +19640,9 @@ export const CSHARP_TUPLE_RETURN_ELEMENT0 = {
     'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
     // venue [Str, Dict] helpers: element 0 a string? and element 1 an IDictionary local on every return
     'getBybitType': 'string?', 'getMarginMode': 'string?',
+    // gate [Dict, Dict] request builders: element 0 the `Dictionary` request local on every return
+    'prepareRequest': 'Dictionary<string, object>', 'spotOrderPrepareRequest': 'Dictionary<string, object>', 'multiOrderSpotPrepareRequest': 'Dictionary<string, object>',
+    'getInstType': 'string?', 'handleUTAAndParams': 'bool?',
 };
 // ral-90c1: element 1 (the params bag) where every return path hands back the omit / extend result
 // the TS declares `Dict` (handleOptionAndParams' newParams, typed IDictionary in every body). Not
@@ -19650,6 +19653,8 @@ export const CSHARP_TUPLE_RETURN_ELEMENT1 = {
     'handleMarginModeAndParams': 'IDictionary<string, object>',
     'handleOptionBoolAndParams': 'IDictionary<string, object>', 'handleOptionBoolAndParams2': 'IDictionary<string, object>',
     'getBybitType': 'IDictionary<string, object>', 'getMarginMode': 'IDictionary<string, object>',
+    'prepareRequest': 'IDictionary<string, object>', 'spotOrderPrepareRequest': 'IDictionary<string, object>', 'multiOrderSpotPrepareRequest': 'IDictionary<string, object>',
+    'getInstType': 'IDictionary<string, object>', 'handleUTAAndParams': 'IDictionary<string, object>',
 };
 const tupleElement1 = (name) => (Object.prototype.hasOwnProperty.call (CSHARP_TUPLE_RETURN_ELEMENT1, name) ? CSHARP_TUPLE_RETURN_ELEMENT1[name] : 'object');
 const TUPLE_NAMES = Object.keys (CSHARP_TUPLE_RETURN_ELEMENT0).sort ((a, b) => b.length - a.length).join ('|');
@@ -19687,6 +19692,7 @@ function tupleElementRead (cast, element, type, file, line) {
     if (cast === undefined || cast.replace (/\s/g, '') === '') {
         return element;
     }
+    const h30 = h30C06ElementRead (cast, element, type); if (h30 !== undefined) return h30;
     const target = cast.replace (/[()\s]/g, '');
     if (target === type || target === type.replace (/\s/g, '') || (target === 'string' && type === 'string?')) {
         return element;
@@ -19723,6 +19729,7 @@ export function csharpTupleReturns (content, file = '') {
                 tupleFail (file, line, 'return shape in ' + method);
             }
         }
+        line = h30C06Line (line, holders);
         const holder = TUPLE_HOLDER_RE.exec (line);
         if (holder !== null) {
             holders.set (holder[2], [ CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]], tupleElement1 (holder[4]) ]);
@@ -19803,6 +19810,7 @@ export function csharpTupleReturns (content, file = '') {
         const end = tupleCloseParen (out, m.index + m[0].length - 1);
         const after = out.slice (end, end + 6);
         const ok = /^\s*\((?:string|bool|Int64)\?, (?:object|IDictionary<string, object>)\) \w+ = $/.test (head) || /^\s*return $/.test (head) || after.startsWith ('.Item') || /=> $/.test (head);
+        if (!ok && h30C06ConsumerOk (head)) continue;
         if (!ok) {
             tupleFail (file, out.slice (lineStart, lineStart + 160), 'consumer shape');
         }
@@ -24892,3 +24900,71 @@ function h30c04ChainMinMaxText (csharp, call, name) {
     return 'Math.' + name + '(' + parts[0].text + ', ' + parts[1].text + ')';
 }
 // ===== end h30-C04
+
+// ===== h30-C06: gate [Dict, Dict] request-builder tuples =====
+const H30C06_NAMES = [ 'prepareRequest', 'spotOrderPrepareRequest', 'multiOrderSpotPrepareRequest' ];
+const H30C06_TYPES = '(Dictionary<string, object>, IDictionary<string, object>)';
+
+// a `Dictionary` cast already on element 1 (the IDictionary params bag) stays as printed
+function h30C06ElementRead (cast, element, type) {
+    return (cast.replace (/[()\s]/g, '') === 'Dictionary<string,object>' && type === 'IDictionary<string, object>' && element.endsWith ('.Item2')) ? null : undefined;
+}
+
+// `var H = c ? this.A(..) : this.B(..)` over two table names, and `var x = H[i]` element locals
+function h30C06Line (line, holders) {
+    if (holders.h30Pending !== undefined) {
+        holders.set (holders.h30Pending, holders.h30PendingTypes ?? [ 'Dictionary<string, object>', 'IDictionary<string, object>' ]);
+        holders.h30PendingTypes = undefined;
+        (holders.h30Own ??= new Set ()).add (holders.h30Pending);
+        holders.h30Pending = undefined;
+    }
+    const names = H30C06_NAMES.join ('|');
+    const ternary = new RegExp ('^(\\s*)var (\\w+) = ([^?;]+ \\? this\\.(?:' + names + ')\\([^?;]*\\) : this\\.(?:' + names + ')\\([^?;]*\\);)$').exec (line);
+    if (ternary !== null) {
+        holders.h30Pending = ternary[2];
+        return ternary[1] + H30C06_TYPES + ' ' + ternary[2] + ' = ' + ternary[3];
+    }
+    const asyncLine = h30C06AsyncLine (line, holders);
+    if (asyncLine !== undefined) {
+        return asyncLine;
+    }
+    const own = new RegExp ('^\\s*var (\\w+) = this\\.(?:' + names + '|getInstType)\\(').exec (line);
+    if (own !== null) {
+        (holders.h30Own ??= new Set ()).add (own[1]);
+    }
+    const read = /^(\s*)var (\w+) = (?:\(\(IList<object>\) ?(\w+)\)|(\w+))\[([01])\];$/.exec (line);
+    const types = (read === null) ? undefined : holders.get (read[3] ?? read[4]);
+    if (types === undefined || !holders.h30Own?.has (read[3] ?? read[4])) {
+        return line;
+    }
+    return read[1] + types[Number (read[5])] + ' ' + read[2] + ' = ' + (read[3] ?? read[4]) + '.Item' + (Number (read[5]) + 1) + ';';
+}
+
+// async [bool?, Dict] producer: `Task<(..)>` signature, its returns, and `var H = await this.X(..)` holders
+const H30C06_ASYNC = { 'handleUTAAndParams': [ 'bool?', 'IDictionary<string, object>' ] };
+function h30C06AsyncLine (line, holders) {
+    const sig = /^(\s*public async (?:virtual|override) )Task<object> (\w+)\(/.exec (line);
+    if (sig !== null && H30C06_ASYNC[sig[2]] !== undefined) {
+        holders.h30Async = sig[2];
+        return sig[1] + 'Task<(' + H30C06_ASYNC[sig[2]].join (', ') + ')> ' + sig[2] + line.slice (sig[0].length - 1);
+    }
+    const ret = /^(\s*return )new List<object>(?:\(\))? ?\{([^{}]*)\};$/.exec (line);
+    if (holders.h30Async !== undefined && ret !== null) {
+        return ret[1] + '(' + ret[2].trim () + ');';
+    }
+    const holder = /^(\s*)var (\w+) = (await this\.(\w+)\(.*)$/.exec (line);
+    if (holder !== null && H30C06_ASYNC[holder[4]] !== undefined) {
+        holders.h30Pending = holder[2];
+        holders.h30PendingTypes = H30C06_ASYNC[holder[4]];
+        (holders.h30Own ??= new Set ()).add (holder[2]);
+        return holder[1] + '(' + H30C06_ASYNC[holder[4]].join (', ') + ') ' + holder[2] + ' = ' + holder[3];
+    }
+    return undefined;
+}
+
+function h30C06ConsumerOk (head) {
+    if (/^\s*\(bool\?, IDictionary<string, object>\) \w+ = await $/.test (head)) {
+        return true;
+    }
+    return head.startsWith (head.match (/^\s*/)[0] + H30C06_TYPES + ' ') && /^\s*\(Dictionary<string, object>, IDictionary<string, object>\) \w+ = (?:[^;]* [?:] )?$/.test (head);
+}
