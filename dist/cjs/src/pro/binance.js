@@ -214,7 +214,7 @@ class binance extends binance$1["default"] {
         };
     }
     requestId(url) {
-        const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
+        const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         options[url] = newValue;
@@ -225,7 +225,7 @@ class binance extends binance$1["default"] {
         return (client.url.indexOf('/stream') > -1) || (client.url.indexOf('demo-stream') > -1);
     }
     stream(type, subscriptionHash, numSubscriptions = 1) {
-        const streamBySubscriptionsHash = this.safeDict(this.options, 'streamBySubscriptionsHash', this.createSafeDictionary());
+        const streamBySubscriptionsHash = this.safeDict(this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
             const previousStreamIndex = this.safeInteger(this.options, 'streamIndex', -1);
@@ -249,7 +249,9 @@ class binance extends binance$1["default"] {
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new errors.BadRequest(this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            this.options['numSubscriptionsByStream'][stream] = newNumSubscriptions;
+            const numSubscriptionsByStream = this.safeDict(this.options, 'numSubscriptionsByStream', {});
+            numSubscriptionsByStream[stream] = newNumSubscriptions;
+            this.options['numSubscriptionsByStream'] = numSubscriptionsByStream;
         }
         return stream;
     }
@@ -316,7 +318,10 @@ class binance extends binance$1["default"] {
     getStockTickerFromSymbol(symbol) {
         const market = this.market(symbol);
         const base = this.safeString2(market, 'base', 'id');
-        return (base === undefined) ? undefined : base.toLowerCase();
+        if (base === undefined) {
+            return undefined;
+        }
+        return base.toLowerCase();
     }
     getStockUnifiedSymbol(stockSymbol, quote = 'USDC') {
         if (stockSymbol === undefined) {
@@ -1596,7 +1601,7 @@ class binance extends binance$1["default"] {
         }
         const marketId = this.safeString(trade, 's');
         let fallbackType = 'spot';
-        if ('ps' in trade) {
+        if (this.safeString(trade, 'ps') !== undefined) {
             fallbackType = 'contract';
         }
         let marketType = fallbackType;
@@ -1607,11 +1612,12 @@ class binance extends binance$1["default"] {
         let side = this.safeStringLower(trade, 'S');
         let takerOrMaker = undefined;
         const orderId = this.safeString(trade, 'i');
-        if ('m' in trade) {
+        const isMaker = this.safeBool(trade, 'm');
+        if (isMaker !== undefined) {
             if (side === undefined) {
-                side = (this.safeBool(trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
+                side = isMaker ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = (this.safeBool(trade, 'm', false)) ? 'maker' : 'taker';
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         let fee = undefined;
         const feeCost = this.safeString(trade, 'n');
@@ -2842,7 +2848,10 @@ class binance extends binance$1["default"] {
             if (isSpot) {
                 tickerFallbackType = 'spot';
             }
-            const tickerMarketType = (tickerMarketById !== undefined) ? this.safeValue(tickerMarketById, 'type') : tickerFallbackType;
+            let tickerMarketType = tickerFallbackType;
+            if (tickerMarketById !== undefined) {
+                tickerMarketType = this.safeString(tickerMarketById, 'type');
+            }
             const parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
             const symbol = parsedTicker['symbol'];
             if (symbol !== undefined) {
@@ -4748,7 +4757,7 @@ class binance extends binance$1["default"] {
         const marketId = this.safeString(order, 's');
         // futures user-data events carry the position side field, spot ones do not
         let marketType = 'spot';
-        if ('ps' in order) {
+        if (this.safeString(order, 'ps') !== undefined) {
             marketType = 'contract';
         }
         const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
@@ -4763,7 +4772,7 @@ class binance extends binance$1["default"] {
         else if (executionType === 'TRADE') {
             lastTradeTimestamp = T;
         }
-        const isAlgoOrder = ('aid' in order); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        const isAlgoOrder = (this.safeString(order, 'aid') !== undefined); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
         if (isAlgoOrder && (timestamp === undefined)) {
             const algoStatus = this.safeString(order, 'X');
             if ((algoStatus === 'NEW') || (algoStatus === 'CANCELED')) {
@@ -4951,13 +4960,13 @@ class binance extends binance$1["default"] {
         let messageValue = message;
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = this.safeDict(message, 'o', message);
-            if ((e === 'ALGO_UPDATE') && !('T' in messageValue)) {
+            if ((e === 'ALGO_UPDATE') && (this.safeInteger(messageValue, 'T') === undefined)) {
                 messageValue['T'] = this.safeInteger(message, 'T'); // keep the outer event time, the algo payload carries no timestamps
             }
         }
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
-            const oField = this.safeValue(message, 'o');
-            if (Array.isArray(oField)) {
+            const oField = this.safeList(message, 'o');
+            if (oField !== undefined) {
                 // eOptions format: o is an array of orders with nested fi fills
                 this.handleOptionsOrderUpdate(client, message);
                 return;
@@ -5605,7 +5614,8 @@ class binance extends binance$1["default"] {
         let messageHash = 'myTrades';
         let symbolParams = {};
         if ((symbolResolved !== undefined) && (market !== undefined)) {
-            messageHash += ':' + symbolResolved;
+            const symbolString = this.symbol(symbol);
+            messageHash = messageHash + ':' + symbolString;
             symbolParams = { 'type': market['type'], 'symbol': symbolResolved };
         }
         const paramsSymbol = this.extend(paramsAuth, symbolParams);
@@ -5974,7 +5984,8 @@ class binance extends binance$1["default"] {
         let event = this.safeString(messageValue, 'e');
         if (Array.isArray(messageValue)) {
             const arrayMessage = this.safeDict(messageValue, 0);
-            event = this.safeString(arrayMessage, 'e') + '@arr';
+            const arrayEvent = this.safeString(arrayMessage, 'e', '');
+            event = arrayEvent + '@arr';
         }
         method = this.safeValue(methods, event);
         if (method === undefined) {
@@ -5994,7 +6005,7 @@ class binance extends binance$1["default"] {
             //         "A": "2.52500800"
             //     }
             //
-            if (event === undefined && ('a' in messageValue) && ('b' in messageValue)) {
+            if (event === undefined && (this.safeString(messageValue, 'a') !== undefined) && (this.safeString(messageValue, 'b') !== undefined)) {
                 this.handleBidsAsks(client, messageValue);
             }
         }

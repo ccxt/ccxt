@@ -844,11 +844,12 @@ class aster extends aster$1["default"] {
         let side = this.safeStringLower(trade, 'S');
         let takerOrMaker = undefined;
         const orderId = this.safeString(trade, 'i');
-        if ('m' in trade) {
+        const isMaker = this.safeBool(trade, 'm');
+        if (isMaker !== undefined) {
             if (side === undefined) {
-                side = (this.safeBool(trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
+                side = isMaker ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = (this.safeBool(trade, 'm', false)) ? 'maker' : 'taker';
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         let fee = undefined;
         const feeCost = this.safeString(trade, 'n');

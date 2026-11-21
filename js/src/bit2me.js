@@ -922,7 +922,10 @@ export default class bit2me extends Exchange {
         else {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             const duration = this.parseTimeframe(timeframe) * 1000;
-            const end = (until !== undefined) ? until : this.milliseconds();
+            let end = this.milliseconds();
+            if (until !== undefined) {
+                end = until;
+            }
             request['startTime'] = end - requestLimit * duration;
         }
         if (until !== undefined) {
@@ -1115,7 +1118,12 @@ export default class bit2me extends Exchange {
             request['stopPrice'] = this.priceToPrecision(symbol, stopLossPrice);
             let stopLossLimit = stopLimitPrice;
             if (stopLossLimit === undefined) {
-                stopLossLimit = (price !== undefined) ? this.numberToString(price) : stopLossPrice;
+                if (price !== undefined) {
+                    stopLossLimit = this.numberToString(price);
+                }
+                else {
+                    stopLossLimit = stopLossPrice;
+                }
             }
             request['stopLimitPrice'] = this.priceToPrecision(symbol, stopLossLimit);
         }

@@ -2290,13 +2290,7 @@ export default class btse extends Exchange {
             }
             response = await this.privatePostFuturesApiV3TradeOrdersAlgo(this.extend(request, query));
         }
-        // the normal futures endpoint responds with a single order dict, keep a
-        // one element array guard in case a gateway wraps it
-        let order = response;
-        if (Array.isArray(response)) {
-            order = this.safeDict(response, 0, {});
-        }
-        return this.parseOrder(order, market);
+        return this.parseOrder(response, market);
     }
     encodeTriggerPriceType(priceType) {
         const priceTypes = {

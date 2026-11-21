@@ -691,7 +691,7 @@ export default class gemini extends Exchange {
         const fetchUsdtMarkets = this.safeList(this.options, 'fetchUsdtMarkets', []);
         const result = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
-            const marketId = fetchUsdtMarkets[i];
+            const marketId = this.safeString(fetchUsdtMarkets, i, '');
             const request = {
                 'symbol': marketId,
             };
@@ -729,7 +729,7 @@ export default class gemini extends Exchange {
         if (this.safeBool(options, 'fetchDetailsForAllSymbols', false)) {
             const promises = [];
             for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
+                const marketId = this.safeString(marketIds, i, '');
                 const request = {
                     'symbol': marketId,
                 };
@@ -761,7 +761,7 @@ export default class gemini extends Exchange {
             if (tradingPairs !== undefined) {
                 const indexedTradingPairs = this.indexBy(tradingPairs, 0);
                 for (let i = 0; i < marketIds.length; i++) {
-                    const marketId = marketIds[i];
+                    const marketId = this.safeString(marketIds, i, '');
                     const pairInfo = this.safeList(indexedTradingPairs, marketId.toUpperCase());
                     if (pairInfo !== undefined && !this.inArray(marketId, brokenPairs)) {
                         const parsed = this.parseMarket(pairInfo);

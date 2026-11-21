@@ -453,8 +453,9 @@ export default class kalshi extends Exchange {
             }
         }
         for (let i = 0; i < outcomeSymbolsLength; i++) {
-            if (!this.hasOutcome(outcomeSymbols[i])) {
-                await this.fetchOutcome(outcomeSymbols[i]);
+            const pendingSymbol = this.safeString(outcomeSymbols, i, '');
+            if (!this.hasOutcome(pendingSymbol)) {
+                await this.fetchOutcome(pendingSymbol);
             }
         }
         return this.outcomes;
@@ -2410,7 +2411,7 @@ export default class kalshi extends Exchange {
                     }
                 }
                 const request = {
-                    'series_ticker': seriesTickers[si],
+                    'series_ticker': this.safeString(seriesTickers, si),
                     'status': status,
                     'with_nested_markets': true,
                     'limit': reqLimit,

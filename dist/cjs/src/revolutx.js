@@ -1596,10 +1596,7 @@ class revolutx extends revolutx$1["default"] {
                 return undefined;
             }
             const feedback = this.id + ' ' + body;
-            let errorMessage = undefined;
-            if (typeof response === 'object') {
-                errorMessage = this.safeString2(response, 'message', 'error');
-            }
+            const errorMessage = this.safeString2(response, 'message', 'error');
             if (errorMessage !== undefined) {
                 this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
             }

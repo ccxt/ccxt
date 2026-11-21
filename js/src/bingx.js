@@ -1238,7 +1238,10 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        const requestLimit = this.parseToInt((limit === undefined) ? 500 : Math.min(limit, maxLimit));
+        let requestLimit = 500;
+        if (limit !== undefined) {
+            requestLimit = this.parseToInt(Math.min(limit, maxLimit));
+        }
         if (since !== undefined) {
             request['startTime'] = Math.max(since - 1, 0);
         }
@@ -1265,9 +1268,7 @@ export default class bingx extends Exchange {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             const [timeZone, paramsTimeZone] = this.handleOptionIntegerAndParams(paramsUntil, 'fetchOHLCV', 'timeZone', 0);
-            if (timeZone !== undefined) {
-                request['timeZone'] = timeZone;
-            }
+            request['timeZone'] = timeZone;
             response = await this.spotV1PublicGetMarketKline(this.extend(request, paramsTimeZone));
         }
         else {
@@ -1596,10 +1597,11 @@ export default class bingx extends Exchange {
             takeOrMaker = isMaker ? 'maker' : 'taker';
         }
         let amount = isSpotExecution ? this.safeString(trade, 'l') : this.safeStringN(trade, ['qty', 'amount', 'q']);
-        if ((market !== undefined) && (this.safeBool(market, 'swap', false)) && ('volume' in trade)) {
+        const volume = this.safeString(trade, 'volume');
+        if ((market !== undefined) && (this.safeBool(market, 'swap', false)) && (volume !== undefined)) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
-            amount = this.safeString(trade, 'volume');
+            amount = volume;
         }
         let price = isSpotExecution ? this.safeString(trade, 'L') : this.safeStringN(trade, ['price', 'p', 'tradePrice']);
         if ((market !== undefined) && (this.safeBool(market, 'linear', false)) && (this.safeString(trade, 'x') === 'TRADE')) {
@@ -2356,6 +2358,7 @@ export default class bingx extends Exchange {
             //     ]
             // }
             //
+            return this.parseTicker(this.safeDict(response['data'], 0, {}), market);
         }
         else {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType));
@@ -2372,9 +2375,6 @@ export default class bingx extends Exchange {
             //     }
             // }
             //
-        }
-        if (Array.isArray(response['data'])) {
-            return this.parseTicker(this.safeDict(response['data'], 0, {}), market);
         }
         return this.parseTicker(response['data'], market);
     }
@@ -4118,7 +4118,11 @@ export default class bingx extends Exchange {
             marketType = 'spot';
         }
         const marketId = this.safeString2(orderData, 'symbol', 's');
-        const marketResolved = this.safeMarket((market === undefined) ? marketId : undefined, market, undefined, marketType);
+        let marketIdOrUndefined = undefined;
+        if (market === undefined) {
+            marketIdOrUndefined = marketId;
+        }
+        const marketResolved = this.safeMarket(marketIdOrUndefined, market, undefined, marketType);
         const side = this.safeStringLower2(orderData, 'side', 'S');
         let timestamp = this.safeIntegerN(orderData, ['time', 'transactTime', 'E', 'createdTime']);
         const transactTime = this.safeString(orderData, 'transactTime', '');
@@ -5895,7 +5899,7 @@ export default class bingx extends Exchange {
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         const rawType = this.safeString(transaction, 'transferType');
         let type = 'withdrawal';
-        if ((rawType === '0') || ('insertTime' in transaction)) {
+        if ((rawType === '0') || (this.safeInteger(transaction, 'insertTime') !== undefined)) {
             type = 'deposit';
         }
         let internal = undefined;

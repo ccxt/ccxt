@@ -836,7 +836,7 @@ class bullish extends bullish$1["default"] {
                 const idParts = id.split('-');
                 const datePart = this.safeString(idParts, 2);
                 const dateYmd = datePart.slice(2);
-                symbol += '-' + dateYmd;
+                symbol = base + '/' + quote + ':' + settle + '-' + dateYmd;
                 if (type === 'future') {
                     future = true;
                 }
@@ -844,7 +844,7 @@ class bullish extends bullish$1["default"] {
                     option = true;
                     optionType = this.safeStringLower(market, 'optionType');
                     strike = this.parseToNumeric(this.safeString(market, 'optionStrikePrice'));
-                    symbol += '-' + this.numberToString(strike) + '-' + this.safeString(idParts, 4);
+                    symbol = base + '/' + quote + ':' + settle + '-' + dateYmd + '-' + this.numberToString(strike) + '-' + this.safeString(idParts, 4);
                 }
             }
         }
@@ -2256,24 +2256,25 @@ class bullish extends bullish$1["default"] {
     }
     async loadAccount(params = {}) {
         const [tradingAccountIdOption, paramsTradingAccountId] = this.handleOptionStringAndParams(params, 'loadAccount', 'tradingAccountId');
-        let tradingAccountId = tradingAccountIdOption;
-        if (tradingAccountId === undefined) {
-            const response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
-            const accounts = this.toArray(response);
-            for (let i = 0; i < accounts.length; i++) {
-                const account = this.safeDict(accounts, i);
-                const name = this.safeString(account, 'tradingAccountName');
-                if (name === 'Primary Account') {
-                    tradingAccountId = this.safeString(account, 'tradingAccountId');
-                    break;
+        if (tradingAccountIdOption !== undefined) {
+            this.options['tradingAccountId'] = tradingAccountIdOption;
+            return this.safeString(this.options, 'tradingAccountId');
+        }
+        const response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
+        const accounts = this.toArray(response);
+        for (let i = 0; i < accounts.length; i++) {
+            const account = this.safeDict(accounts, i);
+            const name = this.safeString(account, 'tradingAccountName');
+            if (name === 'Primary Account') {
+                const primaryAccountId = this.safeString(account, 'tradingAccountId');
+                if (primaryAccountId !== undefined) {
+                    this.options['tradingAccountId'] = primaryAccountId;
+                    return this.safeString(this.options, 'tradingAccountId');
                 }
+                break;
             }
         }
-        if (tradingAccountId === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
-        }
-        this.options['tradingAccountId'] = tradingAccountId;
-        return this.safeString(this.options, 'tradingAccountId');
+        throw new errors.ArgumentsRequired(this.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
     }
     /**
      * @method

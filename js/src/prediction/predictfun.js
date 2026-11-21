@@ -1681,9 +1681,13 @@ export default class predictfun extends Exchange {
         if (rawFee !== undefined) {
             const feeType = this.safeString(rawFee, 'type');
             const feeCost = this.safeString(rawFee, 'amount');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            let feeCurrency = undefined;
+            if (feeType === 'COLLATERAL') {
+                feeCurrency = 'USDT';
+            }
             fee = {
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': (feeType === 'COLLATERAL') ? 'USDT' : undefined,
+                'currency': feeCurrency,
                 'cost': this.parseNumber(Precise.stringDiv(feeCost, '1000000000000000000')),
             };
         }
@@ -3754,9 +3758,13 @@ export default class predictfun extends Exchange {
         let fee = undefined;
         if (rawFee !== undefined) {
             const feeType = this.safeString(rawFee, 'type');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            let feeCurrency = undefined;
+            if (feeType === 'COLLATERAL') {
+                feeCurrency = 'USDT';
+            }
             fee = {
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': (feeType === 'COLLATERAL') ? 'USDT' : undefined,
+                'currency': feeCurrency,
                 'cost': this.parseNumber(Precise.stringDiv(this.safeString(rawFee, 'amountWei'), '1000000000000000000')),
             };
         }

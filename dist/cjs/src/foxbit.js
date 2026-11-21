@@ -673,7 +673,7 @@ class foxbit extends foxbit$1["default"] {
             const entry = data[i];
             const marketId = this.safeString(entry, 'market_symbol');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             result[symbol] = this.parseTradingFee(entry, market);
         }
         return result;

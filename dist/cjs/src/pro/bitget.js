@@ -550,7 +550,8 @@ class bitget extends bitget$1["default"] {
             messageHash = 'kline:' + symbolValue;
         }
         else {
-            args['channel'] = 'candle' + interval;
+            const intervalValue = this.safeString(timeframes, timeframe, '');
+            args['channel'] = 'candle' + intervalValue;
             args['instId'] = market['id'];
             messageHash = 'candles:' + timeframe + ':' + symbolValue;
         }
@@ -1347,7 +1348,11 @@ class bitget extends bitget$1["default"] {
         else {
             defaultType = (posMode !== undefined) ? 'contract' : 'spot';
         }
-        const marketResolved = this.safeMarket((market === undefined) ? instId : undefined, market, undefined, defaultType);
+        let instIdResolved = undefined;
+        if (market === undefined) {
+            instIdResolved = instId;
+        }
+        const marketResolved = this.safeMarket(instIdResolved, market, undefined, defaultType);
         const timestamp = this.safeIntegerN(trade, ['uTime', 'cTime', 'ts', 'T', 'execTime']);
         const feeDetail = this.safeList(trade, 'feeDetail', []);
         const first = this.safeDict(feeDetail, 0);
@@ -1730,7 +1735,8 @@ class bitget extends bitget$1["default"] {
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchOrders', paramsInstType);
         if (marginMode !== undefined) {
             instType = 'MARGIN';
-            messageHash = messageHash + ':' + marginMode;
+            const marginModeValue = marginMode;
+            messageHash = messageHash + ':' + marginModeValue;
             if (marginMode === 'isolated') {
                 channel = 'orders-isolated';
             }
@@ -2080,8 +2086,8 @@ class bitget extends bitget$1["default"] {
         //         "stpMode": "none"
         //     }
         //
-        let isSpot = !('posMode' in order);
-        let isMargin = ('loanType' in order);
+        let isSpot = (this.safeString(order, 'posMode') === undefined);
+        let isMargin = (this.safeString(order, 'loanType') !== undefined);
         const category = this.safeStringLower(order, 'category');
         if (category === 'spot') {
             isSpot = true;
@@ -2227,7 +2233,8 @@ class bitget extends bitget$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
-            messageHash = messageHash + ':' + symbolResolved;
+            const symbolValue = this.safeString(market, 'symbol', '');
+            messageHash = messageHash + ':' + symbolValue;
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsMarketType, 'watchMyTrades', 'uta', false);
@@ -2602,7 +2609,7 @@ class bitget extends bitget$1["default"] {
                     account['debt'] = Precise["default"].stringAdd(borrow, interest);
                 }
                 let freeQuery = 'available';
-                if ('maxTransferOut' in rawBalance) {
+                if (this.safeString(rawBalance, 'maxTransferOut') !== undefined) {
                     freeQuery = 'maxTransferOut';
                 }
                 account['free'] = this.safeString(rawBalance, freeQuery);

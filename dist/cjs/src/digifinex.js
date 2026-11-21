@@ -1337,7 +1337,11 @@ class digifinex extends digifinex$1["default"] {
         const amountString = this.safeStringN(trade, ['amount', 'volume', 'size']);
         const marketId = this.safeStringUpper2(trade, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol(marketId, market);
-        const marketResolved = this.safeMarket((market === undefined) ? marketId : undefined, market);
+        let marketIdResolved = undefined;
+        if (market === undefined) {
+            marketIdResolved = marketId;
+        }
+        const marketResolved = this.safeMarket(marketIdResolved, market);
         let timestamp = this.safeTimestamp2(trade, 'date', 'timestamp');
         let side = this.safeString2(trade, 'type', 'side');
         let type = undefined;

@@ -377,7 +377,7 @@ export default class xt extends xtRest {
         }
         let market = undefined;
         if (symbols !== undefined) {
-            market = this.market(symbols[0]);
+            market = this.market(this.safeString(symbols, 0));
         }
         if (name !== undefined) {
             const tickers = await this.subscribe(name, 'public', 'watchTickers', market, symbols, params);
@@ -1282,7 +1282,7 @@ export default class xt extends xtRest {
         //
         const marketId = this.safeString(trade, 's');
         let tradeType = 'spot';
-        if ('symbol' in trade) {
+        if (this.safeString(trade, 'symbol') !== undefined) {
             tradeType = 'contract';
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, tradeType);
@@ -1352,7 +1352,7 @@ export default class xt extends xtRest {
         //
         const marketId = this.safeString2(order, 's', 'symbol');
         let tradeType = 'spot';
-        if ('symbol' in order) {
+        if (this.safeString(order, 'symbol') !== undefined) {
             tradeType = 'contract';
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, tradeType);

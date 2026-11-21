@@ -2409,10 +2409,7 @@ export default class pacifica extends Exchange {
         const dataLength = data.length;
         if (hasMore) {
             if ((paginationCursor !== undefined) && (dataLength > 0)) {
-                const first = data[0];
-                first['next_cursor'] = paginationCursor;
-                first['has_more'] = hasMore;
-                data[0] = first;
+                data[0] = this.extend(data[0], { 'next_cursor': paginationCursor, 'has_more': hasMore });
             }
         }
         return data;

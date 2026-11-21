@@ -2248,11 +2248,10 @@ export default class kucoin extends Exchange {
         if (migrated) {
             hf = true;
         }
-        const hfParam = this.safeBool(params, 'hf');
+        const [hfParam, paramsOmitted] = this.handleParamBool(params, 'hf');
         if (hfParam !== undefined) {
             hf = (hfParam === true);
         }
-        const paramsOmitted = this.omit(params, 'hf');
         return [hf, paramsOmitted];
     }
     /**
@@ -3047,8 +3046,7 @@ export default class kucoin extends Exchange {
         const time = this.safeInteger2(data, 'time', 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            tickers[i]['time'] = time;
-            const ticker = this.parseSpotOrUtaTicker(tickers[i]);
+            const ticker = this.parseSpotOrUtaTicker(this.extend(tickers[i], { 'time': time }));
             const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
@@ -4814,8 +4812,8 @@ export default class kucoin extends Exchange {
                 throw new BadRequest(this.id + ' createOrders() only supports limit orders');
             }
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
@@ -4895,8 +4893,8 @@ export default class kucoin extends Exchange {
             }
             const type = this.safeString(rawOrder, 'type', '');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
@@ -5879,11 +5877,11 @@ export default class kucoin extends Exchange {
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchOrdersByStatus', paramsOmitted);
         const isUnified = (accountModeOption === 'unified');
         const tradeType = this.handleTradeType(isContract, marginMode, isUnified, paramsMarginMode);
-        paramsMarginMode['tradeType'] = tradeType;
+        const paramsTradeType = this.extend(paramsMarginMode, { 'tradeType': tradeType });
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endAt', request, paramsMarginMode);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endAt', request, paramsTradeType);
         if (limit !== undefined) {
             requestUntil['pageSize'] = limit;
         }
@@ -6925,7 +6923,7 @@ export default class kucoin extends Exchange {
         const isMargin = marginMode !== undefined;
         if (isMargin) {
             hf = true;
-            request['tradeType'] = (marginMode === undefined) ? undefined : this.safeString(this.options['marginModes'], marginMode, marginMode);
+            request['tradeType'] = this.safeString(this.options['marginModes'], marginMode, marginMode);
         }
         if ((hf === true) && symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol parameter for hf or margin orders');
@@ -7895,10 +7893,15 @@ export default class kucoin extends Exchange {
         }
         const createdAt = this.safeInteger2(transaction, 'createdAt', 'createAt');
         const updatedAt = this.safeInteger(transaction, 'updatedAt');
-        const isV1 = !('createdAt' in transaction);
+        const isV1 = (this.safeInteger(transaction, 'createdAt') === undefined);
         // if it's a v1 structure
         if (isV1) {
-            type = ('address' in transaction) ? 'withdrawal' : 'deposit';
+            if (this.safeString(transaction, 'address') !== undefined) {
+                type = 'withdrawal';
+            }
+            else {
+                type = 'deposit';
+            }
         }
         const createdAtMs = (createdAt === undefined) ? undefined : createdAt * 1000;
         const updatedAtMs = (updatedAt === undefined) ? undefined : updatedAt * 1000;
@@ -9206,7 +9209,9 @@ export default class kucoin extends Exchange {
         let marginMode = undefined;
         [marginMode, paramsRequest] = this.handleMarginModeAndParams('fetchLedger', paramsRequest);
         if (uta && (requestedType === 'margin')) {
-            marginMode = (marginMode === undefined) ? 'cross' : marginMode; // default to cross margin for UTA if margin is requested but marginMode is not specified
+            if (marginMode === undefined) {
+                marginMode = 'cross'; // default to cross margin for UTA if margin is requested but marginMode is not specified
+            }
             requestedType = marginMode;
         }
         let accountsByType = this.safeDict(this.options, 'accountsByType');
@@ -9355,11 +9360,11 @@ export default class kucoin extends Exchange {
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         const versions = this.safeDict(this.options, 'versions', {});
-        const apiVersions = this.safeDict(versions, api[0], {});
+        const apiVersions = this.safeDict(versions, this.safeString(api, 0), {});
         const methodVersions = this.safeDict(apiVersions, method, {});
         const defaultVersion = this.safeString(methodVersions, path, this.options['version']);
         const version = this.safeString(params, 'version', defaultVersion);
-        if ((api[0] === 'utaV2') && (path === 'market/orderbook')) {
+        if ((this.safeString(api, 0) === 'utaV2') && (path === 'market/orderbook')) {
             // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
             // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
             const depth = this.safeInteger(params, 'limit'); // undefined for 'FULL'
@@ -9386,7 +9391,7 @@ export default class kucoin extends Exchange {
         else if (version === 'v1' && ('v1' in config)) {
             return config['v1'];
         }
-        return this.safeValue(config, 'cost', 1);
+        return this.safeNumber(config, 'cost', 1);
     }
     parseBorrowRate(info, currency = undefined) {
         //
@@ -9655,10 +9660,10 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         if (limit !== undefined) {
-            requestUntil['pageSize'] = limit; // default:50, min:10, max:500
+            request['pageSize'] = limit; // default:50, min:10, max:500
         }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         const response = await this.privateGetMarginInterest(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -9711,10 +9716,10 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         if (limit !== undefined) {
-            requestUntil['pageSize'] = limit; // default:50, min:10, max:500
+            request['pageSize'] = limit; // default:50, min:10, max:500
         }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         const response = await this.privateGetMarginInterest(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -11939,7 +11944,7 @@ export default class kucoin extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const tradeType = this.safeString(query, 'tradeType');
+        const tradeType = this.safeString(query, 'tradeType', '');
         if (!this.isEmpty(query)) {
             if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode(query);
@@ -11948,8 +11953,8 @@ export default class kucoin extends Exchange {
                 if ((endpoint === '/api/ua/v1/classic/order/place') || (endpoint === '/api/ua/v1/classic/order/place/batch') || (endpoint === '/api/ua/v1/classic/order/cancel') || (endpoint === '/api/ua/v1/classic/order/cancel/batch')) {
                     endpoint += '?tradeType=' + tradeType;
                 }
-                bodyJson = this.json(query);
-                endpart = bodyJson;
+                endpart = this.json(query);
+                bodyJson = endpart;
                 headersBase['Content-Type'] = 'application/json';
             }
         }

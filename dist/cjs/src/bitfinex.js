@@ -536,7 +536,7 @@ class bitfinex extends bitfinex$1["default"] {
     }
     isFiat(code) {
         const fiat = this.safeDict(this.options, 'fiat', {});
-        return (code in fiat);
+        return this.safeString(fiat, code) !== undefined;
     }
     getCurrencyName(code) {
         // temporary fix for transpiler recognition, even though this is in parent class
@@ -2725,7 +2725,9 @@ class bitfinex extends bitfinex$1["default"] {
                 'percentage': true,
                 'tierBased': true,
             };
-            if (market['quote'] in fiat) {
+            const quote = this.safeString(market, 'quote');
+            const fiatQuote = this.safeString(fiat, quote);
+            if (fiatQuote !== undefined) {
                 fee['maker'] = makerFeeFiat;
                 fee['taker'] = takerFeeFiat;
             }

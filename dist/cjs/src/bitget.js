@@ -4378,9 +4378,13 @@ class bitget extends bitget$1["default"] {
             const feeCostString = this.safeString2(feeStructure, 'totalFee', 'fee');
             const deductionString = this.safeString(feeStructure, 'deduction');
             const deduction = (deductionString === 'yes');
+            let feeCostSigned = feeCostString;
+            if (!deduction) {
+                feeCostSigned = Precise["default"].stringNeg(feeCostString);
+            }
             fee = {
                 'currency': currencyCode,
-                'cost': deduction ? feeCostString : Precise["default"].stringNeg(feeCostString),
+                'cost': feeCostSigned,
             };
         }
         return this.safeTrade({
@@ -4728,7 +4732,7 @@ class bitget extends bitget$1["default"] {
         else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType = undefined;
             [productType, paramsMarginMode] = this.handleProductTypeAndParams(undefined, paramsMarginMode);
-            paramsMarginMode['productType'] = productType;
+            paramsMarginMode = this.extend(paramsMarginMode, { 'productType': productType });
             response = await this.publicMixGetV2MixMarketContracts(paramsMarginMode);
         }
         else {

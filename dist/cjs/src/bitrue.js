@@ -3429,10 +3429,12 @@ class bitrue extends bitrue$1["default"] {
         return undefined;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+        const paramsSymbol = this.safeString(params, 'symbol');
+        const paramsLimit = this.safeString(params, 'limit');
+        if (('noSymbol' in config) && (paramsSymbol === undefined)) {
             return config['noSymbol'];
         }
-        else if (('byLimit' in config) && ('limit' in params)) {
+        else if (('byLimit' in config) && (paramsLimit !== undefined)) {
             const limit = this.safeInteger(params, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {

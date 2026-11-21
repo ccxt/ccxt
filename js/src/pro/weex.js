@@ -617,7 +617,7 @@ export default class weex extends weexRest {
             const data = this.safeList(symbolsAndTimeframes, i);
             let symbolString = this.safeString(data, 0, '');
             const market = this.market(symbolString);
-            if (market['type'] !== firstMarket['type']) {
+            if (this.safeString(market, 'type') !== this.safeString(firstMarket, 'type')) {
                 throw new BadRequest(this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
             symbolString = this.safeString(market, 'symbol', '');
@@ -684,7 +684,7 @@ export default class weex extends weexRest {
             const data = this.safeList(symbolsAndTimeframes, i);
             let symbolString = this.safeString(data, 0, '');
             const market = this.market(symbolString);
-            if (market['type'] !== firstMarket['type']) {
+            if (this.safeString(market, 'type') !== this.safeString(firstMarket, 'type')) {
                 throw new BadRequest(this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
             symbolString = this.safeString(market, 'symbol', '');
@@ -1061,9 +1061,9 @@ export default class weex extends weexRest {
         const symbol = this.safeString(market, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
+            const messageHash = 'bidask::' + symbol;
+            client.resolve(ticker, messageHash);
         }
-        const messageHash = 'bidask::' + symbol;
-        client.resolve(ticker, messageHash);
     }
     parseWsBidAsk(message, market = undefined) {
         const timestamp = this.safeInteger(message, 'E');

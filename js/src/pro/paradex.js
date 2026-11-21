@@ -516,7 +516,8 @@ export default class paradex extends paradexRest {
         let messageHash = 'trades.ALL';
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash = 'trades.' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            messageHash = 'trades.' + marketId;
         }
         const url = this.getWsUrl();
         await this.waitForPendingUnsubscribe(url, [messageHash]);
@@ -555,7 +556,8 @@ export default class paradex extends paradexRest {
         const channels = [];
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market(symbolsNormalized[i]);
-            channels.push('trades.' + market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            channels.push('trades.' + marketId);
         }
         const url = this.getWsUrl();
         // handleTrade resolves the channel of each market
@@ -601,7 +603,8 @@ export default class paradex extends paradexRest {
         const channels = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
-            channels.push('trades.' + market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            channels.push('trades.' + marketId);
         }
         // the watchers of a market wait on its channel
         return await this.unsubscribeChannels(this.getWsUrl(), 'trades', channels, channels, symbolsNormalized, params);
@@ -622,7 +625,8 @@ export default class paradex extends paradexRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const channel = 'trades.' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const channel = 'trades.' + marketId;
         const messageHash = 'liquidations:' + market['symbol'];
         const url = this.getWsUrl();
         const liquidations = await this.subscribeChannels(url, [messageHash], [channel], params);
@@ -930,7 +934,7 @@ export default class paradex extends paradexRest {
             if ((stored === undefined) || !(deltasChannel in client.subscriptions)) {
                 return;
             }
-            const storedNonce = stored['nonce'];
+            const storedNonce = this.safeInteger(stored, 'nonce');
             // no book to apply it to: before the first snapshot, and between a resync and its snapshot
             if ((storedNonce === undefined) || (nonce === undefined) || (nonce <= storedNonce)) {
                 return;
@@ -1188,7 +1192,8 @@ export default class paradex extends paradexRest {
         const pendingHashes = [channel, channel + ':scoped'];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
-            pendingHashes.push(channel + '.' + market['id']);
+            const pendingId = this.safeString(market, 'id', '');
+            pendingHashes.push(channel + '.' + pendingId);
         }
         await this.waitForPendingUnsubscribe(url, pendingHashes);
         const client = this.client(url);
@@ -1290,7 +1295,8 @@ export default class paradex extends paradexRest {
         if (symbolsLength > 0) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market(symbolsNormalized[i]);
-                channels.push('bbo.' + market['id']);
+                const marketId = this.safeString(market, 'id', '');
+                channels.push('bbo.' + marketId);
                 messageHashes.push('bidask:' + market['symbol']);
             }
         }
@@ -1330,7 +1336,8 @@ export default class paradex extends paradexRest {
         if (symbolsLength > 0) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market(symbolsNormalized[i]);
-                channels.push('bbo.' + market['id']);
+                const marketId = this.safeString(market, 'id', '');
+                channels.push('bbo.' + marketId);
                 subMessageHashes.push('bidask:' + market['symbol']);
                 bidAskSymbols.push(market['symbol']);
             }
@@ -1405,7 +1412,8 @@ export default class paradex extends paradexRest {
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            channel = 'orders.' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            channel = 'orders.' + marketId;
             messageHash = 'orders:' + symbolResolved;
         }
         const url = this.getWsUrl();
@@ -1486,7 +1494,8 @@ export default class paradex extends paradexRest {
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            channel = 'fills.' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            channel = 'fills.' + marketId;
             messageHash = 'myTrades:' + symbolResolved;
         }
         const url = this.getWsUrl();
@@ -1789,7 +1798,8 @@ export default class paradex extends paradexRest {
         }
         const market = this.market(symbol);
         // the per-market channel, the all-markets one sends every perpetual's funding
-        const channel = 'funding_data.' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const channel = 'funding_data.' + marketId;
         const url = this.getWsUrl();
         // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
         const messageHash = 'fundingRate:' + market['symbol'];
@@ -1809,7 +1819,8 @@ export default class paradex extends paradexRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const channel = 'funding_data.' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const channel = 'funding_data.' + marketId;
         const messageHash = 'fundingRate:' + market['symbol'];
         return await this.unsubscribeChannels(this.getWsUrl(), 'fundingRate', [channel], [messageHash], [market['symbol']], params);
     }
@@ -2217,16 +2228,23 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const isSnapshot = (pkgType === 0);
-        return {
+        const result = {
             'seq_no': this.sbeReadInt64(frameHex, 16),
             'market': this.safeString(strings, 0),
             'last_updated_at': this.sbeReadTimestamp(frameHex, 8),
             'update_type': (isSnapshot) ? 's' : 'd',
-            'inserts': (isSnapshot) ? levels : [],
+            'inserts': [],
             // a delta does not tell an insert from an update, a removal is a size of 0 among them
-            'updates': (isSnapshot) ? [] : levels,
+            'updates': [],
             'deletes': [],
         };
+        if (isSnapshot) {
+            result['inserts'] = levels;
+        }
+        else {
+            result['updates'] = levels;
+        }
+        return result;
     }
     parseSbeMarketSummary(client, frameHex, blockLength, frameLength) {
         const blockSize = this.parseToInt(blockLength);
@@ -2360,8 +2378,9 @@ export default class paradex extends paradexRest {
         let bits = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         for (let i = 0; i < names.length; i++) {
             const bit = this.parseToInt(bits % 2);
-            if ((bit === 1) && (names[i] !== '')) {
-                flags.push(names[i]);
+            const name = this.safeString(names, i, '');
+            if ((bit === 1) && (name !== '')) {
+                flags.push(name);
             }
             bits = this.parseToInt(bits / 2);
         }

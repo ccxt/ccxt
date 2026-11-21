@@ -903,10 +903,10 @@ export default class gate extends gateRest {
         if (rawMarketType === 'futures') {
             marketType = 'contract';
         }
-        const result = this.safeValue(message, 'result');
+        const resultList = this.safeList(message, 'result');
         let results = [];
-        if (Array.isArray(result)) {
-            results = this.safeList(message, 'result', []);
+        if (resultList !== undefined) {
+            results = resultList;
         }
         else {
             const rawTicker = this.safeDict(message, 'result', {});
@@ -1183,13 +1183,13 @@ export default class gate extends gateRest {
         if (rawMarketType === 'spot') {
             marketType = 'spot';
         }
-        const rawResult = this.safeValue(message, 'result');
+        const resultList = this.safeList(message, 'result');
         let result = [];
-        if (Array.isArray(rawResult)) {
+        if (resultList !== undefined) {
             result = this.safeList(message, 'result', []);
         }
         else {
-            result = [rawResult];
+            result = [this.safeValue(message, 'result')];
         }
         const marketIds = {};
         for (let i = 0; i < result.length; i++) {
@@ -1434,8 +1434,10 @@ export default class gate extends gateRest {
         //
         const result = this.safeList(message, 'result', []);
         this.balance['info'] = result;
-        for (let i = 0; i < result.length; i++) {
-            const rawBalance = this.safeDict(result, i);
+        const rows = this.safeList(message, 'result', []);
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const rawBalance = this.safeDict(rows, i);
             const account = this.account();
             const currencyId = this.safeString(rawBalance, 'currency', 'USDT'); // when not present it is USDT
             const code = this.safeCurrencyCode(currencyId);
@@ -1772,20 +1774,21 @@ export default class gate extends gateRest {
         const marketIds = {};
         const parsedOrders = this.parseOrders(orders);
         for (let i = 0; i < parsedOrders.length; i++) {
-            const parsed = parsedOrders[i];
             // inject order status
-            const info = this.safeDict(parsed, 'info');
+            const info = this.safeDict(parsedOrders[i], 'info');
             const event = this.safeString(info, 'event');
+            const statusUpdate = {};
             if (event === 'put' || event === 'update') {
-                parsed['status'] = 'open';
+                statusUpdate['status'] = 'open';
             }
             else if (event === 'finish') {
-                const status = this.safeString(parsed, 'status');
+                const status = this.safeString(parsedOrders[i], 'status');
                 if (status === undefined) {
                     const left = this.safeString(info, 'left');
-                    parsed['status'] = Precise.stringEquals(left, '0') ? 'closed' : 'canceled';
+                    statusUpdate['status'] = Precise.stringEquals(left, '0') ? 'closed' : 'canceled';
                 }
             }
+            const parsed = this.extend(parsedOrders[i], statusUpdate);
             stored.append(parsed);
             const symbol = this.safeString(parsed, 'symbol');
             const market = this.market(symbol);

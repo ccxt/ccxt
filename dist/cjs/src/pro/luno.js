@@ -95,7 +95,7 @@ class luno extends luno$1["default"] {
         if (length === 0) {
             return;
         }
-        const symbol = subscription['symbol'];
+        const symbol = this.safeString(subscription, 'symbol', '');
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const messageHash = 'trades:' + symbolValue;

@@ -970,7 +970,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
         await this.authenticate();
         const market = this.market(symbol);
-        const symbolValue = this.safeString(market, 'symbol');
+        const symbolValue = this.safeString(market, 'symbol', '');
         const marketId = this.safeString(market, 'id');
         const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
@@ -1010,7 +1010,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
         await this.authenticate();
         const market = this.market(symbol);
-        const symbolValue = this.safeString(market, 'symbol');
+        const symbolValue = this.safeString(market, 'symbol', '');
         const marketId = this.safeString(market, 'id');
         const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
@@ -1658,7 +1658,7 @@ class bitvavo extends bitvavo$1["default"] {
         //
         const marketId = this.safeString(message, 'market');
         const market = this.safeMarket(marketId, undefined, '-');
-        const symbol = this.safeString(market, 'symbol');
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'order:' + symbol;
         const order = this.parseOrder(message, market);
         if (this.orders === undefined) {
@@ -1687,7 +1687,7 @@ class bitvavo extends bitvavo$1["default"] {
         //
         const marketId = this.safeString(message, 'market');
         const market = this.safeMarket(marketId, undefined, '-');
-        const symbol = this.safeString(market, 'symbol');
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'myTrades:' + symbol;
         const trade = this.parseTrade(message, market);
         if (this.myTrades === undefined) {

@@ -140,7 +140,7 @@ class cex extends cex$1["default"] {
         if (currentSymbol !== undefined && currentSymbol !== symbol) {
             throw new errors.ArgumentsRequired(this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        const watchTradesDict = this.safeDict(this.options, 'watchTrades', {});
+        const watchTradesDict = this.extend({}, this.safeDict(this.options, 'watchTrades', {}));
         watchTradesDict['symbol'] = symbol;
         this.options['watchTrades'] = watchTradesDict;
         if (this.markets === undefined) {
@@ -777,27 +777,27 @@ class cex extends cex$1["default"] {
             // market comes from safeMarket, so the parser never takes its undefined returns here
             order = this.parseWsOrderUpdate(data, market);
         }
-        order['remaining'] = remains;
+        const orderUpdate = {};
+        orderUpdate['remaining'] = remains;
         const canceled = this.safeBool(data, 'cancel', false);
         if (canceled) {
-            order['status'] = 'canceled';
+            orderUpdate['status'] = 'canceled';
         }
         if (isTransaction) {
-            order['status'] = 'closed';
+            orderUpdate['status'] = 'closed';
         }
         const fee = this.safeNumber(data, 'fee');
         if (fee !== undefined) {
-            order['fee'] = {
+            orderUpdate['fee'] = {
                 'cost': fee,
                 'currency': quote,
                 'rate': undefined,
             };
         }
         const timestamp = this.safeInteger(data, 'time');
-        order['timestamp'] = timestamp;
-        order['datetime'] = this.iso8601(timestamp);
-        // a fresh map copy: the cached entry is untyped
-        const parsedOrder = this.safeOrder(this.extend(order, {}));
+        orderUpdate['timestamp'] = timestamp;
+        orderUpdate['datetime'] = this.iso8601(timestamp);
+        const parsedOrder = this.safeOrder(this.extend(order, orderUpdate));
         storedOrders.append(parsedOrder);
         const messageHash = 'orders:' + symbol;
         client.resolve(storedOrders, messageHash);

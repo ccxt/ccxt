@@ -458,7 +458,11 @@ export default class htx extends htxRest {
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const limitResolved = this.parseToInt((limit === undefined) ? this.safeInteger(options, 'depth', 150) : limit);
+        let limitValue = limit;
+        if (limit === undefined) {
+            limitValue = this.safeInteger(options, 'depth', 150);
+        }
+        const limitResolved = this.parseToInt(limitValue);
         if (!this.inArray(limitResolved, allowedLimits)) {
             throw new ExchangeError(this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
@@ -1631,14 +1635,15 @@ export default class htx extends htxRest {
         }
         let market = undefined;
         let messageHash = '';
-        if ((!this.isEmpty(symbols)) && (symbols !== undefined)) {
+        const hasMarket = (!this.isEmpty(symbols)) && (symbols !== undefined);
+        if (hasMarket) {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }
         let type = undefined;
         let subType = undefined;
         let paramsSubType = {};
-        if (market !== undefined) {
+        if (hasMarket) {
             type = this.safeString(market, 'type');
             if (this.safeBool(market, 'linear', false)) {
                 subType = 'linear';
@@ -1653,7 +1658,7 @@ export default class htx extends htxRest {
             [subType, paramsSubType] = this.handleOptionStringAndParams(paramsMarketType, 'watchPositions', 'subType', subType);
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const paramsPositions = (market !== undefined) ? params : paramsSubType;
+        const paramsPositions = hasMarket ? params : paramsSubType;
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchPositions', paramsPositions, 'cross');
         let paramsRequest = paramsMarginMode;
         const linear = (subType === 'linear');

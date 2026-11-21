@@ -2641,14 +2641,16 @@ class gate extends gate$1["default"] {
                 withdrawFees = this.safeNumber(entry, 'withdraw_fix');
             }
             else {
+                const networkFees = {};
                 const networkIds = Object.keys(withdrawFixOnChains);
                 for (let j = 0; j < networkIds.length; j++) {
                     const networkId = networkIds[j];
                     const networkCode = this.networkIdToCode(networkId, code);
                     if (networkCode !== undefined) {
-                        withdrawFees[networkCode] = this.parseNumber(withdrawFixOnChains[networkId]);
+                        networkFees[networkCode] = this.safeNumber(withdrawFixOnChains, networkId);
                     }
                 }
+                withdrawFees = networkFees;
             }
             result[code] = {
                 'withdraw': withdrawFees,
@@ -3095,7 +3097,7 @@ class gate extends gate$1["default"] {
         //
         const marketId = this.safeStringN(ticker, ['currency_pair', 'contract', 'name']);
         let marketType = 'spot';
-        if ('mark_price' in ticker) {
+        if (this.safeString(ticker, 'mark_price') !== undefined) {
             marketType = 'contract';
         }
         const symbol = this.safeSymbol(marketId, market, '_', marketType);
@@ -3193,8 +3195,9 @@ class gate extends gate$1["default"] {
         account['used'] = this.safeString2(entry, 'freeze', 'locked');
         account['free'] = this.safeString(entry, 'available');
         account['total'] = this.safeString(entry, 'total');
-        if ('borrowed' in entry) {
-            account['debt'] = this.safeString(entry, 'borrowed');
+        const borrowed = this.safeString(entry, 'borrowed');
+        if (borrowed !== undefined) {
+            account['debt'] = borrowed;
         }
         return account;
     }
@@ -3473,7 +3476,7 @@ class gate extends gate$1["default"] {
             const keys = Object.keys(balances);
             for (let i = 0; i < keys.length; i++) {
                 const currencyId = keys[i];
-                const content = balances[currencyId];
+                const content = this.extend({}, balances[currencyId]);
                 content['currency'] = currencyId;
                 flatBalances.push(content);
             }
@@ -3532,10 +3535,6 @@ class gate extends gate$1["default"] {
         const maxLimit = (this.safeBool(market, 'contract', false)) ? 1999 : 1000;
         const limitValue = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
         const untilMs = this.safeInteger(paramsRequest, 'until');
-        let until = undefined;
-        if (untilMs !== undefined) {
-            until = this.parseToInt(untilMs / 1000);
-        }
         const paramsOmitted = this.omit(paramsRequest, 'until');
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
@@ -3545,16 +3544,21 @@ class gate extends gate$1["default"] {
             const toTimestamp = this.sum(fromTimestamp, distance);
             const currentTimestamp = this.seconds();
             const to = Math.min(toTimestamp, currentTimestamp);
-            if (until !== undefined) {
-                request['to'] = Math.min(to, until);
+            if (untilMs !== undefined) {
+                const untilSeconds = this.parseToInt(untilMs / 1000);
+                let toValue = to;
+                if (untilSeconds < to) {
+                    toValue = untilSeconds;
+                }
+                request['to'] = toValue;
             }
             else {
                 request['to'] = to;
             }
         }
         else {
-            if (until !== undefined) {
-                request['to'] = until;
+            if (untilMs !== undefined) {
+                request['to'] = this.parseToInt(untilMs / 1000);
             }
             request['limit'] = limitValue;
         }
@@ -3563,7 +3567,8 @@ class gate extends gate$1["default"] {
             const isMark = (price === 'mark');
             const isIndex = (price === 'index');
             if (isMark || isIndex) {
-                request['contract'] = price + '_' + market['id'];
+                const marketId = this.safeString(market, 'id', '');
+                request['contract'] = price + '_' + marketId;
             }
             let paramsContract = paramsOmitted;
             if (isMark || isIndex) {
@@ -4121,7 +4126,7 @@ class gate extends gate$1["default"] {
         }
         const marketId = this.safeString2(trade, 'currency_pair', 'contract');
         let marketType = 'spot';
-        if ('contract' in trade) {
+        if (this.safeString(trade, 'contract') !== undefined) {
             marketType = 'contract';
         }
         const marketResolved = this.safeMarket(marketId, market, '_', marketType);
@@ -4599,8 +4604,8 @@ class gate extends gate$1["default"] {
             orderSymbols.push(marketId);
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const triggerValue = this.safeValueN(orderParams, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
@@ -5365,7 +5370,7 @@ class gate extends gate$1["default"] {
             }
         }
         let marketType = 'contract';
-        if (('currency_pair' in order) || ('market' in order)) {
+        if ((this.safeString(order, 'currency_pair') !== undefined) || (this.safeString(order, 'market') !== undefined)) {
             marketType = 'spot';
         }
         const exchangeSymbol = this.safeString2(order, 'currency_pair', 'market', contract);
@@ -5475,9 +5480,14 @@ class gate extends gate$1["default"] {
         const paramsOrder = (clientOrderIdRaw !== undefined) ? this.omit(paramsOmitted, ['text', 'clientOrderId']) : paramsOmitted;
         const [type, query] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOrder);
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
-        const [request, requestParams] = contract ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
-        request['order_id'] = orderId.toString();
-        return [request, requestParams];
+        if (contract) {
+            const [contractRequest, contractParams] = this.prepareRequest(market, type, query);
+            const contractOrder = this.extend(contractRequest, { 'order_id': orderId.toString() });
+            return [contractOrder, contractParams];
+        }
+        const [request, requestParams] = this.spotOrderPrepareRequest(market, trigger, query);
+        const spotOrder = this.extend(request, { 'order_id': orderId });
+        return [spotOrder, requestParams];
     }
     /**
      * @method
@@ -5635,7 +5645,11 @@ class gate extends gate$1["default"] {
         if (spot && (trigger === true)) {
             request = this.omit(request, 'account');
         }
-        request['status'] = (status === 'closed') ? 'finished' : status;
+        let requestStatus = status;
+        if (status === 'closed') {
+            requestStatus = 'finished';
+        }
+        request['status'] = requestStatus;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -6763,7 +6777,10 @@ class gate extends gate$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchLeverageTiers only supports swap and future');
         }
         const requestedLimit = this.safeInteger(requestParams, 'limit', 100);
-        const limit = this.parseToInt((requestedLimit === undefined) ? 100 : Math.max(1, Math.min(requestedLimit, 100)));
+        let limit = 100;
+        if (requestedLimit !== undefined) {
+            limit = this.parseToInt(Math.max(1, Math.min(requestedLimit, 100)));
+        }
         let offset = this.safeInteger(requestParams, 'offset', 0);
         const contract = this.safeString(requestParams, 'contract', '');
         const paramsOmitted = this.omit(requestParams, ['limit', 'offset']);

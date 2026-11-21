@@ -2538,7 +2538,7 @@ export default class bitvavo extends Exchange {
             };
         }
         let type = undefined;
-        if (('success' in transaction) || ('address' in transaction)) {
+        if ((this.safeBool(transaction, 'success') !== undefined) || (this.safeString(transaction, 'address') !== undefined)) {
             type = 'withdrawal';
         }
         else {

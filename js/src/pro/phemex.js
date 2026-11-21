@@ -294,12 +294,10 @@ export default class phemex extends phemexRest {
             }
         }
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const symbol = this.safeString(ticker, 'symbol', '');
+            const symbol = this.safeString(tickers[i], 'symbol', '');
             const messageHash = 'ticker:' + symbol;
             const timestamp = this.safeIntegerProduct(message, 'timestamp', 0.000001);
-            ticker['timestamp'] = timestamp;
-            ticker['datetime'] = this.iso8601(timestamp);
+            const ticker = this.extend(tickers[i], { 'timestamp': timestamp, 'datetime': this.iso8601(timestamp) });
             this.tickers[symbol] = ticker;
             client.resolve(ticker, messageHash);
         }

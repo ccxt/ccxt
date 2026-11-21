@@ -129,14 +129,14 @@ class cryptocom extends cryptocom$1["default"] {
         const [bookSubscriptionType2, paramsBookSubscriptionType2] = this.handleOptionStringAndParams(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
         const bookParams = this.safeDict(paramsBookSubscriptionType2, 'params', {});
         bookParams['bookSubscriptionType'] = bookSubscriptionType2;
-        paramsBookSubscriptionType2['params'] = bookParams;
-        const [bookUpdateFrequency, paramsBookUpdateFrequency] = this.handleOptionStringAndParams(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        const paramsWithBook = this.extend(paramsBookSubscriptionType2, { 'params': bookParams });
+        const [bookUpdateFrequency, paramsBookUpdateFrequency] = this.handleOptionStringAndParams(paramsWithBook, 'watchOrderBook', 'bookUpdateFrequency');
         const [bookUpdateFrequency2, paramsBookUpdateFrequency2] = this.handleOptionStringAndParams(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        const frequencyParams = this.safeDict(paramsBookUpdateFrequency2, 'params', {});
         if (bookUpdateFrequency2 !== undefined) {
-            const frequencyParams = this.safeDict(paramsBookUpdateFrequency2, 'params', {});
             frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2;
-            paramsBookUpdateFrequency2['params'] = frequencyParams;
         }
+        const paramsWithFrequency = this.extend(paramsBookUpdateFrequency2, { 'params': frequencyParams });
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
@@ -144,7 +144,7 @@ class cryptocom extends cryptocom$1["default"] {
             messageHashes.push('orderbook:' + market['symbol']);
             topics.push('book.' + this.safeString(market, 'id', '') + '.' + limitString);
         }
-        const orderbook = await this.watchPublicMultiple(messageHashes, topics, paramsBookUpdateFrequency2);
+        const orderbook = await this.watchPublicMultiple(messageHashes, topics, paramsWithFrequency);
         return orderbook.limit();
     }
     /**
@@ -176,14 +176,14 @@ class cryptocom extends cryptocom$1["default"] {
         const [bookSubscriptionType2, paramsBookSubscriptionType2] = this.handleOptionStringAndParams(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
         const bookParams = this.safeDict(paramsBookSubscriptionType2, 'params', {});
         bookParams['bookSubscriptionType'] = bookSubscriptionType2;
-        paramsBookSubscriptionType2['params'] = bookParams;
-        const [bookUpdateFrequency, paramsBookUpdateFrequency] = this.handleOptionStringAndParams(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency');
+        const paramsWithBook = this.extend(paramsBookSubscriptionType2, { 'params': bookParams });
+        const [bookUpdateFrequency, paramsBookUpdateFrequency] = this.handleOptionStringAndParams(paramsWithBook, 'watchOrderBook', 'bookUpdateFrequency');
         const [bookUpdateFrequency2, paramsBookUpdateFrequency2] = this.handleOptionStringAndParams(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        const frequencyParams = this.safeDict(paramsBookUpdateFrequency2, 'params', {});
         if (bookUpdateFrequency2 !== undefined) {
-            const frequencyParams = this.safeDict(paramsBookUpdateFrequency2, 'params', {});
             frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2;
-            paramsBookUpdateFrequency2['params'] = frequencyParams;
         }
+        const paramsWithFrequency = this.extend(paramsBookUpdateFrequency2, { 'params': frequencyParams });
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
@@ -191,7 +191,7 @@ class cryptocom extends cryptocom$1["default"] {
             messageHashes.push('unsubscribe:orderbook:' + market['symbol']);
             topics.push('book.' + this.safeString(market, 'id', '') + '.' + limit.toString());
         }
-        return await this.unWatchPublicMultiple('orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsBookUpdateFrequency2);
+        return await this.unWatchPublicMultiple('orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsWithFrequency);
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 0);

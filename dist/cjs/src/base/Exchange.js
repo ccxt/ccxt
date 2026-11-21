@@ -3281,8 +3281,10 @@ class BaseExchange {
             if (parsed === undefined) {
                 continue;
             }
-            const code = parsed['code'];
-            result[code] = parsed;
+            const code = this.safeString(parsed, 'code');
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
         }
         return result;
     }
@@ -7007,7 +7009,7 @@ class BaseExchange {
             return undefined;
         }
         const market = this.market(symbol);
-        const marketSymbol = this.safeString(market, 'symbol');
+        const marketSymbol = this.safeString(market, 'symbol', '');
         const result = this.decimalToPrecision(price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
             const pricePrecision = this.numberToString(market['precision']['price']);
@@ -7023,7 +7025,7 @@ class BaseExchange {
             return undefined;
         }
         const market = this.market(symbol);
-        const marketSymbol = this.safeString(market, 'symbol');
+        const marketSymbol = this.safeString(market, 'symbol', '');
         const result = this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
             const amountPrecision = this.numberToString(market['precision']['amount']);

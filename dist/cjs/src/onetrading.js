@@ -953,7 +953,7 @@ class onetrading extends onetrading$1["default"] {
         const rawTickers = this.toArray(response);
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = this.parseTicker(rawTickers[i]);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }

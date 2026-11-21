@@ -1617,8 +1617,8 @@ export default class bybit extends Exchange {
                 quote = 'USDT';
             }
         }
-        const strike = this.safeString(optionParts, 2);
-        const optionType = this.safeString(optionParts, 3);
+        const strike = this.safeString(optionParts, 2, '');
+        const optionType = this.safeString(optionParts, 3, '');
         const datetime = this.convertExpireDate(expiry);
         let amountPrecision = undefined;
         let pricePrecision = undefined;
@@ -1949,7 +1949,7 @@ export default class bybit extends Exchange {
             types = this.safeList(this.options, 'fetchMarkets', defaultTypes);
         }
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString(types, i);
             if (marketType === 'spot') {
                 promisesUnresolved.push(this.fetchSpotMarkets(params));
             }
@@ -3083,10 +3083,11 @@ export default class bybit extends Exchange {
         const data = this.safeDict(response, 'result', {});
         const tickerList = this.safeList(data, 'list', []);
         const timestamp = this.safeInteger(response, 'time');
+        const rows = [];
         for (let i = 0; i < tickerList.length; i++) {
-            tickerList[i]['timestamp'] = timestamp; // will be removed inside the parser
+            rows.push(this.extend(tickerList[i], { 'timestamp': timestamp })); // will be removed inside the parser
         }
-        return this.parseFundingRates(tickerList, symbolsNormalized);
+        return this.parseFundingRates(rows, symbolsNormalized);
     }
     /**
      * @method
@@ -3340,7 +3341,8 @@ export default class bybit extends Exchange {
         const id = this.safeStringN(trade, ['execId', 'id', 'tradeId']);
         const marketId = this.safeString(trade, 'symbol');
         let marketType = 'spot';
-        if ('createType' in trade) {
+        const createType = this.safeString(trade, 'createType');
+        if (createType !== undefined) {
             marketType = 'contract';
         }
         const category = this.safeString(trade, 'category');
@@ -4070,7 +4072,8 @@ export default class bybit extends Exchange {
             }
         }
         const marketId = this.safeString(order, 'symbol');
-        const isContract = ('tpslMode' in order);
+        const tpslMode = this.safeString(order, 'tpslMode');
+        const isContract = (tpslMode !== undefined);
         let marketType = undefined;
         if (market !== undefined) {
             marketType = this.safeString(market, 'type');
@@ -4663,8 +4666,8 @@ export default class bybit extends Exchange {
             orderSymbols.push(marketId);
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
             delete orderRequest['category'];
@@ -4886,8 +4889,8 @@ export default class bybit extends Exchange {
             const id = this.safeString(rawOrder, 'id');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
             delete orderRequest['category'];
@@ -6344,7 +6347,8 @@ export default class bybit extends Exchange {
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         const feeCost = this.safeNumber2(transaction, 'depositFee', 'withdrawFee');
         let type = 'withdrawal';
-        if ('depositFee' in transaction) {
+        const depositFee = this.safeString(transaction, 'depositFee');
+        if (depositFee !== undefined) {
             type = 'deposit';
         }
         let fee = undefined;
@@ -10145,7 +10149,7 @@ export default class bybit extends Exchange {
                 else {
                     signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
                 }
-                requestHeaders['X-BAPI-SIGN'] = signature;
+                requestHeaders = this.extend(requestHeaders, { 'X-BAPI-SIGN': signature });
             }
             else {
                 const query = this.extend(params, {

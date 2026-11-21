@@ -1113,15 +1113,11 @@ export default class onetrading extends onetradingRest {
                 subscription = {};
             }
         }
-        const subscriptionMarketId = this.safeDict(subscription, marketId);
-        if (subscriptionMarketId === undefined) {
-            if (marketId !== undefined) {
-                subscription[marketId] = {};
-            }
+        const marketTimeframes = this.safeDict(subscription, marketId, {});
+        if (timeframe !== undefined) {
+            marketTimeframes[timeframe] = true;
         }
-        if ((marketId !== undefined) && (timeframe !== undefined)) {
-            subscription[marketId][timeframe] = true;
-        }
+        subscription[marketId] = marketTimeframes;
         const properties = [];
         const marketIds = Object.keys(subscription);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1219,11 +1215,12 @@ export default class onetrading extends onetradingRest {
         if (timeframesResolved === undefined) {
             throw new ArgumentsRequired(this.id + ' findTimeframe() timeframes is required');
         }
+        const unit = this.safeString(timeframe, 'unit');
+        const period = this.safeString(timeframe, 'period');
         const keys = Object.keys(timeframesResolved);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const timeframeResolved = this.safeDict(timeframesResolved, key, {});
-            if (timeframeResolved['unit'] === timeframe['unit'] && timeframeResolved['period'] === timeframe['period']) {
+            if (this.safeString(timeframesResolved[key], 'unit') === unit && this.safeString(timeframesResolved[key], 'period') === period) {
                 return key;
             }
         }

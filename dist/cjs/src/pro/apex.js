@@ -243,7 +243,8 @@ class apex extends apex$1["default"] {
         const client = this.client(url);
         const newTopics = [];
         for (let i = 0; i < topics.length; i++) {
-            if (!(messageHashes[i] in client.subscriptions)) {
+            const messageHash = this.safeString(messageHashes, i, '');
+            if (!(messageHash in client.subscriptions)) {
                 newTopics.push(topics[i]);
             }
         }

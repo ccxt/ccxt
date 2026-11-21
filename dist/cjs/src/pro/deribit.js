@@ -675,8 +675,8 @@ class deribit extends deribit$1["default"] {
         return data;
     }
     handleDelta(bookside, delta) {
-        const price = this.safeValue(delta, 1);
-        const amount = this.safeValue(delta, 2);
+        const price = this.safeNumber(delta, 1);
+        const amount = this.safeNumber(delta, 2);
         const action = this.safeString(delta, 0);
         if (action === 'new' || action === 'change') {
             bookside.storeArray([price, amount, 1]);

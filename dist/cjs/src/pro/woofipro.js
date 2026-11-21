@@ -551,7 +551,7 @@ class woofipro extends woofipro$1["default"] {
         //
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString2(trade, 'executedPrice', 'price');
         const amount = this.safeString2(trade, 'executedQuantity', 'size');
         const cost = Precise["default"].stringMul(price, amount);
@@ -816,7 +816,7 @@ class woofipro extends woofipro$1["default"] {
         const orderId = this.safeString(order, 'orderId');
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.market(marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(order, 'timestamp');
         const fee = {
             'cost': this.safeString(order, 'totalFee'),
@@ -1122,7 +1122,7 @@ class woofipro extends woofipro$1["default"] {
             const position = this.parseWsPosition(rawPosition, market);
             newPositions.push(position);
             cache.append(position);
-            const positionSymbol = market['symbol'];
+            const positionSymbol = this.safeString(market, 'symbol', '');
             const messageHash = 'positions::' + positionSymbol;
             client.resolve(position, messageHash);
         }

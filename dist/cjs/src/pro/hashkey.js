@@ -450,13 +450,12 @@ class hashkey extends hashkey$1["default"] {
         const marketId = this.safeString(order, 's');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'O');
-        let side = this.safeStringLower(order, 'S');
-        let reduceOnly = undefined;
-        [side, reduceOnly] = this.parseOrderSideAndReduceOnly(side);
-        let type = this.parseOrderType(this.safeString(order, 'o'));
-        let timeInForce = this.safeString(order, 'f');
-        let postOnly = undefined;
-        [type, timeInForce, postOnly] = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
+        const rawSide = this.safeStringLower(order, 'S');
+        const side = this.parseOrderSideValue(rawSide);
+        const rawType = this.parseOrderType(this.safeString(order, 'o'));
+        const rawTimeInForce = this.safeString(order, 'f');
+        const timeInForce = this.parseOrderTimeInForceValue(rawType, rawTimeInForce);
+        let type = this.parseOrderType(rawType);
         if (this.safeBool(marketResolved, 'contract', false)) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
@@ -487,8 +486,8 @@ class hashkey extends hashkey$1["default"] {
                 'currency': this.safeCurrencyCode(this.safeString(order, 'N')),
                 'amount': this.omitZero(this.safeString(order, 'n')),
             },
-            'reduceOnly': reduceOnly,
-            'postOnly': postOnly,
+            'reduceOnly': this.parseOrderReduceOnlyValue(rawSide),
+            'postOnly': this.parseOrderPostOnlyValue(rawType, rawTimeInForce),
             'info': order,
         }, marketResolved);
     }
@@ -793,11 +792,8 @@ class hashkey extends hashkey$1["default"] {
         if (isSpot) {
             type = 'spot';
         }
-        if (!(type in this.balance)) {
-            this.balance[type] = {};
-        }
-        this.balance[type]['info'] = message;
         const balance = this.safeDict(this.balance, type, {});
+        balance['info'] = message;
         const currencyId = this.safeString(balanceUpdate, 'a');
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();

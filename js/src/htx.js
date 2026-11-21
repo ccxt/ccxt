@@ -1715,7 +1715,7 @@ export default class htx extends Exchange {
             let settleId = undefined;
             let id = undefined;
             let lowercaseId = undefined;
-            const contract = ('contract_code' in market);
+            const contract = (this.safeString(market, 'contract_code') !== undefined);
             const spot = !contract;
             let swap = false;
             let future = false;
@@ -1954,12 +1954,9 @@ export default class htx extends Exchange {
             const marketLinear = this.safeBool(market, 'linear', false);
             const marketSymbol = this.safeString(market, 'symbol', '');
             // see comment on formats a bit above
-            let constructedId = undefined;
+            let constructedId = marketBase + '_' + contractSuffix;
             if (marketLinear) {
                 constructedId = marketBase + '-' + marketQuote + '-' + contractSuffix;
-            }
-            else {
-                constructedId = marketBase + '_' + contractSuffix;
             }
             if (constructedId === symbolOrMarketId) {
                 const futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
@@ -3470,8 +3467,9 @@ export default class htx extends Exchange {
             throw new ExchangeError(this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
         const uniqueNetworkIds = this.safeDict(this.options['networkChainIdsByNames'], currencyCode, {});
-        if (networkCode in uniqueNetworkIds) {
-            return uniqueNetworkIds[networkCode];
+        const uniqueNetworkId = this.safeString(uniqueNetworkIds, networkCode);
+        if (uniqueNetworkId !== undefined) {
+            return uniqueNetworkId;
         }
         else {
             const networkTitle = super.networkCodeToId(networkCode, currencyCode);
@@ -5296,15 +5294,14 @@ export default class htx extends Exchange {
             request['source'] = 'c2c-margin-api';
         }
         const isMarketBuy = (orderType === 'market') && (sideStr === 'buy');
-        const requiresPriceAndParams = this.handleOptionBoolAndParams(paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-        const cost = this.safeNumber(requiresPriceAndParams[1], 'cost');
+        const [createMarketBuyOrderRequiresPrice, requiresPriceParams] = this.handleOptionBoolAndParams(paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+        const cost = this.safeNumber(requiresPriceParams, 'cost');
         let paramsCost = paramsPostOnly;
         if (isMarketBuy) {
-            paramsCost = this.omit(requiresPriceAndParams[1], 'cost');
+            paramsCost = this.omit(requiresPriceParams, 'cost');
         }
         if (isMarketBuy) {
             let quoteAmount = undefined;
-            const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
             if (cost !== undefined) {
                 quoteAmount = this.amountToPrecision(symbol, cost);
             }
@@ -5799,11 +5796,10 @@ export default class htx extends Exchange {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
-            const currentMarginMode = marginResult[0];
+            const [currentMarginMode] = this.handleMarginModeAndParams('createOrders', orderParams);
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {
                     marginMode = currentMarginMode;
@@ -6384,7 +6380,7 @@ export default class htx extends Exchange {
             }));
         }
         for (let i = 0; i < success.length; i++) {
-            const order = success[i];
+            const order = this.safeString(success, i);
             result.push(this.safeOrder({
                 'info': order,
                 'id': order,
@@ -7952,12 +7948,12 @@ export default class htx extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('status' in response) {
+        const status = this.safeString(response, 'status');
+        if (status !== undefined) {
             //
             //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
-            const status = this.safeString(response, 'status');
             if (status === 'error') {
                 const codeError = this.safeString2(response, 'err-code', 'err_code');
                 const feedback = this.id + ' ' + body;
@@ -7968,10 +7964,11 @@ export default class htx extends Exchange {
                 throw new ExchangeError(feedback);
             }
         }
-        if ('code' in response) {
+        const responseCode = this.safeString(response, 'code');
+        if (responseCode !== undefined) {
             // {code: '1003', message: 'invalid signature'}
             const feedback = this.id + ' ' + body;
-            const codeError = this.safeString(response, 'code');
+            const codeError = responseCode;
             this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
         }
         const data = this.safeDict(response, 'data');
@@ -8112,8 +8109,7 @@ export default class htx extends Exchange {
         }
         let response = undefined;
         if (this.safeBool(market, 'linear', false)) {
-            const marginModeAndParams = this.handleMarginModeAndParams('setLeverage', params, 'cross');
-            const marginMode = marginModeAndParams[0];
+            const [marginMode] = this.handleMarginModeAndParams('setLeverage', params, 'cross');
             request['margin_mode'] = marginMode;
             response = await this.contractPrivatePostV5PositionLever(this.extend(request, query));
             //

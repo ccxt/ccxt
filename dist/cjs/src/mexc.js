@@ -2175,7 +2175,7 @@ class mexc extends mexc$1["default"] {
         let prevClose = undefined;
         const isSwap = this.safeBool(marketResolved, 'swap', false);
         // if swap
-        if (isSwap || ('timestamp' in ticker)) {
+        if (isSwap || (this.safeString(ticker, 'timestamp') !== undefined)) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -2740,8 +2740,8 @@ class mexc extends mexc$1["default"] {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             let marginMode = undefined;
             [marginMode, paramsLoop] = this.handleMarginModeAndParams('createOrder', paramsLoop);

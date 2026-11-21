@@ -826,7 +826,7 @@ export default class blofin extends blofinRest {
                 let channel = channelName;
                 if (isOHLCV) {
                     market = this.market(current);
-                    const tf = this.safeString(this.safeList(symbolsArray, i), 1);
+                    const tf = this.safeString(this.safeList(symbolsArray, i), 1, '');
                     const interval = this.safeString(this.timeframes, tf, tf);
                     channel = channel + interval;
                 }
@@ -883,7 +883,7 @@ export default class blofin extends blofinRest {
             const market = this.market(this.safeString(symbols, i));
             let channel = channelName;
             if (isOHLCV) {
-                const tf = this.safeString(this.safeList(symbolsArray, i), 1);
+                const tf = this.safeString(this.safeList(symbolsArray, i), 1, '');
                 const interval = this.safeString(this.timeframes, tf, tf);
                 channel = channel + interval;
             }

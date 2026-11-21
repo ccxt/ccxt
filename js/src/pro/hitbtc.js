@@ -1049,15 +1049,16 @@ export default class hitbtc extends hitbtcRest {
             const limit = this.safeInteger(this.options, 'ordersLimit');
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        const data = this.safeValue(message, 'params', []);
-        if (Array.isArray(data)) {
+        const dataDict = this.safeDict(message, 'params');
+        if (dataDict !== undefined) {
+            this.handleOrderHelper(client, message, dataDict);
+        }
+        else {
+            const data = this.safeList(message, 'params', []);
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
                 this.handleOrderHelper(client, message, order);
             }
-        }
-        else {
-            this.handleOrderHelper(client, message, data);
         }
         return message;
     }
@@ -1451,8 +1452,10 @@ export default class hitbtc extends hitbtcRest {
         const result = this.safeValue(message, 'result', {});
         if (Array.isArray(result)) {
             const parsedOrders = [];
-            for (let i = 0; i < result.length; i++) {
-                const parsedOrder = this.parseWsOrder(result[i]);
+            const rows = this.safeList(message, 'result', []);
+            const rowsLength = rows.length;
+            for (let i = 0; i < rowsLength; i++) {
+                const parsedOrder = this.parseWsOrder(rows[i]);
                 parsedOrders.push(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
@@ -1514,7 +1517,8 @@ export default class hitbtc extends hitbtcRest {
             if (Array.isArray(result)) {
                 // to do improve this, not very reliable right now
                 const first = this.safeDict(result, 0, {});
-                const arrayLength = result.length;
+                const rows = this.safeList(message, 'result', []);
+                const arrayLength = rows.length;
                 if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest(client, message);
                 }

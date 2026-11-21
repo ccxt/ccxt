@@ -384,10 +384,11 @@ class btcbox extends btcbox$1["default"] {
             const currency = this.currency(code);
             const currencyId = this.safeString(currency, 'id', '');
             const free = currencyId + '_balance';
-            if (free in response) {
+            const freeValue = this.safeString(response, free);
+            if (freeValue !== undefined) {
                 const account = this.account();
                 const used = currencyId + '_lock';
-                account['free'] = this.safeString(response, free);
+                account['free'] = freeValue;
                 account['used'] = this.safeString(response, used);
                 result[code] = account;
             }

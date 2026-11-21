@@ -851,11 +851,11 @@ class paradex extends paradex$1["default"] {
         const parts = symbol.split('-');
         const partsLength = parts.length;
         let base = undefined;
-        let quote = undefined;
+        let quote = '';
         let settle = undefined;
         let expiryDate = undefined;
         let strike = undefined;
-        let optionType = undefined;
+        let optionType = '';
         if (symbol.indexOf('/') > -1) {
             if (partsLength !== 4) {
                 throw new errors.BadSymbol(this.id + ' does not have market symbol ' + symbol);
@@ -865,23 +865,23 @@ class paradex extends paradex$1["default"] {
             base = this.safeString(pairParts, 0);
             const quoteAndSettle = this.safeString(pairParts, 1, '');
             const quoteParts = quoteAndSettle.split(':');
-            quote = this.safeString(quoteParts, 0);
+            quote = this.safeString(quoteParts, 0, '');
             settle = this.safeString(quoteParts, 1, quote);
             expiryDate = this.safeString(parts, 1);
             strike = this.safeString(parts, 2);
-            optionType = this.safeString(parts, 3);
+            optionType = this.safeString(parts, 3, '');
         }
         else {
             if (partsLength !== 5) {
                 throw new errors.BadSymbol(this.id + ' does not have market symbol ' + symbol);
             }
             base = this.safeString(parts, 0);
-            quote = this.safeString(parts, 1);
+            quote = this.safeString(parts, 1, '');
             settle = 'USDC'; // every option on the venue settles in USDC
             expiryDate = this.convertMarketIdExpireDate(this.safeString(parts, 2));
             const strikeId = parts[3];
             strike = strikeId.replace('_', '.');
-            optionType = this.safeString(parts, 4);
+            optionType = this.safeString(parts, 4, '');
         }
         // the id carries the day without a leading zero, 6NOV26
         let idDate = this.convertExpireDateToMarketIdDate(expiryDate);
@@ -1215,7 +1215,7 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        if (request['market'] === 'ALL') {
+        if (this.safeString(request, 'market') === 'ALL') {
             return this.parseTickers(this.filterLoadedSummaries(data), symbolsNormalized);
         }
         return this.parseTickers(data, symbolsNormalized);
@@ -1384,7 +1384,7 @@ class paradex extends paradex$1["default"] {
         const response = await this.publicGetMarketsSummary(this.extend(request, params));
         const data = this.safeList(response, 'results', []);
         // only a perpetual funds, the other rows are dropped before they are parsed
-        if (request['market'] === 'ALL') {
+        if (this.safeString(request, 'market') === 'ALL') {
             return this.parseFundingRates(this.filterLoadedSummaries(data, 'swap'), symbolsNormalized);
         }
         return this.parseFundingRates(data, symbolsNormalized);
@@ -3584,7 +3584,7 @@ class paradex extends paradex$1["default"] {
         //
         const results = this.safeList(response, 'results', []);
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        if (request['market'] === 'ALL') {
+        if (this.safeString(request, 'market') === 'ALL') {
             return this.parseAllGreeks(this.filterLoadedSummaries(results, 'option'), symbolsNormalized);
         }
         return this.parseAllGreeks(results, symbolsNormalized);
@@ -3912,9 +3912,10 @@ class paradex extends paradex$1["default"] {
             // the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             const [paginationCalls, paramsCalls] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
-            let endAt = this.safeInteger(paramsCalls, 'until');
-            if (endAt === undefined) {
-                endAt = Math.min(this.milliseconds(), this.sum(since, paginationCalls * 5000 * rowSpacing));
+            const until = this.safeInteger(paramsCalls, 'until');
+            let endAt = Math.min(this.milliseconds(), this.sum(since, paginationCalls * 5000 * rowSpacing));
+            if (until !== undefined) {
+                endAt = until;
             }
             const paramsEndAt = this.extend(this.omit(paramsPaginate, 'until'), { 'end_at': endAt });
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first

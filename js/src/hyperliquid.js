@@ -1539,14 +1539,18 @@ export default class hyperliquid extends Exchange {
             }
         }
         const paramsOmitted = this.omit(params, ['until']);
+        const req = {
+            'coin': market['id'],
+            'interval': this.safeString(this.timeframes, timeframe, timeframe),
+            'startTime': startTime,
+            'endTime': until,
+        };
+        if (this.safeBool(market, 'swap', false)) {
+            req['coin'] = this.safeString(market, 'baseName');
+        }
         const request = {
             'type': 'candleSnapshot',
-            'req': {
-                'coin': (this.safeBool(market, 'swap', false)) ? this.safeString(market, 'baseName') : market['id'],
-                'interval': this.safeString(this.timeframes, timeframe, timeframe),
-                'startTime': startTime,
-                'endTime': until,
-            },
+            'req': req,
         };
         const candlesResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
         const candles = this.infoList(candlesResponse);
@@ -2259,7 +2263,7 @@ export default class hyperliquid extends Exchange {
         const ordersToBeParsed = [];
         for (let i = 0; i < statuses.length; i++) {
             const order = statuses[i];
-            if (order === 'waitingForTrigger') {
+            if (this.safeString(statuses, i) === 'waitingForTrigger') {
                 ordersToBeParsed.push({ 'status': order }); // tp/sl orders can return a string like "waitingForTrigger",
             }
             else {
@@ -4350,14 +4354,18 @@ export default class hyperliquid extends Exchange {
             const destinationDex = this.safeString(paramsSendAsset, 'destinationDex', defaultDex);
             const sendAssetPayload = {
                 'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
-                'destination': (isDeposit) ? subAccountAddress : masterAddress,
+                'destination': masterAddress,
                 'sourceDex': sourceDex,
                 'destinationDex': destinationDex,
                 'token': sendAssetToken,
                 'amount': this.numberToString(amount),
-                'fromSubAccount': (isDeposit) ? '' : subAccountAddress,
+                'fromSubAccount': subAccountAddress,
                 'nonce': nonce,
             };
+            if (isDeposit) {
+                sendAssetPayload['destination'] = subAccountAddress;
+                sendAssetPayload['fromSubAccount'] = '';
+            }
             const sendAssetSig = this.buildSendAssetSig(sendAssetPayload);
             const sendAssetRequest = {
                 'action': {
@@ -5249,8 +5257,8 @@ export default class hyperliquid extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        if (('byType' in config) && ('type' in params)) {
-            const type = params['type'];
+        const type = this.safeString(params, 'type');
+        if (('byType' in config) && (type !== undefined)) {
             const byType = this.safeDict(config, 'byType', {});
             if (type in byType) {
                 return byType[type];

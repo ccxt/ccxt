@@ -2390,8 +2390,8 @@ export default class kucoin extends kucoinRest {
         if (market !== undefined) {
             symbolResolved = this.safeString(market, 'symbol');
         }
-        if (market !== undefined) {
-            messageHash = messageHash + ':' + market['symbol'];
+        if (symbolResolved !== undefined) {
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));

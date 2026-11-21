@@ -1191,10 +1191,17 @@ class extended extends extended$1["default"] {
         const sideRaw = this.safeString2(trade, 'S', 'side');
         const side = (sideRaw !== undefined) ? sideRaw.toLowerCase() : undefined;
         const feeCost = this.safeString(trade, 'fee');
-        const fee = (feeCost === undefined) ? undefined : {
-            'cost': feeCost,
-            'currency': (marketResolved === undefined) ? undefined : marketResolved['settle'],
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeDict = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+            if (marketResolved !== undefined) {
+                feeDict['currency'] = marketResolved['settle'];
+            }
+            fee = feeDict;
+        }
         const isTaker = this.safeBool(trade, 'isTaker');
         let takerOrMaker = undefined;
         if (isTaker !== undefined) {

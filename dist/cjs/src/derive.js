@@ -1529,7 +1529,7 @@ class derive extends derive$1["default"] {
         let result = [];
         for (let i = 0; i < tradesArray.length; i++) {
             const rawTrade = tradesArray[i];
-            const isFetchTrades = !('order_id' in rawTrade);
+            const isFetchTrades = (this.safeString(rawTrade, 'order_id') === undefined);
             const liquidityRole = this.safeString(rawTrade, 'liquidity_role');
             if (isFetchTrades && (liquidityRole === 'maker')) {
                 // skip maker trades

@@ -679,7 +679,7 @@ export default class coinsph extends Exchange {
         });
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        const hasSymbolParam = ('symbol' in params);
+        const hasSymbolParam = (this.safeString(params, 'symbol') !== undefined);
         const hasSymbolsParam = ('symbols' in params);
         const limit = this.safeInteger(params, 'limit');
         if (('noSymbol' in config) && !hasSymbolParam) {

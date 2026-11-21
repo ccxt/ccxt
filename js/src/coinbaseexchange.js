@@ -1311,7 +1311,10 @@ export default class coinbaseexchange extends Exchange {
         const until = this.safeInteger2(paramsPaginate, 'until', 'end');
         const paramsOmitted = this.omit(paramsPaginate, ['until']);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        const cappedLimit = this.parseToInt((limit === undefined) ? 300 : Math.min(limit, 300));
+        let cappedLimit = 300;
+        if (limit !== undefined) {
+            cappedLimit = this.parseToInt(Math.min(limit, 300));
+        }
         const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             request['start'] = this.iso8601(since);
@@ -1984,12 +1987,14 @@ export default class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
-            response = this.toArray(transfers);
-            for (let i = 0; i < response.length; i++) {
-                const account_id = this.safeString(response[i], 'account_id');
+            const transferRows = this.toArray(transfers);
+            response = [];
+            for (let i = 0; i < transferRows.length; i++) {
+                const row = this.extend({}, transferRows[i]);
+                const account_id = this.safeString(row, 'account_id');
                 const account = this.safeDict(this.accountsById, account_id);
-                const codeInner = this.safeString(account, 'code');
-                response[i]['currency'] = codeInner;
+                row['currency'] = this.safeString(account, 'code');
+                response.push(row);
             }
         }
         else {
@@ -2020,9 +2025,12 @@ export default class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
-            response = this.toArray(accountTransfers);
-            for (let i = 0; i < response.length; i++) {
-                response[i]['currency'] = code;
+            const transferRows = this.toArray(accountTransfers);
+            response = [];
+            for (let i = 0; i < transferRows.length; i++) {
+                const row = this.extend({}, transferRows[i]);
+                row['currency'] = code;
+                response.push(row);
             }
         }
         return this.parseTransactions(response, currency, since, limit);

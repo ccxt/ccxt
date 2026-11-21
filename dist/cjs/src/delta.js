@@ -355,7 +355,10 @@ class delta extends delta$1["default"] {
         }
         const optionType = this.safeString(optionParts, hasSlash ? 3 : 0, '');
         const rawExpiry = this.safeString(optionParts, hasSlash ? 1 : 3, '');
-        const expiry = rawExpiry.slice(4) + rawExpiry.slice(2, 4) + rawExpiry.slice(0, 2);
+        const expiryYear = rawExpiry.slice(4);
+        const expiryMonth = rawExpiry.slice(2, 4);
+        const expiryDay = rawExpiry.slice(0, 2);
+        const expiry = expiryYear + expiryMonth + expiryDay;
         const settle = quote;
         const strike = this.safeString(optionParts, 2, '');
         const datetime = this.convertExpireDate(expiry);
@@ -889,9 +892,11 @@ class delta extends delta$1["default"] {
             let optionType = undefined;
             let symbol = base + '/' + quote;
             if (swap || future || option) {
-                symbol = symbol + ':' + settle;
+                const settleCode = this.safeCurrencyCode(settleId);
+                symbol = symbol + ':' + settleCode;
                 if (future || option) {
-                    symbol = symbol + '-' + this.yymmdd(expiry);
+                    const expiryCode = this.yymmdd(expiry);
+                    symbol = symbol + '-' + expiryCode;
                     if (option) {
                         type = 'option';
                         let letter = 'C';
@@ -904,7 +909,8 @@ class delta extends delta$1["default"] {
                             letter = 'M';
                             optionType = 'move';
                         }
-                        symbol = symbol + '-' + strike + '-' + letter;
+                        const strikeString = this.safeString(market, 'strike_price', '');
+                        symbol = symbol + '-' + strikeString + '-' + letter;
                     }
                     else {
                         type = 'future';
@@ -915,7 +921,7 @@ class delta extends delta$1["default"] {
                 }
             }
             const state = this.safeString(market, 'state');
-            result.push(this.safeMarketStructure({
+            const marketStructure = {
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -933,11 +939,11 @@ class delta extends delta$1["default"] {
                 'option': option,
                 'active': (state === 'live'),
                 'contract': !spot,
-                'linear': spot ? undefined : linear,
-                'inverse': spot ? undefined : !linear,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.safeNumber(market, 'taker_commission_rate'),
                 'maker': this.safeNumber(market, 'maker_commission_rate'),
-                'contractSize': spot ? undefined : contractSize,
+                'contractSize': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601(expiry), // do not use raw expiry string
                 'strike': this.parseNumber(strike),
@@ -966,7 +972,13 @@ class delta extends delta$1["default"] {
                 },
                 'created': this.parse8601(this.safeString(market, 'launch_time')),
                 'info': market,
-            }));
+            };
+            if (!spot) {
+                marketStructure['linear'] = linear;
+                marketStructure['inverse'] = !linear;
+                marketStructure['contractSize'] = contractSize;
+            }
+            result.push(this.safeMarketStructure(marketStructure));
         }
         return result;
     }

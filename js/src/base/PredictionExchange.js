@@ -166,7 +166,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const sort = this.safeString(params, 'sort');
         if (sort !== undefined) {
-            let sortKey = undefined;
+            let sortKey = '';
             if (sort === 'volume') {
                 sortKey = 'volume';
             }
@@ -176,7 +176,7 @@ export default class PredictionExchange extends BaseExchange {
             else if (sort === 'newest') {
                 sortKey = 'created';
             }
-            if (sortKey !== undefined) {
+            if (sortKey !== '') {
                 // normalize the sort key on every row first — sortBy reads it with a raw
                 // subscript, which raises KeyError/undefined-index in Python/PHP when a
                 // venue's parsed event omits the field (JS alone tolerates the miss)
@@ -191,9 +191,10 @@ export default class PredictionExchange extends BaseExchange {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             const resultLength = result.length;
-            let sliceEnd = limit;
-            if (sliceEnd > resultLength) {
-                sliceEnd = resultLength;
+            const limitValue = this.safeInteger(params, 'limit', 0);
+            let sliceEnd = resultLength;
+            if (limitValue < resultLength) {
+                sliceEnd = limitValue;
             }
             result = this.arraySlice(result, 0, sliceEnd);
         }

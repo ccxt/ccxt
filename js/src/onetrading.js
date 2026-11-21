@@ -954,7 +954,7 @@ export default class onetrading extends Exchange {
         const rawTickers = this.toArray(response);
         for (let i = 0; i < rawTickers.length; i++) {
             const ticker = this.parseTicker(rawTickers[i]);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }

@@ -1047,7 +1047,8 @@ class backpack extends backpack$1["default"] {
         if ((side !== 'buy') && (side !== 'sell')) {
             throw new errors.BadRequest(this.id + ' fetchStockIndicativeQuote() requires buy or sell');
         }
-        if ((amount === undefined) || !Precise["default"].stringGt(this.numberToString(amount), '0')) {
+        const amountString = this.numberToString(amount);
+        if ((amountString === undefined) || !Precise["default"].stringGt(amountString, '0')) {
             throw new errors.InvalidOrder(this.id + ' fetchStockIndicativeQuote() requires a positive base share quantity');
         }
         const request = { 'symbol': market['baseId'], 'side': this.encodeOrderSide(side), 'quantity': this.numberToString(amount) };
@@ -1230,7 +1231,8 @@ class backpack extends backpack$1["default"] {
             const accepted = await this.acceptRfqQuote(id, quoteId, this.safeSymbol(undefined, market), acceptParams);
             return this.parseConversion(accepted, this.currency(fromCode), this.currency(toCode));
         }
-        if ((amount === undefined) || !Precise["default"].stringGt(this.numberToString(amount), '0')) {
+        const amountString = this.numberToString(amount);
+        if ((amountString === undefined) || !Precise["default"].stringGt(amountString, '0')) {
             throw new errors.ArgumentsRequired(this.id + ' createConvertTrade() requires a positive amount');
         }
         const fromIsBase = fromCode === this.safeString(market, 'base');
@@ -2518,7 +2520,8 @@ class backpack extends backpack$1["default"] {
         if ((side !== 'buy') && (side !== 'sell')) {
             throw new errors.InvalidOrder(this.id + ' createOrder() requires buy or sell');
         }
-        if ((amount === undefined) || !Precise["default"].stringGt(this.numberToString(amount), '0')) {
+        const amountString = this.numberToString(amount);
+        if ((amountString === undefined) || !Precise["default"].stringGt(amountString, '0')) {
             throw new errors.InvalidOrder(this.id + ' createOrder() RFQs require a positive base quantity');
         }
         const unsupported = ['cost', 'quoteQuantity', 'postOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'reduceOnly', 'timeInForce', 'selfTradePrevention'];

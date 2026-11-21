@@ -2651,7 +2651,7 @@ class ndax extends ndax$1["default"] {
         if (template === undefined) {
             throw new errors.ExchangeError(this.id + ' withdraw() could not find a withdraw template for ' + currency['code']);
         }
-        const withdrawTemplate = JSON.parse(template);
+        const withdrawTemplate = this.extend({}, JSON.parse(template));
         withdrawTemplate['ExternalAddress'] = address;
         if (tagWithdrawTag !== undefined) {
             if ('Memo' in withdrawTemplate) {

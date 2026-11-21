@@ -884,7 +884,10 @@ export default class apex extends Exchange {
         const request = {
             'symbol': this.safeString(market, 'id2'),
         };
-        request['limit'] = (limit === undefined) ? 100 : limit; // max 100, default 100
+        request['limit'] = 100; // max 100, default 100
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetV3Depth(this.extend(request, params));
         //
         // {
@@ -1275,7 +1278,7 @@ export default class apex extends Exchange {
                     const markets = this.markets_by_id[newMarketId];
                     const numMarkets = markets.length;
                     for (let i = 0; i < numMarkets; i++) {
-                        if ((i === 0) && (markets[i]['id2'] === marketId)) {
+                        if ((i === 0) && (this.safeString(markets[i], 'id2') === marketId)) {
                             marketResolved = markets[i];
                         }
                     }

@@ -1486,17 +1486,19 @@ export default class limitless extends Exchange {
                 bucketOrder.push(key);
             }
             else {
-                const candle = candles[key];
-                const prevHigh = this.safeNumber(candle, 2);
-                if ((prevHigh === undefined) || (pPrice > prevHigh)) {
-                    candle[2] = pPrice;
+                const prevHigh = this.safeNumber(candles[key], 2, pPrice);
+                const prevLow = this.safeNumber(candles[key], 3, pPrice);
+                const openTs = this.safeInteger(candles[key], 0);
+                const openPrice = this.safeNumber(candles[key], 1);
+                if ((prevHigh !== undefined) && (pPrice > prevHigh)) {
+                    candles[key] = [openTs, openPrice, pPrice, prevLow, pPrice, 0];
                 }
-                const prevLow = this.safeNumber(candle, 3);
-                if ((prevLow === undefined) || (prevLow > pPrice)) {
-                    candle[3] = pPrice;
+                else if ((prevLow !== undefined) && (prevLow > pPrice)) {
+                    candles[key] = [openTs, openPrice, prevHigh, pPrice, pPrice, 0];
                 }
-                candle[4] = pPrice;
-                candles[key] = candle; // php arrays are value types - write the mutation back
+                else {
+                    candles[key] = [openTs, openPrice, prevHigh, prevLow, pPrice, 0];
+                }
             }
         }
         const result = [];

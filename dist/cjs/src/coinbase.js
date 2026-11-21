@@ -644,8 +644,8 @@ class coinbase extends coinbase$1["default"] {
         const cursor = this.safeString(pagination, 'next_starting_after');
         const accounts = this.safeList(response, 'data', []);
         const length = accounts.length;
-        const lastIndex = length - 1;
-        if ((cursor !== undefined) && (cursor !== '')) {
+        if ((length > 0) && (cursor !== undefined) && (cursor !== '')) {
+            const lastIndex = length - 1;
             accounts[lastIndex] = this.extend(this.safeDict(accounts, lastIndex, {}), { 'next_starting_after': cursor });
         }
         return this.parseAccounts(data, paramsPaginate);

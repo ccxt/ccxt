@@ -1055,7 +1055,7 @@ class poloniex extends poloniex$1["default"] {
                             'currency': this.safeString(trade['fee'], 'currency'),
                         };
                     }
-                    if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
+                    if ((this.safeString(previousOrder['fee'], 'cost') !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
                         const stringOrderCost = this.numberToString(previousOrder['fee']['cost']);
                         const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
                         previousOrder['fee']['cost'] = Precise["default"].stringAdd(stringOrderCost, stringTradeCost);

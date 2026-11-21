@@ -295,12 +295,18 @@ export default class mudrex extends Exchange {
         const now = this.seconds();
         const windowLength = duration * requestLimit;
         const defaultStart = now - windowLength;
-        const startTime = this.parseToInt((since !== undefined) ? (since / 1000) : defaultStart);
+        let startTime = this.parseToInt(defaultStart);
+        if (since !== undefined) {
+            startTime = this.parseToInt(since / 1000);
+        }
         const windowEnd = this.parseToInt(startTime + duration * requestLimit);
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, ['price', 'until']);
         const cappedEnd = (windowEnd > now) ? now : windowEnd;
-        const endTime = this.parseToInt((until !== undefined) ? (until / 1000) : cappedEnd);
+        let endTime = this.parseToInt(cappedEnd);
+        if (until !== undefined) {
+            endTime = this.parseToInt(until / 1000);
+        }
         request['start_time'] = startTime;
         request['end_time'] = endTime;
         let response;
@@ -443,22 +449,22 @@ export default class mudrex extends Exchange {
         while (paging) {
             const q = this.extend({ 'limit': pageLimit, 'offset': offset }, params);
             const response = await this.privateGetFutures(q);
-            const data = this.safeValue(response, 'data', []);
+            const dataDict = this.safeDict(response, 'data');
             let items = [];
-            if (typeof data === 'object' && !Array.isArray(data)) {
-                items = this.safeList(data, 'items', []);
+            if (dataDict !== undefined) {
+                items = this.safeList(dataDict, 'items', []);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
                 if (itemsLength === 0) {
-                    items = this.safeList(data, 'results', []);
+                    items = this.safeList(dataDict, 'results', []);
                     itemsLength = items.length;
                 }
-                if ((itemsLength === 0) && ('symbol' in data)) {
-                    items = [data];
+                if ((itemsLength === 0) && ('symbol' in dataDict)) {
+                    items = [dataDict];
                 }
             }
             else {
-                items = this.toArray(data);
+                items = this.safeList(response, 'data', []);
             }
             const numItems = items.length;
             if (numItems === 0) {
@@ -1282,7 +1288,7 @@ export default class mudrex extends Exchange {
                 allRows.push(entry);
                 if (this.safeString(entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if ((market === undefined) || (this.safeString(entry, 'symbol') === market['id'])) {
+                    if ((market === undefined) || (this.safeString(entry, 'symbol') === this.safeString(market, 'id'))) {
                         transactionsCount = transactionsCount + 1;
                     }
                 }

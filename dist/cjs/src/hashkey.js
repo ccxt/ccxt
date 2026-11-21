@@ -3730,16 +3730,15 @@ class hashkey extends hashkey$1["default"] {
                 type = 'limit';
             }
         }
-        let timeInForce = this.safeString(order, 'timeInForce');
-        let postOnly = undefined;
-        [type, timeInForce, postOnly] = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
+        const rawTimeInForce = this.safeString(order, 'timeInForce');
+        const timeInForce = this.parseOrderTimeInForceValue(type, rawTimeInForce);
+        const typeParsed = this.parseOrderType(type);
         const average = this.omitZero(this.safeString(order, 'avgPrice'));
         if (price === undefined) {
             price = average;
         }
-        let side = this.safeStringLower(order, 'side');
-        let reduceOnly = undefined;
-        [side, reduceOnly] = this.parseOrderSideAndReduceOnly(side);
+        const rawSide = this.safeStringLower(order, 'side');
+        const side = this.parseOrderSideValue(rawSide);
         let feeCurrncyId = this.safeString(order, 'feeCoin');
         if (feeCurrncyId === '') {
             feeCurrncyId = undefined;
@@ -3753,7 +3752,7 @@ class hashkey extends hashkey$1["default"] {
             'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
             'status': this.parseOrderStatus(status),
             'symbol': marketResolved['symbol'],
-            'type': type,
+            'type': typeParsed,
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
@@ -3770,22 +3769,29 @@ class hashkey extends hashkey$1["default"] {
                 'currency': this.safeCurrencyCode(feeCurrncyId),
                 'cost': this.omitZero(this.safeString(order, 'feeAmount')),
             },
-            'reduceOnly': reduceOnly,
-            'postOnly': postOnly,
+            'reduceOnly': this.parseOrderReduceOnlyValue(rawSide),
+            'postOnly': this.parseOrderPostOnlyValue(type, rawTimeInForce),
             'info': order,
         }, marketResolved);
     }
-    parseOrderSideAndReduceOnly(unparsed) {
-        const parts = unparsed.split('_');
-        const side = parts[0];
-        const secondPart = this.safeString(parts, 1);
+    parseOrderSideValue(unparsed) {
+        if (unparsed === undefined) {
+            return undefined;
+        }
+        return this.safeString(unparsed.split('_'), 0);
+    }
+    parseOrderReduceOnlyValue(unparsed) {
+        if (unparsed === undefined) {
+            return undefined;
+        }
+        const secondPart = this.safeString(unparsed.split('_'), 1);
         if (secondPart === 'open') {
-            return [side, false];
+            return false;
         }
         if (secondPart === 'close') {
-            return [side, true];
+            return true;
         }
-        return [side, undefined];
+        return undefined;
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -3801,17 +3807,19 @@ class hashkey extends hashkey$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    parseOrderTypeTimeInForceAndPostOnly(type, timeInForce) {
+    parseOrderTimeInForceValue(type, timeInForce) {
         const isMakerTimeInForce = (timeInForce === 'LIMIT_MAKER') || (timeInForce === 'MAKER');
-        let timeInForceParsed = timeInForce;
         if ((type !== 'LIMIT_MAKER') && isMakerTimeInForce) {
-            timeInForceParsed = 'PO';
+            return 'PO';
         }
-        const typeValue = this.parseOrderType(type);
+        return timeInForce;
+    }
+    parseOrderPostOnlyValue(type, timeInForce) {
+        const isMakerTimeInForce = (timeInForce === 'LIMIT_MAKER') || (timeInForce === 'MAKER');
         if ((type === 'LIMIT_MAKER') || isMakerTimeInForce) {
-            return [typeValue, timeInForceParsed, true];
+            return true;
         }
-        return [typeValue, timeInForceParsed, undefined];
+        return undefined;
     }
     parseOrderType(type) {
         const types = {
@@ -3988,7 +3996,8 @@ class hashkey extends hashkey$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        return await this.fetchPositionsForSymbol(symbols[0], this.extend({ 'methodName': 'fetchPositions' }, params));
+        const firstSymbol = this.safeString(symbols, 0, '');
+        return await this.fetchPositionsForSymbol(firstSymbol, this.extend({ 'methodName': 'fetchPositions' }, params));
     }
     /**
      * @method
@@ -4462,7 +4471,8 @@ class hashkey extends hashkey$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const fee = this.safeDict(data, i, {});
             const parsedFee = this.parseTradingFee(fee);
-            result[parsedFee['symbol']] = parsedFee;
+            const feeSymbol = this.safeString(parsedFee, 'symbol', '');
+            result[feeSymbol] = parsedFee;
         }
         return result;
     }

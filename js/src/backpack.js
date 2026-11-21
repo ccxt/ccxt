@@ -1048,7 +1048,8 @@ export default class backpack extends Exchange {
         if ((side !== 'buy') && (side !== 'sell')) {
             throw new BadRequest(this.id + ' fetchStockIndicativeQuote() requires buy or sell');
         }
-        if ((amount === undefined) || !Precise.stringGt(this.numberToString(amount), '0')) {
+        const amountString = this.numberToString(amount);
+        if ((amountString === undefined) || !Precise.stringGt(amountString, '0')) {
             throw new InvalidOrder(this.id + ' fetchStockIndicativeQuote() requires a positive base share quantity');
         }
         const request = { 'symbol': market['baseId'], 'side': this.encodeOrderSide(side), 'quantity': this.numberToString(amount) };
@@ -1231,7 +1232,8 @@ export default class backpack extends Exchange {
             const accepted = await this.acceptRfqQuote(id, quoteId, this.safeSymbol(undefined, market), acceptParams);
             return this.parseConversion(accepted, this.currency(fromCode), this.currency(toCode));
         }
-        if ((amount === undefined) || !Precise.stringGt(this.numberToString(amount), '0')) {
+        const amountString = this.numberToString(amount);
+        if ((amountString === undefined) || !Precise.stringGt(amountString, '0')) {
             throw new ArgumentsRequired(this.id + ' createConvertTrade() requires a positive amount');
         }
         const fromIsBase = fromCode === this.safeString(market, 'base');
@@ -2519,7 +2521,8 @@ export default class backpack extends Exchange {
         if ((side !== 'buy') && (side !== 'sell')) {
             throw new InvalidOrder(this.id + ' createOrder() requires buy or sell');
         }
-        if ((amount === undefined) || !Precise.stringGt(this.numberToString(amount), '0')) {
+        const amountString = this.numberToString(amount);
+        if ((amountString === undefined) || !Precise.stringGt(amountString, '0')) {
             throw new InvalidOrder(this.id + ' createOrder() RFQs require a positive base quantity');
         }
         const unsupported = ['cost', 'quoteQuantity', 'postOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'reduceOnly', 'timeInForce', 'selfTradePrevention'];

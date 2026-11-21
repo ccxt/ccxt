@@ -2629,7 +2629,7 @@ class cryptocom extends cryptocom$1["default"] {
         let type = undefined;
         const rawStatus = this.safeString(transaction, 'status');
         let status = undefined;
-        if ('client_wid' in transaction) {
+        if (this.safeString(transaction, 'client_wid') !== undefined) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus(rawStatus);
         }
