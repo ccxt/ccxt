@@ -1381,6 +1381,7 @@ class ContainerOpProver {
         // Base readers with a fixed container result.
         const readers: Array<[RegExp, ContainerOpKind]> = [ [ /^self\.safe_dict(?:_k|2|_k2)?\(/, 'map' ], [ /^self\.safe_list(?:_k|2|_k2)?\(/, 'arr' ],
             [ /^self\.(?:parse_ids|to_array|array_concat)\(/, 'arr' ], [ /^split\(/, 'arr' ], [ /^self\.group_by\(/, 'map' ] ];
+        readers.push ([ /^Value::Dict\(self\.group_by\(/, 'map' ]); // `group_by` returns Dict; a Value local boxes it
         for (const [ rx, kind ] of readers) {
             if (rx.test (e) && containerOpClose (e, e.indexOf ('(')) === e.length - 1) return lit (kind, !tagged);
         }
@@ -4999,9 +5000,9 @@ function rustTypedListAndOmitBranches (content: string): string {
         `self${parent ?? ''}.omit_t(&${a ?? b}, if (${c}) { ${k} } else { Value::Null }, &[])`);
 }
 
-// `indexBy` always builds a map (exchange_stubs.rs `index_by -> Dict`): `.into_dict()` drops, any other use boxes it.
+// `indexBy` / `groupBy` always build a map (exchange_stubs.rs `-> Dict`): `.into_dict()` drops, any other use boxes it.
 function rustTypedIndexBy (content: string): string {
-    const head = /(?<![\w.])self(?:\.parent)?\.index_by\(/g;
+    const head = /(?<![\w.])self(?:\.parent)?\.(?:index_by|group_by)\(/g;
     const starts: number[] = [];
     let m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) starts.push (m.index);
@@ -16717,6 +16718,7 @@ impl std::ops::DerefMut for ${coreName} {
                     .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap')
                     // `index_by` returns `Dict` on the concrete exchange; a test's `Value` local boxes it.
                     .replace(/(: Value = )(exchange\.index_by\([^;\n]*\));/g, '$1Value::Dict($2);')
+                    .replace(/(: Value = )(exchange\.group_by\([^;\n]*\));/g, '$1Value::Dict($2);')
                     .replace(/(: Value = )(exchange\.safe_ticker\([^;\n]*\));/g, '$1Value::Dict($2);')
                     .replace(/(: Value = )exchange\.safe_position\((\w+)\);/g, '$1Value::Dict(exchange.safe_position($2.into_dict()));');
 

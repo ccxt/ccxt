@@ -610,7 +610,7 @@ impl ExchangeOps for Value {
     fn deep_extend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| Value::Dict(e.index_by(arr, key))) }
-    fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
+    fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| Value::Dict(e.group_by(arr, key, o))) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> ccxt::value::List { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: impl ccxt::value::ScalarArg) -> Option<String> { with_base(|e| e.number_to_string(n)) }
     fn base16_to_binary(&self, s: Value, o: &[Value]) -> ccxt::value::Bytes { with_base(|e| e.base16_to_binary(s, o)) }

@@ -2266,7 +2266,7 @@ impl Exchange {
         Value::Dict(self.index_by(arr, key))
     }
 
-    pub fn group_by(&self, arr: impl crate::value::Rows, key: Value, _optional_args: &[Value]) -> Value {
+    pub fn group_by(&self, arr: impl crate::value::Rows, key: Value, _optional_args: &[Value]) -> crate::value::Dict {
         let k = key_str(&key);
         let mut out: HashMap<String, Vec<Value>> = HashMap::new();
         if let Value::Arr(items) = crate::value::Rows::rows(arr) {
@@ -2276,7 +2276,7 @@ impl Exchange {
                 }
             }
         }
-        Value::Map(out.into_iter().map(|(k, v)| (k, Value::Array(v))).collect())
+        Arc::new(out.into_iter().map(|(k, v)| (k, Value::Array(v))).collect())
     }
 
     pub fn filter_by(
