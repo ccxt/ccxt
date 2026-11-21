@@ -26272,6 +26272,7 @@ export function installJavaR92j2StringSlotLocals (transpiler) {
 // the declaration whose initializer is `call` has a use of its own binding read as a list (`x.length`, `x[i]`)
 function j92j7ReadAsList (printer, call) {
     const declaration = call.parent;
+    if (h30j07FeedsObjectListSink (printer, call)) return true;
     if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
         return false;
     }
@@ -29341,3 +29342,38 @@ function h30j02SafeIntegerLiteralDefault (e) {
     return args !== undefined && args.length === min && /^-?\d+L?$/.test (args[min - 1]);
 }
 // ===== end h30-J02
+
+// ===== h30-J07
+// base sinks declared `List<Object>|Map name (Object x, ..)` in BaseExchange.java with no overload or venue override
+const H30J07_OBJECT_LIST_SINKS = new Set ([ 'filterBySinceLimit', 'filterBySymbolSinceLimit', 'filterByArrayPositions', 'indexBy' ]);
+// a const result local whose every use is argument 0 of such a sink: the List value reaches an Object slot unchanged
+function h30j07FeedsObjectListSink (printer, call) {
+    const declaration = call.parent;
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer !== call
+        || !ts.isIdentifier (declaration.name) || !ts.isVariableDeclarationList (declaration.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0) {
+        return false;
+    }
+    try {
+        const checker = printer.getChecker ();
+        const symbol = checker.getSymbolAtLocation (declaration.name);
+        const scope = enclosingFunction (declaration);
+        let uses = 0;
+        for (const n of (scope === undefined ? [] : identifierIndex (scope).get (declaration.name.text) ?? [])) {
+            if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+                continue;
+            }
+            const parent = n.parent;
+            if (parent === undefined || !ts.isCallExpression (parent) || parent.arguments[0] !== n || !isThisCall (parent)
+                || !H30J07_OBJECT_LIST_SINKS.has (parent.expression.name.text)
+                || !resolvesToMethodNamed (printer, parent, parent.expression.name.text)) {
+                return false;
+            }
+            uses++;
+        }
+        return uses > 0;
+    } catch (e) {
+        return false;
+    }
+}
+// ===== end h30-J07
