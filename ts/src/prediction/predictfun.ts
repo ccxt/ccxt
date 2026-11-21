@@ -327,7 +327,7 @@ export default class predictfun extends Exchange {
         if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
         }
-        const queries = this.parseSearchQueries (params);
+        const queries: string[] = this.parseSearchQueries (params);
         const queriesLength = queries.length;
         const paramsValue: fetchEventsParams = this.omit (params, [ 'query', 'queries' ]);
         // keys dropped before the client-side pass; the categories listing also drops its limit
@@ -3377,8 +3377,8 @@ export default class predictfun extends Exchange {
      * @param {string} [marketId] the venue market id
      * @returns {object[]} the outcome objects
      */
-    outcomesByMarketId (marketId: Str): any[] {
-        const result: any[] = [];
+    outcomesByMarketId (marketId: Str): Dict[] {
+        const result: Dict[] = [];
         if ((marketId === undefined) || (this.outcomes === undefined)) {
             return result;
         }
