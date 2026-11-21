@@ -943,7 +943,8 @@ export default class hyperliquid extends Exchange {
             }
             const pricePrecisionStr = this.numberToString (pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const baseId = this.numberToString ((index as number) + 10000);
+            const indexInt: Int = this.safeInteger (market, 'index', 0);
+            const baseId = this.numberToString (indexInt + 10000);
             const entry = {
                 'id': marketName,
                 'symbol': mappedSymbol,
@@ -2434,7 +2435,7 @@ export default class hyperliquid extends Exchange {
             const side = this.safeStringUpper (rawOrder, 'side');
             let amount = this.safeString (rawOrder, 'amount');
             const price = this.safeString (rawOrder, 'price');
-            let orderParams = this.safeDict (rawOrder, 'params', {});
+            let orderParams: Dict = this.safeDict (rawOrder, 'params', {});
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             orderParams['slippage'] = slippage;
             const stopLoss = this.safeDict (orderParams, 'stopLoss');
@@ -2889,7 +2890,7 @@ export default class hyperliquid extends Exchange {
             const isBuy = (side === 'BUY');
             const amount = this.safeString (rawOrder, 'amount');
             const price = this.safeString (rawOrder, 'price');
-            let orderParams = this.safeDict (rawOrder, 'params', {});
+            let orderParams: Dict = this.safeDict (rawOrder, 'params', {});
             const defaultSlippage = this.safeString (this.options, 'defaultSlippage');
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             let defaultTimeInForce: Str = 'gtc';
@@ -3586,7 +3587,10 @@ export default class hyperliquid extends Exchange {
             postOnly = (tif === 'ALO');
         }
         const isTrigger = this.safeBool (entry, 'isTrigger', false);
-        const triggerPx = isTrigger ? this.safeNumber (entry, 'triggerPx') : undefined;
+        let triggerPx: Num = undefined;
+        if (isTrigger) {
+            triggerPx = this.safeNumber (entry, 'triggerPx');
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         const orderTypeRaw = this.safeStringLower (entry, 'orderType', '') as string;
