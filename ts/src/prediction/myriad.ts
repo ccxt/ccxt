@@ -269,8 +269,7 @@ export default class myriad extends Exchange {
                 'state': state,
                 'limit': limit,
             }, rest));
-            const responseIsArray = Array.isArray (response);
-            const found: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const found: Dict[] = this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const networkId = this.safeString (raw, 'networkId', '');
@@ -316,8 +315,7 @@ export default class myriad extends Exchange {
                 'page': page,
                 'trading_model': tradingModel,
             }, rest));
-            const responseIsArray = Array.isArray (response);
-            const rawMarkets: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const rawMarkets: Dict[] = this.safeList (response, 'data', []);
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
                 break;
@@ -445,8 +443,7 @@ export default class myriad extends Exchange {
                 'keyword': q,
                 'limit': limit,
             }, rest));
-            const responseIsArray = Array.isArray (response);
-            const found: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const found: Dict[] = this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const questionId = this.safeString (raw, 'id');
@@ -486,8 +483,7 @@ export default class myriad extends Exchange {
                 request['state'] = state;
             }
             const response = await this.myriadPublicGetQuestions (this.extend (request, rest));
-            const responseIsArray = Array.isArray (response);
-            const rawQuestions: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const rawQuestions: Dict[] = this.safeList (response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
@@ -2941,8 +2937,7 @@ export default class myriad extends Exchange {
         //         ]
         //     }
         //
-        const responseIsArray = Array.isArray (response);
-        const rows: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
+        const rows: Dict[] = this.safeList (response, 'data', []);
         const trades: any[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = this.safeDict (rows, i);
