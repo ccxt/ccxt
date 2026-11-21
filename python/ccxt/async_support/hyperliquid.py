@@ -4055,7 +4055,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         query = params
         transferMethod, query = self.handle_option_string_and_params(query, 'transfer', 'method')
         masterAddress = None
-        masterAddress, query = self.handle_public_address('transfer', query)
+        masterAddress = self.safe_string(self.handle_public_address('transfer', query), 0)
+        query = self.safe_dict(self.handle_public_address('transfer', query), 1, {})
         useSendAsset = (transferMethod == 'sendAsset')
         if transferMethod is None:
             isUnified = None
