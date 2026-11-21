@@ -18636,6 +18636,7 @@ export function installCsharpGuardedMinMax (transpiler) {
         }
         const h28c04 = h28c04GuardedMinMaxText (csharp, node, name, parsedArg1, parsedArg2); if (h28c04 !== undefined) return h28c04;
         const h29c04 = h29c04ChainMinMaxText (csharp, node, name); if (h29c04 !== undefined) return h29c04;
+        const h30c04 = h30c04ChainMinMaxText (csharp, node, name); if (h30c04 !== undefined) return h30c04;
         const bothInt64 = minMaxBothInt64Text (csharp, node, name, parsedArg1, parsedArg2);
         if (bothInt64 !== undefined) {
             return bothInt64;
@@ -24856,3 +24857,38 @@ function h29c04ChainMinMaxText (csharp, call, name) {
     return 'Math.' + name + '(' + parts[0].text + ', ' + parts[1].text + ')';
 }
 // ===== end h29-C04
+
+// ===== h30-C04
+// Math.min/max in the single argument of this.parseToInt (directly or as a ternary arm): parseToInt reads an
+// Int32 and an Int64 box alike, so both sides need only be non-null integral chains with one long leaf
+function h30c04ParseToIntArgument (call) {
+    let site = call;
+    while (site.parent && (site.parent.kind === ts.SyntaxKind.ParenthesizedExpression
+        || (site.parent.kind === ts.SyntaxKind.ConditionalExpression && site.parent.condition !== site))) site = site.parent;
+    const p = site.parent;
+    return p?.kind === ts.SyntaxKind.CallExpression && p.arguments.length === 1 && p.arguments[0] === site
+        && p.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && p.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+        && p.expression.name?.text === 'parseToInt';
+}
+
+// an operand: an h29 chain, or a nested Math.min the printer already printed native over such chains
+function h30c04OperandText (csharp, call, node) {
+    const inner = stripParens (node);
+    const callee = inner?.expression;
+    if (inner?.kind === ts.SyntaxKind.CallExpression && callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && callee.expression?.getText () === 'Math' && [ 'min', 'max' ].includes (callee.name?.text) && inner.arguments.length === 2) {
+        const parts = inner.arguments.map ((a) => h29c04ChainText (csharp, call, a));
+        if (parts.some ((p) => p === undefined) || !parts.some ((p) => p.kind === 'Int64')) return undefined;
+        const printed = csharp.printNode (inner, 0).trim ();
+        return /^Math\.M(in|ax)\(/.test (printed) ? { kind: 'Int64', text: printed } : undefined;
+    }
+    return h29c04ChainText (csharp, call, node);
+}
+
+function h30c04ChainMinMaxText (csharp, call, name) {
+    if (call?.arguments?.length !== 2 || !h30c04ParseToIntArgument (call) || !csharp.csharpMinMaxResultIsPlainValue (call)) return undefined;
+    const parts = call.arguments.map ((a) => h30c04OperandText (csharp, call, a));
+    if (parts.some ((p) => p === undefined) || !parts.some ((p) => p.kind === 'Int64')) return undefined;
+    return 'Math.' + name + '(' + parts[0].text + ', ' + parts[1].text + ')';
+}
+// ===== end h30-C04
