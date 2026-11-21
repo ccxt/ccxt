@@ -2665,6 +2665,7 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
     for (let m = site.exec (masked); m !== null; m = site.exec (masked)) {
         const taskList = goChan3PromiseAllTaskList (masked, m);
         const h28g18 = goChan3H28G18AppendList (content, masked, m, stubs, q); if (h28g18 !== undefined) { edits.push (...h28g18); continue; }
+        const h29g16 = goChan3H29G16AppendList (content, masked, m, stubs, q); if (h29g16 !== undefined) { edits.push (...h29g16); continue; }
         if ((m[3] !== undefined) && (taskList === undefined)) {
             continue;
         }
@@ -2921,6 +2922,188 @@ function goChan3H28G18LoopBound (rest: string, at: number, v: string, i: string)
     return false;
 }
 // ===== end h28-H28-G18
+
+// ===== h29-H29-G16: append task lists read by arity-proven literal slots or bounds-guarded declarations =====
+// As goChan3H28G18AppendList, plus: `W(V, k)` with k below the count of unconditional appends (same indent as the
+// receive) -> `V[k]`; a line `var x T = W(V, e)` (e an int local / loop index / literal, +- a constant) ->
+// `var x T` + `if e >= 0 && e < len(V) { x = V[e] }` (out of range keeps the nil map / slice W answered)
+function goChan3H29G16AppendList (content: string, masked: string, m: RegExpExecArray, stubs: Map<string, string>, q: string): Edit[] | undefined {
+    const P = m[3];
+    if (P === undefined) {
+        return undefined;
+    }
+    const [ fs0, fe0 ] = goChan3Func (masked, m.index);
+    const fn = masked.substring (fs0, fe0);
+    const at = m.index - fs0;
+    const ind = m[1];
+    const decl = [ ...fn.matchAll (new RegExp ('\\n(\\t+)var ' + P + ' \\[\\]any = \\[\\]any\\{\\}\\n', 'g')) ];
+    if ((decl.length !== 1) || ((decl[0].index as number) > at) || (fn.substring (decl[0].index as number, at).indexOf ('func(') >= 0)) {
+        return undefined;
+    }
+    const appRe = new RegExp ('\\n(\\t+)' + P + ' = append\\(' + P + ', ', 'g');
+    const apps = [ ...fn.matchAll (appRe) ];
+    const uses = (fn.match (new RegExp ('(?<![\\w.])' + P + '(?!\\w)', 'g')) || []).length;
+    const lens = (fn.match (new RegExp ('(?<![\\w.])len\\(' + P + '\\)', 'g')) || []).length;
+    if ((apps.length === 0) || (uses !== 2 + 2 * apps.length + lens)) {
+        return undefined;
+    }
+    const edits: Edit[] = [];
+    let type: string | undefined = undefined;
+    let arity = 0;
+    for (const a of apps) {
+        const open = fs0 + (a.index as number) + a[0].length - P.length - 3;
+        const close = goChanClose (masked, open);
+        if ((close < 0) || (fs0 + (a.index as number) > m.index) || (masked[close] !== '\n')) {
+            return undefined;
+        }
+        // decl and receive share the indent, so an append at that indent between them runs unconditionally
+        arity += ((a[1] === ind) && (decl[0][1] === ind)) ? 1 : 0;
+        const argStart = open + 1 + P.length + 2;
+        const arg = content.substring (argStart, close - 1);
+        const w = /^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/.exec (arg);
+        const call = ((w !== null) && (goChanClose (arg, arg.indexOf ('(')) === arg.length)) ? w[1] : arg;
+        const c = /^this\.(\w+)\(/.exec (call);
+        if ((c === null) || (goChanClose (call, call.indexOf ('(')) !== call.length)) {
+            return undefined;
+        }
+        const t = stubs.get (c[1]);
+        if ((t === undefined) || !goChan3FoldsAbsent (t) || ((type !== undefined) && (type !== t))) {
+            return undefined;
+        }
+        type = t;
+        if (call !== arg) {
+            edits.push ({ 'start': argStart, 'end': close - 1, 'text': call });
+        }
+    }
+    if (type === undefined) {
+        return undefined;
+    }
+    const r = m[2];
+    const tail = masked.substring (m.index + m[0].length);
+    const head = new RegExp ('^' + ind + 'if ' + r + '\\.Err != nil \\{\\n' + ind + '\\tpanic\\(' + r + '\\.Err\\)\\n' + ind + '\\}\\n' + ind + 'var (\\w+) \\[\\]any = (?:ccxt\\.)?ListTyped\\(' + r + '\\.Value\\)\\n').exec (tail);
+    if (head === null) {
+        return undefined;
+    }
+    const v = head[1];
+    const declEnd = m.index + m[0].length + head[0].length;
+    const rest = masked.substring (declEnd, fe0);
+    if (new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) {
+        return undefined;
+    }
+    const reader = (type === 'map[string]any') ? 'SafeMapTyped' : 'SafeListTyped';
+    const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?' + reader + '\\(|len\\()?' + v + '(?!\\w)(, ([^()\\n]+)\\))?', 'g');
+    let extended = false;
+    for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
+        if ((u[1] === 'len(') && (rest[u.index + u[0].length] === ')') && (u[2] === undefined)) {
+            continue;
+        }
+        if ((u[1] === undefined) || (u[1] === 'len(') || (u[3] === undefined)) {
+            return undefined;
+        }
+        const k = u[3];
+        if (/^\w+$/.test (k) && goChan3H28G18LoopBound (rest, u.index, v, k)) {
+            edits.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': v + '[' + k + ']' });
+            continue;
+        }
+        if (/^\d+$/.test (k) && (Number (k) < arity)) {
+            edits.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': v + '[' + k + ']' });
+            extended = true;
+            continue;
+        }
+        const g = goChan3H29G16GuardedDecl (masked, fn, declEnd + u.index, declEnd + u.index + u[0].length, v, k, type);
+        if (g === undefined) {
+            return undefined;
+        }
+        edits.push (g);
+        extended = true;
+    }
+    if (!extended) {
+        return undefined;
+    }
+    const carrier = q + 'EndpointResult[' + type + ']';
+    const d0 = fs0 + (decl[0].index as number) + 1;
+    edits.push ({ 'start': d0, 'end': d0 + decl[0][0].length - 2, 'text': decl[0][1] + 'var ' + P + ' []<-chan ' + carrier });
+    edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': m.index + m[0].length - 1, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + P + '...)' });
+    const varLine = head[0].split ('\n')[3];
+    edits.push ({ 'start': declEnd - 1 - varLine.length, 'end': declEnd - 1, 'text': ind + 'var ' + v + ' []' + type + ' = ' + r + '.Value' });
+    return edits;
+}
+
+// the whole line `<ind>var x T = W(V, e)` with e an int expression (`n`, `n - 1`, `n + 2`, a literal; n declared
+// `var n int` or a `for n := ` loop index) -> a nil-seeded x set only when e is in range
+function goChan3H29G16GuardedDecl (masked: string, fn: string, start: number, end: number, v: string, k: string, type: string): Edit | undefined {
+    const ls = masked.lastIndexOf ('\n', start) + 1;
+    const le = masked.indexOf ('\n', end);
+    const d = new RegExp ('^(\\t+)var (\\w+) ' + type.replace (/[[\]]/g, '\\$&') + ' = $').exec (masked.substring (ls, start));
+    if ((d === null) || (le < 0) || (masked.substring (end, le) !== '')) {
+        return undefined;
+    }
+    const e = /^(\d+|(\w+)(?: ?[-+] ?\d+)?)$/.exec (k);
+    if (e === null) {
+        return undefined;
+    }
+    if ((e[2] !== undefined) && !goChan3H29G16IntIndex (masked, fn, start, e[2])) {
+        return undefined;
+    }
+    const ind = d[1];
+    const x = d[2];
+    const guard = (e[2] === undefined) ? (k + ' < len(' + v + ')') : (k + ' >= 0 && ' + k + ' < len(' + v + ')');
+    return { 'start': ls, 'end': le, 'text': ind + 'var ' + x + ' ' + type + '\n' + ind + 'if ' + guard + ' {\n' + ind + '\t' + x + ' = ' + v + '[' + k + ']\n' + ind + '}' };
+}
+
+// n is `var n int = ..` declared once and never written again in the function, or the index of the innermost
+// enclosing `for n := ..; ..; n++ {` whose body never writes n
+function goChan3H29G16IntIndex (masked: string, fn: string, at: number, n: string): boolean {
+    const writes = (fn.match (new RegExp ('(?<![\\w.])' + n + '\\s*(?:[-+*/:]?=(?!=)|\\+\\+|--)', 'g')) || []).length;
+    const decls = (fn.match (new RegExp ('\\n\\t+var ' + n + ' int = ', 'g')) || []).length;
+    if ((decls === 1) && (writes === 0)) {
+        return !new RegExp ('\\n\\t+for ' + n + ' := ').test (fn);
+    }
+    const hdr = new RegExp ('\\n\\t+for ' + n + ' := [^;\\n]+; [^;\\n]+; ' + n + '\\+\\+ \\{\\n', 'g');
+    const fs0 = goChan3Func (masked, at)[0];
+    const before = masked.substring (fs0, at);
+    let best = -1;
+    let bestClose = -1;
+    for (let h = hdr.exec (before); h !== null; h = hdr.exec (before)) {
+        const open = fs0 + h.index + h[0].length - 2;
+        const close = goChanClose (masked, open);
+        if ((close > at) && (fs0 + h.index > best)) {
+            best = fs0 + h.index;
+            bestClose = close;
+        }
+    }
+    if (best < 0) {
+        return false;
+    }
+    const body = masked.substring (masked.indexOf ('{\n', best) + 1, bestClose);
+    return !new RegExp ('(?<![\\w.])' + n + '\\s*(?:[-+*/:]?=(?!=)|\\+\\+|--)').test (body);
+}
+
+function goChan3H29G16SelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push (m); } };
+    goChan3SetStubsForTest (new Map ([ [ 'PubGetA', 'map[string]any' ], [ 'PubGetB', 'map[string]any' ], [ 'PubGetL', '[]any' ] ]));
+    const run = (src: string) => goChan3PromiseAllPass (src, new Map ());
+    const fn = (apps: string, reads: string) => 'package ccxt\n\nfunc (this *Y) f(p any, c bool) any {\n\tvar ps []any = []any{}\n' + apps + '\n\tr := <-promiseAll(ps)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n' + reads + '\treturn nil\n}\n';
+    const two = '\tps = append(ps, this.PubGetA(p))\n\tps = append(ps, EndpointRaw(this.PubGetB(p)))\n';
+    const lit = run (fn (two, '\tvar x map[string]any = SafeMapTyped(v, 0)\n\tthis.Use(SafeMapTyped(v, 1))\n'));
+    ok (lit.includes ('\tvar ps []<-chan EndpointResult[map[string]any]\n') && lit.includes ('\tps = append(ps, this.PubGetB(p))\n') && lit.includes ('PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](ps...)') && lit.includes ('\tvar v []map[string]any = r.Value\n') && lit.includes ('\tvar x map[string]any = v[0]\n\tthis.Use(v[1])\n'), 'arity-proven literal slots: ' + lit);
+    ok (run (lit) === lit, 'idempotent');
+    const cond = run (fn ('\tif c {\n\t\tps = append(ps, this.PubGetA(p))\n\t}\n\tps = append(ps, this.PubGetB(p))\n', '\tvar x map[string]any = SafeMapTyped(v, 1)\n'));
+    ok (cond.includes ('\tvar x map[string]any\n\tif 1 < len(v) {\n\t\tx = v[1]\n\t}\n'), 'slot past the unconditional count is guarded: ' + cond);
+    const idx = run (fn ('\tvar k int = len(ps)\n' + two, '\tvar x map[string]any = SafeMapTyped(v, k)\n\tvar y map[string]any = SafeMapTyped(v, k-1)\n'));
+    ok (idx.includes ('\tvar x map[string]any\n\tif k >= 0 && k < len(v) {\n\t\tx = v[k]\n\t}\n') && idx.includes ('\tif k-1 >= 0 && k-1 < len(v) {\n\t\ty = v[k-1]\n\t}\n'), 'computed index guarded: ' + idx);
+    const neg = (src: string, label: string) => ok (run (src) === src, label);
+    neg (fn ('\tif c {\n\t\tps = append(ps, this.PubGetA(p))\n\t}\n', '\tthis.Use(SafeMapTyped(v, 0))\n'), 'conditional slot read inline keeps the wrap');
+    neg (fn ('\tvar k int = len(ps)\n' + two, '\tk = 3\n\tvar x map[string]any = SafeMapTyped(v, k)\n'), 'a rewritten index keeps the wrap');
+    neg (fn ('\tvar k any = 1\n' + two, '\tvar x map[string]any = SafeMapTyped(v, k)\n'), 'an untyped index keeps the wrap');
+    neg (fn (two.replace ('PubGetB', 'PubGetL'), '\tvar x map[string]any = SafeMapTyped(v, 0)\n'), 'mixed stub types keep the wrap');
+    neg (fn (two, '\tvar x map[string]any = SafeMapTyped(v, 0)\n\tthis.Use(v)\n'), 'a whole-list read keeps the wrap');
+    neg (fn (two, '\tvar x []any = SafeListTyped(v, 0)\n'), 'a read as another type keeps the wrap');
+    goChan3SetStubsForTest (undefined);
+    return problems;
+}
+// ===== end h29-H29-G16
 
 // ===== GO-CHAN3 STRUCT: unified-struct channels (`AsyncResult[map[string]any]` -> `AsyncResult[T]`) =====
 // Proven above on the map shadow; goChan3StructPass retypes cores (sends `TFromMap(E)`), interfaces (not IPrediction*)
@@ -3934,7 +4117,7 @@ function goChan3SelfTest (): string[] {
     ok (run (al) === al, 'appended task list idempotent');
     const aneg = (from: string, to: string, label: string) => { const src = alist.replace (from, to); ok (run (src) === src, label); };
     aneg ('\t\tps = append(ps, EndpointRaw(this.PubGetA(p)))\n', '\t\tps = append(ps, EndpointRaw(this.PubGetA(p)))\n\t\tps = append(ps, EndpointRaw(this.PubGetL(p)))\n', 'appended task list of two types untouched');
-    aneg ('SafeMapTyped(v, i)', 'SafeMapTyped(v, 0)', 'appended task list literal read untouched');
+    ok (run (alist.replace ('SafeMapTyped(v, i)', 'SafeMapTyped(v, 0)')).includes ('\t\tvar x map[string]any\n\t\tif 0 < len(v) {\n\t\t\tx = v[0]\n\t\t}\n'), 'appended task list literal read is bounds-guarded');
     aneg ('\t\tthis.Use(x)\n', '\t\tthis.Use(x)\n\t\ti++\n', 'appended task list with a written index untouched');
     aneg ('SafeMapTyped(v, i)', 'SafeListTyped(v, i)', 'appended task list read as another type untouched');
     aneg ('\tfor i := 0; i < len(v); i++ {\n\t\tvar x map[string]any = SafeMapTyped(v, i)\n\t\tthis.Use(x)\n\t}\n', '\tthis.Use(v)\n', 'appended task list read whole untouched');
@@ -16417,6 +16600,7 @@ async function runMain () {
             [ 'h27-g26 struct row reads: ', h27g26StructRowReadsSelfTest ],
             [ 'h28-a23 struct row *string key: ', h28a23StructRowPtrKeyReadsSelfTest ],
             [ 'h29-a22 struct box info reads: ', h29a22StructBoxInfoReadsSelfTest ],
+            [ 'h29-g16 append task list slots: ', goChan3H29G16SelfTest ],
             [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go non-nil string methods: ', goRetypeNonNilStringMethodsSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
             [ '', goFloatComparisonsWiredCheck, true ], [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
             goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], [ '', goArithHelpersWiredCheck ],
