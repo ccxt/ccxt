@@ -10832,6 +10832,7 @@ function objectKeysDeclaredType (printer, declaration) {
             ok = ((typeof native === 'string' && OBJECT_KEYS_NATIVE_COPY.test (native)) || objectKeysTimeframesInit (declaration))
                 && objectKeysStringListLocal (declaration);
             ok = ok || (h28j01KeysCopy (native) !== undefined && objectKeysStringListLocal (declaration));
+            ok = ok || (h29j01FieldKeysInit (declaration) !== undefined && objectKeysStringListLocal (declaration));
         } catch (e) {
             ok = false;
         }
@@ -10872,9 +10873,12 @@ export function patchJavaObjectKeysStringLists (transpiler) {
                 break;
             }
         }
+        if (at === -1) ({ at, head } = h29j01BareListHead (printed, iden, name));
         if (at === -1) {
             return printed;
         }
+        const h29 = h29j01FieldKeysCopy (declaration, printed.slice (at + head.length));
+        if (h29 !== undefined && objectKeysDeclaredType (printer, declaration) !== undefined) return printed.slice (0, at) + `${iden}java.util.List<String> ${name} = ${h29}`;
         const h28 = h28j01KeysCopy (printed.slice (at + head.length));
         if (h28 !== undefined && objectKeysDeclaredType (printer, declaration) !== undefined) return printed.slice (0, at) + `${iden}java.util.List<String> ${name} = ${h28}`;
         const match = OBJECT_KEYS_NATIVE_COPY.exec (printed.slice (at + head.length));
@@ -29096,6 +29100,33 @@ function h28j01KeysCopy (text) {
         : `(${guarded[1]} == null ? new java.util.ArrayList<String>() : new java.util.ArrayList<String>(${guarded[1]}.keySet()))${guarded[2]}`;
 }
 // ===== end h28-J01
+
+// ===== h29-J01 key copies of hand-written Map<String, Object> fields the generator leaves to the helper
+// `Object.keys (this.currencies | this.events)`: BaseExchange / PredictionExchange declare both
+// `Map<String, Object>`; the null-guarded copy is exactly Helpers.objectKeys (empty list for null)
+const H29J01_MAP_FIELDS = new Set ([ 'currencies', 'events' ]);
+function h29j01FieldKeysInit (declaration) {
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isCallExpression (init) || init.arguments.length !== 1 || !ts.isPropertyAccessExpression (init.expression)
+        || init.expression.name.text !== 'keys' || !ts.isIdentifier (init.expression.expression) || init.expression.expression.text !== 'Object') {
+        return undefined;
+    }
+    const field = thisPropName (unwrapParens (init.arguments[0]));
+    return H29J01_MAP_FIELDS.has (field) ? field : undefined;
+}
+function h29j01FieldKeysCopy (declaration, text) {
+    const field = h29j01FieldKeysInit (declaration);
+    const m = field === undefined ? null
+        : new RegExp (`^(?:Helpers\\.objectKeys\\(this\\.${field}\\)|\\(this\\.${field} == null \\? new (?:java\\.util\\.)?ArrayList<Object>\\(\\) : new (?:java\\.util\\.)?ArrayList<Object>\\(this\\.${field}\\.keySet\\(\\)\\)\\))(;?\\s*)$`).exec (text);
+    return m === null ? undefined
+        : `(this.${field} == null ? new java.util.ArrayList<String>() : new java.util.ArrayList<String>(this.${field}.keySet()))${m[1]}`;
+}
+// the base printer also emits the unqualified `List<Object>` head for these locals
+function h29j01BareListHead (printed, iden, name) {
+    const head = `${iden}List<Object> ${name} = `;
+    return { at: printed.lastIndexOf (head), head };
+}
+// ===== end h29-J01
 
 // ===== h28-J02
 // a const Integer local that is never null: an int-literal seed (`Integer n = 100`) or a `.length`
