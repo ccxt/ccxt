@@ -1270,7 +1270,7 @@ export default class aster extends Exchange {
         const id = this.safeString2 (trade, 'id', 'a');
         const marketId = this.safeString (trade, 'symbol');
         let marketType: Str = 'spot';
-        if ('positionSide' in trade) {
+        if (this.safeString (trade, 'positionSide') !== undefined) {
             marketType = 'swap';
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
@@ -1562,12 +1562,12 @@ export default class aster extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume');
         const high = this.safeString (ticker, 'highPrice');
         const low = this.safeString (ticker, 'lowPrice');
-        const isTickerResponse = ('priceChange' in ticker);
+        const isTickerResponse = (this.safeString (ticker, 'priceChange') !== undefined);
         let marketType: Str = undefined;
         if (isTickerResponse) {
-            marketType = ('baseAsset' in ticker) ? 'spot' : 'swap';
+            marketType = (this.safeString (ticker, 'baseAsset') !== undefined) ? 'spot' : 'swap';
         } else {
-            marketType = ('lastUpdateId' in ticker) ? 'swap' : 'spot';
+            marketType = (this.safeInteger (ticker, 'lastUpdateId') !== undefined) ? 'swap' : 'spot';
         }
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
@@ -3625,7 +3625,7 @@ export default class aster extends Exchange {
         const contractSize = this.safeNumber (marketResolved, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         // as oppose to notionalValue
-        const linear = ('notional' in position);
+        const linear = (this.safeString (position, 'notional') !== undefined);
         if (marginMode === 'cross') {
             // calculate collateral
             const precision = this.safeDict (marketResolved, 'precision', {});

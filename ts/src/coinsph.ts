@@ -678,7 +678,7 @@ export default class coinsph extends Exchange {
     }
 
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
-        const hasSymbolParam = ('symbol' in params);
+        const hasSymbolParam = (this.safeString (params, 'symbol') !== undefined);
         const hasSymbolsParam = ('symbols' in params);
         const limit = this.safeInteger (params, 'limit');
         if (('noSymbol' in config) && !hasSymbolParam) {

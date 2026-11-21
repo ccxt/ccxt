@@ -3114,7 +3114,7 @@ export default class gate extends Exchange {
         //
         const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 'name' ]);
         let marketType: Str = 'spot';
-        if ('mark_price' in ticker) {
+        if (this.safeString (ticker, 'mark_price') !== undefined) {
             marketType = 'contract';
         }
         const symbol = this.safeSymbol (marketId, market, '_', marketType);
@@ -3210,8 +3210,9 @@ export default class gate extends Exchange {
         account['used'] = this.safeString2 (entry, 'freeze', 'locked');
         account['free'] = this.safeString (entry, 'available');
         account['total'] = this.safeString (entry, 'total');
-        if ('borrowed' in entry) {
-            account['debt'] = this.safeString (entry, 'borrowed');
+        const borrowed = this.safeString (entry, 'borrowed');
+        if (borrowed !== undefined) {
+            account['debt'] = borrowed;
         }
         return account;
     }
@@ -4124,7 +4125,7 @@ export default class gate extends Exchange {
         }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         let marketType: Str = 'spot';
-        if ('contract' in trade) {
+        if (this.safeString (trade, 'contract') !== undefined) {
             marketType = 'contract';
         }
         const marketResolved: Market = this.safeMarket (marketId, market, '_', marketType);
@@ -5358,7 +5359,7 @@ export default class gate extends Exchange {
             }
         }
         let marketType = 'contract';
-        if (('currency_pair' in order) || ('market' in order)) {
+        if ((this.safeString (order, 'currency_pair') !== undefined) || (this.safeString (order, 'market') !== undefined)) {
             marketType = 'spot';
         }
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
