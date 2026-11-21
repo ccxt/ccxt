@@ -3523,11 +3523,11 @@ public class Htx extends HtxApi
         }
         if (response.containsKey("tick"))
         {
-            if (java.util.Objects.equals(this.safeValue(response, "tick"), null))
+            Map<String, Object> tick = this.safeDict(response, "tick", null);
+            if (java.util.Objects.equals(tick, null))
             {
                 throw new BadSymbol(((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
             }
-            Map<String, Object> tick = this.safeDict(response, "tick", null);
             Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
             Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp, "bids", "asks", 0, 1, 2);
             result.put("nonce", this.safeInteger(tick, "version"));

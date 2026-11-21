@@ -1273,7 +1273,7 @@ public class Woo extends WooApi
         //         "isMaker": 0
         //     }
         //
-        Boolean isFromFetchOrder = (((Map<?, ?>)trade).containsKey("id"));
+        Boolean isFromFetchOrder = (!java.util.Objects.equals(this.safeString(trade, "id"), null));
         String timestampString = this.safeString2(trade, "executed_timestamp", "executedTimestamp");
         Long timestamp = null;
         if (!java.util.Objects.equals(timestampString, null))

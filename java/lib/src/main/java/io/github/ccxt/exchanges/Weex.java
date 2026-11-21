@@ -1287,7 +1287,12 @@ public class Weex extends WeexApi
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
-        Map<String, Object> fees = this.safeDict(this.fees, ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract", new HashMap<String, Object>() {{}});
+        String feesKey = "contract";
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            feesKey = "spot";
+        }
+        Map<String, Object> fees = this.safeDict(this.fees, feesKey, new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(id, null))
         {
             throw new ExchangeError((this.id + " method() missing id")) ;
@@ -4200,7 +4205,6 @@ public class Weex extends WeexApi
         Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
         String accountType = this.safeString(accountsByType, marketType, marketType);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        List<Object> items = null;
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
@@ -4224,7 +4228,8 @@ public class Weex extends WeexApi
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(requestUntil, paramsUntil))).join();
-            items = (List<Object>) this.safeList(contractResponse, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> contractItems = this.safeList(contractResponse, "items", new ArrayList<Object>(Arrays.asList()));
+            return this.parseLedger(contractItems, currency, since, limit, new HashMap<String, Object>() {{}});
         } else if (java.util.Objects.equals(accountType, "funding"))
         {
             if (!java.util.Objects.equals(since, null))
@@ -4239,7 +4244,8 @@ public class Weex extends WeexApi
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(requestUntil, paramsUntil))).join();
-            items = (List<Object>) this.safeList(fundingResponse, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fundingItems = this.safeList(fundingResponse, "items", new ArrayList<Object>(Arrays.asList()));
+            return this.parseLedger(fundingItems, currency, since, limit, new HashMap<String, Object>() {{}});
         } else
         {
             if (!java.util.Objects.equals(since, null))
@@ -4254,9 +4260,9 @@ public class Weex extends WeexApi
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> billsResponse = (this.privatePostApiV3AccountBills(this.extend(requestUntil, paramsUntil))).join();
-            items = this.toArray(billsResponse);
+            List<Object> billsItems = this.toArray(billsResponse);
+            return this.parseLedger(billsItems, currency, since, limit, new HashMap<String, Object>() {{}});
         }
-        return this.parseLedger(items, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -5422,7 +5428,7 @@ public class Weex extends WeexApi
             String payload = (((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + endpoint);
             if (Boolean.TRUE.equals(hasJsonBody))
             {
-                payload = (payload + requestBody);
+                payload = (payload + this.json(query));
             }
             String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             {

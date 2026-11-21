@@ -288,7 +288,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public String getWsUrl(String type, String category)
     {
-        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         if ((java.util.Objects.equals(type, "option")) || (java.util.Objects.equals(type, "optionMarket")) || (java.util.Objects.equals(type, "optionPrivate")))
         {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
@@ -340,7 +341,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             return ((this.getWsUrl((String) (type), "private") + "?listenKey=") + listenKey);
         }
-        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         String wsUrl = this.safeString(wsUrls, type);
         if (java.util.Objects.equals(wsUrl, null))
         {
@@ -351,7 +353,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public String getStockWsUrl(String streamType)
     {
-        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Object baseUrl = wsUrls.get("stock");
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(streamType, "market"), "combined"))
         {
@@ -1114,7 +1117,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " fetchOrderBookWs only supports swap markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, marketType);
         if (java.util.Objects.equals(url, null))
@@ -2422,7 +2426,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " fetchTickerWs only supports swap markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -2486,7 +2491,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, marketType);
         if (java.util.Objects.equals(url, null))
@@ -3546,7 +3552,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     private Object ensureUserDataStreamWsSubscribeSignatureCore(Object marketType)
     {
 
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, java.util.Objects.requireNonNullElse(marketType, "spot"));
         if (java.util.Objects.equals(url, null))
@@ -3648,7 +3655,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     private Object ensureUserDataStreamWsSubscribeListenTokenCore(String marketType, Map<String, Object> parameters)
     {
 
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, "spot");
         if (java.util.Objects.equals(url, null))
@@ -4156,7 +4164,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -4324,7 +4333,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " fetchPositionsWs only supports swap markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -4438,7 +4448,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
         {
             // route to WebSocket API connection where the user data stream is subscribed
-            Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
             Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
             url = this.safeString(wsApiDict, "spot", "");
         } else
@@ -4707,7 +4718,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " createOrderWs only supports spot or swap markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, marketType);
         if (java.util.Objects.equals(url, null))
@@ -4897,7 +4909,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " editOrderWs only supports spot or swap markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, marketType);
         if (java.util.Objects.equals(url, null))
@@ -5077,7 +5090,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Map<String, Object> market = this.market(symbol);
         String type = this.getMarketType("cancelOrderWs", market, parameters);
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -5162,7 +5176,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " cancelAllOrdersWs only supports spot markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -5223,7 +5238,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " fetchOrderWs only supports spot or swap markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -5295,7 +5311,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " fetchOrdersWs only supports spot markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -5385,7 +5402,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((this.id + " fetchOpenOrdersWs only supports spot markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -5521,7 +5539,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
         {
             // route orders to ws-api user data stream
-            Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
             Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
             url = this.safeString(wsApiDict, "spot", "");
         } else
@@ -6542,7 +6561,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -6615,7 +6635,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new BadRequest((((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
         }
-        Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
         String url = this.safeString(wsApiDict, type);
         if (java.util.Objects.equals(url, null))
@@ -6762,7 +6783,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String url = "";
         if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
         {
-            Map<String, Object> wsApiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsApiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
             Map<String, Object> wsApiDict = this.safeDict(wsApiUrls, "ws-api", new HashMap<String, Object>() {{}});
             url = this.safeString(wsApiDict, "spot", "");
         } else

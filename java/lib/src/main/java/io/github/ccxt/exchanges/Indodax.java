@@ -1089,15 +1089,11 @@ public class Indodax extends IndodaxApi
         }
         Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
         Map<String, Object> openOrdersResult = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-        Object rawOrders = openOrdersResult.get("orders");
         // { success: 1, return: { orders: null }} if no orders
-        if ((java.util.Objects.equals(rawOrders, null)) || (java.util.Objects.equals(rawOrders, null)))
-        {
-            return new ArrayList<Object>(Arrays.asList());
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (!java.util.Objects.equals(symbol, null))
         {
+            List<Object> rawOrders = this.safeList(openOrdersResult, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched

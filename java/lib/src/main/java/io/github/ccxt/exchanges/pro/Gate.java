@@ -216,12 +216,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageType = this.getTypeByMarket(market);
         String channel = (messageType + ".order_place");
         String url = this.getUrlByMarket(market);
         parameters.put("textIsRequired", true);
-        Map<String, Object> request = this.createOrderRequest(symbolValue, (String) (type), (String) (side), amount, price, parameters);
+        Map<String, Object> request = this.createOrderRequest((String) (symbolValue), (String) (type), (String) (side), amount, price, parameters);
         (this.authenticate(url, (String) (messageType))).join();
         Object rawOrder = (this.requestPrivate(url, request, channel, (String) null)).join();
         Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
@@ -1410,7 +1410,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         // todo add options support
         Map<String, Object> market = this.market(symbol);
         String symbolValue = this.safeString(market, "symbol", "");
-        String marketId = (String) market.get("id");
+        String marketId = this.safeString(market, "id", "");
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String messageType = this.getTypeByMarket(market);
         String channel = (messageType + ".candlesticks");
@@ -1453,7 +1453,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
         Map<String, Object> market = this.market(symbol);
         String symbolValue = (String) market.get("symbol");
-        String marketId = (String) market.get("id");
+        String marketId = this.safeString(market, "id", "");
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String messageType = this.getTypeByMarket(market);
         String channel = (messageType + ".candlesticks");
@@ -2135,14 +2135,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             messageHash = "triggerOrders";
         }
-        List<Object> payload = new ArrayList<Object>(Arrays.asList(("!" + "all")));
+        List<String> payload = new ArrayList<String>(Arrays.asList(("!" + "all")));
         if (!java.util.Objects.equals(market, null))
         {
-            messageHash = (messageHash + (":" + market.get("id")));
-            Object mid = market.get("id");
+            String mid = this.safeString(market, "id");
             if (!java.util.Objects.equals(mid, null))
             {
-                payload = new ArrayList<Object>(Arrays.asList(mid));
+                messageHash = (messageHash + (":" + mid));
+                payload = new ArrayList<String>(Arrays.asList(mid));
             }
         }
         String subType = null;

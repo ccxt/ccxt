@@ -1858,7 +1858,8 @@ public class Bitstamp extends BitstampApi
             }
         }
         // if it is a private trade
-        if (((Map<?, ?>)trade).containsKey("id"))
+        String tradeId = this.safeString(trade, "id");
+        if (!java.util.Objects.equals(tradeId, null))
         {
             if (!java.util.Objects.equals(amountString, null))
             {
@@ -3028,9 +3029,10 @@ public class Bitstamp extends BitstampApi
         String feeCost = this.safeString(transaction, "fee");
         Object feeCurrency = null;
         String amount = null;
-        if (transaction.containsKey("amount"))
+        String transactionAmount = this.safeString(transaction, "amount");
+        if (!java.util.Objects.equals(transactionAmount, null))
         {
-            amount = this.safeString(transaction, "amount");
+            amount = transactionAmount;
         } else if (!java.util.Objects.equals(currency, null))
         {
             amount = this.safeString(transaction, currency.get("id"));
@@ -3046,15 +3048,16 @@ public class Bitstamp extends BitstampApi
             amount = Precise.stringAbs(amount);
         }
         String status = "ok";
-        if (transaction.containsKey("status"))
+        String rawStatus = this.safeString(transaction, "status");
+        if (!java.util.Objects.equals(rawStatus, null))
         {
-            status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+            status = this.parseTransactionStatus(rawStatus);
         }
         String type = null;
-        if (transaction.containsKey("type"))
+        String rawType = this.safeString(transaction, "type");
+        if (!java.util.Objects.equals(rawType, null))
         {
             // from fetchDepositsWithdrawals
-            String rawType = this.safeString(transaction, "type");
             if (java.util.Objects.equals(rawType, "0"))
             {
                 type = "deposit";
@@ -3325,16 +3328,16 @@ public class Bitstamp extends BitstampApi
             Map<String, Object> parsedTransaction = (Map<String, Object>) this.parseTransaction(item, currency);
             String direction = null;
             String transactionCurrency = this.safeString(parsedTransaction, "currency");
-            Boolean hasTransactionCurrency = !(item.containsKey("amount")) && (!java.util.Objects.equals(transactionCurrency, null));
+            String itemAmount = this.safeString(item, "amount");
+            Boolean hasTransactionCurrency = (java.util.Objects.equals(itemAmount, null)) && (!java.util.Objects.equals(transactionCurrency, null));
             Map<String, Object> currencyResolved = currency;
             if (Boolean.TRUE.equals(hasTransactionCurrency))
             {
                 currencyResolved = this.currency(this.safeString(parsedTransaction, "currency"));
             }
-            if (item.containsKey("amount"))
+            if (!java.util.Objects.equals(itemAmount, null))
             {
-                String amount = this.safeString(item, "amount");
-                direction = ((Precise.stringGt(amount, "0"))) ? "in" : "out";
+                direction = ((Precise.stringGt(itemAmount, "0"))) ? "in" : "out";
             } else if (!java.util.Objects.equals(transactionCurrency, null))
             {
                 String amount = this.safeString(item, this.safeString(currencyResolved, "id"));

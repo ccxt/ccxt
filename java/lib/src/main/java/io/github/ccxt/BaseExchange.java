@@ -10496,15 +10496,16 @@ public Map<String, Object> describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
+        String marketSymbol = this.safeString(market, "symbol");
         String result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
             String pricePrecision = this.numberToString(((Map<String, Object>)market.get("precision")).get("price"));
             if (java.util.Objects.equals(pricePrecision, null))
             {
-                throw new BadSymbol((((this.id + " priceToPrecision() market ") + market.get("symbol")) + " has no price precision")) ;
+                throw new BadSymbol((((this.id + " priceToPrecision() market ") + marketSymbol) + " has no price precision")) ;
             }
-            throw new InvalidOrder(((((this.id + " price of ") + market.get("symbol")) + " must be greater than minimum price precision of ") + pricePrecision)) ;
+            throw new InvalidOrder(((((this.id + " price of ") + marketSymbol) + " must be greater than minimum price precision of ") + pricePrecision)) ;
         }
         return result;
     }
@@ -10516,15 +10517,16 @@ public Map<String, Object> describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
+        String marketSymbol = this.safeString(market, "symbol");
         String result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("amount"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
             String amountPrecision = this.numberToString(((Map<String, Object>)market.get("precision")).get("amount"));
             if (java.util.Objects.equals(amountPrecision, null))
             {
-                throw new BadSymbol((((this.id + " amountToPrecision() market ") + market.get("symbol")) + " has no amount precision")) ;
+                throw new BadSymbol((((this.id + " amountToPrecision() market ") + marketSymbol) + " has no amount precision")) ;
             }
-            throw new InvalidOrder(((((this.id + " amount of ") + market.get("symbol")) + " must be greater than minimum amount precision of ") + amountPrecision)) ;
+            throw new InvalidOrder(((((this.id + " amount of ") + marketSymbol) + " must be greater than minimum amount precision of ") + amountPrecision)) ;
         }
         return result;
     }
@@ -10944,9 +10946,10 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (Map<String, Object>) null);
-            if (!java.util.Objects.equals(parsed.get("symbol"), null))
+            String symbol = this.safeString(parsed, "symbol");
+            if (!java.util.Objects.equals(symbol, null))
             {
-                fundingRates.put((String)parsed.get("symbol"), parsed);
+                fundingRates.put(symbol, parsed);
             }
         }
         return this.indexBy(this.filterByArray(fundingRates, "symbol", symbols, false), "symbol");
@@ -11125,9 +11128,10 @@ public Map<String, Object> describe()
         for (var i = 0; i < response.size(); i++)
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOpenInterest((response == null || i < 0 || i >= response.size() ? null : response.get(i)), (Map<String, Object>) null);
-            if (!java.util.Objects.equals(parsed.get("symbol"), null))
+            String symbol = this.safeString(parsed, "symbol");
+            if (!java.util.Objects.equals(symbol, null))
             {
-                result.put((String)parsed.get("symbol"), parsed);
+                result.put(symbol, parsed);
             }
         }
         return this.indexBy(this.filterByArray(result, "symbol", symbols, false), "symbol");
@@ -11619,8 +11623,9 @@ public Map<String, Object> describe()
     public Object createOHLCVObject(Object symbol, Object timeframe, Object data)
     {
         Map<String, Object> res = new HashMap<String, Object>() {{}};
-        res.put((String)symbol, new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject((res == null || symbol == null ? null : res.get(symbol)), timeframe, data);
+        Map<String, Object> inner = new HashMap<String, Object>() {{}};
+        inner.put((String)timeframe, data);
+        res.put((String)symbol, inner);
         return res;
     }
 

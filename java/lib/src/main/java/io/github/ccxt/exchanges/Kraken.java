@@ -3676,7 +3676,7 @@ public class Kraken extends KrakenApi
     public Object parseTransactionsByType(String type, List<Object> transactions, String code, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (transactions == null ? 0 : transactions.size()); i++)
+        for (var i = 0; i < transactions.size(); i++)
         {
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{
                 put( "type", type );

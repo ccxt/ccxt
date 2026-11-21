@@ -3885,14 +3885,11 @@ public class Deepcoin extends DeepcoinApi
         {
             msg = sMsg;
         }
-        List<Object> errorList = this.safeList(data, "errorList", null);
-        if (!java.util.Objects.equals(errorList, null))
+        List<Object> errorList = this.safeList(data, "errorList", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < errorList.size(); i++)
         {
-            for (var i = 0; i < errorList.size(); i++)
-            {
-                Map<String, Object> entry = this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
-                errorCode = this.safeString(entry, "errorCode");
-            }
+            Map<String, Object> entry = this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
+            errorCode = this.safeString(entry, "errorCode");
         }
         String feedback = ((this.id + " ") + body);
         if ((java.util.Objects.equals(sCode, null)) && (!java.util.Objects.equals(errorCode, null)))

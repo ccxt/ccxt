@@ -710,9 +710,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", null);
         String interval = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
-        String channel = null;
+        String channel = "";
         Map<String, Object> market = this.market(symbol);
-        String messageHash = null;
+        String messageHash = "";
         List<Object> values = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCV", "uta", false);
         Boolean uta = (Boolean) ((List<Object>)values).get(0);
         Boolean isStock = (Boolean) market.get("stock");
@@ -997,7 +997,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String messageHash = ((("unsubscribe:" + messageHashTopic) + ":") + market.get("symbol"));
+        String marketSymbol = this.safeString(market, "symbol", "");
+        String messageHash = ((("unsubscribe:" + messageHashTopic) + ":") + marketSymbol);
         Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), (String) (methodName), "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
@@ -2030,7 +2031,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
             marketId = this.safeString(market, "id");
-            messageHash = ((messageHash + ":") + symbolResolved);
+            String marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ((messageHash + ":") + marketSymbol);
         }
         Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsTrigger), "watchOrders", "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
@@ -2070,7 +2072,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         if (java.util.Objects.equals(type, "spot") && (!java.util.Objects.equals(symbolResolved, null)))
         {
-            subscriptionHash = ((subscriptionHash + ":") + symbolResolved);
+            String resolvedSymbol = symbolResolved;
+            subscriptionHash = ((subscriptionHash + ":") + resolvedSymbol);
         }
         if (java.util.Objects.equals(isTrigger, true))
         {
@@ -2276,7 +2279,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
             stored.append(parsed);
-            String symbol = (String) parsed.get("symbol");
+            String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 marketSymbols.put(symbol, true);

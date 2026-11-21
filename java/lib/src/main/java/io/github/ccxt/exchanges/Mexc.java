@@ -2117,7 +2117,8 @@ public class Mexc extends MexcApi
         String costString = null;
         Map<String, Object> marketResolved = null;
         // if swap
-        if (((Map<?, ?>)trade).containsKey("v"))
+        String swapVolume = this.safeString(trade, "v");
+        if (!java.util.Objects.equals(swapVolume, null))
         {
             //
             // swap: fetchTrades
@@ -2197,7 +2198,8 @@ public class Mexc extends MexcApi
             priceString = this.safeString2(trade, "price", "p");
             orderId = this.safeString(trade, "orderId");
             // if swap
-            if (((Map<?, ?>)trade).containsKey("positionMode"))
+            String positionMode = this.safeString(trade, "positionMode");
+            if (!java.util.Objects.equals(positionMode, null))
             {
                 timestamp = this.safeInteger(trade, "timestamp");
                 amountString = this.safeString(trade, "vol");

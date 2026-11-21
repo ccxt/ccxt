@@ -1883,7 +1883,7 @@ public class Phemex extends PhemexApi
         //
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         Object last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), marketResolved);
         Object quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), marketResolved);
@@ -2313,7 +2313,7 @@ public class Phemex extends PhemexApi
         String feeCurrencyCode = null;
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String orderId = null;
         String takerOrMaker = null;
         if ((trade instanceof List))
@@ -2873,7 +2873,7 @@ public class Phemex extends PhemexApi
         }
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Object price = this.fromEp(this.safeString(order, "priceEp"), marketResolved);
         Object amount = this.fromEv(this.safeString(order, "baseQtyEv"), marketResolved);
         Object remaining = this.omitZero(this.fromEv(this.safeString(order, "leavesBaseQtyEv"), marketResolved));
@@ -4887,7 +4887,7 @@ public class Phemex extends PhemexApi
         //
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String collateral = this.safeString2(position, "positionMargin", "positionMarginRv");
         String notionalString = this.safeString2(position, "value", "valueRv");
         String maintenanceMarginPercentageString = this.safeString2(position, "maintMarginReq", "maintMarginReqRr");

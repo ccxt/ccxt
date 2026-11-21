@@ -3770,13 +3770,17 @@ public class Nado extends NadoApi
     {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
-        if ((config.containsKey("byType")) && (((Map<?, ?>)parameters).containsKey("type")))
+        if (config.containsKey("byType"))
         {
-            Object queryType = ((Map<String, Object>)parameters).get("type");
             Object byType = config.get("byType");
-            if ((queryType != null && ((Map<?, ?>)byType).containsKey(queryType)))
+            String queryType = this.safeString(parameters, "type");
+            if (!java.util.Objects.equals(queryType, null))
             {
-                return Helpers.GetValue(byType, queryType);
+                Long typeCost = this.safeInteger(byType, queryType);
+                if (!java.util.Objects.equals(typeCost, null))
+                {
+                    return typeCost;
+                }
             }
         }
         Map<String, Object> byQuery = this.safeDict(config, "byQuery", null);

@@ -429,7 +429,7 @@ public class P2b extends P2bApi
         {
             return null;
         }
-        Map<String, Object> limits = this.safeDict(market, "limits", null);
+        Map<String, Object> limits = this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -987,7 +987,7 @@ public class P2b extends P2bApi
         for (var i = 0; i < keys.size(); i++)
         {
             String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Map<String, Object> balance = this.safeDict(response, currencyId, null);
+            Map<String, Object> balance = this.safeDict(response, currencyId, new HashMap<String, Object>() {{}});
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");

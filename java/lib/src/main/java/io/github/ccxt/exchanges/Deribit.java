@@ -1970,7 +1970,11 @@ public class Deribit extends DeribitApi
         Long defaultLimit = 1000L;
         Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
         Long limitResolved = ((((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(limit, null))))) ? defaultLimit : limit;
-        Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? null : Math.max((since - 1L), 0);
+        Long sinceResolved = null;
+        if (!java.util.Objects.equals(since, null))
+        {
+            sinceResolved = Math.max((since - 1L), 0);
+        }
         if (java.util.Objects.equals(since, null))
         {
             request.put("start_timestamp", (now - (((windowLimit - 1L) * duration) * 1000L)));

@@ -5202,7 +5202,7 @@ public class Kucoin extends KucoinApi
             String sizeString = this.amountToPrecision(symbol, amount);
             if (!java.util.Objects.equals(sizeString, null))
             {
-                request.put("size", Long.parseLong(sizeString));
+                request.put("size", this.parseToInt(sizeString));
             }
         }
         this.checkTriggerPrices(paramsOmitted);
@@ -7642,7 +7642,7 @@ public class Kucoin extends KucoinApi
         String tradeType = this.safeString(order, "tradeType");
         List<String> utaTradeTypes = new ArrayList<String>(Arrays.asList("SPOT", "CROSS", "ISOLATED", "FUTURES")); // tradeType specific for uta endpoint
         Boolean isUtaOrder = this.inArray(tradeType, utaTradeTypes);
-        if (((Map<?, ?>)order).containsKey("sizeUnit"))
+        if (!java.util.Objects.equals(this.safeString(order, "sizeUnit"), null))
         {
             isUtaOrder = true;
         }
@@ -8723,7 +8723,7 @@ public class Kucoin extends KucoinApi
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
     {
-        if (((Map<?, ?>)trade).containsKey("liquidityRole"))
+        if (!java.util.Objects.equals(this.safeString(trade, "liquidityRole"), null))
         {
             return this.parseMyUtaTrade((Map<String, Object>) (trade), market);
         }
@@ -8836,7 +8836,7 @@ public class Kucoin extends KucoinApi
         Long createdAt = this.safeInteger(trade, "createdAt");
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         Long timestamp = createdAt;
-        if ((trade.containsKey("dealValue")) && (!java.util.Objects.equals(createdAt, null)))
+        if ((!java.util.Objects.equals(this.safeString(trade, "dealValue"), null)) && (!java.util.Objects.equals(createdAt, null)))
         {
             timestamp = (createdAt * 1000L);
         }
@@ -8974,7 +8974,7 @@ public class Kucoin extends KucoinApi
         Long createdAt = this.safeInteger(trade, "createdAt");
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         Long timestamp = createdAt;
-        if ((trade.containsKey("dealValue")) && (!java.util.Objects.equals(createdAt, null)))
+        if ((!java.util.Objects.equals(this.safeString(trade, "dealValue"), null)) && (!java.util.Objects.equals(createdAt, null)))
         {
             timestamp = (createdAt * 1000L);
         }
@@ -12092,7 +12092,7 @@ public class Kucoin extends KucoinApi
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
-            put( "leverage", String.valueOf(leverage) );
+            put( "leverage", Kucoin.this.numberToString(leverage) );
         }};
         Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
         Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarginMode), "setLeverage", "uta", uta);
@@ -13094,10 +13094,10 @@ public class Kucoin extends KucoinApi
         Long lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (java.util.Objects.equals(lastUpdateTimestamp, null))
         {
-            if (position.containsKey("closingTime"))
+            if (!java.util.Objects.equals(this.safeString(position, "closingTime"), null))
             {
                 lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
-            } else if (position.containsKey("updateTime"))
+            } else if (!java.util.Objects.equals(this.safeString(position, "updateTime"), null))
             {
                 lastUpdateTimestamp = this.safeIntegerProduct(position, "updateTime", 0.000001);
             }

@@ -789,8 +789,8 @@ public class Grvt extends GrvtApi
         {
             throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
         }
-        (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
-        (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+        (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+        (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         (this.loadAccountInfos()).join();
         return true;
 
@@ -2768,7 +2768,7 @@ public class Grvt extends GrvtApi
 
     public Long convertToBigIntCustom(Object x)
     {
-        return ((Long) (switch ((Object) (Long.parseLong(this.numberToString(x)))) { case null -> (Long) null; case Long hx4J40v3 -> hx4J40v3; case Number hx4J40v3 -> Long.valueOf(hx4J40v3.longValue()); case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v3.getClass().getName()); }));
+        return this.parseToInt(x);
     }
 
     public Map<String, Object> eipMessageForOrder(Map<String, Object> order, String structureType)
@@ -2790,7 +2790,7 @@ public class Grvt extends GrvtApi
             List<Object> sizeParts = new ArrayList<Object>(Arrays.asList(((String)size).split(java.util.regex.Pattern.quote("."))));
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = (((long) sizeDec.length()) + 0L); // php tr
-            Long sizeDigits = Long.parseLong((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")));
+            Long sizeDigits = this.parseToInt((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")));
             Object denominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(sizeDecLength, null)));
             Object sizeInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(Helpers.multiply(sizeDigits, sizeMultiplier), denominator);
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
@@ -2805,7 +2805,7 @@ public class Grvt extends GrvtApi
                 List<Object> limitParts = new ArrayList<Object>(Arrays.asList(((String)price).split(java.util.regex.Pattern.quote("."))));
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = (((long) limitDec.length()) + 0L); // php tr
-                Long priceDigits = Long.parseLong((price == null ? null : ((String)price).replaceFirst(java.util.regex.Pattern.quote("."), "")));
+                Long priceDigits = this.parseToInt((price == null ? null : ((String)price).replaceFirst(java.util.regex.Pattern.quote("."), "")));
                 denominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(limitDecLength, null)));
                 Object priceInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((priceDigits * ((long) priceMultiplier)), denominator);
                 legOrder.put("limitPrice", this.parseToInt(priceInteger));
@@ -2829,7 +2829,7 @@ public class Grvt extends GrvtApi
         if (java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE") && Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
         {
             returnValue.put("builder", order.get("builder"));
-            returnValue.put("builderFee", this.parseToInt(Helpers.multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), Double.parseDouble(this.safeString(order, "builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue.put("builderFee", this.parseToInt(Precise.stringMul(this.numberToString(this.feeAmountMultiplier()), this.safeString(order, "builder_fee", "0"))));
         }
         return returnValue;
     }
@@ -3693,7 +3693,7 @@ public class Grvt extends GrvtApi
         //        "ack": true
         //    }
         //
-        if (((Map<?, ?>)order).containsKey("ack"))
+        if (!java.util.Objects.equals(this.safeBool(order, "ack", (Object) null), null))
         {
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
@@ -3909,7 +3909,7 @@ public class Grvt extends GrvtApi
         if (java.util.Objects.equals(structureType, "EIP712_TRANSFER_TYPE"))
         {
             Long amountMultiplier = this.convertToBigIntCustom("1000000");
-            Object amountInt = Helpers.multiply(request.get("num_tokens"), amountMultiplier);
+            String amountInt = Precise.stringMul(this.safeString(request, "num_tokens", "0"), this.numberToString(amountMultiplier));
             if (java.util.Objects.equals(currencyObj, null))
             {
                 throw new ExchangeError((this.id + " createSignedRequest() missing currencyObj")) ;
@@ -3938,7 +3938,7 @@ public class Grvt extends GrvtApi
                 hx4NewMap2.put("fromAccount", request.get("from_account_id"));
                 hx4NewMap2.put("toEthAddress", request.get("to_eth_address"));
                 hx4NewMap2.put("tokenCurrency", currencyObj.get("numericId"));
-                hx4NewMap2.put("numTokens", this.parseToInt(Helpers.multiply(request.get("num_tokens"), amountMultiplier)));
+                hx4NewMap2.put("numTokens", this.parseToInt(Precise.stringMul(this.safeString(request, "num_tokens", "0"), this.numberToString(amountMultiplier))));
                 hx4NewMap2.put("nonce", requestSignature.get("nonce"));
                 hx4NewMap2.put("expiration", requestSignature.get("expiration"));
                 messageData = hx4NewMap2;
@@ -3952,8 +3952,8 @@ public class Grvt extends GrvtApi
             messageData = new HashMap<String, Object>() {{
                 put( "mainAccountID", request.get("main_account_id") );
                 put( "builderAccountID", request.get("builder_account_id") );
-                put( "maxFutureFeeRate", Grvt.this.parseToInt(((amountMultiplier == null) ? null : (Double.parseDouble(Grvt.this.safeString(request, "max_futures_fee_rate")) * ((double) amountMultiplier)))) );
-                put( "maxSpotFeeRate", Grvt.this.parseToInt(((amountMultiplier == null) ? null : (Double.parseDouble(Grvt.this.safeString(request, "max_spot_fee_rate")) * ((double) amountMultiplier)))) );
+                put( "maxFutureFeeRate", Grvt.this.parseToInt(Precise.stringMul(Grvt.this.safeString(request, "max_futures_fee_rate", "0"), Grvt.this.numberToString(amountMultiplier))) );
+                put( "maxSpotFeeRate", Grvt.this.parseToInt(Precise.stringMul(Grvt.this.safeString(request, "max_spot_fee_rate", "0"), Grvt.this.numberToString(amountMultiplier))) );
                 put( "nonce", requestSignature.get("nonce") );
                 put( "expiration", requestSignature.get("expiration") );
             }};

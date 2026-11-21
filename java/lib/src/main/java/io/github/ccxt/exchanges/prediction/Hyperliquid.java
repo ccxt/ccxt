@@ -394,7 +394,8 @@ public class Hyperliquid extends HyperliquidApi
                         {
                             bucketLabel = ((("BETWEEN_" + (thresholds == null || ((int) (index - 1L)) < 0 || ((int) (index - 1L)) >= thresholds.size() ? null : thresholds.get(((int) (index - 1L))))) + "_") + (thresholds == null || index == null || index.intValue() < 0 || index.intValue() >= thresholds.size() ? null : thresholds.get(index.intValue())));
                         }
-                        return (((questionUnderlying.toUpperCase() + "_") + bucketLabel) + questionExpiryPart);
+                        String upperUnderlying = questionUnderlying.toUpperCase();
+                        return (((upperUnderlying + "_") + bucketLabel) + questionExpiryPart);
                     }
                 }
                 Boolean isFallbackLike = (java.util.Objects.equals(rawDescription, "other")) || (((String)nameLower).indexOf("fallback") >= 0) || (((String)nameLower).indexOf("other") >= 0);

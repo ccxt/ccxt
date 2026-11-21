@@ -1985,7 +1985,8 @@ public class Bitrue extends BitrueApi
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell"; // this is a true side
         }
         Map<String, Object> fee = null;
-        if (((Map<?, ?>)trade).containsKey("commission"))
+        String commission = this.safeString(trade, "commission");
+        if (!java.util.Objects.equals(commission, null))
         {
             fee = new HashMap<String, Object>() {{
                 put( "cost", Bitrue.this.safeString2(trade, "commission", "fee") );
@@ -2150,22 +2151,25 @@ public class Bitrue extends BitrueApi
         String filled = this.safeString(order, "executedQty");
         Long timestamp = null;
         Long lastTradeTimestamp = null;
-        if (((Map<?, ?>)order).containsKey("time"))
+        Long time = this.safeInteger(order, "time");
+        Long transactTime = this.safeInteger(order, "transactTime");
+        Long updateTime = this.safeInteger(order, "updateTime");
+        if (!java.util.Objects.equals(time, null))
         {
-            timestamp = this.safeInteger(order, "time");
-        } else if (((Map<?, ?>)order).containsKey("transactTime"))
+            timestamp = time;
+        } else if (!java.util.Objects.equals(transactTime, null))
         {
-            timestamp = this.safeInteger(order, "transactTime");
-        } else if (((Map<?, ?>)order).containsKey("updateTime"))
+            timestamp = transactTime;
+        } else if (!java.util.Objects.equals(updateTime, null))
         {
             if (java.util.Objects.equals(status, "open"))
             {
                 if (Precise.stringGt(filled, "0"))
                 {
-                    lastTradeTimestamp = this.safeInteger(order, "updateTime");
+                    lastTradeTimestamp = updateTime;
                 } else
                 {
-                    timestamp = this.safeInteger(order, "updateTime");
+                    timestamp = updateTime;
                 }
             }
         }
@@ -3210,10 +3214,10 @@ public class Bitrue extends BitrueApi
         String txid = this.safeString(transaction, "txid");
         Long timestamp = this.safeInteger(transaction, "createdAt");
         Long updated = this.safeInteger(transaction, "updatedAt");
-        Boolean payAmount = (transaction.containsKey("payAmount"));
-        Boolean ctime = (transaction.containsKey("ctime"));
+        String payAmount = this.safeString(transaction, "payAmount");
+        String ctime = this.safeString(transaction, "ctime");
         String type = "deposit";
-        if (Boolean.TRUE.equals(payAmount) || Boolean.TRUE.equals(ctime))
+        if ((!java.util.Objects.equals(payAmount, null)) || (!java.util.Objects.equals(ctime, null)))
         {
             type = "withdrawal";
         }

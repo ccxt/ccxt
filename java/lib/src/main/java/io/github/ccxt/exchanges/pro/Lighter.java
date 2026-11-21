@@ -1365,7 +1365,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             for (var i = 0; i < assetIds.size(); i++)
             {
                 String assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
-                Map<String, Object> asset = this.safeDict(assets, assetId, null);
+                Map<String, Object> asset = this.safeDict(assets, assetId, new HashMap<String, Object>() {{}});
                 String codeId = this.safeString(asset, "symbol");
                 String code = this.safeCurrencyCode((String) (codeId), (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
@@ -1941,8 +1941,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 String subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
                 if ((subscriptionHash.startsWith(((String)"ticker"))))
                 {
-                    Map<String, Object> subscription = this.safeDict(client.subscriptions, subscriptionHash, null);
-                    Map<String, Object> subscriptionParams = this.safeDict(subscription, "params", null);
+                    Map<String, Object> subscription = this.safeDict(client.subscriptions, subscriptionHash, new HashMap<String, Object>() {{}});
+                    Map<String, Object> subscriptionParams = this.safeDict(subscription, "params", new HashMap<String, Object>() {{}});
                     String subscribedChannel = this.safeString(subscriptionParams, "channel");
                     if (java.util.Objects.equals(subscribedChannel, "market_stats/all"))
                     {

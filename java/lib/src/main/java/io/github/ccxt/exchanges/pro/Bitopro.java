@@ -539,7 +539,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         this.extendExchangeOptions(defaultOptions);
         Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> wsInnerOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
-        Object originalHeaders = wsInnerOptions.get("headers");
+        Map<String, Object> originalHeaders = this.safeDict(wsInnerOptions, "headers", null);
         Map<String, Object> headers = new HashMap<String, Object>() {{
             put( "X-BITOPRO-API", "ccxt" );
             put( "X-BITOPRO-APIKEY", Bitopro.this.apiKey );

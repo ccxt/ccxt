@@ -2892,9 +2892,9 @@ public class Coinbase extends CoinbaseApi
         Double ask = this.safeNumber(ticker, "ask", (Object) null);
         Double bidVolume = null;
         Double askVolume = null;
-        if ((((Map<?, ?>)ticker).containsKey("bids")))
+        List<Object> bids = this.safeList(ticker, "bids", null);
+        if (!java.util.Objects.equals(bids, null))
         {
-            List<Object> bids = this.safeList(ticker, "bids", new ArrayList<Object>(Arrays.asList()));
             List<Object> asks = this.safeList(ticker, "asks", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> firstBid = this.safeDict(bids, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> firstAsk = this.safeDict(asks, 0, new HashMap<String, Object>() {{}});
@@ -4082,7 +4082,14 @@ public class Coinbase extends CoinbaseApi
             postOnly = this.safeBool(target, "post_only", (Object) null);
         } else if (Boolean.TRUE.equals(isStop))
         {
-            Map<String, Object> stopTarget = (((!java.util.Objects.equals(stopLimitGTC, null)))) ? stopLimitGTC : stopLimitGTD;
+            Map<String, Object> stopTarget = null;
+            if (!java.util.Objects.equals(stopLimitGTC, null))
+            {
+                stopTarget = stopLimitGTC;
+            } else
+            {
+                stopTarget = stopLimitGTD;
+            }
             price = this.safeString(stopTarget, "limit_price");
             amount = this.safeString(stopTarget, "base_size");
             postOnly = this.safeBool(stopTarget, "post_only", (Object) null);

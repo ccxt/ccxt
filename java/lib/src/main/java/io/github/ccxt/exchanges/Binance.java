@@ -7059,14 +7059,14 @@ public class Binance extends BinanceApi
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
         request.put("limit", limitValue);
-        String marketId = (String) market.get("id");
+        String marketId = this.safeString(market, "id");
         if (java.util.Objects.equals(marketId, null))
         {
             throw new ExchangeError((this.id + " fetchOHLCV() missing marketId")) ;
         }
         if (java.util.Objects.equals(price, "index"))
         {
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(marketId.split(java.util.regex.Pattern.quote("_"))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
             String pair = this.safeString(parts, 0);
             request.put("pair", pair); // Index price takes this argument instead of symbol
         } else
@@ -7396,7 +7396,7 @@ public class Binance extends BinanceApi
             marketType = "spot";
         }
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String side = null;
         Boolean buyerMaker = (Boolean) this.safeBool2(trade, "m", "isBuyerMaker", (Object) null);
         String takerOrMaker = null;
@@ -8858,7 +8858,7 @@ public class Binance extends BinanceApi
             marketType = "contract";
         }
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("executedQty", "filledQty", "actualQty")), "0"); // actualQty: algo orders
         Long timestamp = this.safeInteger2(order, "time", "createTime"); // order of the keys matters here
         if (java.util.Objects.equals(timestamp, null))
@@ -13628,7 +13628,7 @@ public class Binance extends BinanceApi
             for (var i = 0; i < fees.size(); i++)
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
-                String symbol = (String) fee.get("symbol");
+                String symbol = this.safeString(fee, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     spotFees.put(symbol, fee);
@@ -15026,7 +15026,7 @@ public class Binance extends BinanceApi
         //
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "quantity");
         if (!java.util.Objects.equals(side, "long"))

@@ -239,7 +239,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String marketId = this.safeString(data, "market");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             this.tickers.put(symbol, ticker);
             ((List<Object>)result).add(ticker);
             if (!java.util.Objects.equals(eventVar, null))
@@ -363,7 +363,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String marketId = this.safeString(message, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String name = "trades";
         String messageHash = ((name + "@") + this.safeString(message, "market", ""));
         Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, market);
@@ -518,9 +518,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String name = "candles";
-        String marketId = (String) market.get("id");
+        String marketId = this.safeString(market, "id");
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String messageHash = ((((name + "@") + this.safeString(market, "id", "")) + "_") + interval);
         String url = this.safeString(this.urls.get("api"), "ws");
@@ -582,7 +582,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String name = "candles";
         String marketId = this.safeString(message, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String interval = this.safeString(message, "interval", "");
         // use a reverse lookup in a static map instead
         String timeframe = this.findTimeframe(interval, (Object) null);
@@ -780,7 +780,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String name = "book";
         String messageHash = ((name + "@") + this.safeString(market, "id", ""));
         String url = this.safeString(this.urls.get("api"), "ws");
@@ -978,7 +978,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String eventVar = this.safeString(message, "event", "");
         String marketId = this.safeString(message, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol");
         String messageHash = ((eventVar + "@") + this.safeString(message, "market", ""));
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -1234,8 +1234,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
-        String marketId = (String) market.get("id");
+        String symbolValue = this.safeString(market, "symbol");
+        String marketId = this.safeString(market, "id");
         String url = this.safeString(this.urls.get("api"), "ws");
         String name = "account";
         String messageHash = ("order:" + symbolValue);
@@ -1284,8 +1284,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
-        String marketId = (String) market.get("id");
+        String symbolValue = this.safeString(market, "symbol");
+        String marketId = this.safeString(market, "id");
         String url = this.safeString(this.urls.get("api"), "ws");
         String name = "account";
         String messageHash = ("myTrades:" + symbolValue);
@@ -2144,7 +2144,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String marketId = this.safeString(message, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol");
         String messageHash = ("order:" + symbol);
         Map<String, Object> order = (Map<String, Object>) this.parseOrder(message, market);
         if (java.util.Objects.equals(this.orders, null))
@@ -2176,7 +2176,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String marketId = this.safeString(message, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol");
         String messageHash = ("myTrades:" + symbol);
         Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, market);
         if (java.util.Objects.equals(this.myTrades, null))

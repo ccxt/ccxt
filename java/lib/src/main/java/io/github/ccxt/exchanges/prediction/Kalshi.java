@@ -2819,8 +2819,11 @@ public class Kalshi extends KalshiApi
             Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
             for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
             {
-                Map<String, Object> m = (Map<String, Object>) (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
-                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(m.get("market"), m);
+                String marketKey = this.safeString((parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi)), "market");
+                if (!java.util.Objects.equals(marketKey, null))
+                {
+                    this.markets.put(marketKey, (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi)));
+                }
             }
         }
         this.populateOutcomes();

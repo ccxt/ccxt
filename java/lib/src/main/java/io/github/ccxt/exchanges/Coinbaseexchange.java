@@ -1270,7 +1270,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             List<Object> entry = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             result.put(symbol, this.parseTickerList(this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList())), market));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
@@ -1402,7 +1402,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         }
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "size");
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", id);
         mapLiteral3.put("order", orderId);
@@ -2047,7 +2047,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request.put("funds", this.costToPrecision(symbol, costParam));
             } else if (!java.util.Objects.equals(price, null))
             {
-                request.put("funds", this.costToPrecision(symbol, Helpers.multiply(amount, price)));
+                request.put("funds", this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
             } else
             {
                 request.put("size", this.amountToPrecision(symbol, amount));
@@ -2818,12 +2818,10 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
     {
 
         Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
-        if (!(response instanceof String))
+        String message = this.safeString(response, "message");
+        if (!java.util.Objects.equals(message, null))
         {
-            if ((switch ((Object)(response)) { case List<?> j39v3 -> j39v3.contains("message"); case Map<?, ?> j39v2 -> j39v2.containsKey("message"); case null, default -> false; }))
-            {
-                throw new ExchangeError(((this.id + " ") + this.json(response))) ;
-            }
+            throw new ExchangeError(((this.id + " ") + this.json(response))) ;
         }
         return response;
 

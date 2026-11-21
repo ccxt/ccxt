@@ -3417,7 +3417,6 @@ public class Blofin extends BlofinApi
         }
         if (java.util.Objects.equals(clientOrderIds, null))
         {
-            Object orderIds = (List<String>)(this.parseIds(ids));
             if (!java.util.Objects.equals(tpslIds, null))
             {
                 for (var i = 0; i < ((List<?>)tpslIds).size(); i++)
@@ -3428,18 +3427,18 @@ public class Blofin extends BlofinApi
                     ((List<Object>)request).add(j39v1);
                 }
             }
-            for (var i = 0; i < ((List<?>)orderIds).size(); i++)
+            for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 if (java.util.Objects.equals(trigger, true))
                 {
                     HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("tpslId", this.safeString(orderIds, i));
+                    j39v2.put("tpslId", this.safeString(ids, i));
                     j39v2.put("instId", market.get("id"));
                     ((List<Object>)request).add(j39v2);
                 } else
                 {
                     HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("orderId", this.safeString(orderIds, i));
+                    j39v3.put("orderId", this.safeString(ids, i));
                     j39v3.put("instId", market.get("id"));
                     ((List<Object>)request).add(j39v3);
                 }

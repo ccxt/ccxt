@@ -187,7 +187,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String timestamp = String.valueOf(this.nonce());
         String payload = (timestamp + "/v3/ws/private");
         String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
-        Map<String, Object> originalHeaders = this.safeDict(Helpers.GetValue(this.options.get("ws"), "options"), "headers", null);
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsInnerOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        Map<String, Object> originalHeaders = this.safeDict(wsInnerOptions, "headers", new HashMap<String, Object>() {{}});
         String userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
         Map<String, Object> extendedOptions = new HashMap<String, Object>();
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -435,13 +437,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //
         Long timestamp = this.safeInteger(ticker, "C");
         String close = this.safeString(ticker, "c");
-        Object symbol = null;
-        if (java.util.Objects.equals(market, null))
+        String symbol = null;
+        if (!java.util.Objects.equals(market, null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = market.get("symbol");
+            symbol = this.safeString(market, "symbol");
         }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("symbol", symbol);
@@ -682,13 +681,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //     }
         //
         Long timestamp = this.safeInteger(trade, "T");
-        Object symbol = null;
-        if (java.util.Objects.equals(market, null))
+        String symbol = null;
+        if (!java.util.Objects.equals(market, null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = market.get("symbol");
+            symbol = this.safeString(market, "symbol");
         }
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         String side = null;
@@ -1344,7 +1340,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return;
         }
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(message, market);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             this.bidsasks.put(symbol, ticker);
@@ -1356,13 +1352,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
     public Object parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(message, "E");
-        Object symbol = null;
-        if (java.util.Objects.equals(market, null))
+        String symbol = null;
+        if (!java.util.Objects.equals(market, null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = market.get("symbol");
+            symbol = this.safeString(market, "symbol");
         }
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("symbol", symbol);

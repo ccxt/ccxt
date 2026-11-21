@@ -589,9 +589,9 @@ public class Lighter extends LighterApi
 
     public Object getLighterPrivateKey(String strAccountIndex, String strApiKeyIndex)
     {
-        Map<String, Object> auths = this.safeDict(this.options, "auths", null);
-        Map<String, Object> accountAuths = this.safeDict(auths, strAccountIndex, null);
-        Map<String, Object> apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex, null);
+        Map<String, Object> auths = this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountAuths = this.safeDict(auths, strAccountIndex, new HashMap<String, Object>() {{}});
+        Map<String, Object> apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex, new HashMap<String, Object>() {{}});
         return this.safeString(apiKeyAuths, "lighterPrivateKey");
     }
 
@@ -768,9 +768,9 @@ public class Lighter extends LighterApi
             Object res = this.handleOptionAndParams2(new HashMap<String, Object>() {{}}, "createAuth", "accountIndex", "account_index", (Object) null);
             accountIndex = this.safeString(res, 0);
         }
-        Map<String, Object> auths = this.safeDict(this.options, "auths", null);
-        Map<String, Object> accountAuths = this.safeDict(auths, accountIndex, null);
-        Map<String, Object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex, null);
+        Map<String, Object> auths = this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountAuths = this.safeDict(auths, accountIndex, new HashMap<String, Object>() {{}});
+        Map<String, Object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex, new HashMap<String, Object>() {{}});
         Long cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         Long minimumRemaining = this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60);
         if ((!java.util.Objects.equals(cachedDeadline, null)) && (!java.util.Objects.equals(minimumRemaining, null)) && (((cachedDeadline - minimumRemaining) >= (this.seconds()))))
@@ -2391,13 +2391,13 @@ public class Lighter extends LighterApi
         List<Object> accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < accounts.size(); i++)
         {
-            Map<String, Object> account = this.safeDict(accounts, i, null);
+            Map<String, Object> account = this.safeDict(accounts, i, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(type, "spot"))
             {
                 List<Object> assets = this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < assets.size(); j++)
                 {
-                    Map<String, Object> asset = this.safeDict(assets, j, null);
+                    Map<String, Object> asset = this.safeDict(assets, j, new HashMap<String, Object>() {{}});
                     String codeId = this.safeString(asset, "symbol");
                     String code = this.safeCurrencyCode(codeId, (Map<String, Object>) null);
                     Map<String, Object> balance = this.extend(this.account(), this.safeDict(result, code, new HashMap<String, Object>() {{}}));
@@ -2532,7 +2532,7 @@ public class Lighter extends LighterApi
         List<Object> accounts = this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < accounts.size(); i++)
         {
-            Map<String, Object> account = this.safeDict(accounts, i, null);
+            Map<String, Object> account = this.safeDict(accounts, i, new HashMap<String, Object>() {{}});
             List<Object> positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < positions.size(); j++)
             {

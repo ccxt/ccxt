@@ -4354,20 +4354,21 @@ public class Bingx extends BingxApi
             result = data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        Map<String, Object> fixedMembers = new HashMap<String, Object>() {{}};
         Map<String, Object> stopLossDict = this.safeDict(result, "stopLoss", null);
         String stopLoss = this.safeString(result, "stopLoss");
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if ((java.util.Objects.equals(stopLossDict, null)) && (!java.util.Objects.equals(stopLoss, null)) && ((((String)stopLoss).indexOf("{") == 0)))
         {
-            Helpers.addElementToObject(result, "stopLoss", this.parseJson(stopLoss));
+            fixedMembers.put("stopLoss", this.parseJson(stopLoss));
         }
         String takeProfit = this.safeString(result, "takeProfit");
         if ((!java.util.Objects.equals(takeProfit, null)) && ((((String)takeProfit).indexOf("{") == 0)))
         {
-            Helpers.addElementToObject(result, "takeProfit", this.parseJson(takeProfit));
+            fixedMembers.put("takeProfit", this.parseJson(takeProfit));
         }
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(result, fixedMembers), market);
 
     }
 

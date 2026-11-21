@@ -3829,17 +3829,15 @@ public class Extended extends ExtendedApi
         {
             market = this.market(symbol);
         }
-        Map<String, Object> response = null;
-        Map<String, Object> order = null;
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("externalId", clientOrderId);
-            response = (this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted))).join();
             List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            order = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            return this.parseOrder(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
         } else
         {
             if (java.util.Objects.equals(id, null))
@@ -3848,10 +3846,10 @@ public class Extended extends ExtendedApi
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("id", id);
-            response = (this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted))).join();
-            order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseOrder(order, market);
         }
-        return this.parseOrder(order, market);
 
     }
 

@@ -1982,9 +1982,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         List<Object> unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < subMessageHashes.size(); i++)
         {
-            String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-            String unsubHash = (String) (unsubMessageHashes == null || i < 0 || i >= unsubMessageHashes.size() ? null : unsubMessageHashes.get(i));
-            this.cleanUnsubscription(client, subHash, unsubHash, false);
+            String subHash = this.safeString(subMessageHashes, i);
+            String unsubHash = this.safeString(unsubMessageHashes, i);
+            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), false);
         }
         this.cleanCache(subscription);
     }

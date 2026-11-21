@@ -2006,7 +2006,8 @@ public class Bitvavo extends BitvavoApi
         {
             request.put("orderId", id);
         }
-        Object operatorId = ((List<Object>)this.handleOptionAndParams(paramsOmitted, "editOrder", "operatorId", (Object) null)).get(0);
+        List<Object> operatorIdVariable = (List<Object>) this.handleOptionAndParams(paramsOmitted, "editOrder", "operatorId", (Object) null);
+        var operatorId = ((List<Object>) operatorIdVariable).get(0);
         if (!java.util.Objects.equals(operatorId, null))
         {
             request.put("operatorId", this.parseToInt(operatorId));

@@ -2310,33 +2310,52 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                         // accumulate order fees
                         List<Object> fees = this.safeList(order, "fees", new ArrayList<Object>(Arrays.asList()));
                         Map<String, Object> fee = this.safeDict(order, "fee", null);
+                        String tradeFeeCurrency = this.safeString(tradeFee, "currency");
+                        Double tradeFeeCost = this.safeNumber(tradeFee, "cost", (Object) null);
                         if (!this.isEmpty(fees))
                         {
                             Boolean insertNewFeeCurrency = true;
+                            List<Object> newFees = new ArrayList<Object>(Arrays.asList());
                             for (var i = 0; i < fees.size(); i++)
                             {
-                                Map<String, Object> orderFee = (Map<String, Object>) (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
-                                if (java.util.Objects.equals(this.safeString(orderFee, "currency"), this.safeString(tradeFee, "currency")))
+                                Map<String, Object> orderFee = this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
+                                if (Boolean.TRUE.equals(insertNewFeeCurrency) && java.util.Objects.equals(this.safeString(orderFee, "currency"), tradeFeeCurrency))
                                 {
-                                    Object feeCost = this.sum(tradeFee.get("cost"), orderFee.get("cost"));
-                                    String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
-                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Double.parseDouble(feeCostString));
+                                    Object feeCost = this.sum(tradeFeeCost, this.safeNumber(orderFee, "cost", (Object) null));
+                                    String feeCostString = (String) this.currencyToPrecision((String) (tradeFeeCurrency), feeCost, (String) null);
+                                    if (!java.util.Objects.equals(feeCostString, null))
+                                    {
+                                        orderFee.put("cost", Double.parseDouble(feeCostString));
+                                    } else
+                                    {
+                                        orderFee.put("cost", null);
+                                    }
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                ((List<Object>)newFees).add(orderFee);
                             }
                             if (Boolean.TRUE.equals(insertNewFeeCurrency))
                             {
-                                ((List<Object>)order.get("fees")).add(tradeFee);
+                                ((List<Object>)newFees).add(tradeFee);
                             }
+                            order.put("fees", newFees);
                         } else if (!java.util.Objects.equals(fee, null))
                         {
-                            if (java.util.Objects.equals(this.safeString(fee, "currency"), this.safeString(tradeFee, "currency")))
+                            String feeCurrency = this.safeString(fee, "currency");
+                            if (java.util.Objects.equals(feeCurrency, tradeFeeCurrency))
                             {
-                                Object feeCost = this.sum(fee.get("cost"), tradeFee.get("cost"));
-                                String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, (String) null);
-                                Helpers.addElementToObject(order.get("fee"), "cost", (((java.util.Objects.equals(feeCostString, null)))) ? null : Double.parseDouble(feeCostString));
-                            } else if (java.util.Objects.equals(this.safeString(fee, "currency"), null))
+                                Object feeCost = this.sum(this.safeNumber(fee, "cost", (Object) null), tradeFeeCost);
+                                String feeCostString = (String) this.currencyToPrecision((String) (tradeFeeCurrency), feeCost, (String) null);
+                                Map<String, Object> newFee = this.extend(new HashMap<String, Object>() {{}}, fee);
+                                if (!java.util.Objects.equals(feeCostString, null))
+                                {
+                                    newFee.put("cost", Double.parseDouble(feeCostString));
+                                } else
+                                {
+                                    newFee.put("cost", null);
+                                }
+                                order.put("fee", newFee);
+                            } else if (java.util.Objects.equals(feeCurrency, null))
                             {
                                 order.put("fee", tradeFee);
                             } else
