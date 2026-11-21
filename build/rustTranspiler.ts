@@ -8947,6 +8947,17 @@ const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt' | 'built']> = [
     ['create_signed_request', 'built'],
     ['eip_domain_data', 'built'],
     ['parse_bid_ask_custom', 'built'],
+    ['cancel_order_request', 'built'],
+    ['query_contracts', 'built'],
+    ['handle_pagination_params', 'built'],
+    ['cancel_all_orders_request', 'built'],
+    ['fetch_dydx_account', 'built'],
+    ['fetch_sxbet_book_snapshot', 'built'],
+    ['retrieve_account', 'built'],
+    ['fetch_sxbet_proxy', 'built'],
+    ['get_system_config', 'built'],
+    ['fetch_extended_account', 'built'],
+    ['prepare_ws_stock_params', 'built'],
 ];
 function rustTypedDictProducers (content: string): string {
     const parseOrder = '<Self as crate::exchange::DerivedExchange>::parse_order(', boxOrder = '.map_or(Value::Null, Value::Dict)';
@@ -8962,6 +8973,7 @@ function rustTypedDictProducers (content: string): string {
             if (end < 0) throw new Error (fn + ': declaration without the Value::Null tail');
             let body = content.slice (open, end);
             const rets = body.match (/^ *return\b[^\n]*$/gm) ?? [];
+            if (rowKind === 'built') body = h30R02DictReturns (body);
             if (rowKind === 'built') {
                 body = rustBuiltDictReturns (fn, body);
             } else if (kind === 'dict') {
@@ -9016,6 +9028,31 @@ function rustBuiltDictReturns (fn: string, body: string): string {
     return parts.join ('') + body.slice (at);
 }
 // ===== end h29-R02
+// ===== h30-R02
+// `extend` always builds a map, `safe_dict_k` with a map default always answers a map, and a returned Dict local is
+// one: box them as `Value::Dict(..)` through their typed twins so `rustBuiltDictReturns` proves the row.
+function h30R02DictReturns (body: string): string {
+    const head = /^( *)return (self\.extend\(|self\.safe_dict_k\(|Value::from\(&(\w+)\);$)/gm;
+    let out = '', at = 0, m: RegExpExecArray | null;
+    while ((m = head.exec (body)) !== null) {
+        const start = m.index + m[1].length + 'return '.length;
+        if (m[3] !== undefined) {
+            if (!new RegExp ('^ *let (?:mut )?' + m[3] + ': crate::value::Dict = ', 'm').test (body)) continue;
+            out += body.slice (at, start) + 'Value::Dict(' + m[3] + ');'; at = start + m[2].length; continue;
+        }
+        const open = start + m[2].length, close = balancedCloseIndex (body, open);
+        if (body[close + 1] !== ';') continue;
+        let call = 'self.extend_t(' + body.slice (open, close + 1);
+        if (m[2] === 'self.safe_dict_k(') {
+            const args = body.slice (open, close), dflt = args.indexOf (', &[Value::Map({');
+            if (dflt < 0 || !args.endsWith ('})]') || balancedCloseIndex (args, dflt + ', &['.length) !== args.length - 1) continue;
+            call = 'self.safe_dict_k_or(' + args.slice (0, dflt) + ', ' + args.slice (dflt + ', &['.length, -1) + ')';
+        }
+        out += body.slice (at, start) + 'Value::Dict(' + call + ')'; at = close + 1;
+    }
+    return out + body.slice (at);
+}
+// ===== end h30-R02
 // A string key read on a local declared `crate::types::Market` reads the market's own map and moves nothing out of a
 // temporary: print the borrowed map read (`Some` for a string entry, `None` otherwise, exactly as `into_opt_string`).
 // `Value::Arr(self.symbols.clone()).into_opt_list()` is always `Some(..)` of the typed list.
