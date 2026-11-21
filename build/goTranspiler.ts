@@ -11081,6 +11081,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goErrValuePass (content);
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
     content = h27g26StructRowReads (content);  // struct list rows read by SafeDictMap / inline FromMap / len
+    content = h28a23StructRowPtrKeyReads (content);  // struct map rows keyed by a *string local
     content = goAsyncTupleSlotReads (content, filePath);  // again: async []any producers are received as rN.Value only after GOCHAN3
     content = goAsyncMapPairHolders (content);
     content = goAsyncMapPairs (content);
@@ -16289,6 +16290,7 @@ async function runMain () {
             [ 'go str return self test: ', goStrReturnSelfTest, true ], [ 'go any nil compare self: ', goAnyNilCompareSelfTest, true ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
             [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], [ 'go defaulted limit int64 self test: ', goDefaultedLimitInt64SelfTest, true ], goTupleTruthySelfTest,
             [ 'h27-g26 struct row reads: ', h27g26StructRowReadsSelfTest ],
+            [ 'h28-a23 struct row *string key: ', h28a23StructRowPtrKeyReadsSelfTest ],
             [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go non-nil string methods: ', goRetypeNonNilStringMethodsSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
             [ '', goFloatComparisonsWiredCheck, true ], [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
             goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], [ '', goArithHelpersWiredCheck ],
@@ -22742,3 +22744,63 @@ function h27g26StructRowReadsSelfTest (): string[] {
     return problems;
 }
 // ===== end h27-H27-G26
+// ===== h28-H28-A23: struct map rows keyed by a `*string` local, nil-tested before their FromMap
+// as goChan3StructRowNilReads (map form, also the `StructBox` seed) for a key declared `var k *string`: a nil
+// key read as absent in SafeMapTyped, so the typed read runs only under `k != nil` and the miss stays `!rowOk`
+function h28a23StructRowPtrKeyReads (content: string): string {
+    const box = /^(\t+)(?:var (\w+) map\[string\]any = ((?:ccxt\.)?)StructResultMap\((r\d*)\.Value, \3(\w+)MapToMap\)\n|var (\w+) any = nil\n\1if !((?:ccxt\.)?)StructAbsent\((r\d*)\.Value\) \{\n\1\t\6 = \7StructBox\(\8\.Value, \7(\w+)MapToMap\)\n\1\}\n)\1var (\w+) map\[string\]any = (?:ccxt\.)?SafeMapTyped\((\w+), (\w+)\)\n\1if \10 == nil \{\n/gm;
+    const edits: Edit[] = [];
+    for (let m = box.exec (content); m !== null; m = box.exec (content)) {
+        const ind = m[1];
+        const name = m[2] ?? m[6];
+        const q = m[3] ?? m[7];
+        const rv = m[4] ?? m[8];
+        const elem = m[5] ?? m[9];
+        const [ row, recv, key ] = [ m[10], m[11], m[12] ];
+        if ((recv !== name) || (elem === 'map[string]any') || (elem === 'string')) {
+            continue;
+        }
+        const [ fs0, fe0 ] = goChan3Func (content, m.index);
+        const fn = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""').replace (/^(\t*)\/\/.*$/gm, '$1');   // names in strings and comments are not reads
+        if (!new RegExp ('\\n\\t+var ' + key + ' \\*string = ').test (fn)) {
+            continue;   // the key must be a declared *string local
+        }
+        const uses = (id: string) => (fn.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
+        const from = q + elem + 'FromMap(' + row + ')';
+        const froms = fn.split (from).length - 1;
+        const boxUses = (m[2] !== undefined) ? 2 : 3;
+        if ((uses (name) !== boxUses) || (froms === 0) || (uses (row) !== 2 + froms) || (uses (row + 'Ok') !== 0)) {
+            continue;   // the box or the row is read elsewhere: keep the round trip
+        }
+        const T = q + elem;
+        const read = ind + 'var ' + name + ' map[string]' + T + ' = ' + rv + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'var ' + row + 'Ok bool\n'
+            + ind + 'if ' + key + ' != nil {\n' + ind + '\t' + row + ', ' + row + 'Ok = ' + name + '[*' + key + ']\n' + ind + '}\n' + ind + 'if !' + row + 'Ok {\n';
+        edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': read });
+        for (let at = content.indexOf (from, m.index + m[0].length); (at >= 0) && (at < fe0); at = content.indexOf (from, at + from.length)) {
+            edits.push ({ 'start': at, 'end': at + from.length, 'text': row });
+        }
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+function h28a23StructRowPtrKeyReadsSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push (msg); } };
+    const fn = (b: string) => 'func (this *X) f(ch chan AsyncResult[Ticker]) {\n\tvar k *string = market.Symbol\n\tr1 := <-this.FAsync()\n' + b + '}\n';
+    const tail = '\tvar t map[string]any = SafeMapTyped(ts, k)\n\tif t == nil {\n\t\tpanic("no " + *k)\n\t}\n\tch <- AsyncResult[Ticker]{Value: TickerFromMap(t)}\n';
+    const want = '\tvar ts map[string]Ticker = r1.Value\n\tvar t Ticker\n\tvar tOk bool\n\tif k != nil {\n\t\tt, tOk = ts[*k]\n\t}\n\tif !tOk {\n\t\tpanic("no " + *k)\n\t}\n\tch <- AsyncResult[Ticker]{Value: t}\n';
+    const srm = fn ('\t// ts and t named in a comment\n\tvar ts map[string]any = StructResultMap(r1.Value, TickerMapToMap)\n' + tail);
+    ok (h28a23StructRowPtrKeyReads (srm).includes (want), 'result map form: ' + h28a23StructRowPtrKeyReads (srm));
+    const sb = fn ('\tvar ts any = nil\n\tif !StructAbsent(r1.Value) {\n\t\tts = StructBox(r1.Value, TickerMapToMap)\n\t}\n' + tail);
+    ok (h28a23StructRowPtrKeyReads (sb).includes (want), 'struct box form: ' + h28a23StructRowPtrKeyReads (sb));
+    const anyKey = srm.replace ('var k *string', 'var k any');
+    ok (h28a23StructRowPtrKeyReads (anyKey) === anyKey, 'a non-pointer key keeps the wrap');
+    const used = srm.replace ('}\n', '}\n\tthis.Use(t)\n');
+    ok (h28a23StructRowPtrKeyReads (used) === used, 'a row read elsewhere keeps the wrap');
+    const boxUsed = sb.replace ('\tch <-', '\tthis.Use(ts)\n\tch <-');
+    ok (h28a23StructRowPtrKeyReads (boxUsed) === boxUsed, 'a box read elsewhere keeps the wrap');
+    const mapElem = srm.replace (/Ticker/g, 'map[string]any');
+    ok (h28a23StructRowPtrKeyReads (mapElem) === mapElem, 'a map-element map keeps the wrap');
+    return problems;
+}
+// ===== end h28-H28-A23
